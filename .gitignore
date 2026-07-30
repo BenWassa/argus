@@ -1,0 +1,3 @@
+# Local graphify artifacts
+.graphify_*.json
+graphify-out/
