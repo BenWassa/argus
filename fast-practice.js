@@ -157,7 +157,7 @@
         <span class="recall-flip-inner">
           <span class="recall-face recall-front">
             <span class="recall-instruction">Tap to reveal</span>
-            <strong>${front}</strong>
+            <strong></strong>
           </span>
           <span class="recall-face recall-back" aria-live="polite">
             <span class="recall-instruction">Answer</span>
@@ -171,6 +171,7 @@
       </div>
       <p class="recall-shortcuts">Tap card · swipe left/right · or use ←/→</p>`;
 
+    shell.querySelector('.recall-front strong').textContent = front;
     stage.querySelector('.session-progress')?.after(shell);
     const card = shell.querySelector('.recall-flip-card');
     const back = shell.querySelector('.recall-back strong');
