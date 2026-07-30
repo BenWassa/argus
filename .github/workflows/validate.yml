@@ -1,0 +1,81 @@
+name: Validate Argus beta
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Assemble beta
+        run: |
+          mkdir -p _site
+          unzip -q argus-pwa.zip -d _site
+          cp _site/argus-app.html _site/index.html
+          cp impeccable.css impeccable.js _site/
+          python3 - <<'PY'
+          from pathlib import Path
+
+          for name in ('argus-app.html', 'index.html'):
+              path = Path('_site') / name
+              html = path.read_text()
+              html = html.replace('#111411', '#0f1210')
+              html = html.replace('</head>', '  <link rel="stylesheet" href="./impeccable.css" />\n</head>')
+              html = html.replace('</body>', '  <script src="./impeccable.js"></script>\n</body>')
+              path.write_text(html)
+
+          manifest = Path('_site/manifest.webmanifest')
+          manifest.write_text(manifest.read_text().replace('#111411', '#0f1210'))
+
+          service_worker = Path('_site/sw.js')
+          sw = service_worker.read_text().replace('argus-v1.0.0', 'argus-v1.1.0')
+          sw = sw.replace("'./argus-icon-512.png']", "'./argus-icon-512.png', './impeccable.css', './impeccable.js']")
+          service_worker.write_text(sw)
+          PY
+
+      - name: Validate JavaScript and manifest
+        run: |
+          node --check _site/impeccable.js
+          python3 -m json.tool _site/manifest.webmanifest >/dev/null
+
+      - name: Validate deployment contract
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          required = {
+              'index.html',
+              'argus-app.html',
+              'manifest.webmanifest',
+              'sw.js',
+              'impeccable.css',
+              'impeccable.js',
+              'argus-icon-192.png',
+              'argus-icon-512.png',
+          }
+          present = {path.name for path in Path('_site').iterdir()}
+          missing = sorted(required - present)
+          assert not missing, f'Missing deployment assets: {missing}'
+
+          for name in ('index.html', 'argus-app.html'):
+              html = (Path('_site') / name).read_text()
+              assert html.count('impeccable.css') == 1, f'{name}: stylesheet injection mismatch'
+              assert html.count('impeccable.js') == 1, f'{name}: script injection mismatch'
+              assert '<meta name="viewport"' in html, f'{name}: viewport missing'
+
+          sw = Path('_site/sw.js').read_text()
+          assert 'argus-v1.1.0' in sw, 'Service-worker cache was not versioned'
+          assert './impeccable.css' in sw and './impeccable.js' in sw, 'Enhancement assets are not offline-cached'
+          PY
