@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - agent/github-pages-beta
+      - agent/impeccable-design-pass
   workflow_dispatch:
 
 permissions:
@@ -30,7 +30,27 @@ jobs:
         run: |
           mkdir -p _site
           unzip -q argus-pwa.zip -d _site
-          mv _site/argus-app.html _site/index.html
+          cp _site/argus-app.html _site/index.html
+          cp impeccable.css impeccable.js _site/
+          python3 - <<'PY'
+          from pathlib import Path
+
+          for name in ('argus-app.html', 'index.html'):
+              path = Path('_site') / name
+              html = path.read_text()
+              html = html.replace('#111411', '#0f1210')
+              html = html.replace('</head>', '  <link rel="stylesheet" href="./impeccable.css" />\n</head>')
+              html = html.replace('</body>', '  <script src="./impeccable.js"></script>\n</body>')
+              path.write_text(html)
+
+          manifest = Path('_site/manifest.webmanifest')
+          manifest.write_text(manifest.read_text().replace('#111411', '#0f1210'))
+
+          service_worker = Path('_site/sw.js')
+          sw = service_worker.read_text().replace('argus-v1.0.0', 'argus-v1.1.0')
+          sw = sw.replace("'./argus-icon-512.png']", "'./argus-icon-512.png', './impeccable.css', './impeccable.js']")
+          service_worker.write_text(sw)
+          PY
           touch _site/.nojekyll
 
       - name: Configure Pages
