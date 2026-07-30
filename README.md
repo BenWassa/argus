@@ -1,0 +1,2 @@
+# argus
+learn fieldcraft
