@@ -1,0 +1,202 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-30T00:00:00Z",
+  "title": "Design System: Argus",
+  "extensions": {
+    "colorMeta": {
+      "accent": {
+        "role": "primary",
+        "displayName": "Brass",
+        "canonical": "#d6b574",
+        "tonalRamp": ["#3d2f14", "#5c481d", "#7c6127", "#9c7a30", "#bc9a4d", "#d6b574", "#e4c791", "#f0d39a"]
+      },
+      "accent-2": {
+        "role": "primary",
+        "displayName": "Bright Brass",
+        "canonical": "#f0d39a",
+        "tonalRamp": ["#3d2f14", "#5c481d", "#7c6127", "#9c7a30", "#bc9a4d", "#d6b574", "#e4c791", "#f0d39a"]
+      },
+      "bg": {
+        "role": "neutral",
+        "displayName": "Field Black",
+        "canonical": "#0f1210",
+        "tonalRamp": ["#0f1210", "#151916", "#1b201c", "#232923", "#303730", "#465047", "#788077", "#a9b0a5"]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Olive Surface",
+        "canonical": "#151916",
+        "tonalRamp": ["#0f1210", "#151916", "#1b201c", "#232923", "#303730", "#465047", "#788077", "#a9b0a5"]
+      },
+      "surface-2": {
+        "role": "neutral",
+        "displayName": "Raised Olive",
+        "canonical": "#1b201c",
+        "tonalRamp": ["#0f1210", "#151916", "#1b201c", "#232923", "#303730", "#465047", "#788077", "#a9b0a5"]
+      },
+      "surface-3": {
+        "role": "neutral",
+        "displayName": "Lifted Olive",
+        "canonical": "#232923",
+        "tonalRamp": ["#0f1210", "#151916", "#1b201c", "#232923", "#303730", "#465047", "#788077", "#a9b0a5"]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Warm Bone",
+        "canonical": "#f4f2ea",
+        "tonalRamp": ["#0f1210", "#151916", "#1b201c", "#232923", "#303730", "#465047", "#788077", "#f4f2ea"]
+      },
+      "learning": {
+        "role": "tertiary",
+        "displayName": "Dusty Blue — Learning",
+        "canonical": "#8fb5cf",
+        "tonalRamp": ["#16232c", "#223849", "#2f4d63", "#46698a", "#6690ac", "#8fb5cf", "#b0cadf", "#d3e3ee"]
+      },
+      "survival": {
+        "role": "tertiary",
+        "displayName": "Sage — Survival",
+        "canonical": "#98b77c",
+        "tonalRamp": ["#1c2415", "#2c3a20", "#3d4f2b", "#567238", "#779653", "#98b77c", "#b7cd9e", "#d7e4c2"]
+      },
+      "tradecraft": {
+        "role": "tertiary",
+        "displayName": "Clay — Tradecraft",
+        "canonical": "#c99a82",
+        "tonalRamp": ["#2e2018", "#443023", "#5c4130", "#7a5843", "#9c765c", "#c99a82", "#dab7a3", "#ebd6ca"]
+      },
+      "danger": {
+        "role": "error",
+        "displayName": "Signal Coral",
+        "canonical": "#e0958c",
+        "tonalRamp": ["#3a1815", "#55231e", "#722f28", "#9b4038", "#c4645a", "#e0958c", "#ecb2ab", "#f6d4d0"]
+      },
+      "ok": {
+        "role": "success",
+        "displayName": "Muted Green",
+        "canonical": "#9dc5a2",
+        "tonalRamp": ["#17251a", "#263a2a", "#364f3a", "#4d6c4f", "#6f9573", "#9dc5a2", "#bcd8bf", "#dcecdd"]
+      },
+      "warning": {
+        "role": "warning",
+        "displayName": "Muted Gold",
+        "canonical": "#d8bd79",
+        "tonalRamp": ["#3a2f13", "#55461d", "#715f28", "#93803a", "#b6a058", "#d8bd79", "#e5cd98", "#f1e2c0"]
+      }
+    },
+    "typographyMeta": {
+      "page-title": { "displayName": "Page Title", "purpose": "H1 on every top-level view. No eyebrow label above it." },
+      "section-title": { "displayName": "Section Title", "purpose": "H2 for major in-page sections." },
+      "component-title": { "displayName": "Component Title", "purpose": "H3, topic titles, card/panel headings." },
+      "body": { "displayName": "Body", "purpose": "All prose. Measure capped near 68ch." },
+      "label": { "displayName": "Label", "purpose": "Metadata, kickers, stat card eyebrows. Used sparingly." }
+    },
+    "shadows": [
+      { "name": "ambient-panel", "value": "0 18px 48px rgba(0,0,0,.28)", "purpose": "Reserved for the practice panel and the due-practice surface — the single most important element per view." }
+    ],
+    "motion": [
+      { "name": "state-transition", "value": "150-200ms ease", "purpose": "Default duration for hover/focus/active feedback on buttons, chips, fields, nav." },
+      { "name": "reduced-motion-floor", "value": "0.01ms", "purpose": "prefers-reduced-motion collapses all animation/transition durations to near-zero." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "680px" },
+      { "name": "desktop", "value": "980px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The single accent-colored action per screen — Start due practice, Save topic, Begin session.",
+      "html": "<button class=\"ds-btn-primary\">Start due practice</button>",
+      "css": ".ds-btn-primary { min-height: 44px; padding: 11px 14px; border-radius: 10px; border: 1px solid #d6b574; background: #d6b574; color: #20180d; font: 700 0.86rem ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif; cursor: pointer; transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease; } .ds-btn-primary:hover { background: #f0d39a; border-color: #f0d39a; } .ds-btn-primary:active { transform: translateY(1px); } .ds-btn-primary:focus-visible { outline: 3px solid rgba(240,211,154,.32); outline-offset: 2px; }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Secondary action, same shape as primary, olive surface instead of brass.",
+      "html": "<button class=\"ds-btn-ghost\">Author a topic</button>",
+      "css": ".ds-btn-ghost { min-height: 44px; padding: 11px 14px; border-radius: 10px; border: 1px solid #465047; background: #1b201c; color: #f4f2ea; font: 700 0.86rem ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif; cursor: pointer; transition: background 0.18s ease, border-color 0.18s ease; } .ds-btn-ghost:hover { background: #232923; border-color: #59645a; } .ds-btn-ghost:focus-visible { outline: 3px solid rgba(240,211,154,.32); outline-offset: 2px; border-color: #d6b574; }"
+    },
+    {
+      "name": "Filter Chip",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Track/status filter. Active state reuses the same brass-equals-current logic as buttons and nav.",
+      "html": "<button class=\"ds-chip ds-chip-active\" aria-pressed=\"true\">Learning</button>",
+      "css": ".ds-chip { min-height: 38px; padding: 8px 11px; border-radius: 999px; border: 1px solid #303730; background: transparent; color: #f4f2ea; font: 700 0.76rem ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif; cursor: pointer; transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease; } .ds-chip:hover { border-color: #465047; } .ds-chip-active, .ds-chip[aria-pressed=\"true\"] { background: #d6b574; border-color: #d6b574; color: #20180d; } .ds-chip:focus-visible { outline: 3px solid rgba(240,211,154,.32); outline-offset: 2px; }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "field",
+      "description": "Search and form input. One step darker than surrounding surfaces for contrast.",
+      "html": "<input class=\"ds-field\" placeholder=\"Search topics\" />",
+      "css": ".ds-field { min-height: 44px; width: 100%; padding: 11px 12px; border-radius: 10px; border: 1px solid #465047; background: #121613; color: #f4f2ea; font: 400 0.86rem ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif; } .ds-field::placeholder { color: #7d857c; } .ds-field:focus-visible { outline: 3px solid rgba(240,211,154,.32); outline-offset: 2px; border-color: #d6b574; }"
+    },
+    {
+      "name": "Topic Row",
+      "kind": "custom",
+      "refersTo": "topic-row",
+      "description": "A dense index row, deliberately not a card. Trailing chevron and hairline divider signal affordance instead of shadow/lift.",
+      "html": "<button class=\"ds-topic-row\"><div class=\"ds-topic-top\"><h3 class=\"ds-topic-title\">NATO Phonetic Alphabet</h3><span class=\"ds-tag\"><span class=\"ds-status-dot\"></span>Completed</span></div><p class=\"ds-topic-scope\">The 26 letters of the NATO phonetic alphabet, tested both directions.</p><div class=\"ds-meta-row\"><span class=\"ds-tag\">Learning</span><span class=\"ds-tag\">Recall</span><span class=\"ds-tag\">26 items</span></div></button>",
+      "css": ".ds-topic-row { position: relative; display: block; width: 100%; text-align: left; border: 0; border-bottom: 1px solid #303730; border-radius: 0; padding: 15px 24px 15px 2px; background: transparent; color: #f4f2ea; cursor: pointer; transition: background 0.18s ease, padding 0.18s ease; } .ds-topic-row:hover { background: rgba(255,255,255,.018); padding-inline: 10px; } .ds-topic-row::after { content: '\\203A'; position: absolute; right: 5px; top: 50%; transform: translateY(-50%); color: #788077; font-size: 1.2rem; } .ds-topic-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding-right: 20px; } .ds-topic-title { margin: 0; font: 700 0.98rem ui-sans-serif, system-ui, sans-serif; } .ds-topic-scope { max-width: 68ch; font-size: 0.77rem; color: #a9b0a5; margin: 4px 0 10px; } .ds-meta-row { display: flex; gap: 6px; } .ds-tag { font-size: 0.72rem; color: #788077; } .ds-tag + .ds-tag::before { content: '\\00b7'; color: #59615a; margin-right: 6px; } .ds-status-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #9dc5a2; margin-right: 5px; } .ds-topic-row:focus-visible { outline: 3px solid rgba(240,211,154,.32); outline-offset: 2px; }"
+    },
+    {
+      "name": "Nav Item",
+      "kind": "nav",
+      "refersTo": "nav-item",
+      "description": "Bottom nav on mobile, left rail on desktop. Active state uses Bright Brass, aria-current=page.",
+      "html": "<button class=\"ds-nav-btn ds-nav-btn-active\" aria-current=\"page\" aria-label=\"Library\"><svg viewBox=\"0 0 24 24\" fill=\"none\" width=\"22\" height=\"22\"><path d=\"M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5v-16Z\" stroke=\"currentColor\" stroke-width=\"1.7\"/><path d=\"M4 18.5A2.5 2.5 0 0 1 6.5 16H20\" stroke=\"currentColor\" stroke-width=\"1.7\"/></svg>Library</button>",
+      "css": ".ds-nav-btn { display: flex; flex-direction: column; align-items: center; gap: 3px; min-height: 50px; padding: 6px 10px; border: 0; border-radius: 9px; background: transparent; color: #a9b0a5; font: 700 0.66rem ui-sans-serif, system-ui, sans-serif; cursor: pointer; transition: color 0.18s ease, background 0.18s ease; } .ds-nav-btn:hover { color: #f4f2ea; } .ds-nav-btn-active, .ds-nav-btn[aria-current='page'] { color: #f0d39a; background: rgba(214,181,116,.07); } .ds-nav-btn:focus-visible { outline: 3px solid rgba(240,211,154,.32); outline-offset: 2px; }"
+    },
+    {
+      "name": "Sheet Close Button",
+      "kind": "button",
+      "refersTo": "sheet",
+      "description": "44x44px dismiss control on modal sheets. Always carries an explicit aria-label naming what it closes.",
+      "html": "<button class=\"ds-close-btn\" aria-label=\"Close topic details\"><svg viewBox=\"0 0 24 24\" fill=\"none\" width=\"18\" height=\"18\"><path d=\"M6 6l12 12M18 6L6 18\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\"/></svg></button>",
+      "css": ".ds-close-btn { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border: 1px solid #303730; border-radius: 10px; background: #1b201c; color: #f4f2ea; cursor: pointer; transition: background 0.18s ease, border-color 0.18s ease; } .ds-close-btn:hover { background: #232923; border-color: #465047; } .ds-close-btn:focus-visible { outline: 3px solid rgba(240,211,154,.32); outline-offset: 2px; border-color: #d6b574; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Quiet Field Index",
+    "overview": "Argus is styled as a field manual, not a dashboard: a dark, low-glare reference the owner opens for a few minutes, uses without friction, and closes. Every screen answers one question, what's due, what's next, before it answers anything else. The palette is dark olive and near-black surfaces with a single warm brass accent reserved for the primary action and the current state; three muted track colors (dusty blue, sage, clay) carry semantic meaning only, never decoration. Controls are named as direct actions (\"Start due practice,\" \"Export JSON,\" never \"Get started\" or \"Let's go\"), the copy voice matches the visual restraint.\n\nThe system explicitly rejects the instincts of a generated SaaS dashboard: no marketing hero on the practice surface, no wall of identical metric cards, no rounded card-in-a-card nesting, no eyebrow labels ceremonializing routine headings. A prior design pass shipped exactly that pattern, hero, four stat cards, a grid of topic cards, and design critique flagged it as competent but \"category-interchangeable,\" recognizable Argus ingredients in a generic composition. This spec exists to keep that from recurring. It equally rejects the opposite failure mode this content invites: nothing here should read as tactical, military, or survivalist. The three subject tracks (learning, survival, tradecraft) are handled as calm, muted metadata, not as a HUD.",
+    "keyCharacteristics": [
+      "Dark, warm-tinted neutrals; one brass accent used sparingly, never decoratively",
+      "Flat surfaces differentiated by tone, not shadow — depth comes from layering, not elevation",
+      "Dense index rows over card grids; a topic list reads like a table of contents, not a gallery",
+      "Fixed type sizes, native UI sans only — no fluid display type, no serif ceremony",
+      "Motion is restrained: state feedback only, 150–200ms, no decorative choreography",
+      "Every interactive element carries visible default / hover / focus / active / disabled states"
+    ],
+    "rules": [
+      { "name": "The One Accent Rule", "body": "Brass appears only on the primary action, the current selection, and active state. If a second element on the same screen carries brass, one of them is wrong.", "section": "colors" },
+      { "name": "The No Track-as-Background Rule", "body": "Learning/Survival/Tradecraft colors label metadata (a tag, a dot) and are never used as a card background, button fill, or large surface area, that would tip the product toward the tactical/game aesthetic it explicitly rejects.", "section": "colors" },
+      { "name": "The No-Eyebrow Rule", "body": "Page and section headings do not get an eyebrow label above them. Eyebrow-weight type is reserved for genuine metadata, never as heading decoration.", "section": "typography" },
+      { "name": "The Flat-By-Default Rule", "body": "No shadow on topic rows, chips, buttons, stat cells, or sheets. Shadow is spent once, on the single most important surface per view.", "section": "elevation" },
+      { "name": "The Nothing-Nests Rule", "body": "A card does not contain another card. If a component needs internal grouping, use a hairline divider or spacing, not a nested bordered container.", "section": "components" }
+    ],
+    "dos": [
+      "Do open every top-level view on the task (what's due, start practice), never on a summary, pitch, or hero.",
+      "Do hold Brass to exactly three roles: primary action, current selection, active/current state.",
+      "Do use flat tonal layering for hierarchy instead of shadow.",
+      "Do render topic listings as a dense hairline-divided index, not a card grid.",
+      "Do give every interactive element default, hover, focus-visible, active, and disabled states, with a minimum 44px primary touch target.",
+      "Do name controls as direct actions and explain the recovery path in empty states.",
+      "Do treat retention decay as a routing signal, same visual weight as any other status, never styled as an error or a scolding.",
+      "Do keep JSON export/import visually first-class, not buried as a settings afterthought."
+    ],
+    "donts": [
+      "Don't put a hero, oversized slogan, or eyebrow label above a page or section heading.",
+      "Don't build a wall of identical metric cards; consolidate into one instrument-panel stat strip.",
+      "Don't nest a card inside a card, or use border-left/border-right as a colored accent stripe on any row, alert, or callout.",
+      "Don't use gradient text, glassmorphism, or decorative rings/gradients anywhere in the practice loop.",
+      "Don't reach for military, survivalist, tactical, or 'prepper' visual language even though the subject matter invites it.",
+      "Don't add streaks, badges, XP, or any shame-based nudge for missed practice days.",
+      "Don't widen the mobile layout for desktop and call it done; desktop gets a genuine side-rail, task-oriented layout.",
+      "Don't use a serif or fluid display typeface, or any animation beyond a 150-200ms state transition."
+    ]
+  }
+}
