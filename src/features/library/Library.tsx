@@ -6,6 +6,7 @@ import { Dialog } from '../../components/ui/Dialog'
 import { Confirm } from '../../components/ui/Confirm'
 import { TopicForm } from './TopicForm'
 import type { Topic } from '../../lib/types'
+import './Library.css'
 
 interface LibraryProps {
   onPractise: (topicIds: string[]) => void
@@ -45,20 +46,34 @@ export function Library({ onPractise, openFormOnMount = false }: LibraryProps) {
         </p>
       ) : (
         <ul className="index">
-          {sorted.map((topic) => (
-            <li key={topic.id}>
-              <button type="button" className="index-row" onClick={() => setDetail(topic)}>
-                <span className="index-title">{topic.title}</span>
-                <span className="index-meta">
-                  <StatusTag status={topic.status} />
-                  <span className={`track track-${topic.track}`}>{topic.track}</span>
-                  <span>
-                    {topic.items.length} {topic.items.length === 1 ? 'item' : 'items'}
+          {sorted.map((topic) => {
+            const canPractise = topic.items.length > 0
+            return (
+              <li className="index-entry" key={topic.id}>
+                <button type="button" className="index-row" onClick={() => setDetail(topic)}>
+                  <span className="index-title">{topic.title}</span>
+                  <span className="index-meta">
+                    <StatusTag status={topic.status} />
+                    <span className={`track track-${topic.track}`}>{topic.track}</span>
+                    <span>
+                      {topic.items.length} {topic.items.length === 1 ? 'item' : 'items'}
+                    </span>
                   </span>
-                </span>
-              </button>
-            </li>
-          ))}
+                </button>
+                <button
+                  className="index-practise"
+                  type="button"
+                  disabled={!canPractise}
+                  onClick={() => onPractise([topic.id])}
+                  aria-label={canPractise ? `Practise ${topic.title}` : `${topic.title} has no items to practise`}
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M8.5 6.75v10.5L17 12 8.5 6.75Z" fill="currentColor" />
+                  </svg>
+                </button>
+              </li>
+            )
+          })}
         </ul>
       )}
 
@@ -120,7 +135,7 @@ export function Library({ onPractise, openFormOnMount = false }: LibraryProps) {
             >
               Edit
             </button>
-            <button type="button" onClick={() => onPractise([detail.id])}>
+            <button type="button" disabled={detail.items.length === 0} onClick={() => onPractise([detail.id])}>
               Practise
             </button>
           </div>

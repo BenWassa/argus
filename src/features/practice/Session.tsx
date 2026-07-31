@@ -3,6 +3,7 @@ import { useLibrary } from '../../lib/store'
 import { resolveAttempt, type Resolution } from '../../lib/scheduling'
 import { statusLabel } from '../../components/ui/StatusTag'
 import type { Item, Topic } from '../../lib/types'
+import './Session.css'
 
 interface Card {
   topicId: string
@@ -13,17 +14,6 @@ interface Card {
 interface SessionProps {
   topicIds: string[]
   onExit: () => void
-}
-
-/**
- * Compares a typed answer to the stored one. Deliberately forgiving on case,
- * punctuation and spacing, and deliberately *not* used as the final word:
- * every card ends with the answer shown and the user's own judgement, so a
- * near-miss never becomes an argument with the machine.
- */
-function matches(input: string, answer: string): boolean {
-  const normalise = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
-  return normalise(input) === normalise(answer)
 }
 
 function shuffle<T>(list: T[]): T[] {
@@ -37,67 +27,101 @@ function shuffle<T>(list: T[]): T[] {
 
 type Phase = 'asking' | 'revealed' | 'done'
 
+function haptic(pattern: number | number[]) {
+  try {
+    navigator.vibrate?.(pattern)
+  } catch {
+    // Haptics are optional feedback and never block practice.
+  }
+}
+
 export function Session({ topicIds, onExit }: SessionProps) {
   const { topics, upsertTopic } = useLibrary()
 
-  // Snapshot the topics at session start. useState, not useMemo: React is
-  // allowed to discard a useMemo and recompute it, which would rebuild the
-  // deck underneath the user mid-session.
+  // Snapshot the topics and deck at session start. A bankable attempt always
+  // runs every item in a topic; fast interaction must not weaken the boundary.
   const [included] = useState<Topic[]>(() =>
     topicIds.map((id) => topics.find((t) => t.id === id)).filter(Boolean) as Topic[],
   )
-
-  // Cards are grouped by topic and shuffled only *within* a topic. Two things
-  // follow: the user always knows which deck they are in, and a topic can bank
-  // the moment its last card resolves rather than waiting for the whole run.
   const [deck] = useState<Card[]>(() =>
-    included.flatMap((t) =>
-      shuffle(t.items.map((item) => ({ topicId: t.id, topicTitle: t.title, item }))),
+    included.flatMap((topic) =>
+      shuffle(
+        topic.items.map((item) => ({
+          topicId: topic.id,
+          topicTitle: topic.title,
+          item,
+        })),
+      ),
     ),
   )
 
   const [index, setIndex] = useState(0)
   const [phase, setPhase] = useState<Phase>('asking')
-  const [input, setInput] = useState('')
-  const [autoCorrect, setAutoCorrect] = useState(false)
   const [tally, setTally] = useState<{ correct: number; total: number }>({ correct: 0, total: 0 })
   const [resolutions, setResolutions] = useState<Resolution[]>([])
   const [confirmingExit, setConfirmingExit] = useState(false)
 
-  const answerRef = useRef<HTMLInputElement>(null)
+  const revealRef = useRef<HTMLButtonElement>(null)
   const yesRef = useRef<HTMLButtonElement>(null)
   const headingRef = useRef<HTMLHeadingElement>(null)
+  const pointerStart = useRef<number | null>(null)
   const card: Card | undefined = deck[index]
 
-  // Keep focus on the control the user needs next. Without the revealed branch
-  // the form unmounts and focus falls to <body> on every single card.
   useEffect(() => {
-    if (phase === 'asking') answerRef.current?.focus()
-    else if (phase === 'revealed') yesRef.current?.focus()
+    if (phase === 'asking') revealRef.current?.focus({ preventScroll: true })
+    else if (phase === 'revealed') yesRef.current?.focus({ preventScroll: true })
   }, [phase, index])
 
   useEffect(() => {
     if (phase === 'done') headingRef.current?.focus()
   }, [phase])
 
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return
+
+      if (phase === 'asking' && (event.key === ' ' || event.key === 'Enter')) {
+        event.preventDefault()
+        reveal()
+      } else if (phase === 'revealed' && (event.key === 'ArrowLeft' || event.key === '1')) {
+        event.preventDefault()
+        score(false)
+      } else if (phase === 'revealed' && (event.key === 'ArrowRight' || event.key === '2')) {
+        event.preventDefault()
+        score(true)
+      }
+    }
+
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [phase, index])
+
   const topicPosition = useMemo(() => {
     if (!card) return { current: 0, of: 0 }
-    const cards = deck.filter((c) => c.topicId === card.topicId)
-    const first = deck.findIndex((c) => c.topicId === card.topicId)
+    const cards = deck.filter((candidate) => candidate.topicId === card.topicId)
+    const first = deck.findIndex((candidate) => candidate.topicId === card.topicId)
     return { current: index - first + 1, of: cards.length }
   }, [card, deck, index])
 
-  function bank(topicId: string, score: { correct: number; total: number }) {
-    const topic = included.find((t) => t.id === topicId)
+  function bank(topicId: string, attempt: { correct: number; total: number }) {
+    const topic = included.find((candidate) => candidate.id === topicId)
     if (!topic) return null
-    const resolution = resolveAttempt(topic, score.correct, score.total)
+    const resolution = resolveAttempt(topic, attempt.correct, attempt.total)
     upsertTopic(resolution.topic)
-    setResolutions((prev) => [...prev, resolution])
+    setResolutions((previous) => [...previous, resolution])
     return resolution
   }
 
+  function reveal() {
+    if (phase !== 'asking') return
+    setPhase('revealed')
+    haptic(8)
+  }
+
   function score(correct: boolean) {
-    if (!card) return
+    if (!card || phase !== 'revealed') return
+    haptic(correct ? 12 : [10, 24, 10])
+
     const next = { correct: tally.correct + (correct ? 1 : 0), total: tally.total + 1 }
     const following = deck[index + 1]
     const topicFinished = !following || following.topicId !== card.topicId
@@ -110,8 +134,7 @@ export function Session({ topicIds, onExit }: SessionProps) {
     }
 
     if (following) {
-      setIndex(index + 1)
-      setInput('')
+      setIndex((current) => current + 1)
       setPhase('asking')
     } else {
       setPhase('done')
@@ -120,9 +143,17 @@ export function Session({ topicIds, onExit }: SessionProps) {
 
   function requestExit() {
     // Finished topics are already banked, so leaving only discards the topic
-    // in progress. Say so rather than dropping the work silently.
+    // currently in progress.
     if (tally.total > 0) setConfirmingExit(true)
     else onExit()
+  }
+
+  function finishSwipe(clientX: number) {
+    if (phase !== 'revealed' || pointerStart.current === null) return
+    const delta = clientX - pointerStart.current
+    pointerStart.current = null
+    if (Math.abs(delta) < 64) return
+    score(delta > 0)
   }
 
   if (deck.length === 0) {
@@ -163,8 +194,10 @@ export function Session({ topicIds, onExit }: SessionProps) {
     )
   }
 
+  const revealed = phase === 'revealed'
+
   return (
-    <section className="session" aria-labelledby="prompt-heading">
+    <section className="session rapid-session" aria-labelledby="prompt-heading">
       <div className="session-bar">
         <p>
           <span className="session-topic">{card.topicTitle}</span>
@@ -177,56 +210,40 @@ export function Session({ topicIds, onExit }: SessionProps) {
         </button>
       </div>
 
-      <h1 id="prompt-heading" className="prompt">
+      <h1 id="prompt-heading" className="sr-only">
         {card.item.prompt}
       </h1>
 
-      {phase === 'asking' ? (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault()
-            setAutoCorrect(matches(input, card.item.answer))
-            setPhase('revealed')
-          }}
-        >
-          <label className="sr-only" htmlFor="answer">
-            Your answer for {card.item.prompt}, from {card.topicTitle}
-          </label>
-          <input
-            id="answer"
-            ref={answerRef}
-            className="field"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            autoComplete="off"
-            autoCapitalize="off"
-            spellCheck={false}
-            placeholder="Type what you recall"
-          />
-          <button type="submit">Show answer</button>
-        </form>
-      ) : (
-        <div className="reveal">
-          <p className="answer" role="status">
-            <span className="answer-label">Answer</span>
-            <span className="answer-value">{card.item.answer}</span>
-            {input.trim() && !autoCorrect && (
-              <span className="answer-yours">You typed: {input.trim()}</span>
-            )}
-          </p>
-          <p className="rate-prompt" id="rate-label">
-            Did you recall it?
-          </p>
-          <div className="rate" role="group" aria-labelledby="rate-label">
-            <button className="ghost" type="button" onClick={() => score(false)}>
-              No
-            </button>
-            <button ref={yesRef} type="button" onClick={() => score(true)}>
-              Yes
-            </button>
-          </div>
-        </div>
-      )}
+      <button
+        ref={revealRef}
+        className={`recall-card${revealed ? ' is-revealed' : ''}`}
+        type="button"
+        onClick={reveal}
+        onPointerDown={(event) => {
+          if (revealed) pointerStart.current = event.clientX
+        }}
+        onPointerUp={(event) => finishSwipe(event.clientX)}
+        aria-expanded={revealed}
+        aria-label={revealed ? `Answer: ${card.item.answer}` : `Prompt: ${card.item.prompt}. Reveal answer.`}
+      >
+        <span className="recall-card-label">{revealed ? 'Answer' : 'Tap to reveal'}</span>
+        <span className="recall-card-value" aria-live="polite">
+          {revealed ? card.item.answer : card.item.prompt}
+        </span>
+      </button>
+
+      <div className={`recall-actions${revealed ? ' is-visible' : ''}`} aria-hidden={!revealed}>
+        <button className="ghost recall-miss" type="button" tabIndex={revealed ? 0 : -1} onClick={() => score(false)}>
+          Didn’t get it
+        </button>
+        <button ref={yesRef} type="button" tabIndex={revealed ? 0 : -1} onClick={() => score(true)}>
+          Got it
+        </button>
+      </div>
+
+      <p className="recall-shortcuts">
+        {revealed ? 'Swipe left or right, or use ← and →' : 'Tap the card or press Space'}
+      </p>
     </section>
   )
 }
@@ -240,10 +257,14 @@ function SessionDone({
   onExit: () => void
   headingRef: React.RefObject<HTMLHeadingElement | null>
 }) {
-  const completed = resolutions.filter((r) => r.completed)
-  const decayed = resolutions.filter((r) => r.decayed)
-  const changed = resolutions.filter((r) => !r.completed && !r.decayed && r.to !== r.from)
-  const held = resolutions.filter((r) => !r.completed && !r.decayed && r.to === r.from)
+  const completed = resolutions.filter((resolution) => resolution.completed)
+  const decayed = resolutions.filter((resolution) => resolution.decayed)
+  const changed = resolutions.filter(
+    (resolution) => !resolution.completed && !resolution.decayed && resolution.to !== resolution.from,
+  )
+  const held = resolutions.filter(
+    (resolution) => !resolution.completed && !resolution.decayed && resolution.to === resolution.from,
+  )
 
   return (
     <section className="session session-done">
@@ -251,42 +272,40 @@ function SessionDone({
         {completed.length > 0 ? 'Banked' : 'Session ended'}
       </h1>
 
-      {/* The completion moment. This is the event the whole product exists to
-          produce, so it gets its own statement and the one accent on screen. */}
-      {completed.map((r) => (
-        <div className="banked" key={r.topic.id}>
-          <p className="banked-title">{r.topic.title}</p>
+      {completed.map((resolution) => (
+        <div className="banked" key={resolution.topic.id}>
+          <p className="banked-title">{resolution.topic.title}</p>
           <p className="banked-note">
-            Recalled cleanly {r.gapDays} days after it was last drilled. It is now part of your
-            permanent record.
+            Recalled cleanly {resolution.gapDays} days after it was last drilled. It is now part of
+            your permanent record.
           </p>
         </div>
       ))}
 
-      {decayed.map((r) => (
-        <p className="transition" key={r.topic.id}>
-          <strong>{r.topic.title}</strong> did not survive its spot check, so it goes back to
-          drilling. Your completion from{' '}
-          {r.topic.completedAt
-            ? new Date(r.topic.completedAt).toLocaleDateString()
+      {decayed.map((resolution) => (
+        <p className="transition" key={resolution.topic.id}>
+          <strong>{resolution.topic.title}</strong> did not survive its spot check, so it goes back
+          to drilling. Your completion from{' '}
+          {resolution.topic.completedAt
+            ? new Date(resolution.topic.completedAt).toLocaleDateString()
             : 'the original run'}{' '}
           still stands.
         </p>
       ))}
 
-      {changed.map((r) => (
-        <p className="transition" key={r.topic.id}>
-          <strong>{r.topic.title}</strong>: {statusLabel(r.from).toLowerCase()} to{' '}
-          {statusLabel(r.to).toLowerCase()}.
-          {r.from === 'drilled' && r.to === 'learning' && (
+      {changed.map((resolution) => (
+        <p className="transition" key={resolution.topic.id}>
+          <strong>{resolution.topic.title}</strong>: {statusLabel(resolution.from).toLowerCase()} to{' '}
+          {statusLabel(resolution.to).toLowerCase()}.
+          {resolution.from === 'drilled' && resolution.to === 'learning' && (
             <> The delayed test starts again once it is drilled clean.</>
           )}
         </p>
       ))}
 
-      {held.map((r) => (
-        <p className="transition" key={r.topic.id}>
-          <strong>{r.topic.title}</strong> held at {statusLabel(r.to).toLowerCase()}.
+      {held.map((resolution) => (
+        <p className="transition" key={resolution.topic.id}>
+          <strong>{resolution.topic.title}</strong> held at {statusLabel(resolution.to).toLowerCase()}.
         </p>
       ))}
 
