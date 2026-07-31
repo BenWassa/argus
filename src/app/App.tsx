@@ -12,13 +12,17 @@ import type { View } from '../lib/types'
 export function App() {
   const [showSplash, setShowSplash] = useState(shouldShowSplash)
 
-  if (showSplash) {
-    return <SplashScreen onComplete={() => setShowSplash(false)} />
+  function finishSplash() {
+    setShowSplash(false)
+    window.requestAnimationFrame(() => document.getElementById('main')?.focus())
   }
 
   return (
     <LibraryProvider>
-      <Routes />
+      <div className="app-runtime" aria-hidden={showSplash || undefined}>
+        <Routes />
+      </div>
+      {showSplash && <SplashScreen onComplete={finishSplash} />}
     </LibraryProvider>
   )
 }
