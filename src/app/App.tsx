@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { AppShell } from '../components/layout/AppShell'
+import { shouldShowSplash, SplashScreen } from '../components/SplashScreen'
 import { LibraryProvider } from '../lib/store'
 import { Today } from '../features/today/Today'
 import { Library } from '../features/library/Library'
@@ -9,6 +10,12 @@ import { Session } from '../features/practice/Session'
 import type { View } from '../lib/types'
 
 export function App() {
+  const [showSplash, setShowSplash] = useState(shouldShowSplash)
+
+  if (showSplash) {
+    return <SplashScreen onComplete={() => setShowSplash(false)} />
+  }
+
   return (
     <LibraryProvider>
       <Routes />
