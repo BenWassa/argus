@@ -2,11 +2,22 @@
 
 Argus is a mobile-first library of finite, closed-scope competencies. Each topic has a defined boundary and can be genuinely completed through delayed recall rather than mere exposure.
 
-## Beta
+## Development
 
-The beta is a static, local-first progressive web app. Practice data remains in the browser and can be exported or imported as JSON.
+Argus is a Vite + React + TypeScript web app. From the repository root:
 
-**Beta URL:** https://benwassa.github.io/argus/
+```sh
+npm install
+npm run dev
+```
+
+Other commands:
+
+- `npm run build` — type-check and create the production build in `dist/`
+- `npm run preview` — serve the production build locally
+- `npm run typecheck` — run TypeScript without building
+
+The production site is deployed to **https://benwassa.github.io/argus/** by GitHub Actions whenever `main` is updated.
 
 ## Design direction
 
@@ -17,14 +28,17 @@ Argus uses an **Operate-mode** interface: task-first, restrained, accessible, an
 - `impeccable.css` — responsive task-first presentation layer
 - `impeccable.js` — progressive semantic and interaction enhancements
 
-## Repository contents
+## Application structure
 
+- `src/app/` — application composition and global providers
+- `src/components/` — shared UI and layout components
+- `src/features/` — domain features, kept independent as they grow
+- `src/styles/` — global tokens and baseline styles
+- `public/` — static PWA assets copied directly into the build
 - `argus-prd.md` — product requirements and scope
-- `argus-pwa.zip` — self-contained application package
-- `.github/workflows/pages.yml` — GitHub Pages build and deployment workflow
 
 ## Deployment
 
-The Pages workflow extracts `argus-pwa.zip`, preserves `argus-app.html`, creates `index.html`, injects the Impeccable CSS and JavaScript layers, updates the offline cache, and deploys the resulting static site. It runs from `main` and the active design branch.
+The Pages workflow installs dependencies, runs the Vite production build, and deploys `dist/`. Vite's base path is configured for the `/argus/` GitHub Pages project URL.
 
 GitHub Pages must use **GitHub Actions** as its build and deployment source in the repository settings.

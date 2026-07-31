@@ -1,4 +1,4 @@
-name: Deploy Argus beta to GitHub Pages
+name: Deploy Argus to GitHub Pages
 
 on:
   push:
@@ -26,32 +26,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Build static site
-        run: |
-          mkdir -p _site
-          unzip -q argus-pwa.zip -d _site
-          cp _site/argus-app.html _site/index.html
-          cp impeccable.css impeccable.js _site/
-          python3 - <<'PY'
-          from pathlib import Path
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
 
-          for name in ('argus-app.html', 'index.html'):
-              path = Path('_site') / name
-              html = path.read_text()
-              html = html.replace('#111411', '#0f1210')
-              html = html.replace('</head>', '  <link rel="stylesheet" href="./impeccable.css" />\n</head>')
-              html = html.replace('</body>', '  <script src="./impeccable.js"></script>\n</body>')
-              path.write_text(html)
+      - name: Install dependencies
+        run: npm ci
 
-          manifest = Path('_site/manifest.webmanifest')
-          manifest.write_text(manifest.read_text().replace('#111411', '#0f1210'))
-
-          service_worker = Path('_site/sw.js')
-          sw = service_worker.read_text().replace('argus-v1.0.0', 'argus-v1.1.0')
-          sw = sw.replace("'./argus-icon-512.png']", "'./argus-icon-512.png', './impeccable.css', './impeccable.js']")
-          service_worker.write_text(sw)
-          PY
-          touch _site/.nojekyll
+      - name: Build
+        run: npm run build
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
@@ -59,7 +44,7 @@ jobs:
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
         with:
-          path: _site
+          path: dist
 
       - name: Deploy to GitHub Pages
         id: deployment
