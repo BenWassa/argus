@@ -24,9 +24,8 @@ The production site is deployed to **https://benwassa.github.io/argus/** by GitH
 Argus uses an **Operate-mode** interface: task-first, restrained, accessible, and optimized for short practice sessions. The current design pass follows the open-source Impeccable frontend skill.
 
 - `DESIGN.md` — durable visual system and interaction rules
+- `src/styles/tokens.css` — the design system as CSS custom properties, and the only place a colour, radius, or type step is defined
 - `.impeccable/critique/` — archived design critique and remaining issues
-- `impeccable.css` — responsive task-first presentation layer
-- `impeccable.js` — progressive semantic and interaction enhancements
 
 ## Application structure
 
