@@ -9,7 +9,9 @@
   margin-bottom: var(--s-lg);
 }
 
-.recall-card {
+/* Scoped as button.recall-card so the global button:hover/:active brass
+   backgrounds can never outrank the card's own surface. */
+button.recall-card {
   width: 100%;
   min-height: clamp(300px, 58svh, 500px);
   display: flex;
@@ -33,15 +35,19 @@
     transform var(--t-fast) var(--ease);
 }
 
-.recall-card:hover {
+button.recall-card:hover {
   border-color: var(--line-hover);
+  background:
+    radial-gradient(circle at 50% 38%, rgb(214 181 116 / 7%), transparent 43%),
+    linear-gradient(145deg, var(--surface-2), var(--surface));
 }
 
-.recall-card:active {
+button.recall-card:active {
   transform: scale(0.995);
 }
 
-.recall-card.is-revealed {
+button.recall-card.is-revealed,
+button.recall-card.is-revealed:hover {
   border-color: rgb(214 181 116 / 58%);
   background:
     radial-gradient(circle at 50% 40%, rgb(214 181 116 / 12%), transparent 48%),
@@ -68,6 +74,22 @@
 .recall-card.is-revealed .recall-card-value {
   font-size: clamp(2.6rem, 12vw, 5.6rem);
   line-height: 1.08;
+}
+
+/* Content-length steps override the reveal-state scale: a phrase and a
+   paragraph each get type they can actually hold. */
+.recall-card .recall-card-value.is-medium {
+  font-size: clamp(1.7rem, 7.5vw, 2.9rem);
+  line-height: 1.16;
+  letter-spacing: -0.025em;
+}
+
+.recall-card .recall-card-value.is-long {
+  font-size: clamp(1.15rem, 4.6vw, 1.6rem);
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  text-align: left;
 }
 
 .recall-actions {
@@ -111,7 +133,7 @@
     padding-top: var(--s-2xl);
   }
 
-  .recall-card {
+  button.recall-card {
     min-height: 430px;
   }
 }
@@ -129,7 +151,7 @@
     margin-bottom: 0;
   }
 
-  .recall-card {
+  button.recall-card {
     grid-row: 2 / 4;
     min-height: 0;
   }
@@ -147,7 +169,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .recall-card,
+  button.recall-card,
   .recall-actions {
     transition: none;
   }

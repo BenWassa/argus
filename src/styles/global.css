@@ -10,6 +10,8 @@
 
 html {
   -webkit-text-size-adjust: 100%;
+  /* Native chrome — scrollbars, selects, pickers — renders dark to match. */
+  color-scheme: dark;
 }
 
 body {
@@ -24,38 +26,6 @@ body {
   background: var(--bg);
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
-}
-
-/* -------------------------------------------------------------- splash -- */
-
-.splash {
-  position: fixed;
-  inset: 0;
-  z-index: 100;
-  display: grid;
-  place-items: center;
-  overflow: hidden;
-  background: var(--bg);
-}
-
-.splash-media {
-  width: 100%;
-  height: 100%;
-  display: block;
-  object-fit: cover;
-}
-
-.splash-skip {
-  position: absolute;
-  right: max(var(--s-lg), env(safe-area-inset-right));
-  bottom: max(var(--s-lg), env(safe-area-inset-bottom));
-  color: var(--ink);
-  background: rgba(15, 18, 16, 0.88);
-  border-color: var(--line-strong);
-}
-
-.splash-skip:hover {
-  background: var(--surface-2);
 }
 
 h1,
@@ -289,8 +259,11 @@ main:focus {
   transform: none;
 }
 
+/* Active carries a tonal surface as well as brass, so on touch screens the
+   current tab reads stronger than hover does on pointer screens. */
 .nav-btn[aria-current='page'] {
   color: var(--accent-2);
+  background: var(--surface-2);
 }
 
 /* --------------------------------------------------------------- today -- */

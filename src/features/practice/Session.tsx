@@ -27,6 +27,14 @@ function shuffle<T>(list: T[]): T[] {
 
 type Phase = 'asking' | 'revealed' | 'done'
 
+/* The hero type sizes are built for token-length items ("K", "Kilo"). Longer
+   prompts step down so a sentence never renders at display scale. */
+function fitClass(text: string) {
+  if (text.length <= 16) return ''
+  if (text.length <= 56) return ' is-medium'
+  return ' is-long'
+}
+
 function haptic(pattern: number | number[]) {
   try {
     navigator.vibrate?.(pattern)
@@ -227,7 +235,10 @@ export function Session({ topicIds, onExit }: SessionProps) {
         aria-label={revealed ? `Answer: ${card.item.answer}` : `Prompt: ${card.item.prompt}. Reveal answer.`}
       >
         <span className="recall-card-label">{revealed ? 'Answer' : 'Tap to reveal'}</span>
-        <span className="recall-card-value" aria-live="polite">
+        <span
+          className={`recall-card-value${fitClass(revealed ? card.item.answer : card.item.prompt)}`}
+          aria-live="polite"
+        >
           {revealed ? card.item.answer : card.item.prompt}
         </span>
       </button>
