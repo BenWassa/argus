@@ -20,8 +20,8 @@
 }
 
 .launch-splash-frame {
-  width: min(400px, calc(100vw - (2 * var(--s-lg))));
-  max-height: calc(100svh - (2 * var(--s-lg)));
+  width: min(400px, calc(100vw - var(--s-lg) - var(--s-lg)));
+  max-height: calc(100svh - var(--s-lg) - var(--s-lg));
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto;
   overflow: hidden;
@@ -89,14 +89,14 @@
 
 @media (max-height: 620px), (orientation: landscape) and (max-height: 520px) {
   .launch-splash-frame {
-    width: min(560px, calc(100vw - (2 * var(--s-lg))));
+    width: min(560px, calc(100vw - var(--s-lg) - var(--s-lg)));
     grid-template-columns: minmax(0, 1fr) auto;
     grid-template-rows: minmax(0, 1fr);
   }
 
   .launch-splash-media {
     aspect-ratio: 16 / 9;
-    max-height: calc(100svh - (2 * var(--s-lg)));
+    max-height: calc(100svh - var(--s-lg) - var(--s-lg));
   }
 
   .launch-splash-actions {
