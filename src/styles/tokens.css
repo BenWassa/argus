@@ -1,0 +1,85 @@
+/*
+ * Argus design tokens. Single source of truth, derived from DESIGN.md.
+ * Nothing in the app hardcodes a colour, radius, or type step.
+ */
+
+:root {
+  /* Surfaces. Field Black through Lifted Olive: hierarchy comes from tonal
+     layering, not shadow. Every neutral is tinted toward the brand green. */
+  --bg: #0f1210;
+  --surface: #151916;
+  --surface-2: #1b201c;
+  --surface-3: #232923;
+  --field: #121613;
+
+  /* Text */
+  --ink: #f4f2ea;
+  --muted: #a9b0a5;
+  --subtle: #8d968b;
+  --placeholder: #7d857c;
+
+  /* Rules */
+  --line: #3d453d;
+  --line-strong: #5c675c;
+  --line-hover: #6e7a6e;
+
+  /* Brass. The one accent: primary action, current selection, active state. */
+  --accent: #d6b574;
+  --accent-2: #f0d39a;
+  --accent-ink: #20180d;
+
+  /* Track semantics. Metadata only, never a surface. */
+  --learning: #8fb5cf;
+  --survival: #98b77c;
+  --tradecraft: #c99a82;
+
+  /* Status */
+  --danger: #e0958c;
+  --danger-2: #e9a9a1;
+  --danger-ink: #1d100e;
+  --ok: #9dc5a2;
+  --warning: #d8bd79;
+
+  /* Radii */
+  --r-sm: 9px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-xl: 18px;
+  --r-pill: 999px;
+
+  /* Spacing */
+  --s-xs: 6px;
+  --s-sm: 8px;
+  --s-md: 14px;
+  --s-lg: 18px;
+  --s-xl: 26px;
+  --s-2xl: 40px;
+
+  /* Type. Fixed steps, no fluid display sizing. */
+  --font: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --t-page: 2rem;
+  --t-section: 1.35rem;
+  --t-prompt: 1.75rem;
+  --t-component: 0.98rem;
+  --t-body: 0.9rem;
+  --t-label: 0.75rem;
+
+  /* Weights kept to values every platform font actually has. */
+  --w-page: 700;
+  --w-section: 700;
+  --w-component: 700;
+  --w-label: 700;
+  --w-body: 400;
+
+  /* Elevation. Spent once per view, on the single most important surface. */
+  --shadow: 0 18px 48px rgb(0 0 0 / 28%);
+
+  /* Motion: state feedback only. */
+  --t-fast: 150ms;
+  --t-base: 180ms;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Layout */
+  --rail: 236px;
+  --measure: 68ch;
+}
