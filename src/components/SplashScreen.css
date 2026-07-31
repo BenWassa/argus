@@ -2,6 +2,7 @@
   position: fixed;
   inset: 0;
   z-index: 100;
+  isolation: isolate;
   display: grid;
   place-items: center;
   padding: max(var(--s-lg), env(safe-area-inset-top))
@@ -14,36 +15,88 @@
   transition: opacity var(--t-base) var(--ease);
 }
 
+.launch-splash::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      ellipse 76% 68% at 50% 47%,
+      transparent 0 28%,
+      color-mix(in srgb, var(--bg) 24%, transparent) 56%,
+      color-mix(in srgb, var(--bg) 72%, transparent) 84%,
+      var(--bg) 100%
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--bg) 18%, transparent),
+      color-mix(in srgb, var(--bg) 58%, transparent)
+    );
+}
+
 .launch-splash.is-exiting {
   opacity: 0;
   pointer-events: none;
 }
 
-.launch-splash-frame {
-  width: min(400px, calc(100vw - var(--s-lg) - var(--s-lg)));
-  max-height: calc(100svh - var(--s-lg) - var(--s-lg));
+.launch-splash-atmosphere {
+  position: absolute;
+  inset: -8%;
+  z-index: 0;
+  width: 116%;
+  height: 116%;
+  display: block;
+  object-fit: cover;
+  opacity: 0.72;
+  filter: blur(34px) saturate(0.76) brightness(0.48);
+  transform: scale(1.04);
+  user-select: none;
+  pointer-events: none;
+}
+
+.launch-splash-stage {
+  position: relative;
+  z-index: 2;
+  width: 100%;
   display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
-  overflow: hidden;
-  border: 1px solid var(--line-strong);
-  border-radius: var(--r-xl);
-  background: var(--surface);
-  box-shadow: var(--shadow);
+  justify-items: center;
+  gap: var(--s-sm);
   transform: scale(1);
   transition: transform var(--t-base) var(--ease);
 }
 
-.launch-splash.is-exiting .launch-splash-frame {
+.launch-splash.is-exiting .launch-splash-stage {
   transform: scale(0.985);
 }
 
 .launch-splash-media {
   position: relative;
-  width: 100%;
+  height: min(72svh, 680px);
+  max-width: calc(100vw - var(--s-lg) - var(--s-lg));
   aspect-ratio: 9 / 16;
-  max-height: calc(100svh - 92px);
-  overflow: hidden;
-  background: var(--field);
+  isolation: isolate;
+  -webkit-mask-image: radial-gradient(
+    ellipse 76% 82% at 50% 50%,
+    #000 0 60%,
+    #000 68%,
+    rgb(0 0 0 / 90%) 78%,
+    rgb(0 0 0 / 52%) 89%,
+    transparent 100%
+  );
+  mask-image: radial-gradient(
+    ellipse 76% 82% at 50% 50%,
+    #000 0 60%,
+    #000 68%,
+    rgb(0 0 0 / 90%) 78%,
+    rgb(0 0 0 / 52%) 89%,
+    transparent 100%
+  );
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
 }
 
 .launch-splash-poster,
@@ -54,7 +107,6 @@
   height: 100%;
   display: block;
   object-fit: contain;
-  background: var(--field);
 }
 
 .launch-splash-poster {
@@ -75,40 +127,46 @@
   opacity: 1;
 }
 
-.launch-splash-actions {
-  display: flex;
-  justify-content: flex-end;
-  padding: var(--s-sm);
-  border-top: 1px solid var(--line);
-  background: var(--surface);
+button.launch-splash-skip {
+  min-width: 108px;
+  color: var(--muted);
+  background: color-mix(in srgb, var(--bg) 64%, transparent);
+  border-color: transparent;
 }
 
-.launch-splash-actions button {
-  min-width: 96px;
+button.launch-splash-skip:hover {
+  color: var(--ink);
+  background: var(--surface-2);
+  border-color: var(--line);
 }
 
-@media (max-height: 620px), (orientation: landscape) and (max-height: 520px) {
-  .launch-splash-frame {
-    width: min(560px, calc(100vw - var(--s-lg) - var(--s-lg)));
+button.launch-splash-skip:active {
+  background: var(--surface-3);
+}
+
+@media (max-height: 680px) {
+  .launch-splash-media {
+    height: min(66svh, 520px);
+  }
+}
+
+@media (orientation: landscape) and (max-height: 600px) {
+  .launch-splash-stage {
     grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-rows: minmax(0, 1fr);
+    align-items: center;
+    gap: var(--s-md);
+    width: min(760px, 100%);
   }
 
   .launch-splash-media {
-    aspect-ratio: 16 / 9;
-    max-height: calc(100svh - var(--s-lg) - var(--s-lg));
-  }
-
-  .launch-splash-actions {
-    align-items: flex-end;
-    border-top: 0;
-    border-left: 1px solid var(--line);
+    height: min(82svh, 520px);
+    max-width: calc(100vw - 150px);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .launch-splash,
-  .launch-splash-frame,
+  .launch-splash-stage,
   .launch-splash-poster,
   .launch-splash-video {
     transition: none;
