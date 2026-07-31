@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
+import './SplashScreen.css'
 
 const SPLASH_SEEN_KEY = 'argus-splash-seen'
+const EXIT_MS = 180
 
 type SplashScreenProps = {
   onComplete: () => void
@@ -16,7 +18,11 @@ export function shouldShowSplash() {
 
 export function SplashScreen({ onComplete }: SplashScreenProps) {
   const [reducedMotion] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+  const [videoReady, setVideoReady] = useState(false)
+  const [exiting, setExiting] = useState(false)
   const completed = useRef(false)
+  const exitTimer = useRef<number | null>(null)
+  const skipButton = useRef<HTMLButtonElement>(null)
 
   function complete() {
     if (completed.current) return
@@ -28,42 +34,69 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
       // The splash still dismisses when storage is unavailable.
     }
 
-    onComplete()
+    setExiting(true)
+    exitTimer.current = window.setTimeout(onComplete, reducedMotion ? 0 : EXIT_MS)
   }
 
   useEffect(() => {
-    const timeout = window.setTimeout(complete, reducedMotion ? 700 : 6500)
-    return () => window.clearTimeout(timeout)
+    skipButton.current?.focus({ preventScroll: true })
+    const timeout = window.setTimeout(complete, reducedMotion ? 600 : 6500)
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') complete()
+      if (event.key === 'Tab') {
+        event.preventDefault()
+        skipButton.current?.focus({ preventScroll: true })
+      }
+    }
+
+    window.addEventListener('keydown', onKeyDown)
+    return () => {
+      window.clearTimeout(timeout)
+      if (exitTimer.current !== null) window.clearTimeout(exitTimer.current)
+      window.removeEventListener('keydown', onKeyDown)
+    }
   }, [reducedMotion])
 
+  const poster = `${import.meta.env.BASE_URL}media/splash-poster.jpg`
+
   return (
-    <section className="splash" aria-label="Opening Argus">
-      {reducedMotion ? (
-        <img
-          className="splash-media"
-          src={`${import.meta.env.BASE_URL}media/splash-poster.jpg`}
-          alt=""
-        />
-      ) : (
-        <video
-          className="splash-media"
-          autoPlay
-          muted
-          playsInline
-          preload="auto"
-          poster={`${import.meta.env.BASE_URL}media/splash-poster.jpg`}
-          onEnded={complete}
-          onError={complete}
-          aria-hidden="true"
-        >
-          <source src={`${import.meta.env.BASE_URL}media/splashv1.mp4`} type="video/mp4" />
-        </video>
-      )}
-      {!reducedMotion && (
-        <button className="splash-skip ghost small" type="button" onClick={complete}>
-          Skip intro
-        </button>
-      )}
+    <section
+      className={`launch-splash${exiting ? ' is-exiting' : ''}`}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Opening Argus"
+    >
+      <div className="launch-splash-frame">
+        <div className="launch-splash-media" aria-hidden="true">
+          <img
+            className={`launch-splash-poster${videoReady ? ' is-hidden' : ''}`}
+            src={poster}
+            alt=""
+          />
+          {!reducedMotion && (
+            <video
+              className={`launch-splash-video${videoReady ? ' is-ready' : ''}`}
+              autoPlay
+              muted
+              playsInline
+              preload="metadata"
+              poster={poster}
+              onCanPlay={() => setVideoReady(true)}
+              onLoadedData={() => setVideoReady(true)}
+              onEnded={complete}
+              onError={complete}
+            >
+              <source src={`${import.meta.env.BASE_URL}media/splashv1.mp4`} type="video/mp4" />
+            </video>
+          )}
+        </div>
+        <div className="launch-splash-actions">
+          <button ref={skipButton} className="ghost small" type="button" onClick={complete}>
+            Skip intro
+          </button>
+        </div>
+      </div>
     </section>
   )
 }

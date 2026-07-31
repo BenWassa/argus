@@ -1,0 +1,116 @@
+.launch-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: max(var(--s-lg), env(safe-area-inset-top))
+    max(var(--s-lg), env(safe-area-inset-right))
+    max(var(--s-lg), env(safe-area-inset-bottom))
+    max(var(--s-lg), env(safe-area-inset-left));
+  overflow: hidden;
+  background: var(--bg);
+  opacity: 1;
+  transition: opacity var(--t-base) var(--ease);
+}
+
+.launch-splash.is-exiting {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.launch-splash-frame {
+  width: min(400px, calc(100vw - var(--s-lg) - var(--s-lg)));
+  max-height: calc(100svh - var(--s-lg) - var(--s-lg));
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-xl);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  transform: scale(1);
+  transition: transform var(--t-base) var(--ease);
+}
+
+.launch-splash.is-exiting .launch-splash-frame {
+  transform: scale(0.985);
+}
+
+.launch-splash-media {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 9 / 16;
+  max-height: calc(100svh - 92px);
+  overflow: hidden;
+  background: var(--field);
+}
+
+.launch-splash-poster,
+.launch-splash-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+  background: var(--field);
+}
+
+.launch-splash-poster {
+  opacity: 1;
+  transition: opacity var(--t-base) var(--ease);
+}
+
+.launch-splash-poster.is-hidden {
+  opacity: 0;
+}
+
+.launch-splash-video {
+  opacity: 0;
+  transition: opacity var(--t-base) var(--ease);
+}
+
+.launch-splash-video.is-ready {
+  opacity: 1;
+}
+
+.launch-splash-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: var(--s-sm);
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.launch-splash-actions button {
+  min-width: 96px;
+}
+
+@media (max-height: 620px), (orientation: landscape) and (max-height: 520px) {
+  .launch-splash-frame {
+    width: min(560px, calc(100vw - var(--s-lg) - var(--s-lg)));
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .launch-splash-media {
+    aspect-ratio: 16 / 9;
+    max-height: calc(100svh - var(--s-lg) - var(--s-lg));
+  }
+
+  .launch-splash-actions {
+    align-items: flex-end;
+    border-top: 0;
+    border-left: 1px solid var(--line);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .launch-splash,
+  .launch-splash-frame,
+  .launch-splash-poster,
+  .launch-splash-video {
+    transition: none;
+  }
+}
