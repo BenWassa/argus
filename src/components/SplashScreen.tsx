@@ -67,12 +67,21 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
       aria-modal="true"
       aria-label="Opening Argus"
     >
-      <div className="launch-splash-frame">
+      <img
+        className="launch-splash-atmosphere"
+        src={poster}
+        alt=""
+        aria-hidden="true"
+        draggable={false}
+      />
+
+      <div className="launch-splash-stage">
         <div className="launch-splash-media" aria-hidden="true">
           <img
             className={`launch-splash-poster${videoReady ? ' is-hidden' : ''}`}
             src={poster}
             alt=""
+            draggable={false}
           />
           {!reducedMotion && (
             <video
@@ -91,11 +100,15 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
             </video>
           )}
         </div>
-        <div className="launch-splash-actions">
-          <button ref={skipButton} className="ghost small" type="button" onClick={complete}>
-            Skip intro
-          </button>
-        </div>
+
+        <button
+          ref={skipButton}
+          className="launch-splash-skip small"
+          type="button"
+          onClick={complete}
+        >
+          Skip intro
+        </button>
       </div>
     </section>
   )
