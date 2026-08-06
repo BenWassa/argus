@@ -1,0 +1,58 @@
+.learn-session {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  min-height: 100svh;
+  padding-bottom: max(var(--s-lg), env(safe-area-inset-bottom));
+}
+
+.learn-session .session-bar {
+  margin-bottom: var(--s-lg);
+}
+
+.learn-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--s-lg);
+  min-height: clamp(260px, 46svh, 420px);
+  padding: var(--s-xl);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-xl);
+  background: var(--surface);
+  touch-action: pan-y;
+}
+
+.learn-card .prompt {
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+/* A label/value pair, not a nested bordered box: the card itself is the one
+   container here. */
+.learn-card .answer {
+  width: auto;
+  max-width: 100%;
+  padding: var(--s-lg) 0 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+}
+
+.learn-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-sm);
+  margin-top: var(--s-md);
+}
+
+.learn-actions button {
+  min-height: 56px;
+}
+
+@media (min-width: 680px) {
+  .learn-session {
+    min-height: auto;
+    padding-top: var(--s-2xl);
+  }
+}

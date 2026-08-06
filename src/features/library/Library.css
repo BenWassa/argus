@@ -1,7 +1,8 @@
 .index-entry {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 52px;
+  grid-template-columns: minmax(0, 1fr) 44px 44px;
   align-items: stretch;
+  gap: var(--s-sm);
   border-bottom: 1px solid var(--line);
 }
 
@@ -14,6 +15,7 @@
   content: none;
 }
 
+.index-learn,
 .index-practise {
   align-self: center;
   justify-self: end;
@@ -28,16 +30,19 @@
   background: var(--surface-2);
 }
 
+.index-learn svg,
 .index-practise svg {
   width: 22px;
   height: 22px;
 }
 
+.index-learn:hover:not(:disabled),
 .index-practise:hover:not(:disabled) {
   border-color: var(--accent);
   background: var(--surface-3);
 }
 
+.index-learn:disabled,
 .index-practise:disabled {
   opacity: 0.38;
   cursor: not-allowed;
@@ -45,6 +50,6 @@
 
 @media (min-width: 680px) {
   .index-entry {
-    grid-template-columns: minmax(0, 1fr) 60px;
+    grid-template-columns: minmax(0, 1fr) 48px 48px;
   }
 }

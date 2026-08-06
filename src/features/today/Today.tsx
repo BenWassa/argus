@@ -4,13 +4,18 @@ import { StatusTag } from '../../components/ui/StatusTag'
 
 interface TodayProps {
   onStart: (topicIds: string[]) => void
+  onLearn: (topicIds: string[]) => void
   onGoToLibrary: () => void
 }
 
-export function Today({ onStart, onGoToLibrary }: TodayProps) {
+export function Today({ onStart, onLearn, onGoToLibrary }: TodayProps) {
   const { topics } = useLibrary()
   const due = dueTopics(topics)
   const practicable = topics.filter((t) => t.items.length > 0)
+  // Unstarted topics have never been shown to the user, so they go to Learn
+  // first, not straight into a blind recall test.
+  const toLearn = due.filter((t) => t.status === 'unstarted')
+  const toPractise = due.filter((t) => t.status !== 'unstarted')
 
   // Nothing authored yet. Teach the entry gate rather than showing a blank.
   if (topics.length === 0) {
@@ -69,9 +74,20 @@ export function Today({ onStart, onGoToLibrary }: TodayProps) {
             </li>
           ))}
         </ul>
-        <button type="button" onClick={() => onStart(due.map((t) => t.id))}>
-          Start practice
-        </button>
+        {toLearn.length > 0 && (
+          <button type="button" onClick={() => onLearn(toLearn.map((t) => t.id))}>
+            Learn{toPractise.length > 0 ? ` (${toLearn.length})` : ''}
+          </button>
+        )}
+        {toPractise.length > 0 && (
+          <button
+            className={toLearn.length > 0 ? 'ghost' : undefined}
+            type="button"
+            onClick={() => onStart(toPractise.map((t) => t.id))}
+          >
+            Start practice{toLearn.length > 0 ? ` (${toPractise.length})` : ''}
+          </button>
+        )}
       </section>
     </>
   )

@@ -8,7 +8,7 @@ product
 
 Ben, the owner and sole user for the beta: a self-directed learner building a personal library of finite, closed-scope competencies (recall systems, psychology frameworks, emergency medicine, navigation, observation and counter-surveillance tradecraft). He authors topics himself rather than consuming a catalogue, and practices in short mobile sessions — on a phone, in spare five-minute windows — not at a desk in a dedicated study block. The desktop surface exists for authoring and review, not as the primary practice context.
 
-The job to be done, every session: see what's due, start or continue a short drill, and leave with a completion event banked. Nothing else competes with that on open.
+The job to be done, every session: see what's due, learn material never seen before or run a short drill, and leave with either the topic studied or a completion event banked. Nothing else competes with that on open.
 
 ## Product Purpose
 

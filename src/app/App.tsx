@@ -7,6 +7,7 @@ import { Library } from '../features/library/Library'
 import { Progress } from '../features/progress/Progress'
 import { Data } from '../features/data/Data'
 import { Session } from '../features/practice/Session'
+import { Learn } from '../features/learn/Learn'
 import type { View } from '../lib/types'
 
 export function App() {
@@ -30,14 +31,36 @@ export function App() {
 function Routes() {
   const [view, setView] = useState<View>('today')
   const [session, setSession] = useState<string[] | null>(null)
+  const [learn, setLearn] = useState<string[] | null>(null)
   const [authorOnEntry, setAuthorOnEntry] = useState(false)
 
   function startSession(topicIds: string[]) {
     if (topicIds.length > 0) setSession(topicIds)
   }
 
+  function startLearn(topicIds: string[]) {
+    if (topicIds.length > 0) setLearn(topicIds)
+  }
+
   // A session is a route, not a modal: it owns the whole surface so nothing
   // competes with the prompt, and leaving it is an explicit act.
+  if (learn) {
+    return (
+      <div className="app-shell session-shell">
+        <main id="main" tabIndex={-1}>
+          <Learn
+            topicIds={learn}
+            onExit={() => setLearn(null)}
+            onStartPractice={(topicIds) => {
+              setLearn(null)
+              startSession(topicIds)
+            }}
+          />
+        </main>
+      </div>
+    )
+  }
+
   if (session) {
     return (
       <div className="app-shell session-shell">
@@ -59,13 +82,16 @@ function Routes() {
       {view === 'today' && (
         <Today
           onStart={startSession}
+          onLearn={startLearn}
           onGoToLibrary={() => {
             setAuthorOnEntry(true)
             setView('library')
           }}
         />
       )}
-      {view === 'library' && <Library onPractise={startSession} openFormOnMount={authorOnEntry} />}
+      {view === 'library' && (
+        <Library onPractise={startSession} onLearn={startLearn} openFormOnMount={authorOnEntry} />
+      )}
       {view === 'progress' && <Progress />}
       {view === 'data' && <Data />}
     </AppShell>

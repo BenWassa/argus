@@ -10,11 +10,12 @@ import './Library.css'
 
 interface LibraryProps {
   onPractise: (topicIds: string[]) => void
+  onLearn: (topicIds: string[]) => void
   /** Set when Today sends the user here to author their first topic. */
   openFormOnMount?: boolean
 }
 
-export function Library({ onPractise, openFormOnMount = false }: LibraryProps) {
+export function Library({ onPractise, onLearn, openFormOnMount = false }: LibraryProps) {
   const { topics, upsertTopic, removeTopic } = useLibrary()
   const [detail, setDetail] = useState<Topic | null>(null)
   const [editing, setEditing] = useState<Topic | null>(null)
@@ -59,6 +60,24 @@ export function Library({ onPractise, openFormOnMount = false }: LibraryProps) {
                       {topic.items.length} {topic.items.length === 1 ? 'item' : 'items'}
                     </span>
                   </span>
+                </button>
+                <button
+                  className="index-learn"
+                  type="button"
+                  disabled={!canPractise}
+                  onClick={() => onLearn([topic.id])}
+                  aria-label={canPractise ? `Learn ${topic.title}` : `${topic.title} has no items to learn`}
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M4 6c2.2-1.1 4.8-1.1 7 0v12c-2.2-1.1-4.8-1.1-7 0V6ZM20 6c-2.2-1.1-4.8-1.1-7 0v12c2.2-1.1 4.8-1.1 7 0V6Z"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
                 </button>
                 <button
                   className="index-practise"
@@ -134,6 +153,14 @@ export function Library({ onPractise, openFormOnMount = false }: LibraryProps) {
               }}
             >
               Edit
+            </button>
+            <button
+              className="ghost"
+              type="button"
+              disabled={detail.items.length === 0}
+              onClick={() => onLearn([detail.id])}
+            >
+              Learn
             </button>
             <button type="button" disabled={detail.items.length === 0} onClick={() => onPractise([detail.id])}>
               Practise
