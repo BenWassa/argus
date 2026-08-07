@@ -93,6 +93,71 @@ export function modeFor(topic: Topic): Extract<Mode, 'learn' | 'test'> {
 }
 
 /**
+ * How far a waiting topic has travelled through its gap, 0 to 1, or null when
+ * it is not waiting on one. The row already states the wait in words; this lets
+ * a long shelf be scanned without reading every one of them.
+ */
+export function gapProgress(topic: Topic, now: Date = new Date()): number | null {
+  const span =
+    topic.status === 'drilled' ? COMPLETION_GAP_DAYS
+    : topic.status === 'completed' ? SPOT_CHECK_DAYS
+    : null
+  if (span === null) return null
+
+  const from = topic.status === 'drilled' ? topic.drilledAt : topic.lastPracticedAt
+  if (!from) return null
+
+  return Math.min(1, Math.max(0, daysBetween(from, now) / span))
+}
+
+export type ShelfId = 'due' | 'active' | 'completed' | 'unfinished'
+
+export interface Shelf {
+  id: ShelfId
+  label: string
+  topics: Topic[]
+}
+
+/**
+ * The library ordered the way the schedule reads it rather than the way the
+ * alphabet does. Title order never changes and never decides anything; which
+ * shelf a topic sits on answers "what can I do right now" without opening it.
+ * Topics with no items are an authoring job, not a practice one, so they are
+ * held apart rather than left dimmed in the middle of the list.
+ */
+export function shelves(topics: Topic[], now: Date = new Date()): Shelf[] {
+  const due = dueTopics(topics, now)
+  const claimed = new Set(due.map((t) => t.id))
+  const rest = topics.filter((t) => !claimed.has(t.id))
+  const waiting = rest.filter((t) => t.items.length > 0)
+
+  const byTitle = (a: Topic, b: Topic) => a.title.localeCompare(b.title)
+  const bySoonest = (a: Topic, b: Topic) =>
+    dueState(a, now).waitDays - dueState(b, now).waitDays || byTitle(a, b)
+
+  const all: Shelf[] = [
+    { id: 'due', label: 'Due now', topics: due },
+    {
+      id: 'active',
+      label: 'In progress',
+      topics: waiting.filter((t) => t.status !== 'completed').sort(bySoonest),
+    },
+    {
+      id: 'completed',
+      label: 'Completed',
+      topics: waiting.filter((t) => t.status === 'completed').sort(bySoonest),
+    },
+    {
+      id: 'unfinished',
+      label: 'Needs items',
+      topics: rest.filter((t) => t.items.length === 0).sort(byTitle),
+    },
+  ]
+
+  return all.filter((shelf) => shelf.topics.length > 0)
+}
+
+/**
  * Reading a topic moves it off `unstarted`, because it has now been seen. No
  * attempt is recorded: nothing was scored. Touching `lastPracticedAt` starts
  * the one-day learning gap, so a topic read today comes back tomorrow to be

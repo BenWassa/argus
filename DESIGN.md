@@ -75,6 +75,7 @@ spacing:
 elevation:
   edge: "inset 0 1px 0 rgb(255 255 255 / 5%)"
   shadow-sm: "0 1px 2px rgb(0 0 0 / 32%)"
+  shadow-key: "0 12px 30px rgb(0 0 0 / 40%)"
   shadow: "0 18px 48px rgb(0 0 0 / 34%)"
   shadow-lift: "0 28px 64px rgb(0 0 0 / 46%)"
 components:
@@ -180,11 +181,14 @@ Depth is then built from three things, in this order: **tonal layering**, an **e
 
 ### Shadow Vocabulary
 - **`--shadow-sm`**: buttons and small raised controls.
-- **`--shadow`**: the practice panel and the flashcard, the one focused surface per view.
+- **`--shadow-key`**: the required action on Today, when there is one.
+- **`--shadow`**: the flashcard, the one focused surface in a session.
 - **`--shadow-lift`**: the completion moment only.
 
 ### Named Rules
-**One Lit Surface Rule.** Exactly one surface per view carries the ambient shadow plus a warm radial wash from above. On Today that is the due panel; in a session it is the card. Everything else sits flush with an edge highlight at most.
+**One Lit Surface Rule.** At most one surface per view is lit. In a session it is the card. On Today it is the required action itself, so a day with nothing due carries no brass and no shadow anywhere, because there is no work. Everything else sits flush with an edge highlight at most.
+
+The rule says *at most*, not *exactly*. A view with nothing to light is allowed to stay dark.
 
 ## 5. Modes
 
@@ -216,6 +220,11 @@ A `preserve-3d` inner element rotated 180° on the Y axis inside a stage that ow
 
 ### Topic rows (not cards)
 The library is a dense index. Each row: no radius, full-width bottom hairline, serif title, small-caps metadata. One trailing action button per row, and it launches the mode the ladder is asking for.
+
+### The docket
+Today uses the same index rows, because a due topic and a library topic are the same object. The whole row is the control and it starts that topic alone, so a five-minute window never has to take the whole batch. The row's metadata is the **reason** the topic surfaced today (`dueState().label`) and its item count, never its rung: the rung is a fact about the topic, the reason is a fact about today. Below the docket, one primary action runs the batch the top-ranked topic belongs to.
+
+Counts are stated in items, not topics alone. Four topics can be eight items or forty-five, and the difference is the entire question of whether there is time.
 
 ### Stat strip
 One bordered container divided by hairlines, reading as a single instrument panel. The first figure is brass; the rest are bone.

@@ -1,7 +1,46 @@
 import { useLibrary } from '../../lib/store'
 import { dueState, dueTopics, modeFor } from '../../lib/scheduling'
-import { StatusTag } from '../../components/ui/StatusTag'
-import type { Mode } from '../../lib/types'
+import type { Mode, Topic } from '../../lib/types'
+import './Today.css'
+
+const WORDS = [
+  'no', 'one', 'two', 'three', 'four', 'five', 'six',
+  'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve',
+]
+
+/** Small counts read as prose. Past twelve the numeral is clearer than the word. */
+function count(n: number): string {
+  return n <= 12 ? WORDS[n] : String(n)
+}
+
+function topicCount(n: number): string {
+  return `${count(n)} ${n === 1 ? 'topic' : 'topics'}`
+}
+
+function itemsIn(topics: Topic[]): number {
+  return topics.reduce((n, t) => n + t.items.length, 0)
+}
+
+function sentence(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1)
+}
+
+/** Mirrors the seeded library, so the empty state teaches the shape of a topic
+ *  rather than restating the rule in the abstract. */
+const PRIMER = [
+  {
+    title: 'NATO phonetic alphabet',
+    scope: 'The 26 letters A to Z and their code words. Nothing else.',
+  },
+  {
+    title: 'Primary survey',
+    scope: 'The five ABCDE steps in assessment order.',
+  },
+  {
+    title: 'Cardinal and intercardinal bearings',
+    scope: 'The eight compass points and their degree values.',
+  },
+]
 
 interface TodayProps {
   onStart: (mode: Mode, topicIds: string[]) => void
@@ -10,21 +49,37 @@ interface TodayProps {
 
 export function Today({ onStart, onGoToLibrary }: TodayProps) {
   const { topics } = useLibrary()
-  const due = dueTopics(topics)
+  const stamp = new Date().toLocaleDateString(undefined, {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+  })
+
   const practicable = topics.filter((t) => t.items.length > 0)
+  const due = dueTopics(topics)
 
   // Nothing authored yet. Teach the entry gate rather than showing a blank.
   if (topics.length === 0) {
     return (
       <>
-        <h1>Today</h1>
-        <div className="lede">
-          <p>
-            Your library is empty. Argus holds topics that can be genuinely finished: a fixed
-            alphabet, a named framework with a known number of parts, a defined protocol. Each one
-            states its own boundary before it can exist.
-          </p>
-          <button type="button" onClick={onGoToLibrary}>
+        <Head verdict="Nothing here yet" stamp={stamp} />
+        <p className="today-note">
+          Argus holds topics that can be genuinely finished. Every one states its own boundary
+          before it can exist, and that boundary is what makes finishing possible.
+        </p>
+
+        <h2 className="primer-head">What a topic looks like</h2>
+        <ul className="primer">
+          {PRIMER.map((example) => (
+            <li key={example.title}>
+              <span className="primer-title">{example.title}</span>
+              <span className="primer-scope">{example.scope}</span>
+            </li>
+          ))}
+        </ul>
+
+        <div className="today-actions">
+          <button className="today-go" type="button" onClick={onGoToLibrary}>
             Create the first topic
           </button>
         </div>
@@ -32,24 +87,61 @@ export function Today({ onStart, onGoToLibrary }: TodayProps) {
     )
   }
 
-  if (due.length === 0) {
-    const next = [...practicable].sort((a, b) => dueState(a).waitDays - dueState(b).waitDays)[0]
+  // Topics exist but none of them can be run. Say so, rather than offering a
+  // practice button with nothing behind it.
+  if (practicable.length === 0) {
     return (
       <>
-        <h1>Today</h1>
-        <div className="lede">
-          <p>Nothing is due. Recall needs the gap to mean anything, so the schedule is holding.</p>
-          {next && (
-            <p className="next-up">
-              Next: <strong>{next.title}</strong>, {dueState(next).label.toLowerCase()}.
-            </p>
-          )}
+        <Head verdict="Nothing to practise yet" stamp={stamp} />
+        <p className="today-note">
+          {sentence(topicCount(topics.length))} in the library, none with any items yet. A topic
+          needs its prompts and answers before it can be read or tested.
+        </p>
+        <div className="today-actions">
+          <button className="today-go" type="button" onClick={onGoToLibrary}>
+            Add items in the library
+          </button>
+        </div>
+      </>
+    )
+  }
+
+  if (due.length === 0) {
+    // The most common day. Show the shape of the schedule instead of a dead end:
+    // every one of these is reachable now, and reaching it costs nothing.
+    const horizon = [...practicable]
+      .sort((a, b) => dueState(a).waitDays - dueState(b).waitDays)
+      .slice(0, 5)
+
+    return (
+      <>
+        <Head verdict="Nothing due" stamp={stamp} />
+        <p className="today-note">
+          Recall needs the gap to mean anything, so the schedule is holding.
+        </p>
+
+        <h2 className="horizon-head">Coming up</h2>
+        <p className="today-sub">
+          Practise any of these now. Nothing is recorded and the schedule does not move.
+        </p>
+        <ul className="index docket">
+          {horizon.map((topic) => (
+            <DocketRow
+              key={topic.id}
+              topic={topic}
+              verb="Practise"
+              onLaunch={() => onStart('practice', [topic.id])}
+            />
+          ))}
+        </ul>
+
+        <div className="today-actions">
           <button
             className="ghost"
             type="button"
             onClick={() => onStart('practice', practicable.map((t) => t.id))}
           >
-            Practise anyway
+            Practise everything · {itemsIn(practicable)} items
           </button>
         </div>
       </>
@@ -57,60 +149,119 @@ export function Today({ onStart, onGoToLibrary }: TodayProps) {
   }
 
   // The ladder decides the mode: a topic never seen wants reading, everything
-  // else wants proving. Whichever group is on top gets the single primary
-  // action, so the five-minute path stays one tap.
+  // else wants proving. `dueTopics` already ranks the list by urgency, so the
+  // single primary action follows whichever mode the top-ranked topic needs.
   const toLearn = due.filter((topic) => modeFor(topic) === 'learn')
   const toTest = due.filter((topic) => modeFor(topic) === 'test')
-  const leadWithLearn = toLearn.length > 0
-  const leadGroup = leadWithLearn ? toLearn : toTest
-  const altGroup = leadWithLearn ? toTest : []
+  const leadMode = modeFor(due[0])
+  const leadGroup = leadMode === 'learn' ? toLearn : toTest
+  const altGroup = leadMode === 'learn' ? toTest : toLearn
+  const altMode: Mode = leadMode === 'learn' ? 'test' : 'learn'
+
+  const verdict = sentence(
+    [
+      toLearn.length > 0 ? `${count(toLearn.length)} to read` : null,
+      toTest.length > 0 ? `${count(toTest.length)} to prove` : null,
+    ]
+      .filter(Boolean)
+      .join(', '),
+  )
 
   return (
     <>
-      <h1>Today</h1>
+      <Head verdict={verdict} stamp={stamp} />
 
-      <section className="practice-panel" aria-labelledby="due-heading">
-        <h2 id="due-heading">
-          {due.length} {due.length === 1 ? 'topic is' : 'topics are'} due
-        </h2>
-        <ul className="due-list">
-          {due.map((topic) => (
-            <li key={topic.id}>
-              <span className="due-title">{topic.title}</span>
-              <StatusTag status={topic.status} />
-            </li>
-          ))}
-        </ul>
+      <ul className="index docket">
+        {due.map((topic) => {
+          const mode = modeFor(topic)
+          return (
+            <DocketRow
+              key={topic.id}
+              topic={topic}
+              verb={mode === 'learn' ? 'Learn' : 'Test'}
+              onLaunch={() => onStart(mode, [topic.id])}
+            />
+          )
+        })}
+      </ul>
 
-        <div className="panel-actions">
-          <button
-            type="button"
-            onClick={() => onStart(leadWithLearn ? 'learn' : 'test', leadGroup.map((t) => t.id))}
-          >
-            {leadWithLearn ? 'Learn' : 'Start test'} · {leadGroup.length}{' '}
-            {leadGroup.length === 1 ? 'topic' : 'topics'}
-          </button>
+      <div className="today-actions">
+        <button
+          className="today-go"
+          type="button"
+          onClick={() => onStart(leadMode, leadGroup.map((t) => t.id))}
+        >
+          {leadMode === 'learn' ? 'Learn' : 'Test'} {topicCount(leadGroup.length)} ·{' '}
+          {itemsIn(leadGroup)} items
+        </button>
 
-          <div className="panel-alts">
-            {altGroup.length > 0 && (
-              <button
-                className="quiet"
-                type="button"
-                onClick={() => onStart('test', altGroup.map((t) => t.id))}
-              >
-                Test {altGroup.length}
-              </button>
-            )}
+        <div className="today-alts">
+          {altGroup.length > 0 && (
             <button
               className="quiet"
               type="button"
-              onClick={() => onStart('practice', due.map((t) => t.id))}
+              onClick={() => onStart(altMode, altGroup.map((t) => t.id))}
             >
-              Practise without recording
+              {altMode === 'learn' ? 'Learn' : 'Test'} the other {count(altGroup.length)}
             </button>
-          </div>
+          )}
+          <button
+            className="quiet"
+            type="button"
+            onClick={() => onStart('practice', due.map((t) => t.id))}
+          >
+            Practise without recording
+          </button>
         </div>
-      </section>
+
+        <p className="today-consequence">
+          Tests are scored and move the ladder. Learn and practise record nothing.
+        </p>
+      </div>
     </>
+  )
+}
+
+/** The verdict is the page's largest type, because naming the view is the one
+ *  thing the navigation already does. */
+function Head({ verdict, stamp }: { verdict: string; stamp: string }) {
+  return (
+    <div className="today-head">
+      <h1 aria-live="polite">{verdict}</h1>
+      <p className="today-date tabular">{stamp}</p>
+    </div>
+  )
+}
+
+/**
+ * One due topic, and tapping it starts exactly that topic. The row carries the
+ * reason it surfaced today rather than the rung it sits on: the rung is a fact
+ * about the topic, the reason is a fact about today.
+ */
+function DocketRow({
+  topic,
+  verb,
+  onLaunch,
+}: {
+  topic: Topic
+  verb: string
+  onLaunch: () => void
+}) {
+  const { label } = dueState(topic)
+  return (
+    <li>
+      <button type="button" className="index-row" onClick={onLaunch}>
+        <span className="sr-only">{verb}: </span>
+        <span className="index-title">{topic.title}</span>
+        <span className="index-meta">
+          <span className={`due-reason${topic.status === 'decayed' ? ' is-repair' : ''}`}>
+            {label}
+          </span>
+          <span className="tabular">
+            {topic.items.length} {topic.items.length === 1 ? 'item' : 'items'}
+          </span>
+        </span>
+      </button>
+    </li>
   )
 }

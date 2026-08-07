@@ -1,48 +1,324 @@
-.index-entry {
+/* The library is a manifest: shelves ordered by what the schedule is asking
+   for, rows that say what they will do before they do it. It shares the index
+   row vocabulary with Today, and adds only what a browsable list needs that a
+   docket does not: an action column, a wait indicator, and selection. */
+
+.lib-count {
+  margin-top: 5px;
+}
+
+/* -------------------------------------------------------------- filters -- */
+
+.lib-filters {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 44px;
-  align-items: stretch;
   gap: var(--s-sm);
-  border-bottom: 1px solid var(--line);
+  margin-top: var(--s-lg);
 }
 
-.index-entry .index-row {
-  border-bottom: 0;
-  padding-right: var(--s-md);
+.lib-search {
+  /* Cancel the platform search decorations rather than restyling them: a
+     bespoke clear affordance is a reinvented control nobody asked for. */
+  appearance: none;
 }
 
-.index-entry .index-row::after {
-  content: none;
+.lib-search::-webkit-search-cancel-button {
+  appearance: none;
 }
 
-.index-go {
-  align-self: center;
-  justify-self: end;
-  width: 44px;
-  height: 44px;
-  display: grid;
-  place-items: center;
-  padding: 0;
-  border: 1px solid var(--line-strong);
-  border-radius: var(--r-md);
-  color: var(--accent-2);
+.lib-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-sm);
+}
+
+/* Track filters, so the three inks finally do something. Pressed state is
+   carried by brass type on a lifted surface, never a brass fill: filling them
+   would put three accent slabs on a screen whose primary action is brass. */
+.lib-chip {
+  min-height: 36px;
+  padding: 7px 13px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  font-size: var(--t-label);
+  font-weight: var(--w-label);
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: transparent;
+  box-shadow: none;
+}
+
+.lib-chip:hover {
+  color: var(--ink);
+  border-color: var(--line-hover);
   background: var(--surface-2);
-  box-shadow: var(--edge);
 }
 
-.index-go svg {
-  width: 22px;
-  height: 22px;
-}
-
-.index-go:hover:not(:disabled) {
+.lib-chip[aria-pressed='true'] {
+  color: var(--accent-2);
   border-color: var(--accent);
   background: var(--surface-3);
 }
 
-.index-go:disabled {
-  opacity: 0.38;
-  cursor: not-allowed;
+.lib-chip-learning[aria-pressed='false'] { color: var(--learning); }
+.lib-chip-survival[aria-pressed='false'] { color: var(--survival); }
+.lib-chip-tradecraft[aria-pressed='false'] { color: var(--tradecraft); }
+
+.lib-select-toggle {
+  margin-left: auto;
+}
+
+/* --------------------------------------------------------------- shelves -- */
+
+.lib-shelf {
+  margin-top: var(--s-xl);
+}
+
+/* The shelf names the rung, so the rows underneath do not have to repeat it.
+   That is what removed the old "LEARNING · LEARNING" collision. */
+.lib-shelf-head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-md);
+  padding: var(--s-sm) 0;
+  font-family: var(--font);
+  font-size: var(--t-label);
+  font-weight: var(--w-label);
+  letter-spacing: 0.09em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  color: var(--subtle);
+  background: var(--bg);
+}
+
+.lib-shelf-count {
+  color: var(--muted);
+}
+
+/* ------------------------------------------------------------------ rows -- */
+
+.index-entry {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 96px;
+  align-items: stretch;
+  border-bottom: 1px solid var(--line);
+}
+
+.index-entry.is-selecting {
+  grid-template-columns: 34px minmax(0, 1fr);
+  align-items: center;
+}
+
+.index-entry .index-row {
+  border-bottom: 0;
+}
+
+/* The chevron is restored here on purpose: in the library the row navigates to
+   the topic, which is exactly what it promises. It is dropped only in select
+   mode, where the row genuinely stops navigating and starts toggling. */
+.index-entry.is-selecting .index-row::after {
+  content: none;
+}
+
+.lib-check {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+/* One meaning per zone. The left navigates, the right runs, and a hairline
+   says they are not the same control. */
+.lib-action {
+  align-self: stretch;
+  padding: 0 var(--s-sm);
+  border: 0;
+  border-left: 1px solid var(--line);
+  border-radius: 0;
+  font-size: var(--t-small);
+  font-weight: var(--w-component);
+  letter-spacing: 0.01em;
+  color: var(--muted);
+  background: transparent;
+  box-shadow: none;
+}
+
+.lib-action:hover {
+  color: var(--ink);
+  border-color: var(--line);
+  background: var(--surface-2);
+}
+
+.lib-action:active {
+  transform: none;
+}
+
+.lib-action:focus-visible {
+  outline-offset: -3px;
+}
+
+/* Why the topic is where it is. The one fact on the row that changes. */
+.lib-when {
+  color: var(--subtle);
+}
+
+.lib-when.is-due {
+  font-weight: var(--w-label);
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* Matches Today's treatment of the same fact. Decay routes work in both
+   places, so it must not look like two different things. */
+.lib-when.is-repair {
+  color: var(--warning);
+}
+
+/* The wait, drawn. The row already states it in words; this is so a shelf of
+   thirty can be read at a glance instead of one date at a time. Neutral by
+   design: brass would spend the accent, and a semantic colour would turn a
+   schedule into a scoreboard. */
+.lib-gap {
+  display: block;
+  width: 100%;
+  max-width: 132px;
+  height: 1px;
+  /* The row grid already contributes its 5px gap above this. */
+  margin-top: 3px;
+  background: var(--line);
+}
+
+.lib-gap-fill {
+  display: block;
+  height: 100%;
+  background: var(--line-hover);
+}
+
+.lib-consequence {
+  margin-top: var(--s-xl);
+  font-size: var(--t-label);
+  color: var(--subtle);
+}
+
+/* ----------------------------------------------------------- batch bar -- */
+
+/* Appears only once something is selected, and states the count before the
+   verb so the number is never a surprise. */
+.lib-batch {
+  position: sticky;
+  bottom: var(--s-md);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-md);
+  margin-top: var(--s-lg);
+  padding: var(--s-sm) var(--s-sm) var(--s-sm) var(--s-lg);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-lg);
+  background: var(--surface-2);
+  box-shadow: var(--edge), var(--shadow);
+}
+
+.lib-batch-count {
+  font-size: var(--t-label);
+  font-weight: var(--w-label);
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.lib-batch-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s-sm);
+}
+
+/* --------------------------------------------------------- empty states -- */
+
+.lib-blank {
+  display: grid;
+  justify-items: start;
+  gap: var(--s-lg);
+  margin-top: var(--s-xl);
+}
+
+.lib-blank p {
+  color: var(--muted);
+}
+
+.lib-blank-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-md);
+}
+
+/* ---------------------------------------------------------- topic page -- */
+
+.topic-back {
+  margin-bottom: var(--s-md);
+  padding-left: 0;
+}
+
+.topic-title:focus {
+  outline: none;
+}
+
+/* The boundary is the reason the topic exists, so it is set as content in the
+   serif rather than as a muted caption under the title. */
+.topic-scope {
+  max-width: 42ch;
+  margin-top: var(--s-md);
+  font-family: var(--font-display);
+  font-size: var(--t-section);
+  font-weight: var(--w-body);
+  line-height: 1.32;
+  letter-spacing: -0.006em;
+  color: var(--muted);
+}
+
+.topic-facts {
+  display: grid;
+  gap: var(--s-sm);
+  margin-top: var(--s-xl);
+  padding: var(--s-md) 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.topic-facts > div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s-md);
+  font-size: var(--t-label);
+}
+
+.topic-facts dt {
+  color: var(--subtle);
+}
+
+.topic-facts dd {
+  margin: 0;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.topic-unfinished {
+  display: grid;
+  justify-items: start;
+  gap: var(--s-md);
+  margin-top: var(--s-lg);
+}
+
+.topic-unfinished p {
+  color: var(--muted);
 }
 
 /* Choosing a mode is choosing what the next few minutes cost you, so each one
@@ -75,6 +351,7 @@
   color: var(--accent-ink);
   border-color: var(--accent);
   background: linear-gradient(180deg, var(--accent-2), var(--accent));
+  box-shadow: var(--edge), var(--shadow-sm);
 }
 
 .mode-btn.is-primary:hover:not(:disabled) {
@@ -97,8 +374,114 @@
   color: rgb(28 21 10 / 74%);
 }
 
-@media (min-width: 680px) {
+/* Detail the page holds but does not lead with. Native disclosure, because a
+   disclosure is exactly what this is. */
+.fold {
+  margin-top: var(--s-lg);
+  border-bottom: 1px solid var(--line);
+}
+
+.fold:first-of-type {
+  border-top: 1px solid var(--line);
+}
+
+.fold summary {
+  padding: var(--s-md) 0;
+  font-size: var(--t-label);
+  font-weight: var(--w-label);
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.fold summary:hover {
+  color: var(--ink);
+}
+
+.fold summary:focus-visible {
+  outline: 2px solid var(--accent-2);
+  outline-offset: 2px;
+}
+
+.fold-items,
+.fold-history {
+  padding-bottom: var(--s-md);
+  border-top: 1px solid var(--line);
+}
+
+.fold-items li,
+.fold-history li {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s-md);
+  padding: 9px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: var(--t-label);
+}
+
+.fold-items li:last-child,
+.fold-history li:last-child {
+  border-bottom: 0;
+}
+
+.fold-prompt {
+  color: var(--muted);
+}
+
+.fold-answer {
+  font-family: var(--font-display);
+  font-size: var(--t-small);
+  text-align: right;
+}
+
+.fold-history li {
+  font-variant-numeric: tabular-nums;
+}
+
+.fold-resolved {
+  min-width: 8ch;
+  text-align: right;
+  color: var(--muted);
+}
+
+.topic-admin {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-lg);
+  margin-top: var(--s-2xl);
+}
+
+.topic-admin .quiet.is-danger {
+  color: var(--danger);
+}
+
+.topic-admin .quiet.is-danger:hover {
+  color: var(--danger-2);
+}
+
+/* -------------------------------------------------------------- desktop -- */
+
+@media (min-width: 980px) {
   .index-entry {
-    grid-template-columns: minmax(0, 1fr) 48px;
+    grid-template-columns: minmax(0, 1fr) 112px;
+  }
+
+  .lib-filters {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--s-md);
+  }
+
+  .lib-search {
+    max-width: 320px;
+  }
+
+  .lib-select-toggle {
+    margin-left: var(--s-sm);
+  }
+
+  .mode-choice {
+    max-width: 420px;
   }
 }

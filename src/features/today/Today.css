@@ -1,0 +1,130 @@
+/* Today opens on the work. The largest type states what the schedule is asking
+   for, because naming the view is what the navigation already does. */
+.today-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-xs) var(--s-md);
+}
+
+.today-date {
+  font-size: var(--t-label);
+  font-weight: var(--w-label);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--subtle);
+  white-space: nowrap;
+}
+
+.today-note {
+  margin-top: var(--s-md);
+  color: var(--muted);
+}
+
+.today-sub {
+  margin-top: var(--s-xs);
+  font-size: var(--t-small);
+  color: var(--subtle);
+}
+
+/* The same index vocabulary the library uses, because these are the same
+   objects. A due topic is a row you can start, not an entry in a manifest.
+   Qualified with .index so the override does not depend on bundle order:
+   feature stylesheets are emitted before global.css. */
+.index.docket {
+  margin-top: var(--s-xl);
+}
+
+.horizon-head {
+  margin-top: var(--s-2xl);
+}
+
+.horizon-head + .today-sub + .index.docket {
+  margin-top: var(--s-md);
+}
+
+/* Why the topic surfaced today, not which rung it sits on. */
+.due-reason {
+  font-weight: var(--w-label);
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.due-reason.is-repair {
+  color: var(--warning);
+}
+
+.today-actions {
+  display: grid;
+  justify-items: stretch;
+  gap: var(--s-md);
+  margin-top: var(--s-xl);
+}
+
+/* The one lit surface on Today is the required action itself. A day with
+   nothing due carries no brass and no shadow, because there is no work. */
+.today-go {
+  width: 100%;
+  min-height: 52px;
+  font-size: var(--t-component);
+  box-shadow: var(--edge), var(--shadow-key);
+}
+
+.today-alts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-md);
+}
+
+.today-consequence {
+  font-size: var(--t-label);
+  color: var(--subtle);
+}
+
+/* ---------------------------------------------------------------- primer -- */
+
+.primer-head {
+  margin-top: var(--s-xl);
+}
+
+.primer {
+  margin-top: var(--s-sm);
+  border-top: 1px solid var(--line);
+}
+
+.primer li {
+  padding: var(--s-md) 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.primer-title {
+  display: block;
+  font-family: var(--font-display);
+  font-size: var(--t-component);
+  font-weight: var(--w-component);
+  letter-spacing: -0.008em;
+}
+
+.primer-scope {
+  display: block;
+  margin-top: 3px;
+  max-width: var(--measure);
+  font-size: var(--t-small);
+  color: var(--muted);
+}
+
+@media (min-width: 980px) {
+  /* A full-width brass slab across a 760px column reads as a banner, not a
+     key. Higher specificity than .today-go so the cap actually lands. */
+  .today-actions {
+    justify-items: start;
+  }
+
+  .today-actions > button {
+    width: auto;
+    min-width: 280px;
+  }
+}

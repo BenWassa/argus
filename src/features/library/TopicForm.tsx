@@ -1,11 +1,24 @@
-import { useId, useMemo, useState } from 'react'
+import { useEffect, useId, useMemo, useState } from 'react'
 import { Dialog } from '../../components/ui/Dialog'
 import { TRACKS, type Item, type Topic, type Track } from '../../lib/types'
+
+/** Starting values for a new topic. Used to hand the user a worked example
+ *  rather than describing what a good scope sentence looks like. */
+export interface Draft {
+  title: string
+  scope: string
+  track: Track
+  items: string
+}
 
 interface TopicFormProps {
   topic: Topic | null
   onSave: (topic: Topic) => void
   onClose: () => void
+  /** Prefill for a new topic. Ignored when editing an existing one. */
+  draft?: Draft | null
+  /** Open with the items field focused, for a topic that exists but is empty. */
+  focusItems?: boolean
 }
 
 const TRACK_LABELS: Record<Track, string> = {
@@ -31,15 +44,34 @@ function serialiseItems(items: Item[]): string {
   return items.map((i) => `${i.prompt} | ${i.answer}`).join('\n')
 }
 
-export function TopicForm({ topic, onSave, onClose }: TopicFormProps) {
-  const [title, setTitle] = useState(topic?.title ?? '')
-  const [scope, setScope] = useState(topic?.scope ?? '')
-  const [track, setTrack] = useState<Track>(topic?.track ?? 'learning')
-  const [raw, setRaw] = useState(topic ? serialiseItems(topic.items) : '')
+export function TopicForm({
+  topic,
+  onSave,
+  onClose,
+  draft = null,
+  focusItems = false,
+}: TopicFormProps) {
+  const start = topic ?? draft
+  const [title, setTitle] = useState(start?.title ?? '')
+  const [scope, setScope] = useState(start?.scope ?? '')
+  const [track, setTrack] = useState<Track>(start?.track ?? 'learning')
+  const [raw, setRaw] = useState(
+    topic ? serialiseItems(topic.items) : (draft?.items ?? ''),
+  )
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [confirmingDiscard, setConfirmingDiscard] = useState(false)
 
   const ids = { title: useId(), scope: useId(), track: useId(), items: useId() }
+
+  // Arriving from "Add items" means the title and scope are already written and
+  // the only thing missing is the set, so the caret starts where the work is.
+  useEffect(() => {
+    if (!focusItems) return
+    const field = document.getElementById(ids.items) as HTMLTextAreaElement | null
+    field?.focus()
+    field?.setSelectionRange(field.value.length, field.value.length)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusItems])
 
   // The count is derived, never typed. The app already knows it.
   const items = useMemo(() => parseItems(raw), [raw])
@@ -94,11 +126,22 @@ export function TopicForm({ topic, onSave, onClose }: TopicFormProps) {
     }
   }
 
+  // Measured against what the form actually opened with, so an untouched
+  // example is not mistaken for work worth arguing about on the way out.
+  const opened = topic
+    ? { title: topic.title, scope: topic.scope, track: topic.track, items: serialiseItems(topic.items) }
+    : {
+        title: draft?.title ?? '',
+        scope: draft?.scope ?? '',
+        track: draft?.track ?? ('learning' as Track),
+        items: draft?.items ?? '',
+      }
+
   const dirty =
-    title !== (topic?.title ?? '') ||
-    scope !== (topic?.scope ?? '') ||
-    track !== (topic?.track ?? 'learning') ||
-    raw !== (topic ? serialiseItems(topic.items) : '')
+    title !== opened.title ||
+    scope !== opened.scope ||
+    track !== opened.track ||
+    raw !== opened.items
 
   function requestClose() {
     if (dirty) setConfirmingDiscard(true)
