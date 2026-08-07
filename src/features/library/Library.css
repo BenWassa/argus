@@ -1,6 +1,6 @@
 .index-entry {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 44px 44px;
+  grid-template-columns: minmax(0, 1fr) 44px;
   align-items: stretch;
   gap: var(--s-sm);
   border-bottom: 1px solid var(--line);
@@ -15,8 +15,7 @@
   content: none;
 }
 
-.index-learn,
-.index-practise {
+.index-go {
   align-self: center;
   justify-self: end;
   width: 44px;
@@ -28,28 +27,78 @@
   border-radius: var(--r-md);
   color: var(--accent-2);
   background: var(--surface-2);
+  box-shadow: var(--edge);
 }
 
-.index-learn svg,
-.index-practise svg {
+.index-go svg {
   width: 22px;
   height: 22px;
 }
 
-.index-learn:hover:not(:disabled),
-.index-practise:hover:not(:disabled) {
+.index-go:hover:not(:disabled) {
   border-color: var(--accent);
   background: var(--surface-3);
 }
 
-.index-learn:disabled,
-.index-practise:disabled {
+.index-go:disabled {
   opacity: 0.38;
   cursor: not-allowed;
 }
 
+/* Choosing a mode is choosing what the next few minutes cost you, so each one
+   states its consequence rather than relying on its verb. */
+.mode-choice {
+  display: grid;
+  gap: var(--s-sm);
+  margin-top: var(--s-lg);
+}
+
+.mode-btn {
+  display: grid;
+  gap: 2px;
+  min-height: 56px;
+  padding: var(--s-md);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-md);
+  text-align: left;
+  color: var(--ink);
+  background: var(--surface-2);
+  box-shadow: var(--edge);
+}
+
+.mode-btn:hover:not(:disabled) {
+  border-color: var(--line-hover);
+  background: var(--surface-3);
+}
+
+.mode-btn.is-primary {
+  color: var(--accent-ink);
+  border-color: var(--accent);
+  background: linear-gradient(180deg, var(--accent-2), var(--accent));
+}
+
+.mode-btn.is-primary:hover:not(:disabled) {
+  background: var(--accent-2);
+  border-color: var(--accent-2);
+}
+
+.mode-name {
+  font-size: var(--t-component);
+  font-weight: var(--w-component);
+}
+
+.mode-note {
+  font-size: var(--t-label);
+  font-weight: var(--w-body);
+  color: var(--muted);
+}
+
+.mode-btn.is-primary .mode-note {
+  color: rgb(28 21 10 / 74%);
+}
+
 @media (min-width: 680px) {
   .index-entry {
-    grid-template-columns: minmax(0, 1fr) 48px 48px;
+    grid-template-columns: minmax(0, 1fr) 48px;
   }
 }

@@ -8,7 +8,17 @@ product
 
 Ben, the owner and sole user for the beta: a self-directed learner building a personal library of finite, closed-scope competencies (recall systems, psychology frameworks, emergency medicine, navigation, observation and counter-surveillance tradecraft). He authors topics himself rather than consuming a catalogue, and practices in short mobile sessions — on a phone, in spare five-minute windows — not at a desk in a dedicated study block. The desktop surface exists for authoring and review, not as the primary practice context.
 
-The job to be done, every session: see what's due, learn material never seen before or run a short drill, and leave with either the topic studied or a completion event banked. Nothing else competes with that on open.
+The job to be done, every session: see what's due, do the one thing the schedule is asking for, and leave. Nothing else competes with that on open.
+
+## Modes
+
+Three ways to engage a topic, and the status ladder decides which one it needs. The user is never asked to pick a study strategy.
+
+- **Learn** — the set laid out in full as a reading sheet, prompts and answers both visible, scannable in any order. This is what an `unstarted` topic gets, because testing someone on material they have never seen is not a test. Reading moves the topic to `learning`; nothing is scored.
+- **Practice** — flashcards, self-scored, repeatable without limit. Records nothing, so rehearsal never costs a rung and warming up before a real test is free.
+- **Test** — the same flashcards, every item, once, scored. The only mode that resolves an attempt, moves the ladder, or banks a completion.
+
+The split exists because retention and exposure are different things, and the interface should never let one be mistaken for the other. A surface shaped like a flashcard must conceal its answer; a surface meant for scanning must not pretend to be a card.
 
 ## Product Purpose
 
@@ -40,7 +50,8 @@ The tradecraft and survival tracks pull hard toward military, prepper, or tactic
 2. **Task-first over showcase-first.** The interface opens to "what's due" and "start practice," not to a summary or a pitch. Marketing-page instincts (heroes, slogans, eyebrows) are actively rejected on functional screens.
 3. **Retention over exposure, decay as routing not punishment.** Completion means recall survives a gap. Surfacing decay is diagnostic information, framed the same way as any other status, never as a failure state.
 4. **Portable and owner-owned.** Full JSON export/import is a first-class feature, not a settings-page afterthought — the interface should never make data feel trapped.
-5. **Restraint reads as competence.** One accent color, minimal chrome, and native system typography carry the "capable and deliberate" tone; ornamentation would undercut it, not reinforce it.
+5. **Restraint reads as competence.** One accent color, minimal chrome, and native typography carry the "capable and deliberate" tone. Restraint is not the same as flatness: the interface earns its calm through material, real typographic hierarchy, and one lit surface per view, not by removing contrast until everything sits at the same pitch.
+6. **The form must not lie about the content.** A card shape promises a concealed answer; a list promises scannability. Matching the surface to the actual task is a correctness requirement, not a style choice.
 
 ## Accessibility & Inclusion
 

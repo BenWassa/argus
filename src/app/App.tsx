@@ -8,7 +8,7 @@ import { Progress } from '../features/progress/Progress'
 import { Data } from '../features/data/Data'
 import { Session } from '../features/practice/Session'
 import { Learn } from '../features/learn/Learn'
-import type { View } from '../lib/types'
+import type { Mode, View } from '../lib/types'
 
 export function App() {
   const [showSplash, setShowSplash] = useState(shouldShowSplash)
@@ -28,44 +28,42 @@ export function App() {
   )
 }
 
+interface Run {
+  mode: Mode
+  topicIds: string[]
+}
+
 function Routes() {
   const [view, setView] = useState<View>('today')
-  const [session, setSession] = useState<string[] | null>(null)
-  const [learn, setLearn] = useState<string[] | null>(null)
+  const [run, setRun] = useState<Run | null>(null)
   const [authorOnEntry, setAuthorOnEntry] = useState(false)
 
-  function startSession(topicIds: string[]) {
-    if (topicIds.length > 0) setSession(topicIds)
+  function start(mode: Mode, topicIds: string[]) {
+    if (topicIds.length > 0) setRun({ mode, topicIds })
   }
 
-  function startLearn(topicIds: string[]) {
-    if (topicIds.length > 0) setLearn(topicIds)
-  }
-
-  // A session is a route, not a modal: it owns the whole surface so nothing
-  // competes with the prompt, and leaving it is an explicit act.
-  if (learn) {
+  // A run is a route, not a modal: it owns the whole surface so nothing
+  // competes with the material, and leaving it is an explicit act.
+  if (run) {
     return (
       <div className="app-shell session-shell">
         <main id="main" tabIndex={-1}>
-          <Learn
-            topicIds={learn}
-            onExit={() => setLearn(null)}
-            onStartPractice={(topicIds) => {
-              setLearn(null)
-              startSession(topicIds)
-            }}
-          />
-        </main>
-      </div>
-    )
-  }
-
-  if (session) {
-    return (
-      <div className="app-shell session-shell">
-        <main id="main" tabIndex={-1}>
-          <Session topicIds={session} onExit={() => setSession(null)} />
+          {run.mode === 'learn' ? (
+            <Learn
+              key={run.topicIds.join()}
+              topicIds={run.topicIds}
+              onExit={() => setRun(null)}
+              onPractise={(ids) => start('practice', ids)}
+              onTest={(ids) => start('test', ids)}
+            />
+          ) : (
+            <Session
+              key={`${run.mode}-${run.topicIds.join()}`}
+              topicIds={run.topicIds}
+              graded={run.mode === 'test'}
+              onExit={() => setRun(null)}
+            />
+          )}
         </main>
       </div>
     )
@@ -81,17 +79,14 @@ function Routes() {
     >
       {view === 'today' && (
         <Today
-          onStart={startSession}
-          onLearn={startLearn}
+          onStart={start}
           onGoToLibrary={() => {
             setAuthorOnEntry(true)
             setView('library')
           }}
         />
       )}
-      {view === 'library' && (
-        <Library onPractise={startSession} onLearn={startLearn} openFormOnMount={authorOnEntry} />
-      )}
+      {view === 'library' && <Library onStart={start} openFormOnMount={authorOnEntry} />}
       {view === 'progress' && <Progress />}
       {view === 'data' && <Data />}
     </AppShell>

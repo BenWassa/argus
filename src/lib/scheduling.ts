@@ -1,4 +1,4 @@
-import type { Status, Topic } from './types'
+import type { Mode, Status, Topic } from './types'
 
 /** A topic reaches `drilled` only on a clean session. No partial credit. */
 export const PASS_THRESHOLD = 1
@@ -82,6 +82,27 @@ export function dueTopics(topics: Topic[], now: Date = new Date()): Topic[] {
     })
 }
 
+/**
+ * Which mode a topic is actually asking for. The ladder already knows: a rung
+ * the user has never seen wants reading, and every other rung wants proving.
+ * Practice is deliberately not returned here, because it is never what a topic
+ * *needs* — it is always available, and never required.
+ */
+export function modeFor(topic: Topic): Extract<Mode, 'learn' | 'test'> {
+  return topic.status === 'unstarted' ? 'learn' : 'test'
+}
+
+/**
+ * Reading a topic moves it off `unstarted`, because it has now been seen. No
+ * attempt is recorded: nothing was scored. Touching `lastPracticedAt` starts
+ * the one-day learning gap, so a topic read today comes back tomorrow to be
+ * drilled rather than immediately.
+ */
+export function resolveStudy(topic: Topic, now: Date = new Date()): Topic {
+  if (topic.status !== 'unstarted') return topic
+  return { ...topic, status: 'learning', lastPracticedAt: now.toISOString() }
+}
+
 export interface Resolution {
   topic: Topic
   from: Status
@@ -95,9 +116,9 @@ export interface Resolution {
 }
 
 /**
- * Applies one session's result to a topic and reports the transition, so the
- * session-end screen can name what actually happened rather than reporting a
- * bare score.
+ * Applies one test's result to a topic and reports the transition, so the
+ * end screen can name what actually happened rather than reporting a bare
+ * score. Only Test calls this; Practice resolves nothing.
  */
 export function resolveAttempt(
   topic: Topic,

@@ -1,21 +1,17 @@
 import { useLibrary } from '../../lib/store'
-import { dueState, dueTopics } from '../../lib/scheduling'
+import { dueState, dueTopics, modeFor } from '../../lib/scheduling'
 import { StatusTag } from '../../components/ui/StatusTag'
+import type { Mode } from '../../lib/types'
 
 interface TodayProps {
-  onStart: (topicIds: string[]) => void
-  onLearn: (topicIds: string[]) => void
+  onStart: (mode: Mode, topicIds: string[]) => void
   onGoToLibrary: () => void
 }
 
-export function Today({ onStart, onLearn, onGoToLibrary }: TodayProps) {
+export function Today({ onStart, onGoToLibrary }: TodayProps) {
   const { topics } = useLibrary()
   const due = dueTopics(topics)
   const practicable = topics.filter((t) => t.items.length > 0)
-  // Unstarted topics have never been shown to the user, so they go to Learn
-  // first, not straight into a blind recall test.
-  const toLearn = due.filter((t) => t.status === 'unstarted')
-  const toPractise = due.filter((t) => t.status !== 'unstarted')
 
   // Nothing authored yet. Teach the entry gate rather than showing a blank.
   if (topics.length === 0) {
@@ -37,9 +33,7 @@ export function Today({ onStart, onLearn, onGoToLibrary }: TodayProps) {
   }
 
   if (due.length === 0) {
-    const next = [...practicable].sort(
-      (a, b) => dueState(a).waitDays - dueState(b).waitDays,
-    )[0]
+    const next = [...practicable].sort((a, b) => dueState(a).waitDays - dueState(b).waitDays)[0]
     return (
       <>
         <h1>Today</h1>
@@ -50,13 +44,26 @@ export function Today({ onStart, onLearn, onGoToLibrary }: TodayProps) {
               Next: <strong>{next.title}</strong>, {dueState(next).label.toLowerCase()}.
             </p>
           )}
-          <button className="ghost" type="button" onClick={() => onStart(practicable.map((t) => t.id))}>
-            Practise ahead anyway
+          <button
+            className="ghost"
+            type="button"
+            onClick={() => onStart('practice', practicable.map((t) => t.id))}
+          >
+            Practise anyway
           </button>
         </div>
       </>
     )
   }
+
+  // The ladder decides the mode: a topic never seen wants reading, everything
+  // else wants proving. Whichever group is on top gets the single primary
+  // action, so the five-minute path stays one tap.
+  const toLearn = due.filter((topic) => modeFor(topic) === 'learn')
+  const toTest = due.filter((topic) => modeFor(topic) === 'test')
+  const leadWithLearn = toLearn.length > 0
+  const leadGroup = leadWithLearn ? toLearn : toTest
+  const altGroup = leadWithLearn ? toTest : []
 
   return (
     <>
@@ -74,20 +81,35 @@ export function Today({ onStart, onLearn, onGoToLibrary }: TodayProps) {
             </li>
           ))}
         </ul>
-        {toLearn.length > 0 && (
-          <button type="button" onClick={() => onLearn(toLearn.map((t) => t.id))}>
-            Learn{toPractise.length > 0 ? ` (${toLearn.length})` : ''}
-          </button>
-        )}
-        {toPractise.length > 0 && (
+
+        <div className="panel-actions">
           <button
-            className={toLearn.length > 0 ? 'ghost' : undefined}
             type="button"
-            onClick={() => onStart(toPractise.map((t) => t.id))}
+            onClick={() => onStart(leadWithLearn ? 'learn' : 'test', leadGroup.map((t) => t.id))}
           >
-            Start practice{toLearn.length > 0 ? ` (${toPractise.length})` : ''}
+            {leadWithLearn ? 'Learn' : 'Start test'} · {leadGroup.length}{' '}
+            {leadGroup.length === 1 ? 'topic' : 'topics'}
           </button>
-        )}
+
+          <div className="panel-alts">
+            {altGroup.length > 0 && (
+              <button
+                className="quiet"
+                type="button"
+                onClick={() => onStart('test', altGroup.map((t) => t.id))}
+              >
+                Test {altGroup.length}
+              </button>
+            )}
+            <button
+              className="quiet"
+              type="button"
+              onClick={() => onStart('practice', due.map((t) => t.id))}
+            >
+              Practise without recording
+            </button>
+          </div>
+        </div>
       </section>
     </>
   )

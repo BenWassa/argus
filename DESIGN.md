@@ -1,19 +1,22 @@
 ---
 name: Argus
-description: A quiet field index for finite, closed-scope competencies — task-first, restrained, brass on dark olive.
+description: A dark editorial field index for finite, closed-scope competencies — serif for what you remember, sans for what you operate.
 colors:
-  bg: "#0f1210"
-  surface: "#151916"
-  surface-2: "#1b201c"
-  surface-3: "#232923"
-  ink: "#f4f2ea"
-  muted: "#a9b0a5"
-  subtle: "#788077"
-  line: "#303730"
-  line-strong: "#465047"
+  bg: "#0d100e"
+  surface: "#131714"
+  surface-2: "#191e1a"
+  surface-3: "#212721"
+  surface-4: "#2a312b"
+  field: "#0f1310"
+  ink: "#f5f3ec"
+  muted: "#aab1a6"
+  subtle: "#8b948a"
+  line: "#333b34"
+  line-strong: "#4d574e"
+  line-hover: "#6b776c"
   accent: "#d6b574"
   accent-2: "#f0d39a"
-  accent-ink: "#20180d"
+  accent-ink: "#1c150a"
   learning: "#8fb5cf"
   survival: "#98b77c"
   tradecraft: "#c99a82"
@@ -21,33 +24,40 @@ colors:
   ok: "#9dc5a2"
   warning: "#d8bd79"
 typography:
+  display:
+    fontFamily: "ui-serif, 'New York', Georgia, 'Times New Roman', serif"
+    fontSize: "clamp(2.5rem, 9vw, 3.6rem)"
+    fontWeight: 600
+    lineHeight: 1.02
+    letterSpacing: "-0.022em"
   page-title:
-    fontFamily: "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
-    fontSize: "2rem"
-    fontWeight: 760
-    lineHeight: 1.08
-    letterSpacing: "-0.035em"
+    fontFamily: "ui-serif, 'New York', Georgia, 'Times New Roman', serif"
+    fontSize: "2.15rem"
+    fontWeight: 600
+    lineHeight: 1.06
+    letterSpacing: "-0.018em"
   section-title:
-    fontFamily: "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
-    fontSize: "1.35rem"
-    fontWeight: 700
-    lineHeight: 1.2
-    letterSpacing: "-0.02em"
+    fontFamily: "ui-serif, 'New York', Georgia, 'Times New Roman', serif"
+    fontSize: "1.45rem"
+    fontWeight: 600
+    lineHeight: 1.18
+    letterSpacing: "-0.012em"
   component-title:
     fontFamily: "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
-    fontSize: "0.98rem"
-    fontWeight: 700
-    lineHeight: 1.25
+    fontSize: "1.05rem"
+    fontWeight: 650
+    lineHeight: 1.3
   body:
     fontFamily: "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
-    fontSize: "0.86rem"
+    fontSize: "0.98rem"
     fontWeight: 400
-    lineHeight: 1.5
+    lineHeight: 1.55
   label:
     fontFamily: "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
-    fontSize: "0.7rem"
-    fontWeight: 700
-    letterSpacing: "0.03em"
+    fontSize: "0.72rem"
+    fontWeight: 650
+    letterSpacing: "0.09em"
+    textTransform: "uppercase"
 rounded:
   sm: "9px"
   md: "10px"
@@ -60,47 +70,42 @@ spacing:
   md: "14px"
   lg: "18px"
   xl: "26px"
+  2xl: "40px"
+  3xl: "64px"
+elevation:
+  edge: "inset 0 1px 0 rgb(255 255 255 / 5%)"
+  shadow-sm: "0 1px 2px rgb(0 0 0 / 32%)"
+  shadow: "0 18px 48px rgb(0 0 0 / 34%)"
+  shadow-lift: "0 28px 64px rgb(0 0 0 / 46%)"
 components:
   button-primary:
-    backgroundColor: "{colors.accent}"
+    background: "linear-gradient(180deg, {colors.accent-2}, {colors.accent})"
     textColor: "{colors.accent-ink}"
     rounded: "{rounded.md}"
-    padding: "11px 14px"
     height: "44px"
-  button-primary-hover:
-    backgroundColor: "{colors.accent-2}"
-    textColor: "{colors.accent-ink}"
+    shadow: "{elevation.shadow-sm}"
   button-ghost:
     backgroundColor: "{colors.surface-2}"
     textColor: "{colors.ink}"
     rounded: "{rounded.md}"
-    padding: "11px 14px"
     height: "44px"
-  button-ghost-hover:
-    backgroundColor: "{colors.surface-3}"
-  chip:
+    shadow: "{elevation.edge}, {elevation.shadow-sm}"
+  button-quiet:
     backgroundColor: "transparent"
-    textColor: "{colors.ink}"
-    rounded: "{rounded.pill}"
-    padding: "8px 11px"
+    textColor: "{colors.muted}"
     height: "38px"
-  chip-active:
-    backgroundColor: "{colors.accent}"
-    textColor: "{colors.accent-ink}"
-  field:
-    backgroundColor: "#121613"
-    textColor: "{colors.ink}"
-    rounded: "{rounded.md}"
-    padding: "11px 12px"
-    height: "44px"
+    border: "none"
+  flip-card:
+    minHeight: "clamp(300px, 58svh, 500px)"
+    rounded: "{rounded.xl}"
+    shadow: "{elevation.edge}, {elevation.shadow}"
+    flipDuration: "460ms"
   topic-row:
     backgroundColor: "transparent"
-    textColor: "{colors.ink}"
     rounded: "0"
     padding: "15px 2px"
   sheet:
     backgroundColor: "{colors.surface}"
-    textColor: "{colors.ink}"
     rounded: "18px 18px 0 0"
 ---
 
@@ -110,134 +115,133 @@ components:
 
 **Creative North Star: "The Quiet Field Index"**
 
-Argus is styled as a field manual, not a dashboard: a dark, low-glare reference the owner opens for a few minutes, uses without friction, and closes. Every screen answers one question — what's due, what's next — before it answers anything else. The palette is dark olive and near-black surfaces with a single warm brass accent reserved for the primary action and the current state; three muted track colors (dusty blue, sage, clay) carry semantic meaning only, never decoration. Controls are named as direct actions ("Start due practice," "Export JSON," never "Get started" or "Let's go") — the copy voice matches the visual restraint.
+Argus is styled as a field manual, not a dashboard: a dark, low-glare reference the owner opens for a few minutes, uses without friction, and closes. Every screen answers one question, what's due, before it answers anything else.
 
-The system explicitly rejects the instincts of a generated SaaS dashboard: no marketing hero on the practice surface, no wall of identical metric cards, no rounded card-in-a-card nesting, no eyebrow labels ceremonializing routine headings. A prior design pass shipped exactly that pattern — hero, four stat cards, a grid of topic cards — and design critique flagged it as competent but "category-interchangeable," recognizable Argus ingredients in a generic composition. This spec exists to keep that from recurring. It equally rejects the opposite failure mode this content invites: nothing here should read as tactical, military, or survivalist. The three subject tracks (learning, survival, tradecraft) are handled as calm, muted metadata, not as a HUD.
+The system runs on **two voices**. A native serif carries the things you read and are meant to remember: page titles, topic names, scope statements, the prompt on a card, the answer you were reaching for. A native sans carries the things you operate: buttons, status, counts, metadata, navigation. Nothing is downloaded for either, so the PWA opens the same offline as online. That split is the identity: when the type turns serif, you are looking at content; when it is sans, you are looking at controls.
 
-**Key Characteristics:**
-- Dark, warm-tinted neutrals; one brass accent used sparingly, never decoratively
-- Flat surfaces differentiated by tone, not shadow — depth comes from layering, not elevation
-- Dense index rows over card grids; a topic list reads like a table of contents, not a gallery
-- Fixed type sizes, native UI sans only — no fluid display type, no serif ceremony
-- Motion is restrained: state feedback only, 150–200ms, no decorative choreography
-- Every interactive element carries visible default / hover / focus / active / disabled states
+An earlier pass ran sans-only across a compressed six-step scale, and the result read as calm but interchangeable. The failure was never the palette, it was that every element sat at the same visual pitch with no material underneath it. The fixes are structural: a genuine display step, a real scale, a grain substrate, and surfaces that are actually lit.
+
+**Key characteristics:**
+- Dark, warm-tinted neutrals over a faint grain substrate; one brass accent, never decorative
+- Serif for content, sans for controls, and the boundary between them is meaningful
+- Depth from material and light (edge highlights, one lit surface per view), not from stacked drop shadows
+- Dense index rows over card grids; a topic list reads like a table of contents
+- Motion is state feedback plus one piece of card physics; nothing else moves
 
 ## 2. Colors
 
-The palette is a restrained strategy: tinted near-black neutrals carrying almost the entire surface, one warm accent held to primary actions and current-state only, and three desaturated track colors used exclusively as semantic labels.
-
-### Primary
-- **Brass** (`#d6b574`): the single accent. Reserved for the primary action button, the current selection, and active/current state (active nav, active filter chip, active mode card). Never used decoratively — if brass appears, something is actionable or current.
-- **Bright Brass** (`#f0d39a`): the hover/active state of Brass, used on primary button hover and emphasis numerals (the due-count figure on the practice hero).
-- **Ink-on-Brass** (`#20180d`): the text color used only on top of Brass or Bright Brass surfaces, for contrast.
+A restrained strategy: tinted near-black neutrals carry almost the entire surface, one warm accent is held to primary actions and current state, and three desaturated track colors are used exclusively as typographic labels.
 
 ### Neutral
-- **Field Black** (`#0f1210`): page background. A near-black with a faint green undertone, not a true neutral gray.
-- **Olive Surface** (`#151916`): the base surface tone for panels, the practice panel, and sheets.
-- **Raised Olive** (`#1b201c`): one step up — ghost buttons, top-bar actions, secondary chrome.
-- **Lifted Olive** (`#232923`): hover state for raised surfaces; the topmost tonal layer in the system.
-- **Warm Bone** (`#f4f2ea`): primary text. A warm off-white, never pure `#fff`.
-- **Sage Ash** (`#a9b0a5`): secondary text and metadata labels.
-- **Deep Sage** (`#788077`): the quietest text tone, used for eyebrow-weight labels and stat card kickers.
-- **Line** (`#303730`): default hairline border between rows, panels, and grid cells.
-- **Line Strong** (`#465047`): emphasized border — cards, sheets, focus-adjacent chrome, hover borders.
+- **Field Black** (`#0d100e`): page background. Near-black with a green undertone, never a true gray.
+- **Olive Surface** (`#131714`) → **Raised** (`#191e1a`) → **Lifted** (`#212721`) → **Top** (`#2a312b`): four tonal steps, and all four are used. Hierarchy is built by moving between them.
+- **Warm Bone** (`#f5f3ec`): primary text. Never pure white.
+- **Sage Ash** (`#aab1a6`): secondary text. **Deep Sage** (`#8b948a`): quietest, for eyebrow labels and kickers.
+- **Line** (`#333b34`) / **Line Strong** (`#4d574e`) / **Line Hover** (`#6b776c`): the rule vocabulary.
 
-### Track semantics (used only as metadata, never as backgrounds)
-- **Dusty Blue — Learning** (`#8fb5cf`)
-- **Sage — Survival** (`#98b77c`)
-- **Clay — Tradecraft** (`#c99a82`)
+### Accent
+- **Brass** (`#d6b574`) and **Bright Brass** (`#f0d39a`). The primary button is a top-lit gradient between them. **Ink-on-Brass** (`#1c150a`) is the only text color used on top.
 
-### Status
-- **Signal Coral — danger/error** (`#e0958c`)
-- **Muted Green — success/ok** (`#9dc5a2`)
-- **Muted Gold — warning** (`#d8bd79`)
+### Track semantics
+**Dusty Blue — Learning** (`#8fb5cf`), **Sage — Survival** (`#98b77c`), **Clay — Tradecraft** (`#c99a82`).
 
 ### Named Rules
-**The One Accent Rule.** Brass appears only on the primary action, the current selection, and active state. If a second element on the same screen carries brass, one of them is wrong.
+**The One Accent Rule.** Brass appears only on the primary action, the current selection, and active state. Two brass elements on one screen means one of them is wrong. The single exception is the completion moment, where brass marks the event rather than an action.
 
-**The No Track-as-Background Rule.** Learning/Survival/Tradecraft colors label metadata (a tag, a dot) and are never used as a card background, button fill, or large surface area — that would tip the product toward the tactical/game aesthetic it explicitly rejects.
+**The No Track-as-Background Rule.** Track colors are set as small-caps typographic labels. They never fill a surface, a button, or a border stripe, because that tips the product toward the tactical aesthetic it explicitly rejects.
 
 ## 3. Typography
 
-**Body & Display Font:** the native UI sans stack — `ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`. No web font, no serif, no display face.
+**Display / content:** `ui-serif, "New York", Georgia, "Times New Roman", serif`. On Apple platforms this resolves to New York, which is a genuine editorial face at zero download cost.
 
-**Character:** functional and quiet. Hierarchy comes from fixed size and weight steps, not from a decorative display face — the system deliberately avoids Georgia/serif ceremony that a prior pass used and design critique flagged as behaving "like a brand surface" rather than a practice tool.
+**UI / controls:** the native sans stack.
 
 ### Hierarchy
-- **Page title** (weight 760, 2rem, line-height 1.08, letter-spacing -0.035em): the h1 on every top-level view. Carries its own weight — no eyebrow label above it.
-- **Section title** (weight 700, 1.35rem, line-height 1.2, letter-spacing -0.02em): h2, used for major in-page sections (Today, Library, Progress).
-- **Component title** (weight 700, 0.98rem, line-height 1.25): h3, topic titles, card/panel headings.
-- **Body** (weight 400, 0.86–1rem, line-height 1.5): all prose and descriptions. Measure capped near 68ch (topic scope text uses `max-width: 68ch`).
-- **Label** (weight 700, 0.66–0.76rem, letter-spacing 0.03–0.08em): metadata, kickers, stat card eyebrows. Used sparingly — this is the only place small-caps-weight labeling belongs.
-- **Prompt** (weight 760, 1.75rem, line-height 1.18, letter-spacing -0.03em): the practice-session question itself. The one place type is allowed to feel large, because it's the entire task in that moment.
+- **Display** (serif, `clamp(2.5rem, 9vw, 3.6rem)`, weight 600): topic titles on the Learn sheet. The largest type in the product, because on that screen the topic *is* the screen.
+- **Card value** (serif, `clamp(3rem, 16vw, 6.5rem)`): the prompt and answer on a flashcard. The one place type is allowed to dominate a full viewport, because it is the entire task in that moment.
+- **Page title** (serif, 2.15rem, weight 600): the h1 on every view. No eyebrow above it.
+- **Section title** (serif, 1.45rem): h2.
+- **Component title** (sans, 1.05rem, weight 650): topic titles in dense rows, panel headings.
+- **Body** (sans, 0.98rem, line-height 1.55): prose, capped near 68ch.
+- **Label** (sans, 0.72rem, weight 650, letter-spacing 0.09em, uppercase): metadata, status, track, kickers, counts.
 
 ### Named Rules
-**The No-Eyebrow Rule.** Page and section headings do not get an eyebrow label above them. A prior pass used eyebrow labels throughout and design critique named it directly as ceremony that doesn't belong on a task-first surface. Eyebrow-weight type is reserved for genuine metadata (stat card kickers, session step labels), never as heading decoration.
+**The Two-Voice Rule.** Serif means content; sans means chrome. A button never uses the serif, and a topic title never uses the sans on a reading surface. Mixing them destroys the only signal that tells the eye which is which.
 
-## 4. Elevation
+**The No-Eyebrow Rule.** Headings do not get an eyebrow label above them. Eyebrow-weight type is reserved for genuine metadata: track labels, item counts, session kickers.
 
-Argus is flat by default. Depth is conveyed through tonal layering (Field Black → Olive Surface → Raised Olive → Lifted Olive) and hairline borders, not through shadow. The single exception is the practice panel and the hero-style due-practice surface, which carry one soft ambient shadow to read as the primary, protected focus area on the screen — everything else sits flush.
+**Tabular figures everywhere.** Any number that updates in place (counts, positions, scores, dates) carries `font-variant-numeric: tabular-nums`, so digits never reflow the layout around them.
+
+## 4. Elevation and material
+
+The page sits on a **grain substrate**: a single inline SVG turbulence at ~3% opacity, fixed, non-interactive, never animated. It exists so the dark ground reads as a material rather than an absence.
+
+Depth is then built from three things, in this order: **tonal layering**, an **edge highlight** (`inset 0 1px 0 rgb(255 255 255 / 5%)`) that makes a raised surface read as catching light from above, and only then a shadow.
 
 ### Shadow Vocabulary
-- **Ambient panel** (`box-shadow: 0 18px 48px rgba(0,0,0,.28)`): reserved for the practice panel and the top-of-library "due practice" surface. Signals "this is the one thing to look at," not general-purpose card elevation.
+- **`--shadow-sm`**: buttons and small raised controls.
+- **`--shadow`**: the practice panel and the flashcard, the one focused surface per view.
+- **`--shadow-lift`**: the completion moment only.
 
 ### Named Rules
-**The Flat-By-Default Rule.** No shadow on topic rows, chips, buttons, stat cells, or sheets. Shadow is spent once, on the single most important surface per view.
+**One Lit Surface Rule.** Exactly one surface per view carries the ambient shadow plus a warm radial wash from above. On Today that is the due panel; in a session it is the card. Everything else sits flush with an edge highlight at most.
 
-## 5. Components
+## 5. Modes
 
-Components are dense and quiet at rest; they get louder only on hover, focus, and active/current state. All state transitions are 150–200ms, properties only (background, border-color, transform on `:active`) — never layout properties — and collapse to near-zero under `prefers-reduced-motion`.
+Three ways to engage a topic, and only one of them writes to the ladder. The mode is never a preference; the status ladder determines which one a topic is asking for.
+
+| Mode | Surface | Records |
+|---|---|---|
+| **Learn** | A reading sheet: the full set laid out as a numbered index, prompts and answers both visible, scannable in any order | Moves `unstarted` → `learning`. No score. |
+| **Practice** | Flashcards with a 3D flip, self-scored, repeatable | Nothing at all |
+| **Test** | The same flashcards, every item, once | Resolves the attempt and moves the ladder |
+
+### Named Rules
+**Flashcards Must Conceal.** A card shape promises a hidden answer. If both sides are visible at once it is not a card, it is a list, and it should be set as one. Learn is therefore never card-shaped, and Practice/Test never show the answer before the flip.
+
+**Consequence Is Stated, Not Implied.** Wherever the three modes are offered together, each one states what it costs: "Nothing recorded" or "This one counts". The verb alone does not carry it.
+
+## 6. Components
+
+All state transitions are 150–220ms on properties only, never layout, and collapse under `prefers-reduced-motion`.
 
 ### Buttons
-- **Shape:** 10px radius (`rounded.md`), 44px minimum height.
-- **Primary:** Brass background, Ink-on-Brass text, Brass border. Hover shifts to Bright Brass. Active state depresses 1px on the y-axis.
-- **Ghost/Secondary:** Raised Olive background, Line Strong border, Warm Bone text. Hover moves to Lifted Olive with border brightening toward `#59645a`.
-- **Danger:** same shape as primary, background/border swapped into Signal Coral territory — reserved for destructive actions only (reset local library).
-- **Small variant:** 38px height, 9px radius — used inline (session "End" button) where 44px would overwhelm the row.
-- **Disabled:** 46% opacity, `cursor: not-allowed`.
+- **Primary:** top-lit brass gradient, Ink-on-Brass text, 44px minimum, 10px radius.
+- **Ghost:** Raised Olive, Line Strong border, edge highlight.
+- **Quiet:** text-weight, no border, no background. Used where a third control would otherwise blunt the primary one.
+- **Danger:** Signal Coral, destructive actions only.
 
-### Chips (filters)
-- **Style:** transparent background, Line border, pill radius (999px), 38px height.
-- **Selected (`aria-pressed="true"`):** Brass background, Ink-on-Brass text, Brass border — the same accent-equals-active logic as everywhere else in the system.
+### Flip card
+A `preserve-3d` inner element rotated 180° on the Y axis inside a stage that owns the perspective. The front face is neutral and lit from above; the back face is the only card surface bordered and washed in brass, because the answer is what you came for. Scoring controls fade in after the flip is most of the way through, so they never invite a click at a card the user has not read yet.
 
-### Topic Rows (not cards)
-The library is a dense index, deliberately not a card grid. Each row: no border-radius, full-width bottom hairline (`--line`), 15px vertical padding. On hover, background lifts to `rgba(255,255,255,.018)` and padding nudges inward — a subtle "this is clickable" cue instead of a lift/shadow effect. A trailing `›` chevron sits absolute-positioned at the row's right edge. Track/status/item-count metadata renders as plain text tags separated by a `·` glyph, not pill badges.
+### Topic rows (not cards)
+The library is a dense index. Each row: no radius, full-width bottom hairline, serif title, small-caps metadata. One trailing action button per row, and it launches the mode the ladder is asking for.
 
-### Stat Strip
-Not four separate cards: one bordered container (14px radius) divided internally by hairlines into a 2×2 (mobile) / 1×4 (desktop) grid. Reads as a single instrument panel, not a repeated card pattern.
+### Stat strip
+One bordered container divided by hairlines, reading as a single instrument panel. The first figure is brass; the rest are bone.
 
-### Inputs / Fields
-- **Style:** `#121613` background (one step darker than Olive Surface, for contrast against surrounding panels), Line Strong border, 10px radius, 44px height.
-- **Focus:** 3px outline in `rgba(240,211,154,.32)` (Bright Brass at low opacity), 2px offset, border forced to Brass.
-- **Placeholder:** `#7d857c`, dimmer than Sage Ash body text.
-
-### Navigation
-Bottom nav on mobile (fixed, safe-area aware, 50px min-height touch targets), fixed 236px left side rail on desktop (≥980px) — not the same component stretched, a distinct layout. Active item: Bright Brass icon/text, `aria-current="page"`. Icons are inline SVG, 24×24 viewBox, `stroke="currentColor"` so they inherit state color for free.
-
-### Modal Sheets
-Bottom sheets on mobile, centered on desktop (≥980px), Olive Surface background, Line Strong border, 18px top radius (16px all corners on desktop). Focus moves to the first focusable element on open and returns to the invoking control on close; Escape and backdrop click both dismiss. Close button is a 44×44px target with an explicit `aria-label` naming what it closes, never a bare "×".
+### Completion record
+A numbered descending index of completions, serif titles with small-caps track labels and tabular dates. This is the artifact the product exists to build, so it is composed rather than listed.
 
 ### Named Rules
-**The Nothing-Nests Rule.** A card does not contain another card. If a component needs internal grouping, use a hairline divider or spacing, not a nested bordered container.
+**The Nothing-Nests Rule.** A card never contains another card. Internal grouping uses a hairline or spacing.
 
-## 6. Do's and Don'ts
+## 7. Do's and Don'ts
 
-### Do:
-- **Do** open every top-level view on the task (what's due, start practice) — never on a summary, pitch, or hero.
-- **Do** hold Brass to exactly three roles: primary action, current selection, active/current state.
-- **Do** use flat tonal layering (Field Black → Olive Surface → Raised Olive → Lifted Olive) for hierarchy instead of shadow.
-- **Do** render topic listings as a dense hairline-divided index, not a card grid.
-- **Do** give every interactive element default, hover, focus-visible, active, and disabled states, with a minimum 44px primary touch target.
-- **Do** name controls as direct actions ("Start due practice," "Create topic," "Export JSON") and explain the recovery path in empty states.
-- **Do** treat retention decay as a routing signal — same visual weight as any other status, never styled as an error or a scolding.
-- **Do** keep JSON export/import visually first-class, not buried as a settings afterthought.
+### Do
+- **Do** open every view on the task, never on a summary or a pitch.
+- **Do** let the status ladder pick the mode, and lead with exactly one primary action.
+- **Do** use the serif for content and the sans for chrome, consistently.
+- **Do** give the page ground its grain and raised surfaces their edge highlight.
+- **Do** state a mode's consequence in its own label.
+- **Do** treat decay as routing information, never as an error or a scolding.
 
-### Don't:
-- **Don't** put a hero, oversized slogan, or eyebrow label above a page or section heading. The app is opened to act, not to be sold to.
-- **Don't** build a wall of identical metric cards. Design critique flagged exactly this pattern as "category-interchangeable" — consolidate into one instrument-panel stat strip instead.
-- **Don't** nest a card inside a card, or use `border-left`/`border-right` as a colored accent stripe on any row, alert, or callout.
-- **Don't** use gradient text, glassmorphism, or decorative rings/gradients anywhere in the practice loop.
-- **Don't** reach for military, survivalist, tactical, or "prepper" visual language (camo textures, alarm-red urgency, HUD framing) even though the Survival and Tradecraft tracks' subject matter invites it. The framing is competence, not catastrophe.
-- **Don't** add streaks, badges, XP, or any shame-based nudge for missed practice days.
-- **Don't** widen the mobile layout for desktop and call it done. Desktop gets a genuine side-rail, task-oriented layout.
-- **Don't** use a serif or fluid display typeface, or any animation beyond a 150–200ms state transition.
+### Don't
+- **Don't** put a hero, slogan, or eyebrow above a heading.
+- **Don't** build a wall of identical metric cards.
+- **Don't** shape something like a flashcard unless it actually conceals an answer.
+- **Don't** nest cards, use side-stripe borders, gradient text, or glassmorphism.
+- **Don't** reach for military, survivalist, or tactical visual language, even though the Survival and Tradecraft subject matter invites it. The framing is competence, not catastrophe.
+- **Don't** add streaks, badges, XP, or shame-based nudges.
+- **Don't** widen the mobile layout and call it desktop. Desktop gets a real side rail.
+- **Don't** let Practice write to the ladder. Rehearsal that costs a rung is not rehearsal.

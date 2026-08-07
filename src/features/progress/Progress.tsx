@@ -30,7 +30,7 @@ export function Progress() {
         </div>
         <div>
           <p className="stat-value">{counts.repair}</p>
-          <p className="stat-label">Needing repair</p>
+          <p className="stat-label">Repair</p>
         </div>
       </div>
 
@@ -41,21 +41,28 @@ export function Progress() {
           {COMPLETION_GAP_DAYS} days after it was last drilled.
         </p>
       ) : (
-        <ul className="index">
-          {completions.map((topic) => (
+        <ol className="record">
+          {completions.map((topic, i) => (
             <li key={topic.id}>
-              <div className="index-row static">
-                <span className="index-title">{topic.title}</span>
-                <span className="index-meta">
-                  <StatusTag status={topic.status} />
-                  <span>
-                    Completed {new Date(topic.completedAt ?? '').toLocaleDateString()}
-                  </span>
+              <span className="record-number">
+                {String(completions.length - i).padStart(2, '0')}
+              </span>
+              <span>
+                <span className="record-title">{topic.title}</span>
+                <span className="record-meta">
+                  <span className={`track track-${topic.track}`}>{topic.track}</span>
+                  {topic.status === 'decayed' && <StatusTag status={topic.status} />}
                 </span>
-              </div>
+              </span>
+              <span className="record-date">
+                {new Date(topic.completedAt ?? '').toLocaleDateString(undefined, {
+                  year: 'numeric',
+                  month: 'short',
+                })}
+              </span>
             </li>
           ))}
-        </ul>
+        </ol>
       )}
     </>
   )

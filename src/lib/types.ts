@@ -51,3 +51,17 @@ export interface Library {
 }
 
 export type View = 'today' | 'library' | 'progress' | 'data'
+
+/**
+ * The three ways to engage a topic. They are not interchangeable, and only
+ * one of them writes to the status ladder.
+ *
+ *   learn     read the set laid out in full. no scoring. moves a topic off
+ *             `unstarted`, because it has now been seen.
+ *   practice  flashcards, self-scored, as often as you like. records nothing,
+ *             so rehearsal never costs a rung.
+ *   test      every item, once, scored. the only mode that resolves an
+ *             attempt and the only one that can bank a completion.
+ */
+export const MODES = ['learn', 'practice', 'test'] as const
+export type Mode = (typeof MODES)[number]

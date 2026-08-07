@@ -13,6 +13,8 @@ interface Card {
 
 interface SessionProps {
   topicIds: string[]
+  /** Test resolves attempts and moves the ladder. Practice records nothing. */
+  graded: boolean
   onExit: () => void
 }
 
@@ -35,7 +37,7 @@ function haptic(pattern: number | number[]) {
   }
 }
 
-export function Session({ topicIds, onExit }: SessionProps) {
+export function Session({ topicIds, graded, onExit }: SessionProps) {
   const { topics, upsertTopic } = useLibrary()
 
   // Snapshot the topics and deck at session start. A bankable attempt always
@@ -58,6 +60,10 @@ export function Session({ topicIds, onExit }: SessionProps) {
   const [index, setIndex] = useState(0)
   const [phase, setPhase] = useState<Phase>('asking')
   const [tally, setTally] = useState<{ correct: number; total: number }>({ correct: 0, total: 0 })
+  const [runningScore, setRunningScore] = useState<{ correct: number; total: number }>({
+    correct: 0,
+    total: 0,
+  })
   const [resolutions, setResolutions] = useState<Resolution[]>([])
   const [confirmingExit, setConfirmingExit] = useState(false)
 
@@ -105,11 +111,10 @@ export function Session({ topicIds, onExit }: SessionProps) {
 
   function bank(topicId: string, attempt: { correct: number; total: number }) {
     const topic = included.find((candidate) => candidate.id === topicId)
-    if (!topic) return null
+    if (!topic) return
     const resolution = resolveAttempt(topic, attempt.correct, attempt.total)
     upsertTopic(resolution.topic)
     setResolutions((previous) => [...previous, resolution])
-    return resolution
   }
 
   function reveal() {
@@ -126,8 +131,13 @@ export function Session({ topicIds, onExit }: SessionProps) {
     const following = deck[index + 1]
     const topicFinished = !following || following.topicId !== card.topicId
 
+    setRunningScore((current) => ({
+      correct: current.correct + (correct ? 1 : 0),
+      total: current.total + 1,
+    }))
+
     if (topicFinished) {
-      bank(card.topicId, next)
+      if (graded) bank(card.topicId, next)
       setTally({ correct: 0, total: 0 })
     } else {
       setTally(next)
@@ -142,9 +152,9 @@ export function Session({ topicIds, onExit }: SessionProps) {
   }
 
   function requestExit() {
-    // Finished topics are already banked, so leaving only discards the topic
-    // currently in progress.
-    if (tally.total > 0) setConfirmingExit(true)
+    // Only a graded run has anything to lose: practice records nothing, so
+    // leaving it costs the user nothing and should not be argued with.
+    if (graded && tally.total > 0) setConfirmingExit(true)
     else onExit()
   }
 
@@ -159,7 +169,7 @@ export function Session({ topicIds, onExit }: SessionProps) {
   if (deck.length === 0) {
     return (
       <section className="session">
-        <h1>Nothing to practise</h1>
+        <h1>Nothing to run</h1>
         <p>These topics have no items yet. Add items to a topic and it will come back to Today.</p>
         <button type="button" onClick={onExit}>
           Back to today
@@ -169,25 +179,29 @@ export function Session({ topicIds, onExit }: SessionProps) {
   }
 
   if (phase === 'done') {
-    return <SessionDone resolutions={resolutions} onExit={onExit} headingRef={headingRef} />
+    return graded ? (
+      <TestDone resolutions={resolutions} onExit={onExit} headingRef={headingRef} />
+    ) : (
+      <PractiseDone score={runningScore} onExit={onExit} headingRef={headingRef} />
+    )
   }
 
   if (confirmingExit) {
     return (
       <section className="session">
-        <h1>End session</h1>
+        <h1>End test</h1>
         <p>
           {tally.total} {tally.total === 1 ? 'answer' : 'answers'} on{' '}
           <strong>{card.topicTitle}</strong> will be discarded, because a topic only counts once
-          every one of its items has been through. Topics you already finished this session are
-          banked and will not be lost.
+          every one of its items has been through. Topics you already finished are banked and will
+          not be lost.
         </p>
         <div className="rate">
           <button className="ghost" type="button" onClick={() => setConfirmingExit(false)}>
             Keep going
           </button>
           <button className="danger" type="button" onClick={onExit}>
-            End session
+            End test
           </button>
         </div>
       </section>
@@ -197,16 +211,16 @@ export function Session({ topicIds, onExit }: SessionProps) {
   const revealed = phase === 'revealed'
 
   return (
-    <section className="session rapid-session" aria-labelledby="prompt-heading">
+    <section className={`session rapid-session${graded ? ' is-graded' : ''}`} aria-labelledby="prompt-heading">
       <div className="session-bar">
         <p>
           <span className="session-topic">{card.topicTitle}</span>
-          <span>
-            {topicPosition.current} of {topicPosition.of}
+          <span className="tabular">
+            {graded ? 'Test' : 'Practice'} · {topicPosition.current} of {topicPosition.of}
           </span>
         </p>
         <button className="ghost small" type="button" onClick={requestExit}>
-          End session
+          {graded ? 'End test' : 'Done'}
         </button>
       </div>
 
@@ -214,23 +228,37 @@ export function Session({ topicIds, onExit }: SessionProps) {
         {card.item.prompt}
       </h1>
 
-      <button
-        ref={revealRef}
-        className={`recall-card${revealed ? ' is-revealed' : ''}`}
-        type="button"
-        onClick={reveal}
-        onPointerDown={(event) => {
-          if (revealed) pointerStart.current = event.clientX
-        }}
-        onPointerUp={(event) => finishSwipe(event.clientX)}
-        aria-expanded={revealed}
-        aria-label={revealed ? `Answer: ${card.item.answer}` : `Prompt: ${card.item.prompt}. Reveal answer.`}
-      >
-        <span className="recall-card-label">{revealed ? 'Answer' : 'Tap to reveal'}</span>
-        <span className="recall-card-value" aria-live="polite">
-          {revealed ? card.item.answer : card.item.prompt}
-        </span>
-      </button>
+      <div className="card-stage">
+        <button
+          ref={revealRef}
+          className={`flip-card${revealed ? ' is-revealed' : ''}`}
+          type="button"
+          onClick={reveal}
+          onPointerDown={(event) => {
+            if (revealed) pointerStart.current = event.clientX
+          }}
+          onPointerUp={(event) => finishSwipe(event.clientX)}
+          aria-expanded={revealed}
+          aria-label={
+            revealed ? `Answer: ${card.item.answer}` : `Prompt: ${card.item.prompt}. Reveal answer.`
+          }
+        >
+          <span className="flip-inner">
+            <span className="flip-face flip-front">
+              <span className="flip-label">Tap to reveal</span>
+              <span className="flip-value">{card.item.prompt}</span>
+            </span>
+            <span className="flip-face flip-back">
+              <span className="flip-label">Answer</span>
+              <span className="flip-value flip-value-answer">{card.item.answer}</span>
+            </span>
+          </span>
+        </button>
+      </div>
+
+      <p className="sr-only" aria-live="polite">
+        {revealed ? `Answer: ${card.item.answer}` : ''}
+      </p>
 
       <div className={`recall-actions${revealed ? ' is-visible' : ''}`} aria-hidden={!revealed}>
         <button className="ghost recall-miss" type="button" tabIndex={revealed ? 0 : -1} onClick={() => score(false)}>
@@ -248,7 +276,39 @@ export function Session({ topicIds, onExit }: SessionProps) {
   )
 }
 
-function SessionDone({
+/** Practice records nothing, so its ending reports the run and no more. */
+function PractiseDone({
+  score,
+  onExit,
+  headingRef,
+}: {
+  score: { correct: number; total: number }
+  onExit: () => void
+  headingRef: React.RefObject<HTMLHeadingElement | null>
+}) {
+  const pct = score.total > 0 ? Math.round((score.correct / score.total) * 100) : 0
+
+  return (
+    <section className="session session-done">
+      <h1 ref={headingRef} tabIndex={-1}>
+        Practice run
+      </h1>
+      <p className="score-line tabular">
+        {score.correct} / {score.total}
+        <span className="score-pct">{pct}%</span>
+      </p>
+      <p className="transition">
+        Nothing was recorded. Practice is for rehearsal, so run it as often as you like: only a test
+        moves a topic along.
+      </p>
+      <button type="button" onClick={onExit}>
+        Back to today
+      </button>
+    </section>
+  )
+}
+
+function TestDone({
   resolutions,
   onExit,
   headingRef,
@@ -269,11 +329,12 @@ function SessionDone({
   return (
     <section className="session session-done">
       <h1 ref={headingRef} tabIndex={-1}>
-        {completed.length > 0 ? 'Banked' : 'Session ended'}
+        {completed.length > 0 ? 'Banked' : 'Test ended'}
       </h1>
 
       {completed.map((resolution) => (
         <div className="banked" key={resolution.topic.id}>
+          <span className="kicker">Completed</span>
           <p className="banked-title">{resolution.topic.title}</p>
           <p className="banked-note">
             Recalled cleanly {resolution.gapDays} days after it was last drilled. It is now part of
