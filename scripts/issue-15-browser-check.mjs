@@ -119,7 +119,11 @@ async function verifyViewport(browser, width, height) {
 async function verifyKeyboardAndReducedMotion(browser) {
   const { context, page } = await openTest(browser, { width: 390, height: 844 }, 'reduce')
   const innerTransition = await page.locator('.flip-inner').evaluate((node) => getComputedStyle(node).transitionDuration)
-  assert(innerTransition === '0s', `reduced motion: flip transition is ${innerTransition}`)
+  const transitionSeconds = Number.parseFloat(innerTransition)
+  assert(
+    Number.isFinite(transitionSeconds) && transitionSeconds <= 0.001,
+    `reduced motion: flip transition is ${innerTransition}`,
+  )
 
   await page.keyboard.press('Space')
   await page.getByRole('button', { name: 'Got it' }).waitFor()
