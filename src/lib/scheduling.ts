@@ -34,7 +34,7 @@ export function dueState(topic: Topic, now: Date = new Date()): DueReason {
       return { due: true, label: 'Needs repair', waitDays: 0 }
 
     case 'learning': {
-      const since = topic.lastPracticedAt ? daysBetween(topic.lastPracticedAt, now) : Infinity
+      const since = topic.learningAt ? daysBetween(topic.learningAt, now) : Infinity
       const wait = LEARNING_GAP_DAYS - since
       return wait <= 0
         ? { due: true, label: 'Ready to drill', waitDays: 0 }
@@ -50,7 +50,8 @@ export function dueState(topic: Topic, now: Date = new Date()): DueReason {
     }
 
     case 'completed': {
-      const since = topic.lastPracticedAt ? daysBetween(topic.lastPracticedAt, now) : 0
+      const anchor = topic.spotCheckedAt ?? topic.completedAt
+      const since = anchor ? daysBetween(anchor, now) : 0
       const wait = SPOT_CHECK_DAYS - since
       return wait <= 0
         ? { due: true, label: 'Spot check ready', waitDays: 0 }
@@ -78,17 +79,17 @@ export function dueTopics(topics: Topic[], now: Date = new Date()): Topic[] {
     .sort((a, b) => {
       const byRank = rank[a.status] - rank[b.status]
       if (byRank !== 0) return byRank
-      return (a.lastPracticedAt ?? '').localeCompare(b.lastPracticedAt ?? '')
+      return (a.lastTestedAt ?? '').localeCompare(b.lastTestedAt ?? '')
     })
 }
 
 /**
  * Which mode a topic is actually asking for. The ladder already knows: a rung
  * the user has never seen wants reading, and every other rung wants proving.
- * Practice is deliberately not returned here, because it is never what a topic
- * *needs* — it is always available, and never required.
+ * Voluntary early Tests use the same interaction; evidence policy is enforced
+ * when the result resolves rather than by exposing another mode.
  */
-export function modeFor(topic: Topic): Extract<Mode, 'learn' | 'test'> {
+export function modeFor(topic: Topic): Mode {
   return topic.status === 'unstarted' ? 'learn' : 'test'
 }
 
@@ -104,7 +105,7 @@ export function gapProgress(topic: Topic, now: Date = new Date()): number | null
     : null
   if (span === null) return null
 
-  const from = topic.status === 'drilled' ? topic.drilledAt : topic.lastPracticedAt
+  const from = topic.status === 'drilled' ? topic.drilledAt : topic.spotCheckedAt ?? topic.completedAt
   if (!from) return null
 
   return Math.min(1, Math.max(0, daysBetween(from, now) / span))
@@ -122,7 +123,7 @@ export interface Shelf {
  * The library ordered the way the schedule reads it rather than the way the
  * alphabet does. Title order never changes and never decides anything; which
  * shelf a topic sits on answers "what can I do right now" without opening it.
- * Topics with no items are an authoring job, not a practice one, so they are
+ * Topics with no items are an authoring job, not a testing one, so they are
  * held apart rather than left dimmed in the middle of the list.
  */
 export function shelves(topics: Topic[], now: Date = new Date()): Shelf[] {
@@ -159,13 +160,13 @@ export function shelves(topics: Topic[], now: Date = new Date()): Shelf[] {
 
 /**
  * Reading a topic moves it off `unstarted`, because it has now been seen. No
- * attempt is recorded: nothing was scored. Touching `lastPracticedAt` starts
+ * attempt is recorded: nothing was scored. The exposure timestamp starts
  * the one-day learning gap, so a topic read today comes back tomorrow to be
  * drilled rather than immediately.
  */
 export function resolveStudy(topic: Topic, now: Date = new Date()): Topic {
   if (topic.status !== 'unstarted') return topic
-  return { ...topic, status: 'learning', lastPracticedAt: now.toISOString() }
+  return { ...topic, status: 'learning', learningAt: now.toISOString() }
 }
 
 export interface Resolution {
@@ -183,7 +184,7 @@ export interface Resolution {
 /**
  * Applies one test's result to a topic and reports the transition, so the
  * end screen can name what actually happened rather than reporting a bare
- * score. Only Test calls this; Practice resolves nothing.
+ * score. Test is the only recall interaction.
  */
 export function resolveAttempt(
   topic: Topic,
@@ -194,17 +195,28 @@ export function resolveAttempt(
   const at = now.toISOString()
   const clean = total > 0 && correct / total >= PASS_THRESHOLD
   const from = topic.status
-  const next: Topic = { ...topic, lastPracticedAt: at }
+  const next: Topic = { ...topic, lastTestedAt: at }
 
   let completed = false
   let decayed = false
   let gapDays: number | null = null
 
-  if (from === 'completed') {
+  const due = dueState(topic, now).due
+
+  if (from === 'unstarted') {
+    // A first Test exposes the whole deck, but it cannot also prove retention.
+    // Start the learning gap regardless of score.
+    next.status = 'learning'
+    next.learningAt = at
+  } else if (!due && from !== 'decayed') {
+    // An early Test is recorded in history but cannot qualify a rung or reset
+    // the learning, completion, or spot-check evidence clocks.
+  } else if (from === 'completed') {
     // A spot check. Passing keeps the record; failing routes back to drilling
     // without erasing that the topic was completed.
     if (clean) {
       next.status = 'completed'
+      next.spotCheckedAt = at
     } else {
       next.status = 'decayed'
       decayed = true
@@ -221,14 +233,16 @@ export function resolveAttempt(
     } else {
       next.status = 'learning'
       next.drilledAt = null
+      next.learningAt = at
     }
   } else {
-    // unstarted, learning, decayed
+    // learning, decayed
     if (clean) {
       next.status = 'drilled'
       next.drilledAt = at
     } else {
       next.status = 'learning'
+      next.learningAt = at
     }
   }
 

@@ -112,8 +112,10 @@ export function TopicForm({
       status: topic?.status ?? 'unstarted',
       createdAt: topic?.createdAt ?? now,
       drilledAt: topic?.drilledAt ?? null,
+      learningAt: topic?.learningAt ?? null,
       completedAt: topic?.completedAt ?? null,
-      lastPracticedAt: topic?.lastPracticedAt ?? null,
+      lastTestedAt: topic?.lastTestedAt ?? null,
+      spotCheckedAt: topic?.spotCheckedAt ?? null,
       history: topic?.history ?? [],
     })
   }

@@ -11,7 +11,7 @@ export function Data() {
   const [pendingImport, setPendingImport] = useState<{ file: File; count: number } | null>(null)
 
   function exportLibrary() {
-    const blob = new Blob([JSON.stringify({ version: 2, topics }, null, 2)], {
+    const blob = new Blob([JSON.stringify({ version: 3, topics }, null, 2)], {
       type: 'application/json',
     })
     const url = URL.createObjectURL(blob)
@@ -112,7 +112,7 @@ export function Data() {
       {confirmReset && (
         <Confirm
           title="Reset library"
-          body={`All ${topics.length} topics, their practice history, and their completion records will be removed from this device. This cannot be undone, and an export made now is the only copy you will have.`}
+          body={`All ${topics.length} topics, their test history, and their completion records will be removed from this device. This cannot be undone, and an export made now is the only copy you will have.`}
           confirmLabel="Reset library"
           onCancel={() => setConfirmReset(false)}
           onConfirm={() => {

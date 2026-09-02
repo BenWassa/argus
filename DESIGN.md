@@ -192,18 +192,17 @@ The rule says *at most*, not *exactly*. A view with nothing to light is allowed 
 
 ## 5. Modes
 
-Three ways to engage a topic, and only one of them writes to the ladder. The mode is never a preference; the status ladder determines which one a topic is asking for.
+Two ways to engage a topic. Learn exposes the material; Test is the only recall interaction.
 
 | Mode | Surface | Records |
 |---|---|---|
 | **Learn** | A reading sheet: the full set laid out as a numbered index, prompts and answers both visible, scannable in any order | Moves `unstarted` → `learning`. No score. |
-| **Practice** | Flashcards with a 3D flip, self-scored, repeatable | Nothing at all |
-| **Test** | The same flashcards, every item, once | Resolves the attempt and moves the ladder |
+| **Test** | Flashcards with a 3D flip, every item once, self-scored | Records the attempt; moves the ladder only when scheduled evidence conditions are met |
 
 ### Named Rules
-**Flashcards Must Conceal.** A card shape promises a hidden answer. If both sides are visible at once it is not a card, it is a list, and it should be set as one. Learn is therefore never card-shaped, and Practice/Test never show the answer before the flip.
+**Flashcards Must Conceal.** A card shape promises a hidden answer. If both sides are visible at once it is not a card, it is a list, and it should be set as one. Learn is therefore never card-shaped, and Test never shows the answer before the flip.
 
-**Consequence Is Stated, Not Implied.** Wherever the three modes are offered together, each one states what it costs: "Nothing recorded" or "This one counts". The verb alone does not carry it.
+**Consequence Is Stated, Not Implied.** Voluntary early Tests state that the score is recorded while required evidence clocks do not move early.
 
 ## 6. Components
 
@@ -253,4 +252,4 @@ A numbered descending index of completions, serif titles with small-caps track l
 - **Don't** reach for military, survivalist, or tactical visual language, even though the Survival and Tradecraft subject matter invites it. The framing is competence, not catastrophe.
 - **Don't** add streaks, badges, XP, or shame-based nudges.
 - **Don't** widen the mobile layout and call it desktop. Desktop gets a real side rail.
-- **Don't** let Practice write to the ladder. Rehearsal that costs a rung is not rehearsal.
+- **Don't** let an early Test counterfeit or postpone scheduled evidence.

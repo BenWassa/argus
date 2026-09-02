@@ -86,10 +86,6 @@ export function TopicPage({ topic, onBack, onStart, onEdit, onDelete }: TopicPag
             <span className="mode-name">Learn</span>
             <span className="mode-note">Read the set laid out in full. Nothing recorded.</span>
           </button>
-          <button className="mode-btn" type="button" onClick={() => onStart('practice', [topic.id])}>
-            <span className="mode-name">Practise</span>
-            <span className="mode-note">Flashcards, as often as you like. Nothing recorded.</span>
-          </button>
         </div>
       ) : (
         <div className="topic-unfinished">
@@ -139,7 +135,7 @@ export function TopicPage({ topic, onBack, onStart, onEdit, onDelete }: TopicPag
         </details>
       )}
 
-      {/* Editing and deleting are administration, not practice. They sit below
+      {/* Editing and deleting are administration, not testing. They sit below
           the fold at text weight so they never compete with the modes. */}
       <div className="topic-admin">
         <button className="quiet" type="button" onClick={onEdit}>

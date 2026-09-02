@@ -38,7 +38,7 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
 
   const resetLibrary = useCallback(() => {
     clearLibrary()
-    setLibrary({ version: 2, topics: [] })
+    setLibrary({ version: 3, topics: [] })
   }, [])
 
   const value = useMemo(

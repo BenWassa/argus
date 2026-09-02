@@ -6,23 +6,22 @@ product
 
 ## Users
 
-Ben, the owner and sole user for the beta: a self-directed learner building a personal library of finite, closed-scope competencies (recall systems, psychology frameworks, emergency medicine, navigation, observation and counter-surveillance tradecraft). He authors topics himself rather than consuming a catalogue, and practices in short mobile sessions — on a phone, in spare five-minute windows — not at a desk in a dedicated study block. The desktop surface exists for authoring and review, not as the primary practice context.
+Ben, the owner and sole user for the beta: a self-directed learner building a personal library of finite, closed-scope competencies (recall systems, psychology frameworks, emergency medicine, navigation, observation and counter-surveillance tradecraft). He authors topics himself rather than consuming a catalogue, and tests recall in short mobile sessions — on a phone, in spare five-minute windows — not at a desk in a dedicated study block. The desktop surface exists for authoring and review, not as the primary recall context.
 
 The job to be done, every session: see what's due, do the one thing the schedule is asking for, and leave. Nothing else competes with that on open.
 
 ## Modes
 
-Three ways to engage a topic, and the status ladder decides which one it needs. The user is never asked to pick a study strategy.
+Two ways to engage a topic:
 
 - **Learn** — the set laid out in full as a reading sheet, prompts and answers both visible, scannable in any order. This is what an `unstarted` topic gets, because testing someone on material they have never seen is not a test. Reading moves the topic to `learning`; nothing is scored.
-- **Practice** — flashcards, self-scored, repeatable without limit. Records nothing, so rehearsal never costs a rung and warming up before a real test is free.
-- **Test** — the same flashcards, every item, once, scored. The only mode that resolves an attempt, moves the ladder, or banks a completion.
+- **Test** — flashcards, every item once, self-scored. Every Test creates history, while the scheduler decides whether that result is timely enough to advance the ladder. An early Test cannot satisfy or postpone required delayed evidence.
 
 The split exists because retention and exposure are different things, and the interface should never let one be mistaken for the other. A surface shaped like a flashcard must conceal its answer; a surface meant for scanning must not pretend to be a card.
 
 ## Product Purpose
 
-Argus is a personal skill library built entirely from topics that can be genuinely finished: a fixed alphabet, a named framework with a known number of parts, a defined protocol. Every topic states its own boundary (`scope_definition`) at authoring time; topics without an edge are rejected, not managed later. Practice is retention-tested (recall after a gap, not exposure), and completion is a durable, permanent record — decay routes a topic back to drilling without erasing that it was once completed.
+Argus is a personal skill library built entirely from topics that can be genuinely finished: a fixed alphabet, a named framework with a known number of parts, a defined protocol. Every topic states its own boundary (`scope_definition`) at authoring time; topics without an edge are rejected, not managed later. Completion requires recall after a gap, not exposure, and remains a durable, permanent record — decay routes a topic back to drilling without erasing that it was once completed.
 
 Success, twelve months in: 40–60 completed topics that the owner can still recall cold, weeks after last opening the app.
 
@@ -36,18 +35,18 @@ The tradecraft and survival tracks pull hard toward military, prepper, or tactic
 
 ## Anti-references
 
-- Marketing-landing framing on the practice surface: hero sections, oversized slogans, "eyebrow" labels above headings — the app is opened to *do* something, not to be sold to.
+- Marketing-landing framing on the Test surface: hero sections, oversized slogans, "eyebrow" labels above headings — the app is opened to *do* something, not to be sold to.
 - The generic AI-generated dashboard: a hero, four equal metric cards, a grid of identical rounded topic cards. Flagged directly in design critique as "category-interchangeable" — recognizable ingredients, generic composition.
 - Repetitive card scaffolding used as a default container for everything (stats, topics, modes, panels) — it flattens hierarchy instead of establishing it.
 - Military, survivalist, or "prepper" visual language: tactical iconography, rugged/camo textures, alarm-red urgency, game-like HUD elements.
 - Gamification: streaks, badges, XP, leaderboards, shame-based nudging for missed days. Retention decay is information, not punishment.
 - Desktop-as-widened-mobile: cosmetic breakpoint scaling instead of a real task-oriented desktop layout (side rail, dense authoring views).
-- Decorative gradients, ornamental rings, and non-functional visual flourish anywhere in the practice loop.
+- Decorative gradients, ornamental rings, and non-functional visual flourish anywhere in the Test loop.
 
 ## Design Principles
 
 1. **Finishability is the entry gate.** Every topic must state a hard boundary before it can exist in the library; the UI enforces this at authoring time rather than relying on discipline later.
-2. **Task-first over showcase-first.** The interface opens to "what's due" and "start practice," not to a summary or a pitch. Marketing-page instincts (heroes, slogans, eyebrows) are actively rejected on functional screens.
+2. **Task-first over showcase-first.** The interface opens to "what's due" and "start Test," not to a summary or a pitch. Marketing-page instincts (heroes, slogans, eyebrows) are actively rejected on functional screens.
 3. **Retention over exposure, decay as routing not punishment.** Completion means recall survives a gap. Surfacing decay is diagnostic information, framed the same way as any other status, never as a failure state.
 4. **Portable and owner-owned.** Full JSON export/import is a first-class feature, not a settings-page afterthought — the interface should never make data feel trapped.
 5. **Restraint reads as competence.** One accent color, minimal chrome, and native typography carry the "capable and deliberate" tone. Restraint is not the same as flatness: the interface earns its calm through material, real typographic hierarchy, and one lit surface per view, not by removing contrast until everything sits at the same pitch.

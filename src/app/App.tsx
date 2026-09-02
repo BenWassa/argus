@@ -6,7 +6,7 @@ import { Today } from '../features/today/Today'
 import { Library } from '../features/library/Library'
 import { Progress } from '../features/progress/Progress'
 import { Data } from '../features/data/Data'
-import { Session } from '../features/practice/Session'
+import { Session } from '../features/test/Session'
 import { Learn } from '../features/learn/Learn'
 import type { Mode, View } from '../lib/types'
 
@@ -53,14 +53,12 @@ function Routes() {
               key={run.topicIds.join()}
               topicIds={run.topicIds}
               onExit={() => setRun(null)}
-              onPractise={(ids) => start('practice', ids)}
               onTest={(ids) => start('test', ids)}
             />
           ) : (
             <Session
               key={`${run.mode}-${run.topicIds.join()}`}
               topicIds={run.topicIds}
-              graded={run.mode === 'test'}
               onExit={() => setRun(null)}
             />
           )}

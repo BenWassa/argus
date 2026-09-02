@@ -91,7 +91,7 @@
       "label": { "displayName": "Label", "purpose": "Metadata, kickers, stat card eyebrows. Used sparingly." }
     },
     "shadows": [
-      { "name": "ambient-panel", "value": "0 18px 48px rgba(0,0,0,.28)", "purpose": "Reserved for the practice panel and the due-practice surface — the single most important element per view." }
+      { "name": "ambient-panel", "value": "0 18px 48px rgba(0,0,0,.28)", "purpose": "Reserved for the Test panel and the due-Test surface — the single most important element per view." }
     ],
     "motion": [
       { "name": "state-transition", "value": "150-200ms ease", "purpose": "Default duration for hover/focus/active feedback on buttons, chips, fields, nav." },
@@ -107,8 +107,8 @@
       "name": "Primary Button",
       "kind": "button",
       "refersTo": "button-primary",
-      "description": "The single accent-colored action per screen — Start due practice, Save topic, Begin session.",
-      "html": "<button class=\"ds-btn-primary\">Start due practice</button>",
+      "description": "The single accent-colored action per screen — Start due Test, Save topic, Begin session.",
+      "html": "<button class=\"ds-btn-primary\">Start due Test</button>",
       "css": ".ds-btn-primary { min-height: 44px; padding: 11px 14px; border-radius: 10px; border: 1px solid #d6b574; background: #d6b574; color: #20180d; font: 700 0.86rem ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif; cursor: pointer; transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease; } .ds-btn-primary:hover { background: #f0d39a; border-color: #f0d39a; } .ds-btn-primary:active { transform: translateY(1px); } .ds-btn-primary:focus-visible { outline: 3px solid rgba(240,211,154,.32); outline-offset: 2px; }"
     },
     {
@@ -162,7 +162,7 @@
   ],
   "narrative": {
     "northStar": "The Quiet Field Index",
-    "overview": "Argus is styled as a field manual, not a dashboard: a dark, low-glare reference the owner opens for a few minutes, uses without friction, and closes. Every screen answers one question, what's due, what's next, before it answers anything else. The palette is dark olive and near-black surfaces with a single warm brass accent reserved for the primary action and the current state; three muted track colors (dusty blue, sage, clay) carry semantic meaning only, never decoration. Controls are named as direct actions (\"Start due practice,\" \"Export JSON,\" never \"Get started\" or \"Let's go\"), the copy voice matches the visual restraint.\n\nThe system explicitly rejects the instincts of a generated SaaS dashboard: no marketing hero on the practice surface, no wall of identical metric cards, no rounded card-in-a-card nesting, no eyebrow labels ceremonializing routine headings. A prior design pass shipped exactly that pattern, hero, four stat cards, a grid of topic cards, and design critique flagged it as competent but \"category-interchangeable,\" recognizable Argus ingredients in a generic composition. This spec exists to keep that from recurring. It equally rejects the opposite failure mode this content invites: nothing here should read as tactical, military, or survivalist. The three subject tracks (learning, survival, tradecraft) are handled as calm, muted metadata, not as a HUD.",
+    "overview": "Argus is styled as a field manual, not a dashboard: a dark, low-glare reference the owner opens for a few minutes, uses without friction, and closes. Every screen answers one question, what's due, what's next, before it answers anything else. The palette is dark olive and near-black surfaces with a single warm brass accent reserved for the primary action and the current state; three muted track colors (dusty blue, sage, clay) carry semantic meaning only, never decoration. Controls are named as direct actions (\"Start due Test,\" \"Export JSON,\" never \"Get started\" or \"Let's go\"), the copy voice matches the visual restraint.\n\nThe system explicitly rejects the instincts of a generated SaaS dashboard: no marketing hero on the Test surface, no wall of identical metric cards, no rounded card-in-a-card nesting, no eyebrow labels ceremonializing routine headings. A prior design pass shipped exactly that pattern, hero, four stat cards, a grid of topic cards, and design critique flagged it as competent but \"category-interchangeable,\" recognizable Argus ingredients in a generic composition. This spec exists to keep that from recurring. It equally rejects the opposite failure mode this content invites: nothing here should read as tactical, military, or survivalist. The three subject tracks (learning, survival, tradecraft) are handled as calm, muted metadata, not as a HUD.",
     "keyCharacteristics": [
       "Dark, warm-tinted neutrals; one brass accent used sparingly, never decoratively",
       "Flat surfaces differentiated by tone, not shadow — depth comes from layering, not elevation",
@@ -179,7 +179,7 @@
       { "name": "The Nothing-Nests Rule", "body": "A card does not contain another card. If a component needs internal grouping, use a hairline divider or spacing, not a nested bordered container.", "section": "components" }
     ],
     "dos": [
-      "Do open every top-level view on the task (what's due, start practice), never on a summary, pitch, or hero.",
+      "Do open every top-level view on the task (what's due, start Test), never on a summary, pitch, or hero.",
       "Do hold Brass to exactly three roles: primary action, current selection, active/current state.",
       "Do use flat tonal layering for hierarchy instead of shadow.",
       "Do render topic listings as a dense hairline-divided index, not a card grid.",
@@ -192,9 +192,9 @@
       "Don't put a hero, oversized slogan, or eyebrow label above a page or section heading.",
       "Don't build a wall of identical metric cards; consolidate into one instrument-panel stat strip.",
       "Don't nest a card inside a card, or use border-left/border-right as a colored accent stripe on any row, alert, or callout.",
-      "Don't use gradient text, glassmorphism, or decorative rings/gradients anywhere in the practice loop.",
+      "Don't use gradient text, glassmorphism, or decorative rings/gradients anywhere in the Test loop.",
       "Don't reach for military, survivalist, tactical, or 'prepper' visual language even though the subject matter invites it.",
-      "Don't add streaks, badges, XP, or any shame-based nudge for missed practice days.",
+      "Don't add streaks, badges, XP, or any shame-based nudge for missed Test days.",
       "Don't widen the mobile layout for desktop and call it done; desktop gets a genuine side-rail, task-oriented layout.",
       "Don't use a serif or fluid display typeface, or any animation beyond a 150-200ms state transition."
     ]

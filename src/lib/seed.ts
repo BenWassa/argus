@@ -24,8 +24,10 @@ export function seedLibrary(): Library {
       status: 'drilled',
       createdAt: ago(64),
       drilledAt: ago(34),
+      learningAt: ago(60),
       completedAt: null,
-      lastPracticedAt: ago(34),
+      lastTestedAt: ago(34),
+      spotCheckedAt: null,
       history: [
         { at: ago(60), correct: 21, total: 26, resolvedTo: 'learning' },
         { at: ago(34), correct: 26, total: 26, resolvedTo: 'drilled' },
@@ -45,8 +47,10 @@ export function seedLibrary(): Library {
       status: 'learning',
       createdAt: ago(12),
       drilledAt: null,
+      learningAt: ago(3),
       completedAt: null,
-      lastPracticedAt: ago(3),
+      lastTestedAt: ago(3),
+      spotCheckedAt: null,
       history: [{ at: ago(3), correct: 3, total: 4, resolvedTo: 'learning' }],
     },
     {
@@ -64,8 +68,10 @@ export function seedLibrary(): Library {
       status: 'unstarted',
       createdAt: ago(2),
       drilledAt: null,
+      learningAt: null,
       completedAt: null,
-      lastPracticedAt: null,
+      lastTestedAt: null,
+      spotCheckedAt: null,
       history: [],
     },
     {
@@ -86,8 +92,10 @@ export function seedLibrary(): Library {
       status: 'completed',
       createdAt: ago(180),
       drilledAt: ago(150),
+      learningAt: ago(180),
       completedAt: ago(110),
-      lastPracticedAt: ago(110),
+      lastTestedAt: ago(110),
+      spotCheckedAt: null,
       history: [
         { at: ago(150), correct: 8, total: 8, resolvedTo: 'drilled' },
         { at: ago(110), correct: 8, total: 8, resolvedTo: 'completed' },
@@ -95,5 +103,5 @@ export function seedLibrary(): Library {
     },
   ]
 
-  return { version: 2, topics }
+  return { version: 3, topics }
 }

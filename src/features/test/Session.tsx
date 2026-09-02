@@ -13,8 +13,6 @@ interface Card {
 
 interface SessionProps {
   topicIds: string[]
-  /** Test resolves attempts and moves the ladder. Practice records nothing. */
-  graded: boolean
   onExit: () => void
 }
 
@@ -33,11 +31,11 @@ function haptic(pattern: number | number[]) {
   try {
     navigator.vibrate?.(pattern)
   } catch {
-    // Haptics are optional feedback and never block practice.
+    // Haptics are optional feedback and never block a Test.
   }
 }
 
-export function Session({ topicIds, graded, onExit }: SessionProps) {
+export function Session({ topicIds, onExit }: SessionProps) {
   const { topics, upsertTopic } = useLibrary()
 
   // Snapshot the topics and deck at session start. A bankable attempt always
@@ -60,10 +58,6 @@ export function Session({ topicIds, graded, onExit }: SessionProps) {
   const [index, setIndex] = useState(0)
   const [phase, setPhase] = useState<Phase>('asking')
   const [tally, setTally] = useState<{ correct: number; total: number }>({ correct: 0, total: 0 })
-  const [runningScore, setRunningScore] = useState<{ correct: number; total: number }>({
-    correct: 0,
-    total: 0,
-  })
   const [resolutions, setResolutions] = useState<Resolution[]>([])
   const [confirmingExit, setConfirmingExit] = useState(false)
 
@@ -131,13 +125,8 @@ export function Session({ topicIds, graded, onExit }: SessionProps) {
     const following = deck[index + 1]
     const topicFinished = !following || following.topicId !== card.topicId
 
-    setRunningScore((current) => ({
-      correct: current.correct + (correct ? 1 : 0),
-      total: current.total + 1,
-    }))
-
     if (topicFinished) {
-      if (graded) bank(card.topicId, next)
+      bank(card.topicId, next)
       setTally({ correct: 0, total: 0 })
     } else {
       setTally(next)
@@ -152,9 +141,7 @@ export function Session({ topicIds, graded, onExit }: SessionProps) {
   }
 
   function requestExit() {
-    // Only a graded run has anything to lose: practice records nothing, so
-    // leaving it costs the user nothing and should not be argued with.
-    if (graded && tally.total > 0) setConfirmingExit(true)
+    if (tally.total > 0) setConfirmingExit(true)
     else onExit()
   }
 
@@ -179,11 +166,7 @@ export function Session({ topicIds, graded, onExit }: SessionProps) {
   }
 
   if (phase === 'done') {
-    return graded ? (
-      <TestDone resolutions={resolutions} onExit={onExit} headingRef={headingRef} />
-    ) : (
-      <PractiseDone score={runningScore} onExit={onExit} headingRef={headingRef} />
-    )
+    return <TestDone resolutions={resolutions} onExit={onExit} headingRef={headingRef} />
   }
 
   if (confirmingExit) {
@@ -211,16 +194,16 @@ export function Session({ topicIds, graded, onExit }: SessionProps) {
   const revealed = phase === 'revealed'
 
   return (
-    <section className={`session rapid-session${graded ? ' is-graded' : ''}`} aria-labelledby="prompt-heading">
+    <section className="session rapid-session is-graded" aria-labelledby="prompt-heading">
       <div className="session-bar">
         <p>
           <span className="session-topic">{card.topicTitle}</span>
           <span className="tabular">
-            {graded ? 'Test' : 'Practice'} · {topicPosition.current} of {topicPosition.of}
+            Test · {topicPosition.current} of {topicPosition.of}
           </span>
         </p>
         <button className="ghost small" type="button" onClick={requestExit}>
-          {graded ? 'End test' : 'Done'}
+          End test
         </button>
       </div>
 
@@ -272,38 +255,6 @@ export function Session({ topicIds, graded, onExit }: SessionProps) {
       <p className="recall-shortcuts">
         {revealed ? 'Swipe left or right, or use ← and →' : 'Tap the card or press Space'}
       </p>
-    </section>
-  )
-}
-
-/** Practice records nothing, so its ending reports the run and no more. */
-function PractiseDone({
-  score,
-  onExit,
-  headingRef,
-}: {
-  score: { correct: number; total: number }
-  onExit: () => void
-  headingRef: React.RefObject<HTMLHeadingElement | null>
-}) {
-  const pct = score.total > 0 ? Math.round((score.correct / score.total) * 100) : 0
-
-  return (
-    <section className="session session-done">
-      <h1 ref={headingRef} tabIndex={-1}>
-        Practice run
-      </h1>
-      <p className="score-line tabular">
-        {score.correct} / {score.total}
-        <span className="score-pct">{pct}%</span>
-      </p>
-      <p className="transition">
-        Nothing was recorded. Practice is for rehearsal, so run it as often as you like: only a test
-        moves a topic along.
-      </p>
-      <button type="button" onClick={onExit}>
-        Back to today
-      </button>
     </section>
   )
 }

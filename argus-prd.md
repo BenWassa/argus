@@ -45,10 +45,10 @@ Twelve months in, the library holds 40 to 60 completed topics, and the owner can
 |---|---|
 | **Finishability is the entry gate** | A topic without a defined edge is rejected at authoring time, not managed later |
 | **Retention over exposure** | Completion means recall after a delay, not having read the material once |
-| **Drill type follows content type** | Recall sets, procedural sequences, and judgment scenarios need different practice mechanics |
+| **Drill type follows content type** | Recall sets, procedural sequences, and judgment scenarios need different Test mechanics |
 | **Owner-authored** | Content is written by the user, not consumed from a catalogue. Authoring is part of the learning |
 | **Portable** | Full library exports to JSON. No lock-in, no dependency on the app surviving |
-| **Mobile-first, minimal UI** | Practice happens in short sessions on a phone. No dashboard sprawl |
+| **Mobile-first, minimal UI** | Testing happens in short sessions on a phone. No dashboard sprawl |
 | **No streaks, no shame** | Missed days do not reset progress. Retention decay is surfaced as information, not punishment |
 
 ---
@@ -67,7 +67,7 @@ The atomic unit. A closed-scope competency.
 - `source`: book, manual, or reference the content is drawn from
 
 **Optional fields**
-- `prerequisite_ids`, `notes`, `last_practised`, `retention_score`
+- `prerequisite_ids`, `notes`, `last_tested`, `retention_score`
 
 ### Item
 A single unit inside a topic. A letter, a framework component, a step in a protocol, a scenario.
@@ -96,7 +96,7 @@ unstarted -> learning -> drilled -> completed
 ```
 
 - **drilled:** all items correct in a single session
-- **completed:** all items correct after a 30-day gap with no intervening practice
+- **completed:** all items correct after a 30-day gap; early Tests do not reset the qualifying clock
 - **decayed:** a previously completed topic that failed a spot check. Returns to drilling, but retains its completion history
 
 Completion is a durable achievement. Decay is a routing signal, not a demotion.
@@ -216,10 +216,10 @@ Seeded content for v1. Roughly 45 topics.
 
 **Library**
 - Browse topics by track, filter by status and drill type
-- Topic detail view: scope definition, item list, status, practice history
+- Topic detail view: scope definition, item list, status, test history
 - Create and edit topics. `scope_definition` and `item_count` are required to save
 
-**Practice**
+**Test**
 - Daily session, target under 5 minutes, mixed across due topics
 - Recall drills: both-directions prompting, SM-2 intervals
 - Procedure drills: reorder or reconstruct a sequence
@@ -254,8 +254,8 @@ Seeded content for v1. Roughly 45 topics.
 
 - **Platform:** mobile-first web app, installable as PWA
 - **Storage:** local-first. Optional sync in a later version
-- **Performance:** practice session opens in under one second, cold
-- **Offline:** all practice functions work with no network
+- **Performance:** Test session opens in under one second, cold
+- **Offline:** all Learn and Test functions work with no network
 - **Data ownership:** JSON export is a first-class feature, not an afterthought
 
 ---
@@ -268,7 +268,7 @@ Seeded content for v1. Roughly 45 topics.
 | **Judgment drills are unfalsifiable and drift into self-flattery** | Reference reasoning must be written at authoring time, before any self-scoring. Consider a "what would disconfirm this read?" prompt |
 | **Scope creep back toward open domains** | The `scope_definition` field is a hard gate. Enforce it in validation, not by discipline |
 | **Physical skills logged but never actually practised** | Surface attested-only topics separately from drilled ones. Do not let a log entry masquerade as competence |
-| **Overbuild** | v1 is a library, a practice loop, and a JSON export. Nothing else. Ship before adding retention curves and prerequisite graphs |
+| **Overbuild** | v1 is a library, a Test loop, and a JSON export. Nothing else. Ship before adding retention curves and prerequisite graphs |
 
 **Open questions**
 1. Are the three tracks the right cut, or is drill type the more useful primary axis?
@@ -281,9 +281,9 @@ Seeded content for v1. Roughly 45 topics.
 ## 8. Build sequence
 
 1. **Content first.** Author 10 seed topics as raw JSON, one per drill type minimum. No UI
-2. **Practice loop.** Recall and procedure drills against the seed JSON. This is the core value test
+2. **Test loop.** Recall and procedure drills against the seed JSON. This is the core value test
 3. **Library views.** Browse, filter, topic detail
-4. **Authoring UI.** Only after the practice loop has proven worth the effort
+4. **Authoring UI.** Only after the Test loop has proven worth the effort
 5. **Judgment and physical drill types**
 6. **Progress and decay queue**
 7. **Export and import**

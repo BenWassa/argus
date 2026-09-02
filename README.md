@@ -13,6 +13,7 @@ npm run dev
 
 Other commands:
 
+- `npm run check` — run scheduler/migration tests and the production build
 - `npm run build` — type-check and create the production build in `dist/`
 - `npm run preview` — serve the production build locally
 - `npm run typecheck` — run TypeScript without building
@@ -21,7 +22,7 @@ The production site is deployed to **https://benwassa.github.io/argus/** by GitH
 
 ## Design direction
 
-Argus uses an **Operate-mode** interface: task-first, restrained, accessible, and optimized for short practice sessions. The current design pass follows the open-source Impeccable frontend skill.
+Argus uses an **Operate-mode** interface: task-first, restrained, accessible, and optimized for short Learn and Test sessions. The current design pass follows the open-source Impeccable frontend skill.
 
 - `DESIGN.md` — durable visual system and interaction rules
 - `src/styles/tokens.css` — the design system as CSS custom properties, and the only place a colour, radius, or type step is defined
