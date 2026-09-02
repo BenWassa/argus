@@ -1,0 +1,49 @@
+name: Issue 15 Browser Acceptance
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  browser-acceptance:
+    if: github.head_ref == 'issue-15-test-card-hardening'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install browser harness
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Build production app
+        run: npm run build
+
+      - name: Start preview
+        run: |
+          npm run preview -- --host 127.0.0.1 --port 4173 > /tmp/argus-preview.log 2>&1 &
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:4173/argus/ >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/argus-preview.log
+          exit 1
+
+      - name: Run issue 15 browser acceptance
+        run: node scripts/issue-15-browser-check.mjs
