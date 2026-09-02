@@ -7,16 +7,15 @@ import './Learn.css'
 interface LearnProps {
   topicIds: string[]
   onExit: () => void
-  onPractise: (topicIds: string[]) => void
   onTest: (topicIds: string[]) => void
 }
 
 /**
  * Learn is a reading surface, not a test. The whole set is laid out at once so
  * it can be scanned, compared, and read in any order. Nothing is hidden,
- * because hiding is Practice's job.
+ * because hiding belongs to Test.
  */
-export function Learn({ topicIds, onExit, onPractise, onTest }: LearnProps) {
+export function Learn({ topicIds, onExit, onTest }: LearnProps) {
   const { topics, upsertTopic } = useLibrary()
   const headingRef = useRef<HTMLHeadingElement>(null)
 
@@ -100,9 +99,6 @@ export function Learn({ topicIds, onExit, onPractise, onTest }: LearnProps) {
           Reading it is exposure. Recalling it after a gap is what makes it stick.
         </p>
         <div className="rate">
-          <button className="ghost" type="button" onClick={() => onPractise(topicIds)}>
-            Practise
-          </button>
           <button type="button" onClick={() => onTest(topicIds)}>
             Test me
           </button>

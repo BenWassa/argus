@@ -160,7 +160,7 @@ export function Library({ onStart, openFormOnMount = false }: LibraryProps) {
       {pendingDelete && (
         <Confirm
           title="Delete topic"
-          body={`"${pendingDelete.title}" and its practice history will be removed from this device. Export your library first if you want a copy.`}
+          body={`"${pendingDelete.title}" and its test history will be removed from this device. Export your library first if you want a copy.`}
           confirmLabel="Delete topic"
           onCancel={() => setPendingDelete(null)}
           onConfirm={() => {
@@ -307,7 +307,7 @@ export function Library({ onStart, openFormOnMount = false }: LibraryProps) {
               ))}
 
               <p className="lib-consequence">
-                Tests are scored and move the ladder. Learn and practise record nothing.
+                Tests are scored. The ladder moves only when its required evidence gap is satisfied.
               </p>
             </div>
           )}
@@ -320,9 +320,6 @@ export function Library({ onStart, openFormOnMount = false }: LibraryProps) {
             {chosen.length} selected
           </p>
           <div className="lib-batch-actions">
-            <button className="quiet" type="button" onClick={() => onStart('practice', chosen)}>
-              Practise
-            </button>
             <button type="button" onClick={() => onStart('test', chosen)}>
               Test {chosen.length}
             </button>

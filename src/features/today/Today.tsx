@@ -88,11 +88,11 @@ export function Today({ onStart, onGoToLibrary }: TodayProps) {
   }
 
   // Topics exist but none of them can be run. Say so, rather than offering a
-  // practice button with nothing behind it.
+  // Test button with nothing behind it.
   if (practicable.length === 0) {
     return (
       <>
-        <Head verdict="Nothing to practise yet" stamp={stamp} />
+        <Head verdict="Nothing to test yet" stamp={stamp} />
         <p className="today-note">
           {sentence(topicCount(topics.length))} in the library, none with any items yet. A topic
           needs its prompts and answers before it can be read or tested.
@@ -108,7 +108,7 @@ export function Today({ onStart, onGoToLibrary }: TodayProps) {
 
   if (due.length === 0) {
     // The most common day. Show the shape of the schedule instead of a dead end:
-    // every one of these is reachable now, and reaching it costs nothing.
+    // every one of these is reachable now as a voluntary early Test.
     const horizon = [...practicable]
       .sort((a, b) => dueState(a).waitDays - dueState(b).waitDays)
       .slice(0, 5)
@@ -122,15 +122,15 @@ export function Today({ onStart, onGoToLibrary }: TodayProps) {
 
         <h2 className="horizon-head">Coming up</h2>
         <p className="today-sub">
-          Practise any of these now. Nothing is recorded and the schedule does not move.
+          Test any topic now. The score is recorded, but required gaps and clocks do not move early.
         </p>
         <ul className="index docket">
           {horizon.map((topic) => (
             <DocketRow
               key={topic.id}
               topic={topic}
-              verb="Practise"
-              onLaunch={() => onStart('practice', [topic.id])}
+              verb="Test"
+              onLaunch={() => onStart('test', [topic.id])}
             />
           ))}
         </ul>
@@ -139,9 +139,9 @@ export function Today({ onStart, onGoToLibrary }: TodayProps) {
           <button
             className="ghost"
             type="button"
-            onClick={() => onStart('practice', practicable.map((t) => t.id))}
+            onClick={() => onStart('test', practicable.map((t) => t.id))}
           >
-            Practise everything · {itemsIn(practicable)} items
+            Test everything · {itemsIn(practicable)} items
           </button>
         </div>
       </>
@@ -205,17 +205,10 @@ export function Today({ onStart, onGoToLibrary }: TodayProps) {
               {altMode === 'learn' ? 'Learn' : 'Test'} the other {count(altGroup.length)}
             </button>
           )}
-          <button
-            className="quiet"
-            type="button"
-            onClick={() => onStart('practice', due.map((t) => t.id))}
-          >
-            Practise without recording
-          </button>
         </div>
 
         <p className="today-consequence">
-          Tests are scored and move the ladder. Learn and practise record nothing.
+          Tests are scored. The ladder moves only when its required evidence gap is satisfied.
         </p>
       </div>
     </>

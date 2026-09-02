@@ -1,11 +1,12 @@
 import { STATUSES, TRACKS, type Library, type Topic } from './types'
 import { seedLibrary } from './seed'
 
-const KEY = 'argus.library.v2'
+const KEY = 'argus.library.v3'
+const LEGACY_KEY = 'argus.library.v2'
 
 export function loadLibrary(): Library {
   try {
-    const raw = localStorage.getItem(KEY)
+    const raw = localStorage.getItem(KEY) ?? localStorage.getItem(LEGACY_KEY)
     if (!raw) return seedLibrary()
     const parsed = parseLibrary(JSON.parse(raw))
     return parsed.ok ? parsed.library : seedLibrary()
@@ -61,7 +62,7 @@ export function parseLibrary(value: unknown): ParseResult {
       return { ok: false, error: `${where} ("${t.title}") has no scope, so its boundary is undefined. Every Argus topic needs one.` }
     }
     if (!Array.isArray(t.items) || t.items.length === 0) {
-      return { ok: false, error: `${where} ("${t.title}") has no items to practise.` }
+      return { ok: false, error: `${where} ("${t.title}") has no items to test.` }
     }
     const items = t.items.map((item) => item as Record<string, unknown>)
     if (
@@ -96,13 +97,30 @@ export function parseLibrary(value: unknown): ParseResult {
       status,
       createdAt: typeof t.createdAt === 'string' ? t.createdAt : new Date().toISOString(),
       drilledAt: typeof t.drilledAt === 'string' ? t.drilledAt : null,
+      learningAt:
+        typeof t.learningAt === 'string'
+          ? t.learningAt
+          : status === 'learning' && typeof t.lastPracticedAt === 'string'
+            ? t.lastPracticedAt
+            : null,
       completedAt,
-      lastPracticedAt: typeof t.lastPracticedAt === 'string' ? t.lastPracticedAt : null,
+      lastTestedAt:
+        typeof t.lastTestedAt === 'string'
+          ? t.lastTestedAt
+          : typeof t.lastPracticedAt === 'string'
+            ? t.lastPracticedAt
+            : null,
+      spotCheckedAt:
+        typeof t.spotCheckedAt === 'string'
+          ? t.spotCheckedAt
+          : status === 'completed' && typeof t.lastPracticedAt === 'string'
+            ? t.lastPracticedAt
+            : null,
       history: Array.isArray(t.history) ? (t.history as Topic['history']) : [],
     })
   }
 
-  return { ok: true, library: { version: 2, topics } }
+  return { ok: true, library: { version: 3, topics } }
 }
 
 export function exportFilename(now: Date = new Date()): string {

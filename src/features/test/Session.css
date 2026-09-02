@@ -142,7 +142,7 @@
   text-align: center;
 }
 
-/* Practice's ending reports a score and nothing else, so the score is the
+/* A Test ending reports evidence and its ladder consequence, so the result is the
    whole composition rather than a stat tucked beside prose. */
 .score-line {
   display: flex;
