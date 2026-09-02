@@ -88,3 +88,11 @@ Rich Learn content should be dense and structured rather than essay-like.
 ## Repository hygiene
 
 At programme start, `main` is green and there are no open PRs. Historical merged/superseded branches should be deleted under #12. The branch `claude/splash-screen-redesign-zr425a` has one unique unmerged commit and must be reviewed before deletion.
+
+### Housekeeping Phase A — 2026-09-02
+
+The unique splash commit `98726197ae30da403ac43c2b9cd99cbe17d0fc76` was reviewed against post-#10 `main`. Its splash redesign, navigation treatment, dark-chrome suggestion, and legacy splash cleanup are superseded by later merged design/splash work and should not be revived.
+
+One still-valid Test-card concern was extracted to #15: isolate the flashcard from global button hover styling and fit long prompts at an appropriate reading scale. That work belongs to its own implementation issue, not housekeeping.
+
+Phase A deletes the historical merged/superseded branches and the reviewed Claude branch. Final documentation reconciliation remains deferred until #9 lands, as required by #12.
