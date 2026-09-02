@@ -3,6 +3,7 @@ import { useLibrary } from '../../lib/store'
 import { resolveAttempt, type Resolution } from '../../lib/scheduling'
 import { statusLabel } from '../../components/ui/StatusTag'
 import type { Item, Topic } from '../../lib/types'
+import { testCardTextClass } from './textScale'
 import './Session.css'
 
 interface Card {
@@ -229,11 +230,15 @@ export function Session({ topicIds, onExit }: SessionProps) {
           <span className="flip-inner">
             <span className="flip-face flip-front">
               <span className="flip-label">Tap to reveal</span>
-              <span className="flip-value">{card.item.prompt}</span>
+              <span className={`flip-value${testCardTextClass(card.item.prompt)}`}>
+                {card.item.prompt}
+              </span>
             </span>
             <span className="flip-face flip-back">
               <span className="flip-label">Answer</span>
-              <span className="flip-value flip-value-answer">{card.item.answer}</span>
+              <span className={`flip-value flip-value-answer${testCardTextClass(card.item.answer)}`}>
+                {card.item.answer}
+              </span>
             </span>
           </span>
         </button>
