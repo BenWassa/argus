@@ -1,40 +1,54 @@
 import {
+  CUE_STATES,
+  ITEM_DIRECTIONS,
+  ITEM_KINDS,
   LEARN_KINDS,
   STATUSES,
   TRACKS,
+  type CurrentLibrary,
+  type DirectionEvidence,
+  type IdentifiedItem,
+  type ItemCueEvidence,
+  type ItemEvidenceStore,
   type LearnBlock,
   type LearnCaseStudy,
   type LearnContent,
   type LearnSection,
   type LearnSource,
-  type Library,
+  type MorseCharacterLearnItem,
   type Topic,
 } from './types'
+import { migratedItemId } from './items'
 import { seedLibrary } from './seed'
 
-const KEY = 'argus.library.v4'
-const LEGACY_KEYS = ['argus.library.v3', 'argus.library.v2'] as const
+const KEY = 'argus.library.v5'
+const LEGACY_KEYS = ['argus.library.v4', 'argus.library.v3', 'argus.library.v2'] as const
 
-export function loadLibrary(): Library {
+function freshSeedLibrary(): CurrentLibrary {
+  const migrated = parseLibrary(seedLibrary())
+  return migrated.ok ? migrated.library : { version: 5, topics: [] }
+}
+
+export function loadLibrary(): CurrentLibrary {
   try {
     const found = [KEY, ...LEGACY_KEYS]
       .map((key) => ({ key, raw: localStorage.getItem(key) }))
       .find((entry) => entry.raw !== null)
-    if (!found?.raw) return seedLibrary()
+    if (!found?.raw) return freshSeedLibrary()
 
     const parsed = parseLibrary(JSON.parse(found.raw))
-    if (!parsed.ok) return seedLibrary()
+    if (!parsed.ok) return freshSeedLibrary()
 
     // Promote a valid legacy record immediately. This makes the migration
     // durable even before the provider's first effect runs.
     if (found.key !== KEY) saveLibrary(parsed.library)
     return parsed.library
   } catch {
-    return seedLibrary()
+    return freshSeedLibrary()
   }
 }
 
-export function saveLibrary(library: Library): void {
+export function saveLibrary(library: CurrentLibrary): void {
   try {
     localStorage.setItem(KEY, JSON.stringify(library))
   } catch {
@@ -53,7 +67,7 @@ export function clearLibrary(): void {
 }
 
 export type ParseResult =
-  | { ok: true; library: Library }
+  | { ok: true; library: CurrentLibrary }
   | { ok: false; error: string }
 
 type LearnParseResult =
@@ -81,6 +95,43 @@ function parseTextList(value: unknown, where: string): { ok: true; value: string
     return { ok: false, error: `${where} contains an empty or non-text item.` }
   }
   return { ok: true, value: items as string[] }
+}
+
+function parseMorsePacket(value: Record<string, unknown>, where: string): { ok: true; block: LearnBlock } | { ok: false; error: string } {
+  if (!Array.isArray(value.characters) || value.characters.length === 0) {
+    return { ok: false, error: `${where} Morse packet must contain at least one character.` }
+  }
+
+  const characters: MorseCharacterLearnItem[] = []
+  const seen = new Set<string>()
+  for (let i = 0; i < value.characters.length; i += 1) {
+    const raw = value.characters[i]
+    const glyph = isRecord(raw) ? optionalText(raw.glyph) : undefined
+    const pattern = isRecord(raw) ? optionalText(raw.pattern) : undefined
+    const mnemonicId = isRecord(raw) ? optionalText(raw.mnemonicId) : undefined
+    const audioText = isRecord(raw) ? optionalText(raw.audioText) : undefined
+    const textLabel = isRecord(raw) ? optionalText(raw.textLabel) : undefined
+
+    if (!glyph || !/^[A-Z]$/.test(glyph)) {
+      return { ok: false, error: `${where} Morse character ${i + 1} needs one uppercase A–Z glyph.` }
+    }
+    if (!pattern || !/^[.-]+$/.test(pattern)) {
+      return { ok: false, error: `${where} Morse character ${i + 1} needs canonical dot/dash notation.` }
+    }
+    if (!mnemonicId || !audioText || !textLabel) {
+      return { ok: false, error: `${where} Morse character ${i + 1} needs mnemonicId, audioText and textLabel.` }
+    }
+    if (audioText !== glyph) {
+      return { ok: false, error: `${where} Morse character ${i + 1} audioText must identify the same glyph.` }
+    }
+    if (seen.has(glyph)) {
+      return { ok: false, error: `${where} Morse packet repeats glyph ${glyph}.` }
+    }
+    seen.add(glyph)
+    characters.push({ glyph, pattern, mnemonicId, audioText, textLabel })
+  }
+
+  return { ok: true, block: { type: 'morse-character-packet', characters } }
 }
 
 function parseBlock(value: unknown, where: string): { ok: true; block: LearnBlock } | { ok: false; error: string } {
@@ -140,6 +191,8 @@ function parseBlock(value: unknown, where: string): { ok: true; block: LearnBloc
     }
     return { ok: true, block: { type: 'table', columns: columns.value, rows } }
   }
+
+  if (value.type === 'morse-character-packet') return parseMorsePacket(value, where)
 
   return {
     ok: false,
@@ -256,49 +309,175 @@ function parseLearn(value: unknown, where: string): LearnParseResult {
   return { ok: true, learn }
 }
 
+function parseLibraryVersion(value: unknown): { ok: true; version: 2 | 3 | 4 | 5 } | { ok: false; error: string } {
+  // Pre-versioned exports were accepted by earlier Argus parsers. Treat them
+  // as v4-shaped input so that upgrade remains backward compatible.
+  if (value === undefined) return { ok: true, version: 4 }
+  if (value === 2 || value === 3 || value === 4 || value === 5) return { ok: true, version: value }
+  return { ok: false, error: `Unsupported Argus library version: ${String(value)}.` }
+}
+
+function parseItems(
+  value: unknown,
+  where: string,
+  topicId: string,
+  sourceVersion: 2 | 3 | 4 | 5,
+): { ok: true; items: IdentifiedItem[] } | { ok: false; error: string } {
+  if (!Array.isArray(value) || value.length === 0) {
+    return { ok: false, error: `${where} has no items to test.` }
+  }
+
+  const items: IdentifiedItem[] = []
+  const ids = new Set<string>()
+  for (let i = 0; i < value.length; i += 1) {
+    const raw = value[i]
+    const prompt = isRecord(raw) ? optionalText(raw.prompt) : undefined
+    const answer = isRecord(raw) ? optionalText(raw.answer) : undefined
+    if (!prompt || !answer) {
+      return { ok: false, error: `${where} has an item missing a prompt or an answer.` }
+    }
+
+    let id: string
+    let kind: IdentifiedItem['kind']
+    if (sourceVersion === 5) {
+      id = optionalText(raw.id) ?? ''
+      if (!id) return { ok: false, error: `${where} item ${i + 1} has no stable id.` }
+      if (!ITEM_KINDS.includes(raw.kind as never)) {
+        return { ok: false, error: `${where} item ${i + 1} has unsupported item semantics.` }
+      }
+      kind = raw.kind as IdentifiedItem['kind']
+    } else {
+      // v4 and earlier had no durable item identity or typed direction. Migrate
+      // once, deterministically, so re-importing the same record yields the
+      // same v5 ids and every legacy item preserves forward behaviour.
+      id = migratedItemId(topicId, i)
+      kind = 'forward'
+    }
+
+    if (ids.has(id)) return { ok: false, error: `${where} repeats item id "${id}".` }
+    ids.add(id)
+    items.push({ id, kind, prompt, answer })
+  }
+  return { ok: true, items }
+}
+
+function nonNegativeInteger(value: unknown): number | null {
+  return Number.isInteger(value) && Number(value) >= 0 ? Number(value) : null
+}
+
+function parseDirectionEvidence(value: unknown, where: string): { ok: true; value: DirectionEvidence } | { ok: false; error: string } {
+  if (!isRecord(value)) return { ok: false, error: `${where} must be an evidence object.` }
+  const attempts = nonNegativeInteger(value.attempts)
+  const correct = nonNegativeInteger(value.correct)
+  const consecutiveCorrect = nonNegativeInteger(value.consecutiveCorrect)
+  if (attempts === null || correct === null || consecutiveCorrect === null) {
+    return { ok: false, error: `${where} counts must be non-negative integers.` }
+  }
+  if (correct > attempts || consecutiveCorrect > correct) {
+    return { ok: false, error: `${where} has impossible correct/consecutive counts.` }
+  }
+
+  const lastAt = value.lastAt === null ? null : optionalText(value.lastAt)
+  if (value.lastAt !== null && !lastAt) return { ok: false, error: `${where} lastAt must be text or null.` }
+  const lastLatencyMs = value.lastLatencyMs === null
+    ? null
+    : typeof value.lastLatencyMs === 'number' && Number.isFinite(value.lastLatencyMs) && value.lastLatencyMs >= 0
+      ? value.lastLatencyMs
+      : undefined
+  if (lastLatencyMs === undefined) {
+    return { ok: false, error: `${where} lastLatencyMs must be a non-negative number or null.` }
+  }
+
+  return {
+    ok: true,
+    value: { attempts, correct, consecutiveCorrect, lastAt: lastAt ?? null, lastLatencyMs },
+  }
+}
+
+function parseItemEvidence(
+  value: unknown,
+  where: string,
+  items: IdentifiedItem[],
+  sourceVersion: 2 | 3 | 4 | 5,
+): { ok: true; value: ItemEvidenceStore } | { ok: false; error: string } {
+  if (sourceVersion < 5) return { ok: true, value: {} }
+  if (value === undefined) return { ok: true, value: {} }
+  if (!isRecord(value)) return { ok: false, error: `${where} itemEvidence must be an object keyed by item id.` }
+
+  const liveIds = new Set(items.map((item) => item.id))
+  const evidence: ItemEvidenceStore = {}
+  for (const [itemId, rawEvidence] of Object.entries(value)) {
+    if (!liveIds.has(itemId)) {
+      return { ok: false, error: `${where} itemEvidence references unknown item id "${itemId}".` }
+    }
+    if (!isRecord(rawEvidence) || !CUE_STATES.includes(rawEvidence.cue as never)) {
+      return { ok: false, error: `${where} itemEvidence for "${itemId}" has an unsupported cue state.` }
+    }
+    if (!isRecord(rawEvidence.directions)) {
+      return { ok: false, error: `${where} itemEvidence for "${itemId}" needs a directions object.` }
+    }
+
+    const directions: ItemCueEvidence['directions'] = {}
+    for (const [direction, rawDirection] of Object.entries(rawEvidence.directions)) {
+      if (!ITEM_DIRECTIONS.includes(direction as never)) {
+        return { ok: false, error: `${where} itemEvidence for "${itemId}" uses unknown direction "${direction}".` }
+      }
+      const parsed = parseDirectionEvidence(rawDirection, `${where} itemEvidence for "${itemId}" / ${direction}`)
+      if (!parsed.ok) return parsed
+      directions[direction as keyof typeof directions] = parsed.value
+    }
+
+    evidence[itemId] = {
+      cue: rawEvidence.cue as ItemCueEvidence['cue'],
+      directions,
+    }
+  }
+  return { ok: true, value: evidence }
+}
+
 /**
- * Import validation. An import replaces the whole library, so a
+ * Import validation and migration. An import replaces the whole library, so a
  * structurally plausible but semantically wrong file must be rejected here
- * rather than silently becoming the record.
+ * rather than silently becoming the record. Every accepted input becomes v5.
  */
 export function parseLibrary(value: unknown): ParseResult {
   if (typeof value !== 'object' || value === null) {
     return { ok: false, error: 'That file is not an Argus export. The top level should be an object.' }
   }
   const raw = value as Record<string, unknown>
+  const version = parseLibraryVersion(raw.version)
+  if (!version.ok) return version
   if (!Array.isArray(raw.topics)) {
     return { ok: false, error: 'That file has no "topics" list, so there is nothing to import.' }
   }
 
   const topics: Topic[] = []
   for (let i = 0; i < raw.topics.length; i += 1) {
-    const t = raw.topics[i] as Record<string, unknown>
+    const t = raw.topics[i]
     const where = `Topic ${i + 1}`
+    if (!isRecord(t)) return { ok: false, error: `${where} is not a topic object.` }
 
-    if (typeof t?.title !== 'string' || !t.title.trim()) {
-      return { ok: false, error: `${where} has no title.` }
-    }
-    if (typeof t.scope !== 'string' || !t.scope.trim()) {
-      return { ok: false, error: `${where} ("${t.title}") has no scope, so its boundary is undefined. Every Argus topic needs one.` }
-    }
-    if (!Array.isArray(t.items) || t.items.length === 0) {
-      return { ok: false, error: `${where} ("${t.title}") has no items to test.` }
-    }
-    const items = t.items.map((item) => item as Record<string, unknown>)
-    if (
-      items.some(
-        (item) =>
-          typeof item?.prompt !== 'string' ||
-          typeof item?.answer !== 'string' ||
-          !String(item.prompt).trim() ||
-          !String(item.answer).trim(),
-      )
-    ) {
-      return { ok: false, error: `${where} ("${t.title}") has an item missing a prompt or an answer.` }
+    const title = optionalText(t.title)
+    if (!title) return { ok: false, error: `${where} has no title.` }
+    const scope = optionalText(t.scope)
+    if (!scope) {
+      return { ok: false, error: `${where} ("${title}") has no scope, so its boundary is undefined. Every Argus topic needs one.` }
     }
 
-    const learn = parseLearn(t.learn, `${where} ("${t.title}")`)
+    const topicId = optionalText(t.id) ?? `imported-topic-${i + 1}`
+    const items = parseItems(t.items, `${where} ("${title}")`, topicId, version.version)
+    if (!items.ok) return items
+
+    const learn = parseLearn(t.learn, `${where} ("${title}")`)
     if (!learn.ok) return learn
+
+    const itemEvidence = parseItemEvidence(
+      t.itemEvidence,
+      `${where} ("${title}")`,
+      items.items,
+      version.version,
+    )
+    if (!itemEvidence.ok) return itemEvidence
 
     const track = TRACKS.includes(t.track as never) ? (t.track as Topic['track']) : 'learning'
     let status = STATUSES.includes(t.status as never) ? (t.status as Topic['status']) : 'unstarted'
@@ -309,14 +488,11 @@ export function parseLibrary(value: unknown): ParseResult {
     if (!completedAt && (status === 'completed' || status === 'decayed')) status = 'drilled'
 
     topics.push({
-      id: typeof t.id === 'string' && t.id ? t.id : `imported-${i}-${Date.now()}`,
-      title: t.title.trim(),
-      scope: t.scope.trim(),
+      id: topicId,
+      title,
+      scope,
       track,
-      items: items.map((item) => ({
-        prompt: String(item.prompt).trim(),
-        answer: String(item.answer).trim(),
-      })),
+      items: items.items,
       ...(learn.learn ? { learn: learn.learn } : {}),
       status,
       createdAt: typeof t.createdAt === 'string' ? t.createdAt : new Date().toISOString(),
@@ -341,10 +517,11 @@ export function parseLibrary(value: unknown): ParseResult {
             ? t.lastPracticedAt
             : null,
       history: Array.isArray(t.history) ? (t.history as Topic['history']) : [],
+      itemEvidence: itemEvidence.value,
     })
   }
 
-  return { ok: true, library: { version: 4, topics } }
+  return { ok: true, library: { version: 5, topics } }
 }
 
 export function exportFilename(now: Date = new Date()): string {
