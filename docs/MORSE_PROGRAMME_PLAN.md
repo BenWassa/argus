@@ -26,6 +26,28 @@ the status ladder, and cue progression must never qualify, skip or reset a
 retention gap. `src/lib/scheduling.ts` remains the sole authority over whether
 recall evidence advances completion.
 
+## Decisions register
+
+Nothing in workstream 1 can open until these are answered. D-entries are forced
+by the current v4 code and are argued in the next section; P-entries are left
+open by the PRD and are argued in the section after that.
+
+| # | Decision | Recommendation | Blocks |
+|---|---|---|---|
+| D1 | Bidirectional scoring against `PASS_THRESHOLD = 1` | Typed bidirectional item, 26 scoring units | 1, 4, 5 |
+| D2 | How item identity is created and preserved | Generated stable id, preserved across authoring edits | 1, 3, 4 |
+| D3 | Where acquisition stages A/B live | Cue rungs inside Test; scheduler untouched | 3, 4 |
+| D4 | How Learn expresses a character packet | Narrow typed block in the validated union | 1, 3 |
+| D5 | Where per-item cue evidence is stored | Sibling of `history` on the topic, keyed by item id | 1, 4 |
+| P1 | Character order | Ascending complexity, aural-confusable pairs split across packets | 3, 5 |
+| P2 | Novel characters per packet | 5 visible, 2 novel, both configurable | 3, 4 |
+| P3 | What triggers cue fading | Consecutive correct at a rung; record latency, do not gate on it | 4 |
+| P4 | Initial character and effective speed | 20 WPM character, ~9 WPM effective, adjustable | 2 |
+| P5 | Original SVG mnemonic set | Yes — original, single grammar | 3, 5 |
+| P6 | Ship the workstream-0 baseline topic | Your call; the programme works either way | 0 |
+
+D1, D3 and P1 are the expensive ones. The rest are cheap to revise later.
+
 ## What the existing code forces into Phase 0
 
 The PRD leaves several questions to implementation. Five of them are not
@@ -62,8 +84,18 @@ latency and confusion metadata all need a key that survives an author reordering
 lines. Any per-item state keyed by array index is silently corrupt after the
 first edit.
 
-Workstream 1 must introduce durable item identity *and* an authoring path that
-preserves it. This is the substance of that workstream, not a detail inside it.
+Options: a generated id persisted per item and preserved when the authoring
+form round-trips; a content-derived key such as a hash of the prompt; or an
+author-visible id in the `prompt | answer` text format.
+
+Recommendation: a generated id. A content-derived key breaks the moment an
+author fixes a typo in a prompt, silently orphaning that item's evidence, and an
+author-visible id makes the plainest authoring surface in the app worse for
+every topic in order to serve one. `TopicForm` matches edited lines back to
+existing ids on save and mints ids only for genuinely new lines.
+
+Workstream 1 must introduce durable item identity *and* that authoring path
+together. This is the substance of that workstream, not a detail inside it.
 
 ### D3 — Where Stage A/B actually live
 
@@ -97,21 +129,76 @@ Extending that union is schema work in workstream 1, not UI work in workstream 3
 
 `Attempt` records only `{ at, correct, total, resolvedTo }`. There is no
 per-item outcome anywhere in the model. Cue fading needs per-item evidence, and
-per D1's invariant it must be a sibling of `history`, not folded into it.
-This is what forces `Library.version` 4 → 5 and a migration.
+per the governing invariant it must be a sibling of `history`, not folded into
+it. This is what forces `Library.version` 4 → 5 and a migration.
 
-## Phase 0 — design decisions still open in the PRD
+Options: hold it on the topic, keyed by item id, or as a separate top-level
+store on the library.
 
-Carried from PR #22 and settled before workstream 1 opens:
+Recommendation: on the topic. Export already carries `history`, so user learning
+state is portable today, and keeping cue evidence next to it means one migration
+and no chance of a topic and its evidence being exported apart from each other.
 
-- initial character order, with the comparison recorded;
-- number of simultaneously novel characters, held separate from the five-card
-  packet size;
-- the evidence that triggers cue fading (accuracy, latency, repeated retrieval);
-- initial character speed and effective speed;
-- whether the SVG mnemonic set is entirely original.
+## Phase 0 — decisions the PRD leaves open
 
-Plus D1–D5 above.
+### P1 — Character order
+
+Options: Koch-style incremental, current CW Academy ordering, complexity-based
+easy-first, or a confusion-aware custom sequence.
+
+The observation that decides this: Koch and CW Academy orders are tuned for
+**auditory** acquisition, and the first shipped boundary is **printed**.
+Rothkopf's separation result concerns aural similarity specifically. An order
+borrowed wholesale from CW practice therefore optimises for a competency this
+topic does not claim. But picking a purely visual order means re-teaching the
+alphabet in a different sequence when workstream 6 arrives.
+
+Recommendation: ascending element-count complexity, constrained so that two
+characters differing only in a final element — Spragg's strongest confusion
+family — never share a packet. That serves printed acquisition now without
+sabotaging reception later. Record the full comparison per PRD §10.2, and do not
+describe the result as official or optimal.
+
+### P2 — Novel characters per packet
+
+Recommendation: five visible cards, two novel, the remainder already-encoded
+characters returning for retrieval. Hold both values as separate configuration.
+The failure mode to design out is a packet size that silently defines the
+acquisition load, which is exactly what PRD §10.1 warns against.
+
+### P3 — What triggers cue fading
+
+Options: accuracy alone, accuracy plus latency, or a repeated-retrieval count.
+
+Recommendation: fade on N consecutive correct answers at a rung, starting at
+N = 2, accuracy-primary. Record latency from the first session but do not let it
+gate anything in v1 — per PRD §11.2 latency must not quietly become a completion
+requirement for a topic whose scope says nothing about speed, and you need the
+distribution before any threshold on it is more than a guess.
+
+### P4 — Initial character and effective speed
+
+CW Academy's Fundamental curriculum uses 25 WPM character speed with much lower
+effective speed. That is practice precedent, not evidence of optimality.
+
+Recommendation: ship 20 WPM character speed with roughly 9 WPM effective speed
+through Farnsworth spacing, user-adjustable. Never stretch the character itself
+to slow it down. This is the cheapest decision on the list to revise — it is a
+runtime setting, not schema — but it does shape the representation a learner
+encodes, so revisit it deliberately when workstream 6 makes audio the scored
+stimulus rather than drifting into a default.
+
+### P5 — Original SVG mnemonic set
+
+Recommendation: confirm original, as PRD §8.5 already leans. Google's
+`morse-learn` is Apache-2.0 at repository level, but per-asset provenance is
+unverified and would need clearing illustration by illustration. A single
+coherent grammar across all 26 characters matters more than any individual
+borrowed drawing. Study its interaction patterns; draw nothing from it.
+
+### P6 — Whether to ship the workstream-0 baseline
+
+Argued under workstream 0 below. The programme is unaffected either way.
 
 ## Workstreams
 
