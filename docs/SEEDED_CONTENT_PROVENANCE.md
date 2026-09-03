@@ -1,25 +1,24 @@
 # Seeded content provenance and Test boundaries
 
-Issue: #11  
+Issue: #11; Morse baseline: #23  
 Research baseline: `f2a3112110356f90f469c8c340f9f0ac69fbb2ee`  
 Library format: v4
 
 ## Purpose
 
-This document records the research decisions behind the four topics shipped by `src/lib/seed.ts`. It is intentionally an #11 content record, not the final #12 programme/documentation reconciliation.
-
-For every topic, `scope` plus `items` remain the finite scored Test boundary. `topic.learn` is explanatory support only and does not expand the completion claim.
+This document records the research decisions behind the topics shipped by `src/lib/seed.ts`. For every topic, `scope` plus `items` remain the finite scored Test boundary. `topic.learn` is explanatory support only and does not expand the completion claim.
 
 ## Boundary matrix
 
 | Topic | Final finite Test boundary | Items | Learn treatment |
 | --- | --- | ---: | --- |
 | NATO phonetic alphabet | 26 letters A–Z → official NATO code word | 26 | Concise support |
+| International Morse — Letters (printed) | 26 printed letters A–Z → canonical International Morse dit/dah pattern | 26 | Concise support |
 | OODA loop | Four stages in order + one core function for each | 4 | Briefing + integrated case |
 | Primary survey | Five ABCDE headings in order only | 5 | Briefing + integrated bounded case + explicit safety limits |
 | Cardinal/intercardinal bearings | Eight named compass points → clockwise degree value from north, with north represented as 0° | 8 | Concise support |
 
-The seeded historical attempt totals remain compatible with the rewritten decks: no topic changes its scored item count.
+Existing seeded historical attempt totals remain compatible with their decks. The Morse baseline is new and starts unstarted with no history.
 
 ## NATO phonetic alphabet
 
@@ -40,6 +39,42 @@ Concise support only: one short purpose/spelling note plus provenance. No case s
 ### Authoritative source
 
 - NATO, **The NATO phonetic alphabet**: https://www.nato.int/en/about-us/nato-history/history-by-theme/symbols-of-nato/nato-phonetic-alphabet
+
+## International Morse — Letters (printed)
+
+### Research decision
+
+Workstream #23 deliberately ships the smallest useful Morse control before the progressive cue, schema and audio work lands. ITU-R M.1677-1 Annex 1 supplies the authoritative International Morse A–Z mapping and the canonical timing relationships. This topic uses only the mapping in scored Test items; the timing note is explanatory context.
+
+The 26 canonical mappings are:
+
+| Letter | Pattern | Letter | Pattern | Letter | Pattern |
+| --- | --- | --- | --- | --- | --- |
+| A | `.-` | J | `.---` | S | `...` |
+| B | `-...` | K | `-.-` | T | `-` |
+| C | `-.-.` | L | `.-..` | U | `..-` |
+| D | `-..` | M | `--` | V | `...-` |
+| E | `.` | N | `-.` | W | `.--` |
+| F | `..-.` | O | `---` | X | `-..-` |
+| G | `--.` | P | `.--.` | Y | `-.--` |
+| H | `....` | Q | `--.-` | Z | `--..` |
+| I | `..` | R | `.-.` |  |  |
+
+### Test boundary
+
+**The 26 International Morse patterns for A–Z, recalled from the printed letter. One direction only: letter → canonical dit/dah pattern.**
+
+Every A–Z mapping appears once. Completion here does **not** claim pattern → letter recall, auditory reception, sending, or a speed criterion. The later bidirectional/progressive curriculum must explicitly supersede or absorb this control topic so overlapping completion claims do not remain in the shipped library.
+
+### Learn treatment
+
+Concise support states the dit/dah notation, the ITU 1:3:7 timing relationships, and the completion limitations. It does not introduce an acquisition ladder, audio interaction, SVG mnemonic system, or any scored material beyond the 26 printed prompts.
+
+### Authoritative source
+
+- ITU-R, **Recommendation M.1677-1 — International Morse code**: https://www.itu.int/rec/R-REC-M.1677-1-200910-I/en
+  - Annex 1 §1.1.1 defines the A–Z letter signals.
+  - Annex 1 §§2.1–2.4 define dash = three dots, one-dot intra-character spacing, three-dot inter-character spacing, and seven-dot inter-word spacing.
 
 ## OODA loop
 
@@ -134,6 +169,7 @@ Concise support only: clockwise-from-north convention, 45° spacing, the 0°/360
 
 - Every topic has an explicit finite scope.
 - Every stated scored boundary is completely enumerated by `items`.
+- The printed Morse control claims one direction only and does not count timing context, audio, sending, reverse recognition, or speed toward completion.
 - No case-study detail, provenance note, limitation, clinical technique, wider OODA relationship, or contextual explanation is silently counted toward completion.
-- NATO and bearings remain compact despite using concise provenance support.
+- NATO, Morse and bearings remain compact despite using concise provenance support.
 - OODA and Primary Survey use the richer v4 Learn model because understanding the framework/procedure requires more than mapping labels.
