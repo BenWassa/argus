@@ -166,12 +166,13 @@ export interface LegacyLibraryV4 {
 }
 
 /** Every library returned by storage/export is normalized to this version. */
-export interface Library {
+export interface CurrentLibrary {
   version: 5
   topics: Topic[]
 }
 
-export type ImportableLibrary = LegacyLibraryV4 | Library
+/** The seed remains an explicit v4 source record; storage is the v5 boundary. */
+export type Library = LegacyLibraryV4 | CurrentLibrary
 
 export type View = 'today' | 'library' | 'progress' | 'data'
 
