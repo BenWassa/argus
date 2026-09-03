@@ -133,7 +133,7 @@
 }
 
 /* Tables keep enough typographic width for words to remain words. At normal
-   phone text sizes the 22em floor fits the reading column; as text scales up,
+   phone text sizes the 21.5em floor fits the reading column; as text scales up,
    that floor scales with it and the focusable wrapper becomes the local
    horizontal scroll surface instead of crushing cells or overflowing the page. */
 .learn-table-wrap {
@@ -152,7 +152,7 @@
 
 .learn-table {
   width: 100%;
-  min-width: 22em;
+  min-width: 21.5em;
   table-layout: fixed;
   border-collapse: collapse;
   font-size: 0.94rem;
