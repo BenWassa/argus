@@ -28,25 +28,30 @@ recall evidence advances completion.
 
 ## Decisions register
 
-Nothing in workstream 1 can open until these are answered. D-entries are forced
-by the current v4 code and are argued in the next section; P-entries are left
-open by the PRD and are argued in the section after that.
+D-entries are forced by the current v4 code and are argued in the next section;
+P-entries are left open by the PRD and are argued in the section after that.
 
-| # | Decision | Recommendation | Blocks |
-|---|---|---|---|
-| D1 | Bidirectional scoring against `PASS_THRESHOLD = 1` | Typed bidirectional item, 26 scoring units | 1, 4, 5 |
-| D2 | How item identity is created and preserved | Generated stable id, preserved across authoring edits | 1, 3, 4 |
-| D3 | Where acquisition stages A/B live | Cue rungs inside Test; scheduler untouched | 3, 4 |
-| D4 | How Learn expresses a character packet | Narrow typed block in the validated union | 1, 3 |
-| D5 | Where per-item cue evidence is stored | Sibling of `history` on the topic, keyed by item id | 1, 4 |
-| P1 | Character order | Ascending complexity, aural-confusable pairs split across packets | 3, 5 |
-| P2 | Novel characters per packet | 5 visible, 2 novel, both configurable | 3, 4 |
-| P3 | What triggers cue fading | Consecutive correct at a rung; record latency, do not gate on it | 4 |
-| P4 | Initial character and effective speed | 20 WPM character, ~9 WPM effective, adjustable | 2 |
-| P5 | Original SVG mnemonic set | Yes — original, single grammar | 3, 5 |
-| P6 | Ship the workstream-0 baseline topic | Your call; the programme works either way | 0 |
+**Ratified** means put to the owner and answered. **Default** means the
+recommendation stands unopposed and is cheap to revise inside its workstream;
+raise it there rather than reopening the programme.
 
-D1, D3 and P1 are the expensive ones. The rest are cheap to revise later.
+| # | Decision | Answer | Status | Blocks |
+|---|---|---|---|---|
+| D1 | Bidirectional scoring against `PASS_THRESHOLD = 1` | Typed bidirectional item, 26 scoring units | Ratified | 1, 4, 5 |
+| D2 | How item identity is created and preserved | Generated stable id, preserved across authoring edits | Default | 1, 3, 4 |
+| D3 | Where acquisition stages A/B live | Cue rungs inside Test; scheduler untouched | Ratified | 3, 4 |
+| D4 | How Learn expresses a character packet | Narrow typed block in the validated union | Default | 1, 3 |
+| D5 | Where per-item cue evidence is stored | Sibling of `history` on the topic, keyed by item id | Default | 1, 4 |
+| P1 | Character order | Ascending complexity, aural-confusable pairs split across packets | Ratified | 3, 5 |
+| P2 | Novel characters per packet | 5 visible, 2 novel, both configurable | Default | 3, 4 |
+| P3 | What triggers cue fading | Consecutive correct at a rung; record latency, do not gate on it | Default | 4 |
+| P4 | Initial character and effective speed | 20 WPM character, ~9 WPM effective, adjustable | Default | 2 |
+| P5 | Original SVG mnemonic set | Yes — original, single grammar | Default | 3, 5 |
+| P6 | Ship the workstream-0 baseline topic | Yes | Ratified | 0 |
+
+The four ratified entries are the ones that are expensive to unwind. Every
+remaining entry is a default a workstream may revise with its reasoning
+recorded in that issue.
 
 ## What the existing code forces into Phase 0
 
@@ -74,6 +79,9 @@ Resolve one of:
 Recommendation: option 1. It keeps the deck at 26 scoring units, makes complete
 bidirectional coverage mechanically provable, and leaves `PASS_THRESHOLD`
 untouched for existing topics.
+
+**Ratified: option 1.** Workstream 1 introduces the typed bidirectional item.
+`PASS_THRESHOLD` and every existing topic are untouched.
 
 ### D2 — Stable item identity
 
@@ -118,6 +126,10 @@ as exposure, and satisfies the standing "no third mode" constraint without
 inventing Practice under a new name. It also decides the seam between
 workstreams 3 and 4, so it cannot be deferred.
 
+**Ratified: option 1.** Stages A and B are cue rungs inside Test.
+`src/lib/scheduling.ts` is not modified by workstreams 3 or 4; a pull request in
+either that touches it has misread this decision.
+
 ### D4 — Learn content model extension
 
 `LearnBlock` is a closed union, validated by `storage.ts::parseBlock` and
@@ -159,6 +171,10 @@ family — never share a packet. That serves printed acquisition now without
 sabotaging reception later. Record the full comparison per PRD §10.2, and do not
 describe the result as official or optimal.
 
+**Ratified: complexity-ascending with confusables split.** Workstream 3 produces
+the concrete sequence and records the comparison against Koch and CW Academy
+orders per PRD §10.2. The result is never described as official or optimal.
+
 ### P2 — Novel characters per packet
 
 Recommendation: five visible cards, two novel, the remainder already-encoded
@@ -198,7 +214,7 @@ borrowed drawing. Study its interaction patterns; draw nothing from it.
 
 ### P6 — Whether to ship the workstream-0 baseline
 
-Argued under workstream 0 below. The programme is unaffected either way.
+**Ratified: ship it.** Argued under workstream 0 below.
 
 ## Workstreams
 
@@ -225,7 +241,7 @@ alone. It needs 2 merged before *stage F*, which is workstream 6.
 
 So 0, 1 and 2 run in parallel, and 4 opens as soon as 1's schema is stable.
 
-### Workstream 0 — printed baseline (recommended, optional)
+### Workstream 0 — printed baseline
 
 A 26-item `letter → canonical dit/dah` topic seeded exactly like the NATO
 alphabet, using the current v4 schema and the existing reveal/self-score card.
@@ -236,9 +252,9 @@ within days, validates the seed and provenance path, and gives the progressive
 system a control to be measured against. Its scope claims one direction only,
 which is narrower than the PRD's first boundary but honest about what it covers.
 
-Cost: a second Morse topic exists during the programme, and workstream 5 must
-either supersede or absorb it. Skip this if that overlap is unacceptable; the
-programme is otherwise unaffected.
+Accepted cost: a second Morse topic exists during the programme. Workstream 5
+must state explicitly whether it supersedes or absorbs this topic, and must not
+leave two overlapping Morse completion claims in the shipped library.
 
 ### Workstream 1 — item identity, cue/evidence model, migration
 
@@ -333,9 +349,9 @@ Argus commits to a generalised training engine.
 
 ## Immediate sequence
 
-1. get PR #22 reviewed and merged, with D1–D5 and the Phase 0 decisions settled;
-2. open the workstream issues under #21;
-3. execute 1 and 2 in parallel, optionally 0 alongside;
+1. get PR #22 reviewed and merged;
+2. open the workstream issues under #21, each carrying the decisions it owns;
+3. execute 0, 1 and 2 in parallel;
 4. prototype the SVG visual grammar on 8–10 characters and validate it;
 5. build the progressive Test ladder;
 6. ship and physically test the 26-letter competency.
