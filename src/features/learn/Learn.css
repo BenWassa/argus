@@ -132,11 +132,14 @@
   overflow-wrap: anywhere;
 }
 
-/* Tables are allowed to become locally scrollable at extreme text scaling,
-   but may never make the page itself overflow horizontally. */
+/* Tables keep enough typographic width for words to remain words. At normal
+   phone text sizes the 22em floor fits the reading column; as text scales up,
+   that floor scales with it and the focusable wrapper becomes the local
+   horizontal scroll surface instead of crushing cells or overflowing the page. */
 .learn-table-wrap {
   max-width: 100%;
   overflow-x: auto;
+  overscroll-behavior-inline: contain;
   border-top: 1px solid var(--line-strong);
   border-bottom: 1px solid var(--line-strong);
   scrollbar-width: thin;
@@ -149,6 +152,8 @@
 
 .learn-table {
   width: 100%;
+  min-width: 22em;
+  table-layout: fixed;
   border-collapse: collapse;
   font-size: 0.94rem;
   line-height: 1.45;
@@ -159,7 +164,23 @@
   padding: var(--s-sm) var(--s-md) var(--s-sm) 0;
   text-align: left;
   vertical-align: top;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+.learn-table th:first-child,
+.learn-table td:first-child {
+  width: 30%;
+}
+
+.learn-table th:nth-child(2),
+.learn-table td:nth-child(2) {
+  width: 50%;
+}
+
+.learn-table th:last-child,
+.learn-table td:last-child {
+  width: 20%;
 }
 
 .learn-table th {
