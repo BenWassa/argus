@@ -1,176 +1,89 @@
 # Argus library audit
 
 Issue: #8  
-Audit baseline: `7498c55494d5b75fdb99c3316b461a2a5e6eef01`
+Audit baseline: `7498c55494d5b75fdb99c3316b461a2a5e6eef01`  
+Implemented-content baseline: `c1cc753eb89c9aa5379d1a885892703cf20e65ba`
 
 ## Scope
 
-This audit covers every topic shipped in `src/lib/seed.ts` at the baseline above. Argus stores user-authored topics locally, so an on-device library may contain additional topics that are not visible in GitHub. Extend this document when a current exported library is available rather than assuming the seed is the complete personal library.
+This audit covers every topic shipped in `src/lib/seed.ts`. Argus stores user-authored topics locally, so an on-device library may contain additional topics not visible in GitHub. The original #8 findings drove #9 and #11; this document now records both the audit decision and the implemented result.
 
-## Audit rubric
+## Content rubric
 
 For each topic, check:
 
 1. content archetype;
 2. finite testable boundary;
-3. whether the current Test items actually cover that boundary;
+3. whether Test items completely cover that boundary;
 4. appropriate Learn treatment;
 5. conceptual/context gaps;
-6. whether integrated case studies are useful;
+6. whether an integrated case study is useful;
 7. provenance requirements;
 8. safety/limitations requirements;
-9. whether explanatory support can stay outside the scored boundary;
-10. recommended action.
+9. whether explanatory support remains outside the scored boundary.
 
-## Summary matrix
+`scope` + `items` define the finite scored Test/completion claim. `topic.learn` is structurally separate explanatory support and never expands that claim merely by existing.
 
-| Topic | Archetype | Current boundary coverage | Learn treatment | Case study | Provisional action |
+## Final shipped-library matrix
+
+| Topic | Archetype | Final finite Test boundary | Coverage | Learn treatment | Case study |
 | --- | --- | --- | --- | --- | --- |
-| NATO phonetic alphabet | Mapping/reference | Strong | Compact reference | No | Keep deck; verify source/spelling |
-| OODA loop | Framework/model | **Insufficient** | Structured briefing | **Yes** | Major enrichment + deck rewrite |
-| Primary survey | Procedure/protocol | Minimal / boundary decision required | Structured concise briefing | Likely, bounded | Research, enrich, review scope |
-| Cardinal/intercardinal bearings | Mapping/reference | Strong | Compact reference | No | Keep deck; verify conventions |
+| NATO phonetic alphabet | Mapping/reference | 26 letters A–Z → official NATO code word | Complete | Concise support | No |
+| OODA loop | Framework/model | Four stages in order + one core function for each | Complete | Briefing | Yes, integrated |
+| Primary survey | Procedure/protocol | Five ABCDE headings in order only | Complete | Briefing with safety limits | Yes, bounded/integrated |
+| Cardinal/intercardinal bearings | Mapping/reference | Eight compass points → degree values clockwise from north; north = 0° | Complete | Concise support | No |
+
+All four topics preserve their previous scored item counts: 26 / 4 / 5 / 8. Historical attempt totals therefore remain compatible.
 
 ## NATO phonetic alphabet
 
-### Current boundary
+The mapping itself is the finite competency. #11 verified the official 26 NATO code words, including **Alfa** and **Juliett**, against NATO's official reference.
 
-“The 26 letters A to Z and their code words. Nothing else.”
-
-The deck contains one mapping for every letter and therefore matches the declared finite boundary well.
-
-### Learn requirement
-
-**Compact reference only.** The mapping is the content. A long explanation would increase friction without adding much understanding.
-
-Useful supporting material, if retained at all, should be small: authoritative source attribution and any genuinely relevant terminology/spelling note.
-
-### Case-study need
-
-None.
-
-### Recommended action
-
-- Keep the 26-card mapping deck.
-- Preserve letter-first testing.
-- Verify official code-word spelling/provenance during #11.
-- Do not add long-form prose merely because the richer Learn schema exists.
+The shipped topic keeps all 26 letter-first scored mappings and adds only concise Learn context/provenance. A briefing or case study would add friction without improving the finite mapping claim.
 
 ## OODA loop
 
-### Current boundary
+The original audit found a scope/deck mismatch: the scope claimed the four stages **and what each one does**, while the old deck tested stage names only.
 
-“The four stages in order, and what each one does.”
+#11 resolved that mismatch without making the Test boundary open-ended. The four scored items now each require the ordered stage name plus its core function: Observe, Orient, Decide, Act. The item count remains four.
 
-### Coverage finding
-
-**The current Test deck does not satisfy the topic’s own scope.** It asks only:
-
-- Stage 1 → Observe
-- Stage 2 → Orient
-- Stage 3 → Decide
-- Stage 4 → Act
-
-Nothing tests what each stage does, even though that is explicitly part of the stated boundary.
-
-### Learn requirement
-
-**Structured briefing required.** Stage-name memorisation alone does not explain the framework as a model. Learn should explain the system at topic level, including relationships, iteration/feedback, and important limitations or common oversimplifications where supported by research.
-
-### Case-study need
-
-**Yes.** The preferred teaching device is an integrated case that can be traced and analysed through the framework as a whole. Avoid four disconnected “example for Observe / example for Orient / …” snippets as the primary explanation.
-
-### Boundary discipline
-
-Explanatory material may be richer than the scored deck. The scored boundary should remain finite and explicit; if the intended test scope includes stage functions, the deck must gain finite prompts that cover those functions completely.
-
-### Recommended action
-
-- Research the framework from authoritative/primary-quality material.
-- Rewrite the deck so it actually covers the declared boundary.
-- Add structured explanation and at least one integrated case study.
-- Re-check whether the existing scope is the right finite boundary after research.
+A briefing explains Boyd's feedback-rich model, orientation inputs, decision-as-hypothesis, action-as-test, feedback/feed-forward and the limitations of the familiar simple four-arrow circle. One integrated service-incident case exercises the framework as a connected adaptive process rather than padding each stage with an isolated example.
 
 ## Primary survey
 
-### Current boundary
+#11 made the boundary decision deliberately: Test covers **the five ABCDE headings and their order only** — Airway, Breathing, Circulation, Disability, Exposure. Detailed clinical techniques, thresholds, interventions, medications, population-specific modifications, CPR algorithms and diagnosis are outside the scored claim.
 
-“The five ABCDE steps in assessment order.”
+The briefing supplies the context the acronym alone lacks: priority sequence, high-level assessment focus, early escalation, treating immediate threats within training/current protocol, and reassessment. Its integrated deterioration case deliberately omits treatment technique and diagnosis.
 
-### Coverage finding
-
-The deck expands A/B/C/D/E to Airway/Breathing/Circulation/Disability/Exposure. That technically covers the labels and order only at a very shallow level. It does not provide context for why the sequence exists or what the stages mean as a procedure.
-
-A product decision is required: is the intended scored boundary deliberately only the five labels/order, or should a finite set of additional recall material be included? The answer should come from authoritative research, not from adding detail opportunistically.
-
-### Learn requirement
-
-**Structured, concise briefing required.** The user should understand the purpose and sequence rather than merely memorise an acronym expansion.
-
-### Case-study need
-
-Likely useful if it demonstrates the sequence as one integrated process. It must remain explicitly educational/memory-oriented and must not imply that reading Argus constitutes clinical competence or training.
-
-### Provenance and safety
-
-Mandatory. This is medical/emergency material. Enrichment requires authoritative sourcing and a visible limitations statement consistent with Argus’s product boundary: memory/rehearsal support, not a credential or substitute for training.
-
-### Recommended action
-
-- Research current authoritative sources appropriate to the chosen scope.
-- Decide and document the finite scored boundary before expanding cards.
-- Add concise structured explanation.
-- Add an integrated case only if it improves understanding without turning Argus into procedural instruction beyond its memory-tool role.
+Because this is medical/emergency material, authoritative sources and visible limitations are mandatory. The shipped topic states that Argus is memory/rehearsal support, not clinical training, a credential, or a substitute for supervised practice and current local guidance.
 
 ## Cardinal and intercardinal bearings
 
-### Current boundary
+The eight direction-to-degree mappings already formed a complete finite set. #11 verified the clockwise-from-north convention against NOAA material and made the chosen north representation explicit: **0°**. The equivalent 360° direction is Learn-only clarification so the eight-value Test mapping remains unambiguous.
 
-“The eight compass points and their degree values.”
+The topic therefore remains compact: eight scored mappings plus concise context/provenance, with no case study.
 
-### Coverage finding
+## Cross-library conclusions
 
-The eight direction-to-degree mappings cover the stated boundary directly and completely.
+### Learn treatment must remain proportional
 
-### Learn requirement
+The seed validates three treatments: reference-only is available for self-explanatory topics; concise support suits mapping/reference topics needing small context/provenance notes; briefing support suits frameworks/procedures where understanding relationships matters.
 
-**Compact reference only.** A table or similarly dense reference representation is sufficient. At most, add a concise convention note if research shows it materially prevents confusion.
+### Boundary integrity is a correctness property
 
-### Case-study need
+A topic may only claim completion for material fully represented by its finite scored items. Rich Learn explanation does not repair an under-covered Test boundary and does not itself become scored material.
 
-None for the current boundary.
+### Integrated cases beat template padding
 
-### Recommended action
+Where application matters, a case should exercise the framework/procedure as a whole. Do not manufacture one disconnected toy example per term merely to fill a schema.
 
-- Keep the eight-card mapping deck.
-- Verify terminology and degree conventions.
-- Prefer a compact reference treatment over prose.
+### Safety-sensitive topics require provenance and limitations
 
-## Cross-library findings
+Primary Survey demonstrates why sources and limitations are first-class Learn structures rather than generic README disclaimers.
 
-### 1. One Learn template is not enough
+## Implementation outcome
 
-The current Learn surface treats all topics as scope + prompt/answer rows. The seed itself proves this is too uniform: NATO benefits from that compact treatment, while OODA clearly does not.
-
-### 2. Richer Learn content must remain optional
-
-Adding a structured briefing capability should not make every topic longer. Content architecture should support reference-only, concise-support and briefing-required topics.
-
-### 3. Scope and deck need an explicit integrity check
-
-OODA demonstrates that a topic can state a broader finite boundary than its deck actually tests. Future authoring/editorial review should check scope-to-deck coverage directly.
-
-### 4. Testable boundary and explanatory support are different
-
-Case studies, context, provenance and limitations can improve understanding without automatically becoming scored items. Argus should model that distinction explicitly so finishability remains honest.
-
-### 5. Safety-sensitive topics need stronger provenance rules
-
-Primary Survey shows that the richer content model needs first-class source/limitations support rather than relying on generic prose or README disclaimers.
-
-## Next actions
-
-- #9 defines and implements the optional structured Learn-content layer.
-- #10 removes Practice and makes Test the single recall interaction while protecting retention semantics.
-- #11 researches and rewrites the seed topics against this audit.
+- #9 — complete: typed optional `Topic.learn` model, v4 migration/export/import and responsive rendering.
+- #10 — complete: Practice removed as an active mode; Test is the single recall interaction with protected retention semantics.
+- #11 — complete: all four seeded topics researched/reconciled against this audit.
+- `docs/SEEDED_CONTENT_PROVENANCE.md` is the authoritative record of #11 source selection and detailed boundary decisions.
