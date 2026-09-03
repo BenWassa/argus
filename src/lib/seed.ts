@@ -7,6 +7,15 @@ const NATO = [
   'X-ray', 'Yankee', 'Zulu',
 ]
 
+const MORSE_A_TO_Z = [
+  ['A', '.-'], ['B', '-...'], ['C', '-.-.'], ['D', '-..'], ['E', '.'],
+  ['F', '..-.'], ['G', '--.'], ['H', '....'], ['I', '..'], ['J', '.---'],
+  ['K', '-.-'], ['L', '.-..'], ['M', '--'], ['N', '-.'], ['O', '---'],
+  ['P', '.--.'], ['Q', '--.-'], ['R', '.-.'], ['S', '...'], ['T', '-'],
+  ['U', '..-'], ['V', '...-'], ['W', '.--'], ['X', '-..-'], ['Y', '-.--'],
+  ['Z', '--..'],
+] as const
+
 const BEARINGS = [
   ['North', '0°'],
   ['Northeast', '45°'],
@@ -54,6 +63,32 @@ export function seedLibrary(): Library {
         { at: ago(60), correct: 21, total: 26, resolvedTo: 'learning' },
         { at: ago(34), correct: 26, total: 26, resolvedTo: 'drilled' },
       ],
+    },
+    {
+      id: 'international-morse-letters-printed',
+      title: 'International Morse — Letters (printed)',
+      scope: 'The 26 International Morse patterns for A–Z, recalled from the printed letter. One direction only: letter → canonical dit/dah pattern.',
+      track: 'learning',
+      items: MORSE_A_TO_Z.map(([prompt, answer]) => ({ prompt, answer })),
+      learn: {
+        kind: 'concise',
+        overview: 'International Morse represents letters as sequences of dits (.) and dahs (-). A dah lasts three dit units; spacing within a character is one unit, between characters three, and between words seven. This topic scores only printed letter → canonical pattern recall; it does not claim reverse recall, auditory reception, sending, or any speed criterion.',
+        sources: [
+          {
+            label: 'ITU-R M.1677-1 — International Morse code',
+            url: 'https://www.itu.int/rec/R-REC-M.1677-1-200910-I/en',
+            note: 'In-force ITU recommendation; Annex 1 defines the A–Z signals and canonical 1:3:7 timing relationships.',
+          },
+        ],
+      },
+      status: 'unstarted',
+      createdAt: ago(0),
+      drilledAt: null,
+      learningAt: null,
+      completedAt: null,
+      lastTestedAt: null,
+      spotCheckedAt: null,
+      history: [],
     },
     {
       id: 'ooda-loop',

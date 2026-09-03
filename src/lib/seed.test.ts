@@ -14,6 +14,7 @@ describe('researched seeded library', () => {
     expect(library.version).toBe(4)
     expect(library.topics.map((topic) => topic.id)).toEqual([
       'nato-phonetic',
+      'international-morse-letters-printed',
       'ooda-loop',
       'primary-survey',
       'cardinal-bearings',
@@ -37,6 +38,34 @@ describe('researched seeded library', () => {
     expect(topic.learn?.kind).toBe('concise')
     expect(topic.learn?.caseStudies).toBeUndefined()
     expect(topic.learn?.sources?.[0].url).toContain('nato.int')
+  })
+
+  it('seeds exactly the ITU A–Z printed letter → Morse baseline', () => {
+    const topic = seededTopic('international-morse-letters-printed')
+
+    expect(topic.scope).toBe(
+      'The 26 International Morse patterns for A–Z, recalled from the printed letter. One direction only: letter → canonical dit/dah pattern.',
+    )
+    expect(topic.items).toEqual([
+      { prompt: 'A', answer: '.-' }, { prompt: 'B', answer: '-...' },
+      { prompt: 'C', answer: '-.-.' }, { prompt: 'D', answer: '-..' },
+      { prompt: 'E', answer: '.' }, { prompt: 'F', answer: '..-.' },
+      { prompt: 'G', answer: '--.' }, { prompt: 'H', answer: '....' },
+      { prompt: 'I', answer: '..' }, { prompt: 'J', answer: '.---' },
+      { prompt: 'K', answer: '-.-' }, { prompt: 'L', answer: '.-..' },
+      { prompt: 'M', answer: '--' }, { prompt: 'N', answer: '-.' },
+      { prompt: 'O', answer: '---' }, { prompt: 'P', answer: '.--.' },
+      { prompt: 'Q', answer: '--.-' }, { prompt: 'R', answer: '.-.' },
+      { prompt: 'S', answer: '...' }, { prompt: 'T', answer: '-' },
+      { prompt: 'U', answer: '..-' }, { prompt: 'V', answer: '...-' },
+      { prompt: 'W', answer: '.--' }, { prompt: 'X', answer: '-..-' },
+      { prompt: 'Y', answer: '-.--' }, { prompt: 'Z', answer: '--..' },
+    ])
+    expect(topic.status).toBe('unstarted')
+    expect(topic.history).toEqual([])
+    expect(topic.learn?.kind).toBe('concise')
+    expect(topic.learn?.overview).toContain('does not claim reverse recall')
+    expect(topic.learn?.sources?.[0].url).toBe('https://www.itu.int/rec/R-REC-M.1677-1-200910-I/en')
   })
 
   it('makes the four OODA Test items cover both order and core function', () => {
