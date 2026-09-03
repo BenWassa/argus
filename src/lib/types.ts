@@ -15,9 +15,68 @@ export type Track = (typeof TRACKS)[number]
 export const STATUSES = ['unstarted', 'learning', 'drilled', 'completed', 'decayed'] as const
 export type Status = (typeof STATUSES)[number]
 
+/**
+ * Item semantics are content definition. Existing/legacy items are forward
+ * unless normalized to another explicit kind by the v5 storage boundary.
+ */
+export const ITEM_KINDS = ['forward', 'bidirectional'] as const
+export type ItemKind = (typeof ITEM_KINDS)[number]
+
+export const ITEM_DIRECTIONS = ['prompt-to-answer', 'answer-to-prompt'] as const
+export type ItemDirection = (typeof ITEM_DIRECTIONS)[number]
+
+/**
+ * `id` and `kind` are optional only on the broad in-memory Topic shape so old
+ * fixtures and v4 seed authoring remain structurally compatible. Every v5
+ * library produced by storage contains both fields for every item.
+ */
 export interface Item {
+  id?: string
+  kind?: ItemKind
   prompt: string
   answer: string
+}
+
+export interface IdentifiedItem extends Item {
+  id: string
+  kind: ItemKind
+}
+
+export const CUE_STATES = ['rich', 'reduced', 'delayed-choice', 'free', 'auditory'] as const
+export type CueState = (typeof CUE_STATES)[number]
+
+/** Learning state: evidence for one stimulus/response direction of one item. */
+export interface DirectionEvidence {
+  attempts: number
+  correct: number
+  consecutiveCorrect: number
+  lastAt: string | null
+  lastLatencyMs: number | null
+}
+
+/**
+ * Learning state: deliberately a sibling of scheduler history. Cue progression
+ * can use this evidence but cannot qualify, skip or reset a retention gap.
+ */
+export interface ItemCueEvidence {
+  cue: CueState
+  directions: Partial<Record<ItemDirection, DirectionEvidence>>
+}
+
+export type ItemEvidenceStore = Record<string, ItemCueEvidence>
+
+/**
+ * A narrow Morse Learn block. These fields are content definition: glyph,
+ * canonical notation, mnemonic asset reference and the source text from which
+ * the audio engine derives playback. The generated waveform/animation is
+ * runtime presentation and is never persisted.
+ */
+export interface MorseCharacterLearnItem {
+  glyph: string
+  pattern: string
+  mnemonicId: string
+  audioText: string
+  textLabel: string
 }
 
 /**
@@ -31,6 +90,7 @@ export type LearnBlock =
   | { type: 'steps'; items: string[] }
   | { type: 'definitions'; items: { term: string; definition: string }[] }
   | { type: 'table'; columns: string[]; rows: string[][] }
+  | { type: 'morse-character-packet'; characters: MorseCharacterLearnItem[] }
 
 export interface LearnSection {
   heading: string
@@ -95,12 +155,24 @@ export interface Topic {
   /** Most recent due completed-topic Test. Starts the spot-check clock. */
   spotCheckedAt: string | null
   history: Attempt[]
+  /** v5 acquisition evidence. Optional only for legacy/internal Topic fixtures. */
+  itemEvidence?: ItemEvidenceStore
 }
 
-export interface Library {
+/** Seed/import compatibility shape used only before the v5 storage boundary. */
+export interface LegacyLibraryV4 {
   version: 4
   topics: Topic[]
 }
+
+/** Every library returned by storage/export is normalized to this version. */
+export interface CurrentLibrary {
+  version: 5
+  topics: Topic[]
+}
+
+/** The seed remains an explicit v4 source record; storage is the v5 boundary. */
+export type Library = LegacyLibraryV4 | CurrentLibrary
 
 export type View = 'today' | 'library' | 'progress' | 'data'
 

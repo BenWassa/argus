@@ -1,19 +1,19 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { clearLibrary, loadLibrary, saveLibrary } from './storage'
-import type { Library, Topic } from './types'
+import type { CurrentLibrary, Topic } from './types'
 
 interface LibraryStore {
   topics: Topic[]
   upsertTopic: (topic: Topic) => void
   removeTopic: (id: string) => void
-  replaceLibrary: (library: Library) => void
+  replaceLibrary: (library: CurrentLibrary) => void
   resetLibrary: () => void
 }
 
 const Ctx = createContext<LibraryStore | null>(null)
 
 export function LibraryProvider({ children }: { children: ReactNode }) {
-  const [library, setLibrary] = useState<Library>(() => loadLibrary())
+  const [library, setLibrary] = useState<CurrentLibrary>(() => loadLibrary())
 
   useEffect(() => {
     saveLibrary(library)
@@ -34,11 +34,11 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
     setLibrary((prev) => ({ ...prev, topics: prev.topics.filter((t) => t.id !== id) }))
   }, [])
 
-  const replaceLibrary = useCallback((next: Library) => setLibrary(next), [])
+  const replaceLibrary = useCallback((next: CurrentLibrary) => setLibrary(next), [])
 
   const resetLibrary = useCallback(() => {
     clearLibrary()
-    setLibrary({ version: 4, topics: [] })
+    setLibrary({ version: 5, topics: [] })
   }, [])
 
   const value = useMemo(

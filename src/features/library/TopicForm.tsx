@@ -1,5 +1,10 @@
 import { useEffect, useId, useMemo, useState } from 'react'
 import { Dialog } from '../../components/ui/Dialog'
+import {
+  pruneItemEvidence,
+  reconcileAuthoredItems,
+  type ItemDraft,
+} from '../../lib/items'
 import { TRACKS, type Item, type LearnContent, type Topic, type Track } from '../../lib/types'
 
 /** Starting values for a new topic. Used to hand the user a worked example
@@ -30,7 +35,7 @@ const TRACK_LABELS: Record<Track, string> = {
 }
 
 /** One item per line, prompt and answer split on the first pipe. */
-function parseItems(raw: string): Item[] {
+function parseItems(raw: string): ItemDraft[] {
   return raw
     .split('\n')
     .map((line) => line.trim())
@@ -105,12 +110,13 @@ export function TopicForm({
     }
 
     const now = new Date().toISOString()
+    const reconciledItems = reconcileAuthoredItems(topic?.items ?? [], items)
     onSave({
       id: topic?.id ?? `topic-${Date.now()}`,
       title: title.trim(),
       scope: scope.trim(),
       track,
-      items,
+      items: reconciledItems,
       // The simple form edits the finite scored boundary only. Rich Learn
       // support is authored/imported as structured data and must survive an
       // ordinary title/scope/item edit untouched.
@@ -123,6 +129,9 @@ export function TopicForm({
       lastTestedAt: topic?.lastTestedAt ?? null,
       spotCheckedAt: topic?.spotCheckedAt ?? null,
       history: topic?.history ?? [],
+      // Evidence follows stable ids through reorder/text edits and is removed
+      // only when its item is actually deleted.
+      itemEvidence: pruneItemEvidence(topic?.itemEvidence, reconciledItems),
     })
   }
 
