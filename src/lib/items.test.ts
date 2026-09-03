@@ -93,6 +93,19 @@ describe('typed directional coverage', () => {
     },
   }
 
+  it('represents A–Z as 26 logical bidirectional scoring units, not 52 duplicated cards', () => {
+    const alphabet: IdentifiedItem[] = Array.from({ length: 26 }, (_, index) => ({
+      id: `letter-${String.fromCharCode(65 + index).toLowerCase()}`,
+      kind: 'bidirectional',
+      prompt: String.fromCharCode(65 + index),
+      answer: `pattern-${index}`,
+    }))
+
+    expect(alphabet).toHaveLength(26)
+    expect(alphabet.every((item) => requiredDirections(item).length === 2)).toBe(true)
+    expect(alphabet.flatMap(requiredDirections)).toHaveLength(52)
+  })
+
   it('requires one direction for a forward item', () => {
     expect(requiredDirections(existing[0])).toEqual(['prompt-to-answer'])
     expect(hasCompleteDirectionalCoverage(existing[0], forward)).toBe(true)
