@@ -1,6 +1,6 @@
 import { useEffect, useId, useMemo, useState } from 'react'
 import { Dialog } from '../../components/ui/Dialog'
-import { TRACKS, type Item, type Topic, type Track } from '../../lib/types'
+import { TRACKS, type Item, type LearnContent, type Topic, type Track } from '../../lib/types'
 
 /** Starting values for a new topic. Used to hand the user a worked example
  *  rather than describing what a good scope sentence looks like. */
@@ -9,6 +9,8 @@ export interface Draft {
   scope: string
   track: Track
   items: string
+  /** AI/import-assisted authoring may provide structured Learn support. */
+  learn?: LearnContent
 }
 
 interface TopicFormProps {
@@ -109,6 +111,10 @@ export function TopicForm({
       scope: scope.trim(),
       track,
       items,
+      // The simple form edits the finite scored boundary only. Rich Learn
+      // support is authored/imported as structured data and must survive an
+      // ordinary title/scope/item edit untouched.
+      learn: topic?.learn ?? draft?.learn,
       status: topic?.status ?? 'unstarted',
       createdAt: topic?.createdAt ?? now,
       drilledAt: topic?.drilledAt ?? null,
