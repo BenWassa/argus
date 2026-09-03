@@ -103,5 +103,5 @@ export function seedLibrary(): Library {
     },
   ]
 
-  return { version: 3, topics }
+  return { version: 4, topics }
 }
