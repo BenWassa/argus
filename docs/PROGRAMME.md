@@ -1,98 +1,87 @@
 # Argus programme — Learn/Test simplification and content quality
 
 Parent issue: #7  
-Planning baseline: `7498c55494d5b75fdb99c3316b461a2a5e6eef01`
+Programme start baseline: `7498c55494d5b75fdb99c3316b461a2a5e6eef01`  
+Final-reconciliation baseline: `c1cc753eb89c9aa5379d1a885892703cf20e65ba`
 
-## Control model
+## Implemented product model
 
-This programme is coordinated from the planning/status chat. Product implementation happens only through focused GitHub issues, branches and pull requests. Planning documentation and repository housekeeping may be maintained from the control chat; application code should not be changed opportunistically outside the selected issue.
+Argus has exactly two user-facing learning interactions:
 
-## Product direction
+- **Learn** — ungraded reading/exposure. Reading may move an unstarted topic into learning, but it records no score and cannot satisfy retention evidence.
+- **Test** — the single scored flashcard/recall interaction. Every finite item is tested once in a session and self-scored.
 
-Argus should have two user-facing learning interactions:
+Practice was removed as an active product/runtime mode under #10. Historical v2 practice-named storage fields remain migration inputs only.
 
-- **Learn** — ungraded reading/exposure.
-- **Test** — the single flashcard/recall interaction.
+The scheduler determines what a Test result is allowed to prove. An early Test may create useful score/history evidence, but it cannot counterfeit a delayed-retention milestone, bypass a required gap, or silently postpone a required spot check.
 
-Practice is to be removed as a separate mode. The scheduler, not a second recall mode, determines what a Test result is allowed to prove.
+## Content model
 
-An early Test may produce useful recall evidence, but it must not counterfeit a delayed-retention milestone, bypass a required gap, or postpone a later required spot check merely because the user chose to test early.
+A topic has two structurally separate layers.
 
-## Content direction
+### Finite Test boundary
 
-A topic has two layers with different jobs.
+`scope` states the completion claim and `items` contain the complete scored material. Together they define the finite boundary that Test and completion semantics are allowed to use.
 
-### Testable boundary
+### Optional Learn support
 
-The finite material the user must be able to recall and that Argus can score completely. Scope and Test items define this boundary.
+`topic.learn` is explanatory support only. It may make the finite boundary understandable, add relationships/context, provenance, limitations, or an integrated case study, but it never silently expands the Test/completion claim.
 
-### Explanatory support
+Library format v4 supports three editorial treatments:
 
-Optional Learn-only material that makes the testable boundary understandable without silently expanding the completion claim.
+1. **Reference-only** — no structured Learn support.
+2. **Concise support** — limited context, provenance, or limitations.
+3. **Briefing required** — structured sections, definitions, lists/tables and integrated cases where useful.
 
-Depending on the topic, explanatory support may include:
-
-- a concise overview;
-- structured explanatory sections;
-- definitions and relationships;
-- ordered/comparison lists;
-- compact reference tables;
-- limitations and common confusions;
-- provenance/source notes;
-- integrated case studies.
-
-The richer layer is optional. Mapping/reference topics should remain compact when added prose would not improve understanding.
+The model is simple typed data rather than arbitrary HTML or a bespoke CMS. v2/v3 libraries migrate safely to v4, and export/import round-trips structured Learn data. Existing finite-boundary editing preserves Learn content it does not edit.
 
 ## Editorial standard
 
-Rich Learn content should be dense and structured rather than essay-like.
+- Keep every scored boundary explicit and finishable.
+- Use short, information-dense Learn sections rather than essay padding.
+- Prefer tables/lists where they communicate more efficiently.
+- Use case studies to exercise a framework/procedure as a whole, not one disconnected toy example per stage.
+- Keep factual explanation, cases, sources and limitations distinct.
+- Keep mapping/reference topics compact when richer prose adds little value.
+- Safety-sensitive content requires authoritative provenance and visible limitations; Argus is a memory/rehearsal tool, not a credential.
 
-- Use short meaningful sections.
-- Prefer tables and lists when they carry information more efficiently than paragraphs.
-- Keep terminology concrete and precise.
-- Use case studies to exercise a framework or procedure as a whole.
-- Do not create one isolated toy example per stage/term merely to fill a template.
-- Keep factual explanation, case analysis, sources and limitations distinct.
-- Do not repeat facts already obvious from a reference table.
+## Shipped library after #11
 
-## Programme issues
+| Topic | Finite Test boundary | Learn treatment |
+| --- | --- | --- |
+| NATO phonetic alphabet | 26 letters A–Z → official NATO code word | Concise support |
+| OODA loop | Four ordered stages + one core function for each | Briefing + integrated case |
+| Primary survey | Five ABCDE headings in order only | Briefing + bounded integrated case + explicit safety limits |
+| Cardinal/intercardinal bearings | Eight compass points → clockwise degree value from north, using north = 0° | Concise support |
 
-- #8 — audit the shipped library and define content archetypes.
-- #9 — add optional structured Learn briefings and integrated case studies.
-- #10 — collapse Practice into Test without weakening retention semantics.
-- #11 — research and rewrite seeded topics against the audit.
-- #12 — repository housekeeping and documentation reconciliation.
+Research decisions and authoritative sources are recorded in `docs/SEEDED_CONTENT_PROVENANCE.md`.
 
-## Recommended execution order
+## Programme workstreams
 
-1. **#8 Audit** — lock the content rubric and classify the current library.
-2. **#10 Learn/Test simplification** — can proceed independently once its early-Test policy is explicit and tested.
-3. **#9 Structured Learn model** — use #8 findings to avoid overbuilding a universal article system.
-4. **#11 Topic research/rewrite** — only after the richer data/rendering model exists.
-5. **#12 Reconciliation/housekeeping** — continuous branch hygiene, with final durable-doc cleanup after #9 and #10.
-
-#8 and the product-policy part of #10 can run in parallel. #11 should not start before #9.
+- #8 — **complete**: audited the shipped library and established content archetypes/boundary discipline.
+- #10 — **complete** via PR #14: removed Practice and implemented Learn + Test with protected early-Test scheduler semantics.
+- #9 — **complete** via PR #18: added optional typed structured Learn content, v4 migration/portability and rendering.
+- #11 — **complete** via PR #19: researched and rewrote all four shipped seed topics against the v4 model.
+- #15 — **complete** via PR #17: fixed Test-card hover isolation and length-aware typography with regression coverage.
+- #12 — final reconciliation/housekeeping workstream. Phase A resolved the unique Claude splash commit; final durable-doc reconciliation follows #11.
 
 ## Non-negotiable invariants
 
 - Every topic stays finishable.
 - The scored boundary is explicit and finite.
-- Completion still requires appropriate delayed evidence.
-- Completion remains permanent even when later recall decays.
-- Learn is never shaped like a hidden-answer card.
-- Test remains fast on mobile: reveal, self-score, next.
-- Rich content is not mandatory for every topic.
+- Completion requires appropriate delayed evidence and remains permanent once earned.
+- Learn never masquerades as a hidden-answer Test card.
+- Test stays fast on mobile: reveal, self-score, next.
+- Rich Learn content is optional.
 - Export/import remains first-class and migration-safe.
-- Safety-sensitive content retains provenance and limitations; Argus is a memory tool, not a credential.
+- Safety-sensitive content retains provenance and limitations.
 
 ## Repository hygiene
 
-At programme start, `main` is green and there are no open PRs. Historical merged/superseded branches should be deleted under #12. The branch `claude/splash-screen-redesign-zr425a` has one unique unmerged commit and must be reviewed before deletion.
+Housekeeping Phase A reviewed `claude/splash-screen-redesign-zr425a` commit `98726197ae30da403ac43c2b9cd99cbe17d0fc76`. Its splash/navigation/dark-chrome/legacy-cleanup work was superseded; its still-valid Test-card concern was extracted to and completed under #15.
 
-### Housekeeping Phase A — 2026-09-02
+The branch refs already recorded on #12 are deletion-ready and must not be re-audited or revived. Branch deletion remains mechanical hygiene where the authenticated execution environment lacks a delete-ref operation; that limitation does not justify product changes.
 
-The unique splash commit `98726197ae30da403ac43c2b9cd99cbe17d0fc76` was reviewed against post-#10 `main`. Its splash redesign, navigation treatment, dark-chrome suggestion, and legacy splash cleanup are superseded by later merged design/splash work and should not be revived.
+## Closeout
 
-One still-valid Test-card concern was extracted to #15: isolate the flashcard from global button hover styling and fit long prompts at an appropriate reading scale. That work belongs to its own implementation issue, not housekeeping.
-
-Phase A deletes the historical merged/superseded branches and the reviewed Claude branch. Final documentation reconciliation remains deferred until #9 lands, as required by #12.
+After #12's documentation PR is green and merged, verify merged-main validation and Pages deployment, record any residual mechanical branch-deletion debt on #12, then close #12. #7 can close once that ledger is current and `main` remains green/deployable.
