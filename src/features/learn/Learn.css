@@ -43,6 +43,221 @@
   color: var(--subtle);
 }
 
+/* Optional explanatory support stays editorial rather than card-shaped. The
+   hierarchy is carried by rules, type and spacing so Learn never resembles a
+   hidden-answer Test surface. */
+.learn-support {
+  max-width: 68ch;
+  margin: var(--s-xl) 0 var(--s-2xl);
+}
+
+.learn-support-kind,
+.learn-case-label {
+  margin: 0 0 var(--s-sm);
+  font-size: var(--t-label);
+  font-weight: var(--w-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.learn-overview {
+  max-width: 58ch;
+  font-family: var(--font-display);
+  font-size: 1.18rem;
+  line-height: 1.55;
+  color: var(--ink);
+}
+
+.learn-section,
+.learn-case {
+  margin-top: var(--s-xl);
+}
+
+.learn-section > h3,
+.learn-case > h3 {
+  font-family: var(--font-display);
+  font-size: var(--t-section);
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+.learn-blocks {
+  display: grid;
+  gap: var(--s-md);
+  margin-top: var(--s-md);
+}
+
+.learn-paragraph,
+.learn-list,
+.learn-definitions,
+.learn-case-scenario,
+.learn-case-takeaway {
+  max-width: 68ch;
+  line-height: 1.65;
+}
+
+.learn-list {
+  padding-left: 1.35em;
+}
+
+.learn-list li + li {
+  margin-top: var(--s-xs);
+}
+
+.learn-steps li::marker {
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.learn-definitions {
+  margin: 0;
+}
+
+.learn-definitions > div {
+  display: grid;
+  gap: 3px;
+  padding: var(--s-sm) 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.learn-definitions dt {
+  font-weight: var(--w-label);
+  color: var(--ink);
+}
+
+.learn-definitions dd {
+  margin: 0;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+/* Tables are allowed to become locally scrollable at extreme text scaling,
+   but may never make the page itself overflow horizontally. */
+.learn-table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+  border-top: 1px solid var(--line-strong);
+  border-bottom: 1px solid var(--line-strong);
+  scrollbar-width: thin;
+}
+
+.learn-table-wrap:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent) 38%, transparent);
+  outline-offset: 3px;
+}
+
+.learn-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.94rem;
+  line-height: 1.45;
+}
+
+.learn-table th,
+.learn-table td {
+  padding: var(--s-sm) var(--s-md) var(--s-sm) 0;
+  text-align: left;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+
+.learn-table th {
+  font-size: var(--t-label);
+  font-weight: var(--w-label);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--subtle);
+}
+
+.learn-table tbody tr + tr {
+  border-top: 1px solid var(--line);
+}
+
+/* A case study is one integrated reading passage, not a collection of mini
+   cards. Analysis headings sit one level below the case heading. */
+.learn-case {
+  padding-top: var(--s-lg);
+  border-top: 1px solid var(--line-strong);
+}
+
+.learn-case-scenario {
+  margin-top: var(--s-md);
+  color: var(--muted);
+}
+
+.learn-case-analysis {
+  margin-top: var(--s-lg);
+}
+
+.learn-case-analysis h4 {
+  font-size: 1rem;
+  font-weight: var(--w-label);
+  line-height: 1.4;
+  color: var(--ink);
+}
+
+.learn-case-analysis .learn-blocks {
+  margin-top: var(--s-sm);
+}
+
+.learn-case-takeaway {
+  margin-top: var(--s-lg);
+  padding-left: var(--s-md);
+  border-left: 2px solid var(--accent);
+}
+
+/* Sources and limitations remain visible and readable, but subordinate to the
+   explanatory body. This is especially important for hazardous material. */
+.learn-notes {
+  display: grid;
+  gap: var(--s-lg);
+  margin-top: var(--s-xl);
+  padding-top: var(--s-lg);
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+.learn-notes h3 {
+  margin-bottom: var(--s-sm);
+  font-size: var(--t-label);
+  font-weight: var(--w-label);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--subtle);
+}
+
+.learn-notes ul,
+.learn-notes ol {
+  padding-left: 1.35em;
+}
+
+.learn-notes li + li {
+  margin-top: var(--s-xs);
+}
+
+.learn-notes a {
+  color: var(--ink);
+  text-underline-offset: 0.18em;
+}
+
+.learn-source-note {
+  color: var(--subtle);
+}
+
+.sheet-reference-title {
+  margin-top: var(--s-2xl);
+  padding-top: var(--s-lg);
+  border-top: 2px solid var(--line-strong);
+  font-size: var(--t-label);
+  font-weight: var(--w-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--subtle);
+}
+
 .sheet-items {
   margin-top: var(--s-sm);
 }
@@ -110,5 +325,10 @@
 
   .sheet-prompt {
     padding-top: 2px;
+  }
+
+  .learn-definitions > div {
+    grid-template-columns: minmax(8rem, 0.34fr) minmax(0, 1fr);
+    gap: var(--s-lg);
   }
 }
