@@ -14,18 +14,33 @@ The job to be done, every session: see what's due, do the one thing the schedule
 
 Two ways to engage a topic:
 
-- **Learn** — the set laid out in full as a reading sheet, prompts and answers both visible, scannable in any order. This is what an `unstarted` topic gets, because testing someone on material they have never seen is not a test. Reading moves the topic to `learning`; nothing is scored.
-- **Test** — flashcards, every item once, self-scored. Every Test creates history, while the scheduler decides whether that result is timely enough to advance the ladder. An early Test cannot satisfy or postpone required delayed evidence.
+- **Learn** — ungraded reading/exposure. Every topic exposes its complete finite prompt/answer reference with nothing hidden. Topics may optionally place structured explanatory support above that reference: concise context for topics that need a little help, or a fuller briefing with sections, definitions, lists, tables, integrated case studies, sources and limitations. Reference-only topics remain as compact as before. Reading moves an `unstarted` topic to `learning`; nothing is scored.
+- **Test** — flashcards, every scored item once, self-scored. Every Test creates history, while the scheduler decides whether that result is timely enough to advance the ladder. An early Test cannot satisfy or postpone required delayed evidence.
 
-The split exists because retention and exposure are different things, and the interface should never let one be mistaken for the other. A surface shaped like a flashcard must conceal its answer; a surface meant for scanning must not pretend to be a card.
+The split exists because retention and exposure are different things, and the interface should never let one be mistaken for the other. A surface shaped like a flashcard must conceal its answer; a surface meant for reading and scanning must not pretend to be a card.
+
+## Content boundary
+
+A topic has two structurally separate content layers with different claims:
+
+- **Scored boundary:** `scope` states the finite claim and `items` are the complete material Test is allowed to score. Scheduler/completion semantics depend only on these finite Test items.
+- **Learn support:** optional structured explanatory material stored in `topic.learn`. It may make the scored boundary understandable, show relationships, add provenance, state limitations, or analyse an integrated case. It does not become Test material merely because it appears in Learn.
+
+There are three intended Learn treatments:
+
+1. **Reference-only** — no `topic.learn`; use when the finite mapping/reference is already self-explanatory.
+2. **Concise support** — `topic.learn.kind = "concise"`; a small amount of context, provenance or a limitation note.
+3. **Briefing required** — `topic.learn.kind = "briefing"`; structured explanation and, where useful, a whole-framework or whole-procedure case study.
+
+The content model is typed data, not arbitrary HTML and not a bespoke CMS. Rich content can be prepared through code/import/AI-assisted authoring; the ordinary topic form continues to own the finite title/scope/items fields and must preserve any structured Learn support it does not edit.
 
 ## Product Purpose
 
-Argus is a personal skill library built entirely from topics that can be genuinely finished: a fixed alphabet, a named framework with a known number of parts, a defined protocol. Every topic states its own boundary (`scope_definition`) at authoring time; topics without an edge are rejected, not managed later. Completion requires recall after a gap, not exposure, and remains a durable, permanent record — decay routes a topic back to drilling without erasing that it was once completed.
+Argus is a personal skill library built entirely from topics that can be genuinely finished: a fixed alphabet, a named framework with a known number of parts, a defined protocol. Every topic states its own boundary (`scope`) at authoring time; topics without an edge are rejected, not managed later. Completion requires recall after a gap, not exposure, and remains a durable, permanent record — decay routes a topic back to drilling without erasing that it was once completed.
 
 Success, twelve months in: 40–60 completed topics that the owner can still recall cold, weeks after last opening the app.
 
-**Safety boundary:** Argus supports memory and rehearsal only. It does not certify physical, medical, emergency, or other hazardous competencies. Survival and tradecraft topics must retain source attribution and state their own limitations plainly — the app is a memory tool, not a credential.
+**Safety boundary:** Argus supports memory and rehearsal only. It does not certify physical, medical, emergency, or other hazardous competencies. Safety-sensitive Learn support must carry authoritative source attribution and visible limitations appropriate to its subject — the app is a memory tool, not a credential or substitute for training.
 
 ## Brand Personality
 
@@ -48,9 +63,9 @@ The tradecraft and survival tracks pull hard toward military, prepper, or tactic
 1. **Finishability is the entry gate.** Every topic must state a hard boundary before it can exist in the library; the UI enforces this at authoring time rather than relying on discipline later.
 2. **Task-first over showcase-first.** The interface opens to "what's due" and "start Test," not to a summary or a pitch. Marketing-page instincts (heroes, slogans, eyebrows) are actively rejected on functional screens.
 3. **Retention over exposure, decay as routing not punishment.** Completion means recall survives a gap. Surfacing decay is diagnostic information, framed the same way as any other status, never as a failure state.
-4. **Portable and owner-owned.** Full JSON export/import is a first-class feature, not a settings-page afterthought — the interface should never make data feel trapped.
+4. **Portable and owner-owned.** Full JSON export/import is a first-class feature, not a settings-page afterthought — including optional structured Learn support. The interface should never make data feel trapped.
 5. **Restraint reads as competence.** One accent color, minimal chrome, and native typography carry the "capable and deliberate" tone. Restraint is not the same as flatness: the interface earns its calm through material, real typographic hierarchy, and one lit surface per view, not by removing contrast until everything sits at the same pitch.
-6. **The form must not lie about the content.** A card shape promises a concealed answer; a list promises scannability. Matching the surface to the actual task is a correctness requirement, not a style choice.
+6. **The form must not lie about the content.** A card shape promises a concealed answer; a list promises scannability. Matching the surface to the actual task is a correctness requirement, not a style choice. Learn support therefore uses editorial structure, never concealed-answer styling.
 
 ## Accessibility & Inclusion
 
@@ -62,3 +77,4 @@ Target WCAG 2.1 AA. Established and non-negotiable baseline (already implemented
 - Modal/sheet focus management: opening moves focus inside, closing returns focus to the invoking control; Escape and backdrop dismissal both available.
 - `aria-live="polite"` regions for dynamic status (e.g. due-count updates) so screen reader users get session state without hunting for it.
 - Full `prefers-reduced-motion` support — no animation is load-bearing for comprehension.
+- Learn briefings use native heading/list/definition/table semantics, keep sources and limitations visible, and must remain readable at 200% text scaling without page-level horizontal overflow.

@@ -20,6 +20,50 @@ export interface Item {
   answer: string
 }
 
+/**
+ * Learn support is deliberately plain structured data. The scored boundary
+ * remains `scope` + `items`; none of these blocks are Test material unless an
+ * author explicitly adds equivalent finite recall items to the deck.
+ */
+export type LearnBlock =
+  | { type: 'paragraph'; text: string }
+  | { type: 'bullets'; items: string[] }
+  | { type: 'steps'; items: string[] }
+  | { type: 'definitions'; items: { term: string; definition: string }[] }
+  | { type: 'table'; columns: string[]; rows: string[][] }
+
+export interface LearnSection {
+  heading: string
+  blocks: LearnBlock[]
+}
+
+export interface LearnCaseStudy {
+  title: string
+  scenario: string
+  /** Analyse the case as a whole; do not force one toy example per term. */
+  analysis: LearnSection[]
+  takeaway?: string
+}
+
+export interface LearnSource {
+  label: string
+  url?: string
+  note?: string
+}
+
+export const LEARN_KINDS = ['concise', 'briefing'] as const
+export type LearnKind = (typeof LEARN_KINDS)[number]
+
+export interface LearnContent {
+  /** Undefined `Topic.learn` is the third archetype: reference-only. */
+  kind: LearnKind
+  overview?: string
+  sections?: LearnSection[]
+  caseStudies?: LearnCaseStudy[]
+  limitations?: string[]
+  sources?: LearnSource[]
+}
+
 export interface Attempt {
   at: string
   correct: number
@@ -34,7 +78,10 @@ export interface Topic {
   /** The hard boundary. A topic cannot exist without one. */
   scope: string
   track: Track
+  /** Finite scored recall material. Learn support never changes this set. */
   items: Item[]
+  /** Optional explanatory support shown only in Learn. */
+  learn?: LearnContent
   status: Status
   createdAt: string
   /** When the topic first reached `drilled`. Starts the delayed-recall clock. */
@@ -51,7 +98,7 @@ export interface Topic {
 }
 
 export interface Library {
-  version: 3
+  version: 4
   topics: Topic[]
 }
 
