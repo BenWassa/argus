@@ -3,7 +3,7 @@ import { parseLibrary } from './storage'
 
 const timestamp = '2026-08-01T00:00:00.000Z'
 
-function legacyTopic(overrides: Record<string, unknown> = {}) {
+function legacyTopic(overrides: Record<string, unknown> = {}): Record<string, unknown> {
   return {
     id: 'topic',
     title: 'Topic',
@@ -22,7 +22,7 @@ function legacyTopic(overrides: Record<string, unknown> = {}) {
   }
 }
 
-function currentTopic(overrides: Record<string, unknown> = {}) {
+function currentTopic(overrides: Record<string, unknown> = {}): Record<string, unknown> {
   return legacyTopic({
     items: [{ id: 'item-1', kind: 'forward', prompt: 'p', answer: 'a' }],
     itemEvidence: {},
