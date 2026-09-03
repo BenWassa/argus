@@ -9,6 +9,11 @@ function assert(condition, message) {
   if (!condition) throw new Error(message)
 }
 
+function seconds(cssDuration) {
+  if (cssDuration.endsWith('ms')) return Number.parseFloat(cssDuration) / 1000
+  return Number.parseFloat(cssDuration)
+}
+
 function baseTopic(overrides = {}) {
   return {
     id: 'issue-9-topic',
@@ -131,6 +136,21 @@ async function capture(page, name) {
   await page.screenshot({ path: `${outDir}/${name}.png`, fullPage: true })
 }
 
+async function verifyLegacyStorageMigration(browser) {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 } })
+  const page = await context.newPage()
+  await page.addInitScript(({ legacyTopic }) => {
+    sessionStorage.setItem('argus-splash-seen', 'true')
+    localStorage.setItem('argus.library.v3', JSON.stringify({ version: 3, topics: [legacyTopic] }))
+  }, { legacyTopic: baseTopic({ title: 'Legacy v3 reference-only topic' }) })
+  await page.goto(baseUrl)
+  await page.locator('button.index-row').waitFor()
+  const migrated = await page.evaluate(() => JSON.parse(localStorage.getItem('argus.library.v4') ?? 'null'))
+  assert(migrated?.version === 4, 'legacy storage: v3 library was not promoted to v4')
+  assert(migrated.topics?.[0]?.learn === undefined, 'legacy storage: migration invented Learn support')
+  await context.close()
+}
+
 async function verifyReferenceOnly(browser) {
   const { context, page } = await openLearn(browser, baseTopic({ title: 'Reference-only acceptance' }), { width: 390, height: 844 })
   assert(await page.locator('.learn-support').count() === 0, 'reference-only: rich support rendered unexpectedly')
@@ -180,7 +200,9 @@ async function verifyBriefingViewport(browser, viewport, name, options = {}) {
       return { animationName: style.animationName, transitionDuration: style.transitionDuration }
     })
     assert(motion.animationName === 'none', `${name}: Learn support animation remains under reduced motion: ${motion.animationName}`)
-    assert(motion.transitionDuration === '0s', `${name}: Learn support transition remains under reduced motion: ${motion.transitionDuration}`)
+    // The global reduced-motion floor is 0.01ms. Chromium serializes that as
+    // 1e-05s, so accept only durations at or below the intended near-zero floor.
+    assert(seconds(motion.transitionDuration) <= 0.00001, `${name}: Learn support transition remains under reduced motion: ${motion.transitionDuration}`)
   }
 
   await capture(page, name)
@@ -189,6 +211,9 @@ async function verifyBriefingViewport(browser, viewport, name, options = {}) {
 
 async function verifyFiniteTestBoundary(browser) {
   const { context, page } = await openLearn(browser, briefing, { width: 390, height: 844 })
+  const persisted = await page.evaluate(() => JSON.parse(localStorage.getItem('argus.library.v4') ?? 'null'))
+  assert(persisted?.topics?.[0]?.learn?.caseStudies?.length === 1, 'Learn exposure transition dropped structured support')
+
   await page.getByRole('button', { name: 'Test me' }).click()
   await page.locator('button.flip-card').waitFor()
 
@@ -210,6 +235,7 @@ async function verifyFiniteTestBoundary(browser) {
 await mkdir(outDir, { recursive: true })
 const browser = await chromium.launch({ headless: true })
 try {
+  await verifyLegacyStorageMigration(browser)
   await verifyReferenceOnly(browser)
   await verifyConcise(browser)
   await verifyBriefingViewport(browser, { width: 390, height: 844 }, 'briefing-390')
