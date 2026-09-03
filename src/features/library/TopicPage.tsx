@@ -20,7 +20,7 @@ function stamp(iso: string): string {
 }
 
 /**
- * A topic is a place, not a dialog. It has a scope statement to read, three
+ * A topic is a place, not a dialog. It has a scope statement to read, two
  * modes to choose between, a history worth seeing, and two administrative
  * actions that must not sit at the same weight as the modes. A sheet flattened
  * all of that to one altitude and buried the modes under the item list.
@@ -84,7 +84,9 @@ export function TopicPage({ topic, onBack, onStart, onEdit, onDelete }: TopicPag
           </button>
           <button className="mode-btn" type="button" onClick={() => onStart('learn', [topic.id])}>
             <span className="mode-name">Learn</span>
-            <span className="mode-note">Read the set laid out in full. Nothing recorded.</span>
+            <span className="mode-note">
+              {topic.learn ? 'Read the briefing and finite reference. Nothing scored.' : 'Read the finite reference in full. Nothing scored.'}
+            </span>
           </button>
         </div>
       ) : (
