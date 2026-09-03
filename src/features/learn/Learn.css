@@ -181,6 +181,7 @@
 .learn-table th:last-child,
 .learn-table td:last-child {
   width: 20%;
+  padding-right: 0;
 }
 
 .learn-table th {
