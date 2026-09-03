@@ -75,7 +75,8 @@ export function Learn({ topicIds, onExit, onTest }: LearnProps) {
             </h2>
             <p className="sheet-scope">{topic.scope}</p>
             <p className="sheet-count tabular">
-              {topic.items.length} {topic.items.length === 1 ? 'item' : 'items'} in the scored boundary
+              {topic.items.length} {topic.items.length === 1 ? 'item' : 'items'}
+              {topic.learn ? ' in the scored boundary' : ''}
             </p>
           </header>
 
