@@ -169,7 +169,7 @@ A restrained strategy: tinted near-black neutrals carry almost the entire surfac
 ### Named Rules
 **The Two-Voice Rule.** Serif means content; sans means chrome. A button never uses the serif, and a topic title never uses the sans on a reading surface. Mixing them destroys the only signal that tells the eye which is which.
 
-**The No-Eyebrow Rule.** Headings do not get an eyebrow label above them. Eyebrow-weight type is reserved for genuine metadata: track labels, item counts, session kickers.
+**The No-Eyebrow Rule.** Headings do not get an eyebrow label above them. Eyebrow-weight type is reserved for genuine metadata: track labels, item counts, session kickers. Learn's `Briefing`, `Concise support`, and `Case study` labels are content-type metadata, not decorative pre-headings.
 
 **Tabular figures everywhere.** Any number that updates in place (counts, positions, scores, dates) carries `font-variant-numeric: tabular-nums`, so digits never reflow the layout around them.
 
@@ -188,7 +188,7 @@ Depth is then built from three things, in this order: **tonal layering**, an **e
 ### Named Rules
 **One Lit Surface Rule.** At most one surface per view is lit. In a session it is the card. On Today it is the required action itself, so a day with nothing due carries no brass and no shadow anywhere, because there is no work. Everything else sits flush with an edge highlight at most.
 
-The rule says *at most*, not *exactly*. A view with nothing to light is allowed to stay dark.
+The rule says *at most*, not *exactly*. A view with nothing to light is allowed to stay dark. Learn briefings are editorial flow, not raised surfaces, so they do not create a second lit object.
 
 ## 5. Modes
 
@@ -196,11 +196,15 @@ Two ways to engage a topic. Learn exposes the material; Test is the only recall 
 
 | Mode | Surface | Records |
 |---|---|---|
-| **Learn** | A reading sheet: the full set laid out as a numbered index, prompts and answers both visible, scannable in any order | Moves `unstarted` → `learning`. No score. |
-| **Test** | Flashcards with a 3D flip, every item once, self-scored | Records the attempt; moves the ladder only when scheduled evidence conditions are met |
+| **Learn** | A reading sheet. Every topic shows its finite prompt/answer reference in full; optional concise or briefing support may precede it. Nothing is concealed. | Moves `unstarted` → `learning`. No score. |
+| **Test** | Flashcards with a 3D flip, every scored item once, self-scored | Records the attempt; moves the ladder only when scheduled evidence conditions are met |
+
+Learn has three valid visual outcomes. A **reference-only** topic keeps the compact title/scope/count + numbered set with no additional scaffolding. **Concise support** adds only the small amount of explanation/provenance/limitation the topic needs. A **briefing** may add short sections, lists, definitions, compact tables and integrated case studies before a visibly separate `Recall reference` section. The extra structure is never mandatory simply because the renderer supports it.
 
 ### Named Rules
 **Flashcards Must Conceal.** A card shape promises a hidden answer. If both sides are visible at once it is not a card, it is a list, and it should be set as one. Learn is therefore never card-shaped, and Test never shows the answer before the flip.
+
+**Support Does Not Score.** The Learn briefing is explanatory. The `Recall reference` is the visible rendering of the finite Test deck. Their separation must be legible in the page hierarchy so richer explanation cannot imply that every sentence is a completion requirement.
 
 **Consequence Is Stated, Not Implied.** Voluntary early Tests state that the score is recorded while required evidence clocks do not move early.
 
@@ -217,6 +221,17 @@ All state transitions are 150–220ms on properties only, never layout, and coll
 ### Flip card
 A `preserve-3d` inner element rotated 180° on the Y axis inside a stage that owns the perspective. The front face is neutral and lit from above; the back face is the only card surface bordered and washed in brass, because the answer is what you came for. Scoring controls fade in after the flip is most of the way through, so they never invite a click at a card the user has not read yet.
 
+### Structured Learn support
+The richer Learn layer is a compact reference briefing, not an article template and not a stack of cards.
+
+- Maximum prose measure stays near 68ch; overview copy may use the serif at a slightly larger reading size, while longer explanatory body copy uses the normal body voice.
+- Structure is native and visible: headings, paragraphs, unordered/ordered lists, definition lists and compact tables.
+- Whole-framework/procedure case studies are continuous sections separated with rules and spacing. They are not one card per stage or one panel per term.
+- The finite recall set follows rich support under a strong hairline and `Recall reference` metadata label.
+- Sources and limitations remain in normal document flow, set smaller/muted but not collapsed or hidden.
+- Tables wrap content aggressively and may scroll inside their own focusable wrapper at extreme text scaling. The page itself must not overflow horizontally at 200% text scaling.
+- No animation is needed for briefing comprehension; reduced-motion behavior is therefore inherited without special alternative content.
+
 ### Topic rows (not cards)
 The library is a dense index. Each row: no radius, full-width bottom hairline, serif title, small-caps metadata. One trailing action button per row, and it launches the mode the ladder is asking for.
 
@@ -232,7 +247,7 @@ One bordered container divided by hairlines, reading as a single instrument pane
 A numbered descending index of completions, serif titles with small-caps track labels and tabular dates. This is the artifact the product exists to build, so it is composed rather than listed.
 
 ### Named Rules
-**The Nothing-Nests Rule.** A card never contains another card. Internal grouping uses a hairline or spacing.
+**The Nothing-Nests Rule.** A card never contains another card. Internal grouping uses a hairline or spacing. Learn case studies follow the same rule: hierarchy is document structure, not nested surfaces.
 
 ## 7. Do's and Don'ts
 
@@ -243,11 +258,14 @@ A numbered descending index of completions, serif titles with small-caps track l
 - **Do** give the page ground its grain and raised surfaces their edge highlight.
 - **Do** state a mode's consequence in its own label.
 - **Do** treat decay as routing information, never as an error or a scolding.
+- **Do** keep reference-only Learn topics compact and add richer hierarchy only when the content earns it.
+- **Do** keep Learn sources and limitations visible, subordinate and readable at 200% text scaling.
 
 ### Don't
 - **Don't** put a hero, slogan, or eyebrow above a heading.
 - **Don't** build a wall of identical metric cards.
 - **Don't** shape something like a flashcard unless it actually conceals an answer.
+- **Don't** turn structured Learn content into arbitrary HTML, a marketing article, or a stack of mini-cards.
 - **Don't** nest cards, use side-stripe borders, gradient text, or glassmorphism.
 - **Don't** reach for military, survivalist, or tactical visual language, even though the Survival and Tradecraft subject matter invites it. The framing is competence, not catastrophe.
 - **Don't** add streaks, badges, XP, or shame-based nudges.
