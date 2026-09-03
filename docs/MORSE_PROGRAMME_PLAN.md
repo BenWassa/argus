@@ -35,19 +35,19 @@ P-entries are left open by the PRD and are argued in the section after that.
 recommendation stands unopposed and is cheap to revise inside its workstream;
 raise it there rather than reopening the programme.
 
-| # | Decision | Answer | Status | Blocks |
+| # | Decision | Answer | Status | Owned by |
 |---|---|---|---|---|
-| D1 | Bidirectional scoring against `PASS_THRESHOLD = 1` | Typed bidirectional item, 26 scoring units | Ratified | 1, 4, 5 |
-| D2 | How item identity is created and preserved | Generated stable id, preserved across authoring edits | Default | 1, 3, 4 |
-| D3 | Where acquisition stages A/B live | Cue rungs inside Test; scheduler untouched | Ratified | 3, 4 |
-| D4 | How Learn expresses a character packet | Narrow typed block in the validated union | Default | 1, 3 |
-| D5 | Where per-item cue evidence is stored | Sibling of `history` on the topic, keyed by item id | Default | 1, 4 |
-| P1 | Character order | Ascending complexity, aural-confusable pairs split across packets | Ratified | 3, 5 |
-| P2 | Novel characters per packet | 5 visible, 2 novel, both configurable | Default | 3, 4 |
-| P3 | What triggers cue fading | Consecutive correct at a rung; record latency, do not gate on it | Default | 4 |
-| P4 | Initial character and effective speed | 20 WPM character, ~9 WPM effective, adjustable | Default | 2 |
-| P5 | Original SVG mnemonic set | Yes — original, single grammar | Default | 3, 5 |
-| P6 | Ship the workstream-0 baseline topic | Yes | Ratified | 0 |
+| D1 | Bidirectional scoring against `PASS_THRESHOLD = 1` | Typed bidirectional item, 26 scoring units | Ratified | #24 |
+| D2 | How item identity is created and preserved | Generated stable id, preserved across authoring edits | Default | #24 |
+| D3 | Where acquisition stages A/B live | Cue rungs inside Test; scheduler untouched | Ratified | #27 |
+| D4 | How Learn expresses a character packet | Narrow typed block in the validated union | Default | #24 |
+| D5 | Where per-item cue evidence is stored | Sibling of `history` on the topic, keyed by item id | Default | #24 |
+| P1 | Character order | Ascending complexity, aural-confusable pairs split across packets | Ratified | #26 |
+| P2 | Novel characters per packet | 5 visible, 2 novel, both configurable | Default | #26 |
+| P3 | What triggers cue fading | Consecutive correct at a rung; record latency, do not gate on it | Default | #27 |
+| P4 | Initial character and effective speed | 20 WPM character, ~9 WPM effective, adjustable | Default | #25 |
+| P5 | Original SVG mnemonic set | Yes — original, single grammar | Default | #26 |
+| P6 | Ship the workstream-0 baseline topic | Yes | Ratified | #23 |
 
 The four ratified entries are the ones that are expensive to unwind. Every
 remaining entry is a default a workstream may revise with its reasoning
@@ -218,15 +218,15 @@ borrowed drawing. Study its interaction patterns; draw nothing from it.
 
 ## Workstreams
 
-| # | Workstream | Depends on | Ships |
-|---|---|---|---|
-| 0 | Printed letter→code baseline topic | PR #22 | A real seeded topic on a phone, current schema |
-| 1 | Item identity, cue/evidence data model, migration | Phase 0 | v5 schema, migration, lossless export/import |
-| 2 | Morse synthesis, timing, accessibility | — | Deterministic engine, unit-tested |
-| 3 | SVG mnemonic grammar + progressive Learn surface | 1, 2 | Acquisition UI |
-| 4 | Progressive Test modalities + cue fading | 1 | Acquisition ladder in Test |
-| 5 | A–Z curriculum, provenance, mobile acceptance | 3, 4 | The shipped competency |
-| 6 | Auditory reception / sending / continuous material | validated 5 | Later, separate claims |
+| # | Issue | Workstream | Depends on | Ships |
+|---|---|---|---|---|
+| 0 | #23 | Printed letter→code baseline topic | PR #22 | A real seeded topic on a phone, current schema |
+| 1 | #24 | Item identity, cue/evidence data model, migration | Phase 0 | v5 schema, migration, lossless export/import |
+| 2 | #25 | Morse synthesis, timing, accessibility | — | Deterministic engine, unit-tested |
+| 3 | #26 | SVG mnemonic grammar + progressive Learn surface | #24, #25 | Acquisition UI |
+| 4 | #27 | Progressive Test modalities + cue fading | #24 | Acquisition ladder in Test |
+| 5 | #28 | A–Z curriculum, provenance, mobile acceptance | #26, #27 | The shipped competency |
+| 6 | #29 | Auditory reception / sending / continuous material | validated #28 | Later, separate claims |
 
 Two corrections to the proposed dependency table:
 
@@ -350,8 +350,8 @@ Argus commits to a generalised training engine.
 ## Immediate sequence
 
 1. get PR #22 reviewed and merged;
-2. open the workstream issues under #21, each carrying the decisions it owns;
-3. execute 0, 1 and 2 in parallel;
+2. ~~open the workstream issues under #21~~ — done: #23 through #29;
+3. execute #23, #24 and #25 in parallel;
 4. prototype the SVG visual grammar on 8–10 characters and validate it;
 5. build the progressive Test ladder;
 6. ship and physically test the 26-letter competency.
