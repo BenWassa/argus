@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useLibrary } from '../../lib/store'
 import { resolveStudy } from '../../lib/scheduling'
 import type { Topic } from '../../lib/types'
+import { LearnSupport } from './LearnSupport'
 import './Learn.css'
 
 interface LearnProps {
@@ -11,9 +12,9 @@ interface LearnProps {
 }
 
 /**
- * Learn is a reading surface, not a test. The whole set is laid out at once so
- * it can be scanned, compared, and read in any order. Nothing is hidden,
- * because hiding belongs to Test.
+ * Learn is a reading surface, not a test. The whole finite reference is laid
+ * out at once, with optional explanatory support above it. Nothing is hidden,
+ * and explanatory support never becomes scored material implicitly.
  */
 export function Learn({ topicIds, onExit, onTest }: LearnProps) {
   const { topics, upsertTopic } = useLibrary()
@@ -74,9 +75,13 @@ export function Learn({ topicIds, onExit, onTest }: LearnProps) {
             </h2>
             <p className="sheet-scope">{topic.scope}</p>
             <p className="sheet-count tabular">
-              {topic.items.length} {topic.items.length === 1 ? 'item' : 'items'}
+              {topic.items.length} {topic.items.length === 1 ? 'item' : 'items'} in the scored boundary
             </p>
           </header>
+
+          {topic.learn && <LearnSupport content={topic.learn} />}
+
+          {topic.learn && <h3 className="sheet-reference-title">Recall reference</h3>}
 
           {topic.items.length === 0 ? (
             <p className="empty">This topic has no items yet.</p>
@@ -96,7 +101,7 @@ export function Learn({ topicIds, onExit, onTest }: LearnProps) {
 
       <footer className="sheet-foot">
         <p className="sheet-foot-note">
-          Reading it is exposure. Recalling it after a gap is what makes it stick.
+          Reading it is exposure. Recalling the finite set after a gap is what makes it stick.
         </p>
         <div className="rate">
           <button type="button" onClick={() => onTest(topicIds)}>
