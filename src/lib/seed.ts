@@ -1,4 +1,5 @@
 import type { Library, Topic } from './types'
+import { morsePacketSections } from './morsePacketContent'
 
 const NATO = [
   'Alfa', 'Bravo', 'Charlie', 'Delta', 'Echo', 'Foxtrot', 'Golf', 'Hotel',
@@ -73,6 +74,22 @@ export function seedLibrary(): Library {
       learn: {
         kind: 'concise',
         overview: 'International Morse represents letters as sequences of dits (.) and dahs (-). A dah lasts three dit units; spacing within a character is one unit, between characters three, and between words seven. This topic scores only printed letter → canonical pattern recall; it does not claim reverse recall, auditory reception, sending, or any speed criterion.',
+        sections: [
+          {
+            heading: 'How to use the packets',
+            blocks: [
+              {
+                type: 'paragraph',
+                text: 'Characters arrive in packets of up to five: two you have not met and the rest returning for retrieval. The order runs from the shortest patterns upward, and two characters that differ only in their final element are never introduced together. Nothing here is locked or scored — read a packet, play each character, and come back to any of them whenever you want.',
+              },
+              {
+                type: 'paragraph',
+                text: 'Every drawing is that character’s own timing rather than a picture to decode: a dit is one unit wide, a dah is three, and the gap between them is one. Read the rhythm left to right, in the order it is keyed, and let the letter and its shape settle as a single thing.',
+              },
+            ],
+          },
+          ...morsePacketSections(),
+        ],
         sources: [
           {
             label: 'ITU-R M.1677-1 — International Morse code',
