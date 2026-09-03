@@ -1,291 +1,158 @@
 # Argus: Product Requirements Document
 
-**Working name:** Argus (Argus Panoptes, the hundred-eyed watchman). Alternates: Mnemosyne (memory), Aegis (protection), Praxis (practice).
-
-**Status:** Draft v0.1, vision and scope definition
-**Owner:** Ben
-**Date:** 29 July 2026
-
----
+**Working name:** Argus  
+**Owner:** Ben  
+**Original vision:** 29 July 2026  
+**Reconciled:** 3 September 2026
 
 ## 1. Vision
 
-### One line
-A finite library of closed-scope competencies, where every topic can be genuinely finished.
+Argus is a personal, mobile-first library of finite, closed-scope competencies. Every topic must answer one question before it belongs: **can this be finished?**
 
-### The problem
-Self-directed learning tools fail in two directions. Habit and productivity apps track effort without ever producing mastery. Broad-domain learning apps (finance, communication, fitness) open subjects that never close, so progress feels like maintenance rather than accumulation. The satisfaction of learning the NATO alphabet came from a specific property: it is a fixed set of 26 items, and when you know all 26, you are done. Permanently.
+The product optimizes for durable recall rather than time spent. Completion requires appropriate delayed evidence, remains a permanent historical achievement once earned, and may later coexist with a decayed/currently-due state.
 
-### The insight
-Competence is more motivating when it is bounded. A skill with a known edge produces a completion event. Completion events compound into an identity claim: *I am someone who knows how to do things.* Open-ended domains never produce that event, which is why they get abandoned.
+Argus is not a habit tracker, course marketplace, general-knowledge quiz, gamified streak engine, or credentialing system.
 
-### The product
-Argus is a personal skill library built entirely from closed-scope competencies. Every topic in it satisfies one test: **can this be finished?** A fixed alphabet, a named framework with a known number of parts, a specific protocol, a defined set of knots. If a topic requires indefinite maintenance or has no natural edge, it does not belong in the library.
+## 2. Product model
 
-The library spans three tracks:
-- **Learning:** recall systems, psychology frameworks, memory technique
-- **Survival:** emergency medicine, navigation, environmental hazards, physical skills
-- **Tradecraft:** situational awareness, threat assessment, counter-surveillance, movement mechanics, cognition under stress
+Argus has exactly two user-facing learning interactions.
 
-### What it is not
-- Not a habit tracker
-- Not a course platform or curriculum
-- Not a gamified streak engine
-- Not a general knowledge quiz app
-- Not a survivalist or prepper product. The framing is competence, not catastrophe
+### Learn
 
-### Success condition
-Twelve months in, the library holds 40 to 60 completed topics, and the owner can recall the substance of any of them cold, without having opened the app in weeks.
+Ungraded reading/exposure. Learn always exposes the topic's complete finite prompt/answer reference with answers visible. It may also render optional structured explanatory support above that reference.
 
----
+Reading may move an `unstarted` topic into `learning`; it does not create a score or satisfy delayed-retention evidence.
 
-## 2. Design principles
+### Test
 
-| Principle | Implication |
-|---|---|
-| **Finishability is the entry gate** | A topic without a defined edge is rejected at authoring time, not managed later |
-| **Retention over exposure** | Completion means recall after a delay, not having read the material once |
-| **Drill type follows content type** | Recall sets, procedural sequences, and judgment scenarios need different Test mechanics |
-| **Owner-authored** | Content is written by the user, not consumed from a catalogue. Authoring is part of the learning |
-| **Portable** | Full library exports to JSON. No lock-in, no dependency on the app surviving |
-| **Mobile-first, minimal UI** | Testing happens in short sessions on a phone. No dashboard sprawl |
-| **No streaks, no shame** | Missed days do not reset progress. Retention decay is surfaced as information, not punishment |
+The single scored recall interaction. Test presents every scored item once, supports reveal/self-score/next, and records session history.
 
----
+The scheduler, not a separate recall mode, decides what a Test result proves. An early Test can record useful evidence but cannot counterfeit a delayed-retention milestone, bypass a required gap, or silently postpone a required spot check.
 
-## 3. Content model
+**Practice is not an active product/runtime mode.** Legacy v2 practice-named fields exist only as migration inputs.
+
+## 3. Content contract
 
 ### Topic
-The atomic unit. A closed-scope competency.
 
-**Required fields**
-- `id`, `title`, `track` (learning / survival / tradecraft)
-- `scope_definition`: an explicit statement of the topic's boundary, e.g. "26 letters" or "the 6 domains of observation". **This field is mandatory. A topic that cannot state its boundary cannot be created.**
-- `item_count`: the finite count implied by scope
-- `drill_type`: recall / procedure / judgment / physical
-- `status`: unstarted / learning / drilled / completed / decayed
-- `source`: book, manual, or reference the content is drawn from
+A topic is one closed-scope competency. Current runtime data includes identity/title/track, an explicit `scope`, a finite `items` array, status/scheduler/history fields, and optional structured `learn` support.
 
-**Optional fields**
-- `prerequisite_ids`, `notes`, `last_tested`, `retention_score`
+### Finite scored boundary
 
-### Item
-A single unit inside a topic. A letter, a framework component, a step in a protocol, a scenario.
+`scope` states the completion claim. `items` contain all material that Test is allowed to score. Together they define the finite Test/completion boundary.
 
-### Drill types
+A topic must not claim completion for material that its scored items do not cover completely.
 
-**Recall.** Fixed sets, tested both directions. Spaced repetition, standard SM-2 style intervals.
-*Examples:* NATO alphabet, Morse code, Big Five facets, cognitive bias set, logical fallacies.
+### Optional Learn support
 
-**Procedure.** Ordered sequences where order is the content. Tested by reconstructing the sequence, not recognizing it.
-*Examples:* Stop the Bleed protocol, PASS for extinguishers, recovery position, combat breathing, slicing the pie.
+`topic.learn` is structurally separate explanatory data. It can explain relationships, provide provenance, state limitations, or analyse an integrated case without becoming Test material.
 
-**Judgment.** Situational prompts with no single correct answer. Tested by writing a response, then comparing against the reference reasoning. Self-scored.
-*Examples:* baseline-and-anomaly reading, TEDD assessment, de-escalation scripting, stroke recognition under ambiguity.
+Three editorial treatments are supported:
 
-**Physical.** Cannot be validated in-app. Logged as attested practice with a date and a self-assessment. Honest about its own limits.
-*Examples:* knots, tourniquet application on a limb, splinting, fire building.
+1. **Reference-only** — no `topic.learn`; the finite reference is sufficient.
+2. **Concise support** — small amounts of context/provenance/limitations.
+3. **Briefing required** — structured sections, definitions, lists/tables, sources/limitations, and integrated cases where useful.
 
-### Status lifecycle
+The format is simple typed data, not arbitrary HTML or a bespoke CMS. Whole-framework/procedure cases are preferred over one isolated toy example per stage.
 
-```
-unstarted -> learning -> drilled -> completed
-                            ^            |
-                            |            v
-                            +-------- decayed
-```
+### Safety-sensitive material
 
-- **drilled:** all items correct in a single session
-- **completed:** all items correct after a 30-day gap; early Tests do not reset the qualifying clock
-- **decayed:** a previously completed topic that failed a spot check. Returns to drilling, but retains its completion history
+Argus supports memory and rehearsal only. It does not certify medical, emergency, physical, tactical, or other hazardous competence. Safety-sensitive Learn content must use authoritative provenance and visible limitations appropriate to the subject. Detailed instruction that would make the finite completion claim misleading stays outside Test.
 
-Completion is a durable achievement. Decay is a routing signal, not a demotion.
+## 4. Current shipped library
 
----
+| Topic | Finite Test boundary | Learn treatment |
+| --- | --- | --- |
+| NATO phonetic alphabet | 26 letters A–Z → official NATO code word | Concise support |
+| OODA loop | Four stages in order + one core function for each | Briefing + integrated case |
+| Primary survey | Five ABCDE headings in order only | Briefing + bounded integrated case + explicit safety limits |
+| Cardinal/intercardinal bearings | Eight cardinal/intercardinal points → degree values clockwise from north, north = 0° | Concise support |
 
-## 4. Initial library
+Detailed research/provenance is maintained in `docs/SEEDED_CONTENT_PROVENANCE.md`.
 
-Seeded content for v1. Roughly 45 topics.
+## 5. Scheduler and lifecycle requirements
 
-### Track: Learning
+The scheduler's retention semantics are authoritative.
 
-**Recall systems**
-- NATO phonetic alphabet *(already complete, seeds the library)*
-- Morse code
-- Maritime semaphore flags
-- Phonetic number system for digit memorisation
-- Method of loci
-- Name-and-face technique
-- Metric to imperial conversion set
+- A first successful Test can establish learning evidence.
+- Completion requires qualifying delayed evidence after the required gap.
+- Testing early must not reset/postpone the qualifying clock merely because the user chose to test.
+- Required spot checks remain due according to scheduler policy; an early Test cannot silently defer them.
+- Completion history is durable. Later decay routes future work without erasing that completion once occurred.
 
-**Psychology frameworks**
-- Big Five: 5 traits, 30 facets
-- Self-determination theory: 3 needs, motivation continuum
-- Attachment: 4 patterns and behavioural markers
-- Cognitive biases: the decision-relevant working set (~15)
-- Logical fallacies: the working set (~20)
-- Ekman basic emotions and facial signatures
-- Cialdini persuasion principles, with replication status noted
-- Negotiation vocabulary: BATNA, ZOPA, anchoring, reservation point
-- Motivational Interviewing OARS
-- Change and transition models: Kübler-Ross, Bridges, ADKAR
-- Sleep architecture: stages and function
-- Recognition-primed decision model (Klein)
+Exact timing/state transitions live in the scheduler implementation and tests; this PRD defines the product invariants rather than duplicating constants.
 
-### Track: Survival
+## 6. Functional requirements
 
-**Emergency medicine beyond CPR-C**
-- Stop the Bleed: pressure, packing, tourniquet
-- Stroke recognition: BE-FAST
-- Anaphylaxis and auto-injector use
-- Opioid overdose and naloxone
-- Recovery position and airway management
-- Shock recognition
-- Concussion red flags
-- Burn classification and immediate treatment
-- Splinting a suspected fracture
-- Hypothermia and heat stroke tipping points
-- SAMPLE and OPQRST patient assessment
+### Today / due work
 
-**Navigation**
-- Finding north: sun, shadow stick, Polaris, Southern Cross
-- Compass bearing and map orientation
+- Make the currently required Test action obvious.
+- Keep the primary mobile session short and task-first.
+- Do not use streaks, XP, shame, or decorative gamification to drive return behaviour.
 
-**Environment and hazard**
-- Rule of threes as triage frame
-- Water purification methods and their limits
-- Fire building: tinder, kindling, structure
-- Signalling: ground-to-air symbols, whistle codes, mirror flash
-- Cold water immersion: the 1-10-1 principle
-- Hazard responses: rip current, house fire, vehicle in water, avalanche
-- Essential knots: bowline, clove hitch, sheet bend, taut-line hitch
-- Fire extinguisher: PASS
-- Vehicle basics: jump start, oil, tire pressure, tire change
+### Library
 
-### Track: Tradecraft
+- Browse/filter finite topics.
+- View each topic's scope, finite item count/status/history and available Learn/Test actions.
+- Create/edit the finite title/scope/items fields.
+- Preserve structured Learn support when ordinary finite-boundary editing does not edit that support.
 
-**Observation**
-- Cooper's colour code
-- Baseline and anomaly
-- Six domains of observation: kinesics, biometrics, proxemics, geographics, iconography, atmospherics
-- Pre-incident indicators of violence
-- De Becker's PINS
-- Cluster logic: why single cues mean nothing
+### Learn
 
-**Counter-surveillance**
-- TEDD: time, environment, distance, demeanour
-- Surveillance detection route construction
-- Choke points and channels
-- How surveillance teams operate, at conceptual level, as the basis for detecting them
+- Render reference-only topics compactly.
+- Render concise/briefing structured content with semantic headings/lists/definitions/tables.
+- Keep sources and limitations visible.
+- Keep explanatory content visually distinct from concealed-answer Test cards.
+- Remain readable on mobile and at 200% text scaling without page-level horizontal overflow.
 
-**Spatial reading**
-- Reading a room: exits, cover, concealment
-- Positioning and seat selection
-- Pattern-of-life self-audit: recognising your own predictability
-- Natural lines of drift, anchor points, habitual areas
+### Test
 
-**Movement mechanics**
-- Slicing the pie
-- Threshold discipline and the fatal funnel
-- Corner-fed vs centre-fed room geometry
-- Points of domination and sectors of responsibility
-- Eyes lead the body: searching before moving
-- Deliberate vs dynamic clearing, and why solo clearing is unsound
+- Present the finite scored item set only.
+- Reveal answer, self-score, advance.
+- Preserve keyboard, touch/gesture and reduced-motion accessibility.
+- Scale medium/long prompts and answers to readable sizes without changing scheduler semantics.
 
-**Cognition under stress**
-- OODA loop
-- Adrenaline effects: tunnel vision, auditory exclusion, time distortion, fine-motor loss
-- Combat breathing, four-count
-- Hick's Law and the case for few simple responses
-- Inattentional and change blindness
+### Data
 
-**Social tradecraft**
-- Elicitation
-- Cover for status and cover for action
-- Grey man principle
-- Verbal de-escalation as first option
+- Local-first/offline-capable library.
+- Current storage/export format: v4.
+- Safely migrate supported v2/v3 libraries to v4.
+- Full JSON export/import must round-trip optional structured Learn content.
+- Reset must not allow obsolete legacy storage to resurrect stale data.
 
-### Source anchors
-*Left of Bang* (Van Horne, Riley). *The Gift of Fear* (de Becker). *Sources of Power* (Klein). Stop the Bleed and Red Cross protocols. USMC MCWP publications (public domain). Standard psychology texts for framework accuracy.
+## 7. Non-functional requirements
 
----
+- **Platform:** mobile-first installable PWA.
+- **Stack:** React + Vite + strict TypeScript.
+- **Accessibility:** WCAG 2.1 AA target; visible focus, keyboard operation, reduced-motion support, semantic Learn structures and appropriate touch targets.
+- **Performance:** Test remains a lightweight, direct interaction suitable for short phone sessions.
+- **Ownership:** data remains portable through first-class JSON export/import.
+- **Deployment:** green validation is required before merge; `main` deploys through GitHub Pages Actions.
 
-## 5. Functional requirements
+## 8. Design principles
 
-### v1 (must have)
+1. **Finishability is the entry gate.** No natural edge, no topic.
+2. **Retention over exposure.** Reading is useful but does not masquerade as recall evidence.
+3. **The form must tell the truth.** Test cards conceal answers; Learn surfaces are readable editorial/reference structures.
+4. **Task-first over showcase-first.** Functional screens optimize for the next action rather than marketing hierarchy.
+5. **Portable and owner-owned.** Export/import is part of the product contract.
+6. **Restraint reads as competence.** No tactical-game chrome, survivalist theatrics, streaks or dashboard sprawl.
+7. **Richness is proportional.** Structured briefing support exists where understanding needs it; mapping/reference topics stay compact.
 
-**Library**
-- Browse topics by track, filter by status and drill type
-- Topic detail view: scope definition, item list, status, test history
-- Create and edit topics. `scope_definition` and `item_count` are required to save
+## 9. Explicitly out of scope
 
-**Test**
-- Daily session, target under 5 minutes, mixed across due topics
-- Recall drills: both-directions prompting, SM-2 intervals
-- Procedure drills: reorder or reconstruct a sequence
-- Judgment drills: free-text response, reveal reference reasoning, self-score
-- Physical drills: log an attested practice with date and self-assessment
+- Multi-user/social/leaderboard systems.
+- Streaks, badges, XP.
+- A pre-built content marketplace.
+- Arbitrary HTML/CMS authoring for Learn.
+- Treating Learn-only explanation as scored mastery by implication.
+- Certification or competence claims for hazardous/physical/medical material.
 
-**Progress**
-- Completion count per track
-- Decay queue: completed topics due for a spot check
-- Completion log with dates. The permanent record of finished topics
+## 10. Durable references
 
-**Data**
-- Full JSON export and import
-- Local-first storage. Offline capable
-
-### v2 (should have)
-- Prerequisite chaining, so foundational topics gate dependent ones
-- Retention curve view per topic
-- Scenario compositing: pull items from multiple topics into one prompt, e.g. an emergency scenario drawing on bleeding control plus shock recognition plus signalling
-- Topic templates for faster authoring
-
-### Explicitly out of scope
-- Multi-user, social, or leaderboard features
-- Streaks, badges, XP
-- A pre-built content marketplace
-- Video or media hosting
-- Any medical or tactical claim of certification. The app is a memory and rehearsal tool, not a credential
-
----
-
-## 6. Non-functional requirements
-
-- **Platform:** mobile-first web app, installable as PWA
-- **Storage:** local-first. Optional sync in a later version
-- **Performance:** Test session opens in under one second, cold
-- **Offline:** all Learn and Test functions work with no network
-- **Data ownership:** JSON export is a first-class feature, not an afterthought
-
----
-
-## 7. Risks and open questions
-
-| Risk | Mitigation |
-|---|---|
-| **Authoring burden exceeds practice benefit** | Seed the first 10 topics before building any authoring UI. Validate that drilling is worth it before optimising creation |
-| **Judgment drills are unfalsifiable and drift into self-flattery** | Reference reasoning must be written at authoring time, before any self-scoring. Consider a "what would disconfirm this read?" prompt |
-| **Scope creep back toward open domains** | The `scope_definition` field is a hard gate. Enforce it in validation, not by discipline |
-| **Physical skills logged but never actually practised** | Surface attested-only topics separately from drilled ones. Do not let a log entry masquerade as competence |
-| **Overbuild** | v1 is a library, a Test loop, and a JSON export. Nothing else. Ship before adding retention curves and prerequisite graphs |
-
-**Open questions**
-1. Are the three tracks the right cut, or is drill type the more useful primary axis?
-2. Does the 30-day gap for completion need tuning per drill type? Procedures may decay faster than recall sets
-3. Should decayed topics be visible in the completion count, or held separately?
-4. Is there a fourth track for language and communication, or does that stay out as too open-ended?
-
----
-
-## 8. Build sequence
-
-1. **Content first.** Author 10 seed topics as raw JSON, one per drill type minimum. No UI
-2. **Test loop.** Recall and procedure drills against the seed JSON. This is the core value test
-3. **Library views.** Browse, filter, topic detail
-4. **Authoring UI.** Only after the Test loop has proven worth the effort
-5. **Judgment and physical drill types**
-6. **Progress and decay queue**
-7. **Export and import**
-
-Step 2 is the go / no-go. If drilling the seed topics does not feel worth five minutes a day, the concept is wrong and no amount of UI fixes it.
+- `PRODUCT.md` — implemented product contract and design principles.
+- `DESIGN.md` / `DESIGN.json` — visual/interaction system.
+- `docs/LEARN_CONTENT_MODEL.md` — v4 Learn schema, migration and editorial rules.
+- `docs/LIBRARY_AUDIT.md` — shipped-library audit and final outcomes.
+- `docs/SEEDED_CONTENT_PROVENANCE.md` — source and finite-boundary record for shipped topics.
+- `docs/PROGRAMME.md` — programme execution/closeout ledger.
