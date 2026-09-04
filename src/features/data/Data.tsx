@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { useLibrary } from '../../lib/store'
-import { exportFilename, parseLibrary } from '../../lib/storage'
+import { absorbSeededMorseBaseline, exportFilename, parseLibrary } from '../../lib/storage'
 import { Confirm } from '../../components/ui/Confirm'
 
 export function Data() {
@@ -41,7 +41,7 @@ export function Data() {
   async function applyImport(file: File) {
     const result = parseLibrary(JSON.parse(await file.text()))
     if (!result.ok) return
-    replaceLibrary(result.library)
+    replaceLibrary(absorbSeededMorseBaseline(result.library))
     setMessage({ tone: 'ok', text: `Imported ${result.library.topics.length} topics.` })
   }
 

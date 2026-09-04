@@ -218,12 +218,12 @@ describe('which topics the ladder drives', () => {
 })
 
 describe('a whole item’s journey up the ladder', () => {
-  const item: IdentifiedItem = { id: 'i-R', kind: 'forward', prompt: 'R', answer: '.-.' }
+  const item: IdentifiedItem = { id: 'i-R', kind: 'bidirectional', prompt: 'R', answer: '.-.' }
 
-  it('moves through recognition, delay, reduction and free production', () => {
+  it('moves through recognition, delay, reduction, free production and reverse recall', () => {
     let evidence: ItemCueEvidence | undefined
     const seen: string[] = []
-    for (let i = 0; i < 8; i += 1) {
+    for (let i = 0; i < 10; i += 1) {
       const rung = rungFor(item, evidence)
       seen.push(rung.id)
       evidence = recordAnswer(evidence, {
@@ -238,6 +238,7 @@ describe('a whole item’s journey up the ladder', () => {
       'delayed-recognition',
       'reduced-recognition',
       'free-production',
+      'free-reception',
     ])
   })
 })

@@ -29,6 +29,43 @@ function freshSeedLibrary(): CurrentLibrary {
   return migrated.ok ? migrated.library : { version: 5, topics: [] }
 }
 
+const SEEDED_MORSE_ID = 'international-morse-letters-printed'
+
+/** Absorb the temporary #23 control topic without duplicating it or losing its
+ * stable item evidence/history. Only the exact shipped 26-row identity is
+ * upgraded; arbitrary user-authored Morse topics are left alone. */
+export function absorbSeededMorseBaseline(library: CurrentLibrary): CurrentLibrary {
+  const finalTopic = freshSeedLibraryUnreconciled().topics.find((topic) => topic.id === SEEDED_MORSE_ID)
+  if (!finalTopic) return library
+  const topics = library.topics.map((topic) => {
+    if (topic.id !== SEEDED_MORSE_ID || topic.items.length !== finalTopic.items.length) return topic
+    const sameRows = topic.items.every((item, index) =>
+      item.id === finalTopic.items[index].id &&
+      item.prompt === finalTopic.items[index].prompt &&
+      item.answer === finalTopic.items[index].answer,
+    )
+    if (!sameRows) return topic
+    const hadForwardCompletion = topic.completedAt !== null &&
+      topic.items.some((item) => item.kind !== 'bidirectional')
+    return {
+      ...topic,
+      title: finalTopic.title,
+      scope: finalTopic.scope,
+      items: finalTopic.items,
+      learn: finalTopic.learn,
+      // A #23 completion is retained in history, but cannot remain the active
+      // completion state for the stronger bidirectional claim.
+      ...(hadForwardCompletion ? { status: 'drilled' as const, completedAt: null } : {}),
+    }
+  })
+  return { ...library, topics }
+}
+
+function freshSeedLibraryUnreconciled(): CurrentLibrary {
+  const parsed = parseLibrary(seedLibrary())
+  return parsed.ok ? parsed.library : { version: 5, topics: [] }
+}
+
 export function loadLibrary(): CurrentLibrary {
   try {
     const found = [KEY, ...LEGACY_KEYS]
@@ -41,8 +78,9 @@ export function loadLibrary(): CurrentLibrary {
 
     // Promote a valid legacy record immediately. This makes the migration
     // durable even before the provider's first effect runs.
-    if (found.key !== KEY) saveLibrary(parsed.library)
-    return parsed.library
+    const absorbed = absorbSeededMorseBaseline(parsed.library)
+    if (found.key !== KEY || absorbed !== parsed.library) saveLibrary(absorbed)
+    return absorbed
   } catch {
     return freshSeedLibrary()
   }

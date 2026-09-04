@@ -126,3 +126,21 @@ export function hasCompleteDirectionalCoverage(
   if (!evidence) return false
   return requiredDirections(item).every((direction) => (evidence.directions[direction]?.correct ?? 0) > 0)
 }
+
+/** A bidirectional topic cannot submit a passing retention attempt until every
+ * logical item has correct evidence in every direction its content requires. */
+export function hasCompleteTopicDirectionalCoverage(
+  items: Item[],
+  evidence: ItemEvidenceStore | undefined,
+): boolean {
+  return items.every((item) => !!item.id && hasCompleteDirectionalCoverage(item, evidence?.[item.id]))
+}
+
+export function retentionCorrectCount(
+  items: Item[],
+  evidence: ItemEvidenceStore | undefined,
+  correct: number,
+): number {
+  if (!items.some((item) => itemKind(item) === 'bidirectional')) return correct
+  return hasCompleteTopicDirectionalCoverage(items, evidence) ? correct : 0
+}
