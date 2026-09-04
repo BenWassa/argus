@@ -1,176 +1,161 @@
 # Argus library audit
 
 Issue: #8  
-Audit baseline: `7498c55494d5b75fdb99c3316b461a2a5e6eef01`
+Original audit baseline: `7498c55494d5b75fdb99c3316b461a2a5e6eef01`  
+Original researched-content baseline: `c1cc753eb89c9aa5379d1a885892703cf20e65ba`  
+Current reconciliation: pre-#28 v5/Morse programme
 
 ## Scope
 
-This audit covers every topic shipped in `src/lib/seed.ts` at the baseline above. Argus stores user-authored topics locally, so an on-device library may contain additional topics that are not visible in GitHub. Extend this document when a current exported library is available rather than assuming the seed is the complete personal library.
+The original #8 audit covered the four topics then shipped in `src/lib/seed.ts`
+and drove #9/#11. This reconciled record also notes the temporary Morse control
+topic added later by #23 so the document does not imply the current seed still
+contains only four topics.
 
-## Audit rubric
+Argus also stores user-authored topics locally; repository seed content is not a
+claim about the complete contents of any one device library.
 
-For each topic, check:
+## Content rubric
+
+For every topic, check:
 
 1. content archetype;
-2. finite testable boundary;
-3. whether the current Test items actually cover that boundary;
+2. explicit finite Test/completion boundary;
+3. whether scored items completely cover that boundary;
 4. appropriate Learn treatment;
 5. conceptual/context gaps;
-6. whether integrated case studies are useful;
+6. whether an integrated case study is useful;
 7. provenance requirements;
 8. safety/limitations requirements;
-9. whether explanatory support can stay outside the scored boundary;
-10. recommended action.
+9. whether explanatory support remains outside the scored boundary.
 
-## Summary matrix
+`scope` + scored `items` define the finite claim. `topic.learn` is structurally
+separate explanatory/acquisition support and never expands that claim merely by
+existing.
 
-| Topic | Archetype | Current boundary coverage | Learn treatment | Case study | Provisional action |
-| --- | --- | --- | --- | --- | --- |
-| NATO phonetic alphabet | Mapping/reference | Strong | Compact reference | No | Keep deck; verify source/spelling |
-| OODA loop | Framework/model | **Insufficient** | Structured briefing | **Yes** | Major enrichment + deck rewrite |
-| Primary survey | Procedure/protocol | Minimal / boundary decision required | Structured concise briefing | Likely, bounded | Research, enrich, review scope |
-| Cardinal/intercardinal bearings | Mapping/reference | Strong | Compact reference | No | Keep deck; verify conventions |
+## Current seeded-library matrix before #28
+
+| Topic | Archetype | Finite Test boundary | Coverage | Learn treatment |
+|---|---|---|---|---|
+| NATO phonetic alphabet | Mapping/reference | 26 letters A–Z → official NATO code word | Complete | Concise support |
+| International Morse — Letters (printed) | Mapping/reference + progressive acquisition | 26 printed letters A–Z → canonical Morse pattern, **one direction only** | Complete for stated temporary scope | Concise support + Morse packets |
+| OODA loop | Framework/model | Four stages in order + one core function for each | Complete | Briefing + integrated case |
+| Primary survey | Procedure/protocol | Five ABCDE headings in order only | Complete | Briefing + bounded case + safety limits |
+| Cardinal/intercardinal bearings | Mapping/reference | Eight compass points → clockwise degree values from north; north = 0° | Complete | Concise support |
+
+The original four topics retain their 26 / 4 / 5 / 8 scored-unit counts. The
+temporary Morse topic adds 26 forward mapping items. Current v5 storage
+normalizes item identity/kind and acquisition evidence without changing those
+finite scored counts.
 
 ## NATO phonetic alphabet
 
-### Current boundary
+The mapping itself is the finite competency. #11 verified the official 26 NATO
+code words, including **Alfa** and **Juliett**, against NATO's official reference.
 
-“The 26 letters A to Z and their code words. Nothing else.”
+The topic therefore remains compact: 26 letter-first scored mappings plus concise
+context/provenance. A briefing or case study would add friction without improving
+the finite mapping claim.
 
-The deck contains one mapping for every letter and therefore matches the declared finite boundary well.
+## International Morse — Letters (printed)
 
-### Learn requirement
+This topic was added by #23 as an intentionally narrow control/baseline before the
+progressive Morse programme was complete.
 
-**Compact reference only.** The mapping is the content. A long explanation would increase friction without adding much understanding.
+Current scope:
 
-Useful supporting material, if retained at all, should be small: authoritative source attribution and any genuinely relevant terminology/spelling note.
+> The 26 International Morse patterns for A–Z, recalled from the printed letter.
+> One direction only: letter → canonical dit/dah pattern.
 
-### Case-study need
+That scope is honest and completely covered by 26 forward items. #26 later added
+progressive Learn packets; #27 added a progressive Test ladder. Neither workstream
+changed the scored claim.
 
-None.
+Important boundary discipline before #28:
 
-### Recommended action
+- audio in Learn/feedback does **not** prove auditory reception;
+- mnemonic/timing graphics are acquisition support, not completion evidence;
+- the reverse free-response Test rung exists in runtime but remains dormant for
+  this forward-only seed topic;
+- #28, not this audit/docs lane, owns converting/absorbing the temporary topic
+  into the final bidirectional A–Z curriculum;
+- until #28 does that safely, this topic must not be described as proving both
+  directions or “knowing Morse.”
 
-- Keep the 26-card mapping deck.
-- Preserve letter-first testing.
-- Verify official code-word spelling/provenance during #11.
-- Do not add long-form prose merely because the richer Learn schema exists.
+Canonical mapping/timing provenance is ITU-R M.1677-1. Character-order/training
+provenance is recorded in `docs/MORSE_CHARACTER_ORDER.md` and
+`docs/MORSE_PROVENANCE_RECONCILIATION.md`.
 
 ## OODA loop
 
-### Current boundary
+The original audit found a scope/deck mismatch: the scope claimed the four stages
+**and what each one does**, while the old deck tested stage names only.
 
-“The four stages in order, and what each one does.”
+#11 resolved that mismatch without opening the boundary. Each of the four scored
+items now requires the ordered stage name plus its core function: Observe,
+Orient, Decide, Act. The item count remains four.
 
-### Coverage finding
-
-**The current Test deck does not satisfy the topic’s own scope.** It asks only:
-
-- Stage 1 → Observe
-- Stage 2 → Orient
-- Stage 3 → Decide
-- Stage 4 → Act
-
-Nothing tests what each stage does, even though that is explicitly part of the stated boundary.
-
-### Learn requirement
-
-**Structured briefing required.** Stage-name memorisation alone does not explain the framework as a model. Learn should explain the system at topic level, including relationships, iteration/feedback, and important limitations or common oversimplifications where supported by research.
-
-### Case-study need
-
-**Yes.** The preferred teaching device is an integrated case that can be traced and analysed through the framework as a whole. Avoid four disconnected “example for Observe / example for Orient / …” snippets as the primary explanation.
-
-### Boundary discipline
-
-Explanatory material may be richer than the scored deck. The scored boundary should remain finite and explicit; if the intended test scope includes stage functions, the deck must gain finite prompts that cover those functions completely.
-
-### Recommended action
-
-- Research the framework from authoritative/primary-quality material.
-- Rewrite the deck so it actually covers the declared boundary.
-- Add structured explanation and at least one integrated case study.
-- Re-check whether the existing scope is the right finite boundary after research.
+A briefing explains Boyd's feedback-rich model, orientation inputs,
+decision-as-hypothesis, action-as-test, feedback/feed-forward and the limitations
+of the familiar simple four-arrow circle. One integrated case exercises the
+framework as a connected adaptive process.
 
 ## Primary survey
 
-### Current boundary
+#11 made the finite boundary deliberate: Test covers **the five ABCDE headings and
+their order only** — Airway, Breathing, Circulation, Disability, Exposure.
+Detailed clinical techniques, thresholds, interventions, medications,
+population-specific modifications, CPR algorithms and diagnosis stay outside the
+scored claim.
 
-“The five ABCDE steps in assessment order.”
-
-### Coverage finding
-
-The deck expands A/B/C/D/E to Airway/Breathing/Circulation/Disability/Exposure. That technically covers the labels and order only at a very shallow level. It does not provide context for why the sequence exists or what the stages mean as a procedure.
-
-A product decision is required: is the intended scored boundary deliberately only the five labels/order, or should a finite set of additional recall material be included? The answer should come from authoritative research, not from adding detail opportunistically.
-
-### Learn requirement
-
-**Structured, concise briefing required.** The user should understand the purpose and sequence rather than merely memorise an acronym expansion.
-
-### Case-study need
-
-Likely useful if it demonstrates the sequence as one integrated process. It must remain explicitly educational/memory-oriented and must not imply that reading Argus constitutes clinical competence or training.
-
-### Provenance and safety
-
-Mandatory. This is medical/emergency material. Enrichment requires authoritative sourcing and a visible limitations statement consistent with Argus’s product boundary: memory/rehearsal support, not a credential or substitute for training.
-
-### Recommended action
-
-- Research current authoritative sources appropriate to the chosen scope.
-- Decide and document the finite scored boundary before expanding cards.
-- Add concise structured explanation.
-- Add an integrated case only if it improves understanding without turning Argus into procedural instruction beyond its memory-tool role.
+The briefing supplies high-level context, priority/reassessment principles and a
+bounded case without turning the completion claim into clinical competence.
+Because this is medical/emergency material, authoritative sources and visible
+limitations are mandatory. Argus remains memory/rehearsal support, not clinical
+training or a credential.
 
 ## Cardinal and intercardinal bearings
 
-### Current boundary
+The eight direction-to-degree mappings form a complete finite set. #11 verified
+the clockwise-from-north convention against NOAA material and made the chosen
+north representation explicit: **0°**. The equivalent 360° direction remains a
+Learn-only clarification so the scored mapping is unambiguous.
 
-“The eight compass points and their degree values.”
+The topic therefore stays compact with no case study.
 
-### Coverage finding
+## Cross-library conclusions
 
-The eight direction-to-degree mappings cover the stated boundary directly and completely.
+### Learn treatment must remain proportional
 
-### Learn requirement
+Reference-only remains available; concise support fits mapping/reference topics;
+briefing support fits frameworks/procedures where relationships or safety context
+matter. Morse demonstrates that a compact mapping topic can also have a
+specialized acquisition surface without turning that surface into new scored
+content.
 
-**Compact reference only.** A table or similarly dense reference representation is sufficient. At most, add a concise convention note if research shows it materially prevents confusion.
+### Boundary integrity is a correctness property
 
-### Case-study need
+A topic may only claim completion for material fully represented by its finite
+scored items. Rich Learn content, audio exposure, cue fading, or a more advanced
+runtime response mechanic does not repair an under-covered Test boundary and does
+not independently widen the claim.
 
-None for the current boundary.
+### Acquisition evidence is not retention evidence
 
-### Recommended action
+v5 adds per-item cue/evidence state for Morse, but that state is a sibling of
+scheduler `history`, not a replacement for it. A learner may climb to uncued
+production without having satisfied the delayed evidence required for durable
+completion.
 
-- Keep the eight-card mapping deck.
-- Verify terminology and degree conventions.
-- Prefer a compact reference treatment over prose.
+### Safety-sensitive topics require provenance and limitations
 
-## Cross-library findings
+Primary Survey remains the clearest example: sources and limitations are
+first-class content requirements, not generic README disclaimers.
 
-### 1. One Learn template is not enough
+## Source records
 
-The current Learn surface treats all topics as scope + prompt/answer rows. The seed itself proves this is too uniform: NATO benefits from that compact treatment, while OODA clearly does not.
-
-### 2. Richer Learn content must remain optional
-
-Adding a structured briefing capability should not make every topic longer. Content architecture should support reference-only, concise-support and briefing-required topics.
-
-### 3. Scope and deck need an explicit integrity check
-
-OODA demonstrates that a topic can state a broader finite boundary than its deck actually tests. Future authoring/editorial review should check scope-to-deck coverage directly.
-
-### 4. Testable boundary and explanatory support are different
-
-Case studies, context, provenance and limitations can improve understanding without automatically becoming scored items. Argus should model that distinction explicitly so finishability remains honest.
-
-### 5. Safety-sensitive topics need stronger provenance rules
-
-Primary Survey shows that the richer content model needs first-class source/limitations support rather than relying on generic prose or README disclaimers.
-
-## Next actions
-
-- #9 defines and implements the optional structured Learn-content layer.
-- #10 removes Practice and makes Test the single recall interaction while protecting retention semantics.
-- #11 researches and rewrites the seed topics against this audit.
+- `docs/SEEDED_CONTENT_PROVENANCE.md` — original four-topic research/source record.
+- `docs/MORSE_CHARACTER_ORDER.md` — Morse order rule + corrected Koch/CW Academy
+  comparison.
+- `docs/MORSE_PROVENANCE_RECONCILIATION.md` — pre-#28 provenance/docs closeout.
+- `docs/MORSE_PROGRAMME_PLAN.md` — v5 Morse decisions and #28 handoff boundary.
