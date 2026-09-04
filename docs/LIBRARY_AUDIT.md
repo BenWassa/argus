@@ -3,14 +3,15 @@
 Issue: #8  
 Original audit baseline: `7498c55494d5b75fdb99c3316b461a2a5e6eef01`  
 Original researched-content baseline: `c1cc753eb89c9aa5379d1a885892703cf20e65ba`  
-Current reconciliation: pre-#28 v5/Morse programme
+Current reconciliation: post-#28 v5/Morse programme
 
 ## Scope
 
 The original #8 audit covered the four topics then shipped in `src/lib/seed.ts`
-and drove #9/#11. This reconciled record also notes the temporary Morse control
-topic added later by #23 so the document does not imply the current seed still
-contains only four topics.
+and drove #9/#11. This reconciled record also covers the International Morse
+topic — seeded as a temporary forward-only control by #23 and absorbed in place
+into the final bidirectional A–Z curriculum by #28 — so the document does not
+imply the current seed still contains only four topics.
 
 Argus also stores user-authored topics locally; repository seed content is not a
 claim about the complete contents of any one device library.
@@ -33,20 +34,20 @@ For every topic, check:
 separate explanatory/acquisition support and never expands that claim merely by
 existing.
 
-## Current seeded-library matrix before #28
+## Current seeded-library matrix
 
 | Topic | Archetype | Finite Test boundary | Coverage | Learn treatment |
 |---|---|---|---|---|
 | NATO phonetic alphabet | Mapping/reference | 26 letters A–Z → official NATO code word | Complete | Concise support |
-| International Morse — Letters (printed) | Mapping/reference + progressive acquisition | 26 printed letters A–Z → canonical Morse pattern, **one direction only** | Complete for stated temporary scope | Concise support + Morse packets |
+| International Morse — Letters (printed) | Mapping/reference + progressive acquisition | 26 printed A–Z mappings recalled in **both** printed directions | Complete | Concise support + Morse packets |
 | OODA loop | Framework/model | Four stages in order + one core function for each | Complete | Briefing + integrated case |
 | Primary survey | Procedure/protocol | Five ABCDE headings in order only | Complete | Briefing + bounded case + safety limits |
 | Cardinal/intercardinal bearings | Mapping/reference | Eight compass points → clockwise degree values from north; north = 0° | Complete | Concise support |
 
 The original four topics retain their 26 / 4 / 5 / 8 scored-unit counts. The
-temporary Morse topic adds 26 forward mapping items. Current v5 storage
-normalizes item identity/kind and acquisition evidence without changing those
-finite scored counts.
+Morse topic adds 26 bidirectional logical scoring units — one per letter, not 52
+duplicated cards. Current v5 storage normalizes item identity/kind and
+acquisition evidence without changing those finite scored counts.
 
 ## NATO phonetic alphabet
 
@@ -59,28 +60,30 @@ the finite mapping claim.
 
 ## International Morse — Letters (printed)
 
-This topic was added by #23 as an intentionally narrow control/baseline before the
-progressive Morse programme was complete.
+This topic was added by #23 as an intentionally narrow forward-only
+control/baseline. #26 added progressive Learn packets and #27 added the
+progressive Test ladder without changing that scored claim. #28 then absorbed the
+control topic in place — same topic id, same 26 item ids — and typed every item
+`bidirectional`, so the shipped library carries exactly one Morse completion
+claim rather than two overlapping ones.
 
 Current scope:
 
-> The 26 International Morse patterns for A–Z, recalled from the printed letter.
-> One direction only: letter → canonical dit/dah pattern.
+> Can independently recall all A–Z printed Morse mappings in both directions.
 
-That scope is honest and completely covered by 26 forward items. #26 later added
-progressive Learn packets; #27 added a progressive Test ladder. Neither workstream
-changed the scored claim.
+That scope is completely covered by 26 bidirectional logical items. Directional
+coverage gates a passing retention attempt, so forward-only evidence cannot award
+completion.
 
-Important boundary discipline before #28:
+Boundary discipline that still holds:
 
 - audio in Learn/feedback does **not** prove auditory reception;
 - mnemonic/timing graphics are acquisition support, not completion evidence;
-- the reverse free-response Test rung exists in runtime but remains dormant for
-  this forward-only seed topic;
-- #28, not this audit/docs lane, owns converting/absorbing the temporary topic
-  into the final bidirectional A–Z curriculum;
-- until #28 does that safely, this topic must not be described as proving both
-  directions or “knowing Morse.”
+- the free-reception rung is live for this topic, because its items now declare
+  the reverse direction; it stays dormant for any `forward` topic;
+- the claim is printed recall in both directions only. It does not assert
+  auditory reception, sending, WPM, words, phrases, operating fluency, or
+  “knowing Morse.” Those remain #29's scope.
 
 Canonical mapping/timing provenance is ITU-R M.1677-1. Character-order/training
 provenance is recorded in `docs/MORSE_CHARACTER_ORDER.md` and
@@ -158,4 +161,4 @@ first-class content requirements, not generic README disclaimers.
 - `docs/MORSE_CHARACTER_ORDER.md` — Morse order rule + corrected Koch/CW Academy
   comparison.
 - `docs/MORSE_PROVENANCE_RECONCILIATION.md` — pre-#28 provenance/docs closeout.
-- `docs/MORSE_PROGRAMME_PLAN.md` — v5 Morse decisions and #28 handoff boundary.
+- `docs/MORSE_PROGRAMME_PLAN.md` — v5 Morse decisions and implementation status.

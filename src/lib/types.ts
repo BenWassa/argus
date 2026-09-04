@@ -159,7 +159,7 @@ export interface Topic {
   itemEvidence?: ItemEvidenceStore
 }
 
-/** Seed/import compatibility shape used only before the v5 storage boundary. */
+/** Import compatibility shape. Older exports migrate forward at the v5 boundary. */
 export interface LegacyLibraryV4 {
   version: 4
   topics: Topic[]
@@ -171,7 +171,7 @@ export interface CurrentLibrary {
   topics: Topic[]
 }
 
-/** The seed remains an explicit v4 source record; storage is the v5 boundary. */
+/** The seed is itself a v5 record; storage remains the migration boundary. */
 export type Library = LegacyLibraryV4 | CurrentLibrary
 
 export type View = 'today' | 'library' | 'progress' | 'data'

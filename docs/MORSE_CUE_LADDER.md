@@ -93,6 +93,13 @@ A ladder answer is objectively graded rather than self-scored, but it feeds the
 *identical* tally: the scheduler still sees one clean run of every item in the
 topic, and `PASS_THRESHOLD` is untouched.
 
+#28 added one deliberate one-way gate on top of that, in `Session`, not in the
+scheduler: for a topic containing bidirectional items, `retentionCorrectCount`
+withholds the tally until every logical item has correct evidence in *both*
+required directions. Cue evidence can therefore block a passing retention
+attempt; it still cannot grant, skip or reset one, and `resolveAttempt` itself is
+unchanged.
+
 One deliberate difference from the self-scored card: leaving a Test early
 discards the partial attempt, exactly as it always has, but **writes out the cue
 evidence**. The all-or-nothing rule is a statement about retention, not about
@@ -165,16 +172,17 @@ artwork, so the ladder does not depend on which workstream supplied the Learn
 content. When a topic's Learn content *does* carry a `morse-character-packet`,
 its `mnemonicId` and `textLabel` are picked up and attached to the profile.
 
-## Handoff to workstream 5 (#28)
+## Workstream 5 (#28) — what changed, and what did not
 
-The seeded printed Morse topic's items are `forward`, and its scope says so:
-"One direction only: letter → canonical dit/dah pattern." Rung 5 is therefore
-implemented, tested and correctly dormant for that topic — asking for the
-reverse direction would claim coverage the topic does not declare.
+When this workstream shipped, the seeded printed Morse topic's items were
+`forward`, so rung 5 was implemented, tested and correctly dormant for it:
+asking for the reverse direction would have claimed coverage the topic did not
+declare.
 
-Typing those items `bidirectional` widens a completion claim, which is
-workstream 5's decision to make, not this workstream's. When #28 makes it, rung
-5 activates for the seeded topic with no further change here.
+#28 typed those 26 items `bidirectional`, which is what widened the completion
+claim to "Can independently recall all A–Z printed Morse mappings in both
+directions." Rung 5 activated for the seeded topic with no change to this
+workstream's code. A `forward` topic still tops out at free production.
 
 ## Out of scope
 
