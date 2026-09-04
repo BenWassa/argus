@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import {
   hasCompleteDirectionalCoverage,
+  hasCompleteTopicDirectionalCoverage,
   pruneItemEvidence,
   reconcileAuthoredItems,
   requiredDirections,
+  retentionCorrectCount,
 } from './items'
 import type { IdentifiedItem, ItemCueEvidence } from './types'
 
@@ -131,5 +133,10 @@ describe('typed directional coverage', () => {
       },
     }
     expect(hasCompleteDirectionalCoverage(existing[1], both)).toBe(true)
+    expect(hasCompleteTopicDirectionalCoverage([existing[1]], { 'item-b': both })).toBe(true)
+    expect(hasCompleteTopicDirectionalCoverage([existing[1]], { 'item-b': forward })).toBe(false)
+    expect(retentionCorrectCount([existing[1]], { 'item-b': forward }, 1)).toBe(0)
+    expect(retentionCorrectCount([existing[1]], { 'item-b': both }, 1)).toBe(1)
+    expect(retentionCorrectCount([existing[0]], undefined, 1)).toBe(1)
   })
 })

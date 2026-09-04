@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { parseLibrary } from './storage'
+import { absorbSeededMorseBaseline, parseLibrary } from './storage'
+import { seedLibrary } from './seed'
 
 const timestamp = '2026-08-01T00:00:00.000Z'
 
@@ -76,6 +77,38 @@ const richLearn = {
 }
 
 describe('library import migration', () => {
+  it('absorbs the exact #23 seed in place while preserving durable learner state', () => {
+    const seeded = seedLibrary()
+    const morse = seeded.topics.find((topic) => topic.id === 'international-morse-letters-printed')!
+    const forward = {
+      ...morse,
+      scope: 'The temporary forward-only boundary.',
+      items: morse.items.map((item) => ({ ...item, kind: 'forward' as const })),
+      status: 'drilled' as const,
+      drilledAt: timestamp,
+      history: [{ at: timestamp, correct: 26, total: 26, resolvedTo: 'drilled' as const }],
+      itemEvidence: {
+        [morse.items[0].id!]: {
+          cue: 'reduced' as const,
+          directions: {
+            'prompt-to-answer': {
+              attempts: 4, correct: 3, consecutiveCorrect: 1,
+              lastAt: timestamp, lastLatencyMs: 700,
+            },
+          },
+        },
+      },
+    }
+    const upgraded = absorbSeededMorseBaseline({ version: 5, topics: [forward] }).topics[0]
+    expect(upgraded.items).toHaveLength(26)
+    expect(upgraded.items.every((item) => item.kind === 'bidirectional')).toBe(true)
+    expect(upgraded.items.map((item) => item.id)).toEqual(forward.items.map((item) => item.id))
+    expect(upgraded.history).toEqual(forward.history)
+    expect(upgraded.drilledAt).toBe(timestamp)
+    expect(upgraded.itemEvidence).toEqual(forward.itemEvidence)
+    expect(upgraded.scope).toBe('Can independently recall all A–Z printed Morse mappings in both directions.')
+  })
+
   it('maps v2 practice-named timestamps into the v5 runtime model', () => {
     const parsed = parseLibrary({
       version: 2,

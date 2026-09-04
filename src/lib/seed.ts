@@ -68,12 +68,17 @@ export function seedLibrary(): Library {
     {
       id: 'international-morse-letters-printed',
       title: 'International Morse — Letters (printed)',
-      scope: 'The 26 International Morse patterns for A–Z, recalled from the printed letter. One direction only: letter → canonical dit/dah pattern.',
+      scope: 'Can independently recall all A–Z printed Morse mappings in both directions.',
       track: 'learning',
-      items: MORSE_A_TO_Z.map(([prompt, answer]) => ({ prompt, answer })),
+      items: MORSE_A_TO_Z.map(([prompt, answer], index) => ({
+        id: `international-morse-letters-printed-item-${String(index + 1).padStart(2, '0')}`,
+        kind: 'bidirectional' as const,
+        prompt,
+        answer,
+      })),
       learn: {
         kind: 'concise',
-        overview: 'International Morse represents letters as sequences of dits (.) and dahs (-). A dah lasts three dit units; spacing within a character is one unit, between characters three, and between words seven. This topic scores only printed letter → canonical pattern recall; it does not claim reverse recall, auditory reception, sending, or any speed criterion.',
+        overview: 'International Morse represents letters as sequences of dits (.) and dahs (-). A dah lasts three dit units; spacing within a character is one unit, between characters three, and between words seven. Completion requires uncued printed recall in both directions: letter → canonical pattern and printed pattern → letter. It does not claim auditory reception, sending, WPM, words, phrases, or operating fluency.',
         sections: [
           {
             heading: 'How to use the packets',
@@ -377,5 +382,17 @@ export function seedLibrary(): Library {
     },
   ]
 
-  return { version: 4, topics }
+  return {
+    version: 5,
+    topics: topics.map((topic) => ({
+      ...topic,
+      items: topic.items.map((item, index) => ({
+        id: item.id ?? `${topic.id}-item-${String(index + 1).padStart(2, '0')}`,
+        kind: item.kind ?? 'forward',
+        prompt: item.prompt,
+        answer: item.answer,
+      })),
+      itemEvidence: topic.itemEvidence ?? {},
+    })),
+  }
 }

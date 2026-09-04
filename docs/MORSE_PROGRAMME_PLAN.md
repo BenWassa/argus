@@ -37,21 +37,17 @@ Cue/acquisition evidence and retention/completion evidence are separate
 dimensions. Cue progress must never qualify, skip, reset, or counterfeit a
 retention gap. `src/lib/scheduling.ts` remains the authority for completion.
 
-## Current implementation state before #28
+## Current implementation state through #28
 
-Workstreams #23–#27 are merged. The repository is now v5 at the storage boundary.
-The seeded Morse topic is intentionally still the narrow #23 control topic:
+#28 absorbs the narrow #23 control topic in place. The same topic id and 26
+stable item ids now define 26 `bidirectional` logical units. Existing history,
+retention timestamps and cue evidence survive the upgrade; a historical
+forward-only completion cannot remain the active completion state for the
+stronger claim.
 
-> **International Morse — Letters (printed):** 26 printed letter → canonical
-> dit/dah mappings, one direction only.
+The final boundary is exactly:
 
-It has progressive Learn packets and the progressive Test ladder, but its items
-remain `forward`. The reverse free-response rung therefore remains dormant for
-that seed topic. That is correct: activating reverse scoring would widen the
-completion claim and belongs to #28.
-
-Nothing in this documentation lane changes runtime code, learner state, item
-identity, scheduler history, cue evidence, or the #28 migration/absorption job.
+> Can independently recall all A–Z printed Morse mappings in both directions.
 
 ## Decisions register
 
@@ -67,7 +63,7 @@ identity, scheduler history, cue evidence, or the #28 migration/absorption job.
 | P3 | Cue fading | Two consecutive correct at current rung; latency recorded but not gating | Implemented default | #27 / PR #35 |
 | P4 | Default audio speed | 20 WPM character, ~9 WPM effective; adjustable | Implemented default | #25 / PR #31 |
 | P5 | Mnemonic asset model | Original timing-grammar SVGs; no borrowed per-letter artwork | Implemented default | #26 / PR #34 |
-| P6 | Temporary printed baseline | Ship it, then #28 must absorb/supersede it cleanly | Ratified | #23 / PR #32 |
+| P6 | Temporary printed baseline | Absorb in place; retain ids/evidence/history, activate bidirectional semantics | Implemented | #28 |
 
 ## Why v5 exists
 
@@ -192,12 +188,12 @@ illustration licensing.
 | 2 | #25 | Morse synthesis, timing, accessibility | **Merged** via PR #31 |
 | 3 | #26 | SVG grammar + progressive Learn | **Merged** via PR #34; provenance wording reconciled in docs lane |
 | 4 | #27 | Progressive Test + cue fading | **Merged** via PR #35 |
-| 5 | #28 | A–Z bidirectional curriculum + mobile acceptance | **Next implementation workstream; untouched by this docs lane** |
+| 5 | #28 | A–Z bidirectional curriculum + mobile acceptance | **Implemented; physical-device acceptance remains a release gate** |
 | 6 | #29 | Auditory reception / sending / continuous material | Deferred until validated #28 |
 
-## #28 handoff boundary
+## #28 implementation boundary
 
-#28 may safely rely on the following already-implemented contracts:
+#28 relies on and preserves the following contracts:
 
 - v5 stable item identity and migration/export/import;
 - typed forward/bidirectional item semantics;
@@ -207,10 +203,10 @@ illustration licensing.
 - progressive Test rungs, including dormant reverse free response;
 - canonical ITU mapping/timing engine.
 
-#28 still owns the **content/state transition** from the temporary one-direction
-#23 topic to the final bidirectional A–Z curriculum. It must absorb/supersede #23
-without creating two overlapping completion claims or corrupting existing
-learner state.
+#28 performs the **content/state transition** from the temporary one-direction
+#23 topic to the final bidirectional A–Z curriculum without creating a second
+topic. Before the unchanged scheduler receives a potentially passing attempt,
+all 26 items must have correct evidence in both required directions.
 
 The exact final completion claim belongs to #28 and must remain limited to
 printed A–Z mapping recall in both directions. Auditory reception, sending,

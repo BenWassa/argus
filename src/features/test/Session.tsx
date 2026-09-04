@@ -10,6 +10,7 @@ import {
 } from '../../lib/acquisition'
 import { mergeItemEvidence, recordAnswer, rungFor } from '../../lib/cueLadder'
 import { selectDistractors } from '../../lib/distractors'
+import { retentionCorrectCount } from '../../lib/items'
 import type { Item, ItemCueEvidence, ItemEvidenceStore, Topic } from '../../lib/types'
 import { ProgressiveCard, type ProgressiveAnswer } from './ProgressiveCard'
 import { testCardTextClass } from './textScale'
@@ -165,7 +166,12 @@ export function Session({ topicIds, onExit }: SessionProps) {
     // The scheduler resolves the attempt exactly as it always has. Cue evidence
     // is merged in afterwards, as a separate field, and changes nothing the
     // resolution decided.
-    const resolution = resolveAttempt(topic, attempt.correct, attempt.total)
+    const mergedEvidence = { ...(topic.itemEvidence ?? {}), ...evidence }
+    // Acquisition evidence remains separate state. It is used here only as a
+    // safety gate: an incomplete direction can never be presented to the
+    // unchanged scheduler as a passing attempt for a bidirectional boundary.
+    const schedulerCorrect = retentionCorrectCount(topic.items, mergedEvidence, attempt.correct)
+    const resolution = resolveAttempt(topic, schedulerCorrect, attempt.total)
     upsertTopic(mergeItemEvidence(resolution.topic, evidence))
     setResolutions((previous) => [...previous, resolution])
   }

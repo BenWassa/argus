@@ -1,8 +1,8 @@
 # Seeded content provenance and Test boundaries
 
-Issue: #11; Morse baseline: #23  
+Issue: #11; Morse baseline: #23; final A–Z curriculum: #28
 Research baseline: `f2a3112110356f90f469c8c340f9f0ac69fbb2ee`  
-Library format: v4
+Library format: v5
 
 ## Purpose
 
@@ -13,7 +13,7 @@ This document records the research decisions behind the topics shipped by `src/l
 | Topic | Final finite Test boundary | Items | Learn treatment |
 | --- | --- | ---: | --- |
 | NATO phonetic alphabet | 26 letters A–Z → official NATO code word | 26 | Concise support |
-| International Morse — Letters (printed) | 26 printed letters A–Z → canonical International Morse dit/dah pattern | 26 | Concise support |
+| International Morse — Letters (printed) | 26 printed A–Z mappings recalled in both directions | 26 bidirectional logical units | Progressive packets |
 | OODA loop | Four stages in order + one core function for each | 4 | Briefing + integrated case |
 | Primary survey | Five ABCDE headings in order only | 5 | Briefing + integrated bounded case + explicit safety limits |
 | Cardinal/intercardinal bearings | Eight named compass points → clockwise degree value from north, with north represented as 0° | 8 | Concise support |
@@ -44,7 +44,7 @@ Concise support only: one short purpose/spelling note plus provenance. No case s
 
 ### Research decision
 
-Workstream #23 deliberately ships the smallest useful Morse control before the progressive cue, schema and audio work lands. ITU-R M.1677-1 Annex 1 supplies the authoritative International Morse A–Z mapping and the canonical timing relationships. This topic uses only the mapping in scored Test items; the timing note is explanatory context.
+Workstream #28 absorbs the temporary #23 forward-only control in place: the topic id and all 26 deterministic item ids remain stable, while each logical item now requires both printed directions. No duplicate or overlapping Morse topic is shipped. ITU-R M.1677-1 Annex 1 supplies the authoritative International Morse A–Z mapping and canonical timing relationships.
 
 The 26 canonical mappings are:
 
@@ -62,13 +62,13 @@ The 26 canonical mappings are:
 
 ### Test boundary
 
-**The 26 International Morse patterns for A–Z, recalled from the printed letter. One direction only: letter → canonical dit/dah pattern.**
+**Can independently recall all A–Z printed Morse mappings in both directions.**
 
-Every A–Z mapping appears once. Completion here does **not** claim pattern → letter recall, auditory reception, sending, or a speed criterion. The later bidirectional/progressive curriculum must explicitly supersede or absorb this control topic so overlapping completion claims do not remain in the shipped library.
+Every A–Z mapping appears once as one bidirectional logical scoring unit—not as 52 duplicated cards. Directional evidence gates a passing retention attempt, so forward-only evidence cannot award completion. Completion does **not** claim auditory reception, sending, WPM, words, phrases, or operating fluency.
 
 ### Learn treatment
 
-Concise support states the dit/dah notation, the ITU 1:3:7 timing relationships, and the completion limitations. It does not introduce an acquisition ladder, audio interaction, SVG mnemonic system, or any scored material beyond the 26 printed prompts.
+Progressive Learn packets use Argus's original timing grammar and deterministic audio. The Test ladder fades rich support through delayed and reduced choice to uncued production and uncued reverse-direction recall. Artwork and answer-bearing cues are mechanically absent from both uncued rungs.
 
 ### Authoritative source
 
@@ -169,7 +169,7 @@ Concise support only: clockwise-from-north convention, 45° spacing, the 0°/360
 
 - Every topic has an explicit finite scope.
 - Every stated scored boundary is completely enumerated by `items`.
-- The printed Morse control claims one direction only and does not count timing context, audio, sending, reverse recognition, or speed toward completion.
+- The final Morse topic requires both printed directions and does not count timing context, audio exposure, sending, speed, words, phrases, or operating fluency toward completion.
 - No case-study detail, provenance note, limitation, clinical technique, wider OODA relationship, or contextual explanation is silently counted toward completion.
 - NATO, Morse and bearings remain compact despite using concise provenance support.
 - OODA and Primary Survey use the richer v4 Learn model because understanding the framework/procedure requires more than mapping labels.

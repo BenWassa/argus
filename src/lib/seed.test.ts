@@ -7,11 +7,14 @@ function seededTopic(id: string) {
   return topic
 }
 
+const rows = (items: { prompt: string; answer: string }[]) =>
+  items.map(({ prompt, answer }) => ({ prompt, answer }))
+
 describe('researched seeded library', () => {
   it('keeps every declared Test boundary finite and history-compatible', () => {
     const library = seedLibrary()
 
-    expect(library.version).toBe(4)
+    expect(library.version).toBe(5)
     expect(library.topics.map((topic) => topic.id)).toEqual([
       'nato-phonetic',
       'international-morse-letters-printed',
@@ -32,39 +35,37 @@ describe('researched seeded library', () => {
     const topic = seededTopic('nato-phonetic')
 
     expect(topic.items).toHaveLength(26)
-    expect(topic.items[0]).toEqual({ prompt: 'A', answer: 'Alfa' })
-    expect(topic.items[9]).toEqual({ prompt: 'J', answer: 'Juliett' })
-    expect(topic.items[25]).toEqual({ prompt: 'Z', answer: 'Zulu' })
+    expect(rows(topic.items)[0]).toEqual({ prompt: 'A', answer: 'Alfa' })
+    expect(rows(topic.items)[9]).toEqual({ prompt: 'J', answer: 'Juliett' })
+    expect(rows(topic.items)[25]).toEqual({ prompt: 'Z', answer: 'Zulu' })
     expect(topic.learn?.kind).toBe('concise')
     expect(topic.learn?.caseStudies).toBeUndefined()
     expect(topic.learn?.sources?.[0].url).toContain('nato.int')
   })
 
-  it('seeds exactly the ITU A–Z printed letter → Morse baseline', () => {
+  it('seeds exactly 26 ITU A–Z bidirectional logical scoring units', () => {
     const topic = seededTopic('international-morse-letters-printed')
 
     expect(topic.scope).toBe(
-      'The 26 International Morse patterns for A–Z, recalled from the printed letter. One direction only: letter → canonical dit/dah pattern.',
+      'Can independently recall all A–Z printed Morse mappings in both directions.',
     )
     expect(topic.items).toEqual([
-      { prompt: 'A', answer: '.-' }, { prompt: 'B', answer: '-...' },
-      { prompt: 'C', answer: '-.-.' }, { prompt: 'D', answer: '-..' },
-      { prompt: 'E', answer: '.' }, { prompt: 'F', answer: '..-.' },
-      { prompt: 'G', answer: '--.' }, { prompt: 'H', answer: '....' },
-      { prompt: 'I', answer: '..' }, { prompt: 'J', answer: '.---' },
-      { prompt: 'K', answer: '-.-' }, { prompt: 'L', answer: '.-..' },
-      { prompt: 'M', answer: '--' }, { prompt: 'N', answer: '-.' },
-      { prompt: 'O', answer: '---' }, { prompt: 'P', answer: '.--.' },
-      { prompt: 'Q', answer: '--.-' }, { prompt: 'R', answer: '.-.' },
-      { prompt: 'S', answer: '...' }, { prompt: 'T', answer: '-' },
-      { prompt: 'U', answer: '..-' }, { prompt: 'V', answer: '...-' },
-      { prompt: 'W', answer: '.--' }, { prompt: 'X', answer: '-..-' },
-      { prompt: 'Y', answer: '-.--' }, { prompt: 'Z', answer: '--..' },
+      ...[
+        ['A', '.-'], ['B', '-...'], ['C', '-.-.'], ['D', '-..'], ['E', '.'], ['F', '..-.'],
+        ['G', '--.'], ['H', '....'], ['I', '..'], ['J', '.---'], ['K', '-.-'], ['L', '.-..'],
+        ['M', '--'], ['N', '-.'], ['O', '---'], ['P', '.--.'], ['Q', '--.-'], ['R', '.-.'],
+        ['S', '...'], ['T', '-'], ['U', '..-'], ['V', '...-'], ['W', '.--'], ['X', '-..-'],
+        ['Y', '-.--'], ['Z', '--..'],
+      ].map(([prompt, answer], index) => ({
+        id: `international-morse-letters-printed-item-${String(index + 1).padStart(2, '0')}`,
+        kind: 'bidirectional', prompt, answer,
+      })),
     ])
     expect(topic.status).toBe('unstarted')
     expect(topic.history).toEqual([])
     expect(topic.learn?.kind).toBe('concise')
-    expect(topic.learn?.overview).toContain('does not claim reverse recall')
+    expect(topic.items.every((item) => item.kind === 'bidirectional')).toBe(true)
+    expect(topic.learn?.overview).toContain('does not claim auditory reception')
     expect(topic.learn?.sources?.[0].url).toBe('https://www.itu.int/rec/R-REC-M.1677-1-200910-I/en')
   })
 
@@ -94,7 +95,7 @@ describe('researched seeded library', () => {
   it('keeps Primary Survey scoring to the five ABCDE headings and order', () => {
     const topic = seededTopic('primary-survey')
 
-    expect(topic.items).toEqual([
+    expect(rows(topic.items)).toEqual([
       { prompt: 'Step 1 (A)', answer: 'Airway' },
       { prompt: 'Step 2 (B)', answer: 'Breathing' },
       { prompt: 'Step 3 (C)', answer: 'Circulation' },
@@ -114,7 +115,7 @@ describe('researched seeded library', () => {
   it('keeps bearings as exactly eight clockwise degree mappings from north', () => {
     const topic = seededTopic('cardinal-bearings')
 
-    expect(topic.items).toEqual([
+    expect(rows(topic.items)).toEqual([
       { prompt: 'North', answer: '0°' },
       { prompt: 'Northeast', answer: '45°' },
       { prompt: 'East', answer: '90°' },

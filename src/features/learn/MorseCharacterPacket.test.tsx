@@ -148,7 +148,7 @@ describe('seeded Morse topic', () => {
 
   it('adds Learn packets without touching the scored boundary', () => {
     expect(topic.items).toHaveLength(26)
-    expect(topic.scope).toContain('One direction only')
+    expect(topic.scope).toBe('Can independently recall all A–Z printed Morse mappings in both directions.')
     const packetSections = topic.learn?.sections?.filter((section) =>
       section.blocks.some((block) => block.type === 'morse-character-packet'),
     )
