@@ -21,6 +21,9 @@
   line-height: 1.02;
   letter-spacing: -0.022em;
   text-wrap: balance;
+  /* A long single word in a title must wrap rather than push the page sideways
+     once text is scaled up. */
+  overflow-wrap: break-word;
 }
 
 /* The boundary is the product's whole premise, so on the reading surface it
@@ -352,5 +355,128 @@
   .learn-definitions > div {
     grid-template-columns: minmax(8rem, 0.34fr) minmax(0, 1fr);
     gap: var(--s-lg);
+  }
+}
+
+/* --- Morse character packet -------------------------------------------------
+   The acquisition surface. Mobile-first: one card per row on a phone, the
+   mnemonic sized in em so it grows with the page's text scale rather than
+   staying pinned at a pixel size when a reader turns text up to 200%. */
+
+.morse-packet {
+  display: grid;
+  gap: var(--s-md);
+}
+
+.morse-cards {
+  display: grid;
+  gap: var(--s-md);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.morse-card {
+  display: grid;
+  gap: var(--s-sm);
+  justify-items: start;
+  padding: var(--s-md);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--surface-2);
+  box-shadow: var(--edge);
+}
+
+.morse-card.is-sounding {
+  border-color: var(--line-strong);
+}
+
+.morse-mnemonic {
+  display: block;
+  width: 100%;
+  max-width: 22em;
+  height: auto;
+}
+
+.morse-mnemonic-glyph {
+  font-family: var(--font-display);
+  font-size: 34px;
+  font-weight: var(--w-display);
+  fill: var(--ink);
+}
+
+/* The rail spans the full width on every card, so a two-element character
+   visibly occupies less time than a four-element one. */
+.morse-mnemonic-rail {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+
+.morse-mnemonic-origin {
+  stroke: var(--line-strong);
+  stroke-width: 1.5;
+}
+
+.morse-mnemonic-element {
+  fill: var(--accent);
+  /* Illumination is colour only. Nothing here translates, scales or rotates,
+     so the sequence is conveyed identically with motion suppressed. */
+  transition: fill 90ms linear, opacity 90ms linear;
+  opacity: 0.82;
+}
+
+.morse-mnemonic-element.is-sounding {
+  fill: var(--accent-2);
+  opacity: 1;
+}
+
+.morse-canonical {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-sm);
+  margin: 0;
+}
+
+.morse-notation {
+  font-family: var(--font-mono);
+  font-size: var(--t-component);
+  letter-spacing: 0.06em;
+  color: var(--ink);
+}
+
+.morse-rhythm {
+  font-size: var(--t-small);
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
+
+.morse-play {
+  min-height: 44px;
+  padding-inline: var(--s-md);
+}
+
+.morse-packet-note,
+.morse-audio-error {
+  margin: 0;
+  font-size: var(--t-small);
+  color: var(--muted);
+}
+
+.morse-audio-error {
+  color: var(--warning);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .morse-mnemonic-element {
+    transition: none;
+  }
+}
+
+/* Two cards abreast only once there is real room; a packet of five stays
+   readable on a phone as a single column. */
+@media (min-width: 620px) {
+  .morse-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

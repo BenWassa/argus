@@ -1,4 +1,5 @@
 import type { LearnBlock, LearnContent, LearnSection } from '../../lib/types'
+import { MorseCharacterPacket } from './MorseCharacterPacket'
 
 function LearnBlockView({ block }: { block: LearnBlock }) {
   switch (block.type) {
@@ -47,22 +48,7 @@ function LearnBlockView({ block }: { block: LearnBlock }) {
         </div>
       )
     case 'morse-character-packet':
-      // Workstream #24 owns only the validated data shape. Until #26 supplies
-      // the progressive SVG/audio treatment, render the canonical textual
-      // representation so imported content is never blank or visual-only.
-      return (
-        <dl className="learn-definitions" aria-label="Morse character packet">
-          {block.characters.map((character) => (
-            <div key={character.glyph}>
-              <dt>{character.glyph}</dt>
-              <dd>
-                <span className="mono" aria-hidden="true">{character.pattern}</span>
-                <span className="sr-only">{character.textLabel}</span>
-              </dd>
-            </div>
-          ))}
-        </dl>
-      )
+      return <MorseCharacterPacket characters={block.characters} />
   }
 }
 
