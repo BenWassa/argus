@@ -1,98 +1,129 @@
 # Argus programme — Learn/Test simplification and content quality
 
 Parent issue: #7  
-Planning baseline: `7498c55494d5b75fdb99c3316b461a2a5e6eef01`
+Programme start baseline: `7498c55494d5b75fdb99c3316b461a2a5e6eef01`  
+Original content-rewrite baseline: `c1cc753eb89c9aa5379d1a885892703cf20e65ba`
 
-## Control model
+## Status
 
-This programme is coordinated from the planning/status chat. Product implementation happens only through focused GitHub issues, branches and pull requests. Planning documentation and repository housekeeping may be maintained from the control chat; application code should not be changed opportunistically outside the selected issue.
+The Learn/Test + content-quality product work is implemented. This document is a
+programme closeout/ledger, not the authority for the newer Morse architecture.
+Morse-specific work is tracked under #21 and `docs/MORSE_PROGRAMME_PLAN.md`.
 
-## Product direction
+The current durable library boundary is **v5**, introduced later by Morse
+workstream #24. The original #7 programme produced v4 structured Learn content;
+v5 preserves that model and adds stable item identity, typed directionality and
+per-item cue/evidence state.
 
-Argus should have two user-facing learning interactions:
+## Implemented product model
 
-- **Learn** — ungraded reading/exposure.
-- **Test** — the single flashcard/recall interaction.
+Argus has exactly two user-facing learning interactions:
 
-Practice is to be removed as a separate mode. The scheduler, not a second recall mode, determines what a Test result is allowed to prove.
+- **Learn** — ungraded reading/exposure. Reading may move an unstarted topic into
+  learning, but it records no score and cannot satisfy delayed-retention evidence.
+- **Test** — the single scored recall interaction. The scheduler determines what
+  a result is allowed to prove.
 
-An early Test may produce useful recall evidence, but it must not counterfeit a delayed-retention milestone, bypass a required gap, or postpone a later required spot check merely because the user chose to test early.
+Practice is not an active product/runtime mode. Legacy practice-named data exists
+only where required as a migration input.
 
-## Content direction
+An early Test may create useful evidence, but it cannot counterfeit a delayed
+retention milestone, bypass a required gap, or silently postpone a required spot
+check.
 
-A topic has two layers with different jobs.
+## Content model
 
-### Testable boundary
+A topic has two structurally separate layers.
 
-The finite material the user must be able to recall and that Argus can score completely. Scope and Test items define this boundary.
+### Finite Test boundary
 
-### Explanatory support
+`scope` states the completion claim and `items` contain the complete scored
+material. Together they define the finite boundary Test/completion is allowed to
+use.
 
-Optional Learn-only material that makes the testable boundary understandable without silently expanding the completion claim.
+### Optional Learn support
 
-Depending on the topic, explanatory support may include:
+`topic.learn` is explanatory support only. It may add context, relationships,
+provenance, limitations or an integrated case study, but it does not become
+scored material merely because it is shown in Learn.
 
-- a concise overview;
-- structured explanatory sections;
-- definitions and relationships;
-- ordered/comparison lists;
-- compact reference tables;
-- limitations and common confusions;
-- provenance/source notes;
-- integrated case studies.
+Three editorial treatments remain supported:
 
-The richer layer is optional. Mapping/reference topics should remain compact when added prose would not improve understanding.
+1. **Reference-only** — no structured Learn support.
+2. **Concise support** — small amounts of context/provenance/limitations.
+3. **Briefing required** — structured sections, definitions, lists/tables and
+   integrated cases where useful.
+
+The model is typed data rather than arbitrary HTML or a bespoke CMS.
+
+## Original programme workstreams
+
+- #8 — **complete**: audited the shipped library and established content
+  archetypes/boundary discipline.
+- #10 — **complete** via PR #14: removed Practice and protected early-Test
+  scheduler semantics.
+- #9 — **complete** via PR #18: added optional typed structured Learn content,
+  v4 migration/portability and responsive rendering.
+- #11 — **complete** via PR #19: researched and rewrote the four original seed
+  topics against the v4 model.
+- #15 — **complete** via PR #17: hardened Test-card styling/typography.
+- #12 — housekeeping/documentation reconciliation lane. Phase A was recorded in
+  PR #16. Its old PR #20 was later superseded because it described a v4 snapshot
+  after v5/Morse had already landed; current-main reconciliation now lives in the
+  pre-#28 Morse docs lane instead of merging that stale snapshot.
+
+## Shipped content after the original programme
+
+The original research/rewrite covered:
+
+| Topic | Finite Test boundary | Learn treatment |
+|---|---|---|
+| NATO phonetic alphabet | 26 letters A–Z → official NATO code word | Concise support |
+| OODA loop | Four stages in order + one core function for each | Briefing + integrated case |
+| Primary survey | Five ABCDE headings in order only | Briefing + bounded case + safety limits |
+| Cardinal/intercardinal bearings | Eight compass points → clockwise degree values from north | Concise support |
+
+The current seed additionally includes the temporary pre-#28 Morse control topic:
+
+| Topic | Finite Test boundary | Learn treatment |
+|---|---|---|
+| International Morse — Letters (printed) | 26 printed letters A–Z → canonical dit/dah pattern, **one direction only** | Concise support + progressive Morse packets |
+
+That temporary one-direction Morse boundary is intentional. #28 owns the later
+absorption/supersession into the full bidirectional A–Z claim; this programme
+document does not widen it.
+
+Detailed source decisions for the original four topics remain in
+`docs/SEEDED_CONTENT_PROVENANCE.md`. Morse provenance and programme decisions are
+recorded separately in the Morse docs.
 
 ## Editorial standard
 
-Rich Learn content should be dense and structured rather than essay-like.
-
-- Use short meaningful sections.
-- Prefer tables and lists when they carry information more efficiently than paragraphs.
-- Keep terminology concrete and precise.
-- Use case studies to exercise a framework or procedure as a whole.
-- Do not create one isolated toy example per stage/term merely to fill a template.
-- Keep factual explanation, case analysis, sources and limitations distinct.
-- Do not repeat facts already obvious from a reference table.
-
-## Programme issues
-
-- #8 — audit the shipped library and define content archetypes.
-- #9 — add optional structured Learn briefings and integrated case studies.
-- #10 — collapse Practice into Test without weakening retention semantics.
-- #11 — research and rewrite seeded topics against the audit.
-- #12 — repository housekeeping and documentation reconciliation.
-
-## Recommended execution order
-
-1. **#8 Audit** — lock the content rubric and classify the current library.
-2. **#10 Learn/Test simplification** — can proceed independently once its early-Test policy is explicit and tested.
-3. **#9 Structured Learn model** — use #8 findings to avoid overbuilding a universal article system.
-4. **#11 Topic research/rewrite** — only after the richer data/rendering model exists.
-5. **#12 Reconciliation/housekeeping** — continuous branch hygiene, with final durable-doc cleanup after #9 and #10.
-
-#8 and the product-policy part of #10 can run in parallel. #11 should not start before #9.
+- Keep every scored boundary explicit and finishable.
+- Use short, information-dense Learn sections rather than essay padding.
+- Prefer tables/lists where they communicate more efficiently.
+- Use cases to exercise a framework/procedure as a whole rather than one toy
+  example per term.
+- Keep factual explanation, cases, sources and limitations distinct.
+- Keep mapping/reference topics compact when richer prose adds little value.
+- Safety-sensitive content requires authoritative provenance and visible
+  limitations; Argus is a memory/rehearsal tool, not a credential.
 
 ## Non-negotiable invariants
 
 - Every topic stays finishable.
-- The scored boundary is explicit and finite.
-- Completion still requires appropriate delayed evidence.
-- Completion remains permanent even when later recall decays.
-- Learn is never shaped like a hidden-answer card.
-- Test remains fast on mobile: reveal, self-score, next.
-- Rich content is not mandatory for every topic.
-- Export/import remains first-class and migration-safe.
-- Safety-sensitive content retains provenance and limitations; Argus is a memory tool, not a credential.
+- The scored boundary is explicit, finite and completely covered by Test items.
+- Completion requires appropriate delayed evidence and remains permanent once
+  earned; later decay is routing information.
+- Learn never masquerades as a hidden-answer Test card.
+- Rich Learn content remains optional.
+- Export/import and supported migrations preserve durable state.
+- New acquisition systems such as Morse cue fading remain separate from the
+  retention scheduler unless the product contract is deliberately changed in
+  its own workstream.
 
-## Repository hygiene
+## Repository-documentation rule
 
-At programme start, `main` is green and there are no open PRs. Historical merged/superseded branches should be deleted under #12. The branch `claude/splash-screen-redesign-zr425a` has one unique unmerged commit and must be reviewed before deletion.
-
-### Housekeeping Phase A — 2026-09-02
-
-The unique splash commit `98726197ae30da403ac43c2b9cd99cbe17d0fc76` was reviewed against post-#10 `main`. Its splash redesign, navigation treatment, dark-chrome suggestion, and legacy splash cleanup are superseded by later merged design/splash work and should not be revived.
-
-One still-valid Test-card concern was extracted to #15: isolate the flashcard from global button hover styling and fit long prompts at an appropriate reading scale. That work belongs to its own implementation issue, not housekeeping.
-
-Phase A deletes the historical merged/superseded branches and the reviewed Claude branch. Final documentation reconciliation remains deferred until #9 lands, as required by #12.
+`PRODUCT.md` is the current implemented product contract. `argus-prd.md` remains
+the original July 2026 vision document. Later programme/architecture documents
+govern where that early PRD describes superseded runtime details.
