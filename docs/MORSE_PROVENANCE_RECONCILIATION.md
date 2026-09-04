@@ -104,8 +104,7 @@ repository itself.
 ## PR #20 — decision and action
 
 **Decision: supersede; do not merge.**  
-**Action: close once this reconciliation PR exists, pointing #20 at the newer
-current-main reconciliation.**
+**Action: closed as superseded by PR #36 on 2026-09-03.**
 
 Why:
 
