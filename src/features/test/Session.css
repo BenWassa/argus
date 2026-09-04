@@ -247,3 +247,213 @@ button.flip-card:active {
     transition-delay: 0s;
   }
 }
+
+/* --- The acquisition ladder --------------------------------------------------
+   A cue rung is a graded prompt, not a flip card: the prompt is stated, the
+   scaffolding beneath it is explicit about being scaffolding, and the response
+   controls sit within thumb reach at the bottom of a phone. */
+
+.progressive-card {
+  display: grid;
+  align-content: start;
+  gap: var(--s-lg);
+  padding-top: var(--s-lg);
+}
+
+.test-rung {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+}
+
+.test-rung-name {
+  font-size: var(--t-label);
+  font-weight: var(--w-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.test-rung-instruction {
+  font-size: var(--t-small);
+  color: var(--muted);
+}
+
+.test-prompt {
+  padding: var(--s-xl) var(--s-md);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--surface-2);
+  box-shadow: var(--edge);
+  text-align: center;
+}
+
+.test-prompt-value {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(2.6rem, 14vw, 4rem);
+  font-weight: var(--w-display);
+  line-height: 1.05;
+  letter-spacing: 0.04em;
+  overflow-wrap: anywhere;
+}
+
+/* Scaffolding is visually marked as temporary. It never looks like the answer
+   because it never is the answer: only a strict prefix of it. */
+.test-cue {
+  display: grid;
+  gap: var(--s-xs);
+  padding: var(--s-md);
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--r-md);
+}
+
+.test-cue-label {
+  margin: 0;
+  font-size: var(--t-label);
+  font-weight: var(--w-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--subtle);
+}
+
+.test-cue-pattern {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 1.4rem;
+  letter-spacing: 0.14em;
+  color: var(--ink);
+}
+
+.test-cue-length {
+  margin: 0;
+  font-size: var(--t-small);
+  color: var(--muted);
+}
+
+.test-options {
+  display: grid;
+  gap: var(--s-sm);
+}
+
+.test-option {
+  min-height: 58px;
+  padding: var(--s-md);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-md);
+  background: var(--surface-3);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 1.3rem;
+  letter-spacing: 0.16em;
+}
+
+.test-waiting {
+  margin: 0;
+  padding: var(--s-lg) 0;
+  text-align: center;
+  font-size: var(--t-small);
+  color: var(--subtle);
+}
+
+.test-production,
+.test-entry-form {
+  display: grid;
+  gap: var(--s-md);
+}
+
+.test-entry {
+  margin: 0;
+  min-height: 2.2em;
+  padding: var(--s-md);
+  border-bottom: 2px solid var(--line-strong);
+  font-family: var(--font-mono);
+  font-size: 1.5rem;
+  letter-spacing: 0.16em;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+/* Two oversized keys side by side: reachable with one thumb, and unambiguous
+   at a glance because they are the same two shapes the notation uses. */
+.test-keys {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: var(--s-sm);
+  align-items: stretch;
+}
+
+.test-key {
+  min-height: 72px;
+  border-radius: var(--r-lg);
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.test-key-small {
+  min-height: 72px;
+  padding-inline: var(--s-md);
+}
+
+.test-submit,
+.test-next {
+  min-height: 52px;
+}
+
+.test-entry-label {
+  font-size: var(--t-small);
+  color: var(--muted);
+}
+
+.test-entry-input {
+  min-height: 64px;
+  padding: var(--s-md);
+  font-family: var(--font-display);
+  font-size: 2.4rem;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.test-hint {
+  margin: 0;
+  font-size: var(--t-small);
+  color: var(--subtle);
+}
+
+.test-feedback {
+  display: grid;
+  gap: var(--s-sm);
+  padding: var(--s-md);
+  border-left: 3px solid var(--danger);
+  background: var(--surface-2);
+  border-radius: var(--r-md);
+}
+
+.test-feedback.is-correct {
+  border-left-color: var(--ok);
+}
+
+.test-feedback-verdict {
+  margin: 0;
+  font-size: var(--t-label);
+  font-weight: var(--w-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.test-feedback-answer {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-md);
+  margin: 0;
+  font-size: 1.3rem;
+  letter-spacing: 0.14em;
+}
+
+.test-feedback-glyph {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: var(--w-display);
+  letter-spacing: 0;
+}

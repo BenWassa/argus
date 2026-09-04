@@ -2,14 +2,28 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLibrary } from '../../lib/store'
 import { resolveAttempt, type Resolution } from '../../lib/scheduling'
 import { statusLabel } from '../../components/ui/StatusTag'
-import type { Item, Topic } from '../../lib/types'
+import {
+  expectedAnswer,
+  morseAcquisitionProfile,
+  type AcquisitionCharacter,
+  type AcquisitionProfile,
+} from '../../lib/acquisition'
+import { mergeItemEvidence, recordAnswer, rungFor } from '../../lib/cueLadder'
+import { selectDistractors } from '../../lib/distractors'
+import type { Item, ItemCueEvidence, ItemEvidenceStore, Topic } from '../../lib/types'
+import { ProgressiveCard, type ProgressiveAnswer } from './ProgressiveCard'
 import { testCardTextClass } from './textScale'
 import './Session.css'
+
+/** Alternatives on a choice rung: the answer plus three distractors. */
+const CHOICE_OPTIONS = 4
 
 interface Card {
   topicId: string
   topicTitle: string
   item: Item
+  /** Present only for a topic the acquisition ladder recognises. */
+  character?: AcquisitionCharacter
 }
 
 interface SessionProps {
@@ -44,17 +58,34 @@ export function Session({ topicIds, onExit }: SessionProps) {
   const [included] = useState<Topic[]>(() =>
     topicIds.map((id) => topics.find((t) => t.id === id)).filter(Boolean) as Topic[],
   )
+  // Which topics the acquisition ladder drives. Every other topic keeps the
+  // reveal-and-self-score card exactly as it is.
+  const [profiles] = useState<Map<string, AcquisitionProfile>>(() => {
+    const found = new Map<string, AcquisitionProfile>()
+    for (const topic of included) {
+      const profile = morseAcquisitionProfile(topic)
+      if (profile) found.set(topic.id, profile)
+    }
+    return found
+  })
+
   const [deck] = useState<Card[]>(() =>
-    included.flatMap((topic) =>
-      shuffle(
+    included.flatMap((topic) => {
+      const profile = profiles.get(topic.id)
+      return shuffle(
         topic.items.map((item) => ({
           topicId: topic.id,
           topicTitle: topic.title,
           item,
+          ...(profile && item.id ? { character: profile.get(item.id) } : {}),
         })),
-      ),
-    ),
+      )
+    }),
   )
+
+  // Cue evidence accrued this session, held apart from the scheduler's tally
+  // and merged into the topic separately from any status resolution.
+  const [cueEvidence, setCueEvidence] = useState<Record<string, ItemEvidenceStore>>({})
 
   const [index, setIndex] = useState(0)
   const [phase, setPhase] = useState<Phase>('asking')
@@ -69,9 +100,10 @@ export function Session({ topicIds, onExit }: SessionProps) {
   const card: Card | undefined = deck[index]
 
   useEffect(() => {
+    if (deck[index]?.character) return
     if (phase === 'asking') revealRef.current?.focus({ preventScroll: true })
     else if (phase === 'revealed') yesRef.current?.focus({ preventScroll: true })
-  }, [phase, index])
+  }, [deck, phase, index])
 
   useEffect(() => {
     if (phase === 'done') headingRef.current?.focus()
@@ -80,6 +112,8 @@ export function Session({ topicIds, onExit }: SessionProps) {
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return
+      // A ladder card owns its own keys; reveal/self-score does not apply to it.
+      if (deck[index]?.character) return
 
       if (phase === 'asking' && (event.key === ' ' || event.key === 'Enter')) {
         event.preventDefault()
@@ -104,12 +138,63 @@ export function Session({ topicIds, onExit }: SessionProps) {
     return { current: index - first + 1, of: cards.length }
   }, [card, deck, index])
 
-  function bank(topicId: string, attempt: { correct: number; total: number }) {
+  // Alternatives are chosen per card: evidence-driven, stage-aware, and
+  // recomputed only when the card changes so they do not reshuffle mid-answer.
+  const options = useMemo(() => {
+    if (!card?.character) return []
+    const rung = rungFor(card.item, evidenceFor(card))
+    if (rung.response !== 'choice') return []
+    const topic = included.find((candidate) => candidate.id === card.topicId)
+    const distractors = selectDistractors({
+      target: card.item,
+      pool: topic?.items ?? [],
+      evidence: { ...(topic?.itemEvidence ?? {}), ...(cueEvidence[card.topicId] ?? {}) },
+      count: CHOICE_OPTIONS - 1,
+    })
+    return shuffle([expectedAnswer(rung, card.character), ...distractors.map((item) => item.answer)])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [index])
+
+  function bank(
+    topicId: string,
+    attempt: { correct: number; total: number },
+    evidence: ItemEvidenceStore,
+  ) {
     const topic = included.find((candidate) => candidate.id === topicId)
     if (!topic) return
+    // The scheduler resolves the attempt exactly as it always has. Cue evidence
+    // is merged in afterwards, as a separate field, and changes nothing the
+    // resolution decided.
     const resolution = resolveAttempt(topic, attempt.correct, attempt.total)
-    upsertTopic(resolution.topic)
+    upsertTopic(mergeItemEvidence(resolution.topic, evidence))
     setResolutions((previous) => [...previous, resolution])
+  }
+
+  function evidenceFor(card: Card): ItemCueEvidence | undefined {
+    if (!card.item.id) return undefined
+    const topic = included.find((candidate) => candidate.id === card.topicId)
+    return cueEvidence[card.topicId]?.[card.item.id] ?? topic?.itemEvidence?.[card.item.id]
+  }
+
+  function noteAnswer(card: Card, answer: ProgressiveAnswer): ItemEvidenceStore {
+    const topicStore = cueEvidence[card.topicId] ?? {}
+    const itemId = card.item.id
+    if (!itemId) return topicStore
+
+    const rung = rungFor(card.item, evidenceFor(card))
+    const next = {
+      ...topicStore,
+      [itemId]: recordAnswer(evidenceFor(card), {
+        direction: rung.direction,
+        correct: answer.correct,
+        // Recorded from the first session, and read by nothing that decides
+        // anything. It exists so a threshold can one day be more than a guess.
+        latencyMs: answer.latencyMs,
+        at: new Date().toISOString(),
+      }),
+    }
+    setCueEvidence((previous) => ({ ...previous, [card.topicId]: next }))
+    return next
   }
 
   function reveal() {
@@ -120,6 +205,21 @@ export function Session({ topicIds, onExit }: SessionProps) {
 
   function score(correct: boolean) {
     if (!card || phase !== 'revealed') return
+    bankAndAdvance(correct)
+  }
+
+  /**
+   * A ladder answer is objectively graded rather than self-scored, but it feeds
+   * the identical tally: the scheduler still sees one clean run of every item
+   * in the topic, and `PASS_THRESHOLD` is untouched.
+   */
+  function answerProgressive(answer: ProgressiveAnswer) {
+    if (!card) return
+    bankAndAdvance(answer.correct, noteAnswer(card, answer))
+  }
+
+  function bankAndAdvance(correct: boolean, evidence?: ItemEvidenceStore) {
+    if (!card) return
     haptic(correct ? 12 : [10, 24, 10])
 
     const next = { correct: tally.correct + (correct ? 1 : 0), total: tally.total + 1 }
@@ -127,7 +227,7 @@ export function Session({ topicIds, onExit }: SessionProps) {
     const topicFinished = !following || following.topicId !== card.topicId
 
     if (topicFinished) {
-      bank(card.topicId, next)
+      bank(card.topicId, next, evidence ?? cueEvidence[card.topicId] ?? {})
       setTally({ correct: 0, total: 0 })
     } else {
       setTally(next)
@@ -141,9 +241,25 @@ export function Session({ topicIds, onExit }: SessionProps) {
     }
   }
 
+  /**
+   * Leaving early discards the partial *attempt*, exactly as it always has:
+   * a topic banks only once every item has been through. Cue evidence is not
+   * part of that contract — it is acquisition state, not retention state — so
+   * it is written out rather than thrown away with the attempt.
+   */
+  function exitSession() {
+    const banked = new Set(resolutions.map((resolution) => resolution.topic.id))
+    for (const [topicId, store] of Object.entries(cueEvidence)) {
+      if (banked.has(topicId)) continue
+      const live = topics.find((candidate) => candidate.id === topicId)
+      if (live) upsertTopic(mergeItemEvidence(live, store))
+    }
+    onExit()
+  }
+
   function requestExit() {
     if (tally.total > 0) setConfirmingExit(true)
-    else onExit()
+    else exitSession()
   }
 
   function finishSwipe(clientX: number) {
@@ -184,7 +300,7 @@ export function Session({ topicIds, onExit }: SessionProps) {
           <button className="ghost" type="button" onClick={() => setConfirmingExit(false)}>
             Keep going
           </button>
-          <button className="danger" type="button" onClick={onExit}>
+          <button className="danger" type="button" onClick={exitSession}>
             End test
           </button>
         </div>
@@ -193,6 +309,34 @@ export function Session({ topicIds, onExit }: SessionProps) {
   }
 
   const revealed = phase === 'revealed'
+
+  if (card.character) {
+    const rung = rungFor(card.item, evidenceFor(card))
+    return (
+      <section className="session rapid-session is-graded is-progressive">
+        <div className="session-bar">
+          <p>
+            <span className="session-topic">{card.topicTitle}</span>
+            <span className="tabular">
+              Test · {topicPosition.current} of {topicPosition.of}
+            </span>
+          </p>
+          <button className="ghost small" type="button" onClick={requestExit}>
+            End test
+          </button>
+        </div>
+
+        <ProgressiveCard
+          key={`${card.topicId}-${card.item.id}-${index}`}
+          cardKey={`${card.topicId}-${card.item.id}-${index}`}
+          character={card.character}
+          rung={rung}
+          options={options}
+          onAnswer={answerProgressive}
+        />
+      </section>
+    )
+  }
 
   return (
     <section className="session rapid-session is-graded" aria-labelledby="prompt-heading">
