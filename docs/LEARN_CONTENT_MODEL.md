@@ -179,6 +179,22 @@ Sources and limitations stay visible on the page. They are visually subordinate 
 
 No Learn structure uses concealed-answer or flip-card styling.
 
+### The `morse-character-packet` block
+
+A packet renders as a list of character cards: the uppercase glyph and its
+rhythm drawn together in the Argus mnemonic grammar, the canonical `·`/`—`
+notation and spoken rhythm as visible text beneath, and an explicit play control
+for synchronised audio. Nothing plays without a click.
+
+The grammar, its accessibility contract and its provenance are specified in
+`docs/MORSE_MNEMONIC_GRAMMAR.md`; the sequence and packet composition in
+`docs/MORSE_CHARACTER_ORDER.md`.
+
+Packets are Learn content, so the block obeys every rule above: no card is
+locked, hidden, gated or scored, and the packet surface holds no progress state
+of any kind. The acquisition ladder is a Test-side cue concern (D3), and adding
+packets to a topic never changes what that topic scores.
+
 ## Editorial constraints for #11
 
 #9 provides capability, not rewritten knowledge. #11 owns research and substantive seed-content changes.
