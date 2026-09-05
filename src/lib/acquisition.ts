@@ -1,5 +1,6 @@
 import { revealedElementCount, type CueRung } from './cueLadder'
 import { MORSE_LETTERS, type MorseLetter } from './morse'
+import { verbalMnemonic, type MorseVerbalBeat } from './morseVerbalMnemonics'
 import type { Item, LearnBlock, Topic } from './types'
 
 /**
@@ -105,17 +106,21 @@ export function morseAcquisitionProfile(topic: Topic): AcquisitionProfile | null
  * is then a property of this value, and can be asserted mechanically for every
  * character and every rung rather than checked by reading JSX.
  *
- * A cue never contains the whole answer. `revealedPattern` is always a strict
- * prefix, and any artwork rendered at the `mnemonicId` slot must draw that
- * prefix only.
+ * A visual/verbal cue never contains the whole answer. `revealedRawPattern`
+ * and `verbalBeats` are the same strict prefix. Canonical audio is deliberately
+ * available only at the final supported rung, where it is a cue, never at the
+ * uncued production/reverse-recall rungs that prove the completion claim.
  */
 export interface CuePayload {
   rungId: string
   elementCount?: number
+  revealedRawPattern?: string
   revealedPattern?: string
   revealedReading?: string
+  verbalBeats?: MorseVerbalBeat[]
   hiddenCount?: number
   mnemonicId?: string
+  audioText?: string
 }
 
 export function buildCuePayload(rung: CueRung, character: AcquisitionCharacter): CuePayload {
@@ -125,11 +130,16 @@ export function buildCuePayload(rung: CueRung, character: AcquisitionCharacter):
   if (rung.showsLength) payload.elementCount = character.pattern.length
   if (revealed > 0) {
     const prefix = character.pattern.slice(0, revealed)
+    payload.revealedRawPattern = prefix
     payload.revealedPattern = canonicalPattern(prefix)
     payload.revealedReading = patternReading(prefix)
     payload.hiddenCount = character.pattern.length - revealed
     if (rung.allowsArtwork && character.mnemonicId) payload.mnemonicId = character.mnemonicId
+    if (rung.allowsVerbalCue) {
+      payload.verbalBeats = verbalMnemonic(character.glyph).beats.slice(0, revealed).map((beat) => ({ ...beat }))
+    }
   }
+  if (rung.allowsAudio) payload.audioText = character.glyph
 
   return payload
 }
