@@ -1,12 +1,16 @@
-/* #42 — the spoken phrase is the primary first-memory hook. The existing
-   timing SVG keeps its own styling in Learn.css and sits underneath this row as
-   a secondary representation of the same sequence. */
+/* #44 — the spoken phrase is the card's primary memory hook, so it has to
+   read as one line of text rather than as a row of separately-captioned
+   beats. Casing alone carries the short/held contrast (short beats are
+   authored lowercase, held beats capitalised in morseVerbalMnemonics.ts), so
+   the accessible short/held reading lives in this paragraph's aria-label
+   instead of a repeated per-beat caption. The SVG stays a secondary,
+   underneath representation of the same sequence, styled in Learn.css. */
 
-.morse-verbal-row {
+.morse-phrase-row {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   gap: var(--s-md);
-  align-items: start;
+  align-items: center;
   width: 100%;
 }
 
@@ -18,68 +22,32 @@
   color: var(--ink);
 }
 
-.morse-verbal {
+.morse-phrase {
   min-width: 0;
   margin: 0;
-}
-
-.morse-verbal-beats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--s-xs) var(--s-sm);
-  align-items: start;
-}
-
-.morse-verbal-beat {
-  display: inline-grid;
-  gap: 2px;
-  min-width: 3.2rem;
-  padding: 0.2rem 0.38rem 0.28rem;
-  border-bottom: 2px solid var(--line);
-}
-
-.morse-verbal-beat.is-long {
-  min-width: 5.2rem;
-  border-bottom-color: var(--line-strong);
-}
-
-.morse-verbal-word {
   font-family: var(--font-display);
-  font-size: clamp(1.08rem, 4.5vw, 1.42rem);
+  font-size: clamp(1.3rem, 5.5vw, 1.9rem);
   font-weight: var(--w-display);
-  line-height: 1.1;
+  line-height: 1.15;
+}
+
+.morse-phrase-beats {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.2em 0.5em;
+}
+
+.morse-phrase-beat {
   overflow-wrap: anywhere;
 }
 
-.morse-verbal-beat.is-long .morse-verbal-word {
+.morse-phrase-beat.is-long {
   letter-spacing: 0.035em;
 }
 
-.morse-verbal-duration {
-  font-size: var(--t-label);
-  font-weight: var(--w-label);
-  line-height: 1.2;
-  color: var(--subtle);
-  text-transform: uppercase;
-  letter-spacing: 0.055em;
-}
-
-.morse-audio-control {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--s-xs) var(--s-sm);
-  align-items: center;
-}
-
-.morse-volume-note {
-  font-size: var(--t-label);
-  color: var(--subtle);
-}
-
-/* Text can grow to 200% without forcing four-beat phrases into one row. The
-   beats wrap as semantic units; no overflow or horizontal scroll is required. */
+/* Text can grow to 200% without the phrase colliding with the letter glyph. */
 @media (max-width: 420px) {
-  .morse-verbal-row {
+  .morse-phrase-row {
     grid-template-columns: 1fr;
     gap: var(--s-sm);
   }

@@ -35,6 +35,49 @@ export const DEFAULT_MORSE_TIMING = {
   effectiveWpm: 9,
 } as const
 
+/**
+ * First-exposure acquisition timing for the Learn packet's single-letter Play
+ * control. This is deliberately separate from `DEFAULT_MORSE_TIMING`, and
+ * from #29's future auditory-reception performance criteria, which must keep
+ * using the full-speed default.
+ *
+ * `DEFAULT_MORSE_TIMING`'s 20/9 WPM split is a Farnsworth split: the
+ * character itself sounds at full 20 WPM speed and only the gaps *between*
+ * characters/words are stretched, so a receiving operator gets thinking time
+ * without the character's own rhythm changing. A Learn card plays exactly one
+ * character, so it never reaches an inter-character or inter-word gap — there
+ * is nothing for Farnsworth spacing to stretch, and `effectiveWpm` has no
+ * audible effect on a single letter. Reusing the default for Learn therefore
+ * means the learner hears the raw 20 WPM character speed on their very first
+ * exposure: a dit of 60ms and a dah of 180ms, which reads as a fast double
+ * click rather than a short/long rhythm they can map onto a mnemonic phrase.
+ *
+ * The fix has to lower `characterWpm` itself. Candidates considered, judged
+ * against "one recognisable rhythm, not counted elements":
+ *  - 20 WPM (the default): ditMs 60ms — rejected, too fast to hear as
+ *    short-vs-long on a phone speaker.
+ *  - 15 WPM: ditMs 80ms, dahMs 240ms — better, but still brief.
+ *  - 12 WPM: ditMs 100ms, dahMs 300ms — a clean, round dit/dah pair. Slow
+ *    enough that the held tone is unmistakably longer than the short one,
+ *    fast enough that a letter's elements still land as one continuous
+ *    rhythm instead of separately counted beeps.
+ *  - 8 WPM: ditMs 150ms, dahMs 450ms — rejected. At this speed even a
+ *    two-element letter starts sounding like counted elements ("dit... ...
+ *    dah") rather than one phrase-length event, which is exactly the failure
+ *    mode #44 warns against.
+ *
+ * 12 WPM is the chosen acquisition character speed. `effectiveWpm` is set
+ * equal to it (a Farnsworth scale of 1, i.e. no extra spacing) rather than
+ * lower, because a lower value would change nothing audible for a single
+ * character — the same "effectiveWpm pretending to solve single-letter
+ * speed" #44 calls out — and would only matter if this config were ever
+ * reused for multi-character playback, which it is not.
+ */
+export const LEARN_ACQUISITION_MORSE_TIMING = {
+  characterWpm: 12,
+  effectiveWpm: 12,
+} as const
+
 export interface MorseTimingOptions {
   /** Internal character rhythm. One dit is 1200 / characterWpm milliseconds. */
   characterWpm?: number

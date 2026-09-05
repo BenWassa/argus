@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   DEFAULT_MORSE_TIMING,
+  LEARN_ACQUISITION_MORSE_TIMING,
   MORSE_LETTERS,
   buildMorseSchedule,
   farnsworthSpacingScale,
@@ -93,5 +94,46 @@ describe('deterministic Morse timing', () => {
   it('rejects invalid speed combinations rather than silently changing character shape', () => {
     expect(() => buildMorseSchedule('A', { characterWpm: 0 })).toThrow(/characterWpm/)
     expect(() => buildMorseSchedule('A', { characterWpm: 20, effectiveWpm: 25 })).toThrow(/cannot exceed/)
+  })
+})
+
+describe('Learn-card acquisition timing (#44)', () => {
+  it('is a deliberately slower character speed than the reception default, not merely slower spacing', () => {
+    expect(LEARN_ACQUISITION_MORSE_TIMING.characterWpm).toBeLessThan(DEFAULT_MORSE_TIMING.characterWpm)
+    expect(LEARN_ACQUISITION_MORSE_TIMING.characterWpm).toBe(12)
+    // effectiveWpm equals characterWpm here (Farnsworth scale 1): a Learn
+    // card only ever plays one character, so there is no inter-character or
+    // inter-word gap for a lower effectiveWpm to stretch. Setting it lower
+    // would change nothing audible — the exact "effectiveWpm pretending to
+    // solve single-letter speed" #44 warns against — so it must not be lower
+    // than characterWpm here.
+    expect(LEARN_ACQUISITION_MORSE_TIMING.effectiveWpm).toBe(LEARN_ACQUISITION_MORSE_TIMING.characterWpm)
+    expect(farnsworthSpacingScale(
+      LEARN_ACQUISITION_MORSE_TIMING.characterWpm,
+      LEARN_ACQUISITION_MORSE_TIMING.effectiveWpm,
+    )).toBe(1)
+  })
+
+  it('keeps the canonical 1:3 dit:dah ratio and exactly a 1-unit intra-character gap at the slower speed', () => {
+    const ditMs = 1200 / LEARN_ACQUISITION_MORSE_TIMING.characterWpm
+    const schedule = buildMorseSchedule('A', LEARN_ACQUISITION_MORSE_TIMING)
+    expect(schedule.ditMs).toBe(ditMs)
+    expect(schedule.events).toEqual([
+      { kind: 'signal', mark: '.', units: 1, durationMs: ditMs },
+      { kind: 'gap', gap: 'intra-character', units: 1, spacingScale: 1, durationMs: ditMs },
+      { kind: 'signal', mark: '-', units: 3, durationMs: ditMs * 3 },
+    ])
+    // The dah is exactly three times the dit, at the acquisition speed too.
+    const dit = schedule.events[0]
+    const dah = schedule.events[2]
+    expect(dah.durationMs).toBe(dit.durationMs * 3)
+  })
+
+  it('plays every single letter noticeably slower under acquisition timing than under the reception default', () => {
+    for (const letter of Object.keys(MORSE_LETTERS)) {
+      const acquisition = buildMorseSchedule(letter, LEARN_ACQUISITION_MORSE_TIMING)
+      const reception = buildMorseSchedule(letter, DEFAULT_MORSE_TIMING)
+      expect(acquisition.durationMs).toBeGreaterThan(reception.durationMs)
+    }
   })
 })

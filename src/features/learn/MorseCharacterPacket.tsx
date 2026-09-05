@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { DEFAULT_MORSE_TIMING } from '../../lib/morse'
+import { LEARN_ACQUISITION_MORSE_TIMING } from '../../lib/morse'
 import {
   MORSE_AUDIO_START_DELAY_MS,
   MorseAudioPlayer,
@@ -63,7 +63,7 @@ function usePacketAudio() {
       setAudioError(null)
       try {
         playerRef.current ??= new MorseAudioPlayer()
-        const schedule = await playerRef.current.play(glyph, DEFAULT_MORSE_TIMING)
+        const schedule = await playerRef.current.play(glyph, LEARN_ACQUISITION_MORSE_TIMING)
         setSounding({ glyph, index: null })
 
         // Element illumination is driven by the same schedule and the same
@@ -121,28 +121,50 @@ function MorseCharacterCard({
 
   return (
     <li className={`morse-card${isSounding ? ' is-sounding' : ''}`}>
-      <div className="morse-verbal-row">
+      <div className="morse-phrase-row">
         <span className="morse-letter" aria-hidden="true">{character.glyph}</span>
-        <p className="morse-verbal" aria-label={verbalMnemonicTextEquivalent(character.glyph)}>
-          <span className="morse-verbal-beats" aria-hidden="true">
+        {/* The phrase is one line, read as one unit. Casing already carries
+            the short/held contrast (DEFINITIONS in morseVerbalMnemonics.ts
+            capitalises held words), so no per-beat caption is needed here —
+            the full short/held reading still reaches assistive tech through
+            this paragraph's aria-label. */}
+        <p className="morse-phrase" aria-label={verbalMnemonicTextEquivalent(character.glyph)}>
+          <span className="morse-phrase-beats" aria-hidden="true">
             {verbal.beats.map((beat, index) => (
-              <span className={`morse-verbal-beat is-${beat.length}`} key={`${beat.text}-${index}`}>
-                <span className="morse-verbal-word">{beat.text}</span>
-                <span className="morse-verbal-duration">
-                  {beat.length === 'short' ? 'short ·' : 'hold —'}
-                </span>
+              <span className={`morse-phrase-beat is-${beat.length}`} key={`${beat.text}-${index}`}>
+                {beat.text}
               </span>
             ))}
           </span>
         </p>
       </div>
 
-      <MorseMnemonic
-        glyph={character.glyph}
-        pattern={character.pattern}
-        textLabel={character.textLabel}
-        activeIndex={isSounding ? sounding.index : null}
-      />
+      <div className="morse-visual-row">
+        <MorseMnemonic
+          glyph={character.glyph}
+          pattern={character.pattern}
+          textLabel={character.textLabel}
+          activeIndex={isSounding ? sounding.index : null}
+        />
+
+        <button
+          className={`ghost icon morse-play${isSounding ? ' is-playing' : ''}`}
+          type="button"
+          onClick={() => (isSounding ? onStop() : onPlay(character.audioText))}
+          aria-label={isSounding ? `Stop ${character.glyph} Morse` : `Play ${character.glyph} Morse`}
+          aria-pressed={isSounding}
+        >
+          {isSounding ? (
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
+              <rect x="6" y="6" width="12" height="12" rx="1.5" fill="currentColor" />
+            </svg>
+          ) : (
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
+              <path d="M8 5l11 7-11 7z" fill="currentColor" />
+            </svg>
+          )}
+        </button>
+      </div>
 
       <p className="morse-canonical">
         <span className="morse-notation" aria-hidden="true">
@@ -150,17 +172,6 @@ function MorseCharacterCard({
         </span>
         <span className="morse-rhythm">{rhythm}</span>
       </p>
-
-      <div className="morse-audio-control">
-        <button
-          className="ghost small morse-play"
-          type="button"
-          onClick={() => (isSounding ? onStop() : onPlay(character.audioText))}
-        >
-          {isSounding ? `Stop ${character.glyph}` : `Play ${character.glyph}`}
-        </button>
-        <span className="morse-volume-note">Uses device media volume</span>
-      </div>
     </li>
   )
 }
@@ -198,7 +209,8 @@ export function MorseCharacterPacket({ characters }: { characters: MorseCharacte
 
       <p className="morse-packet-note">
         The phrase is the first memory hook. The SVG is a secondary timing scaffold: circle = one
-        unit, bar = three, read left to right. Both disappear before uncued Test.
+        unit, bar = three, read left to right. Both disappear before uncued Test. Play uses your
+        device's media volume.
       </p>
 
       <p className="sr-only" aria-live="polite">

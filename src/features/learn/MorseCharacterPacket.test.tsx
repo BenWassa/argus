@@ -78,11 +78,14 @@ describe('Morse character packet', () => {
 
   it('shows the glyph, the canonical notation, the mnemonic and audio for each card', () => {
     for (const character of characters) {
-      expect(html).toContain(`Play ${character.glyph}`)
+      expect(html).toContain(`Play ${character.glyph} Morse`)
       expect(html).toContain(character.textLabel)
     }
     expect([...html.matchAll(/class="morse-card[ "]/g)]).toHaveLength(characters.length)
-    expect([...html.matchAll(/<svg/g)]).toHaveLength(characters.length)
+    // One mnemonic SVG per card. Cards also carry a second, smaller SVG for
+    // the play/stop icon glyph, so this asserts on the mnemonic specifically
+    // rather than on every <svg> in the packet.
+    expect([...html.matchAll(/class="morse-mnemonic"/g)]).toHaveLength(characters.length)
     expect(html).toContain('morse-notation')
   })
 
