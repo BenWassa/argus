@@ -60,6 +60,13 @@ export const DEFAULT_MORSE_AUDIO = {
   volume: 0.25,
 } as const
 
+export class MorsePlaybackCancelledError extends Error {
+  constructor() {
+    super('Morse playback was cancelled.')
+    this.name = 'MorsePlaybackCancelledError'
+  }
+}
+
 function defaultContextFactory(): AudioContextLike {
   if (typeof window === 'undefined') throw new Error('Morse audio is unavailable outside a browser.')
   const AudioContextCtor = window.AudioContext ??
@@ -94,12 +101,18 @@ interface ActiveAudio {
  * Play tap we instead resume *any* non-running context (including interrupted
  * implementations) and verify that it actually reached `running` before
  * scheduling audible nodes.
+ *
+ * A monotonically increasing request generation also closes the other mobile
+ * race: Play/Stop/another Play while `resume()` is still pending. A stale
+ * request is discarded before it can attach a second oscillator after the new
+ * user intent has taken ownership.
  */
 export class MorseAudioPlayer {
   private context: AudioContextLike | null = null
   private active: ActiveAudio | null = null
   private lastRequest: { text: string; options: MorseAudioOptions } | null = null
   private disposed = false
+  private requestGeneration = 0
 
   private readonly visibilityChanged = () => {
     if (this.visibility?.hidden) this.cancel()
@@ -143,6 +156,19 @@ export class MorseAudioPlayer {
     return context
   }
 
+  private stopActive(): void {
+    if (!this.active) return
+    try {
+      this.active.oscillator.stop()
+    } catch {
+      // An oscillator that has naturally ended may reject a second stop in a
+      // browser implementation. Disconnecting still releases the graph.
+    }
+    this.active.oscillator.disconnect()
+    this.active.gain.disconnect()
+    this.active = null
+  }
+
   /**
    * Starts only when called by an explicit interaction. Construction, render,
    * navigation and visibility changes never autoplay.
@@ -154,9 +180,18 @@ export class MorseAudioPlayer {
     const toneHz = finiteInRange(options.toneHz ?? DEFAULT_MORSE_AUDIO.toneHz, 300, 1200, 'toneHz')
     const volume = finiteInRange(options.volume ?? DEFAULT_MORSE_AUDIO.volume, 0, 1, 'volume')
     const schedule = buildMorseSchedule(text, options)
+    const generation = ++this.requestGeneration
 
-    this.cancel()
+    this.stopActive()
     const context = await this.ensureRunningContext()
+
+    if (
+      generation !== this.requestGeneration ||
+      this.disposed ||
+      this.visibility?.hidden
+    ) {
+      throw new MorsePlaybackCancelledError()
+    }
 
     const oscillator = context.createOscillator()
     const gain = context.createGain()
@@ -192,24 +227,17 @@ export class MorseAudioPlayer {
   }
 
   cancel(): void {
-    if (!this.active) return
-    try {
-      this.active.oscillator.stop()
-    } catch {
-      // An oscillator that has naturally ended may reject a second stop in a
-      // browser implementation. Disconnecting still releases the graph.
-    }
-    this.active.oscillator.disconnect()
-    this.active.gain.disconnect()
-    this.active = null
+    this.requestGeneration += 1
+    this.stopActive()
   }
 
   async dispose(): Promise<void> {
     if (this.disposed) return
     this.disposed = true
+    this.requestGeneration += 1
     this.visibility?.removeEventListener('visibilitychange', this.visibilityChanged)
     this.visibility?.removeEventListener('pagehide', this.pageHidden)
-    this.cancel()
+    this.stopActive()
     if (this.context && this.context.state !== 'closed') await this.context.close()
     this.context = null
   }
