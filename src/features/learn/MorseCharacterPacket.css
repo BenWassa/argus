@@ -1,0 +1,90 @@
+/* #42 — the spoken phrase is the primary first-memory hook. The existing
+   timing SVG keeps its own styling in Learn.css and sits underneath this row as
+   a secondary representation of the same sequence. */
+
+.morse-verbal-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--s-md);
+  align-items: start;
+  width: 100%;
+}
+
+.morse-letter {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 11vw, 4rem);
+  font-weight: var(--w-display);
+  line-height: 0.95;
+  color: var(--ink);
+}
+
+.morse-verbal {
+  min-width: 0;
+  margin: 0;
+}
+
+.morse-verbal-beats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-xs) var(--s-sm);
+  align-items: start;
+}
+
+.morse-verbal-beat {
+  display: inline-grid;
+  gap: 2px;
+  min-width: 3.2rem;
+  padding: 0.2rem 0.38rem 0.28rem;
+  border-bottom: 2px solid var(--line);
+}
+
+.morse-verbal-beat.is-long {
+  min-width: 5.2rem;
+  border-bottom-color: var(--line-strong);
+}
+
+.morse-verbal-word {
+  font-family: var(--font-display);
+  font-size: clamp(1.08rem, 4.5vw, 1.42rem);
+  font-weight: var(--w-display);
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+
+.morse-verbal-beat.is-long .morse-verbal-word {
+  letter-spacing: 0.035em;
+}
+
+.morse-verbal-duration {
+  font-size: var(--t-label);
+  font-weight: var(--w-label);
+  line-height: 1.2;
+  color: var(--subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.055em;
+}
+
+.morse-audio-control {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-xs) var(--s-sm);
+  align-items: center;
+}
+
+.morse-volume-note {
+  font-size: var(--t-label);
+  color: var(--subtle);
+}
+
+/* Text can grow to 200% without forcing four-beat phrases into one row. The
+   beats wrap as semantic units; no overflow or horizontal scroll is required. */
+@media (max-width: 420px) {
+  .morse-verbal-row {
+    grid-template-columns: 1fr;
+    gap: var(--s-sm);
+  }
+
+  .morse-letter {
+    font-size: 2.8rem;
+  }
+}
