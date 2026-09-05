@@ -1,17 +1,20 @@
 import { useRef, useState } from 'react'
 import { useLibrary } from '../../lib/store'
-import { absorbSeededMorseBaseline, exportFilename, parseLibrary } from '../../lib/storage'
+import { exportFilename, parseLibrary } from '../../lib/storage'
+import { collisions } from '../../lib/catalog'
 import { Confirm } from '../../components/ui/Confirm'
 
 export function Data() {
-  const { topics, replaceLibrary, resetLibrary } = useLibrary()
+  const { topics, library, catalogReport, replaceLibrary, resetLibrary } = useLibrary()
   const fileInput = useRef<HTMLInputElement>(null)
   const [message, setMessage] = useState<{ tone: 'ok' | 'error'; text: string } | null>(null)
   const [confirmReset, setConfirmReset] = useState(false)
   const [pendingImport, setPendingImport] = useState<{ file: File; count: number } | null>(null)
 
   function exportLibrary() {
-    const blob = new Blob([JSON.stringify({ version: 5, topics }, null, 2)], {
+    // The whole durable record, not just the topics: catalog delivery history
+    // is part of what makes a re-import behave like the library it came from.
+    const blob = new Blob([JSON.stringify(library, null, 2)], {
       type: 'application/json',
     })
     const url = URL.createObjectURL(blob)
@@ -41,7 +44,7 @@ export function Data() {
   async function applyImport(file: File) {
     const result = parseLibrary(JSON.parse(await file.text()))
     if (!result.ok) return
-    replaceLibrary(absorbSeededMorseBaseline(result.library))
+    replaceLibrary(result.library)
     setMessage({ tone: 'ok', text: `Imported ${result.library.topics.length} topics.` })
   }
 
@@ -81,6 +84,8 @@ export function Data() {
       <p className={message?.tone === 'error' ? 'error' : 'note'} role="status" aria-live="polite">
         {message?.text ?? ''}
       </p>
+
+      <CatalogNotice added={catalogReport.added} withheld={collisions(catalogReport)} />
 
       <h2>Reset</h2>
       <p className="lede-text">
@@ -123,5 +128,47 @@ export function Data() {
         />
       )}
     </>
+  )
+}
+
+interface CatalogNoticeProps {
+  added: string[]
+  withheld: string[]
+}
+
+/**
+ * Catalog delivery is quiet but never silent. New shipped topics are announced
+ * because they appeared without being asked for, and a withheld one is
+ * announced because the alternative would be overwriting the user's work.
+ */
+function CatalogNotice({ added, withheld }: CatalogNoticeProps) {
+  if (added.length === 0 && withheld.length === 0) return null
+
+  return (
+    <section className="catalog-notice">
+      <h2>Shipped catalog</h2>
+      {added.length > 0 && (
+        <p className="note">
+          {added.length === 1 ? '1 new shipped topic was' : `${added.length} new shipped topics were`}{' '}
+          added to this library as unstarted. Nothing already here was changed.
+        </p>
+      )}
+      {withheld.length > 0 && (
+        <>
+          <p className="note">
+            {withheld.length === 1 ? '1 shipped topic was' : `${withheld.length} shipped topics were`}{' '}
+            withheld because a topic of your own already uses the same id. Your version was kept as
+            it is. Rename or export yours if you want the shipped version instead.
+          </p>
+          <ul className="index">
+            {withheld.map((id) => (
+              <li key={id} className="catalog-notice-id tabular">
+                {id}
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </section>
   )
 }

@@ -485,3 +485,106 @@
     max-width: 420px;
   }
 }
+
+/* ------------------------------------------------------- want to learn -- */
+
+/* Two actions in the head, and they are not peers. `Want to learn` is the
+   brass one because capture is the thing you do in a hurry; `New topic` stays
+   a ghost because authoring a finite boundary is deliberate work. */
+.lib-head-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-sm);
+}
+
+.lib-capture span {
+  margin-right: 2px;
+  font-weight: 600;
+}
+
+/* The queue is a note to self, not a shelf. It gets a dashed edge and no row
+   chrome at all, so nothing about it reads as a topic that could be run,
+   scheduled or finished. */
+.want {
+  margin-top: var(--s-lg);
+  padding: var(--s-md);
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+}
+
+.want-head {
+  display: flex;
+  align-items: center;
+  gap: var(--s-sm);
+  margin: 0;
+  font-size: var(--t-label);
+  font-weight: var(--w-label);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.want-count::before {
+  content: '· ';
+}
+
+.want-count {
+  color: var(--muted);
+}
+
+.want .note {
+  margin: var(--s-sm) 0 0;
+}
+
+.want-setup {
+  display: grid;
+  gap: var(--s-sm);
+  justify-items: start;
+}
+
+.want-list {
+  margin: var(--s-sm) 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 2px;
+}
+
+.want-entry {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: start;
+  gap: var(--s-sm);
+  padding: var(--s-sm) 0;
+  border-top: 1px solid var(--line);
+}
+
+.want-entry:first-child {
+  border-top: 0;
+}
+
+.want-text {
+  grid-column: 1;
+  margin: 0;
+  /* A capture may be a pasted URL with no spaces in it. */
+  overflow-wrap: anywhere;
+}
+
+.want-meta {
+  grid-column: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-sm);
+}
+
+.want-hint {
+  font-size: var(--t-label);
+  color: var(--muted);
+}
+
+.want-remove {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+}

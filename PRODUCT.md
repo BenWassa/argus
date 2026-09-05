@@ -34,6 +34,14 @@ There are three intended Learn treatments:
 
 The content model is typed data, not arbitrary HTML and not a bespoke CMS. Rich content can be prepared through code/import/AI-assisted authoring; the ordinary topic form continues to own the finite title/scope/items fields and must preserve any structured Learn support it does not edit.
 
+## Content inbox
+
+Argus also carries a small **content inbox**, kept strictly outside the learning library. Tapping `+ Want to learn` in Library records one line of intent — an idea, a link, or a link and a note — in Firestore, and nothing more. A request has no scope, no scored items, no status ladder, no scheduler state and no evidence, so it can never be mistaken for a topic or affect what has been proved.
+
+The library, its history and its cue evidence remain local-first and are never synchronized. Firestore stores only these requests, and the inbox being signed out or unreachable leaves every learning surface untouched.
+
+Turning a request into curriculum is editorial work that happens in the repository: research the subject, decide whether it carries one honest completion boundary, author deliberate ids, and open an ordinary reviewed pull request. A request is marked `added` only once the topics it became have actually shipped. Newly shipped catalog topics then reach an existing library as fresh unstarted topics, appended without touching anything already there. See `docs/CONTENT_INBOX.md`.
+
 ## Product Purpose
 
 Argus is a personal skill library built entirely from topics that can be genuinely finished: a fixed alphabet, a named framework with a known number of parts, a defined protocol. Every topic states its own boundary (`scope`) at authoring time; topics without an edge are rejected, not managed later. Completion requires recall after a gap, not exposure, and remains a durable, permanent record — decay routes a topic back to drilling without erasing that it was once completed.

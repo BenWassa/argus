@@ -9,7 +9,7 @@ Argus has two learning interactions:
 
 `scope` + scored `items` define the finite Test/completion boundary. Optional `topic.learn` content is explanatory only and never silently expands that claim.
 
-The current local library format is **v5**. v5 adds stable item identity, typed item directionality and per-item cue/evidence state while keeping acquisition evidence structurally separate from scheduler/retention history. Older supported libraries migrate forward, and JSON export/import preserves durable learning state.
+The current local library format is **v5**. v5 adds stable item identity, typed item directionality and per-item cue/evidence state while keeping acquisition evidence structurally separate from scheduler/retention history. Older supported libraries migrate forward, and JSON export/import preserves durable learning state. v5 records additionally carry catalog provenance (`Topic.origin` and the library's `catalogDelivered` list) so newly shipped topics can be delivered to an existing library without touching anything already in it.
 
 ## Development
 
@@ -26,6 +26,13 @@ Other commands:
 - `npm run build` — type-check and create the production build in `dist/`
 - `npm run preview` — serve the production build locally
 - `npm run typecheck` — run TypeScript without building
+- `npm run test:rules` — run the Firestore Security Rules suite against a local emulator (needs Java)
+- `npm run inbox:rules` — render `firestore.rules` from its template for the configured UID
+- `npm run inbox -- list` / `npm run inbox -- mark-added ...` — maintainer content-inbox ingestion
+
+### Content inbox
+
+Argus can capture "want to learn" notes into a small Firestore inbox, kept entirely outside the local learning library. It is optional: with no Firebase configuration the capture surface reports itself unavailable and the rest of Argus is unaffected. Copy `.env.example` to `.env.local` to configure it. Everything it reads is public web configuration; no privileged credential belongs in the client. See `docs/CONTENT_INBOX.md`.
 
 The production site is deployed to **https://benwassa.github.io/argus/** by GitHub Actions whenever `main` is updated.
 
@@ -36,6 +43,7 @@ The production site is deployed to **https://benwassa.github.io/argus/** by GitH
 - `docs/LEARN_CONTENT_MODEL.md` — structured Learn schema/editorial contract.
 - `docs/LIBRARY_AUDIT.md` — reconciled shipped-library boundary/content audit.
 - `docs/SEEDED_CONTENT_PROVENANCE.md` — authoritative source record for the original seeded topics.
+- `docs/CONTENT_INBOX.md` — content-inbox and curated-ingestion architecture, and the Firebase setup it needs.
 - `docs/PROGRAMME.md` — Learn/Test + content-quality programme closeout.
 - `docs/MORSE_CODE_LEARNING_PRD.md` — dated Morse research/design baseline retained for rationale; later ratified decisions supersede its deliberately open implementation questions.
 - `docs/MORSE_PROGRAMME_PLAN.md` — current Morse programme decisions, workstream ownership and implementation status.
@@ -49,7 +57,10 @@ The production site is deployed to **https://benwassa.github.io/argus/** by GitH
 - `src/app/` — application composition and global providers
 - `src/components/` — shared UI and layout components
 - `src/features/` — domain features
-- `src/lib/` — library types, storage/migration, scheduler, Morse support and seeded data
+- `src/lib/` — library types, storage/migration, scheduler, shipped-catalog reconciliation, Morse support and seeded data
+- `src/lib/inbox/` — the content-inbox boundary; imports nothing from the learning library
+- `scripts/` — maintainer tooling: rules rendering and content-inbox ingestion
+- `firestore/` — Firestore Security Rules tests, run against the emulator
 - `src/styles/` — global tokens and baseline styles
 - `public/` — static PWA assets copied directly into the build
 

@@ -828,3 +828,21 @@ main:focus {
     scroll-behavior: auto !important;
   }
 }
+
+/* Catalog delivery is quiet, but a withheld shipped topic is a real conflict
+   and says so where the rest of the durable-record surfaces live. */
+.catalog-notice {
+  margin-top: var(--s-xl);
+}
+
+.catalog-notice .index {
+  margin-top: var(--s-sm);
+}
+
+.catalog-notice-id {
+  padding: var(--s-sm) 0;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  font-size: var(--t-label);
+  list-style: none;
+}

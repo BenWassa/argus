@@ -1,6 +1,9 @@
 # Content Inbox and Curated Ingestion
 
-Status: design for issue #39
+Status: implemented for issue #39. This document is the product/architecture
+authority; the **As implemented** section near the end records where the shipped
+code makes a decision the design left open, and the external Firebase setup the
+repository cannot perform for itself.
 
 ## Purpose
 
@@ -446,6 +449,78 @@ The work may be executed in one issue but should be developed in separable piece
 - regression tests for migration/export/import/evidence preservation.
 
 The implementation agent may split these into child issues/PRs if doing so materially improves review or isolates risk. #39 remains the product/architecture authority.
+
+## As implemented
+
+All four pieces above are shipped. This section records the decisions the design deliberately left to implementation.
+
+### Where the code is
+
+| Concern | Location |
+| --- | --- |
+| inbox record, validation, queue ordering | `src/lib/inbox/model.ts` |
+| capture state machine | `src/lib/inbox/capture.ts` |
+| client configuration contract | `src/lib/inbox/config.ts`, `.env.example` |
+| backend boundary and unavailable fallback | `src/lib/inbox/backend.ts` |
+| Firebase Auth/Firestore implementation | `src/lib/inbox/firebaseBackend.ts` |
+| capture sheet and Want to learn queue | `src/features/library/CaptureSheet.tsx`, `WantToLearn.tsx` |
+| Security Rules | `firestore.rules.template`, rendered by `npm run inbox:rules` |
+| rules tests (Firestore emulator) | `firestore/rules.test.ts`, `npm run test:rules` |
+| maintainer ingestion tool | `scripts/inbox/`, `npm run inbox` |
+| shipped catalog manifest | `src/lib/shippedCatalog.json` |
+| catalog reconciliation | `src/lib/catalog.ts` |
+| architectural boundary tests | `src/lib/inbox/boundary.test.ts` |
+
+The Firebase SDK is loaded through a dynamic import, so a build without inbox configuration never fetches or runs it.
+
+### Rules decisions
+
+The rendered ruleset allows the sole authorized UID to read the inbox, create a well-formed `pending` request, perform exactly one `pending → added` transition, and delete a request while it is still `pending`. It denies everything else in the project.
+
+Two decisions worth naming:
+
+- `createdAt` and `addedAt` must equal `request.time`, so no client clock can decide when a request was captured or delivered.
+- an `added` request cannot be deleted or re-marked from a rules-governed client. Once topics are attached the record is ingestion provenance.
+
+Security Rules cannot know whether a topic id refers to real shipped curriculum; they can only require that at least one is present. The ingestion tool checks the ids against the shipped catalog manifest.
+
+### Capture failure behaviour
+
+`src/lib/inbox/capture.ts` is a pure state machine whose central invariant is that no failure path discards typed text: validation failure, permission denial and lost connectivity all return to `editing` holding the same text and track hint, ready to send again. Success is only reported once the write is acknowledged; there is no optimistic local write that could imply the request was queued when it was not.
+
+### Catalog reconciliation mechanism
+
+Two durable fields carry provenance, both preserved by export/import:
+
+- `Topic.origin` — `catalog` or `user`. A record written before this field existed is inferred once: a topic counts as catalog-owned only if its scored identity still exactly matches what the catalog ships, so anything edited or authored under a colliding id is treated as the learner's.
+- `CurrentLibrary.catalogDelivered` — the shipped topic ids this library has already been offered.
+
+Reconciliation only ever appends. A catalog topic already present is left exactly as it is, whoever owns it; a genuinely missing one is added as a fresh `unstarted` topic with no history, timestamps or evidence; a topic id the learner owns is withheld and reported rather than replaced; and an id already delivered is never re-delivered, so deleting a shipped topic is durable rather than undone on the next load.
+
+The Data view names anything added or withheld, so catalog delivery is quiet but never silent.
+
+Changing the meaning of a topic that has already shipped is therefore still an explicit migration decision. `absorbSeededMorseBaseline` remains the only such migration, and reconciliation does not generalize it.
+
+### Ingestion tool
+
+`npm run inbox -- list` reads pending requests into a research hand-off; `npm run inbox -- mark-added --id <requestId> --topics <id>[,<id>]` records that a request became shipped topics. The tool cannot write curriculum, open a pull request, merge or deploy.
+
+Marking is gated and idempotent: every topic id must already appear in `src/lib/shippedCatalog.json`, an identical re-mark is a no-op, and a *different* mark on an already-added request is refused rather than allowed to rewrite provenance.
+
+It talks to Firestore over the REST API with a token it mints from a service-account key named by `GOOGLE_APPLICATION_CREDENTIALS`. There is no Firebase Admin dependency in the repository, and no privileged credential is stored in it.
+
+### External Firebase setup still required
+
+The repository carries the whole integration and its emulator validation. The following cannot be performed from the repository and must be done once in the Firebase and GitHub consoles. Until they are, the app builds and runs with the inbox reporting itself unavailable, and every other Argus surface is unaffected.
+
+1. Create the Firebase project and enable Cloud Firestore.
+2. Enable the Google sign-in provider in Firebase Authentication, and add the deployed origin (`benwassa.github.io`) to the authorized domains.
+3. Sign in once as the intended Google account and read its UID from Authentication → Users. That UID is `VITE_ARGUS_INBOX_UID` and `ARGUS_INBOX_UID`.
+4. Provide the web app configuration and that UID to the production build as `VITE_*` variables (see `.env.example`); the Pages workflow needs them at build time.
+5. Deploy the rules: `ARGUS_INBOX_UID=<uid> npm run inbox:rules && npx firebase deploy --only firestore:rules`.
+6. For ingestion only, create a service account with Firestore access and keep its key file outside this repository, pointed at by `GOOGLE_APPLICATION_CREDENTIALS`.
+
+No real project id, web API key or UID is invented anywhere in the repository.
 
 ## Acceptance principles
 

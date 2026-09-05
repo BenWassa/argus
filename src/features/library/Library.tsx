@@ -4,6 +4,11 @@ import { dueState, gapProgress, isDue, modeFor, shelves } from '../../lib/schedu
 import { Confirm } from '../../components/ui/Confirm'
 import { TopicForm, type Draft } from './TopicForm'
 import { TopicPage } from './TopicPage'
+import { CaptureSheet } from './CaptureSheet'
+import { WantToLearn } from './WantToLearn'
+import { useInbox } from '../../lib/inbox/useInbox'
+import { describeInboxError } from '../../lib/inbox/backend'
+import type { ContentRequest } from '../../lib/inbox/model'
 import { TRACKS, type Mode, type Topic, type Track } from '../../lib/types'
 import './Library.css'
 
@@ -40,6 +45,14 @@ export function Library({ onStart, openFormOnMount = false }: LibraryProps) {
   const [formOpen, setFormOpen] = useState(openFormOnMount)
   const [focusItems, setFocusItems] = useState(false)
   const [pendingDelete, setPendingDelete] = useState<Topic | null>(null)
+
+  // The inbox is a neighbour of the library, never a part of it. Its requests
+  // are held in their own state and never enter `topics`, so nothing here can
+  // reach the scheduler, a Test run, progress or completion.
+  const inbox = useInbox()
+  const [capturing, setCapturing] = useState(false)
+  const [removingRequest, setRemovingRequest] = useState<string | null>(null)
+  const [inboxError, setInboxError] = useState<string | null>(null)
 
   const [query, setQuery] = useState('')
   const [tracks, setTracks] = useState<Track[]>([])
@@ -132,6 +145,28 @@ export function Library({ onStart, openFormOnMount = false }: LibraryProps) {
     setTracks([])
   }
 
+  async function signInToInbox() {
+    setInboxError(null)
+    try {
+      await inbox.signIn()
+    } catch (error) {
+      setInboxError(describeInboxError(error))
+    }
+  }
+
+  async function removeRequest(request: ContentRequest) {
+    setInboxError(null)
+    setRemovingRequest(request.id)
+    try {
+      await inbox.deleteRequest(request.id)
+      setAnnouncement('Request removed.')
+    } catch (error) {
+      setInboxError(describeInboxError(error))
+    } finally {
+      setRemovingRequest(null)
+    }
+  }
+
   function closeForm() {
     setFormOpen(false)
     setEditing(null)
@@ -154,6 +189,14 @@ export function Library({ onStart, openFormOnMount = false }: LibraryProps) {
             setAnnouncement(editing ? `${topic.title} saved.` : `${topic.title} added to the library.`)
             closeForm()
           }}
+        />
+      )}
+
+      {capturing && (
+        <CaptureSheet
+          onSubmit={inbox.addRequest}
+          onClose={() => setCapturing(false)}
+          onCaptured={() => setAnnouncement('Added to Want to learn.')}
         />
       )}
 
@@ -205,10 +248,29 @@ export function Library({ onStart, openFormOnMount = false }: LibraryProps) {
                 : `${topics.length} ${topics.length === 1 ? 'topic' : 'topics'} · ${dueCount} due`}
           </p>
         </div>
-        <button className="ghost" type="button" onClick={() => newTopic()}>
-          New topic
-        </button>
+        <div className="lib-head-actions">
+          <button className="ghost" type="button" onClick={() => newTopic()}>
+            New topic
+          </button>
+          {/* Lighter than New topic on purpose: this one asks for an idea, not
+              a finite boundary. A build with no inbox does not offer it at all,
+              rather than showing a control that cannot work. */}
+          {inbox.status !== 'unconfigured' && (
+            <button className="lib-capture" type="button" onClick={() => setCapturing(true)}>
+              <span aria-hidden="true">+</span> Want to learn
+            </button>
+          )}
+        </div>
       </div>
+
+      <WantToLearn
+        status={inbox.status}
+        requests={inbox.requests}
+        error={inboxError ?? inbox.error}
+        removing={removingRequest}
+        onSignIn={() => void signInToInbox()}
+        onRemove={(request) => void removeRequest(request)}
+      />
 
       {topics.length === 0 ? (
         <div className="lib-blank">

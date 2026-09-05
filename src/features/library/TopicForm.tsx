@@ -132,6 +132,10 @@ export function TopicForm({
       // Evidence follows stable ids through reorder/text edits and is removed
       // only when its item is actually deleted.
       itemEvidence: pruneItemEvidence(topic?.itemEvidence, reconciledItems),
+      // Editing changes content, not ownership. A topic authored here is the
+      // user's; an edited catalog topic stays a catalog topic, so routine
+      // edits are never reported as a shipped-content collision.
+      origin: topic?.origin ?? 'user',
     })
   }
 

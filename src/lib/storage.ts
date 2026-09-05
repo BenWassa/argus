@@ -17,16 +17,33 @@ import {
   type LearnSource,
   type MorseCharacterLearnItem,
   type Topic,
+  TOPIC_ORIGINS,
 } from './types'
 import { migratedItemId } from './items'
 import { seedLibrary } from './seed'
+import {
+  NO_RECONCILIATION,
+  SHIPPED_CATALOG_TOPIC_IDS,
+  inferredOrigin,
+  reconcileCatalog,
+  type CatalogReconciliation,
+} from './catalog'
 
 const KEY = 'argus.library.v5'
 const LEGACY_KEYS = ['argus.library.v4', 'argus.library.v3', 'argus.library.v2'] as const
 
+/** A library holding nothing, and expecting nothing. Reset means reset. */
+export function emptyLibrary(): CurrentLibrary {
+  return { version: 5, topics: [], catalogDelivered: [...SHIPPED_CATALOG_TOPIC_IDS].sort() }
+}
+
 function freshSeedLibrary(): CurrentLibrary {
   const migrated = parseLibrary(seedLibrary())
-  return migrated.ok ? migrated.library : { version: 5, topics: [] }
+  if (!migrated.ok) return emptyLibrary()
+  return {
+    ...migrated.library,
+    catalogDelivered: [...SHIPPED_CATALOG_TOPIC_IDS].sort(),
+  }
 }
 
 const SEEDED_MORSE_ID = 'international-morse-letters-printed'
@@ -53,6 +70,9 @@ export function absorbSeededMorseBaseline(library: CurrentLibrary): CurrentLibra
       scope: finalTopic.scope,
       items: finalTopic.items,
       learn: finalTopic.learn,
+      // Absorption is the explicit statement that this record is the shipped
+      // topic, so it also settles provenance for catalog reconciliation.
+      origin: 'catalog' as const,
       // A #23 completion is retained in history, but cannot remain the active
       // completion state for the stronger bidirectional claim.
       ...(hadForwardCompletion ? { status: 'drilled' as const, completedAt: null } : {}),
@@ -66,24 +86,46 @@ function freshSeedLibraryUnreconciled(): CurrentLibrary {
   return parsed.ok ? parsed.library : { version: 5, topics: [] }
 }
 
-export function loadLibrary(): CurrentLibrary {
+/**
+ * Everything a stored or imported library goes through before it becomes the
+ * live record: the one explicit Morse migration, then delivery of shipped
+ * catalog topics this library has never been offered. Both are append- or
+ * migration-only; neither may rewrite unrelated learner state.
+ */
+export function reconcileLoadedLibrary(
+  library: CurrentLibrary,
+  now: Date = new Date(),
+): { library: CurrentLibrary; report: CatalogReconciliation } {
+  return reconcileCatalog(absorbSeededMorseBaseline(library), now)
+}
+
+export interface LoadedLibrary {
+  library: CurrentLibrary
+  report: CatalogReconciliation
+}
+
+export function loadLibraryWithReport(now: Date = new Date()): LoadedLibrary {
   try {
     const found = [KEY, ...LEGACY_KEYS]
       .map((key) => ({ key, raw: localStorage.getItem(key) }))
       .find((entry) => entry.raw !== null)
-    if (!found?.raw) return freshSeedLibrary()
+    if (!found?.raw) return { library: freshSeedLibrary(), report: NO_RECONCILIATION }
 
     const parsed = parseLibrary(JSON.parse(found.raw))
-    if (!parsed.ok) return freshSeedLibrary()
+    if (!parsed.ok) return { library: freshSeedLibrary(), report: NO_RECONCILIATION }
 
     // Promote a valid legacy record immediately. This makes the migration
     // durable even before the provider's first effect runs.
-    const absorbed = absorbSeededMorseBaseline(parsed.library)
-    if (found.key !== KEY || absorbed !== parsed.library) saveLibrary(absorbed)
-    return absorbed
+    const reconciled = reconcileLoadedLibrary(parsed.library, now)
+    if (found.key !== KEY || reconciled.library !== parsed.library) saveLibrary(reconciled.library)
+    return reconciled
   } catch {
-    return freshSeedLibrary()
+    return { library: freshSeedLibrary(), report: NO_RECONCILIATION }
   }
+}
+
+export function loadLibrary(): CurrentLibrary {
+  return loadLibraryWithReport().library
 }
 
 export function saveLibrary(library: CurrentLibrary): void {
@@ -556,10 +598,44 @@ export function parseLibrary(value: unknown): ParseResult {
             : null,
       history: Array.isArray(t.history) ? (t.history as Topic['history']) : [],
       itemEvidence: itemEvidence.value,
+      origin: TOPIC_ORIGINS.includes(t.origin as never)
+        ? (t.origin as Topic['origin'])
+        : undefined,
     })
   }
 
-  return { ok: true, library: { version: 5, topics } }
+  // Provenance is resolved once, here, so every topic storage hands out has an
+  // answer. A record written before provenance existed is inferred from what
+  // the catalog ships; anything that does not match exactly stays the user's.
+  for (const topic of topics) {
+    if (!topic.origin) topic.origin = inferredOrigin(topic)
+  }
+
+  const catalogDelivered = parseCatalogDelivered(raw.catalogDelivered)
+
+  return {
+    ok: true,
+    library: {
+      version: 5,
+      topics,
+      ...(catalogDelivered ? { catalogDelivered } : {}),
+    },
+  }
+}
+
+/**
+ * `undefined` and `[]` are different answers: an absent list means the record
+ * predates delivery tracking and should be inferred, while an empty list is a
+ * library that has genuinely been offered nothing.
+ */
+function parseCatalogDelivered(value: unknown): string[] | undefined {
+  if (!Array.isArray(value)) return undefined
+  const ids = new Set<string>()
+  for (const entry of value) {
+    const id = optionalText(entry)
+    if (id) ids.add(id)
+  }
+  return [...ids].sort()
 }
 
 export function exportFilename(now: Date = new Date()): string {

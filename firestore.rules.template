@@ -1,0 +1,87 @@
+rules_version = '2';
+
+// Argus content inbox — Firestore Security Rules.
+//
+// The inbox is the only thing Argus keeps in the cloud. The learning library,
+// scheduler state, attempt history and cue evidence are local-first and never
+// reach this database, so nothing here can affect what the learner has proved.
+//
+// The UID placeholder below is rendered by `npm run inbox:rules`, which reads
+// ARGUS_INBOX_UID. The resulting `firestore.rules` is generated and untracked.
+// The UID is an identity, not a credential.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function authorizedUid() {
+      return '__ARGUS_AUTHORIZED_UID__';
+    }
+
+    // One user, named explicitly. Being signed in is not enough, and owning the
+    // path is not enough: there is no public or anonymous write path into the
+    // inbox, and no second account can create one by signing up.
+    function soleUser(userId) {
+      return request.auth != null
+        && request.auth.uid == authorizedUid()
+        && userId == authorizedUid();
+    }
+
+    function validTrackHint(data) {
+      return !('trackHint' in data.keys())
+        || data.trackHint == null
+        || data.trackHint in ['learning', 'survival', 'tradecraft'];
+    }
+
+    function validText(data) {
+      return data.text is string
+        && data.text.size() > 0
+        && data.text.size() <= 2000
+        && data.text.trim() == data.text;
+    }
+
+    // A pending request is intent and nothing else: one piece of text, an
+    // optional track hint, and a creation time the client cannot choose. No
+    // scope, no items, no status ladder, no progress, no evidence.
+    function validPending(data) {
+      return data.keys().hasOnly(['text', 'status', 'trackHint', 'createdAt'])
+        && data.keys().hasAll(['text', 'status', 'createdAt'])
+        && data.status == 'pending'
+        && validText(data)
+        && validTrackHint(data)
+        && data.createdAt == request.time;
+    }
+
+    // The only legitimate transition: pending becomes added, once, carrying the
+    // shipped topic ids it produced and a server-set time. The captured text,
+    // its track hint and its creation time are immutable, so a request's
+    // provenance cannot be rewritten after the fact. Rules cannot know whether
+    // a topic id is real; ingestion checks that against the shipped catalog.
+    function validAddition(before, after) {
+      return after.keys().hasOnly(['text', 'status', 'trackHint', 'createdAt', 'topicIds', 'addedAt'])
+        && after.keys().hasAll(['text', 'status', 'createdAt', 'topicIds', 'addedAt'])
+        && before.status == 'pending'
+        && after.status == 'added'
+        && after.text == before.text
+        && after.createdAt == before.createdAt
+        && after.get('trackHint', null) == before.get('trackHint', null)
+        && after.topicIds is list
+        && after.topicIds.size() > 0
+        && after.topicIds.size() <= 20
+        && after.addedAt == request.time;
+    }
+
+    match /users/{userId}/inbox/{requestId} {
+      allow read: if soleUser(userId);
+      allow create: if soleUser(userId) && validPending(request.resource.data);
+      allow update: if soleUser(userId) && validAddition(resource.data, request.resource.data);
+      // A request can be dropped while it is still only intent. Once it has
+      // shipped topics attached, the record is ingestion provenance and stays.
+      allow delete: if soleUser(userId) && resource.data.status == 'pending';
+    }
+
+    // Nothing else in this project belongs to Argus.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
