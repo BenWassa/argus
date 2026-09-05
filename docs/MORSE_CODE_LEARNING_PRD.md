@@ -1,30 +1,49 @@
 # Morse code progressive learning — research and product requirements
 
-**Status:** Proposed design/research baseline  
+**Status:** Research baseline; implementation truth amended by #24–#29 and #42  
 **Issue:** #21  
-**Repository baseline:** `c1cc753eb89c9aa5379d1a885892703cf20e65ba`  
-**Date:** 2026-09-03  
+**Original repository baseline:** `c1cc753eb89c9aa5379d1a885892703cf20e65ba`  
+**Original date:** 2026-09-03  
+**#42 amendment:** 2026-09-04  
 **Product model:** Learn + Test only
+
+> **Document hierarchy:** the ratified decisions in `docs/MORSE_PROGRAMME_PLAN.md`
+> and focused implementation documents override unresolved hypotheses in this
+> research baseline. #42 specifically supersedes the original PRD decision that
+> verbal mnemonics should be merely optional rescue cues.
 
 ## 1. Executive decision
 
-Argus should add International Morse code, but not as a conventional 26-card deck whose completion vaguely means “knows Morse.” Morse exposes a useful new content class: a finite symbol system in which the learner should encounter **different representations as proficiency develops**.
+Argus should add International Morse code, but not as a conventional 26-card deck whose completion vaguely means “knows Morse.” Morse exposes a useful content class: a finite symbol system in which the learner encounters **different representations as proficiency develops**.
 
 The target learning progression is:
 
-> **encode → assisted retrieval → prompt-first multiple choice → diminishing/adaptive cues → uncued production → auditory recognition → confusable-item discrimination → groups → words/phrases**
+> **encode → assisted retrieval → prompt-first multiple choice → diminishing/adaptive cues → uncued production → later auditory recognition → confusable-item discrimination → later groups → later words/phrases**
 
-The first implementation should preserve Argus’s strongest invariant: every completion claim is explicit, finite and completely testable.
+The first implementation preserves Argus’s strongest invariant: every completion claim is explicit, finite and completely testable.
 
-The recommended first shipped boundary is:
+The shipped printed-mapping boundary is:
 
-> **International Morse — Letters:** independently map all 26 letters A–Z to their canonical International Morse code patterns and map those 26 printed patterns back to their letters, without mnemonic artwork or other answer-bearing cues.
+> **International Morse — Letters:** independently map all 26 letters A–Z to their canonical International Morse code patterns and map those 26 printed patterns back to their letters, without mnemonic artwork, verbal mnemonics, audio cues or other answer-bearing support at the uncued evidence boundary.
+
+The exact user-facing completion claim is:
+
+> **Can independently recall all A–Z printed Morse mappings in both directions.**
 
 This first completion claim **does not mean** that the learner can receive continuous Morse by ear, send well-timed Morse, copy words at a stated speed, use numerals/punctuation/prosigns, or operate CW on air. Those are distinct finite skills and should be represented by later topics only when their own completion criteria are explicit.
 
-The core product hypothesis is that a purpose-designed visual mnemonic layer can make the first mappings easier to encode, while correct Morse audio is introduced from the first encounter. The visual layer is temporary scaffolding: it should fade as recall strengthens and should never become the learner’s required decoding algorithm.
+### #42 acquisition correction
 
-This document records the research basis, product decisions, unresolved questions and architecture implications. It is not authorization for one large implementation PR. #21 should be decomposed into focused implementation issues after the design decisions below are accepted.
+The intended first-memory treatment is now explicit:
+
+> **rhythmic verbal mnemonic + SVG timing scaffold + canonical pattern + audio**  
+> → **reduced verbal/visual rhythm cue**  
+> → **canonical/audio support**  
+> → **uncued production and printed reverse recall**
+
+The **rhythmic verbal mnemonic is the primary early memory hook**. The generated SVG remains a secondary visual scaffold that reinforces the same short/long sequence. Both are temporary: neither is part of the completion criterion and neither may leak into the final uncued Test rungs.
+
+This correction is an implementation/product decision prompted by production use, not a claim that controlled evidence has proved verbal mnemonics superior to visual mnemonics. The A–Z phrase set and provenance are recorded in `docs/MORSE_VERBAL_MNEMONICS.md`; the SVG grammar is recorded in `docs/MORSE_MNEMONIC_GRAMMAR.md`.
 
 ---
 
@@ -40,7 +59,7 @@ Morse has unusually good structural fit with Argus:
 - **Multimodal learning.** The same underlying code has visual, auditory and motor representations.
 - **Useful architecture pressure.** Morse forces Argus to solve progressive cueing, non-MC answers, deterministic audio and representation changes without weakening the finite Test boundary.
 
-The original Argus PRD already named Morse code as a candidate recall topic. The research now indicates that treating it as plain flashcards would leave substantial learning value on the table.
+Treating Morse as plain flashcards would leave substantial learning value on the table, but adding richer acquisition support must never blur what has actually been proved.
 
 ---
 
@@ -57,15 +76,15 @@ The original Argus PRD already named Morse code as a candidate recall topic. The
 | Group reception | audio stream | copied group | Serial character reception |
 | Word/phrase reception | audio stream | word/meaning | Chunked continuous reception |
 
-The visual letter-mapping topic is therefore useful but deliberately modest. It establishes the symbol system. It is not a proxy for auditory CW competence.
+The printed letter-mapping topic is useful but deliberately modest. It establishes the symbol system. It is not a proxy for auditory CW competence.
 
-This distinction also protects Argus’s completion semantics. Rich Learn support may prepare the learner for later abilities, but the current topic’s `scope + scored items/criteria` remain the complete claim.
+Rich Learn support may prepare the learner for later abilities, but the current topic’s `scope + scored items/criteria` remain the complete claim. Optional sound heard during acquisition is therefore support, not evidence of auditory reception.
 
 ---
 
 ## 4. Evidence model
 
-Not all sources answer the same question. Product decisions should distinguish five evidence classes.
+Not all sources answer the same question. Product decisions distinguish five evidence classes.
 
 ### A. Standards / primary authority
 
@@ -83,7 +102,7 @@ Used for claims about acquisition, whole-pattern recognition, stimulus similarit
 - Clawson et al. (2001), part-whole training and unitization.
 - Spragg (1943), character difficulty/confusions.
 
-These studies are directly relevant but differ in age, task, sample and outcome. None should be treated as a complete modern curriculum specification.
+These studies are directly relevant but differ in age, task, sample and outcome. None is a complete modern curriculum specification.
 
 ### C. Large contemporary observational evidence
 
@@ -109,8 +128,9 @@ Used as design precedent and ecological evidence, not as controlled proof of opt
 - Ace Centre Morse Learn.
 - Morse Code World.
 - Morse Code Master.
+- the rhythmic verbal method reference supplied in #42.
 
-When a trainer uses a particular character speed, order or threshold, Argus may study the pattern without calling it scientifically optimal unless the underlying evidence supports that claim.
+When a trainer uses a particular mnemonic, character speed, order or threshold, Argus may study the pattern without calling it scientifically optimal unless the underlying evidence supports that exact claim.
 
 ---
 
@@ -118,34 +138,32 @@ When a trainer uses a particular character speed, order or threshold, Argus may 
 
 ### 5.1 Visual cues appear especially useful early, while sound becomes more important later
 
-Wade et al. (2026) analysed 699,562 telemetry records from 34,641 anonymous users of a Morse-learning system over five years. Their abstract reports 90.3% final accuracy for learners using visual cueing versus 82.2% without visual cueing, with Cohen’s `d = 0.79`, and progression rates of 51.6% versus 39.3%. The modeled advantage of visual cueing was strongest early and diminished across the teaching sequence, while the association with sound cueing increased; their model crossed around teaching position 13.
+Wade et al. (2026) analysed 699,562 telemetry records from 34,641 anonymous users of a Morse-learning system over five years. Their abstract reports 90.3% final accuracy for learners using visual cueing versus 82.2% without visual cueing, with Cohen’s `d = 0.79`, and progression rates of 51.6% versus 39.3%. The modeled advantage of visual cueing was strongest early and diminished across the teaching sequence, while the association with sound cueing increased.
 
-The strongest safe product interpretation is not “pictures cause Morse mastery.” The study is observational; cue choice, prior skill and learner behavior may confound outcomes. The stronger design inference is:
+The safe product interpretation is not “pictures cause Morse mastery.” The study is observational; cue choice, prior skill and learner behavior may confound outcomes. The stronger design inference is:
 
 - visual scaffolding is credible for early acquisition;
 - auditory exposure should not be postponed until the visual alphabet is complete;
-- the relative instructional weight can move from visual toward auditory as mappings stabilize;
+- instructional weight can move away from answer-bearing visual support as mappings stabilize;
 - cue configuration/fading should be adaptable rather than permanently fixed.
 
-**Argus decision:** expose correct Morse sound from the first encounter. Use rich visual support early, then remove answer-bearing visual support as retrieval succeeds.
+**Argus decision:** expose correct Morse sound from the first encounter. Retain useful visual timing support early, but make it subordinate to the #42 verbal-first acquisition hierarchy and remove it before uncued evidence.
 
 ### 5.2 Combined visual and auditory learning has direct experimental precedent
 
 Jarus (1994) randomly assigned 60 adults with no prior Morse knowledge to visual, auditory or combined teaching conditions. The combined condition was faster than the visual condition and produced fewer errors than the auditory condition on the study’s encoding task.
 
-The study was short, used a handwriting-oriented outcome and predates modern digital trainers. It does not prove that a particular Argus SVG treatment is optimal. It does support avoiding an artificial visual-first/auditory-later split.
+The study was short, used a handwriting-oriented outcome and predates modern digital trainers. It does not prove that a particular Argus SVG or verbal treatment is optimal. It does support avoiding an artificial visual-first/auditory-later split.
 
-**Argus decision:** use sound alongside visual encoding from the beginning.
+**Argus decision:** use sound alongside visual/verbal encoding from the beginning, while keeping sound optional for completion of the printed-mapping topic.
 
 ### 5.3 Fluent reception should unitize a character rather than analytically count its elements
 
-Allan’s 1958 work compared a pattern-recognition method with more analytic Morse learning and provides historical evidence for learning whole sound patterns. Clawson, Healy, Ericsson & Bourne (2001) found disadvantages from beginning with a hard subset/subtask and reported that easier initial training encouraged an effective **unitization strategy** for representing Morse codes.
+Allan’s 1958 work compared a pattern-recognition method with more analytic Morse learning. Clawson, Healy, Ericsson & Bourne (2001) found disadvantages from beginning with a hard subset/subtask and reported that easier initial training encouraged an effective **unitization strategy** for representing Morse codes.
 
-This matters for the SVG system. A mnemonic should help the learner associate a letter with one temporal pattern; it should not teach a permanent algorithm such as:
+Neither the verbal mnemonic nor the SVG should become a permanent decoding algorithm. The phrase is a temporary bridge from letter to rhythm; the SVG is a direct timing picture of that rhythm. Both fade.
 
-> first inspect dot → then inspect dash → traverse a tree → derive the letter.
-
-**Argus decision:** optimize early materials for direct character ↔ pattern association. A classic Morse binary tree may exist as an optional reference, but it should not be the primary acquisition mechanism.
+**Argus decision:** optimize early materials for direct character ↔ temporal-pattern association. A classic Morse binary tree may exist as an optional reference, but it should not be the primary acquisition mechanism.
 
 ### 5.4 Similar characters should be handled differently during acquisition and discrimination
 
@@ -156,29 +174,31 @@ This suggests a two-stage strategy:
 - **Initial acquisition:** avoid loading a beginner packet with highly confusable sound patterns merely to make the task “harder.”
 - **Later discrimination:** once mappings exist, deliberately contrast/interleave confusable pairs or families to eliminate systematic errors.
 
-**Argus decision:** do not generate MC distractors randomly forever. Store or derive confusion relationships and use them deliberately at the appropriate stage.
+**Argus decision:** distractors are evidence-informed and stage-aware rather than permanently random.
 
 ### 5.5 Diminishing cues are a defensible bridge from exposure to retrieval
 
 Fiechter & Benjamin found that diminishing-cue retrieval practice can improve later memory under conditions where ordinary retrieval is initially too difficult, and later work found value in adaptive cueing when a fixed fading schedule is too blunt.
 
-This closely matches the intended Argus transition:
+For the implemented printed topic, the bridge is now:
 
-1. rich mnemonic;
-2. reduced mnemonic;
-3. prompt first, answer options later;
+1. full verbal + SVG + canonical + audio in Learn;
+2. reduced verbal/SVG prefix inside supported Test;
+3. canonical support with optional audio;
 4. uncued production;
-5. for reception topics, audio-only stimulus.
+5. uncued printed reverse recall.
 
-**Argus decision:** represent cue strength separately from the long-term retention scheduler. The two systems solve different problems.
+A later sound-only reception topic is separate work.
+
+**Argus decision:** cue strength remains separate from the long-term retention scheduler. The two systems solve different problems.
 
 ### 5.6 Multiple choice can be made more retrieval-like before it disappears
 
-Van den Broek et al. (2023) tested a “stepwise” multiple-choice format in which the question was shown before the answer alternatives. In their experiments, delaying alternatives improved delayed retention in three of four experiments, consistent with giving learners an opportunity to retrieve before recognition support appears.
+Van den Broek et al. (2023) tested a “stepwise” multiple-choice format in which the question was shown before answer alternatives. Delaying alternatives improved delayed retention in three of four experiments, consistent with giving learners an opportunity to retrieve before recognition support appears.
 
-This does not establish a universal Morse-specific four-second delay. It supports the interaction pattern.
+This does not establish a universal Morse-specific delay. It supports the interaction pattern.
 
-**Argus decision:** supported Test can progress from immediate options to **prompt-first options** before free response. The exact delay should be tuned for mobile usability and validated rather than copied blindly.
+**Argus decision:** supported Test progresses from immediate options to prompt-first options before free response. The implemented delay is 1.5 seconds and remains a product-tuned parameter rather than a published scientific constant.
 
 ### 5.7 Spacing and retrieval remain orthogonal to cue difficulty
 
@@ -186,13 +206,13 @@ The broader retrieval-practice literature supports repeated retrieval separated 
 
 A learner can therefore be capable of uncued Morse recall today while still lacking the delayed evidence required for durable completion.
 
-**Argus decision:** do not turn “cue level” into another name for `learning / drilled / completed / decayed`. Cue difficulty and retention evidence are separate dimensions.
+**Argus decision:** cue level is not another name for `learning / drilled / completed / decayed`.
 
 ---
 
 ## 6. First shipped topic boundary
 
-### 6.1 Recommended topic
+### 6.1 Shipped topic
 
 **Title:** International Morse — Letters
 
@@ -204,7 +224,7 @@ A learner can therefore be capable of uncued Morse recall today while still lack
 
 - all 26 letters;
 - all 26 canonical mappings;
-- both stated visual mapping directions;
+- both stated printed mapping directions;
 - full item coverage rather than a sampled subset.
 
 **Completion does not cover:**
@@ -217,137 +237,139 @@ A learner can therefore be capable of uncued Morse recall today while still lack
 - words, phrases or QSOs;
 - amateur-radio operating conventions.
 
-### 6.2 Scored coverage
+### 6.2 Scored coverage — resolved by #24/#28
 
-The Test contract must make complete coverage mechanically obvious. Two implementation approaches remain open:
+Argus uses **exactly 26 logical items**, each typed `bidirectional`. Stable item identity and per-direction evidence prove both directions without duplicating the logical unit into 52 cards. `retentionCorrectCount` prevents a partial-direction path from presenting a passing attempt to the unchanged scheduler.
 
-1. represent 52 deterministic scored prompts, one for each direction; or
-2. add a typed bidirectional item mechanic whose coverage accounting proves both directions for all 26 mappings.
-
-Either is acceptable only if the scheduler and completion evidence cannot accidentally treat partial directional coverage as complete.
+This is the implemented resolution of the original 52-prompts-vs-bidirectional design question.
 
 ### 6.3 Audio in this topic
 
-Correct Morse audio should accompany Learn from the first exposure and may be used in feedback. It does **not** become part of this first topic’s scored completion claim unless the scope is explicitly changed.
+Correct Morse audio accompanies Learn and may be offered as a supported Test cue before the uncued boundary. It does **not** become part of this topic’s scored completion claim.
 
-This is intentional. Early audio exposure helps build the right representation without overstating what a visual mapping Test proves.
+This is intentional. Early audio exposure can help establish the temporal representation without overstating what a printed mapping Test proves.
 
 ---
 
 ## 7. Progressive acquisition model
 
-The following is the working design ladder. It describes cueing and response mechanics, not the retention ladder.
+This ladder describes cueing and response mechanics, not the retention ladder.
 
 ### Stage A — Encode
 
 For a small packet of characters, Learn shows:
 
 - a large uppercase glyph;
-- a purpose-designed SVG mnemonic integrated with the glyph;
+- the rhythmic verbal mnemonic as the **primary first-memory hook**;
+- explicit `short ·` / `hold —` labels so pronunciation is never the only carrier of correctness;
+- the generated SVG timing scaffold as a secondary visual representation;
 - canonical Morse beneath it;
 - a replayable correct Morse sound;
-- optional transmission-order animation;
-- concise plain-text equivalent for accessibility.
+- synchronized element highlighting driven by the same timing schedule;
+- concise semantic text equivalents for accessibility.
 
-The learner can move rapidly among the packet rather than reading a long article.
+The learner can move rapidly among the packet rather than reading a long article. This stage is exposure, not evidence of mastery.
 
-This stage is exposure, not evidence of mastery.
+### Stage B — Assisted recognition / rhythm cue
 
-### Stage B — Assisted recognition
+Begin with high-success retrieval. The supported letter → pattern card may show only a **strict opening prefix** of the verbal mnemonic, SVG timing and canonical pattern, plus pattern length. It may never reveal the entire answer.
 
-Begin with high-success retrieval:
+### Stage C — Prompt-first reduced rhythm
 
-- printed Morse → letter MC;
-- letter → Morse MC;
-- immediate corrective feedback;
-- rich cue may reappear after an error.
+The prompt appears alone before alternatives. Only the first verbal/SVG beat may remain, with the canonical first element and total length. Options arrive after the retrieval opportunity.
 
-This should feel like guided acquisition rather than a high-stakes quiz.
+### Stage D — Canonical support
 
-### Stage C — Prompt-first MC
+The verbal mnemonic and SVG disappear. The learner gets only the total length and may explicitly play the canonical Morse rhythm as optional support before delayed alternatives arrive.
 
-The prompt appears alone briefly. Options then become available if the learner has not already answered through an available free-response path.
+This audio is a cue for the printed-mapping task, not a sound-only reception test.
 
-The purpose is to create a retrieval opportunity before recognition support arrives.
+### Stage E — Uncued printed production and reverse recall
 
-### Stage D — Reduced visual cue
+The learner receives `A` and enters `.-`, or receives printed `.-` and enters `A`, with no verbal mnemonic, SVG, audio support, length hint or answer prefix.
 
-The integrated illustration disappears or becomes substantially subtler. Canonical notation and sound remain available as appropriate to Learn/feedback, but answer-bearing cueing is no longer the default Test surface.
+For letter → code on touch devices, two large tactile controls for dit and dah are used; keyboard input remains efficient.
 
-### Stage E — Uncued visual production
-
-The learner receives `A` and enters `.-`, or receives `.-` and enters `A`, with no mnemonic artwork.
-
-For letter → code on touch devices, two large tactile controls for dit and dah are a strong candidate. Keyboard input must remain efficient.
-
-This stage is the basis of the first topic’s final scored boundary.
+This stage supplies the directional evidence required by the first topic’s final scored boundary.
 
 ### Stage F — Auditory character reception
 
-This is best treated as a separate explicit skill claim. The learner hears a properly timed character and responds with the letter; the printed code appears after the response as feedback, not as a simultaneous decoding aid.
+This is a **separate future explicit skill claim**. The learner hears a properly timed character and responds with the letter; printed code appears only as feedback. It is #29 territory, not part of #42.
 
 ### Stage G — Contrastive discrimination
 
-The system intentionally targets confusable characters based on known similarity structure and the learner’s own error history.
+The system intentionally targets confusable characters based on known similarity structure and the learner’s own evidence once both members are established.
 
 ### Stage H — Groups
 
-Progress from 2-character to longer groups, ultimately including conventional 5-character practice groups where useful. Group material is generated from known symbols; it should not silently add new scored content to the alphabet topic.
+Progress from 2-character to longer groups, ultimately including conventional 5-character practice groups where useful. Group material generated from known symbols must not silently add scored content to the alphabet topic.
 
 ### Stage I — Words and phrases
 
-Use common short words and then short phrases/continuous material. At this point the system is training serial reception/chunking rather than merely a lookup table.
-
-These later stages require their own explicit performance criteria before Argus can call them completed topics.
+Use common short words and then phrases/continuous material. These later stages require their own explicit performance criteria before Argus can call them completed topics.
 
 ---
 
-## 8. The visual mnemonic system
+## 8. The mnemonic system
 
 ### 8.1 Product goal
 
-The mnemonic should create a fast direct association between the uppercase letter and the temporal Morse pattern. It should be memorable enough to bootstrap retrieval and disposable enough to disappear later.
+The acquisition system should create a fast association between the uppercase letter and its temporal Morse pattern. The scaffolds should be memorable enough to bootstrap retrieval and disposable enough to disappear later.
 
-### 8.2 Proposed visual grammar
+#42 establishes an explicit channel hierarchy rather than asking one representation to do everything:
 
-Prefer an original Argus SVG system with consistent rules across all 26 letters:
+1. rhythmic verbal phrase — primary early memory hook;
+2. SVG — secondary visual timing reinforcement;
+3. canonical notation — authoritative printed representation;
+4. synthesized audio — authoritative temporal rendering.
 
-- **dit:** always represented by the same small/circular visual event;
-- **dah:** always represented by the same elongated visual event;
-- **order:** the trace/path follows transmission order;
-- **glyph:** the uppercase letter remains visually dominant and recognizable;
-- **canonical notation:** plain `·` / `—` or `.` / `-` appears beneath the mnemonic;
-- **sound synchronization:** optional animation can illuminate/trace each element in sync with audio;
-- **reduced motion:** removes movement without removing sequence information;
-- **contrast:** mnemonic elements remain legible at small phone sizes and high text scaling.
+All four must agree element-for-element.
 
-A useful progression is:
+### 8.2 Visual grammar — secondary scaffold
 
-> full integrated mnemonic → reduced trace → canonical code only → prompt only
+Argus retains an original generated SVG system with consistent rules across all 26 letters:
 
-For later reception topics the stimulus can become sound only.
+- **dit:** small/circular one-unit event;
+- **dah:** elongated three-unit event;
+- **order:** transmission order left to right;
+- **glyph:** uppercase letter remains visibly attached to the timing trace;
+- **canonical notation:** plain `·` / `—` or `.` / `-` remains available;
+- **sound synchronization:** highlighting uses the same schedule/start delay as audio;
+- **reduced motion:** sequence semantics survive without positional motion;
+- **contrast:** short vs long remains distinguishable without colour alone.
 
-### 8.3 Verbal/syllabic mnemonics
+The SVG is not a bespoke pictorial illustration per letter and no longer carries the role of primary mnemonic. See `docs/MORSE_MNEMONIC_GRAMMAR.md`.
 
-Resources such as Morse Code Master use spoken-word mnemonics in which syllable length cues dit/dah structure. These can be memorable, but they introduce another possible translation layer:
+### 8.3 Verbal/syllabic mnemonics — #42 decision
 
-> `A` → mnemonic word → short/long syllables → Morse
+The original PRD treated verbal mnemonics as optional rescue cues. Production use showed that this was the wrong product hierarchy for the intended method.
 
-There is not yet evidence establishing that the proposed SVG approach is superior to a verbal mnemonic approach.
+**Decision (#42): rhythmic verbal mnemonics are the primary early acquisition scaffold.**
 
-**Decision:** verbal mnemonics may be considered as optional rescue cues, not the default representation in the first design.
+The Argus grammar is:
+
+- one monosyllabic spoken word per Morse element;
+- clipped/short beat → dit;
+- deliberately held beat → dah;
+- transmission order preserved exactly;
+- explicit `short`/`hold` labels always accompany the phrase in Learn, so accent or natural word duration cannot silently invert the mapping;
+- the phrase is a temporary bridge and is never scored;
+- reduced Test may show only a strict opening prefix;
+- uncued Test shows none of it.
+
+The supplied method/example `A = "A LONG"` is retained. The other 25 phrases are original Argus editorial work, not a copied third-party mnemonic list. `docs/MORSE_VERBAL_MNEMONICS.md` records every phrase, rationale and provenance.
+
+Automated structural agreement is not evidence that the phrase set is maximally memorable. Human learner validation remains necessary.
 
 ### 8.4 Morse trees
 
 Binary dot/dash trees are useful references but encourage sequential traversal. They should not be the primary Learn mechanic when the intended endpoint is unitized recognition.
 
-### 8.5 Asset provenance
+### 8.5 Asset/content provenance
 
-Google Creative Lab’s `morse-learn` repository is published under Apache-2.0 at repository level and should be studied for interaction and visual-learning precedent. Before reusing or modifying any particular illustration or third-party asset, verify its exact provenance/license.
+Google Creative Lab’s `morse-learn`, Ace Centre Morse Learn, Morse Code Master and the #42 video are research/design precedents. Argus does not silently copy their per-letter assets or phrase lists.
 
-Ace Centre’s Morse Learn work should likewise be treated as a research/design reference unless the relevant asset licensing is explicitly confirmed.
-
-Unless there is a compelling licensed asset advantage, Argus should create an original mnemonic set with a single coherent visual grammar.
+The canonical A–Z mappings and timing come only from ITU-R M.1677-1. The SVG is generated from those canonical patterns. The verbal set is original except for the user-supplied `A LONG` exemplar, and is mechanically checked back against the canonical table.
 
 ---
 
@@ -361,25 +383,31 @@ ITU-R M.1677-1 defines the basic temporal relationships:
 - gap between characters = 3 units;
 - gap between words = 7 units.
 
-Argus should synthesize Morse deterministically from the underlying symbol data rather than shipping a large library of arbitrary recordings.
+Argus synthesizes Morse deterministically from underlying symbol data rather than shipping arbitrary prerecorded clips.
 
 ### 9.1 Character speed vs effective speed
 
-Operational training commonly preserves a relatively fast internal character rhythm while widening spacing between characters/words (Farnsworth-style training). ARRL resources and the current CW Academy curriculum are important practice precedents. CW Academy’s Fundamental curriculum, for example, uses 25 WPM character speed with much lower effective speed early in training.
+Operational training commonly preserves a coherent internal character rhythm while widening spacing between characters/words (Farnsworth-style training). ARRL resources and CW Academy are practice precedents, not proof that one exact speed is universally optimal.
 
-This does **not** prove that 25 WPM is optimal for Argus.
-
-**Decision:** do not teach beginner audio by stretching each character into very slow constituent dots/dashes. Preserve a coherent character rhythm and create beginner breathing room through spacing. The exact initial character/effective-speed pair remains a design-validation question.
+**Decision:** do not teach beginner audio by stretching each character into unnaturally slow constituent dots/dashes. Preserve a coherent character rhythm and create breathing room through spacing where applicable.
 
 ### 9.2 Audio implementation requirements
 
 - deterministic timing from canonical data;
-- configurable tone and volume within sensible accessibility limits;
+- configurable tone and deliberate default gain within sensible limits;
 - no sound asset required to identify the correct answer visually;
-- replay in Learn/feedback;
-- no autoplay behavior that surprises users after navigation;
-- safe Web Audio lifecycle across background/foreground and mobile browsers;
-- unit tests for timing generation independent of audible-device tests.
+- replay in Learn and supported cueing;
+- no autoplay after navigation/render;
+- `AudioContext` creation/resume stays on the direct Play activation path;
+- any non-running mobile context is resumed and verified as `running` before scheduling nodes;
+- app code does not race browser lifecycle suspension with its own asynchronous background `suspend()` call;
+- background/pagehide cancels scheduled playback/highlighting cleanly;
+- a closed context can be recreated;
+- audio failure is clearly reported and never blocks Learn;
+- oscillator/highlight timing shares one schedule/start delay;
+- unit tests cover timing/lifecycle but do not claim audible physical-device success.
+
+#42 deliberately raises the default linear gain from `0.12` to `0.25` after the reported production audibility failure. Device media volume and routing remain final output controls; the exact production build still requires real-device acceptance.
 
 ---
 
@@ -387,37 +415,22 @@ This does **not** prove that 25 WPM is optimal for Argus.
 
 ### 10.1 Five-at-a-time is a UI hypothesis, not a cognitive law
 
-A five-card visual packet is a strong phone interaction: small enough to scan repeatedly, large enough to feel like meaningful progress, and compatible with an attractive horizontal/stacked presentation.
+A five-card visual packet is a strong phone interaction: small enough to scan repeatedly, large enough to feel meaningful, and compatible with the current mobile surface.
 
-However, the research does not establish that five **simultaneously novel mappings** is optimal.
+The research does not establish that five **simultaneously novel mappings** is optimal. Study packet size and new-item acquisition load remain conceptually separate.
 
-Keep two parameters distinct:
+### 10.2 Character order
 
-- **Study packet size:** candidate default = 5 visible/browsable characters.
-- **New-item acquisition load:** candidate initial value may be 2–3 or adaptive, with already-known items occupying the rest of the packet.
+The implemented order is documented in the programme/curriculum work. Order claims must distinguish historical/practice precedent from controlled evidence. Do not call an order “official,” “ARRL-certified” or scientifically optimal without primary evidence for that exact claim.
 
-The implementation should make these separable rather than hard-wiring “packet of five = five new items.”
-
-### 10.2 Character order is unresolved
-
-Compare at minimum:
-
-- Koch-style incremental orders;
-- current CW Academy ordering;
-- simple/complexity-based easy-first sequences;
-- confusion-aware ordering informed by Spragg/Rothkopf;
-- any contemporary telemetry that can justify a different sequence.
-
-Selection criteria should include:
+Selection criteria remain:
 
 - early acquisition success;
-- avoiding dense clusters of highly confusable aural patterns;
-- balanced representation of dits/dahs;
+- avoiding dense clusters of highly confusable patterns;
+- balanced dit/dah representation;
 - useful early combinations;
-- compatibility with gradual auditory exposure;
+- compatibility with gradual audio exposure;
 - simplicity of explanation.
-
-Do not call a sequence “official,” “ARRL-certified” or scientifically optimal without primary evidence for that exact claim.
 
 ---
 
@@ -425,102 +438,84 @@ Do not call a sequence “official,” “ARRL-certified” or scientifically op
 
 ### 11.1 Response modes
 
-Morse may require Test responses beyond the current reveal/self-score card:
+Morse extends Test without adding another product mode:
 
-- MC recognition;
+- supported MC recognition;
 - prompt-first/delayed MC;
 - single-character keyboard entry;
 - dit/dah tactile entry;
-- later audio stimulus → character entry.
-
-Any new Test mechanic must preserve the current Learn + Test product model. Do not add a separate Practice/Rehearsal mode to house these interactions.
+- later sound-only stimulus → character entry only in a separately scoped topic.
 
 ### 11.2 Accuracy and latency
 
-Accuracy remains the primary correctness signal for the first mapping topic. Response latency can be useful for:
-
-- determining whether an item still needs a cue;
-- identifying hesitation/problem items;
-- differentiating fluent recognition from slow analytic decoding in later reception training;
-- choosing targeted discrimination material.
+Accuracy remains the primary correctness signal for the printed mapping topic. Response latency is recorded from the first session for later analysis but **gates nothing** in the current completion claim.
 
 Latency must not silently become a completion requirement for a topic whose scope does not mention speed.
 
 ### 11.3 Cue state vs scheduler state
 
-A useful conceptual model is:
-
 ```text
 retention state: learning / drilled / completed / decayed
-cue state:       rich / reduced / delayed-choice / free / auditory
+cue state:       rich / delayed-choice / reduced / free
 ```
 
-They can evolve independently.
-
-Examples:
-
-- a newly introduced `A` may quickly reach free response but still need tomorrow’s delayed retrieval;
-- an old `Q` may remain completed historically but receive a temporary richer feedback cue after a failure;
-- an early voluntary Test may adjust item-confidence/cue data while still being unable to satisfy a future qualifying retention milestone.
-
-The early-Test semantics implemented under #10 remain authoritative.
+They evolve independently. Cue evidence can withhold a passing bidirectional attempt until both directions have actually been demonstrated; it cannot grant, skip or reset retention evidence. `src/lib/scheduling.ts` remains authoritative for retention resolution.
 
 ### 11.4 Generated groups are not extra completion items
 
-When the system generates `KTA`, `SOS` or a 5-character group from known symbols, that material is a training presentation built from the finite symbol set. It must not make the original topic’s completion boundary ambiguous.
-
-If group/word performance is itself scored as a distinct skill, give it an explicit separate scope/criterion.
+When the system later generates a group from known symbols, that material is training presentation built from the finite symbol set. It must not make the printed alphabet topic’s completion boundary ambiguous.
 
 ---
 
 ## 12. Accessibility requirements
 
-Morse has longstanding assistive-technology applications, so an image-centric learning design would be particularly inappropriate if it excluded learners who cannot use that channel.
+Morse has longstanding assistive-technology applications, so a rich learning design cannot make one modality the only route to the printed topic.
 
 Requirements:
 
-- SVG artwork has meaningful semantic text equivalents.
-- Visual and auditory cue channels are not needlessly entangled.
-- A learner can complete the printed mapping topic without relying on animation.
+- SVG has meaningful semantic text equivalents.
+- The verbal phrase has semantic duration labels; capitalization is not load-bearing.
+- Visual and auditory channels are independently usable.
+- The printed mapping topic can be completed without animation or working audio.
 - Reduced motion preserves sequence/order information.
-- Touch targets support comfortable one-handed phone use.
+- Touch targets support comfortable phone use.
 - Keyboard operation is first-class.
-- Architecture should not preclude switch-accessible input.
-- Audio controls expose sensible replay/volume behavior.
+- Architecture does not preclude switch-accessible input.
+- Audio controls expose replay and clear media-volume guidance.
 - Color is never the only carrier of dit/dah or correctness information.
 - 200% text scaling and narrow mobile layouts remain usable.
-- Hearing-dependent and vision-dependent future topics must state their modality requirements honestly rather than pretending to be universally equivalent.
+- Hearing-dependent and vision-dependent future topics state modality requirements honestly rather than pretending to be universally equivalent.
 
 ---
 
 ## 13. Data and architecture implications
 
-The existing v4 model deliberately separates finite scored `items` from optional `Topic.learn` explanatory material. Morse should preserve that principle.
+The existing model separates finite scored `items` from optional `Topic.learn` explanatory/acquisition material. Morse preserves that principle.
 
-Potential reusable capability additions include:
+Reusable capability additions now include:
 
 - typed mnemonic/visual asset references;
-- canonical symbol-code data separate from rendered mnemonic art;
+- canonical symbol-code data separate from rendered scaffold;
 - deterministic Morse audio synthesis;
+- stable item identity;
+- typed bidirectional item semantics;
 - per-item acquisition/cue state;
 - response-mode metadata;
 - optional response-latency evidence;
-- known confusion relationships;
-- generated group/word item families;
-- explicit modality/speed criteria for later topics;
-- migration-safe export/import for any durable learning state.
+- derived confusion relationships;
+- migration-safe export/import for durable learning state.
+
+The verbal phrase table itself is presentation/content code keyed by canonical letter; it is not learner state and does not require a schema migration.
 
 ### 13.1 Do not overgeneralize prematurely
 
-Morse is the first use case. The data model should support the required learning behavior without becoming a bespoke CMS or speculative universal skill engine.
-
-Before modifying the durable library schema, explicitly decide which information is:
+Before modifying durable library state, distinguish:
 
 1. **content definition** — portable with the topic/library;
 2. **learning state** — user-specific and scheduled;
 3. **runtime presentation** — derivable and need not be persisted.
 
-For example, the canonical A=`.-` mapping belongs to content; current cue strength likely belongs to user learning state; a generated 5-character group may be transient runtime presentation.
+The canonical A=`.-` mapping is content; current cue strength is user learning state; the rendered phrase/SVG/audio schedule is derivable presentation.
 
 ---
 
@@ -528,182 +523,115 @@ For example, the canonical A=`.-` mapping belongs to content; current cue streng
 
 ### Google Creative Lab Morse Typing Trainer
 
-Relevant because it demonstrates a visually mnemonic, accessible zero-to-Morse learning experience and has public source. Study:
-
-- visual mnemonic integration;
-- short-step onboarding;
-- tactile input;
-- accessibility motivation;
-- how quickly cues are introduced/removed.
-
-Do not assume its curriculum is optimal merely because the UX is compelling.
+Relevant for visual mnemonic integration, short-step onboarding, tactile input and accessibility motivation. It is a precedent, not proof of optimal curriculum.
 
 ### Ace Centre Morse Learn
 
-Especially relevant because its visual/auditory cueing system produced the telemetry analysed by Wade et al. Study:
-
-- independently configurable cues;
-- multimodal accessibility;
-- the exact intervention behind the 2026 observational results;
-- what can and cannot be inferred from learner telemetry.
+Relevant because its cueing system produced the telemetry analysed by Wade et al. Independently configurable cues and multimodal accessibility are especially pertinent.
 
 ### Morse Code World
 
-Relevant as a mature trainer ecosystem. It demonstrates:
-
-- adaptive character work;
-- response-time/ICR concepts;
-- word-list training;
-- QSO-style material;
-- configurable character/Farnsworth speeds;
-- progression beyond isolated symbols.
-
-Use it as a feature/ecological benchmark, not a source of canonical completion semantics for Argus.
+Relevant as a mature trainer ecosystem with adaptive character work, speed configuration, word lists and progression beyond isolated symbols. It is not the source of Argus completion semantics.
 
 ### Morse Code Master
 
-Relevant for simple beginner lesson packaging, combined input types, verbal mnemonic examples and a Koch-style trainer. Treat claims about “official” sequences cautiously unless independently verified.
+Relevant for beginner packaging, combined input types, verbal-mnemonic examples and Koch-style training. Argus does not copy its mnemonic list, and “official” sequence claims require independent authority.
 
 ### ARRL and CW Academy
 
-Relevant for contemporary amateur-radio training practice, particularly sound-first guidance, keeping character rhythm relatively fast and controlling effective speed through spacing. They are important operational precedents but should not be presented as randomized evidence that one exact WPM setting is universally optimal.
+Relevant for contemporary amateur-radio training practice, particularly maintaining coherent character rhythm and controlling effective speed through spacing. They are operational precedents, not randomized proof of an exact WPM setting.
+
+### #42 supplied rhythmic-verbal reference
+
+Relevant for the **method** of mapping short/held spoken beats to dits/dahs. The user-supplied `A LONG` exemplar is retained. Argus authors its remaining phrases independently and verifies them against ITU content.
 
 ---
 
 ## 15. Measurement and validation
 
-The first implementation should be validated at three levels.
+The implementation is validated at three levels.
 
 ### 15.1 Mechanical correctness
 
 - every A–Z mapping matches ITU-R M.1677-1;
+- every A–Z verbal phrase maps short/held beats exactly to that canonical pattern;
+- verbal, SVG and synthesized-audio signal-unit sequences agree for all 26;
 - synthesized timing preserves canonical unit ratios;
-- both test directions cover all 26 letters;
-- cue-bearing artwork cannot leak into uncued final Test;
+- both Test directions cover all 26 logical items;
+- verbal mnemonic, SVG, audio support, prefix and length cannot leak into the uncued final Test;
 - reduced-motion mode preserves sequence semantics;
-- export/import remains lossless for any new durable fields.
+- export/import and existing learner state remain lossless.
 
-### 15.2 Learning interaction validation
+### 15.2 Learning and real-device interaction validation
 
-Before declaring the progression settled, test with real novice or rusty users where practical:
+Automated tests are not human evidence. Before #42 can merge/close, the exact production build must be exercised on a real Android Chrome / installed-PWA path and confirm at minimum:
 
-- can a learner understand the visual grammar without explanation?
-- does the integrated SVG help recall or merely provide a decoding trick?
-- is a five-card study packet comfortable?
-- how many simultaneously new characters feels manageable?
-- does prompt-first MC encourage an answer before options appear?
-- can learners use dit/dah input rapidly on a phone?
-- do errors cluster around predicted confusion families?
-- does cue fading feel earned rather than abrupt?
+- fresh-load Play is clearly audible after direct user activation;
+- repeated Play / Stop / Replay works across cards;
+- background/resume does not leave playback stuck silent;
+- visual highlight stays synchronized with the sounding dit/dah;
+- the verbal mnemonic rule is understandable without prior explanation;
+- verbal + SVG + audio reinforce the same mapping rather than compete;
+- five-card packets remain usable on phone;
+- 200% text and reduced motion remain usable;
+- unavailable audio degrades clearly without blocking Learn.
+
+After #42 lands, genuine novice/rusty learner validation should examine memorability, awkward phrases, cue fading and confusion patterns before #29 expands the skill claim.
 
 Do not simulate human evidence and call it usability evidence.
 
 ### 15.3 Instrumentation
 
-Useful local metrics include:
-
-- item accuracy;
-- response latency;
-- cue level when answered;
-- confusion pair/error;
-- number of retrievals before cue reduction;
-- delayed-retrieval success.
-
-Argus is currently a personal/local-first product. Do not introduce remote analytics merely because a research paper used telemetry. If aggregated telemetry is ever proposed, it requires a separate privacy/product decision and explicit consent design.
+Useful local metrics include item accuracy, response latency, cue level, confusion/error and delayed-retrieval success. Argus remains local-first; no remote analytics are introduced by the Morse programme.
 
 ---
 
-## 16. Phased implementation plan
+## 16. Phased implementation plan and current status
 
-Do not implement #21 as one giant branch. After this research/design baseline is accepted, split work into focused lanes.
+The programme was decomposed rather than implemented as one giant branch.
 
-### Phase 1 — Capability/data contract
+### Phase 1 — Capability/data contract — implemented (#24/#28)
 
-Define:
+Stable item identity, bidirectional coverage, cue-state/evidence separation, migration and export/import are in place.
 
-- first topic representation;
-- finite bidirectional coverage model;
-- content vs user-state boundary;
-- cue-state model;
-- migration/export/import implications.
+### Phase 2 — Morse engine and accessibility foundation — implemented, corrected by #42
 
-No visual polish before this contract is stable.
+Canonical mapping/timing and synthesized Web Audio exist. #42 hardens the mobile audio lifecycle and audibility defaults without changing the canonical schedule.
 
-### Phase 2 — Morse engine and accessibility foundation
+### Phase 3 — Acquisition system — implemented, corrected by #42
 
-Implement:
+The generated SVG remains, but #42 makes the original A–Z rhythmic verbal set the primary first-memory scaffold and keeps SVG secondary.
 
-- canonical mapping table;
-- deterministic timing/audio engine;
-- audio controls;
-- reduced-motion/nonvisual semantics;
-- unit/regression tests.
+### Phase 4 — Test interaction extensions — implemented (#27/#28), corrected by #42
 
-### Phase 3 — Visual acquisition system
+Supported MC, delay, dit/dah entry, character entry and item-level cue evidence are in place. #42 aligns the cue channels with the verbal-first hierarchy while preserving rung identities and scheduler semantics.
 
-Design and implement:
+### Phase 5 — Seeded Morse letters topic — implemented (#28)
 
-- original 26-character SVG grammar;
-- packet browsing;
-- synchronized optional tracing;
-- cue reduction states;
-- responsive mobile treatment.
+Exactly 26 bidirectional logical scoring units with the fixed printed-mapping completion claim.
 
-This phase requires rendered review, not only DOM tests.
+### Phase 6 — Reception / sending / groups / words — deferred (#29)
 
-### Phase 4 — Test interaction extensions
-
-Add only the response mechanics required by the first finite topic:
-
-- MC where pedagogically useful;
-- prompt-first option delay;
-- keyboard character entry;
-- dit/dah input;
-- item-level cue evidence;
-- scheduler-safe scoring.
-
-### Phase 5 — Seeded Morse letters topic
-
-Ship the researched A–Z topic with:
-
-- explicit scope;
-- complete test coverage;
-- provenance;
-- learning progression;
-- no overclaim of auditory fluency.
-
-### Phase 6 — Reception / numbers / words only after foundation validation
-
-Potential later focused topics:
-
-- International Morse — Numbers;
-- Morse Reception — Letters;
-- Morse Sending — Letters;
-- Character Groups;
-- Words/Phrases.
-
-Each requires a new explicit completion criterion and should not be assumed part of Phase 5.
+Do not begin competency expansion until #42's exact production build and the A–Z acquisition flow receive genuine device/learner validation.
 
 ---
 
-## 17. Open research and design questions
+## 17. Resolved and open design questions
 
-These must be resolved or explicitly deferred before the relevant implementation lane merges.
-
-1. **Character order:** Which order best balances easy early unitization, auditory separation and useful combinations?
-2. **Acquisition load:** Should the active new-character set begin at two, three or adapt dynamically?
-3. **Five-card packet:** Does five remain the right visual study size on representative phones?
-4. **Cue-fading criterion:** Accuracy only, repeated correct retrieval, latency, recency, or a combination?
-5. **Cue recovery:** After an error, should the richer SVG return immediately for that item, only in feedback, or on the next Learn view?
-6. **Prompt-first delay:** What delay is long enough to invite retrieval without making Test feel sluggish?
-7. **SVG grammar:** Can all 26 letters support a coherent transmission-order visual system without contrived illustrations?
-8. **Verbal mnemonics:** Omit by default or expose as an optional rescue channel?
-9. **Audio settings:** What character/effective speed should first exposure use?
-10. **Reception boundary:** What explicit speed and accuracy criterion constitutes completion when auditory reception ships?
-11. **Sending:** When should sending enter the curriculum, and how will timing quality be scored?
-12. **Confusion model:** Use historical aggregate relationships, personal error history, or both?
-13. **Durable schema:** Which new fields genuinely belong in exported topic data?
-14. **Asset licensing:** Are any Google/Ace assets worth adapting after exact provenance review, or should all mnemonic artwork be original?
+1. **Character order:** resolved for the shipped A–Z curriculum; provenance wording remains conservative.
+2. **Acquisition load:** packet is five visible cards; do not infer a cognitive optimum from that UI choice.
+3. **Five-card packet:** implemented; still subject to real learner/phone validation.
+4. **Cue-fading criterion:** resolved for v1 — two consecutive correct at a rung; latency recorded but does not gate.
+5. **Cue recovery:** resolved — an error restores one stronger rung.
+6. **Prompt-first delay:** resolved for v1 — 1.5 seconds; product-tuned, not a scientific constant.
+7. **SVG grammar:** resolved — generated canonical timing grammar, retained as secondary visual scaffold.
+8. **Verbal mnemonics:** **resolved by #42 — primary early acquisition scaffold**, original Argus A–Z set with explicit duration labels and mechanical canonical verification.
+9. **Audio settings:** canonical timing remains deterministic; #42 raises default gain to 0.25 and requires physical-device acceptance before the issue closes.
+10. **Reception boundary:** deliberately unresolved for #29; requires explicit speed/accuracy/modality criteria.
+11. **Sending:** deferred to #29/later work with its own timing-quality criterion.
+12. **Confusion model:** implemented from pattern similarity plus learner evidence/stage.
+13. **Durable schema:** cue/evidence fields landed in v5; #42 adds no durable learner-state field.
+14. **Asset licensing:** current SVG and verbal set are original/generated; third-party assets are not required.
 
 ---
 
@@ -714,6 +642,8 @@ The first Morse implementation is not intended to be:
 - a complete amateur-radio operating course;
 - a Q-code/prosign curriculum;
 - proof of on-air CW fluency;
+- proof of auditory reception or sending;
+- a WPM claim;
 - a replacement for advanced contest/QSO trainers;
 - a general arbitrary-media CMS;
 - a reason to weaken finite completion semantics;
@@ -721,21 +651,21 @@ The first Morse implementation is not intended to be:
 
 ---
 
-## 19. Acceptance criteria for the research/design baseline
-
-This PRD is ready to drive implementation when:
+## 19. Acceptance criteria for the design baseline
 
 - [x] the first finite completion boundary is explicit;
 - [x] visual mapping competence is separated from auditory reception and sending;
-- [x] visual mnemonic support is defined as temporary/fadeable scaffolding;
+- [x] rhythmic verbal mnemonic support is the primary early acquisition scaffold;
+- [x] the generated SVG is retained as a secondary, temporary visual scaffold;
+- [x] verbal, SVG, canonical and audio channels encode the same temporal sequence;
 - [x] correct Morse audio is present from first exposure in the intended design;
-- [x] canonical timing is anchored to ITU-R M.1677-1;
+- [x] canonical content/timing is anchored to ITU-R M.1677-1;
 - [x] cue difficulty is separated from Argus retention/scheduler state;
-- [x] five-at-a-time is recorded as a UI hypothesis rather than an unsupported new-item rule;
-- [x] character order and fading criteria remain explicit research decisions;
+- [x] exactly 26 logical bidirectional items define the printed A–Z boundary;
 - [x] accessibility is part of the foundation rather than retrofit work;
-- [x] implementation is decomposed into focused follow-on lanes;
-- [x] evidence limitations are recorded rather than converting observational/practice precedent into causal fact.
+- [x] evidence limitations are recorded rather than converting observational/practice precedent into causal fact;
+- [ ] #42 exact-production real-device acceptance is satisfied before merge/close;
+- [ ] genuine learner validation is completed before #29 competency expansion.
 
 ---
 
@@ -799,6 +729,9 @@ This PRD is ready to drive implementation when:
 17. Morse Code Master. **Morse learning lessons and Koch trainer.**  
     https://morsecodemaster.com/
 
+18. **Rhythmic verbal mnemonic method reference supplied in #42.** Used as a design/method precedent; only the user-supplied `A LONG` exemplar is retained directly.  
+    https://youtu.be/0CYpik24pRU?si=RX5Bow1eMGFpLdV5
+
 ### Source-use rule
 
-For implementation, canonical data must come from the ITU recommendation. Research papers justify learning-design hypotheses only to the extent their methods support them. Trainer websites are design/operational precedents, not substitutes for standards or experimental evidence.
+For implementation, canonical data comes from the ITU recommendation. Research papers justify learning-design hypotheses only to the extent their methods support them. Trainer/video resources are design/operational precedents, not substitutes for standards or experimental evidence. The #42 A–Z verbal set must not be described as scientifically validated until genuine learner evidence exists.
