@@ -107,6 +107,16 @@ describe('cue-bearing content cannot reach an uncued rung', () => {
   })
 })
 
+// Beat words are editorial and change when the mnemonic set is revised; only
+// the prefix/suffix boundary is a real invariant, so derive the words rather
+// than hard-coding them. Matching is anchored to the rendered beat element so
+// a short word cannot pass by colliding with unrelated markup ("run" in "rung").
+const R_BEATS = verbalMnemonic('R').beats.map((beat) => beat.text)
+
+function containsBeatWord(html: string, word: string): boolean {
+  return html.includes(`<strong>${word}</strong>`)
+}
+
 describe('rung rendering', () => {
   it('offers reduced verbal + SVG timing support at the richest Test rung', () => {
     const html = render('R', 0, ['.-.', '.--', '-.-', '...'])
@@ -114,10 +124,11 @@ describe('rung rendering', () => {
     expect(html).toContain('test-cue')
     expect(html).toContain('3 elements in total')
     expect(html).toContain('Rhythm cue')
-    expect(html).toContain('run')
-    expect(html).toContain('FAR')
+    expect(containsBeatWord(html, R_BEATS[0])).toBe(true)
+    expect(containsBeatWord(html, R_BEATS[1])).toBe(true)
     expect(html).toContain('<svg')
-    expect(html).not.toContain('back')
+    // The final beat is the part of the answer this rung must still withhold.
+    expect(containsBeatWord(html, R_BEATS[2])).toBe(false)
   })
 
   it('withholds alternatives while leaving only one opening verbal/visual beat', () => {
@@ -125,8 +136,8 @@ describe('rung rendering', () => {
     expect(html).toContain('the alternatives are coming')
     expect(html).not.toContain('class="test-option mono')
     expect(html).toContain('aria-busy="true"')
-    expect(html).toContain('run')
-    expect(html).not.toContain('FAR')
+    expect(containsBeatWord(html, R_BEATS[0])).toBe(true)
+    expect(containsBeatWord(html, R_BEATS[1])).toBe(false)
     expect(html).toContain('<svg')
   })
 

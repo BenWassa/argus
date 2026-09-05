@@ -51,7 +51,9 @@ describe('Morse Learn acquisition hierarchy', () => {
     const packet = ['E', 'I', 'T', 'A', 'N'].map((letter) => character(letter as MorseLetter))
     const html = renderToStaticMarkup(<MorseCharacterPacket characters={packet} />)
 
-    expect((html.match(/class="morse-card/g) ?? [])).toHaveLength(5)
+    // Anchored so the `morse-cards` list wrapper and any future `morse-card-*`
+    // class cannot be miscounted as a card.
+    expect((html.match(/class="morse-card(?![-a-z])/g) ?? [])).toHaveLength(5)
     for (const letter of ['E', 'I', 'T', 'A', 'N']) expect(html).toContain(`Play ${letter}`)
     expect(html).toContain('The phrase is the first memory hook')
     expect(html).toContain('secondary timing scaffold')
