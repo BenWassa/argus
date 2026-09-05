@@ -47,15 +47,23 @@ export function firebaseInboxBackend(config: InboxConfig): InboxBackend {
 
   /**
    * A dynamic import means every subscription is set up asynchronously, so each
-   * one has to survive being torn down before it exists.
+   * one has to survive being torn down before it exists — and has to report a
+   * failure to load rather than leaving the caller waiting forever.
    */
-  function lazySubscription(start: (alive: () => boolean) => Promise<Unsubscribe | void>): Unsubscribe {
+  function lazySubscription(
+    start: (alive: () => boolean) => Promise<Unsubscribe | void>,
+    onFailure: (error: unknown) => void,
+  ): Unsubscribe {
     let cancelled = false
     let inner: Unsubscribe | void
-    void start(() => !cancelled).then((stop) => {
-      inner = stop
-      if (cancelled && typeof inner === 'function') inner()
-    })
+    void start(() => !cancelled)
+      .then((stop) => {
+        inner = stop
+        if (cancelled && typeof inner === 'function') inner()
+      })
+      .catch((error: unknown) => {
+        if (!cancelled) onFailure(error)
+      })
     return () => {
       cancelled = true
       if (typeof inner === 'function') inner()
@@ -67,11 +75,16 @@ export function firebaseInboxBackend(config: InboxConfig): InboxBackend {
     authorizedUid: config.authorizedUid,
 
     observeUser(listener) {
-      return lazySubscription(async (alive) => {
-        const { auth, authApi } = await services()
-        if (!alive()) return
-        return authApi.onAuthStateChanged(auth, (user) => listener(toInboxUser(user)))
-      })
+      return lazySubscription(
+        async (alive) => {
+          const { auth, authApi } = await services()
+          if (!alive()) return
+          return authApi.onAuthStateChanged(auth, (user) => listener(toInboxUser(user)))
+        },
+        // Firebase could not be loaded or initialized. Report nobody signed in
+        // rather than leaving the queue waiting; signing in will surface why.
+        () => listener(null),
+      )
     },
 
     async signIn() {
@@ -102,7 +115,7 @@ export function firebaseInboxBackend(config: InboxConfig): InboxBackend {
           },
           (error) => onError(error.code ?? error.message),
         )
-      })
+      }, onError)
     },
 
     async addRequest(draft: CaptureDraft) {

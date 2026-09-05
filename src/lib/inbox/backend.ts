@@ -25,7 +25,7 @@ export interface InboxBackend {
   signOut(): Promise<void>
   observeRequests(
     onRequests: (requests: ContentRequest[]) => void,
-    onError: (error: string) => void,
+    onError: (error: unknown) => void,
   ): Unsubscribe
   addRequest(draft: CaptureDraft): Promise<void>
   deleteRequest(id: string): Promise<void>

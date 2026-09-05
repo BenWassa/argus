@@ -63,7 +63,12 @@ export function useInbox(backend: InboxBackend = defaultInboxBackend()): InboxVi
         setRequests(next)
         setError(null)
       },
-      (code) => setError(describeInboxError({ code })),
+      (failure) => {
+        setError(describeInboxError(typeof failure === 'string' ? { code: failure } : failure))
+        // Stop reporting the queue as still loading. An empty list under a
+        // visible error is honest; a spinner that never resolves is not.
+        setRequests((current) => current ?? [])
+      },
     )
   }, [backend, authorized])
 
