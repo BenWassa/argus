@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { DEFAULT_MORSE_TIMING } from '../../lib/morse'
-import { MORSE_AUDIO_START_DELAY_MS, MorseAudioPlayer } from '../../lib/morseAudio'
+import {
+  MORSE_AUDIO_START_DELAY_MS,
+  MorseAudioPlayer,
+  MorsePlaybackCancelledError,
+} from '../../lib/morseAudio'
 import { canonicalNotation, spokenRhythm } from '../../lib/morseMnemonics'
 import { verbalMnemonic, verbalMnemonicTextEquivalent } from '../../lib/morseVerbalMnemonics'
 import type { MorseCharacterLearnItem } from '../../lib/types'
@@ -84,6 +88,10 @@ function usePacketAudio() {
         }
         timersRef.current.push(setTimeout(() => setSounding(null), offset + 80))
       } catch (error) {
+        // A second Play/Stop/background action is new user intent, not an audio
+        // failure. The player invalidates the stale request before it can
+        // schedule an oscillator; keep that cancellation silent in the UI.
+        if (error instanceof MorsePlaybackCancelledError) return
         setSounding(null)
         setAudioError(
           error instanceof Error ? error.message : 'Morse audio is unavailable on this device.',
