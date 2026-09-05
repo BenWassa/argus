@@ -3,6 +3,7 @@ import {
   ITEM_DIRECTIONS,
   ITEM_KINDS,
   LEARN_KINDS,
+  LESSON_SUPPORTS,
   STATUSES,
   TRACKS,
   type CurrentLibrary,
@@ -10,6 +11,7 @@ import {
   type IdentifiedItem,
   type ItemCueEvidence,
   type ItemEvidenceStore,
+  type ItemLessonStore,
   type LearnBlock,
   type LearnCaseStudy,
   type LearnContent,
@@ -516,6 +518,47 @@ function parseItemEvidence(
 }
 
 /**
+ * Formative Learn-lesson progress (#48).
+ *
+ * Additive within v5 rather than a new schema version, because there is nothing
+ * to migrate: a record written before the guided lesson existed has no lesson
+ * progress, and `{}` is exactly that. Validated as strictly as cue evidence —
+ * unknown item ids and unknown support levels are rejected rather than dropped,
+ * so an import either round-trips losslessly or says why it cannot.
+ */
+function parseLessonProgress(
+  value: unknown,
+  where: string,
+  items: IdentifiedItem[],
+  sourceVersion: 2 | 3 | 4 | 5,
+): { ok: true; value: ItemLessonStore } | { ok: false; error: string } {
+  // A pre-v5 record has no durable item identity to key lesson progress by, so
+  // it cannot have carried any. Ignore whatever is there rather than rejecting
+  // the import over a field that predates the ids it would have to reference.
+  if (sourceVersion < 5) return { ok: true, value: {} }
+  if (value === undefined) return { ok: true, value: {} }
+  if (!isRecord(value)) {
+    return { ok: false, error: `${where} lessonProgress must be an object keyed by item id.` }
+  }
+
+  const liveIds = new Set(items.map((item) => item.id))
+  const progress: ItemLessonStore = {}
+  for (const [itemId, support] of Object.entries(value)) {
+    if (!liveIds.has(itemId)) {
+      return { ok: false, error: `${where} lessonProgress references unknown item id "${itemId}".` }
+    }
+    if (!LESSON_SUPPORTS.includes(support as never)) {
+      return {
+        ok: false,
+        error: `${where} lessonProgress for "${itemId}" has an unsupported lesson support level.`,
+      }
+    }
+    progress[itemId] = support as ItemLessonStore[string]
+  }
+  return { ok: true, value: progress }
+}
+
+/**
  * Import validation and migration. An import replaces the whole library, so a
  * structurally plausible but semantically wrong file must be rejected here
  * rather than silently becoming the record. Every accepted input becomes v5.
@@ -559,6 +602,14 @@ export function parseLibrary(value: unknown): ParseResult {
     )
     if (!itemEvidence.ok) return itemEvidence
 
+    const lessonProgress = parseLessonProgress(
+      t.lessonProgress,
+      `${where} ("${title}")`,
+      items.items,
+      version.version,
+    )
+    if (!lessonProgress.ok) return lessonProgress
+
     const track = TRACKS.includes(t.track as never) ? (t.track as Topic['track']) : 'learning'
     let status = STATUSES.includes(t.status as never) ? (t.status as Topic['status']) : 'unstarted'
     const completedAt = typeof t.completedAt === 'string' ? t.completedAt : null
@@ -598,6 +649,7 @@ export function parseLibrary(value: unknown): ParseResult {
             : null,
       history: Array.isArray(t.history) ? (t.history as Topic['history']) : [],
       itemEvidence: itemEvidence.value,
+      lessonProgress: lessonProgress.value,
       origin: TOPIC_ORIGINS.includes(t.origin as never)
         ? (t.origin as Topic['origin'])
         : undefined,

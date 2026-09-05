@@ -1,5 +1,4 @@
 import type { Library, Topic } from './types'
-import { morsePacketSections } from './morsePacketContent'
 
 const NATO = [
   'Alfa', 'Bravo', 'Charlie', 'Delta', 'Echo', 'Foxtrot', 'Golf', 'Hotel',
@@ -81,11 +80,15 @@ export function seedLibrary(): Library {
         overview: 'International Morse represents letters as sequences of dits (.) and dahs (-). A dah lasts three dit units; spacing within a character is one unit, between characters three, and between words seven. Completion requires uncued printed recall in both directions: letter → canonical pattern and printed pattern → letter. It does not claim auditory reception, sending, WPM, words, phrases, or operating fluency.',
         sections: [
           {
-            heading: 'How to use the packets',
+            heading: 'How the lesson works',
             blocks: [
               {
                 type: 'paragraph',
-                text: 'Characters arrive in packets of up to five: two you have not met and the rest returning for retrieval. The order runs from the shortest patterns upward, and two characters that differ only in their final element are never introduced together. Nothing here is locked or scored — read a packet, play each character, and come back to any of them whenever you want.',
+                text: 'Learn is a guided lesson rather than a page to scroll. Each lesson introduces two new characters, asks you to retrieve them shortly afterwards, reteaches anything you miss and brings it back later, and mixes in characters from earlier lessons. Support falls away as you get a character right and comes back when you do not. A lesson finishes when every character in it has been produced from the letter alone.',
+              },
+              {
+                type: 'paragraph',
+                text: 'The order runs from the shortest patterns upward, and two characters that differ only in their final element are never introduced together. Nothing in the lesson is scored: it decides what you are shown next and nothing else. The Morse alphabet page is separate, always open, and lists all 26 letters for lookup.',
               },
               {
                 type: 'paragraph',
@@ -93,7 +96,6 @@ export function seedLibrary(): Library {
               },
             ],
           },
-          ...morsePacketSections(),
         ],
         sources: [
           {
@@ -393,6 +395,7 @@ export function seedLibrary(): Library {
         answer: item.answer,
       })),
       itemEvidence: topic.itemEvidence ?? {},
+      lessonProgress: topic.lessonProgress ?? {},
     })),
   }
 }

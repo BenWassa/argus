@@ -1,0 +1,114 @@
+/* The Morse alphabet (#48): a lookup surface, not 26 lesson cards.
+
+   Each letter is one compact row — glyph, phrase with its beat marks, drawing,
+   canonical notation and one Play control — so the whole alphabet can be
+   thumbed through on a phone. Rows share the border between them rather than
+   each carrying a card, which is what keeps 26 of them scannable. */
+
+.morse-reference {
+  display: grid;
+  align-content: start;
+  gap: var(--s-md);
+  padding-bottom: max(var(--s-2xl), env(safe-area-inset-bottom));
+}
+
+.morse-ref-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--t-page);
+  font-weight: var(--w-page);
+  line-height: 1.08;
+}
+
+.morse-ref-lede,
+.morse-ref-grammar,
+.morse-ref-foot {
+  max-width: 52ch;
+  margin: 0;
+  color: var(--muted);
+}
+
+.morse-ref-grammar,
+.morse-ref-foot {
+  font-size: var(--t-small);
+}
+
+.morse-ref-foot {
+  color: var(--subtle);
+}
+
+.morse-ref-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-block-start: 1px solid var(--line);
+}
+
+.morse-ref-row {
+  display: grid;
+  grid-template-columns: 2.2em minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--s-sm) var(--s-md);
+  padding-block: var(--s-md);
+  border-block-end: 1px solid var(--line);
+}
+
+.morse-ref-row.is-sounding {
+  background: var(--accent-wash);
+}
+
+.morse-ref-letter {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: var(--w-display);
+  line-height: 1;
+  color: var(--ink);
+}
+
+.morse-ref-body {
+  display: grid;
+  gap: var(--s-xs);
+  min-width: 0;
+}
+
+.morse-ref-visual {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-xs) var(--s-md);
+}
+
+.morse-ref-visual .morse-mnemonic {
+  display: block;
+  flex: 0 1 14em;
+  min-width: 0;
+  height: auto;
+}
+
+.morse-ref-canonical {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-sm);
+  margin: 0;
+}
+
+/* The reference phrase is a lookup, not a first-exposure hook, so it is set a
+   step smaller than the lesson's while keeping the same beat-mark grammar. */
+.morse-ref-row .morse-phrase {
+  font-size: clamp(1.05rem, 4.2vw, 1.3rem);
+}
+
+/* At 200% text, or on a very narrow phone, the drawing and canonical notation
+   drop under the phrase rather than competing with it for the same line. The
+   letter and its Play control stay on the row so a thumb always knows where
+   the control is. */
+@media (max-width: 460px) {
+  .morse-ref-letter {
+    font-size: 1.7rem;
+  }
+
+  .morse-ref-visual .morse-mnemonic {
+    flex-basis: 100%;
+  }
+}

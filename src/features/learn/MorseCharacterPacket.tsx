@@ -1,142 +1,27 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { LEARN_ACQUISITION_MORSE_TIMING } from '../../lib/morse'
-import {
-  MORSE_AUDIO_START_DELAY_MS,
-  MorseAudioPlayer,
-  MorsePlaybackCancelledError,
-} from '../../lib/morseAudio'
 import { canonicalNotation, spokenRhythm } from '../../lib/morseMnemonics'
-import { verbalMnemonic, verbalMnemonicTextEquivalent } from '../../lib/morseVerbalMnemonics'
 import type { MorseCharacterLearnItem } from '../../lib/types'
 import { MorseMnemonic } from './MorseMnemonic'
+import { MorseBeatGrammarNote, MorsePhrase } from './MorsePhrase'
+import { MorsePlayButton } from './MorsePlayButton'
+import { useMorseAudio, type Sounding } from './useMorseAudio'
 import './MorseCharacterPacket.css'
-
-interface Sounding {
-  glyph: string
-  index: number | null
-}
-
-/**
- * Audio for one packet. One player, one character at a time: starting a card
- * cancels whatever was playing, so the illuminated element on screen and the
- * tone in the ear are always the same event.
- *
- * Playback is only ever started from a click. Nothing here plays on mount, on
- * navigation or on re-render.
- */
-function usePacketAudio() {
-  const playerRef = useRef<MorseAudioPlayer | null>(null)
-  const timersRef = useRef<ReturnType<typeof setTimeout>[]>([])
-  const [sounding, setSounding] = useState<Sounding | null>(null)
-  const [audioError, setAudioError] = useState<string | null>(null)
-
-  const clearTimers = useCallback(() => {
-    for (const timer of timersRef.current) clearTimeout(timer)
-    timersRef.current = []
-  }, [])
-
-  const stop = useCallback(() => {
-    clearTimers()
-    playerRef.current?.cancel()
-    setSounding(null)
-  }, [clearTimers])
-
-  useEffect(() => {
-    const onVisibility = () => {
-      if (document.hidden) stop()
-    }
-    const onPageHide = () => stop()
-    document.addEventListener('visibilitychange', onVisibility)
-    window.addEventListener('pagehide', onPageHide)
-    return () => {
-      document.removeEventListener('visibilitychange', onVisibility)
-      window.removeEventListener('pagehide', onPageHide)
-      clearTimers()
-      void playerRef.current?.dispose()
-      playerRef.current = null
-    }
-  }, [clearTimers, stop])
-
-  const play = useCallback(
-    async (glyph: string) => {
-      stop()
-      setAudioError(null)
-      try {
-        playerRef.current ??= new MorseAudioPlayer()
-        const schedule = await playerRef.current.play(glyph, LEARN_ACQUISITION_MORSE_TIMING)
-        setSounding({ glyph, index: null })
-
-        // Element illumination is driven by the same schedule and the same
-        // start-delay constant as the tone. Nothing here invents a second
-        // timing model, so the visual and audible short/long sequence cannot
-        // silently drift apart.
-        let offset = MORSE_AUDIO_START_DELAY_MS
-        let element = 0
-        for (const event of schedule.events) {
-          if (event.kind === 'signal') {
-            const at = offset
-            const index = element
-            // Lit for exactly as long as the tone sounds, dark through the gap,
-            // so the silence between elements is as visible as the elements.
-            timersRef.current.push(setTimeout(() => setSounding({ glyph, index }), at))
-            timersRef.current.push(
-              setTimeout(() => setSounding({ glyph, index: null }), at + event.durationMs),
-            )
-            element += 1
-          }
-          offset += event.durationMs
-        }
-        timersRef.current.push(setTimeout(() => setSounding(null), offset + 80))
-      } catch (error) {
-        // A second Play/Stop/background action is new user intent, not an audio
-        // failure. The player invalidates the stale request before it can
-        // schedule an oscillator; keep that cancellation silent in the UI.
-        if (error instanceof MorsePlaybackCancelledError) return
-        setSounding(null)
-        setAudioError(
-          error instanceof Error ? error.message : 'Morse audio is unavailable on this device.',
-        )
-      }
-    },
-    [stop],
-  )
-
-  return { sounding, audioError, play, stop }
-}
 
 function MorseCharacterCard({
   character,
   sounding,
-  onPlay,
-  onStop,
+  onToggle,
 }: {
   character: MorseCharacterLearnItem
   sounding: Sounding | null
-  onPlay: (glyph: string) => void
-  onStop: () => void
+  onToggle: (glyph: string) => void
 }) {
   const isSounding = sounding?.glyph === character.glyph
-  const rhythm = spokenRhythm(character.pattern)
-  const verbal = verbalMnemonic(character.glyph)
 
   return (
     <li className={`morse-card${isSounding ? ' is-sounding' : ''}`}>
       <div className="morse-phrase-row">
         <span className="morse-letter" aria-hidden="true">{character.glyph}</span>
-        {/* The phrase is one line, read as one unit. Casing already carries
-            the short/held contrast (DEFINITIONS in morseVerbalMnemonics.ts
-            capitalises held words), so no per-beat caption is needed here —
-            the full short/held reading still reaches assistive tech through
-            this paragraph's aria-label. */}
-        <p className="morse-phrase" aria-label={verbalMnemonicTextEquivalent(character.glyph)}>
-          <span className="morse-phrase-beats" aria-hidden="true">
-            {verbal.beats.map((beat, index) => (
-              <span className={`morse-phrase-beat is-${beat.length}`} key={`${beat.text}-${index}`}>
-                {beat.text}
-              </span>
-            ))}
-          </span>
-        </p>
+        <MorsePhrase glyph={character.glyph} />
       </div>
 
       <div className="morse-visual-row">
@@ -146,54 +31,39 @@ function MorseCharacterCard({
           textLabel={character.textLabel}
           activeIndex={isSounding ? sounding.index : null}
         />
-
-        <button
-          className={`ghost icon morse-play${isSounding ? ' is-playing' : ''}`}
-          type="button"
-          onClick={() => (isSounding ? onStop() : onPlay(character.audioText))}
-          aria-label={isSounding ? `Stop ${character.glyph} Morse` : `Play ${character.glyph} Morse`}
-          aria-pressed={isSounding}
-        >
-          {isSounding ? (
-            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
-              <rect x="6" y="6" width="12" height="12" rx="1.5" fill="currentColor" />
-            </svg>
-          ) : (
-            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
-              <path d="M8 5l11 7-11 7z" fill="currentColor" />
-            </svg>
-          )}
-        </button>
+        <MorsePlayButton
+          glyph={character.glyph}
+          playing={isSounding}
+          onToggle={() => onToggle(character.audioText)}
+        />
       </div>
 
       <p className="morse-canonical">
         <span className="morse-notation" aria-hidden="true">
           {canonicalNotation(character.pattern)}
         </span>
-        <span className="morse-rhythm">{rhythm}</span>
+        <span className="morse-rhythm">{spokenRhythm(character.pattern)}</span>
       </p>
     </li>
   )
 }
 
 /**
- * The Learn acquisition surface for a packet of characters.
+ * The `morse-character-packet` Learn block: a set of characters laid out to
+ * read, with the phrase, the timing drawing, the canonical pattern and audio.
  *
- * Learn stays what it has always been: ungraded first exposure and a reference
- * you can come back to. Nothing here is scored, nothing is hidden behind
- * progress, and no packet is locked — the acquisition ladder lives in Test
- * (D3), and this surface must not become a second scheduler.
+ * #48 moved the shipped A–Z curriculum off this surface — Learn is now a guided
+ * lesson and lookup lives on the Morse alphabet page — but the block type stays
+ * part of the durable Learn content model and the import/export contract, so
+ * authored content that uses it keeps rendering. Nothing here is scored,
+ * nothing is hidden behind progress and no packet is locked.
  */
 export function MorseCharacterPacket({ characters }: { characters: MorseCharacterLearnItem[] }) {
-  const { sounding, audioError, play, stop } = usePacketAudio()
+  const { sounding, audioError, toggle } = useMorseAudio()
 
   return (
     <div className="morse-packet">
-      <p className="morse-packet-note">
-        Say the phrase as one rhythm: each <strong>short</strong> beat is a dit and each{' '}
-        <strong>held</strong> beat is a dah. The drawing, written code and Play button are three
-        views of that same short/long sequence.
-      </p>
+      <MorseBeatGrammarNote className="morse-packet-note" />
 
       <ul className="morse-cards">
         {characters.map((character) => (
@@ -201,8 +71,7 @@ export function MorseCharacterPacket({ characters }: { characters: MorseCharacte
             key={character.glyph}
             character={character}
             sounding={sounding}
-            onPlay={play}
-            onStop={stop}
+            onToggle={toggle}
           />
         ))}
       </ul>
@@ -219,7 +88,7 @@ export function MorseCharacterPacket({ characters }: { characters: MorseCharacte
 
       {audioError && (
         <p className="morse-audio-error" role="status">
-          {audioError} Audio is optional here; the labelled short/held phrase, SVG and written
+          {audioError} Audio is optional here; the phrase, its beat marks, the SVG and the written
           pattern still teach the same mapping.
         </p>
       )}

@@ -82,6 +82,7 @@ describe('loading a library that already exists on the device', () => {
       spotCheckedAt: null,
       history: [],
       itemEvidence: {},
+      lessonProgress: {},
       origin: 'user',
     }
     stored({ version: 5, topics: [mine], catalogDelivered: [] })

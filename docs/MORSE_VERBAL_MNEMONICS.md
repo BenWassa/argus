@@ -1,8 +1,10 @@
 # Argus rhythmic verbal Morse mnemonics
 
-**Status:** implemented under #42  
-**Code:** `src/lib/morseVerbalMnemonics.ts`  
-**Mechanical verification:** `src/lib/morseVerbalMnemonics.test.ts`
+**Status:** implemented under #42; visible grammar corrected by #48  
+**Code:** `src/lib/morseVerbalMnemonics.ts` (the authored set),
+`src/features/learn/MorsePhrase.tsx` (the one rendering of it)  
+**Mechanical verification:** `src/lib/morseVerbalMnemonics.test.ts`,
+`src/features/learn/MorseAcquisitionTreatment.test.tsx`
 
 ## Purpose
 
@@ -15,11 +17,55 @@ The rule is deliberately simple:
 - a **held beat** means a dah (`-`), three signal units;
 - one spoken word is used for each Morse element, in transmission order.
 
-The visible Learn surface labels every word `short ·` or `hold —`. Capitalising
-the held words is a supplementary visual cue, not the rule itself. A learner
-must never have to infer the canonical mapping from typography or from an
-argument about how long a particular English speaker happens to pronounce a
-word.
+Every visible word carries an aligned mark directly beneath it — `·` for a
+short beat, `—` for a held one. That mark is the whole of the visible timing
+rule. A learner must never have to infer the canonical mapping from typography
+or from an argument about how long a particular English speaker happens to
+pronounce a word.
+
+## The #48 correction: casing is not semantic
+
+#42 rendered short words lowercase and held words capitalised, and #44 removed
+the per-beat `short ·` / `hold —` captions in favour of that casing. Real-phone
+review found the result contradictory, and it was:
+
+- the supplied exemplar `A LONG` capitalises `A`, which is the **short** beat,
+  so the casing rule was already broken by the one worked example everything
+  else was modelled on;
+- this document said capitalisation was supplementary while
+  `MorseCharacterPacket.css` said casing alone carried the contrast.
+
+#48 settles it in one direction: **casing carries nothing.** `MorsePhrase`
+renders every visible word in the same case, so no reader can draw a timing
+conclusion from typography and no exemplar can contradict the rule. Duration is
+carried by the aligned `·`/`—` mark, which is a function of the authored beat
+length alone. `A LONG` therefore reads exactly as #42 supplied it, with `·`
+under `A` and `—` under `LONG`.
+
+The authored table keeps its mixed casing, because that is what reaches a screen
+reader through `verbalMnemonicTextEquivalent`, and an all-capitals word is
+liable to be announced as an initialism. Visible casing and accessible casing
+are deliberately different things.
+
+`MorseAcquisitionTreatment.test.tsx` asserts, for all 26 phrases, that every
+visible word is cased identically, that the marks reproduce the canonical
+pattern element for element, and that the authored set is still mixed-case.
+
+## Repetition is deliberate, and explained once
+
+Several phrases repeat a word because the pattern repeats an element: `up up
+ZOOM` for `..-`, `quick quick quick VROOM` for `...-`, `CROSS cut cut CROSS`
+for `-..-`, `ZOOM ZOOM zip zip` for `--..`. One spoken word is one Morse
+signal, so a repeated word is a repeated beat rather than duplicated data.
+
+Two things make that legible without a caption on every beat:
+
+1. one mark sits under each word, so four words visibly carry four marks;
+2. `MorseBeatGrammarNote` states the rule once per surface, in the learner's
+   words, using `ZOOM ZOOM ZIP ZIP` as the worked example.
+
+Repetition is never mechanically deduplicated. The tests pin the four repeating
+phrases by name.
 
 The phrase is temporary acquisition scaffolding. The completion claim remains
 exactly:
@@ -79,7 +125,9 @@ The set uses a deliberately constrained vocabulary rather than trying to make
    the worked example of the whole treatment; its contrast is carried by the
    vowel length of the two words rather than by their codas. The exemption is
    held in `CODA_RULE_EXEMPT_BEATS` and the gate asserts that it stays a list of
-   exactly one.
+   exactly one. It is an exemption from the *coda* rule only. `A LONG` is not an
+   exception to anything visible, because since #48 the visible rule is the
+   mark, and `A` carries `·` like every other short beat.
 6. **The opening word usually cues the letter.** It begins with the target
    letter where a natural choice exists. `X` uses `CROSS`, the visual meaning of
    an X. `V` is the one letter where no stop-final V-word gave a usable first
@@ -87,44 +135,48 @@ The set uses a deliberately constrained vocabulary rather than trying to make
 7. **Concrete miniature scenes are preferred** (`jet FLIES FAR HOME`, `rat RAN
    back`, `COME cat COME quick`) because they are easier to retain than a random
    word string while remaining rhythmically simple.
-8. **Explicit duration labels still resolve accent variation.** The coda rule
+8. **The explicit beat mark still resolves accent variation.** The coda rule
    removes the ambiguity that matters, but no English word has a universal
-   physical duration. `short`/`hold`, the canonical notation, the SVG and the
-   actual tone all state the intended timing independently.
+   physical duration. The `·`/`—` mark, the canonical notation, the SVG and the
+   actual tone all state the intended timing independently, and none of them is
+   typography.
 
 This is an engineered acquisition vocabulary, not a linguistic claim that one
 word's natural duration is objectively one or three Morse units.
 
 ## A–Z set
 
+The `Phrase` column below shows the authored text. On screen every word is
+uppercased and marked; the `Beat rule` column is what the marks render as.
+
 | Letter | Canonical | Phrase | Beat rule | Association |
 |---|---|---|---|---|
-| A | `.-` | **A LONG** | short · hold — | supplied exemplar; exempt from the coda rule, contrast carried by vowel length |
-| B | `-...` | **BOOM bat zip pop** | hold — short · short · short · | boom, then three clipped impacts |
-| C | `-.-.` | **COME cat COME quick** | hold — short · hold — short · | "come cat, come quick"; alternation is the whole shape |
-| D | `-..` | **DOWN duck dip** | hold — short · short · | one sustained call, two clipped actions |
-| E | `.` | **egg** | short · | single clipped E-word |
-| F | `..-.` | **flip flap FLY back** | short · short · hold — short · | bird motion; only `FLY` can be stretched |
-| G | `--.` | **GROW GREEN quick** | hold — hold — short · | two sustainable beats, then a hard stop |
-| H | `....` | **hip hop hit pop** | short · short · short · short · | four percussive beats |
-| I | `..` | **it clicked** | short · short · | two clipped beats; `clicked` ends in a stop cluster |
-| J | `.---` | **jet FLIES FAR HOME** | short · hold — hold — hold — | a jet followed by three broad held beats |
-| K | `-.-` | **KING kick HIGH** | hold — short · hold — | sustained, clipped, sustained |
-| L | `.-..` | **lap LONG lap quick** | short · hold — short · short · | a pacing cadence: one long lap, then two short |
-| M | `--` | **MOON GLOWS** | hold — hold — | two continuant-final beats |
-| N | `-.` | **NO not** | hold — short · | minimal contrast: sustained `NO`, clipped `not` |
-| O | `---` | **OH SO SLOW** | hold — hold — hold — | three naturally stretchable O-heavy beats |
-| P | `.--.` | **pup GOES FAR back** | short · hold — hold — short · | concrete out-and-back mini-scene |
-| Q | `--.-` | **QUEEN GOES quick HOME** | hold — hold — short · hold — | Q cue plus an unmistakably clipped third beat |
-| R | `.-.` | **rat RAN back** | short · hold — short · | short-long-short out-and-back rhythm |
-| S | `...` | **sit sip zip** | short · short · short · | three clipped sibilant beats |
-| T | `-` | **TONE** | hold — | single naturally sustained T-word |
-| U | `..-` | **up up ZOOM** | short · short · hold — | two clipped beats then a sustained finish |
-| V | `...-` | **quick quick quick VROOM** | short · short · short · hold — | three identical clipped beats make the V shape audible; `VROOM` cues the letter |
-| W | `.--` | **web WE WEAVE** | short · hold — hold — | triple-W image; only the first beat is clipped |
-| X | `-..-` | **CROSS cut cut CROSS** | hold — short · short · hold — | X = cross; symmetrical long-short-short-long shape |
-| Y | `-.--` | **YAWN quit GO HOME** | hold — short · hold — hold — | long opening Y-word, clipped pivot, two held beats |
-| Z | `--..` | **ZOOM ZOOM zip zip** | hold — hold — short · short · | paired sustained Z-words followed by paired clipped ones |
+| A | `.-` | **A LONG** | · — | supplied exemplar; exempt from the coda rule, contrast carried by vowel length |
+| B | `-...` | **BOOM bat zip pop** | — · · · | boom, then three clipped impacts |
+| C | `-.-.` | **COME cat COME quick** | — · — · | "come cat, come quick"; alternation is the whole shape |
+| D | `-..` | **DOWN duck dip** | — · · | one sustained call, two clipped actions |
+| E | `.` | **egg** | · | single clipped E-word |
+| F | `..-.` | **flip flap FLY back** | · · — · | bird motion; only `FLY` can be stretched |
+| G | `--.` | **GROW GREEN quick** | — — · | two sustainable beats, then a hard stop |
+| H | `....` | **hip hop hit pop** | · · · · | four percussive beats |
+| I | `..` | **it clicked** | · · | two clipped beats; `clicked` ends in a stop cluster |
+| J | `.---` | **jet FLIES FAR HOME** | · — — — | a jet followed by three broad held beats |
+| K | `-.-` | **KING kick HIGH** | — · — | sustained, clipped, sustained |
+| L | `.-..` | **lap LONG lap quick** | · — · · | a pacing cadence: one long lap, then two short |
+| M | `--` | **MOON GLOWS** | — — | two continuant-final beats |
+| N | `-.` | **NO not** | — · | minimal contrast: sustained `NO`, clipped `not` |
+| O | `---` | **OH SO SLOW** | — — — | three naturally stretchable O-heavy beats |
+| P | `.--.` | **pup GOES FAR back** | · — — · | concrete out-and-back mini-scene |
+| Q | `--.-` | **QUEEN GOES quick HOME** | — — · — | Q cue plus an unmistakably clipped third beat |
+| R | `.-.` | **rat RAN back** | · — · | short-long-short out-and-back rhythm |
+| S | `...` | **sit sip zip** | · · · | three clipped sibilant beats |
+| T | `-` | **TONE** | — | single naturally sustained T-word |
+| U | `..-` | **up up ZOOM** | · · — | two clipped beats then a sustained finish |
+| V | `...-` | **quick quick quick VROOM** | · · · — | three identical clipped beats make the V shape audible; `VROOM` cues the letter |
+| W | `.--` | **web WE WEAVE** | · — — | triple-W image; only the first beat is clipped |
+| X | `-..-` | **CROSS cut cut CROSS** | — · · — | X = cross; symmetrical long-short-short-long shape |
+| Y | `-.--` | **YAWN quit GO HOME** | — · — — | long opening Y-word, clipped pivot, two held beats |
+| Z | `--..` | **ZOOM ZOOM zip zip** | — — · · | paired sustained Z-words followed by paired clipped ones |
 
 ## Relationship to the visual and audio scaffolds
 
@@ -151,14 +203,29 @@ rungs carry no phrase, artwork, answer length, prefix or audio control at all.
 Audio remains support for this printed-mapping topic; hearing the sound is not
 part of its completion claim.
 
+## Where the phrase appears
+
+One component, `MorsePhrase`, renders it everywhere, so no surface can grow its
+own grammar:
+
+- the **guided Learn lesson** (`docs/MORSE_LESSON.md`) shows the whole phrase
+  when introducing a character and when reteaching a miss, and at its `taught`
+  check;
+- the **Morse alphabet reference** shows it on every one of the 26 rows;
+- the **`morse-character-packet`** Learn block shows it for authored content;
+- the **supported Test rungs** show a strict opening prefix of it, with the
+  remaining beats rendered as `?` marks.
+
 ## Validation boundary
 
 Automated checks can prove structural facts: all 26 patterns agree with the
-canonical table, every cue is bounded, channels share the same timing sequence,
-and uncued Test contains no mnemonic. They cannot prove that these phrases are
-memorable, intuitive or effective for people.
+canonical table, every visible mark matches the canonical element it stands
+for, casing is constant across the whole set, every cue is bounded, channels
+share the same timing sequence, and uncued Test contains no mnemonic. They
+cannot prove that these phrases are memorable, intuitive or effective for
+people.
 
-Before #42 closes, the exact production build still requires the real-device
-acceptance stated in the issue. After #42 lands, genuine novice/rusty learner
-validation should determine whether any phrase is awkward enough to revise
-before #29 extends the programme into separately claimed auditory/sending work.
+The exact production build still requires the real-device acceptance stated in
+#44 and #48. Genuine novice/rusty learner validation should determine whether
+any phrase is awkward enough to revise before #29 extends the programme into
+separately claimed auditory/sending work.

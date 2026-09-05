@@ -56,6 +56,7 @@ export function freshCatalogTopic(definition: Topic, now: Date = new Date()): To
     spotCheckedAt: null,
     history: [],
     itemEvidence: {},
+    lessonProgress: {},
   }
 }
 

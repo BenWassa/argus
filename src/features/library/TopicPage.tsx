@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { dueState } from '../../lib/scheduling'
+import { startLesson } from '../../lib/morseLesson'
 import { StatusTag, statusLabel } from '../../components/ui/StatusTag'
 import type { Mode, Topic } from '../../lib/types'
 
@@ -7,6 +8,8 @@ interface TopicPageProps {
   topic: Topic
   onBack: () => void
   onStart: (mode: Mode, topicIds: string[]) => void
+  /** Opens the Morse alphabet. Rendered only for a topic the lesson drives. */
+  onOpenReference: () => void
   onEdit: () => void
   onDelete: () => void
 }
@@ -25,9 +28,24 @@ function stamp(iso: string): string {
  * actions that must not sit at the same weight as the modes. A sheet flattened
  * all of that to one altitude and buried the modes under the item list.
  */
-export function TopicPage({ topic, onBack, onStart, onEdit, onDelete }: TopicPageProps) {
+export function TopicPage({
+  topic,
+  onBack,
+  onStart,
+  onOpenReference,
+  onEdit,
+  onDelete,
+}: TopicPageProps) {
   const heading = useRef<HTMLHeadingElement>(null)
   const runnable = topic.items.length > 0
+  /**
+   * A topic the guided lesson drives has three jobs rather than two, and they
+   * are not equal: the lesson is the acquisition action, Test is the evidence
+   * action and the alphabet is a quiet lookup. Every other topic keeps exactly
+   * the two-button choice it has always had.
+   */
+  const lesson = runnable ? startLesson(topic) : null
+  const lessonStarted = Object.keys(topic.lessonProgress ?? {}).length > 0
 
   useEffect(() => {
     heading.current?.focus()
@@ -76,7 +94,27 @@ export function TopicPage({ topic, onBack, onStart, onEdit, onDelete }: TopicPag
         )}
       </dl>
 
-      {runnable ? (
+      {runnable && lesson ? (
+        <>
+          <div className="mode-choice">
+            <button className="mode-btn is-primary" type="button" onClick={() => onStart('learn', [topic.id])}>
+              <span className="mode-name">{lessonStarted ? 'Continue lesson' : 'Start lesson'}</span>
+              <span className="mode-note">
+                {lesson.finished
+                  ? 'Every letter has been through the lesson. Nothing scored.'
+                  : `Guided packet ${lesson.packetIndex + 1} of ${lesson.packetCount}: new letters, then retrieval. Nothing scored.`}
+              </span>
+            </button>
+            <button className="mode-btn" type="button" onClick={() => onStart('test', [topic.id])}>
+              <span className="mode-name">Test</span>
+              <span className="mode-note">Every item, once, scored. This one counts.</span>
+            </button>
+          </div>
+          <button className="quiet topic-reference" type="button" onClick={onOpenReference}>
+            Morse alphabet — look up any letter
+          </button>
+        </>
+      ) : runnable ? (
         <div className="mode-choice">
           <button className="mode-btn is-primary" type="button" onClick={() => onStart('test', [topic.id])}>
             <span className="mode-name">Test</span>

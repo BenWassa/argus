@@ -1,10 +1,18 @@
-/* #44 — the spoken phrase is the card's primary memory hook, so it has to
-   read as one line of text rather than as a row of separately-captioned
-   beats. Casing alone carries the short/held contrast (short beats are
-   authored lowercase, held beats capitalised in morseVerbalMnemonics.ts), so
-   the accessible short/held reading lives in this paragraph's aria-label
-   instead of a repeated per-beat caption. The SVG stays a secondary,
-   underneath representation of the same sequence, styled in Learn.css. */
+/* #44/#48 — the spoken phrase is the primary memory hook, so it reads as one
+   line of text, and its timing is carried by an explicit mark under every word
+   rather than by capitalisation.
+
+   The previous treatment made casing load-bearing: lowercase meant a short beat
+   and capitals meant a held one, which contradicted the supplied `A LONG`
+   exemplar where `A` is the short beat. Every visible word is now rendered
+   uppercase by `MorsePhrase`, so casing carries no information and can carry no
+   contradiction; the `·`/`—` mark beneath each word carries the duration, and
+   `docs/MORSE_VERBAL_MNEMONICS.md` records the same rule. The authored casing
+   survives in the accessible text equivalent.
+
+   Aligning one mark under one word is also what stops deliberate repetition
+   looking like duplicated data: `ZOOM ZOOM ZIP ZIP` visibly has four marks
+   under four words. */
 
 .morse-phrase-row {
   display: grid;
@@ -26,23 +34,46 @@
   min-width: 0;
   margin: 0;
   font-family: var(--font-display);
-  font-size: clamp(1.3rem, 5.5vw, 1.9rem);
+  font-size: clamp(1.15rem, 4.8vw, 1.6rem);
   font-weight: var(--w-display);
-  line-height: 1.15;
+  line-height: 1.1;
 }
 
+/* Baseline-aligned words on one line, each with its own mark directly beneath:
+   the phrase stays one cohesive object while every beat is separately legible.
+   Wrapping is by whole beats, so a word never separates from its mark. */
 .morse-phrase-beats {
-  display: inline-flex;
+  display: flex;
   flex-wrap: wrap;
-  gap: 0.2em 0.5em;
+  align-items: flex-start;
+  gap: 0.15em 0.45em;
 }
 
 .morse-phrase-beat {
+  display: inline-grid;
+  justify-items: center;
+  gap: 0.05em;
   overflow-wrap: anywhere;
 }
 
-.morse-phrase-beat.is-long {
-  letter-spacing: 0.035em;
+.morse-phrase-mark {
+  font-family: var(--font-mono);
+  /* Sized well above a decorative caption: the mark is the timing, so it has to
+     survive a small phone screen and a reader at 200% text. */
+  font-size: 0.72em;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: var(--accent);
+}
+
+.morse-phrase-beat.is-hidden .morse-phrase-word,
+.morse-phrase-beat.is-hidden .morse-phrase-mark {
+  color: var(--subtle);
+}
+
+.morse-grammar-mark {
+  font-family: var(--font-mono);
+  color: var(--accent);
 }
 
 /* Text can grow to 200% without the phrase colliding with the letter glyph. */
