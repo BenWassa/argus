@@ -101,16 +101,20 @@ export class MorseAudioPlayer {
   private lastRequest: { text: string; options: MorseAudioOptions } | null = null
   private disposed = false
 
-  private readonly background = () => {
-    if (this.visibility?.hidden || !this.visibility) this.cancel()
+  private readonly visibilityChanged = () => {
+    if (this.visibility?.hidden) this.cancel()
+  }
+
+  private readonly pageHidden = () => {
+    this.cancel()
   }
 
   constructor(
     private readonly createContext: () => AudioContextLike = defaultContextFactory,
     private readonly visibility: VisibilitySource | undefined = defaultVisibilitySource(),
   ) {
-    this.visibility?.addEventListener('visibilitychange', this.background)
-    this.visibility?.addEventListener('pagehide', this.background)
+    this.visibility?.addEventListener('visibilitychange', this.visibilityChanged)
+    this.visibility?.addEventListener('pagehide', this.pageHidden)
   }
 
   private ensureContext(): AudioContextLike {
@@ -203,8 +207,8 @@ export class MorseAudioPlayer {
   async dispose(): Promise<void> {
     if (this.disposed) return
     this.disposed = true
-    this.visibility?.removeEventListener('visibilitychange', this.background)
-    this.visibility?.removeEventListener('pagehide', this.background)
+    this.visibility?.removeEventListener('visibilitychange', this.visibilityChanged)
+    this.visibility?.removeEventListener('pagehide', this.pageHidden)
     this.cancel()
     if (this.context && this.context.state !== 'closed') await this.context.close()
     this.context = null
