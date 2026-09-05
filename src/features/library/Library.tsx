@@ -14,8 +14,12 @@ import './Library.css'
 
 interface LibraryProps {
   onStart: (mode: Mode, topicIds: string[]) => void
+  /** Opens the Morse alphabet reference for a topic the lesson recognises. */
+  onOpenReference: (topicId: string) => void
   /** Set when Today sends the user here to author their first topic. */
   openFormOnMount?: boolean
+  /** Set when a full-surface route returns here and a topic should reopen. */
+  openTopicOnMount?: string | null
 }
 
 const TRACK_LABELS: Record<Track, string> = {
@@ -36,10 +40,15 @@ const EXAMPLE: Draft = {
   items: 'North | 0\nEast | 90\nSouth | 180\nWest | 270',
 }
 
-export function Library({ onStart, openFormOnMount = false }: LibraryProps) {
+export function Library({
+  onStart,
+  onOpenReference,
+  openFormOnMount = false,
+  openTopicOnMount = null,
+}: LibraryProps) {
   const { topics, upsertTopic, removeTopic } = useLibrary()
 
-  const [openId, setOpenId] = useState<string | null>(null)
+  const [openId, setOpenId] = useState<string | null>(openTopicOnMount)
   const [editing, setEditing] = useState<Topic | null>(null)
   const [draft, setDraft] = useState<Draft | null>(null)
   const [formOpen, setFormOpen] = useState(openFormOnMount)
@@ -227,6 +236,7 @@ export function Library({ onStart, openFormOnMount = false }: LibraryProps) {
           topic={open}
           onBack={leaveTopic}
           onStart={onStart}
+          onOpenReference={() => onOpenReference(open.id)}
           onEdit={() => editTopic(open, open.items.length === 0)}
           onDelete={() => setPendingDelete(open)}
         />

@@ -1,5 +1,8 @@
+import { differsOnlyInFinalElement } from './confusion'
 import { MORSE_LETTERS, morsePattern, type MorseLetter } from './morse'
 import { patternExtentUnits } from './morseMnemonics'
+
+export { differsOnlyInFinalElement }
 
 /**
  * P1 — character order, and P2 — packet composition.
@@ -14,15 +17,11 @@ import { patternExtentUnits } from './morseMnemonics'
 export const ALL_MORSE_LETTERS = Object.keys(MORSE_LETTERS) as MorseLetter[]
 
 /**
- * Spragg's strongest confusion family: two characters of the same length whose
- * patterns agree everywhere except the final element. This relation is the one
- * hard constraint on packet composition.
+ * Spragg's strongest confusion family — two characters of the same length whose
+ * patterns agree everywhere except the final element — is the one hard
+ * constraint on packet composition. The relation itself lives in `confusion.ts`
+ * with the rest of the confusion model.
  */
-export function differsOnlyInFinalElement(a: string, b: string): boolean {
-  if (a.length !== b.length || a === b) return false
-  return a.slice(0, -1) === b.slice(0, -1)
-}
-
 export function confusableWith(letter: MorseLetter): MorseLetter[] {
   const pattern = morsePattern(letter)
   return ALL_MORSE_LETTERS.filter(

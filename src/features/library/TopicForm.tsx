@@ -5,6 +5,7 @@ import {
   reconcileAuthoredItems,
   type ItemDraft,
 } from '../../lib/items'
+import { pruneLessonProgress } from '../../lib/morseLesson'
 import { TRACKS, type Item, type LearnContent, type Topic, type Track } from '../../lib/types'
 
 /** Starting values for a new topic. Used to hand the user a worked example
@@ -132,6 +133,7 @@ export function TopicForm({
       // Evidence follows stable ids through reorder/text edits and is removed
       // only when its item is actually deleted.
       itemEvidence: pruneItemEvidence(topic?.itemEvidence, reconciledItems),
+      lessonProgress: pruneLessonProgress(topic?.lessonProgress, reconciledItems),
       // Editing changes content, not ownership. A topic authored here is the
       // user's; an edited catalog topic stays a catalog topic, so routine
       // edits are never reported as a shipped-content collision.

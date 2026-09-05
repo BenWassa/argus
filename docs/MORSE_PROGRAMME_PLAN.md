@@ -3,7 +3,8 @@
 Parent issue: #21  
 Research baseline: `docs/MORSE_CODE_LEARNING_PRD.md` (PR #22; amended by #42)  
 Execution-plan origin: PR #30  
-Current correction: #42 — rhythmic verbal acquisition + production mobile audio
+Current correction: #48 — guided Learn lesson + separate A–Z reference  
+Previous correction: #42/#44 — rhythmic verbal acquisition + production mobile audio
 
 ## Document hierarchy
 
@@ -16,8 +17,8 @@ For settled/current behaviour, authority is narrower and newer:
 1. merged/current implementation + tests;
 2. ratified decisions in this programme plan;
 3. focused durable design records such as `MORSE_CHARACTER_ORDER.md`,
-   `MORSE_VERBAL_MNEMONICS.md`, `MORSE_MNEMONIC_GRAMMAR.md`, and
-   `MORSE_CUE_LADDER.md`;
+   `MORSE_VERBAL_MNEMONICS.md`, `MORSE_MNEMONIC_GRAMMAR.md`,
+   `MORSE_CUE_LADDER.md`, and `MORSE_LESSON.md`;
 4. the PRD for research rationale and future-skill framing.
 
 Where the PRD still describes an option as unresolved but a later decision below
@@ -27,11 +28,18 @@ is ratified/implemented, the later decision governs.
 
 ```text
 retention state: learning / drilled / completed / decayed   (scheduler owns this)
-cue state:       rich / delayed-choice / reduced / free      (acquisition owns this)
+cue state:       rich / delayed-choice / reduced / free      (Test acquisition owns this)
+lesson support:  taught / cued / solo / settled              (Learn lesson owns this, #48)
 ```
 
 The durable type also reserves `auditory` cue state for later work, but auditory
 reception is **not** part of the current scored Morse competency.
+
+#48 adds the third dimension. It is a *different* ladder in a *different* field
+(`Topic.lessonProgress`) answering a different question — how much scaffolding
+the guided Learn lesson still offers an item — and it is formative only. It can
+never qualify, skip, reset or counterfeit retention state, and it can never
+write the `DirectionEvidence` that gates a bidirectional attempt.
 
 Cue/acquisition evidence and retention/completion evidence are separate
 dimensions. Cue progress must never qualify, skip, reset, or counterfeit a
@@ -73,8 +81,8 @@ satisfy that release gate.
 |---|---|---|---|---|
 | D1 | Bidirectional scoring against whole-deck completion | Typed bidirectional item; 26 logical scoring units | Ratified | #24 / PR #33; activated by #28 |
 | D2 | Stable item identity | Generated durable item id preserved through authoring | Implemented default | #24 / PR #33 |
-| D3 | Where acquisition rungs live | Cue rungs inside Test; scheduler untouched | Ratified | #27 / PR #35 |
-| D4 | Morse Learn representation | Narrow typed `morse-character-packet` block | Implemented default | #24 / PR #33; rendered by #26/#42 |
+| D3 | Where acquisition rungs live | Cue rungs inside Test; scheduler untouched. #48 adds a separate formative ladder inside Learn without moving these | Ratified | #27 / PR #35; extended by #48 |
+| D4 | Morse Learn representation | Narrow typed `morse-character-packet` block; retained for authored content after #48 moved the shipped A–Z off it | Implemented default | #24 / PR #33; rendered by #26/#42; superseded for the seeded topic by #48 |
 | D5 | Per-item acquisition evidence | Topic sibling of scheduler `history`, keyed by item id | Implemented default | #24 / PR #33 |
 | D6 | Primary early acquisition channel | Original rhythmic verbal A–Z set; SVG retained as secondary timing scaffold | Implemented in #42 branch; merge gated by real device | #42 / PR #43 |
 | P1 | Character order | Complexity-ascending with final-element confusables split | Ratified | #26 / PR #34 |
@@ -83,7 +91,10 @@ satisfy that release gate.
 | P4 | Default audio rhythm | 20 WPM character, ~9 WPM effective; adjustable | Implemented default | #25 / PR #31 |
 | P5 | Visual asset model | Original generated timing SVG; no borrowed per-letter artwork; secondary to verbal cue | Implemented | #26 / PR #34; role corrected by #42 |
 | P6 | Temporary printed baseline | Absorb in place; retain ids/evidence/history, activate bidirectional semantics | Implemented | #28 |
-| P7 | Mobile Web Audio lifecycle | Direct-play context create/resume; verify running; browser owns lifecycle suspension; explicit cancel/replay; deliberate gain; click-free 2ms element edges | Implemented in #42 branch; physical acceptance pending | #42 / PR #43 |
+| P7 | Mobile Web Audio lifecycle | Direct-play context create/resume; verify running; browser owns lifecycle suspension; explicit cancel/replay; deliberate gain; click-free 2ms element edges | Implemented; physical acceptance pending | #42 / PR #43 |
+| D7 | Where formative retrieval lives | Inside Learn, as a guided packet lesson with its own three-format support ladder; Practice is not reintroduced | Ratified | #48 |
+| P8 | Lesson fade/restore rule | Fade one level per correct retrieval; a miss restores one level below the format used; missed items barred 2 steps and never asked next | Implemented default | #48 |
+| P9 | Packet readiness | Every roster character — novel and returning — `settled`; packet index derived from durable support, never stored | Ratified | #48 |
 
 ## Why v5 exists
 
@@ -103,6 +114,14 @@ remains structurally separate from scheduler history.
 #42 adds no durable state field and no schema version. The verbal phrase table,
 SVG rendering and Web Audio schedule are derivable presentation/content keyed by
 canonical letter.
+
+#48 adds exactly one optional field, `Topic.lessonProgress`: one
+`taught | cued | solo | settled` enum per item id. It stays inside v5 because
+there is nothing to migrate — absent means "no lesson progress", which is what
+every earlier record means — and it is validated as strictly as cue evidence at
+the import boundary, so export/import remains lossless in both directions.
+Which packet, which step and which alternatives are all derived, so no second
+source of truth exists to drift.
 
 ## P1 — character order: reconciled provenance
 
@@ -272,7 +291,8 @@ repoint old content at new artwork.
 | 3 | #26 | SVG grammar + progressive Learn | **Merged** via PR #34; visual role corrected by #42 |
 | 4 | #27 | Progressive Test + cue fading | **Merged** via PR #35; cue channels reconciled by #42 |
 | 5 | #28 | A–Z bidirectional curriculum + mobile acceptance | **Merged**, but later production use exposed #42 correction needs |
-| C | #42 | Rhythmic verbal acquisition + working mobile audio | **PR #43 open; automated gate and real-device evidence required** |
+| C | #42 | Rhythmic verbal acquisition + working mobile audio | **Merged** via PR #43; real-device acceptance still open under #44 |
+| D | #48 | Guided Learn lesson + separate A–Z reference + mnemonic grammar fix | **Implemented; automated gate green, real-phone learner validation required** |
 | 6 | #29 | Auditory reception / sending / continuous material | **Deferred until #42 + learner validation** |
 
 ## #28/#42 completion boundary
@@ -311,6 +331,25 @@ words/phrases and WPM competence remain outside it.
 The video is a method/design precedent, not the canonical source of Morse and
 not the source of the full Argus A–Z phrase set.
 
+## #48 — Learn is a lesson, reference is a reference
+
+The full record is `docs/MORSE_LESSON.md`. In summary:
+
+- **Learn** is a guided lesson: introduce two new characters, retrieve them
+  shortly after, reteach a miss and bring it back after intervening material,
+  fade support with success, interleave prior-packet characters, and advance
+  only when every roster character has been produced unaided.
+- **Morse alphabet** is a separate always-open A–Z lookup that writes nothing.
+- **Test** is unchanged and remains the sole scored retention/completion path.
+- Practice is **not** reintroduced. `Mode` stays `learn | test`.
+- The one durable addition is `Topic.lessonProgress`: one enum per item,
+  additive within v5 because there is nothing to migrate, validated strictly and
+  lossless through export/import.
+- #44's mnemonic-grammar defect is fixed: casing is no longer semantic anywhere,
+  duration is an aligned `·`/`—` mark under each word, deliberate repetition is
+  preserved and explained once per surface, and `A LONG` no longer contradicts
+  anything.
+
 ## Non-negotiable invariants
 
 - Every completion claim stays explicit, finite and completely testable.
@@ -329,3 +368,9 @@ not the source of the full Argus A–Z phrase set.
   acceptance; mocked/emulated Web Audio is insufficient.
 - #29 stays deferred until the corrected A–Z foundation receives real learner
   validation.
+- Formative Learn retrieval never counts as a retention attempt, never advances
+  a scheduler interval, never writes directional evidence and never awards
+  completion.
+- Reference viewing and playback write no evidence of any kind.
+- No automated test is presented as evidence that the lesson design works for
+  human learners.
