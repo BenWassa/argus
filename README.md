@@ -39,7 +39,7 @@ The production site is deployed to **https://benwassa.github.io/argus/** by GitH
 - `docs/PROGRAMME.md` — Learn/Test + content-quality programme closeout.
 - `docs/MORSE_CODE_LEARNING_PRD.md` — dated Morse research/design baseline retained for rationale; later ratified decisions supersede its deliberately open implementation questions.
 - `docs/MORSE_PROGRAMME_PLAN.md` — current Morse programme decisions, workstream ownership and implementation status.
-- `docs/MORSE_CHARACTER_ORDER.md` — shipped pre-#28 order/packet rule and verified Koch/CW Academy provenance comparison.
+- `docs/MORSE_CHARACTER_ORDER.md` — shipped character order/packet rule and verified Koch/CW Academy provenance comparison.
 - `docs/MORSE_PROVENANCE_RECONCILIATION.md` — provenance/doc-reconciliation closeout for the pre-#28 documentation lane.
 
 `argus-prd.md` is the original July 2026 vision document. Where it describes superseded runtime/schema details, `PRODUCT.md` and the durable programme documents above govern current implemented behaviour.

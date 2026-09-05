@@ -83,15 +83,17 @@ The original research/rewrite covered:
 | Primary survey | Five ABCDE headings in order only | Briefing + bounded case + safety limits |
 | Cardinal/intercardinal bearings | Eight compass points → clockwise degree values from north | Concise support |
 
-The current seed additionally includes the temporary pre-#28 Morse control topic:
+The current seed additionally includes the International Morse topic, seeded as a
+temporary forward-only control by #23 and absorbed in place into its final
+bidirectional form by #28:
 
 | Topic | Finite Test boundary | Learn treatment |
 |---|---|---|
-| International Morse — Letters (printed) | 26 printed letters A–Z → canonical dit/dah pattern, **one direction only** | Concise support + progressive Morse packets |
+| International Morse — Letters (printed) | 26 printed A–Z mappings recalled in **both** printed directions | Concise support + progressive Morse packets |
 
-That temporary one-direction Morse boundary is intentional. #28 owns the later
-absorption/supersession into the full bidirectional A–Z claim; this programme
-document does not widen it.
+Only one Morse completion claim ships. It covers printed recall in both
+directions and nothing else; auditory reception, sending, WPM, words and phrases
+remain outside it, under #29.
 
 Detailed source decisions for the original four topics remain in
 `docs/SEEDED_CONTENT_PROVENANCE.md`. Morse provenance and programme decisions are
