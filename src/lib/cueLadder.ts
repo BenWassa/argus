@@ -12,10 +12,10 @@ import type {
 /**
  * The acquisition ladder (D3, ratified).
  *
- * Stages A and B are the richest *cue rungs inside Test*. Learn keeps its job —
- * ungraded first exposure — and the scheduler is not taught anything about
- * unfinished acquisition. `src/lib/scheduling.ts` is out of scope for this
- * workstream and is not imported here.
+ * Learn owns full first exposure: verbal mnemonic + SVG + canonical notation +
+ * audio. Test then fades that support through reduced verbal/visual rhythm,
+ * canonical/audio support, and finally the existing uncued production/reverse
+ * recall rungs. Scheduler semantics remain completely separate.
  *
  * The governing invariant from the programme plan:
  *
@@ -50,16 +50,21 @@ export interface CueRung {
   revealPolicy: RevealPolicy
   /** Whether the cue panel may state how many elements the answer has. */
   showsLength: boolean
-  /** Whether cue-bearing artwork may be shown at this rung at all. */
+  /** Whether the secondary timing SVG may be shown at this rung. */
   allowsArtwork: boolean
+  /** Whether a reduced fragment of the verbal mnemonic may be shown. */
+  allowsVerbalCue: boolean
+  /** Whether user-triggered canonical Morse playback may be offered. */
+  allowsAudio: boolean
   label: string
   instruction: string
 }
 
 /**
- * Five rungs, richest first. Rungs 4 and 5 are uncued: they carry no artwork,
- * no length hint and no revealed prefix, which is asserted mechanically rather
- * than by inspection.
+ * Five rungs, richest first. Full phrase/SVG/canonical/audio exposure lives in
+ * Learn. Rungs 1–2 retain only a strict opening fragment of the verbal + visual
+ * rhythm. Rung 3 removes mnemonic/artwork and offers canonical audio alongside
+ * delayed canonical-pattern alternatives. Rungs 4–5 are completely uncued.
  */
 export const CUE_RUNGS: readonly CueRung[] = [
   {
@@ -71,8 +76,10 @@ export const CUE_RUNGS: readonly CueRung[] = [
     revealPolicy: 'half',
     showsLength: true,
     allowsArtwork: true,
-    label: 'Prompted recognition',
-    instruction: 'Choose the pattern. The opening of it is shown.',
+    allowsVerbalCue: true,
+    allowsAudio: false,
+    label: 'Rhythm cue',
+    instruction: 'Choose the pattern. The opening phrase and timing trace are shown.',
   },
   {
     id: 'delayed-recognition',
@@ -83,8 +90,10 @@ export const CUE_RUNGS: readonly CueRung[] = [
     revealPolicy: 'first',
     showsLength: true,
     allowsArtwork: true,
-    label: 'Delayed choice',
-    instruction: 'Recall it first. The alternatives arrive in a moment.',
+    allowsVerbalCue: true,
+    allowsAudio: false,
+    label: 'Reduced rhythm',
+    instruction: 'Recall it first. One opening beat remains; choices arrive in a moment.',
   },
   {
     id: 'reduced-recognition',
@@ -95,8 +104,10 @@ export const CUE_RUNGS: readonly CueRung[] = [
     revealPolicy: 'none',
     showsLength: true,
     allowsArtwork: false,
-    label: 'Reduced cue',
-    instruction: 'Recall it first. Only the length is given.',
+    allowsVerbalCue: false,
+    allowsAudio: true,
+    label: 'Canonical support',
+    instruction: 'Recall it first. If needed, play the canonical rhythm; choices arrive in a moment.',
   },
   {
     id: 'free-production',
@@ -107,6 +118,8 @@ export const CUE_RUNGS: readonly CueRung[] = [
     revealPolicy: 'none',
     showsLength: false,
     allowsArtwork: false,
+    allowsVerbalCue: false,
+    allowsAudio: false,
     label: 'Free production',
     instruction: 'Key the pattern yourself.',
   },
@@ -119,6 +132,8 @@ export const CUE_RUNGS: readonly CueRung[] = [
     revealPolicy: 'none',
     showsLength: false,
     allowsArtwork: false,
+    allowsVerbalCue: false,
+    allowsAudio: false,
     label: 'Free reception',
     instruction: 'Read the pattern and name the character.',
   },
@@ -130,7 +145,12 @@ export const FREE_RECEPTION_RUNG = 4
 
 /** The rungs at which no cue of any kind may reach the learner. */
 export const UNCUED_RUNGS = CUE_RUNGS.filter(
-  (rung) => !rung.allowsArtwork && rung.revealPolicy === 'none' && !rung.showsLength,
+  (rung) =>
+    !rung.allowsArtwork &&
+    !rung.allowsVerbalCue &&
+    !rung.allowsAudio &&
+    rung.revealPolicy === 'none' &&
+    !rung.showsLength,
 )
 
 /**
