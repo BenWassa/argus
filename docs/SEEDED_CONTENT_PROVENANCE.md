@@ -1,24 +1,24 @@
 # Seeded content provenance and Test boundaries
 
-Issue: #11; Morse baseline: #23; final A–Z curriculum: #28
+Issue: #11; Morse baseline: #23; final A–Z curriculum: #28; acquisition/audio correction: #42  
 Research baseline: `f2a3112110356f90f469c8c340f9f0ac69fbb2ee`  
 Library format: v5
 
 ## Purpose
 
-This document records the research decisions behind the topics shipped by `src/lib/seed.ts`. For every topic, `scope` plus `items` remain the finite scored Test boundary. `topic.learn` is explanatory support only and does not expand the completion claim.
+This document records the research decisions behind the topics shipped by `src/lib/seed.ts`. For every topic, `scope` plus `items` remain the finite scored Test boundary. `topic.learn` is explanatory/acquisition support only and does not expand the completion claim.
 
 ## Boundary matrix
 
 | Topic | Final finite Test boundary | Items | Learn treatment |
 | --- | --- | ---: | --- |
 | NATO phonetic alphabet | 26 letters A–Z → official NATO code word | 26 | Concise support |
-| International Morse — Letters (printed) | 26 printed A–Z mappings recalled in both directions | 26 bidirectional logical units | Progressive packets |
+| International Morse — Letters (printed) | 26 printed A–Z mappings recalled in both directions | 26 bidirectional logical units | Rhythmic verbal-first progressive packets + secondary SVG + canonical audio |
 | OODA loop | Four stages in order + one core function for each | 4 | Briefing + integrated case |
 | Primary survey | Five ABCDE headings in order only | 5 | Briefing + integrated bounded case + explicit safety limits |
 | Cardinal/intercardinal bearings | Eight named compass points → clockwise degree value from north, with north represented as 0° | 8 | Concise support |
 
-Existing seeded historical attempt totals remain compatible with their decks. The Morse baseline is new and starts unstarted with no history.
+Existing seeded historical attempt totals remain compatible with their decks. #42 adds no durable learner-state field and does not change any scored item.
 
 ## NATO phonetic alphabet
 
@@ -44,7 +44,9 @@ Concise support only: one short purpose/spelling note plus provenance. No case s
 
 ### Research decision
 
-Workstream #28 absorbs the temporary #23 forward-only control in place: the topic id and all 26 deterministic item ids remain stable, while each logical item now requires both printed directions. No duplicate or overlapping Morse topic is shipped. ITU-R M.1677-1 Annex 1 supplies the authoritative International Morse A–Z mapping and canonical timing relationships.
+Workstream #28 absorbed the temporary #23 forward-only control in place: the topic id and all 26 deterministic item ids remain stable, while each logical item requires both printed directions. No duplicate or overlapping Morse topic is shipped. ITU-R M.1677-1 Annex 1 supplies the authoritative International Morse A–Z mapping and canonical timing relationships.
+
+#42 corrects the acquisition treatment without touching that content/state boundary. The first memory hook is now an original rhythmic verbal phrase whose short/held beat sequence exactly matches the canonical mapping. The generated SVG remains a secondary timing scaffold, and deterministic Morse audio is available from first exposure. All channels are temporary support and disappear before uncued evidence.
 
 The 26 canonical mappings are:
 
@@ -66,9 +68,44 @@ The 26 canonical mappings are:
 
 Every A–Z mapping appears once as one bidirectional logical scoring unit—not as 52 duplicated cards. Directional evidence gates a passing retention attempt, so forward-only evidence cannot award completion. Completion does **not** claim auditory reception, sending, WPM, words, phrases, or operating fluency.
 
-### Learn treatment
+### Learn/acquisition treatment after #42
 
-Progressive Learn packets use Argus's original timing grammar and deterministic audio. The Test ladder fades rich support through delayed and reduced choice to uncued production and uncued reverse-direction recall. Artwork and answer-bearing cues are mechanically absent from both uncued rungs.
+The hierarchy is:
+
+> verbal mnemonic + SVG + canonical pattern + audio  
+> → reduced verbal/visual rhythm cue  
+> → canonical/audio support  
+> → uncued production and printed reverse recall
+
+The verbal A–Z set is documented in `MORSE_VERBAL_MNEMONICS.md`.
+
+- the supplied `A LONG` example is retained;
+- the other 25 phrases are original Argus content, not copied from a third-party mnemonic list;
+- each phrase has one labelled short/held beat per canonical element;
+- tests convert every phrase back to dots/dashes and compare all 26 against the same canonical table used by the scored deck;
+- tests also enforce the coda rule that keeps the length contrast unambiguous: a short beat must end in a stop and a held beat in a continuant, with `A` the single documented exemption;
+- tests also compare verbal beat units to SVG units and synthesized-audio signal units.
+
+The SVG remains the original generated `argus-morse-rhythm-v1-<GLYPH>` timing grammar from #26. #42 does not repoint those ids to different artwork and therefore requires no learner-state/content migration.
+
+Supported Test may reveal only a strict opening verbal/SVG/canonical prefix. The next rung removes verbal and SVG support and may offer user-triggered canonical audio. Both uncued rungs mechanically receive a cue payload containing only the rung id: no phrase, SVG, audio support, length or answer prefix can leak into the evidence that supports completion.
+
+### Audio provenance and boundary
+
+Audio is synthesized from canonical data; Argus does not ship arbitrary prerecorded clips. ITU timing remains the sole timing authority.
+
+#42 hardens the production mobile path around direct user activation and mobile browser lifecycle handling. The fix resumes and verifies any non-running `AudioContext`, avoids app-driven background `suspend()` races, cancels playback on background/pagehide, recreates closed contexts, shares the oscillator/highlight start delay and raises the deliberate default linear gain from 0.12 to 0.25. Device media volume/routing remain final output controls.
+
+These implementation changes do **not** add auditory evidence to the topic. A printed prompt answered after optional audio support remains acquisition/cue evidence, not proof of sound-only reception.
+
+### Acquisition provenance
+
+- ITU-R M.1677-1 supplies canonical mappings and timing.
+- The rhythmic-verbal method reference supplied in #42 is used as a design precedent: https://youtu.be/0CYpik24pRU?si=RX5Bow1eMGFpLdV5
+- Only the user-supplied `A LONG` exemplar is retained directly from that request; the remaining Argus phrases are independently authored and mechanically checked.
+- Google Creative Lab/Ace Centre/Morse Code Master remain research/product precedents; no per-letter asset or full mnemonic list is silently copied.
+
+Automated checks prove structural agreement, not human-learning effectiveness. #42 cannot close until its exact production build receives the issue's genuine physical-device acceptance, and learner validation should follow before #29 expands the competency claim.
 
 ### Authoritative source
 
@@ -169,7 +206,7 @@ Concise support only: clockwise-from-north convention, 45° spacing, the 0°/360
 
 - Every topic has an explicit finite scope.
 - Every stated scored boundary is completely enumerated by `items`.
-- The final Morse topic requires both printed directions and does not count timing context, audio exposure, sending, speed, words, phrases, or operating fluency toward completion.
+- The final Morse topic requires both printed directions and does not count verbal-mnemonic recall, SVG use, timing context, audio exposure/support, sending, speed, words, phrases, or operating fluency toward completion.
 - No case-study detail, provenance note, limitation, clinical technique, wider OODA relationship, or contextual explanation is silently counted toward completion.
-- NATO, Morse and bearings remain compact despite using concise provenance support.
-- OODA and Primary Survey use the richer v4 Learn model because understanding the framework/procedure requires more than mapping labels.
+- NATO, Morse and bearings remain compact despite using provenance/acquisition support.
+- OODA and Primary Survey use the richer Learn model because understanding the framework/procedure requires more than mapping labels.

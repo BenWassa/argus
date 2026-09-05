@@ -1,30 +1,46 @@
-# The Argus Morse mnemonic grammar
+# The Argus Morse visual rhythm grammar
 
-Workstream 3 (#26). Owns decisions **P2** and **P5**; implements **P1** from
-`docs/MORSE_PROGRAMME_PLAN.md`.
+Workstream 3 (#26), repositioned by #42. The SVG system remains the one
+canonical visual representation of Morse timing, but it is now explicitly a
+**secondary visual scaffold** under the rhythmic verbal mnemonic described in
+`docs/MORSE_VERBAL_MNEMONICS.md`.
 
 Code: `src/lib/morseMnemonics.ts` (geometry), `src/features/learn/MorseMnemonic.tsx`
 (drawing), `src/features/learn/MorseCharacterPacket.tsx` (the packet surface).
 
-## The constraint the grammar exists to satisfy
+## Role after #42
+
+The shipped #26 treatment made the generated SVG rhythm the most prominent
+acquisition device. Production use showed that this was not the intended first
+memory hook. #42 corrects that hierarchy:
+
+> verbal mnemonic + SVG + canonical pattern + audio  
+> → reduced verbal/visual rhythm cue  
+> → canonical/audio support  
+> → uncued production/reverse recall
+
+The SVG remains valuable because it visualises the *same temporal sequence* as
+the spoken phrase and synthesized audio without introducing a separate symbolic
+code. It should reinforce memory, not compete with the phrase or become the
+endpoint a learner is scored on.
+
+## The constraint the visual grammar exists to satisfy
 
 PRD §5.3 rules out an analytic translation layer:
 
 > first inspect dot → then inspect dash → traverse a tree → derive the letter
 
 Allan (1958) and Clawson et al. (2001) both point at unitized whole-pattern
-representation as the target. So the mnemonic must be something a learner
-*recognises alongside the letter*, not something they *solve to obtain* it.
+representation as the target. So the visual scaffold must be something a
+learner can recognise alongside the letter and phrase, not an illustration they
+must solve in order to derive the pattern.
 
-Per-letter illustrations fail that test by construction. A drawing of a rocket
-for `V` is a puzzle whose solution is the letter: the learner recalls the
-picture, decodes it, and only then reaches the pattern. That is the derivation
-step the PRD forbids, dressed as a mnemonic.
-
-The grammar therefore contains **no letter-specific artwork at all**. Each card
-draws the character's own timing next to its glyph, identically for all 26.
-There is nothing to interpret, so `letter ↔ rhythm` is the only thing available
-to encode, which is exactly the association the topic scores.
+Per-letter pictorial illustrations fail that test by construction. A bespoke
+rocket for `V`, for example, creates another association to decode. The Argus
+visual grammar therefore contains **no letter-specific pictorial artwork**.
+Each card draws the character's own timing next to its glyph, identically for
+all 26. The letter-specific memory association now comes from the verbal phrase;
+the SVG's job is simply to make that phrase's short/long rhythm visible.
 
 ## The rules
 
@@ -39,32 +55,28 @@ to encode, which is exactly the association the topic scores.
    origin, on a rail of the same length. Pattern length is therefore directly
    comparable card to card: `E` visibly occupies less time than `J`. Length is
    information and the grammar refuses to normalise it away.
-5. **glyph dominant** — the uppercase letter is the largest mark on the card and
-   the rail emanates from it, so the pair reads as one object rather than a
-   letter beside a diagram.
-6. **canonical notation** — plain `·`/`—` sits beneath the mnemonic, with the
-   spoken rhythm ("dit dah dit") beside it as visible text.
-7. **sound sync** — playing a character illuminates each element in time with
-   the audio, driven by the same `buildMorseSchedule` the tone is driven by, so
-   the two channels cannot drift.
-8. **no motion** — illumination is a colour change. Nothing translates, scales
-   or rotates anywhere in the drawing, in any state. Reduced-motion users
-   therefore lose nothing at all: the sequence is carried by left-to-right
-   order, the origin tick, the canonical notation and the spoken rhythm, none of
-   which depend on movement.
+5. **glyph dominant** — the uppercase letter remains inside the drawing, so the
+   letter and rhythm read as one object rather than a caption beside a diagram.
+6. **canonical notation** — plain `·`/`—` sits beneath the scaffold, with the
+   spoken `dit`/`dah` rhythm available as semantic text.
+7. **sound sync** — playing a character illuminates each SVG element in time
+   with the audio. #42 moved the Web Audio start delay into the shared
+   `MORSE_AUDIO_START_DELAY_MS` constant, so the oscillator and highlight timers
+   no longer have separate hard-coded offsets.
+8. **no positional motion** — illumination is a colour/state change. Nothing
+   translates, scales or rotates. Reduced-motion users therefore lose no
+   sequence information.
 
-`src/lib/morseMnemonics.test.ts` asserts rules 1–4 mechanically for every
-character; `MorseCharacterPacket.test.tsx` asserts rules 5–8 on rendered output,
-including that the illuminated and quiet renderings differ by nothing but a
-class name.
+`src/lib/morseMnemonics.test.ts` asserts the geometry rules mechanically for
+every character. `src/lib/morseVerbalMnemonics.test.ts` adds the #42 cross-channel
+invariant: verbal short/held units, SVG element units and synthesized-audio
+signal units must be identical for all 26 letters.
 
 ## Prototype cohort — validated before the alphabet was drawn
 
-Ten deliberately dissimilar characters, each present for a stated reason. The
-cohort is pinned in `morseMnemonics.test.ts` and the grammar invariants are
-asserted against it as a distinct suite from the all-26 suite, so "the grammar
-was validated on hard cases first" is a standing check rather than a claim about
-the past.
+Ten deliberately dissimilar characters remain pinned in
+`morseMnemonics.test.ts` so the visual grammar cannot quietly regress on hard
+cases:
 
 | Character | Pattern | What it stresses |
 |---|---|---|
@@ -79,76 +91,71 @@ the past.
 | S | `...` | confusable pair, member A |
 | U | `..-` | confusable pair, member B — differs only in its final element |
 
-Each cohort member exists to rule out a specific way the grammar could fail.
-These are the failure modes, and the rule each one forces:
+The important failure modes remain:
 
-- **`E` vs `H` — a per-card scale would destroy length information.** If each
-  character were scaled to fill its own card, `.` and `....` would draw the same
-  width and the single strongest whole-pattern cue would be normalised away.
-  Rule 4 (one shared rail, fixed unit, fixed origin) exists to prevent this, and
-  is asserted for every character.
-- **`S` vs `U` — a pair differing only in its final element must differ in
-  silhouette, not colour.** This is Spragg's hardest family. Under the grammar
-  the difference is a circle where the other has a bar, at the identical x
-  coordinate: it survives greyscale, low contrast, small sizes and suppressed
-  motion. There is a test asserting exactly that shared prefix and divergent
-  final element.
-- **`H` and `O` — the gap must be one unit, not decorative padding.** Padding
-  chosen for looks makes a uniform run read as separate events rather than one
-  rhythm. Deriving the gap from the same unit as the elements keeps the run
-  coherent and has the useful consequence that the drawn extent equals the
-  played duration — asserted directly against `buildMorseSchedule`.
-- **`J` and `Q` — the rail must be sized for the longest character the grammar
-  will ever carry.** It is sized for five dahs and four gaps, beyond anything in
-  A–Z, so adding digits later cannot change the unit size and silently re-scale
-  every existing letter.
-- **`E` and `T` — the glyph has to be inside the drawing.** For a one-element
-  character there is almost no rhythm to look at, and a glyph placed outside the
-  SVG reads as a caption on a diagram. Placing it at the rail's origin (rule 5)
-  keeps letter and rhythm one object even at the degenerate end of the range.
+- **`E` vs `H` — a per-card scale would destroy length information.** The shared
+  rail and unit prevent it.
+- **`S` vs `U` — a final-element difference must survive greyscale, small size
+  and reduced motion.** The final circle/bar difference does.
+- **`H` and `O` — gaps are timing, not decorative padding.** The visual extent
+  is derived from the same units as the schedule.
+- **`J` and `Q` — the rail has headroom.** Its sizing does not require per-letter
+  scaling.
+- **`E` and `T` — degenerate one-element patterns still remain visibly attached
+  to the glyph.**
 
-The all-26 suite runs the same invariants over the full alphabet, so extending
-from ten to twenty-six could not quietly introduce an exception.
+The all-26 suite runs the same invariants over the full alphabet.
 
 ## Accessibility
 
-- Every drawing is `role="img"` with `<title>` (the semantic equivalent: glyph,
-  spoken rhythm, element count, order) and `<desc>` (canonical notation and
-  reading direction).
-- The spoken rhythm is *also* visible text outside the SVG, so the mapping is
-  never available only through the visual channel. A learner who cannot use the
-  drawing still reaches the topic's completion boundary from the card alone.
-- Audio and visual channels are independently usable. Audio failure degrades to
-  a status message plus the written pattern; no drawing depends on audio, and no
-  audio depends on the drawing.
-- The mnemonic is sized in `em`, so it grows with the page at 200% text scaling
-  rather than staying pinned to a pixel size.
-- Cards are a single column on a phone and touch targets are at least 44px.
+- Every drawing is `role="img"` with a meaningful `<title>` and `<desc>` that
+  state the canonical pattern/rhythm independent of the drawing.
+- The verbal mnemonic is separately labelled in text; neither the SVG nor the
+  typography is the only route to the mapping.
+- Audio is optional. Failure produces a status message and leaves verbal,
+  canonical and visual representations usable.
+- The scaffold scales with the reading surface and remains usable at 200% text.
+- Cards remain one column at phone widths; controls retain the existing touch
+  target requirements.
+- Reduced motion removes transitions without removing order, duration labels or
+  canonical notation.
 
-## P5 — provenance of the mnemonic set
+## Cue fading and no-leakage rule
 
-Original, and structurally so: nothing is drawn per letter, so there is nothing
-that could have been borrowed. The artwork is generated from the ITU pattern by
-`buildMnemonic`, and the only inputs are the canonical mapping and the 1:3:1
-unit ratios from ITU-R M.1677-1.
+#42 makes the visual hierarchy explicit in Test:
 
-Google Creative Lab's `morse-learn` is Apache-2.0 at repository level with
-unverified per-asset provenance. Its interaction patterns were studied; no asset,
-no drawing and no per-character mnemonic from it is used here. Its approach —
-one bespoke illustration per letter — is the approach this grammar deliberately
-rejects, for the reason given at the top of this document.
+- rich Test may render only the strict disclosed SVG prefix;
+- delayed Test may render only the first SVG element when a prefix exists;
+- canonical-support Test has **no SVG**;
+- free production and printed pattern → letter reverse recall have **no SVG,
+  verbal mnemonic, audio cue, length hint or answer prefix**.
 
-`mnemonicId()` records asset identity as `argus-morse-rhythm-v1-<GLYPH>`. The
-version segment exists so that a future grammar can be introduced without
-silently re-pointing existing content at different artwork.
+The same `buildCuePayload` object controls verbal, SVG, canonical and audio
+support, and tests assert that an uncued payload contains only its rung id.
+Answer-bearing artwork therefore cannot accidentally survive into the evidence
+that supports the completion claim.
 
-## What this workstream does not do
+## Provenance of the visual system
 
-- It does not touch `src/lib/scheduling.ts` (D3).
-- It does not add a Test cue rung, a cue level or any progression. Learn remains
-  ungraded first exposure and a reference you can reopen; no packet is locked,
-  gated or scored. The acquisition ladder is #27's, inside Test.
-- It does not change any topic's scored boundary. The seeded Morse topic gains
-  Learn packets and keeps exactly the 26 `letter → pattern` items it had.
-- Curriculum ownership, per-mapping ITU verification and physical mobile
-  acceptance remain workstream 5 (#28).
+Original, and structurally so: nothing is drawn per letter. The artwork is
+generated from the canonical pattern by `buildMnemonic`; its content inputs are
+the A–Z mapping and the 1:3:1 signal/gap unit relationships from ITU-R M.1677-1.
+
+Google Creative Lab's `morse-learn` was studied as an interaction precedent, but
+no asset, drawing or per-character visual mnemonic from it is used here.
+
+`mnemonicId()` retains the existing identity
+`argus-morse-rhythm-v1-<GLYPH>`. #42 does not repoint that id to different
+artwork, so existing content and learner state do not need a migration.
+
+The new verbal phrases have separate provenance and are documented in
+`docs/MORSE_VERBAL_MNEMONICS.md`; they are not silently treated as a new version
+of the SVG asset set.
+
+## What this work does not do
+
+- It does not change `src/lib/scheduling.ts`.
+- It does not add scoring units or change any durable item id.
+- It does not make recalling the verbal phrase part of completion.
+- It does not claim auditory reception, sending, WPM, groups, words or phrases;
+  those remain #29 territory after the printed A–Z foundation is validated.

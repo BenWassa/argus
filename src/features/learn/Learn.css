@@ -391,9 +391,20 @@
   border-color: var(--line-strong);
 }
 
+/* The SVG sits beside its Play control rather than filling the card width, so
+   the two stay one visual unit: the timing picture and the button that plays
+   it. */
+.morse-visual-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-sm);
+  width: 100%;
+}
+
 .morse-mnemonic {
   display: block;
-  width: 100%;
+  flex: 1 1 auto;
+  min-width: 0;
   max-width: 22em;
   height: auto;
 }
@@ -451,9 +462,17 @@
   letter-spacing: 0.02em;
 }
 
+/* Icon-only, but `button` + `.icon` already guarantee a 44x44 CSS px target
+   (global.css) even though the glyph itself is drawn smaller. State is never
+   colour-only: the glyph shape itself switches from a play triangle to a
+   stop square, and the accessible name switches from "Play … Morse" to
+   "Stop … Morse" to match. */
 .morse-play {
-  min-height: 44px;
-  padding-inline: var(--s-md);
+  flex-shrink: 0;
+}
+
+.morse-play.is-playing {
+  border-color: var(--line-strong);
 }
 
 .morse-packet-note,

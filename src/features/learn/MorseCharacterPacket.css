@@ -1,0 +1,58 @@
+/* #44 — the spoken phrase is the card's primary memory hook, so it has to
+   read as one line of text rather than as a row of separately-captioned
+   beats. Casing alone carries the short/held contrast (short beats are
+   authored lowercase, held beats capitalised in morseVerbalMnemonics.ts), so
+   the accessible short/held reading lives in this paragraph's aria-label
+   instead of a repeated per-beat caption. The SVG stays a secondary,
+   underneath representation of the same sequence, styled in Learn.css. */
+
+.morse-phrase-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--s-md);
+  align-items: center;
+  width: 100%;
+}
+
+.morse-letter {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 11vw, 4rem);
+  font-weight: var(--w-display);
+  line-height: 0.95;
+  color: var(--ink);
+}
+
+.morse-phrase {
+  min-width: 0;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.3rem, 5.5vw, 1.9rem);
+  font-weight: var(--w-display);
+  line-height: 1.15;
+}
+
+.morse-phrase-beats {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.2em 0.5em;
+}
+
+.morse-phrase-beat {
+  overflow-wrap: anywhere;
+}
+
+.morse-phrase-beat.is-long {
+  letter-spacing: 0.035em;
+}
+
+/* Text can grow to 200% without the phrase colliding with the letter glyph. */
+@media (max-width: 420px) {
+  .morse-phrase-row {
+    grid-template-columns: 1fr;
+    gap: var(--s-sm);
+  }
+
+  .morse-letter {
+    font-size: 2.8rem;
+  }
+}

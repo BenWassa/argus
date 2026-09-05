@@ -9,6 +9,7 @@ import {
 } from '../../lib/acquisition'
 import { CUE_RUNGS, UNCUED_RUNGS, recordAnswer, rungFor } from '../../lib/cueLadder'
 import { MORSE_LETTERS, type MorseLetter } from '../../lib/morse'
+import { verbalMnemonic } from '../../lib/morseVerbalMnemonics'
 import { parseLibrary } from '../../lib/storage'
 import { seedLibrary } from '../../lib/seed'
 import type { IdentifiedItem, ItemCueEvidence, Topic } from '../../lib/types'
@@ -52,7 +53,7 @@ describe('cue-bearing content cannot reach an uncued rung', () => {
     }
   })
 
-  it('renders no cue panel, no mnemonic id and no answer text at those rungs', () => {
+  it('renders no verbal mnemonic, SVG cue, audio control or answer text at uncued rungs', () => {
     for (const rungIndex of [3, 4]) {
       for (const letter of letters) {
         const html = render(letter, rungIndex)
@@ -60,6 +61,8 @@ describe('cue-bearing content cannot reach an uncued rung', () => {
         expect(html).not.toContain('argus-morse-rhythm')
         expect(html).not.toContain('the whole answer spelled out')
         expect(html).not.toContain('elements in total')
+        expect(html).not.toContain('Play canonical rhythm')
+        expect(html).not.toContain(verbalMnemonic(letter).phrase)
       }
     }
   })
@@ -70,53 +73,84 @@ describe('cue-bearing content cannot reach an uncued rung', () => {
     // the keypad's alphabet rather than this item's answer, so the check is on
     // everything above them.
     for (const letter of letters) {
-      // Everything above the keypad: the rung, the prompt and any cue panel.
       const above = render(letter, 3).split('class="test-production"')[0]
       const canonical = Array.from(MORSE_LETTERS[letter]).map((m) => (m === '.' ? '·' : '—')).join(' ')
       expect(above).not.toContain(canonical)
       expect(above).not.toContain(character(letter).reading)
+      expect(above).not.toContain(verbalMnemonic(letter).phrase)
     }
     // Free reception asks for the character, so the glyph may not appear as the
     // prompt or anywhere else on the card.
     for (const letter of letters) {
       const reception = render(letter, 4)
       expect(reception).not.toContain(`>${letter}<`)
+      expect(reception).not.toContain(verbalMnemonic(letter).phrase)
     }
   })
 
-  it('keeps every cue a strict prefix of the answer at every rung', () => {
+  it('keeps every verbal/visual cue a strict prefix of the answer at every rung', () => {
     for (const rung of CUE_RUNGS) {
       for (const letter of letters) {
         const payload = buildCuePayload(rung, character(letter))
-        if (!payload.revealedPattern) continue
+        if (!payload.revealedPattern) {
+          expect(payload.verbalBeats).toBeUndefined()
+          expect(payload.revealedRawPattern).toBeUndefined()
+          continue
+        }
         const revealed = payload.revealedPattern.split(' ').length
         expect(revealed).toBeLessThan(MORSE_LETTERS[letter].length)
         expect(payload.hiddenCount).toBe(MORSE_LETTERS[letter].length - revealed)
+        if (payload.verbalBeats) expect(payload.verbalBeats).toHaveLength(revealed)
+        if (payload.mnemonicId) expect(payload.revealedRawPattern).toHaveLength(revealed)
       }
     }
   })
 })
 
+// Beat words are editorial and change when the mnemonic set is revised; only
+// the prefix/suffix boundary is a real invariant, so derive the words rather
+// than hard-coding them. Matching is anchored to the rendered beat element so
+// a short word cannot pass by colliding with unrelated markup ("run" in "rung").
+const R_BEATS = verbalMnemonic('R').beats.map((beat) => beat.text)
+
+function containsBeatWord(html: string, word: string): boolean {
+  return html.includes(`<strong>${word}</strong>`)
+}
+
 describe('rung rendering', () => {
-  it('offers alternatives immediately at the richest rung', () => {
+  it('offers reduced verbal + SVG timing support at the richest Test rung', () => {
     const html = render('R', 0, ['.-.', '.--', '-.-', '...'])
     expect(html).toContain('test-option')
     expect(html).toContain('test-cue')
     expect(html).toContain('3 elements in total')
-    expect(html).toContain('Prompted recognition')
+    expect(html).toContain('Rhythm cue')
+    expect(containsBeatWord(html, R_BEATS[0])).toBe(true)
+    expect(containsBeatWord(html, R_BEATS[1])).toBe(true)
+    expect(html).toContain('<svg')
+    // The final beat is the part of the answer this rung must still withhold.
+    expect(containsBeatWord(html, R_BEATS[2])).toBe(false)
   })
 
-  it('withholds alternatives until the retrieval opportunity has passed', () => {
+  it('withholds alternatives while leaving only one opening verbal/visual beat', () => {
     const html = render('R', 1, ['.-.', '.--', '-.-', '...'])
     expect(html).toContain('the alternatives are coming')
     expect(html).not.toContain('class="test-option mono')
     expect(html).toContain('aria-busy="true"')
+    expect(containsBeatWord(html, R_BEATS[0])).toBe(true)
+    expect(containsBeatWord(html, R_BEATS[1])).toBe(false)
+    expect(html).toContain('<svg')
   })
 
-  it('shows only the length at the reduced rung', () => {
+  it('removes verbal/SVG cues at canonical support and offers user-triggered audio', () => {
     const html = render('R', 2, ['.-.', '.--', '-.-', '...'])
     expect(html).toContain('3 elements in total')
     expect(html).not.toContain('test-cue-pattern')
+    expect(html).not.toContain('test-cue-verbal')
+    expect(html).not.toContain('<svg')
+    expect(html).toContain('Play canonical rhythm')
+    expect(html).toContain('device media volume')
+    const payload = buildCuePayload(CUE_RUNGS[2], character('R'))
+    expect(payload.audioText).toBe('R')
   })
 
   it('gives dit and dah keys plus a keyboard route for production', () => {
@@ -212,7 +246,7 @@ describe('which topics the ladder drives', () => {
     const e = [...profile.values()].find((entry) => entry.glyph === 'E')!
     expect(e.mnemonicId).toBe('asset-E')
     expect(e.textLabel).toBe('E is dit.')
-    // And it still never reaches an uncued rung.
+    // And verbal, artwork and audio still never reach an uncued rung.
     expect(Object.keys(buildCuePayload(CUE_RUNGS[3], e))).toEqual(['rungId'])
   })
 })

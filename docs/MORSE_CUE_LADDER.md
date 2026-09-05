@@ -1,20 +1,31 @@
 # The acquisition ladder inside Test
 
-Workstream 4 (#27). Implements **D3 (ratified)** and **P3 (default)** from
-`docs/MORSE_PROGRAMME_PLAN.md`.
+Workstream 4 (#27), corrected by #42. Implements **D3 (ratified)** and **P3
+(default)** from `docs/MORSE_PROGRAMME_PLAN.md`.
 
 Code: `src/lib/cueLadder.ts` (rungs, fading, evidence), `src/lib/acquisition.ts`
 (which topics the ladder drives, and what a rung may show),
 `src/lib/distractors.ts` (evidence-informed alternatives),
 `src/features/test/ProgressiveCard.tsx` (the surface).
 
+The A–Z verbal set and its provenance are recorded in
+`docs/MORSE_VERBAL_MNEMONICS.md`.
+
 ## D3 — the ladder is cue rungs inside Test
 
 `modeFor()` returns `'learn'` only while a topic is `unstarted`, and after first
 exposure the scheduler never routes back. Rather than teaching the scheduler
-about unfinished acquisition, stages A and B are the richest cue rungs *inside
-Test*. Learn keeps its job — ungraded first exposure and reference — and there
-is no third mode.
+about unfinished acquisition, the acquisition ladder remains *inside Test*.
+Learn keeps its job — ungraded first exposure and reference — and there is no
+third mode.
+
+#42 corrects the content hierarchy without changing that architecture. Full
+first exposure in Learn is now:
+
+> rhythmic verbal mnemonic + SVG timing scaffold + canonical notation + audio
+
+Test then removes support in a controlled sequence rather than repeating the
+full Learn card.
 
 **`src/lib/scheduling.ts` is not modified and is not imported by any module in
 this workstream except `Session`, which calls `resolveAttempt` exactly as it
@@ -24,15 +35,21 @@ did before.**
 
 | # | Rung | Stored cue | Direction | Response | Alternatives | Scaffolding |
 |---|---|---|---|---|---|---|
-| 1 | Prompted recognition | `rich` | letter → pattern | choice | immediate | first ⌈n/2⌉ elements, plus the length |
-| 2 | Delayed choice | `delayed-choice` | letter → pattern | choice | after 1.5s | first element, plus the length |
-| 3 | Reduced cue | `reduced` | letter → pattern | choice | after 1.5s | the length only |
+| 1 | Rhythm cue | `rich` | letter → pattern | choice | immediate | strict opening verbal/SVG prefix, canonical prefix, plus length |
+| 2 | Reduced rhythm | `delayed-choice` | letter → pattern | choice | after 1.5s | first verbal/SVG beat, canonical first element, plus length |
+| 3 | Canonical support | `reduced` | letter → pattern | choice | after 1.5s | length plus optional user-triggered canonical Morse audio; no verbal mnemonic or SVG |
 | 4 | Free production | `free` | letter → pattern | dit/dah entry | — | none |
 | 5 | Free reception | `free` | pattern → letter | character entry | — | none |
 
-A cue is never the whole answer: the revealed prefix is capped at one element
-short of the pattern, so a single-element character gets no prefix cue at all.
-There is a test asserting this for every rung and every character.
+The first two Test rungs may reveal only a strict prefix. A cue is never the
+whole answer: the prefix is capped at one element short of the pattern, so a
+single-element character gets no verbal, SVG or canonical-prefix disclosure at
+all. There is a test asserting this for every rung and every character.
+
+Rung 3 is the final supported rung. Its audio is a **cue** generated from the
+canonical character mapping, not a scored sound-only stimulus and not evidence
+of auditory reception. The learner still answers the printed mapping task. The
+optional audio control disappears before the two uncued rungs.
 
 ### Why 1.5 seconds
 
@@ -52,8 +69,12 @@ an item whose content semantics require the reverse direction.
 
 This keeps directional coverage mechanically correct. A `forward` item tops out
 at free production, because that is all its declared coverage claims; only a
-`bidirectional` item reaches reception. `hasCompleteDirectionalCoverage` from
-workstream 1 remains the authority on what an item has actually proved.
+`bidirectional` item reaches reverse recall. `hasCompleteDirectionalCoverage`
+from workstream 1 remains the authority on what an item has actually proved.
+
+The name `free-reception` is historical implementation vocabulary for
+**printed pattern → letter** reverse recall. It is not an auditory-reception
+competency and must not be read as one.
 
 ## P3 — what triggers fading
 
@@ -117,14 +138,23 @@ and every character rather than checked by reading JSX:
 expect(Object.keys(buildCuePayload(uncuedRung, character))).toEqual(['rungId'])
 ```
 
-A cue field added later without a rung check fails that test rather than
-reaching a learner. Rendering is checked too: no cue panel, no mnemonic id, no
-authored label and no notation appears above the response controls at rungs 4
-and 5, and the reception rung never shows the glyph it is asking for.
+The payload owns every cue channel introduced by #42:
 
-The `mnemonicId` slot exists so that workstream 5 can render artwork for the
-disclosed prefix at the cued rungs. Artwork at that slot must draw
-`revealedPattern` only — never the full pattern.
+- canonical prefix and element count;
+- reduced verbal beats;
+- SVG asset/prefix data;
+- optional canonical-audio text.
+
+A cue field added later without a rung check fails the payload test rather than
+reaching a learner. Rendering is checked too: no cue panel, verbal mnemonic,
+SVG, audio control, authored label, length hint or answer notation appears at
+rungs 4 and 5, and the reverse-recall rung never shows the glyph it is asking
+for.
+
+The `mnemonicId` slot renders the **disclosed prefix only**. It uses
+`revealedRawPattern`, never the full character pattern. This is the same SVG
+visual grammar described in `docs/MORSE_MNEMONIC_GRAMMAR.md`, now explicitly a
+secondary visual scaffold rather than the primary memory hook.
 
 ## Distractors
 
@@ -170,24 +200,32 @@ other seeded topic — NATO, OODA, Primary Survey, bearings — still does.
 Recognition is derived from the standard rather than from the presence of Learn
 artwork, so the ladder does not depend on which workstream supplied the Learn
 content. When a topic's Learn content *does* carry a `morse-character-packet`,
-its `mnemonicId` and `textLabel` are picked up and attached to the profile.
+its `mnemonicId` and `textLabel` are picked up and attached to the profile. The
+verbal set itself is generated by letter from the versioned Argus table and is
+not durable learner state.
 
 ## Workstream 5 (#28) — what changed, and what did not
 
-When this workstream shipped, the seeded printed Morse topic's items were
+When this workstream first shipped, the seeded printed Morse topic's items were
 `forward`, so rung 5 was implemented, tested and correctly dormant for it:
 asking for the reverse direction would have claimed coverage the topic did not
 declare.
 
 #28 typed those 26 items `bidirectional`, which is what widened the completion
 claim to "Can independently recall all A–Z printed Morse mappings in both
-directions." Rung 5 activated for the seeded topic with no change to this
-workstream's code. A `forward` topic still tops out at free production.
+directions." Rung 5 activated for the seeded topic with no change to scheduler
+semantics. A `forward` topic still tops out at free production.
+
+#42 changes cue presentation only. It does not add or remove a logical item,
+change a durable item id, change a direction requirement, change the fade count,
+or change retention resolution.
 
 ## Out of scope
 
-- No auditory-reception competency and no sending architecture. Audio is not the
-  scored stimulus at any rung in this workstream; that is stage F, workstream 6.
-- No change to `src/lib/scheduling.ts`, `PASS_THRESHOLD`, or any existing topic's
-  behaviour.
+- No auditory-reception competency and no sending architecture. Audio at rung 3
+  is optional support for a **printed** mapping prompt, not the scored stimulus.
+  Sound-only reception remains #29.
+- No WPM completion criterion, groups, words or phrases.
+- No change to `src/lib/scheduling.ts`, `PASS_THRESHOLD`, or any existing
+  non-Morse topic's behaviour.
 - No cue state is written by Learn, and no Learn surface reads one.

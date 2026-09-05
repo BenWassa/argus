@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   buildCuePayload,
   canonicalPattern,
@@ -7,7 +7,15 @@ import {
   promptFor,
   type AcquisitionCharacter,
 } from '../../lib/acquisition'
+import { DEFAULT_MORSE_TIMING } from '../../lib/morse'
+import {
+  MORSE_AUDIO_START_DELAY_MS,
+  MorseAudioPlayer,
+  MorsePlaybackCancelledError,
+} from '../../lib/morseAudio'
 import type { CueRung } from '../../lib/cueLadder'
+import { MorseMnemonic } from '../learn/MorseMnemonic'
+import './ProgressiveMorseCue.css'
 
 export interface ProgressiveAnswer {
   correct: boolean
@@ -31,15 +39,103 @@ function defaultNow(): number {
   return typeof performance !== 'undefined' ? performance.now() : Date.now()
 }
 
+function useCueAudio(audioText: string | undefined) {
+  const playerRef = useRef<MorseAudioPlayer | null>(null)
+  const endTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [playing, setPlaying] = useState(false)
+  const [audioError, setAudioError] = useState<string | null>(null)
+
+  const stop = useCallback(() => {
+    if (endTimerRef.current) clearTimeout(endTimerRef.current)
+    endTimerRef.current = null
+    playerRef.current?.cancel()
+    setPlaying(false)
+  }, [])
+
+  useEffect(() => {
+    const onVisibility = () => {
+      if (document.hidden) stop()
+    }
+    const onPageHide = () => stop()
+    document.addEventListener('visibilitychange', onVisibility)
+    window.addEventListener('pagehide', onPageHide)
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility)
+      window.removeEventListener('pagehide', onPageHide)
+      if (endTimerRef.current) clearTimeout(endTimerRef.current)
+      void playerRef.current?.dispose()
+      playerRef.current = null
+    }
+  }, [stop])
+
+  const toggle = useCallback(async () => {
+    if (!audioText) return
+    if (playing) {
+      stop()
+      return
+    }
+    setAudioError(null)
+    try {
+      playerRef.current ??= new MorseAudioPlayer()
+      const schedule = await playerRef.current.play(audioText, DEFAULT_MORSE_TIMING)
+      setPlaying(true)
+      endTimerRef.current = setTimeout(
+        () => setPlaying(false),
+        MORSE_AUDIO_START_DELAY_MS + schedule.durationMs + 80,
+      )
+    } catch (error) {
+      if (error instanceof MorsePlaybackCancelledError) return
+      setPlaying(false)
+      setAudioError(error instanceof Error ? error.message : 'Morse audio is unavailable on this device.')
+    }
+  }, [audioText, playing, stop])
+
+  return { playing, audioError, toggle }
+}
+
 function CuePanel({ rung, character }: { rung: CueRung; character: AcquisitionCharacter }) {
   const cue = buildCuePayload(rung, character)
+  const { playing, audioError, toggle } = useCueAudio(cue.audioText)
   // An uncued rung produces a payload with nothing in it but its own id, so
   // there is nothing here to render and nothing that could leak.
-  if (cue.elementCount === undefined && cue.revealedPattern === undefined) return null
+  if (
+    cue.elementCount === undefined &&
+    cue.revealedPattern === undefined &&
+    cue.verbalBeats === undefined &&
+    cue.audioText === undefined
+  ) return null
 
   return (
     <div className="test-cue" data-rung={cue.rungId}>
       <p className="test-cue-label">Cue</p>
+
+      {cue.verbalBeats && cue.verbalBeats.length > 0 && (
+        <div className="test-cue-verbal">
+          <span className="sr-only">
+            {`Opening mnemonic: ${cue.verbalBeats.map((beat) => `${beat.text} ${beat.length}`).join(', ')}. ${cue.hiddenCount ?? 0} more ${cue.hiddenCount === 1 ? 'beat' : 'beats'} hidden.`}
+          </span>
+          <span className="test-cue-verbal-beats" aria-hidden="true">
+            {cue.verbalBeats.map((beat, index) => (
+              <span className={`test-cue-verbal-beat is-${beat.length}`} key={`${beat.text}-${index}`}>
+                <strong>{beat.text}</strong>
+                <small>{beat.length === 'short' ? 'short ·' : 'hold —'}</small>
+              </span>
+            ))}
+            {cue.hiddenCount ? <span className="test-cue-hidden">{'? '.repeat(cue.hiddenCount).trim()}</span> : null}
+          </span>
+        </div>
+      )}
+
+      {cue.mnemonicId && cue.revealedRawPattern && (
+        <div className="test-cue-svg">
+          <MorseMnemonic
+            glyph={character.glyph}
+            pattern={cue.revealedRawPattern}
+            textLabel={`Timing cue for ${character.glyph}: starts ${cue.revealedReading}, with ${cue.hiddenCount} more to recall.`}
+          />
+        </div>
+      )}
+
       {cue.revealedPattern && (
         <p className="test-cue-pattern">
           <span aria-hidden="true">
@@ -55,6 +151,16 @@ function CuePanel({ rung, character }: { rung: CueRung; character: AcquisitionCh
         <p className="test-cue-length">
           {cue.elementCount} {cue.elementCount === 1 ? 'element' : 'elements'} in total
         </p>
+      )}
+
+      {cue.audioText && (
+        <div className="test-cue-audio">
+          <button className="ghost small" type="button" onClick={() => void toggle()}>
+            {playing ? 'Stop canonical rhythm' : 'Play canonical rhythm'}
+          </button>
+          <span className="test-cue-audio-note">Support cue · device media volume</span>
+          {audioError && <p className="test-cue-audio-error" role="status">{audioError}</p>}
+        </div>
       )}
     </div>
   )
