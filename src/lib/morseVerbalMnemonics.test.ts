@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { MORSE_LETTERS, type MorseLetter } from './morse'
+import { buildMorseSchedule, MORSE_LETTERS, type MorseLetter } from './morse'
+import { buildLetterMnemonic } from './morseMnemonics'
 import {
   MORSE_VERBAL_LETTERS,
   assertCanonicalVerbalMnemonic,
@@ -23,6 +24,18 @@ describe('A-Z rhythmic verbal mnemonics', () => {
       expect(verbalMnemonicPattern(letter)).toBe(MORSE_LETTERS[letter])
       expect(mnemonic.beats.map((beat) => beatMark(beat.length)).join('')).toBe(MORSE_LETTERS[letter])
       expect(mnemonic.beats).toHaveLength(MORSE_LETTERS[letter].length)
+    }
+  })
+
+  it('makes verbal, SVG and synthesized audio carry the identical 1:3 signal sequence', () => {
+    for (const letter of letters) {
+      const verbalUnits = verbalMnemonic(letter).beats.map((beat) => (beat.length === 'short' ? 1 : 3))
+      const svgUnits = buildLetterMnemonic(letter).elements.map((element) => element.units)
+      const audioUnits = buildMorseSchedule(letter, { characterWpm: 20, effectiveWpm: 20 })
+        .events.filter((event) => event.kind === 'signal')
+        .map((event) => event.units)
+      expect(verbalUnits).toEqual(svgUnits)
+      expect(verbalUnits).toEqual(audioUnits)
     }
   })
 
