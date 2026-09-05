@@ -8,7 +8,11 @@ import {
   type AcquisitionCharacter,
 } from '../../lib/acquisition'
 import { DEFAULT_MORSE_TIMING } from '../../lib/morse'
-import { MORSE_AUDIO_START_DELAY_MS, MorseAudioPlayer } from '../../lib/morseAudio'
+import {
+  MORSE_AUDIO_START_DELAY_MS,
+  MorseAudioPlayer,
+  MorsePlaybackCancelledError,
+} from '../../lib/morseAudio'
 import type { CueRung } from '../../lib/cueLadder'
 import { MorseMnemonic } from '../learn/MorseMnemonic'
 import './ProgressiveMorseCue.css'
@@ -80,6 +84,7 @@ function useCueAudio(audioText: string | undefined) {
         MORSE_AUDIO_START_DELAY_MS + schedule.durationMs + 80,
       )
     } catch (error) {
+      if (error instanceof MorsePlaybackCancelledError) return
       setPlaying(false)
       setAudioError(error instanceof Error ? error.message : 'Morse audio is unavailable on this device.')
     }
