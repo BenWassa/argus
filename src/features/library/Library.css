@@ -445,6 +445,14 @@
   color: var(--muted);
 }
 
+/* Lookup is a third job, not a third mode. It sits below the two mode buttons
+   at text weight so it reads as "and you can always look something up" rather
+   than as a competing choice. */
+.topic-reference {
+  margin-top: var(--s-md);
+  text-align: start;
+}
+
 .topic-admin {
   display: flex;
   flex-wrap: wrap;

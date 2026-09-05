@@ -8,6 +8,7 @@ import { Progress } from '../features/progress/Progress'
 import { Data } from '../features/data/Data'
 import { Session } from '../features/test/Session'
 import { Learn } from '../features/learn/Learn'
+import { MorseReference } from '../features/learn/MorseReference'
 import type { Mode, View } from '../lib/types'
 
 export function App() {
@@ -36,10 +37,33 @@ interface Run {
 function Routes() {
   const [view, setView] = useState<View>('today')
   const [run, setRun] = useState<Run | null>(null)
+  /**
+   * The Morse alphabet reference (#48). It is a surface, not a third product
+   * mode: `Mode` stays `learn | test`, the scheduler never routes to it, and it
+   * writes nothing. It owns the whole screen the way Learn and Test do, so its
+   * identity is held here rather than inside Library, and it is held as a plain
+   * serializable topic id so #45 can turn it into a history route without
+   * changing anything about this state.
+   */
+  const [reference, setReference] = useState<string | null>(null)
   const [authorOnEntry, setAuthorOnEntry] = useState(false)
+  const [topicOnEntry, setTopicOnEntry] = useState<string | null>(null)
 
   function start(mode: Mode, topicIds: string[]) {
     if (topicIds.length > 0) setRun({ mode, topicIds })
+  }
+
+  function openReference(topicId: string) {
+    setRun(null)
+    setReference(topicId)
+  }
+
+  /** Closing the reference restores the topic it was opened from. */
+  function closeReference() {
+    const from = reference
+    setReference(null)
+    setTopicOnEntry(from)
+    setView('library')
   }
 
   // A run is a route, not a modal: it owns the whole surface so nothing
@@ -54,6 +78,7 @@ function Routes() {
               topicIds={run.topicIds}
               onExit={() => setRun(null)}
               onTest={(ids) => start('test', ids)}
+              onReference={openReference}
             />
           ) : (
             <Session
@@ -67,11 +92,22 @@ function Routes() {
     )
   }
 
+  if (reference) {
+    return (
+      <div className="app-shell session-shell">
+        <main id="main" tabIndex={-1}>
+          <MorseReference onExit={closeReference} />
+        </main>
+      </div>
+    )
+  }
+
   return (
     <AppShell
       view={view}
       onNavigate={(next) => {
         setAuthorOnEntry(false)
+        setTopicOnEntry(null)
         setView(next)
       }}
     >
@@ -84,7 +120,14 @@ function Routes() {
           }}
         />
       )}
-      {view === 'library' && <Library onStart={start} openFormOnMount={authorOnEntry} />}
+      {view === 'library' && (
+        <Library
+          onStart={start}
+          onOpenReference={openReference}
+          openFormOnMount={authorOnEntry}
+          openTopicOnMount={topicOnEntry}
+        />
+      )}
       {view === 'progress' && <Progress />}
       {view === 'data' && <Data />}
     </AppShell>

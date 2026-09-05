@@ -308,6 +308,88 @@ describe('v5 item semantics and lossless portable learning state', () => {
   })
 })
 
+describe('formative lesson progress is durable and portable', () => {
+  it('gives a record written before the guided lesson an empty store, losslessly', () => {
+    // #48 adds `lessonProgress` inside v5 rather than bumping the version,
+    // because there is nothing to migrate: no lesson progress is exactly what
+    // every pre-#48 record means.
+    const parsed = parseLibrary({ version: 5, topics: [currentTopic()] })
+    expect(parsed.ok).toBe(true)
+    if (!parsed.ok) return
+    expect(parsed.library.topics[0].lessonProgress).toEqual({})
+
+    const again = parseLibrary(JSON.parse(JSON.stringify(parsed.library)))
+    expect(again.ok && again.library).toEqual(parsed.library)
+  })
+
+  it('carries a real lesson store through export and import unchanged', () => {
+    const progress = { 'item-1': 'settled' }
+    const parsed = parseLibrary({ version: 5, topics: [currentTopic({ lessonProgress: progress })] })
+    expect(parsed.ok).toBe(true)
+    if (!parsed.ok) return
+    expect(parsed.library.topics[0].lessonProgress).toEqual(progress)
+
+    const exported = JSON.parse(JSON.stringify(parsed.library))
+    const reimported = parseLibrary(exported)
+    expect(reimported.ok).toBe(true)
+    if (!reimported.ok) return
+    expect(reimported.library).toEqual(parsed.library)
+    expect(reimported.library.topics[0].lessonProgress).toEqual(progress)
+  })
+
+  it('keeps lesson progress strictly separate from cue evidence and history', () => {
+    const parsed = parseLibrary({
+      version: 5,
+      topics: [currentTopic({
+        lessonProgress: { 'item-1': 'cued' },
+        itemEvidence: { 'item-1': { cue: 'rich', directions: {} } },
+      })],
+    })
+    expect(parsed.ok).toBe(true)
+    if (!parsed.ok) return
+    const topic = parsed.library.topics[0]
+    expect(topic.lessonProgress).toEqual({ 'item-1': 'cued' })
+    expect(topic.itemEvidence).toEqual({ 'item-1': { cue: 'rich', directions: {} } })
+    expect(topic.history).toEqual([])
+    expect(topic.status).toBe('unstarted')
+  })
+
+  it('rejects lesson progress that references an item the topic does not have', () => {
+    const parsed = parseLibrary({
+      version: 5,
+      topics: [currentTopic({ lessonProgress: { orphan: 'settled' } })],
+    })
+    expect(parsed.ok).toBe(false)
+    if (!parsed.ok) expect(parsed.error).toContain('unknown item id')
+  })
+
+  it('rejects an unsupported lesson support level rather than guessing one', () => {
+    const parsed = parseLibrary({
+      version: 5,
+      topics: [currentTopic({ lessonProgress: { 'item-1': 'mastered' } })],
+    })
+    expect(parsed.ok).toBe(false)
+    if (!parsed.ok) expect(parsed.error).toContain('unsupported lesson support level')
+
+    const notAnObject = parseLibrary({
+      version: 5,
+      topics: [currentTopic({ lessonProgress: ['item-1'] })],
+    })
+    expect(notAnObject.ok).toBe(false)
+    if (!notAnObject.ok) expect(notAnObject.error).toContain('keyed by item id')
+  })
+
+  it('ignores lesson progress on a pre-v5 record, which cannot have had any', () => {
+    const parsed = parseLibrary({
+      version: 4,
+      topics: [legacyTopic({ lessonProgress: { anything: 'settled' } })],
+    })
+    expect(parsed.ok).toBe(true)
+    if (!parsed.ok) return
+    expect(parsed.library.topics[0].lessonProgress).toEqual({})
+  })
+})
+
 describe('structured Learn import and export shape', () => {
   it('migrates richer v4 Learn content without changing the scored items', () => {
     const first = parseLibrary({

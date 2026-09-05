@@ -75,6 +75,38 @@ export interface ItemCueEvidence {
 export type ItemEvidenceStore = Record<string, ItemCueEvidence>
 
 /**
+ * Formative Learn-lesson support levels (#48).
+ *
+ * Deliberately a *different* ladder from `CueState`, stored in a different
+ * field, because it answers a different question. `CueState` is how much
+ * scaffolding the scored Test surface still offers an item; `LessonSupport` is
+ * how much scaffolding the guided Learn lesson still offers it. Collapsing the
+ * two would let a formative Learn answer change what formal Test shows, and
+ * `DirectionEvidence` — which `hasCompleteDirectionalCoverage` reads to gate a
+ * bidirectional retention attempt — must never receive a Learn answer at all.
+ *
+ *   taught   introduced; retrieved with the whole rhythmic phrase in view
+ *   cued     retrieved with element count and optional canonical audio only
+ *   solo     retrieved with nothing but the glyph, by keying the pattern
+ *   settled  produced unaided at least once; the lesson stops scaffolding it
+ *
+ * `settled` is a statement about lesson scaffolding and nothing else. It is not
+ * retention, it is not completion, and it cannot satisfy any part of the Test
+ * boundary.
+ */
+export const LESSON_SUPPORTS = ['taught', 'cued', 'solo', 'settled'] as const
+export type LessonSupport = (typeof LESSON_SUPPORTS)[number]
+
+/**
+ * Learning state: the guided lesson's per-item support level, keyed by the same
+ * durable item id as `ItemEvidenceStore`. One enum per item is the whole
+ * durable footprint of the Learn lesson — everything else the lesson needs
+ * (which packet, which step, which queue) is derived, so there is no second
+ * source of truth to migrate or to drift.
+ */
+export type ItemLessonStore = Record<string, LessonSupport>
+
+/**
  * A narrow Morse Learn block. These fields are content definition: glyph,
  * canonical notation, mnemonic asset reference and the source text from which
  * the audio engine derives playback. The generated waveform/animation is
@@ -166,6 +198,13 @@ export interface Topic {
   history: Attempt[]
   /** v5 acquisition evidence. Optional only for legacy/internal Topic fixtures. */
   itemEvidence?: ItemEvidenceStore
+  /**
+   * Formative Learn-lesson progress (#48). Additive within v5: absent means
+   * "this learner has no lesson progress", which is exactly right for every
+   * record written before the guided lesson existed, so there is nothing to
+   * migrate. Portable through export/import like every other durable field.
+   */
+  lessonProgress?: ItemLessonStore
   /**
    * Catalog provenance. Optional only on the broad in-memory Topic shape so
    * seed authoring and old fixtures stay structurally compatible; storage

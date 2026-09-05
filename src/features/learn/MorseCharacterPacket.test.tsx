@@ -1,17 +1,34 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { MORSE_LETTERS, morsePattern, type MorseLetter } from '../../lib/morse'
-import { mnemonicTextEquivalent } from '../../lib/morseMnemonics'
+import { morseAcquisitionProfile } from '../../lib/acquisition'
+import { mnemonicId, mnemonicTextEquivalent } from '../../lib/morseMnemonics'
 import { buildCharacterPackets } from '../../lib/morseOrder'
-import { morseCharacter, morsePacketSections } from '../../lib/morsePacketContent'
 import { parseLibrary } from '../../lib/storage'
 import { seedLibrary } from '../../lib/seed'
-import type { LearnContent } from '../../lib/types'
+import type { LearnContent, MorseCharacterLearnItem } from '../../lib/types'
 import { LearnSupport } from './LearnSupport'
 import { MorseCharacterPacket } from './MorseCharacterPacket'
 import { MorseMnemonic } from './MorseMnemonic'
 
 const letters = Object.keys(MORSE_LETTERS) as MorseLetter[]
+
+/**
+ * A `morse-character-packet` character, built the way authored or imported
+ * Learn content would supply one. #48 took the shipped A–Z off this block, but
+ * the block type stays part of the durable content model, so its rendering is
+ * still exercised here against content that carries it.
+ */
+function morseCharacter(glyph: string): MorseCharacterLearnItem {
+  const pattern = morsePattern(glyph)
+  return {
+    glyph,
+    pattern,
+    mnemonicId: mnemonicId(glyph),
+    audioText: glyph,
+    textLabel: mnemonicTextEquivalent(glyph, pattern),
+  }
+}
 
 describe('Morse mnemonic rendering', () => {
   it('draws a dit as a circle and a dah as a bar, in transmission order', () => {
@@ -126,47 +143,77 @@ describe('packet content in Learn', () => {
     expect(html).toContain('Play E')
   })
 
-  it('names the novel and returning characters in every packet heading', () => {
-    const sections = morsePacketSections()
-    expect(sections).toHaveLength(13)
-    expect(sections[0].heading).toBe('Packet 1 of 13 — new: E, I')
-    expect(sections[4].heading).toContain('returning:')
-    for (const section of sections) {
-      expect(section.blocks).toHaveLength(1)
-      expect(section.blocks[0].type).toBe('morse-character-packet')
+  it('survives the storage validator, so authored packet content stays importable', () => {
+    const library = {
+      version: 5,
+      topics: [
+        {
+          id: 'authored-morse-note',
+          title: 'A packet someone authored',
+          scope: 'One letter, as authored Learn support.',
+          track: 'learning',
+          items: [{ id: 'x-1', kind: 'forward', prompt: 'E', answer: '.' }],
+          learn: {
+            kind: 'concise',
+            sections: [
+              {
+                heading: 'Packet',
+                blocks: [{ type: 'morse-character-packet', characters: [morseCharacter('E')] }],
+              },
+            ],
+          },
+          status: 'unstarted',
+          createdAt: '2026-01-01T00:00:00.000Z',
+          drilledAt: null,
+          learningAt: null,
+          completedAt: null,
+          lastTestedAt: null,
+          spotCheckedAt: null,
+          history: [],
+        },
+      ],
     }
-  })
-
-  it('covers all 26 characters across the seeded packets, once each as novel', () => {
-    const introduced = morsePacketSections().flatMap((section) => {
-      const block = section.blocks[0]
-      return block.type === 'morse-character-packet' ? block.characters.map((character) => character.glyph) : []
-    })
-    expect(new Set(introduced).size).toBe(26)
+    const parsed = parseLibrary(library)
+    expect(parsed.ok).toBe(true)
+    if (!parsed.ok) return
+    expect(parsed.library.topics[0].learn?.sections?.[0].blocks[0].type).toBe('morse-character-packet')
   })
 })
 
 describe('seeded Morse topic', () => {
   const topic = seedLibrary().topics.find((candidate) => candidate.id === 'international-morse-letters-printed')!
 
-  it('adds Learn packets without touching the scored boundary', () => {
+  it('keeps the scored boundary and hands packet presentation to the lesson', () => {
+    // The completion claim, the 26 logical scoring units and their typed
+    // bidirectional semantics are exactly what they were before #48.
     expect(topic.items).toHaveLength(26)
+    expect(topic.items.every((item) => item.kind === 'bidirectional')).toBe(true)
+    expect(new Set(topic.items.map((item) => item.prompt)).size).toBe(26)
     expect(topic.scope).toBe('Can independently recall all A–Z printed Morse mappings in both directions.')
+
+    // #48: the 13 packet sections were curriculum to scroll, and the guided
+    // lesson replaced them. Packet composition is now derived at run time from
+    // the same `buildCharacterPackets` rule, so the durable topic no longer
+    // carries a second copy of it that could drift.
     const packetSections = topic.learn?.sections?.filter((section) =>
       section.blocks.some((block) => block.type === 'morse-character-packet'),
     )
-    expect(packetSections).toHaveLength(13)
+    expect(packetSections).toHaveLength(0)
+    expect(JSON.stringify(topic.learn)).toContain('guided lesson')
   })
 
-  it('draws every packet character from the ITU mapping the deck scores', () => {
-    const deck = new Map(topic.items.map((item) => [item.prompt, item.answer]))
-    for (const section of topic.learn?.sections ?? []) {
-      for (const block of section.blocks) {
-        if (block.type !== 'morse-character-packet') continue
-        for (const character of block.characters) {
-          expect(deck.get(character.glyph)).toBe(character.pattern)
-        }
-      }
+  it('keeps the Test ladder mnemonic cue working without authored packet metadata', () => {
+    const parsed = parseLibrary(seedLibrary())
+    expect(parsed.ok).toBe(true)
+    if (!parsed.ok) return
+    const seeded = parsed.library.topics.find((t) => t.id === 'international-morse-letters-printed')!
+    const profile = morseAcquisitionProfile(seeded)
+    expect(profile).not.toBeNull()
+    for (const character of profile!.values()) {
+      // Derived from the canonical letter rather than from Learn content, so
+      // removing the packets cannot silently remove the Test SVG cue.
+      expect(character.mnemonicId).toBe(mnemonicId(character.glyph))
+      expect(character.textLabel).toBe(mnemonicTextEquivalent(character.glyph, character.pattern))
     }
   })
 

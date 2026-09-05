@@ -1,0 +1,248 @@
+/* The guided Morse lesson (#48).
+
+   One dominant task per screen, sized for a thumb. The composition is a single
+   column at every width: a lesson is a sequence, not a dashboard, and nothing
+   here should invite scrolling past the thing being asked. Every size is in
+   `rem`/`em` or a token, so a reader at 200% text gets a taller screen rather
+   than a broken one. */
+
+.morse-lesson {
+  display: grid;
+  align-content: start;
+  gap: var(--s-lg);
+  min-height: 100svh;
+  padding-bottom: max(var(--s-2xl), env(safe-area-inset-bottom));
+}
+
+.lesson-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--t-page);
+  font-weight: var(--w-page);
+  line-height: 1.08;
+  text-wrap: balance;
+}
+
+.lesson-lede,
+.lesson-foot {
+  max-width: 46ch;
+  margin: 0;
+  color: var(--muted);
+}
+
+.lesson-foot {
+  font-size: var(--t-small);
+  color: var(--subtle);
+}
+
+/* Determinate, and honest: it counts characters produced unaided, so it can sit
+   still through a run of misses rather than implying progress that has not
+   happened. The count is also written out in the bar, so the bar is never the
+   only carrier of the information. */
+.lesson-progress {
+  block-size: 6px;
+  border-radius: var(--r-pill);
+  background: var(--surface-3);
+  overflow: hidden;
+}
+
+.lesson-progress-fill {
+  display: block;
+  block-size: 100%;
+  background: var(--accent);
+  transition: inline-size 220ms ease;
+}
+
+.lesson-stage {
+  display: grid;
+  justify-items: start;
+  gap: var(--s-sm);
+  padding: var(--s-lg);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--surface-2);
+  box-shadow: var(--edge);
+}
+
+.lesson-glyph {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(3.4rem, 18vw, 5.5rem);
+  font-weight: var(--w-display);
+  line-height: 0.9;
+  color: var(--ink);
+}
+
+.lesson-visual {
+  display: flex;
+  align-items: center;
+  gap: var(--s-sm);
+  width: 100%;
+}
+
+.lesson-visual .morse-mnemonic {
+  display: block;
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 22em;
+  height: auto;
+}
+
+.lesson-canonical,
+.lesson-length {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-sm);
+  margin: 0;
+}
+
+.lesson-introduce,
+.lesson-check,
+.lesson-feedback {
+  display: grid;
+  gap: var(--s-md);
+}
+
+.lesson-task {
+  margin: 0;
+  font-size: var(--t-label);
+  font-weight: var(--w-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+/* Whatever the check is still willing to show. It reads as a quiet aside beside
+   the question rather than as another card competing with it. */
+.lesson-support {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-sm) var(--s-md);
+  padding: var(--s-md);
+  border-inline-start: 3px solid var(--line-strong);
+  border-radius: 0 var(--r-md) var(--r-md) 0;
+  background: var(--surface-2);
+}
+
+.lesson-length {
+  font-size: var(--t-small);
+  color: var(--muted);
+}
+
+.lesson-options {
+  display: grid;
+  gap: var(--s-sm);
+}
+
+.lesson-option {
+  min-height: 64px;
+  padding: var(--s-md);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-md);
+  background: var(--surface-3);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 1.3rem;
+  letter-spacing: 0.16em;
+}
+
+.lesson-production {
+  display: grid;
+  gap: var(--s-md);
+}
+
+.lesson-entry {
+  margin: 0;
+  min-height: 2.2em;
+  padding: var(--s-md);
+  border-bottom: 2px solid var(--line-strong);
+  font-family: var(--font-mono);
+  font-size: 1.5rem;
+  letter-spacing: 0.16em;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+/* The same two oversized keys as the uncued Test rung, so the lesson hands the
+   learner over in the interaction they will be scored in. */
+.lesson-keys {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: var(--s-sm);
+  align-items: stretch;
+}
+
+.lesson-key {
+  min-height: 72px;
+  border-radius: var(--r-lg);
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.lesson-key-small {
+  min-height: 72px;
+  padding-inline: var(--s-md);
+}
+
+.lesson-submit,
+.lesson-next {
+  min-height: 52px;
+}
+
+.lesson-feedback {
+  padding: var(--s-lg);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-lg);
+  background: var(--surface-2);
+}
+
+.lesson-verdict {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--t-section);
+  font-weight: var(--w-section);
+  /* State is never colour-only: the verdict is spelled out in words, and a
+     miss additionally renders the whole reteach block. */
+  color: var(--danger-2);
+}
+
+.lesson-feedback.is-correct .lesson-verdict {
+  color: var(--ok);
+}
+
+.lesson-correction {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.4em;
+  margin: 0;
+  color: var(--muted);
+}
+
+.lesson-correction-glyph {
+  font-family: var(--font-display);
+  font-size: 2.2rem;
+  font-weight: var(--w-display);
+  line-height: 1;
+  color: var(--ink);
+}
+
+.lesson-grammar {
+  max-width: 46ch;
+  margin: 0;
+  font-size: var(--t-small);
+  color: var(--muted);
+}
+
+.lesson-exits {
+  display: grid;
+  gap: var(--s-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lesson-progress-fill {
+    transition: none;
+  }
+}

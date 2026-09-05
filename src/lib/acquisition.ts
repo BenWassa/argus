@@ -1,5 +1,6 @@
 import { revealedElementCount, type CueRung } from './cueLadder'
 import { MORSE_LETTERS, type MorseLetter } from './morse'
+import { mnemonicId, mnemonicTextEquivalent } from './morseMnemonics'
 import { verbalMnemonic, type MorseVerbalBeat } from './morseVerbalMnemonics'
 import type { Item, LearnBlock, Topic } from './types'
 
@@ -16,9 +17,9 @@ export interface AcquisitionCharacter {
   pattern: string
   /** Semantic reading of the pattern, e.g. "dit dah dit". */
   reading: string
-  /** Mnemonic asset id, when the topic's Learn content supplies one. */
+  /** Mnemonic asset id. Authored Learn content may override the derived one. */
   mnemonicId?: string
-  /** Authored semantic equivalent, when the topic's Learn content supplies one. */
+  /** Semantic equivalent. Authored Learn content may override the derived one. */
   textLabel?: string
 }
 
@@ -84,13 +85,18 @@ export function morseAcquisitionProfile(topic: Topic): AcquisitionProfile | null
     if (!item.id) return null
     const canonical = canonicalMorseItem(item)
     if (!canonical) return null
+    // The visual grammar is a pure function of the canonical letter, so the
+    // Test ladder's SVG cue is derived rather than depending on the topic
+    // happening to carry an authored `morse-character-packet`. Authored Learn
+    // metadata still wins where a topic supplies it.
     const extra = metadata.get(canonical.glyph)
     profile.set(item.id, {
       itemId: item.id,
       glyph: canonical.glyph,
       pattern: canonical.pattern,
       reading: patternReading(canonical.pattern),
-      ...(extra ? { mnemonicId: extra.mnemonicId, textLabel: extra.textLabel } : {}),
+      mnemonicId: extra?.mnemonicId ?? mnemonicId(canonical.glyph),
+      textLabel: extra?.textLabel ?? mnemonicTextEquivalent(canonical.glyph, canonical.pattern),
     })
   }
 
