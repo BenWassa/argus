@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import {
+  DEFAULT_MORSE_AUDIO,
+  MORSE_AUDIO_START_DELAY_MS,
   MorseAudioPlayer,
   type AudioContextLike,
   type AudioNodeLike,
   type AudioParamLike,
   type GainLike,
+  type MorseAudioContextState,
   type OscillatorLike,
   type VisibilitySource,
 } from './morseAudio'
@@ -48,13 +51,14 @@ class FakeGain extends FakeNode implements GainLike {
 
 class FakeContext implements AudioContextLike {
   currentTime = 10
-  state = 'suspended'
+  state: MorseAudioContextState = 'suspended'
   destination = new FakeNode()
   oscillators: FakeOscillator[] = []
   gains: FakeGain[] = []
   resumes = 0
-  suspends = 0
   closes = 0
+  resumeState: MorseAudioContextState = 'running'
+  rejectResume = false
 
   createOscillator() {
     const oscillator = new FakeOscillator()
@@ -68,11 +72,8 @@ class FakeContext implements AudioContextLike {
   }
   async resume() {
     this.resumes += 1
-    this.state = 'running'
-  }
-  async suspend() {
-    this.suspends += 1
-    this.state = 'suspended'
+    if (this.rejectResume) throw new Error('blocked')
+    this.state = this.resumeState
   }
   async close() {
     this.closes += 1
@@ -114,7 +115,7 @@ describe('MorseAudioPlayer', () => {
     expect(contexts).toBe(0)
   })
 
-  it('resumes Web Audio only on explicit play and schedules the pure timeline', async () => {
+  it('resumes Web Audio on the direct play path and schedules the pure timeline', async () => {
     const context = new FakeContext()
     const player = new MorseAudioPlayer(() => context, new FakeVisibility())
 
@@ -123,9 +124,51 @@ describe('MorseAudioPlayer', () => {
     expect(context.resumes).toBe(1)
     expect(context.oscillators).toHaveLength(1)
     expect(context.oscillators[0].frequency.value).toBe(650)
-    expect(context.oscillators[0].starts).toHaveLength(1)
-    expect(context.oscillators[0].stops[0]).toBeCloseTo(10.015 + schedule.durationMs / 1000, 10)
+    expect(context.oscillators[0].starts).toEqual([10 + MORSE_AUDIO_START_DELAY_MS / 1000])
+    expect(context.oscillators[0].stops[0]).toBeCloseTo(
+      10 + MORSE_AUDIO_START_DELAY_MS / 1000 + schedule.durationMs / 1000,
+      10,
+    )
     expect(context.gains[0].gain.changes.some((change) => change.value === 0.2)).toBe(true)
+  })
+
+  it('uses a deliberately audible default gain while leaving final level to device media volume', async () => {
+    const context = new FakeContext()
+    const player = new MorseAudioPlayer(() => context, new FakeVisibility())
+    await player.play('E', { characterWpm: 20, effectiveWpm: 20 })
+
+    expect(DEFAULT_MORSE_AUDIO.volume).toBe(0.25)
+    expect(context.gains[0].gain.changes.some((change) => change.value === DEFAULT_MORSE_AUDIO.volume)).toBe(true)
+  })
+
+  it('resumes interrupted as well as suspended contexts before scheduling output', async () => {
+    const context = new FakeContext()
+    context.state = 'interrupted'
+    const player = new MorseAudioPlayer(() => context, new FakeVisibility())
+
+    await player.play('E', { characterWpm: 20, effectiveWpm: 20 })
+    expect(context.resumes).toBe(1)
+    expect(context.state).toBe('running')
+    expect(context.oscillators).toHaveLength(1)
+  })
+
+  it('fails clearly instead of scheduling silent nodes when resume does not reach running', async () => {
+    const context = new FakeContext()
+    context.state = 'interrupted'
+    context.resumeState = 'interrupted'
+    const player = new MorseAudioPlayer(() => context, new FakeVisibility())
+
+    await expect(player.play('E')).rejects.toThrow(/still interrupted/)
+    expect(context.oscillators).toHaveLength(0)
+  })
+
+  it('turns a rejected mobile resume into actionable non-blocking feedback', async () => {
+    const context = new FakeContext()
+    context.rejectResume = true
+    const player = new MorseAudioPlayer(() => context, new FakeVisibility())
+
+    await expect(player.play('E')).rejects.toThrow(/Tap Play again/)
+    expect(context.oscillators).toHaveLength(0)
   })
 
   it('cancels current playback before a new play or replay', async () => {
@@ -144,7 +187,7 @@ describe('MorseAudioPlayer', () => {
     expect(replay.text).toBe('B')
   })
 
-  it('cancels and suspends on backgrounding, then permits a later explicit foreground play', async () => {
+  it('cancels on background without racing an app-issued suspend, then resumes browser-suspended audio on the next tap', async () => {
     const visibility = new FakeVisibility()
     const context = new FakeContext()
     const player = new MorseAudioPlayer(() => context, visibility)
@@ -153,12 +196,12 @@ describe('MorseAudioPlayer', () => {
     const active = context.oscillators[0]
     visibility.hidden = true
     visibility.dispatch('visibilitychange')
-    await Promise.resolve()
 
     expect(active.stops.at(-1)).toBeUndefined()
-    expect(context.suspends).toBe(1)
     await expect(player.play('E')).rejects.toThrow(/background/)
 
+    // Model the state a mobile browser may impose while the page is hidden.
+    context.state = 'suspended'
     visibility.hidden = false
     await player.play('E', { characterWpm: 20, effectiveWpm: 20 })
     expect(context.resumes).toBe(2)
@@ -172,9 +215,22 @@ describe('MorseAudioPlayer', () => {
     await player.play('E', { characterWpm: 20, effectiveWpm: 20 })
 
     visibility.dispatch('pagehide')
-    await Promise.resolve()
     expect(context.oscillators[0].stops.at(-1)).toBeUndefined()
-    expect(context.suspends).toBe(1)
+  })
+
+  it('recreates a context that the browser closed between navigations', async () => {
+    const contexts: FakeContext[] = []
+    const player = new MorseAudioPlayer(() => {
+      const context = new FakeContext()
+      contexts.push(context)
+      return context
+    }, new FakeVisibility())
+
+    await player.play('E')
+    contexts[0].state = 'closed'
+    await player.play('T')
+    expect(contexts).toHaveLength(2)
+    expect(contexts[1].oscillators).toHaveLength(1)
   })
 
   it('validates tone and volume before creating an audible node', async () => {
