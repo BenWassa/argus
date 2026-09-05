@@ -3,6 +3,7 @@ import { buildMorseSchedule, type MorseSchedule, type MorseTimingOptions } from 
 export interface AudioParamLike {
   value: number
   setValueAtTime(value: number, startTime: number): void
+  linearRampToValueAtTime(value: number, endTime: number): void
 }
 
 export interface AudioNodeLike {
@@ -48,6 +49,22 @@ export interface MorseAudioOptions extends MorseTimingOptions {
 
 /** Shared by the oscillator schedule and the visual highlight timers. */
 export const MORSE_AUDIO_START_DELAY_MS = 20
+
+/**
+ * Edge-shaping applied to both ends of every element.
+ *
+ * Gating a steady sine with instantaneous gain steps puts a discontinuity in
+ * the waveform at each edge, which a speaker reproduces as a broadband click.
+ * On a phone that click is louder than the tone it brackets, so a dit reads as
+ * a tick rather than as a short tone and the short/long contrast the whole
+ * treatment depends on is exactly what gets lost.
+ *
+ * 2ms is long enough to remove the discontinuity and far below the ~10ms the
+ * ear needs to hear onset as gradual, so elements still sound hard-keyed. The
+ * ramp is shaped strictly inside the element's own window, so canonical Morse
+ * timing is unchanged: `buildMorseSchedule` remains the only timing authority.
+ */
+export const MORSE_AUDIO_EDGE_RAMP_MS = 2
 
 /**
  * 0.25 is intentionally stronger than the original 0.12 default (+6.4 dB in
@@ -205,12 +222,19 @@ export class MorseAudioPlayer {
 
     let at = startAt
     for (const event of schedule.events) {
+      const durationSeconds = event.durationMs / 1000
       if (event.kind === 'signal') {
-        gain.gain.setValueAtTime(volume, at)
-        at += event.durationMs / 1000
+        // Never let the two ramps meet or overlap, so even a very fast dit
+        // still reaches full amplitude and reads as a tone.
+        const ramp = Math.min(MORSE_AUDIO_EDGE_RAMP_MS / 1000, durationSeconds / 4)
+        const end = at + durationSeconds
         gain.gain.setValueAtTime(0, at)
+        gain.gain.linearRampToValueAtTime(volume, at + ramp)
+        gain.gain.setValueAtTime(volume, end - ramp)
+        gain.gain.linearRampToValueAtTime(0, end)
+        at = end
       } else {
-        at += event.durationMs / 1000
+        at += durationSeconds
       }
     }
 

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   DEFAULT_MORSE_AUDIO,
+  MORSE_AUDIO_EDGE_RAMP_MS,
   MORSE_AUDIO_START_DELAY_MS,
   MorseAudioPlayer,
   MorsePlaybackCancelledError,
@@ -15,9 +16,12 @@ import {
 
 class FakeParam implements AudioParamLike {
   value = 0
-  changes: { value: number; at: number }[] = []
+  changes: { value: number; at: number; kind: 'set' | 'ramp' }[] = []
   setValueAtTime(value: number, startTime: number) {
-    this.changes.push({ value, at: startTime })
+    this.changes.push({ value, at: startTime, kind: 'set' })
+  }
+  linearRampToValueAtTime(value: number, endTime: number) {
+    this.changes.push({ value, at: endTime, kind: 'ramp' })
   }
 }
 
@@ -104,6 +108,10 @@ class FakeVisibility implements VisibilitySource {
   }
 }
 
+function closeTo(value: number) {
+  return expect.closeTo(value, 9) as unknown as number
+}
+
 describe('MorseAudioPlayer', () => {
   it('has no autoplay side effect: construction does not create an AudioContext', async () => {
     let contexts = 0
@@ -133,6 +141,65 @@ describe('MorseAudioPlayer', () => {
       10,
     )
     expect(context.gains[0].gain.changes.some((change) => change.value === 0.2)).toBe(true)
+  })
+
+  it('shapes every element edge so a dit is a tone rather than a click', async () => {
+    const context = new FakeContext()
+    const player = new MorseAudioPlayer(() => context, new FakeVisibility())
+
+    // K is -.- : a long, a short and a long, so both element lengths and both
+    // inter-element gaps are exercised in one schedule.
+    const schedule = await player.play('K', { characterWpm: 20, effectiveWpm: 20, volume: 0.4 })
+    const changes = context.gains[0].gain.changes
+    const start = 10 + MORSE_AUDIO_START_DELAY_MS / 1000
+    const ramp = MORSE_AUDIO_EDGE_RAMP_MS / 1000
+
+    const signals = schedule.events.filter((event) => event.kind === 'signal')
+    expect(signals).toHaveLength(3)
+
+    let at = start
+    for (const event of schedule.events) {
+      const duration = event.durationMs / 1000
+      if (event.kind === 'signal') {
+        const end = at + duration
+        // Silent at the element's exact start, at full level within the ramp,
+        // held, then back to silence exactly on the element's end. The element
+        // window itself is untouched, so canonical timing is preserved.
+        expect(changes).toContainEqual({ value: 0, at: closeTo(at), kind: 'set' })
+        expect(changes).toContainEqual({ value: 0.4, at: closeTo(at + ramp), kind: 'ramp' })
+        expect(changes).toContainEqual({ value: 0.4, at: closeTo(end - ramp), kind: 'set' })
+        expect(changes).toContainEqual({ value: 0, at: closeTo(end), kind: 'ramp' })
+        at = end
+      } else {
+        at += duration
+      }
+    }
+
+    // Nothing is scheduled past the oscillator's own stop time.
+    for (const change of changes) expect(change.at).toBeLessThanOrEqual(at + 1e-9)
+  })
+
+  it('keeps both edge ramps inside an element even when a dit is very short', async () => {
+    const context = new FakeContext()
+    const player = new MorseAudioPlayer(() => context, new FakeVisibility())
+
+    // 60 WPM puts a dit at 20ms, an order below twice the nominal ramp.
+    const schedule = await player.play('E', { characterWpm: 60, effectiveWpm: 60, volume: 0.5 })
+    const dit = schedule.events.find((event) => event.kind === 'signal')
+    expect(dit).toBeDefined()
+
+    const changes = context.gains[0].gain.changes
+    const ramps = changes.filter((change) => change.kind === 'ramp')
+    const attack = ramps.find((change) => change.value === 0.5)
+    const release = ramps.find((change) => change.value === 0)
+    expect(attack).toBeDefined()
+    expect(release).toBeDefined()
+    // Full amplitude is still reached, and the attack finishes strictly before
+    // the release begins, so a fast dit never degenerates into a triangle.
+    expect(release!.at - attack!.at).toBeGreaterThan(0)
+    expect(attack!.at - (10 + MORSE_AUDIO_START_DELAY_MS / 1000)).toBeLessThanOrEqual(
+      dit!.durationMs / 1000 / 4 + 1e-9,
+    )
   })
 
   it('uses a deliberately audible default gain while leaving final level to device media volume', async () => {
