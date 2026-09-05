@@ -61,19 +61,34 @@ The set uses a deliberately constrained vocabulary rather than trying to make
 
 1. **One monosyllabic word per element.** This makes the number and order of
    beats explicit.
-2. **Short beats prefer clipped endings and short vowels** (`bat`, `zip`, `pop`,
-   `cut`, `sit`) so they are natural to say quickly.
-3. **Held beats prefer sustain-able vowels or continuants** (`MOON`, `GO`,
-   `SLOW`, `FLY`, `HOME`, `QUEEN`) so stretching the beat does not require a
-   strange pause after the word.
-4. **The opening word usually cues the letter.** It begins with the target
+2. **A short beat must end in a stop** (`bat`, `zip`, `pop`, `cut`, `quick`,
+   `back`, `clicked`). A word ending in `/p t k b d g/` physically cannot be
+   drawn out, so a learner cannot accidentally lengthen a dit.
+3. **A held beat must end in a continuant** — a vowel, nasal, liquid, glide or
+   fricative (`MOON`, `GO`, `SLOW`, `FLY`, `HOME`, `QUEEN`, `LONG`, `GLOWS`).
+   These can be sustained for as long as breath allows, so stretching the beat
+   needs no strange pause after the word.
+4. **That contrast is enforced mechanically, not by ear.** `finalSoundClass` in
+   `morseVerbalMnemonics.ts` derives the ending class from spelling, and the
+   gate asserts it for all 26 phrases. This rule exists because the failure mode
+   it prevents is the only one that actively teaches the wrong code: a "held"
+   word a learner naturally clips (`KITE`, `COAST`, `CREEPS`) or a "short" word
+   they naturally sustain (`can`, `run`, `then`, `wren`, `dim`). Every one of
+   those shipped in the first draft of this set and has been replaced.
+5. **`A` is the single documented exemption.** #42 supplies `A LONG` verbatim as
+   the worked example of the whole treatment; its contrast is carried by the
+   vowel length of the two words rather than by their codas. The exemption is
+   held in `CODA_RULE_EXEMPT_BEATS` and the gate asserts that it stays a list of
+   exactly one.
+6. **The opening word usually cues the letter.** It begins with the target
    letter where a natural choice exists. `X` uses `CROSS`, the visual meaning of
-   an X, rather than forcing an awkward X-initial English word.
-5. **Concrete miniature scenes are preferred** (`jet FLIES FAR HOME`, `wren
-   FLIES HOME`, `pup GOES FAR back`) because they are easier to retain than a
-   random word string while remaining rhythmically simple.
-6. **Explicit duration labels resolve accent variation.** The words were chosen
-   to reduce ambiguity in ordinary English, but no English word has a universal
+   an X. `V` is the one letter where no stop-final V-word gave a usable first
+   beat, so it leans on its unmistakable three-shorts-then-`VROOM` shape.
+7. **Concrete miniature scenes are preferred** (`jet FLIES FAR HOME`, `rat RAN
+   back`, `COME cat COME quick`) because they are easier to retain than a random
+   word string while remaining rhythmically simple.
+8. **Explicit duration labels still resolve accent variation.** The coda rule
+   removes the ambiguity that matters, but no English word has a universal
    physical duration. `short`/`hold`, the canonical notation, the SVG and the
    actual tone all state the intended timing independently.
 
@@ -84,31 +99,31 @@ word's natural duration is objectively one or three Morse units.
 
 | Letter | Canonical | Phrase | Beat rule | Association |
 |---|---|---|---|---|
-| A | `.-` | **A LONG** | short · hold — | supplied exemplar; the phrase states its own contrast |
+| A | `.-` | **A LONG** | short · hold — | supplied exemplar; exempt from the coda rule, contrast carried by vowel length |
 | B | `-...` | **BOOM bat zip pop** | hold — short · short · short · | boom, then three clipped impacts |
-| C | `-.-.` | **COAST cat CREEPS quick** | hold — short · hold — short · | C-alliteration with alternating stretched/clipped beats |
-| D | `-..` | **DRONE dips quick** | hold — short · short · | a sustained drone followed by two clipped beats |
+| C | `-.-.` | **COME cat COME quick** | hold — short · hold — short · | "come cat, come quick"; alternation is the whole shape |
+| D | `-..` | **DOWN duck dip** | hold — short · short · | one sustained call, two clipped actions |
 | E | `.` | **egg** | short · | single clipped E-word |
-| F | `..-.` | **fish can FLY fast** | short · short · hold — short · | simple action phrase with the sustained third beat |
-| G | `--.` | **GLOW GROWS dim** | hold — hold — short · | two naturally sustain-able G-words, then a clipped ending |
+| F | `..-.` | **flip flap FLY back** | short · short · hold — short · | bird motion; only `FLY` can be stretched |
+| G | `--.` | **GROW GREEN quick** | hold — hold — short · | two sustainable beats, then a hard stop |
 | H | `....` | **hip hop hit pop** | short · short · short · short · | four percussive beats |
-| I | `..` | **it fits** | short · short · | compact two-beat phrase |
+| I | `..` | **it clicked** | short · short · | two clipped beats; `clicked` ends in a stop cluster |
 | J | `.---` | **jet FLIES FAR HOME** | short · hold — hold — hold — | a jet followed by three broad held beats |
-| K | `-.-` | **KITE dips HIGH** | hold — short · hold — | a kite's down-up motion mirrors long-short-long |
-| L | `.-..` | **lamp GLOWS then dims** | short · hold — short · short · | concrete light scene with one sustained second beat |
-| M | `--` | **MOON GLOWS** | hold — hold — | two long-vowel/continuant beats |
+| K | `-.-` | **KING kick HIGH** | hold — short · hold — | sustained, clipped, sustained |
+| L | `.-..` | **lap LONG lap quick** | short · hold — short · short · | a pacing cadence: one long lap, then two short |
+| M | `--` | **MOON GLOWS** | hold — hold — | two continuant-final beats |
 | N | `-.` | **NO not** | hold — short · | minimal contrast: sustained `NO`, clipped `not` |
 | O | `---` | **OH SO SLOW** | hold — hold — hold — | three naturally stretchable O-heavy beats |
 | P | `.--.` | **pup GOES FAR back** | short · hold — hold — short · | concrete out-and-back mini-scene |
 | Q | `--.-` | **QUEEN GOES quick HOME** | hold — hold — short · hold — | Q cue plus an unmistakably clipped third beat |
-| R | `.-.` | **run FAR back** | short · hold — short · | short-long-short out-and-back rhythm |
+| R | `.-.` | **rat RAN back** | short · hold — short · | short-long-short out-and-back rhythm |
 | S | `...` | **sit sip zip** | short · short · short · | three clipped sibilant beats |
 | T | `-` | **TONE** | hold — | single naturally sustained T-word |
-| U | `..-` | **up then ZOOM** | short · short · hold — | two clipped beats then a sustained finish |
-| V | `...-` | **van can zip FAR** | short · short · short · hold — | three compact beats then a long finish |
-| W | `.--` | **wren FLIES HOME** | short · hold — hold — | short subject followed by two held actions |
+| U | `..-` | **up up ZOOM** | short · short · hold — | two clipped beats then a sustained finish |
+| V | `...-` | **quick quick quick VROOM** | short · short · short · hold — | three identical clipped beats make the V shape audible; `VROOM` cues the letter |
+| W | `.--` | **web WE WEAVE** | short · hold — hold — | triple-W image; only the first beat is clipped |
 | X | `-..-` | **CROSS cut cut CROSS** | hold — short · short · hold — | X = cross; symmetrical long-short-short-long shape |
-| Y | `-.--` | **YAWN then GO HOME** | hold — short · hold — hold — | a long opening Y-word, clipped pivot, two held beats |
+| Y | `-.--` | **YAWN quit GO HOME** | hold — short · hold — hold — | long opening Y-word, clipped pivot, two held beats |
 | Z | `--..` | **ZOOM ZOOM zip zip** | hold — hold — short · short · | paired sustained Z-words followed by paired clipped ones |
 
 ## Relationship to the visual and audio scaffolds

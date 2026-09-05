@@ -83,7 +83,7 @@ satisfy that release gate.
 | P4 | Default audio rhythm | 20 WPM character, ~9 WPM effective; adjustable | Implemented default | #25 / PR #31 |
 | P5 | Visual asset model | Original generated timing SVG; no borrowed per-letter artwork; secondary to verbal cue | Implemented | #26 / PR #34; role corrected by #42 |
 | P6 | Temporary printed baseline | Absorb in place; retain ids/evidence/history, activate bidirectional semantics | Implemented | #28 |
-| P7 | Mobile Web Audio lifecycle | Direct-play context create/resume; verify running; browser owns lifecycle suspension; explicit cancel/replay; deliberate gain | Implemented in #42 branch; physical acceptance pending | #42 / PR #43 |
+| P7 | Mobile Web Audio lifecycle | Direct-play context create/resume; verify running; browser owns lifecycle suspension; explicit cancel/replay; deliberate gain; click-free 2ms element edges | Implemented in #42 branch; physical acceptance pending | #42 / PR #43 |
 
 ## Why v5 exists
 
@@ -201,6 +201,9 @@ The original Web Audio implementation was structurally vulnerable on mobile:
 - app-driven asynchronous `suspend()` on background could race the next direct
   foreground Play activation;
 - UI highlight timing used a separate hard-coded start offset;
+- every element was gated with instantaneous gain steps, so each edge carried a
+  waveform discontinuity audible as a click; at dit length that click competes
+  with the tone itself;
 - the default linear gain was only `0.12` despite a production-phone audibility
   report.
 
@@ -215,6 +218,8 @@ The original Web Audio implementation was structurally vulnerable on mobile:
 - replay/stop remain explicit;
 - oscillator and SVG highlight share `MORSE_AUDIO_START_DELAY_MS` and the same
   canonical schedule;
+- element edges carry a 2ms linear ramp, shaped inside the element window so
+  canonical timing is untouched and clamped for very fast dits;
 - default gain is deliberately `0.25` while device media volume/routing remain
   final controls;
 - failure is actionable and non-blocking.

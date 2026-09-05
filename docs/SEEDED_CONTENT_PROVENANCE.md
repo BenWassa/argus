@@ -83,6 +83,7 @@ The verbal A–Z set is documented in `MORSE_VERBAL_MNEMONICS.md`.
 - the other 25 phrases are original Argus content, not copied from a third-party mnemonic list;
 - each phrase has one labelled short/held beat per canonical element;
 - tests convert every phrase back to dots/dashes and compare all 26 against the same canonical table used by the scored deck;
+- tests also enforce the coda rule that keeps the length contrast unambiguous: a short beat must end in a stop and a held beat in a continuant, with `A` the single documented exemption;
 - tests also compare verbal beat units to SVG units and synthesized-audio signal units.
 
 The SVG remains the original generated `argus-morse-rhythm-v1-<GLYPH>` timing grammar from #26. #42 does not repoint those ids to different artwork and therefore requires no learner-state/content migration.

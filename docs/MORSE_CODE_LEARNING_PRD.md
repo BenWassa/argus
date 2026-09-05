@@ -409,6 +409,8 @@ Operational training commonly preserves a coherent internal character rhythm whi
 
 #42 deliberately raises the default linear gain from `0.12` to `0.25` after the reported production audibility failure. Device media volume and routing remain final output controls; the exact production build still requires real-device acceptance.
 
+#42 also shapes the gain envelope. Each element previously began and ended with an instantaneous gain step, which leaves a waveform discontinuity that a speaker reproduces as a broadband click. On a phone that click can be louder than the tone it brackets, so a dit is heard as a tick and the short/held contrast the whole treatment rests on is degraded at exactly the shortest element. A 2ms linear ramp is now applied at both edges, shaped strictly inside each element's own window so `buildMorseSchedule` remains the only timing authority, and clamped to a quarter of the element for very fast dits so a short element still reaches full amplitude. Loudness is unchanged by this; it is a waveform-continuity fix, independent of the device-evidence question that governs gain.
+
 ---
 
 ## 10. Packet size and character order
