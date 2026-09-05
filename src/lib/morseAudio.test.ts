@@ -3,6 +3,7 @@ import {
   DEFAULT_MORSE_AUDIO,
   MORSE_AUDIO_START_DELAY_MS,
   MorseAudioPlayer,
+  MorsePlaybackCancelledError,
   type AudioContextLike,
   type AudioNodeLike,
   type AudioParamLike,
@@ -59,6 +60,7 @@ class FakeContext implements AudioContextLike {
   closes = 0
   resumeState: MorseAudioContextState = 'running'
   rejectResume = false
+  resumeGate: Promise<void> | null = null
 
   createOscillator() {
     const oscillator = new FakeOscillator()
@@ -73,6 +75,7 @@ class FakeContext implements AudioContextLike {
   async resume() {
     this.resumes += 1
     if (this.rejectResume) throw new Error('blocked')
+    if (this.resumeGate) await this.resumeGate
     this.state = this.resumeState
   }
   async close() {
@@ -185,6 +188,40 @@ describe('MorseAudioPlayer', () => {
     const replay = await player.replay()
     expect(second.stops.at(-1)).toBeUndefined()
     expect(replay.text).toBe('B')
+  })
+
+  it('lets only the newest Play own output when resume is still in flight', async () => {
+    const context = new FakeContext()
+    let releaseResume!: () => void
+    context.resumeGate = new Promise<void>((resolve) => {
+      releaseResume = resolve
+    })
+    const player = new MorseAudioPlayer(() => context, new FakeVisibility())
+
+    const first = player.play('A', { characterWpm: 20, effectiveWpm: 20 })
+    const second = player.play('B', { characterWpm: 20, effectiveWpm: 20 })
+    releaseResume()
+
+    await expect(first).rejects.toBeInstanceOf(MorsePlaybackCancelledError)
+    const schedule = await second
+    expect(schedule.text).toBe('B')
+    expect(context.oscillators).toHaveLength(1)
+  })
+
+  it('cannot start a stale oscillator after Stop while resume is still in flight', async () => {
+    const context = new FakeContext()
+    let releaseResume!: () => void
+    context.resumeGate = new Promise<void>((resolve) => {
+      releaseResume = resolve
+    })
+    const player = new MorseAudioPlayer(() => context, new FakeVisibility())
+
+    const pending = player.play('A')
+    player.cancel()
+    releaseResume()
+
+    await expect(pending).rejects.toBeInstanceOf(MorsePlaybackCancelledError)
+    expect(context.oscillators).toHaveLength(0)
   })
 
   it('cancels on background without racing an app-issued suspend, then resumes browser-suspended audio on the next tap', async () => {
