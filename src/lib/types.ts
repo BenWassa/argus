@@ -16,6 +16,15 @@ export const STATUSES = ['unstarted', 'learning', 'drilled', 'completed', 'decay
 export type Status = (typeof STATUSES)[number]
 
 /**
+ * Durable provenance. `catalog` marks a topic delivered by the shipped Argus
+ * catalog; `user` marks anything the learner authored or imported themselves.
+ * Ownership decides only whether catalog reconciliation may deliver an id — it
+ * never grants permission to rewrite a topic that already exists locally.
+ */
+export const TOPIC_ORIGINS = ['catalog', 'user'] as const
+export type TopicOrigin = (typeof TOPIC_ORIGINS)[number]
+
+/**
  * Item semantics are content definition. Existing/legacy items are forward
  * unless normalized to another explicit kind by the v5 storage boundary.
  */
@@ -157,6 +166,12 @@ export interface Topic {
   history: Attempt[]
   /** v5 acquisition evidence. Optional only for legacy/internal Topic fixtures. */
   itemEvidence?: ItemEvidenceStore
+  /**
+   * Catalog provenance. Optional only on the broad in-memory Topic shape so
+   * seed authoring and old fixtures stay structurally compatible; storage
+   * always resolves it for every topic it returns.
+   */
+  origin?: TopicOrigin
 }
 
 /** Import compatibility shape. Older exports migrate forward at the v5 boundary. */
@@ -169,6 +184,12 @@ export interface LegacyLibraryV4 {
 export interface CurrentLibrary {
   version: 5
   topics: Topic[]
+  /**
+   * Shipped catalog topic ids this library has already been offered. Delivery
+   * is recorded rather than inferred from presence, so deleting a catalog
+   * topic is durable and reconciliation never resurrects it.
+   */
+  catalogDelivered?: string[]
 }
 
 /** The seed is itself a v5 record; storage remains the migration boundary. */

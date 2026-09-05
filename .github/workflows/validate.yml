@@ -29,5 +29,32 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Type-check and build
-        run: npm run build
+      - name: Test, type-check and build
+        run: npm run check
+
+  # Security Rules are the trust boundary for everything the browser does to the
+  # content inbox, so they are exercised against the real Firestore emulator
+  # rather than reviewed by eye.
+  rules:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Setup Java for the Firestore emulator
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Firestore Security Rules
+        run: npm run test:rules

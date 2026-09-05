@@ -9,13 +9,18 @@
     "test": "vitest run",
     "check": "npm run test && npm run build",
     "preview": "vite preview",
-    "typecheck": "tsc -b"
+    "typecheck": "tsc -b",
+    "inbox:rules": "node scripts/renderRules.mjs",
+    "inbox": "node scripts/inbox/cli.mjs",
+    "test:rules": "node scripts/renderRules.mjs --emulator && npx --yes firebase-tools@14 emulators:exec --only firestore --project argus-rules-test \"vitest run --config vitest.rules.config.ts\""
   },
   "dependencies": {
+    "firebase": "^12.18.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1"
   },
   "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.2",
     "@types/react": "^19.1.9",
     "@types/react-dom": "^19.1.7",
     "@vitejs/plugin-react": "^5.0.0",

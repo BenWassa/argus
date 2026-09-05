@@ -1,9 +1,14 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { clearLibrary, loadLibrary, saveLibrary } from './storage'
+import { clearLibrary, emptyLibrary, loadLibraryWithReport, reconcileLoadedLibrary, saveLibrary } from './storage'
+import { NO_RECONCILIATION, type CatalogReconciliation } from './catalog'
 import type { CurrentLibrary, Topic } from './types'
 
 interface LibraryStore {
   topics: Topic[]
+  /** The whole durable record, so export stays lossless as the shape grows. */
+  library: CurrentLibrary
+  /** What catalog reconciliation did the last time a library was loaded. */
+  catalogReport: CatalogReconciliation
   upsertTopic: (topic: Topic) => void
   removeTopic: (id: string) => void
   replaceLibrary: (library: CurrentLibrary) => void
@@ -13,7 +18,9 @@ interface LibraryStore {
 const Ctx = createContext<LibraryStore | null>(null)
 
 export function LibraryProvider({ children }: { children: ReactNode }) {
-  const [library, setLibrary] = useState<CurrentLibrary>(() => loadLibrary())
+  const [loaded] = useState(loadLibraryWithReport)
+  const [library, setLibrary] = useState<CurrentLibrary>(loaded.library)
+  const [catalogReport, setCatalogReport] = useState<CatalogReconciliation>(loaded.report)
 
   useEffect(() => {
     saveLibrary(library)
@@ -24,7 +31,7 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
       const i = prev.topics.findIndex((t) => t.id === topic.id)
       const topics =
         i === -1
-          ? [...prev.topics, topic]
+          ? [...prev.topics, { ...topic, origin: topic.origin ?? ('user' as const) }]
           : prev.topics.map((t, at) => (at === i ? topic : t))
       return { ...prev, topics }
     })
@@ -34,16 +41,32 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
     setLibrary((prev) => ({ ...prev, topics: prev.topics.filter((t) => t.id !== id) }))
   }, [])
 
-  const replaceLibrary = useCallback((next: CurrentLibrary) => setLibrary(next), [])
+  const replaceLibrary = useCallback((next: CurrentLibrary) => {
+    // An imported library goes through the same migration and catalog-delivery
+    // boundary as a stored one, so what is on screen after an import is what
+    // would be on screen after a reload.
+    const reconciled = reconcileLoadedLibrary(next)
+    setLibrary(reconciled.library)
+    setCatalogReport(reconciled.report)
+  }, [])
 
   const resetLibrary = useCallback(() => {
     clearLibrary()
-    setLibrary({ version: 5, topics: [] })
+    setLibrary(emptyLibrary())
+    setCatalogReport(NO_RECONCILIATION)
   }, [])
 
   const value = useMemo(
-    () => ({ topics: library.topics, upsertTopic, removeTopic, replaceLibrary, resetLibrary }),
-    [library.topics, upsertTopic, removeTopic, replaceLibrary, resetLibrary],
+    () => ({
+      topics: library.topics,
+      library,
+      catalogReport,
+      upsertTopic,
+      removeTopic,
+      replaceLibrary,
+      resetLibrary,
+    }),
+    [library, catalogReport, upsertTopic, removeTopic, replaceLibrary, resetLibrary],
   )
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>

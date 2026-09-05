@@ -6,3 +6,16 @@ graphify-out/
 node_modules/
 dist/
 *.tsbuildinfo
+
+# Generated from firestore.rules.template by scripts/renderRules.mjs
+firestore.rules
+
+# Firebase emulator scratch
+.firebase/
+firebase-debug.log
+firestore-debug.log
+
+# Local inbox configuration
+.env
+.env.local
+.env.*.local
