@@ -2,7 +2,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { MORSE_LETTERS, type MorseLetter } from '../../lib/morse'
 import { patternReading } from '../../lib/acquisition'
-import { verbalMnemonic, verbalMnemonicTextEquivalent } from '../../lib/morseVerbalMnemonics'
+import { verbalMnemonic } from '../../lib/morseVerbalMnemonics'
 import type { MorseCharacterLearnItem } from '../../lib/types'
 import { MorseCharacterPacket } from './MorseCharacterPacket'
 
@@ -42,7 +42,7 @@ describe('Morse Learn acquisition hierarchy', () => {
       const html = renderToStaticMarkup(<MorseCharacterPacket characters={[character(letter)]} />)
       const mnemonic = verbalMnemonic(letter)
       for (const beat of mnemonic.beats) expect(html).toContain(beat.text)
-      expect(html).toContain(verbalMnemonicTextEquivalent(letter).replaceAll('“', '&quot;').replaceAll('”', '&quot;'))
+      expect(html).toContain(`aria-label="${letter} mnemonic:`)
       expect((html.match(/morse-verbal-beat is-/g) ?? [])).toHaveLength(MORSE_LETTERS[letter].length)
     }
   })
