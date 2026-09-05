@@ -5,6 +5,7 @@ import { canonicalNotation, spokenRhythm } from '../../lib/morseMnemonics'
 import { verbalMnemonic, verbalMnemonicTextEquivalent } from '../../lib/morseVerbalMnemonics'
 import type { MorseCharacterLearnItem } from '../../lib/types'
 import { MorseMnemonic } from './MorseMnemonic'
+import './MorseCharacterPacket.css'
 
 interface Sounding {
   glyph: string
