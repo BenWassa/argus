@@ -42,7 +42,7 @@ interface NavigationState {
   route: Record<string, unknown>
 }
 
-async function installLibrary(page: Page, initialState?: unknown) {
+async function installLibrary(page: Page, initialState: unknown = null) {
   await page.addInitScript(
     ([library, storeKey, splashKey, state]) => {
       // The same init script can be present when a root-Back test returns to a
@@ -52,14 +52,14 @@ async function installLibrary(page: Page, initialState?: unknown) {
         window.localStorage.setItem(storeKey, library)
         ;(window as unknown as { __argusInitialHistoryLength: number }).__argusInitialHistoryLength =
           window.history.length
-        if (state !== undefined) window.history.replaceState(state, '')
+        if (state !== null) window.history.replaceState(state, '')
       }
     },
     [LIBRARY, STORE_KEY, SPLASH_KEY, initialState] as const,
   )
 }
 
-async function openApp(page: Page, initialState?: unknown) {
+async function openApp(page: Page, initialState: unknown = null) {
   await installLibrary(page, initialState)
   await page.goto('./')
 }
@@ -74,6 +74,14 @@ async function systemBack(page: Page) {
 
 async function systemForward(page: Page) {
   await page.evaluate(() => window.history.forward())
+}
+
+async function waitForHistoryIndex(page: Page, index: number) {
+  await expect.poll(async () => (await navigationState(page)).index).toBe(index)
+}
+
+async function waitForRouteKind(page: Page, kind: string) {
+  await expect.poll(async () => (await navigationState(page)).route.kind).toBe(kind)
 }
 
 async function openLibrary(page: Page) {
@@ -166,7 +174,7 @@ test('runs remember their real Today, Library and Topic origins', async ({ page 
 
   // Library -> Learn -> Back = Library.
   await openLibrary(page)
-  await page.locator(`[data-row="${TOPIC.id}"]`).locator('..').getByRole('button', { name: 'Learn' }).click()
+  await page.locator(`[data-row="${TOPIC.id}"]`).locator('..').locator('.lib-action').click()
   await expect(page.getByRole('button', { name: 'Test me' })).toBeVisible()
   expect(await navigationState(page)).toMatchObject({
     route: { kind: 'run', mode: 'learn', origin: { kind: 'section', view: 'library' } },
@@ -222,16 +230,21 @@ test('partial Test Back reuses End test, Back resumes, and confirmed exit preser
 
   await systemBack(page)
   await expect(page.getByRole('heading', { name: 'End test', level: 1 })).toBeVisible()
-  await expect.poll(async () => (await navigationState(page)).route.kind).toBe('run')
+  await waitForRouteKind(page, 'run')
+  await waitForHistoryIndex(page, 3)
 
   // System Back on the confirmation is the existing "Keep going" meaning.
   await systemBack(page)
   await expect(page.getByRole('heading', { name: 'End test', level: 1 })).toHaveCount(0)
   await expect(page.locator('.flip-card')).toBeVisible()
   await expect(page.locator('.session-bar .tabular')).toContainText('2 of 2')
+  await waitForRouteKind(page, 'run')
+  await waitForHistoryIndex(page, 3)
 
   await systemBack(page)
   await expect(page.getByRole('heading', { name: 'End test', level: 1 })).toBeVisible()
+  await waitForRouteKind(page, 'run')
+  await waitForHistoryIndex(page, 3)
   await page.getByRole('button', { name: 'End test', exact: true }).click()
   await expect(page.getByRole('heading', { name: TOPIC.title, level: 1 })).toBeVisible()
 
@@ -256,7 +269,7 @@ test('system Back dismisses clean and dirty dialogs before changing route', asyn
   await systemBack(page)
   await expect(page.getByRole('dialog', { name: 'New topic' })).toHaveCount(0)
   await expect(page.getByRole('heading', { name: 'Library', level: 1 })).toBeVisible()
-  expect((await navigationState(page)).index).toBe(1)
+  await waitForHistoryIndex(page, 1)
 
   await page.getByRole('button', { name: 'New topic' }).click()
   const title = page.getByLabel('Title')
@@ -264,14 +277,16 @@ test('system Back dismisses clean and dirty dialogs before changing route', asyn
 
   await systemBack(page)
   await expect(page.getByRole('dialog', { name: 'Discard changes' })).toBeVisible()
-  expect((await navigationState(page)).index).toBe(1)
+  await waitForHistoryIndex(page, 1)
 
   await systemBack(page)
   await expect(page.getByRole('dialog', { name: 'New topic' })).toBeVisible()
   await expect(page.getByLabel('Title')).toHaveValue('Unsaved navigation work')
+  await waitForHistoryIndex(page, 1)
 
   await systemBack(page)
   await expect(page.getByRole('dialog', { name: 'Discard changes' })).toBeVisible()
+  await waitForHistoryIndex(page, 1)
   await page.getByRole('button', { name: 'Discard changes', exact: true }).click()
   await expect(page.getByRole('dialog')).toHaveCount(0)
   await expect(page.getByRole('heading', { name: 'Library', level: 1 })).toBeVisible()
@@ -281,10 +296,11 @@ test('system Back dismisses clean and dirty dialogs before changing route', asyn
   await expect(page.getByRole('dialog', { name: 'Delete topic' })).toBeVisible()
   await systemBack(page)
   await expect(page.getByRole('dialog', { name: 'Delete topic' })).toHaveCount(0)
+  await waitForHistoryIndex(page, 2)
   await expect(page.getByRole('heading', { name: TOPIC.title, level: 1 })).toBeVisible()
 })
 
-test('malformed and stale initial history normalize safely without replaying a run', async ({ page }) => {
+test('malformed initial history normalizes to Today', async ({ page }) => {
   await openApp(page, {
     argusNavigation: 99,
     index: 7,
@@ -299,26 +315,23 @@ test('malformed and stale initial history normalize safely without replaying a r
     index: 0,
     route: { kind: 'section', view: 'today' },
   })
-
-  await page.close()
 })
 
-test('a valid stale Topic entry falls back to Library and a reloaded run falls back to its origin', async ({ browser }) => {
-  const stalePage = await browser.newPage()
-  await openApp(stalePage, {
+test('a valid stale Topic entry falls back to Library in place', async ({ page }) => {
+  await openApp(page, {
     argusNavigation: 1,
     index: 4,
     route: { kind: 'topic', topicId: 'deleted-topic' },
   })
-  await expect(stalePage.getByRole('heading', { name: 'Library', level: 1 })).toBeVisible()
-  expect(await navigationState(stalePage)).toMatchObject({
+  await expect(page.getByRole('heading', { name: 'Library', level: 1 })).toBeVisible()
+  expect(await navigationState(page)).toMatchObject({
     index: 4,
     route: { kind: 'section', view: 'library' },
   })
-  await stalePage.close()
+})
 
-  const runPage = await browser.newPage()
-  await openApp(runPage, {
+test('a reloaded run entry falls back to its safe origin instead of replaying Test', async ({ page }) => {
+  await openApp(page, {
     argusNavigation: 1,
     index: 3,
     route: {
@@ -328,12 +341,11 @@ test('a valid stale Topic entry falls back to Library and a reloaded run falls b
       origin: { kind: 'topic', topicId: TOPIC.id },
     },
   })
-  await expect(runPage.getByRole('heading', { name: TOPIC.title, level: 1 })).toBeVisible()
-  expect(await navigationState(runPage)).toMatchObject({
+  await expect(page.getByRole('heading', { name: TOPIC.title, level: 1 })).toBeVisible()
+  expect(await navigationState(page)).toMatchObject({
     index: 3,
     route: { kind: 'topic', topicId: TOPIC.id },
   })
-  await runPage.close()
 })
 
 test('Back from the Today root is left to the browser instead of being trapped', async ({ page }) => {
