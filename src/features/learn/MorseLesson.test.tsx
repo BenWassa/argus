@@ -136,7 +136,7 @@ describe('printed letter → Morse uses one production mechanism', () => {
     expect(html).not.toContain('class="lesson-option mono"')
   })
 
-  it('the one-signal T case has no audio hint or pattern choices', () => {
+  it('the one-signal T case has no answer audio hint or pattern choices', () => {
     const html = renderToStaticMarkup(
       <VisualCheckStep entry={tEntry()} format="cued" regionRef={ref} onAnswer={() => undefined} />,
     )
@@ -203,7 +203,7 @@ describe('Morse sound → letter is the only multiple-choice Morse Learn prompt'
 describe('feedback and modality boundaries', () => {
   const topic = seededTopic(MORSE_ID)
 
-  it('reteaches a printed miss only after the learner has answered', () => {
+  it('reteaches a printed miss without adding a Continue button', () => {
     const run = runAtFormat(topic, 'taught')
     const step = currentStep(run)
     if (step?.kind !== 'check') throw new Error('expected a check')
@@ -212,6 +212,16 @@ describe('feedback and modality boundaries', () => {
     expect(html).toContain('class="morse-mnemonic"')
     expect(html).toContain(`aria-label="Play ${step.entry.glyph} Morse"`)
     expect(html).toContain('It comes back later, after other letters.')
+    expect(html).not.toContain('>Continue<')
+  })
+
+  it('correct answers advance immediately while misses auto-advance after a short reteach', () => {
+    const code = source('./MorseLesson.tsx')
+    expect(code).toContain('if (next.feedback.correct) movePastVisualFeedback(next, nextSitting)')
+    expect(code).toContain('RETEACH_VISIBLE_MS')
+    expect(code).toContain('setTimeout(() => movePastVisualFeedback')
+    expect(code).not.toContain('function continueAfterFeedback')
+    expect(code).not.toContain('>Continue</button>')
   })
 
   it('technical audio failure suppresses later listening instead of blocking Learn', () => {
@@ -223,7 +233,7 @@ describe('feedback and modality boundaries', () => {
 
   it("Can't listen now changes only runtime modality state and does not record a retrieval", () => {
     const code = source('./MorseLesson.tsx')
-    const skip = code.slice(code.indexOf('function skipListening()'), code.indexOf('function continueAfterFeedback()'))
+    const skip = code.slice(code.indexOf('function skipListening()'), code.indexOf('function nextSitting()'))
     expect(skip).toContain('suppressListening')
     expect(skip).not.toContain('recordLessonRetrieval')
     expect(skip).not.toContain('answerLesson')
@@ -278,11 +288,11 @@ describe('accessibility and mobile composition', () => {
     for (const size of typeSizes) expect(size).not.toMatch(/^\d+px$/)
   })
 
-  it('keeps focus in the changing task/feedback surface', () => {
+  it('keeps focus on the changing task or finite endpoint without a feedback button', () => {
     const code = source('./MorseLesson.tsx')
-    expect(code).toContain('continueRef.current?.focus')
     expect(code).toContain('stepRef.current?.focus')
     expect(code).toContain('headingRef.current?.focus')
+    expect(code).not.toContain('continueRef')
   })
 })
 

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { canonicalPattern, patternReading } from '../../lib/acquisition'
+import { canonicalPattern } from '../../lib/acquisition'
 import { canonicalNotation, mnemonicTextEquivalent, spokenRhythm } from '../../lib/morseMnemonics'
 import {
   advanceLesson,
@@ -39,6 +39,8 @@ import { MorseBeatGrammarNote, MorsePhrase } from './MorsePhrase'
 import { MorsePlayButton } from './MorsePlayButton'
 import { useMorseAudio } from './useMorseAudio'
 import './MorseLesson.css'
+
+const RETEACH_VISIBLE_MS = 1400
 
 interface MorseLessonProps {
   topic: Topic
@@ -161,7 +163,6 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
   const { upsertTopic } = useLibrary()
   const { sounding, audioError, clearError, stop, toggle } = useMorseAudio()
   const headingRef = useRef<HTMLHeadingElement>(null)
-  const continueRef = useRef<HTMLButtonElement>(null)
   const stepRef = useRef<HTMLDivElement>(null)
 
   const [run, setRun] = useState<LessonRun>(initialRun)
@@ -188,8 +189,7 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
 
   useEffect(() => {
     if (run.complete || run.finished || (sittingDone && !hasFeedback)) headingRef.current?.focus()
-    else if (hasFeedback) continueRef.current?.focus({ preventScroll: true })
-    else stepRef.current?.focus({ preventScroll: true })
+    else if (!hasFeedback) stepRef.current?.focus({ preventScroll: true })
   }, [run.step, run.complete, run.finished, sittingDone, hasFeedback, listeningState.suppressed])
 
   function commit(next: LessonRun) {
@@ -206,38 +206,9 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
     saveLessonSitting(topic.id, next)
   }
 
-  function answerVisual(itemId: string, response: string) {
-    const next = answerLesson(run, itemId, response)
-    if (next === run || !next.feedback) return
-    setListeningState((state) => recordLessonQuestion(state, itemId))
-    const nextSitting = recordLessonRetrieval(sitting, itemId, next.feedback.correct)
-    persistSitting(nextSitting)
-    commit(next)
-  }
-
-  function answerListening(itemId: string, response: string) {
-    const answered = answerListeningQuestion(run, itemId, response)
-    if (!answered) return
-    stop()
-    setRun(answered.run)
-    setListeningFeedback(answered.feedback)
-    setListeningState((state) => recordLessonQuestion(state, itemId))
-    persistSitting(recordLessonRetrieval(sitting, itemId, answered.feedback.correct))
-  }
-
-  function skipListening() {
-    stop()
-    setListeningState((state) => suppressListening(state))
-    setAudioNotice('Listening skipped. This lesson will stay visual.')
-  }
-
-  function continueAfterFeedback() {
-    if (listeningFeedback) {
-      setListeningFeedback(null)
-      return
-    }
-    const cleared = advanceLesson(run)
-    if (cleared.complete && !sittingDone) {
+  function movePastVisualFeedback(answeredRun: LessonRun, nextSitting: typeof sitting) {
+    const cleared = advanceLesson(answeredRun)
+    if (cleared.complete && !lessonSittingComplete(nextSitting)) {
       const next = startLesson(topicRef.current)
       if (next) {
         if (next.packetIndex > cleared.packetIndex) {
@@ -248,6 +219,54 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
       }
     }
     setRun(cleared)
+  }
+
+  function answerVisual(itemId: string, response: string) {
+    const next = answerLesson(run, itemId, response)
+    if (next === run || !next.feedback) return
+    setListeningState((state) => recordLessonQuestion(state, itemId))
+    const nextSitting = recordLessonRetrieval(sitting, itemId, next.feedback.correct)
+    persistSitting(nextSitting)
+    commit(next)
+    if (next.feedback.correct) movePastVisualFeedback(next, nextSitting)
+  }
+
+  function answerListening(itemId: string, response: string) {
+    const answered = answerListeningQuestion(run, itemId, response)
+    if (!answered) return
+    stop()
+    setRun(answered.run)
+    setListeningState((state) => recordLessonQuestion(state, itemId))
+    const nextSitting = recordLessonRetrieval(sitting, itemId, answered.feedback.correct)
+    persistSitting(nextSitting)
+    if (answered.feedback.correct) {
+      setListeningFeedback(null)
+    } else {
+      setListeningFeedback(answered.feedback)
+    }
+  }
+
+  useEffect(() => {
+    if (run.feedback?.correct !== false) return
+    const answeredRun = run
+    const sittingAtAnswer = sitting
+    const timer = setTimeout(() => movePastVisualFeedback(answeredRun, sittingAtAnswer), RETEACH_VISIBLE_MS)
+    return () => clearTimeout(timer)
+    // `movePastVisualFeedback` intentionally uses the state captured for this
+    // answer; a new answer cannot occur while feedback owns the surface.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [run.feedback])
+
+  useEffect(() => {
+    if (!listeningFeedback || listeningFeedback.correct) return
+    const timer = setTimeout(() => setListeningFeedback(null), RETEACH_VISIBLE_MS)
+    return () => clearTimeout(timer)
+  }, [listeningFeedback])
+
+  function skipListening() {
+    stop()
+    setListeningState((state) => suppressListening(state))
+    setAudioNotice('Listening skipped. This lesson will stay visual.')
   }
 
   function nextSitting() {
@@ -348,45 +367,25 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
       </div>
       <p className="lesson-foot">Packet progress: {packetProgress.done} of {packetProgress.total} settled.</p>
 
-      {shownListeningFeedback && (
-        <div className={`lesson-feedback${shownListeningFeedback.correct ? ' is-correct' : ''}`} role="status">
-          <p className="lesson-verdict">{shownListeningFeedback.correct ? 'Correct' : 'Not that one'}</p>
-          {shownListeningFeedback.correct ? (
-            <p className="lesson-correction">
-              <span className="lesson-correction-glyph">{shownListeningFeedback.glyph}</span>
-              <span className="mono" aria-hidden="true">{canonicalPattern(shownListeningFeedback.pattern)}</span>
-              <span className="sr-only">{patternReading(shownListeningFeedback.pattern)}</span>
-            </p>
-          ) : (
-            <>
-              <p className="lesson-correction">You chose {shownListeningFeedback.response || 'no letter'}. The sound was {shownListeningFeedback.glyph}:</p>
-              <CharacterStage glyph={shownListeningFeedback.glyph} pattern={shownListeningFeedback.pattern}
-                playing={sounding?.glyph === shownListeningFeedback.glyph}
-                activeIndex={sounding?.glyph === shownListeningFeedback.glyph ? sounding.index : null}
-                onToggle={() => toggle(shownListeningFeedback.glyph)} />
-              <p className="lesson-foot">Listening reinforcement does not change printed packet support.</p>
-            </>
-          )}
-          <button ref={continueRef} className="lesson-next" type="button" onClick={continueAfterFeedback}>Continue</button>
+      {shownListeningFeedback && !shownListeningFeedback.correct && (
+        <div className="lesson-feedback" role="status" aria-live="assertive">
+          <p className="lesson-verdict">Not that one</p>
+          <p className="lesson-correction">You chose {shownListeningFeedback.response || 'no letter'}. The sound was {shownListeningFeedback.glyph}:</p>
+          <CharacterStage glyph={shownListeningFeedback.glyph} pattern={shownListeningFeedback.pattern}
+            playing={sounding?.glyph === shownListeningFeedback.glyph}
+            activeIndex={sounding?.glyph === shownListeningFeedback.glyph ? sounding.index : null}
+            onToggle={() => toggle(shownListeningFeedback.glyph)} />
+          <p className="lesson-foot">Listening reinforcement does not change printed packet support.</p>
         </div>
       )}
 
-      {feedback && (
-        <div className={`lesson-feedback${feedback.correct ? ' is-correct' : ''}`} role="status">
-          <p className="lesson-verdict">{feedback.correct ? 'Correct' : 'Not that one'}</p>
-          {feedback.reteach ? (
-            <>
-              <p className="lesson-correction">You keyed <span className="mono">{feedback.response ? canonicalPattern(feedback.response) : '—'}</span>. {feedback.glyph} is:</p>
-              <CharacterStage glyph={feedback.glyph} pattern={feedback.pattern} playing={sounding?.glyph === feedback.glyph}
-                activeIndex={sounding?.glyph === feedback.glyph ? sounding.index : null} onToggle={() => toggle(feedback.glyph)} />
-              <p className="lesson-foot">It comes back later, after other letters.</p>
-            </>
-          ) : (
-            <p className="lesson-correction"><span className="lesson-correction-glyph">{feedback.glyph}</span>
-              <span className="mono" aria-hidden="true">{canonicalPattern(feedback.pattern)}</span>
-              <span className="sr-only">{patternReading(feedback.pattern)}</span></p>
-          )}
-          <button ref={continueRef} className="lesson-next" type="button" onClick={continueAfterFeedback}>Continue</button>
+      {feedback && !feedback.correct && (
+        <div className="lesson-feedback" role="status" aria-live="assertive">
+          <p className="lesson-verdict">Not that one</p>
+          <p className="lesson-correction">You keyed <span className="mono">{feedback.response ? canonicalPattern(feedback.response) : '—'}</span>. {feedback.glyph} is:</p>
+          <CharacterStage glyph={feedback.glyph} pattern={feedback.pattern} playing={sounding?.glyph === feedback.glyph}
+            activeIndex={sounding?.glyph === feedback.glyph ? sounding.index : null} onToggle={() => toggle(feedback.glyph)} />
+          <p className="lesson-foot">It comes back later, after other letters.</p>
         </div>
       )}
 

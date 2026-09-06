@@ -24,7 +24,7 @@ describe('one-touch Morse key', () => {
     expect(html).toContain('Hold')
     expect(html).toContain('>Back<')
     expect(html).toContain('>Submit<')
-    expect(html).toContain('Morse key. Tap for dit; press and hold for dah.')
+    expect(html).toContain('Your press sounds while held')
     expect(html).toContain('aria-keyshortcuts=". -"')
   })
 
@@ -35,13 +35,21 @@ describe('one-touch Morse key', () => {
     expect(code).not.toMatch(/onSubmit\([^)]*(duration|startedAt|MORSE_HOLD_MS)/)
   })
 
+  it('sounds exactly while pointer input is held and stops on release/cancel', () => {
+    const code = source('./MorseKeyInput.tsx')
+    expect(code).toContain('void startTone(event.pointerId)')
+    expect(code).toContain('stopTone()')
+    expect(code).toContain('onPointerCancel={(event) => cancelPress(event.pointerId)}')
+    expect(code).toContain('onLostPointerCapture={(event) => cancelPress(event.pointerId)}')
+    expect(code).toContain('linearRampToValueAtTime(0')
+    expect(code).toContain('Never block Morse entry because sound is unavailable')
+  })
+
   it('cancels interrupted pointers without appending phantom input', () => {
     const code = source('./MorseKeyInput.tsx')
     const cancel = code.slice(code.indexOf('const cancelPress'), code.indexOf('useEffect(() =>'))
     expect(cancel).toContain('pressRef.current = null')
     expect(cancel).not.toContain('append(')
-    expect(code).toContain('onPointerCancel')
-    expect(code).toContain('onLostPointerCapture')
   })
 
   it('prevents long-press browser gestures and provides timing-free keyboard equivalents', () => {
