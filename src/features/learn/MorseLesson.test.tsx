@@ -99,7 +99,6 @@ describe('Learn picks the right surface', () => {
     const html = learn([MORSE_ID])
     expect(html).toContain('morse-lesson')
     expect(html).toContain('New letter')
-    // The old A–Z curriculum scroll is gone from Learn.
     expect(html).not.toContain('sheet-items')
     expect(html).not.toContain('Recall reference')
     expect(html).not.toContain('morse-cards')
@@ -126,10 +125,8 @@ describe('one dominant task at a time', () => {
     expect(html).toContain('New letter')
     expect(html).toContain('aria-label="Play E Morse"')
     expect(html).toContain('class="morse-mnemonic"')
-    // Exactly one character on screen: no packet of five to scroll.
     expect([...html.matchAll(/class="morse-mnemonic"/g)]).toHaveLength(1)
     expect([...html.matchAll(/lesson-glyph/g)]).toHaveLength(1)
-    expect(html).toContain('New letter')
     expect(html).not.toContain('lesson-options')
   })
 
@@ -147,7 +144,6 @@ describe('one dominant task at a time', () => {
     expect(html).toContain('data-support="cued"')
     expect(html).toMatch(/\d+ signals?/)
     expect(html).toContain('Morse"')
-    // The phrase is gone at this level; only the count and Play remain.
     expect(html).not.toContain('class="morse-phrase-beats"')
     expect([...html.matchAll(/class="lesson-option mono"/g)]).toHaveLength(3)
   })
@@ -159,7 +155,6 @@ describe('one dominant task at a time', () => {
     expect(html).toContain('lesson-keys')
     expect(html).toContain('Add a dit')
     expect(html).toContain('Add a dah')
-    // No support of any kind: no phrase, no drawing, no count, no options.
     expect(html).not.toContain('lesson-support')
     expect(html).not.toContain('class="morse-phrase-beats"')
     expect(html).not.toContain('class="morse-mnemonic"')
@@ -180,7 +175,7 @@ describe('feedback and reteaching', () => {
     expect(html).toContain('class="morse-phrase-beats"')
     expect(html).toContain('class="morse-mnemonic"')
     expect(html).toContain(`aria-label="Play ${step.entry.glyph} Morse"`)
-    expect(html).toContain('It comes back later in this lesson, after other letters.')
+    expect(html).toContain('It comes back later, after other letters.')
     expect(html).toContain('Continue')
   })
 
@@ -211,16 +206,18 @@ describe('feedback and reteaching', () => {
 describe('progress, exits and honesty about what a lesson proves', () => {
   const topic = seededTopic(MORSE_ID)
 
-  it('states lesson position and settled count in words as well as in a bar', () => {
+  it('makes packet position and the finite ten-XP sitting target explicit', () => {
     const html = render(topic, startLesson(topic) as LessonRun)
-    expect(html).toContain('Lesson 1 of 13')
-    expect(html).toContain('0 of 2 settled')
+    expect(html).toContain('Packet 1 of 13')
+    expect(html).toContain('0 / 10 XP')
+    expect(html).toContain('Packet progress: 0 of 2 settled')
     expect(html).toContain('role="progressbar"')
+    expect(html).toContain('aria-label="Lesson XP"')
     expect(html).toContain('aria-valuenow="0"')
-    expect(html).toContain('aria-valuemax="2"')
+    expect(html).toContain('aria-valuemax="10"')
   })
 
-  it('offers the next packet when one is finished, and says nothing was scored', () => {
+  it('offers the next packet when a completed run is rendered directly, without claiming formal evidence', () => {
     let run = startLesson(topic) as LessonRun
     for (let guard = 0; guard < 60 && !run.complete; guard += 1) {
       const step = currentStep(run)
@@ -233,7 +230,7 @@ describe('progress, exits and honesty about what a lesson proves', () => {
     const html = render(topic, run)
     expect(html).toContain('Packet 1 done')
     expect(html).toContain('Next packet')
-    expect(html).toContain('Nothing in the lesson is scored')
+    expect(html).toContain('Nothing in Learn is scored')
     expect(html).toContain('Test is still the only place the A–Z claim is proved')
   })
 
@@ -269,8 +266,6 @@ describe('accessibility and mobile composition', () => {
       fileURLToPath(new URL('../../styles/global.css', import.meta.url)),
       'utf8',
     )
-    // The Play control's glyph is 20px, but the button it sits in is not: the
-    // base rule gives every button 44px of height and `.icon` adds the width.
     expect(global).toMatch(/^button \{[^}]*min-height:\s*44px/m)
     expect(global).toMatch(/^button\.icon \{[^}]*min-width:\s*44px/m)
 
@@ -280,12 +275,11 @@ describe('accessibility and mobile composition', () => {
     expect(css).toMatch(/\.lesson-submit,\s*\n\.lesson-next\s*\{[^}]*min-height:\s*52px/)
   })
 
-  it('respects reduced motion without losing any information', () => {
+  it('respects reduced motion without losing any progress information', () => {
     expect(source('./MorseLesson.css')).toContain('@media (prefers-reduced-motion: reduce)')
-    // The only animation in the lesson is the progress bar's width, and the
-    // same count is stated in words in the session bar regardless.
     const html = render(topic, startLesson(topic) as LessonRun)
-    expect(html).toContain('0 of 2 settled')
+    expect(html).toContain('0 / 10 XP')
+    expect(html).toContain('Packet progress: 0 of 2 settled')
   })
 
   it('scales with the reader rather than pinning type to pixels', () => {
@@ -296,9 +290,6 @@ describe('accessibility and mobile composition', () => {
   })
 
   it('keeps focus inside the lesson as each step replaces the last control', () => {
-    // The introduction and the check are focusable regions, so advancing never
-    // drops focus to the document body when the control that was focused
-    // unmounts. The reteach panel's Continue takes focus in its place.
     const intro = render(topic, startLesson(topic) as LessonRun)
     expect(intro).toMatch(/class="lesson-introduce"[^>]*tabindex="-1"/)
 
@@ -318,7 +309,6 @@ describe('accessibility and mobile composition', () => {
     expect(solo).toContain('nothing keyed yet')
 
     const supported = render(topic, runAtFormat(topic, 'taught'))
-    // Each alternative carries a spoken reading beside its `·`/`—` rendering.
     expect(supported).toMatch(/class="sr-only">(dit|dah)/)
     expect(supported).toContain('aria-hidden="true"')
   })
@@ -344,8 +334,6 @@ describe('the lesson cannot reach retention state', () => {
   })
 
   it('leaves the one first-exposure transition where Learn has always made it', () => {
-    // `resolveStudy` still runs once when the surface opens, exactly as it did
-    // for the reading sheet. It is not driven by any retrieval.
     const learnCode = source('./Learn.tsx')
     expect(learnCode).toContain('resolveStudy(topic)')
     expect([...learnCode.matchAll(/resolveStudy/g)]).toHaveLength(2)
