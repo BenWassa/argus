@@ -16,9 +16,12 @@ interface LibraryProps {
   onStart: (mode: Mode, topicIds: string[]) => void
   /** Opens the Morse alphabet reference for a topic the lesson recognises. */
   onOpenReference: (topicId: string) => void
+  /** Durable topic navigation is owned by App/history, not only local state. */
+  onOpenTopic: (topicId: string) => void
+  onCloseTopic: () => void
   /** Set when Today sends the user here to author their first topic. */
   openFormOnMount?: boolean
-  /** Set when a full-surface route returns here and a topic should reopen. */
+  /** Current topic identity restored by browser Back/Forward when present. */
   openTopicOnMount?: string | null
 }
 
@@ -43,6 +46,8 @@ const EXAMPLE: Draft = {
 export function Library({
   onStart,
   onOpenReference,
+  onOpenTopic,
+  onCloseTopic,
   openFormOnMount = false,
   openTopicOnMount = null,
 }: LibraryProps) {
@@ -73,6 +78,7 @@ export function Library({
   const list = useRef<HTMLDivElement>(null)
   /** Set when leaving a topic page, so focus lands back on the row you left from. */
   const returnTo = useRef<string | null>(null)
+  const previousRouteTopic = useRef<string | null>(openTopicOnMount)
 
   // Derived from the live store rather than held as a snapshot, so an edit made
   // on the topic page is reflected the moment it saves.
@@ -96,6 +102,16 @@ export function Library({
   const selectable = filtered.filter((t) => t.items.length > 0)
   const chosen = selected.filter((id) => selectable.some((t) => t.id === id))
 
+  // Browser Back/Forward owns the durable topic identity. Keep the existing
+  // local page state synchronized so filters/dialogs remain local while a
+  // historical Topic entry can still be restored deterministically.
+  useEffect(() => {
+    const previous = previousRouteTopic.current
+    if (previous && !openTopicOnMount) returnTo.current = previous
+    previousRouteTopic.current = openTopicOnMount
+    setOpenId(openTopicOnMount)
+  }, [openTopicOnMount])
+
   // A topic deleted from its own page has nowhere to return to but the list.
   useEffect(() => {
     if (openId && !topics.some((t) => t.id === openId)) setOpenId(null)
@@ -113,9 +129,14 @@ export function Library({
     })
   }, [open])
 
+  function openTopic(id: string) {
+    setOpenId(id)
+    onOpenTopic(id)
+  }
+
   function leaveTopic() {
     returnTo.current = openId
-    setOpenId(null)
+    onCloseTopic()
   }
 
   function newTopic(seed: Draft | null = null) {
@@ -365,7 +386,7 @@ export function Library({
                         onDueShelf={shelf.id === 'due'}
                         selecting={selecting}
                         selected={chosen.includes(topic.id)}
-                        onOpen={() => setOpenId(topic.id)}
+                        onOpen={() => openTopic(topic.id)}
                         onToggle={() => toggleSelected(topic.id)}
                         onAction={() =>
                           topic.items.length === 0

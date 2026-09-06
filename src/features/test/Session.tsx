@@ -20,6 +20,7 @@ import {
 import { isAssistedRung, mergeItemEvidence, recordAnswer, rungFor } from '../../lib/cueLadder'
 import { selectDistractors } from '../../lib/distractors'
 import { retentionCorrectCount, type AttemptAnswer } from '../../lib/items'
+import { registerBackBlocker } from '../../lib/navigation'
 import type { Item, ItemCueEvidence, ItemEvidenceStore, Topic } from '../../lib/types'
 import { ProgressiveCard, type ProgressiveAnswer } from './ProgressiveCard'
 import { testCardTextClass } from './textScale'
@@ -156,6 +157,21 @@ export function Session({ topicIds, onExit }: SessionProps) {
   viewRef.current = view
   // Closed the moment a grade is taken, reopened only when the next card is up.
   const gradeLock = useRef(false)
+  // Kept current without re-registering the global blocker on every answer.
+  const backGuard = useRef<() => boolean>(() => false)
+  backGuard.current = () => {
+    if (confirmingExit) {
+      setConfirmingExit(false)
+      return true
+    }
+    if (tally.total > 0) {
+      setConfirmingExit(true)
+      return true
+    }
+    return false
+  }
+
+  useEffect(() => registerBackBlocker(() => backGuard.current()), [])
 
   const phase: Phase = view.kind
   const index = view.kind === 'done' ? deck.length : view.index

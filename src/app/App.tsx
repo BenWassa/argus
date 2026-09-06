@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { AppShell } from '../components/layout/AppShell'
 import { shouldShowSplash, SplashScreen } from '../components/SplashScreen'
-import { LibraryProvider } from '../lib/store'
+import { LibraryProvider, useLibrary } from '../lib/store'
 import { Today } from '../features/today/Today'
 import { Library } from '../features/library/Library'
 import { Progress } from '../features/progress/Progress'
@@ -9,7 +9,19 @@ import { Data } from '../features/data/Data'
 import { Session } from '../features/test/Session'
 import { Learn } from '../features/learn/Learn'
 import { MorseReference } from '../features/learn/MorseReference'
-import type { Mode, View } from '../lib/types'
+import {
+  backNavigation,
+  consumeBackBlocker,
+  pushNavigationState,
+  readNavigationState,
+  replaceNavigationState,
+  sameRoute,
+  type AppRoute,
+  type ParentRoute,
+} from '../lib/navigation'
+import type { Mode, Topic, View } from '../lib/types'
+
+const ROOT_ROUTE: ParentRoute = { kind: 'section', view: 'today' }
 
 export function App() {
   const [showSplash, setShowSplash] = useState(shouldShowSplash)
@@ -29,62 +41,244 @@ export function App() {
   )
 }
 
-interface Run {
-  mode: Mode
-  topicIds: string[]
+function safeParent(route: ParentRoute, topics: Topic[]): ParentRoute {
+  if (route.kind === 'section') return route
+  return topics.some((topic) => topic.id === route.topicId)
+    ? route
+    : { kind: 'section', view: 'library' }
+}
+
+/**
+ * Validate identifiers against the live library. A restored run is deliberately
+ * not reconstructed: Test/Learn session state is in memory, not history, so a
+ * reload/Forward traversal falls back to the route that launched it rather than
+ * silently starting a fresh scored attempt.
+ */
+function restoreRoute(route: AppRoute, topics: Topic[], restoreRun: boolean): AppRoute {
+  if (route.kind === 'section') return route
+
+  if (route.kind === 'topic') return safeParent(route, topics)
+
+  const origin = safeParent(route.origin, topics)
+
+  if (route.kind === 'reference') {
+    return topics.some((topic) => topic.id === route.topicId)
+      ? { ...route, origin }
+      : origin
+  }
+
+  if (!restoreRun) return origin
+  return route.topicIds.every((id) => topics.some((topic) => topic.id === id))
+    ? { ...route, origin }
+    : origin
+}
+
+function liveRoute(route: AppRoute, topics: Topic[]): AppRoute {
+  if (route.kind === 'run') {
+    const origin = safeParent(route.origin, topics)
+    return route.topicIds.every((id) => topics.some((topic) => topic.id === id))
+      ? { ...route, origin }
+      : origin
+  }
+  return restoreRoute(route, topics, true)
+}
+
+function parentFor(route: AppRoute): ParentRoute {
+  if (route.kind === 'section' || route.kind === 'topic') return route
+  return route.origin
+}
+
+function focusAfterTraversal(previous: AppRoute, next: AppRoute) {
+  if (sameRoute(previous, next)) return
+  if (next.kind !== 'section') return
+
+  // Topic -> Library has a stronger target: Library restores the row that
+  // launched the Topic, with #main as its own fallback when that row vanished.
+  if (previous.kind === 'topic' && next.view === 'library') return
+
+  window.requestAnimationFrame(() => document.getElementById('main')?.focus())
 }
 
 function Routes() {
-  const [view, setView] = useState<View>('today')
-  const [run, setRun] = useState<Run | null>(null)
-  /**
-   * The Morse alphabet reference (#48). It is a surface, not a third product
-   * mode: `Mode` stays `learn | test`, the scheduler never routes to it, and it
-   * writes nothing. It owns the whole screen the way Learn and Test do, so its
-   * identity is held here rather than inside Library, and it is held as a plain
-   * serializable topic id so #45 can turn it into a history route without
-   * changing anything about this state.
-   */
-  const [reference, setReference] = useState<string | null>(null)
+  const { topics } = useLibrary()
+  const [initialHistory] = useState(readNavigationState)
+  const [route, setRoute] = useState<AppRoute>(() =>
+    restoreRoute(initialHistory?.route ?? ROOT_ROUTE, topics, false),
+  )
   const [authorOnEntry, setAuthorOnEntry] = useState(false)
-  const [topicOnEntry, setTopicOnEntry] = useState<string | null>(null)
 
-  function start(mode: Mode, topicIds: string[]) {
-    if (topicIds.length > 0) setRun({ mode, topicIds })
+  const routeRef = useRef(route)
+  routeRef.current = route
+  const topicsRef = useRef(topics)
+  topicsRef.current = topics
+  const historyIndex = useRef(initialHistory?.index ?? 0)
+  const blockedBackBounce = useRef(false)
+
+  useEffect(() => {
+    // Seed/normalise the existing document entry. Never push a synthetic root:
+    // Today must remain the final Argus boundary before browser/platform exit.
+    replaceNavigationState(routeRef.current, historyIndex.current)
+
+    function onPopState(event: PopStateEvent) {
+      const state = readNavigationState(event.state)
+      if (!state) {
+        // This is not an Argus-owned entry. Do not trap it or repush Today; the
+        // browser/OS owns traversal beyond the Argus root.
+        return
+      }
+
+      // A guarded Back has already moved the browser cursor to the prior entry.
+      // `history.forward()` returns it to the route that never actually left;
+      // this popstate is only that cursor correction, not a route restoration.
+      if (blockedBackBounce.current && state.index === historyIndex.current) {
+        blockedBackBounce.current = false
+        return
+      }
+
+      const direction = Math.sign(state.index - historyIndex.current)
+
+      if (direction < 0 && consumeBackBlocker()) {
+        blockedBackBounce.current = true
+        // The browser cursor already moved when popstate fired. Bounce to the
+        // still-current Argus entry without applying the target route; the
+        // blocker has reused the surface's existing close/confirmation policy.
+        window.history.forward()
+        return
+      }
+
+      // A completed/exited run has no persistent in-progress state to restore.
+      // Forward into its old entry is therefore declined rather than replaying
+      // Learn/Test side effects or creating a fresh scored attempt.
+      if (direction > 0 && state.route.kind === 'run') {
+        window.history.back()
+        return
+      }
+
+      const previous = routeRef.current
+      const next = restoreRoute(state.route, topicsRef.current, false)
+      if (!sameRoute(next, state.route)) replaceNavigationState(next, state.index)
+
+      historyIndex.current = state.index
+      routeRef.current = next
+      setAuthorOnEntry(false)
+      setRoute(next)
+      focusAfterTraversal(previous, next)
+    }
+
+    window.addEventListener('popstate', onPopState)
+    return () => window.removeEventListener('popstate', onPopState)
+  }, [])
+
+  // Topic deletion is itself a meaningful return to Library. Use the existing
+  // previous Library entry instead of replacing the Topic entry with a second
+  // consecutive Library stop that would require an extra system Back.
+  useEffect(() => {
+    const current = routeRef.current
+    if (current.kind === 'topic' && !topics.some((topic) => topic.id === current.topicId)) {
+      backNavigation()
+      return
+    }
+
+    // Other live-library changes can invalidate a run/reference origin. Replace
+    // those in place so stale history degrades safely without a phantom stop.
+    const next = liveRoute(current, topics)
+    if (sameRoute(next, current)) return
+    replaceNavigationState(next, historyIndex.current)
+    routeRef.current = next
+    setRoute(next)
+  }, [topics])
+
+  // Today -> Library authoring is intentionally one-shot UI state. History
+  // Forward can restore Library, but must not replay opening the form.
+  useEffect(() => {
+    if (!authorOnEntry) return
+    if (route.kind === 'section' && route.view === 'library') setAuthorOnEntry(false)
+  }, [authorOnEntry, route])
+
+  function navigate(next: AppRoute, replace = false) {
+    if (sameRoute(next, routeRef.current)) return
+
+    if (replace) replaceNavigationState(next, historyIndex.current)
+    else historyIndex.current = pushNavigationState(next, historyIndex.current)
+
+    routeRef.current = next
+    setRoute(next)
+  }
+
+  function goBack() {
+    backNavigation()
+  }
+
+  function start(mode: Mode, topicIds: string[], replace = false) {
+    if (topicIds.length === 0) return
+    const current = routeRef.current
+    const origin = replace && current.kind === 'run' ? current.origin : parentFor(current)
+    navigate({ kind: 'run', mode, topicIds, origin }, replace)
   }
 
   function openReference(topicId: string) {
-    setRun(null)
-    setReference(topicId)
+    const current = routeRef.current
+    const topicRoute: ParentRoute = { kind: 'topic', topicId }
+    const reference: AppRoute = { kind: 'reference', topicId, origin: topicRoute }
+
+    if (current.kind === 'run') {
+      // Current-main behaviour already abandons Learn and closes the reference
+      // to this Topic. If Learn itself came from the Topic, replacing Learn is
+      // enough because that Topic entry is already directly behind it.
+      if (current.origin.kind === 'topic' && current.origin.topicId === topicId) {
+        navigate(reference, true)
+        return
+      }
+
+      // Learn can also launch from Today or Library. There is then no Topic
+      // entry behind the run, so turn the run entry into Topic and place the
+      // read-only reference above it. Back closes Reference -> Topic -> the
+      // original section, matching the pre-#45 product flow without replaying
+      // Learn or creating a duplicate section stop.
+      replaceNavigationState(topicRoute, historyIndex.current)
+      historyIndex.current = pushNavigationState(reference, historyIndex.current)
+      routeRef.current = reference
+      setRoute(reference)
+      return
+    }
+
+    const origin = current.kind === 'topic' ? current : parentFor(current)
+    navigate({ kind: 'reference', topicId, origin })
   }
 
-  /** Closing the reference restores the topic it was opened from. */
-  function closeReference() {
-    const from = reference
-    setReference(null)
-    setTopicOnEntry(from)
-    setView('library')
+  function navigateSection(next: View) {
+    const current = routeRef.current
+    setAuthorOnEntry(false)
+
+    if (current.kind === 'section' && current.view === next) return
+    // Library is already the active section while a Topic page is open. Its
+    // nav button therefore behaves like the page's visible Back control rather
+    // than pushing a duplicate Library stop.
+    if (current.kind === 'topic' && next === 'library') {
+      goBack()
+      return
+    }
+
+    navigate({ kind: 'section', view: next })
   }
 
-  // A run is a route, not a modal: it owns the whole surface so nothing
-  // competes with the material, and leaving it is an explicit act.
-  if (run) {
+  if (route.kind === 'run') {
     return (
       <div className="app-shell session-shell">
         <main id="main" tabIndex={-1}>
-          {run.mode === 'learn' ? (
+          {route.mode === 'learn' ? (
             <Learn
-              key={run.topicIds.join()}
-              topicIds={run.topicIds}
-              onExit={() => setRun(null)}
-              onTest={(ids) => start('test', ids)}
+              key={route.topicIds.join()}
+              topicIds={route.topicIds}
+              onExit={goBack}
+              onTest={(ids) => start('test', ids, true)}
               onReference={openReference}
             />
           ) : (
             <Session
-              key={`${run.mode}-${run.topicIds.join()}`}
-              topicIds={run.topicIds}
-              onExit={() => setRun(null)}
+              key={`${route.mode}-${route.topicIds.join()}`}
+              topicIds={route.topicIds}
+              onExit={goBack}
             />
           )}
         </main>
@@ -92,31 +286,27 @@ function Routes() {
     )
   }
 
-  if (reference) {
+  if (route.kind === 'reference') {
     return (
       <div className="app-shell session-shell">
         <main id="main" tabIndex={-1}>
-          <MorseReference onExit={closeReference} />
+          <MorseReference onExit={goBack} />
         </main>
       </div>
     )
   }
 
+  const view: View = route.kind === 'topic' ? 'library' : route.view
+  const topicId = route.kind === 'topic' ? route.topicId : null
+
   return (
-    <AppShell
-      view={view}
-      onNavigate={(next) => {
-        setAuthorOnEntry(false)
-        setTopicOnEntry(null)
-        setView(next)
-      }}
-    >
+    <AppShell view={view} onNavigate={navigateSection}>
       {view === 'today' && (
         <Today
           onStart={start}
           onGoToLibrary={() => {
             setAuthorOnEntry(true)
-            setView('library')
+            navigate({ kind: 'section', view: 'library' })
           }}
         />
       )}
@@ -125,7 +315,9 @@ function Routes() {
           onStart={start}
           onOpenReference={openReference}
           openFormOnMount={authorOnEntry}
-          openTopicOnMount={topicOnEntry}
+          openTopicOnMount={topicId}
+          onOpenTopic={(id) => navigate({ kind: 'topic', topicId: id })}
+          onCloseTopic={goBack}
         />
       )}
       {view === 'progress' && <Progress />}
