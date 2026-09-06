@@ -132,4 +132,47 @@ describe('finite Morse Learn sittings', () => {
     expect(resumed.entries.some((entry) => entry.support !== 'settled')).toBe(true)
     expect(newLessonSitting().retrievals).toBe(0)
   })
+
+  it('can settle a packet and continue the same sitting in the next packet', () => {
+    let topic = morseTopic()
+    let run = startLesson(topic) as LessonRun
+    let sitting = newLessonSitting()
+    const firstPacket = run.packetIndex
+
+    for (let guard = 0; guard < 200 && !lessonSittingComplete(sitting); guard += 1) {
+      const step = currentStep(run)
+      if (!step) {
+        if (!run.complete) throw new Error('No step before packet readiness.')
+        topic = withLessonProgress(topic, lessonProgressOf(run))
+        run = startLesson(topic) as LessonRun
+        continue
+      }
+      if (step.kind === 'introduce') {
+        run = introduceLesson(run, step.entry.itemId)
+        topic = withLessonProgress(topic, lessonProgressOf(run))
+        continue
+      }
+
+      run = answerLesson(run, step.entry.itemId, step.entry.pattern)
+      if (!run.feedback) throw new Error('Expected feedback.')
+      sitting = recordLessonRetrieval(sitting, step.entry.itemId, true)
+      topic = withLessonProgress(topic, lessonProgressOf(run))
+      if (!lessonSittingComplete(sitting)) {
+        run = advanceLesson(run)
+        if (run.complete) run = startLesson(topic) as LessonRun
+      }
+    }
+
+    expect(sitting.retrievals).toBe(LESSON_RETRIEVAL_TARGET)
+    expect(run.packetIndex).toBeGreaterThan(firstPacket)
+  })
+
+  it('keeps the sitting counter runtime-only and outside durable learner state', () => {
+    const sitting = recordLessonRetrieval(newLessonSitting(), 'item-a', true)
+    const topic = morseTopic()
+    expect(sitting.retrievals).toBe(1)
+    expect(topic).not.toHaveProperty('xp')
+    expect(topic).not.toHaveProperty('lessonSitting')
+    expect(topic).not.toHaveProperty('revisitItemIds')
+  })
 })
