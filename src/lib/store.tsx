@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { clearLibrary, emptyLibrary, loadLibraryWithReport, reconcileLoadedLibrary, saveLibrary } from './storage'
 import { NO_RECONCILIATION, type CatalogReconciliation } from './catalog'
+import { clearAllLessonSittings } from './morseLessonSittingStorage'
 import type { CurrentLibrary, Topic } from './types'
 
 interface LibraryStore {
@@ -52,6 +53,7 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
 
   const resetLibrary = useCallback(() => {
     clearLibrary()
+    clearAllLessonSittings()
     setLibrary(emptyLibrary())
     setCatalogReport(NO_RECONCILIATION)
   }, [])
