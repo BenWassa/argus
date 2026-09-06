@@ -97,14 +97,19 @@ export type ItemEvidenceStore = Record<string, ItemCueEvidence>
 export const LESSON_SUPPORTS = ['taught', 'cued', 'solo', 'settled'] as const
 export type LessonSupport = (typeof LESSON_SUPPORTS)[number]
 
-/**
- * Learning state: the guided lesson's per-item support level, keyed by the same
- * durable item id as `ItemEvidenceStore`. One enum per item is the whole
- * durable footprint of the Learn lesson — everything else the lesson needs
- * (which packet, which step, which queue) is derived, so there is no second
- * source of truth to migrate or to drift.
- */
+/** Per-item durable Learn support, keyed by the same stable id as Test evidence. */
 export type ItemLessonStore = Record<string, LessonSupport>
+
+/**
+ * Durable progress through the current finite Morse Learn sitting (#59).
+ * This is formative session bookkeeping only: it resumes the visible 0–10
+ * sitting across exit/reload and cannot satisfy Test or scheduler evidence.
+ */
+export interface MorseLessonSittingProgress {
+  retrievals: number
+  correct: number
+  revisitItemIds: string[]
+}
 
 /**
  * A narrow Morse Learn block. These fields are content definition: glyph,
@@ -199,12 +204,16 @@ export interface Topic {
   /** v5 acquisition evidence. Optional only for legacy/internal Topic fixtures. */
   itemEvidence?: ItemEvidenceStore
   /**
-   * Formative Learn-lesson progress (#48). Additive within v5: absent means
-   * "this learner has no lesson progress", which is exactly right for every
-   * record written before the guided lesson existed, so there is nothing to
-   * migrate. Portable through export/import like every other durable field.
+   * Formative Learn-lesson per-item support (#48). Additive within v5: absent
+   * means this learner has no item support progress yet.
    */
   lessonProgress?: ItemLessonStore
+  /**
+   * Current finite Morse Learn sitting (#59). Additive within v5: absent means
+   * a fresh 0/10 sitting. This is portable formative state only and is never
+   * formal evidence.
+   */
+  lessonSitting?: MorseLessonSittingProgress
   /**
    * Catalog provenance. Optional only on the broad in-memory Topic shape so
    * seed authoring and old fixtures stay structurally compatible; storage
