@@ -32,7 +32,6 @@ function answer(evidence: ItemCueEvidence | undefined, item: IdentifiedItem, cor
   })
 }
 
-/** Answer `count` times in a row, always at whatever rung the item is on. */
 function run(item: IdentifiedItem, outcomes: boolean[], latency = () => 900): ItemCueEvidence | undefined {
   let evidence: ItemCueEvidence | undefined
   for (const correct of outcomes) evidence = answer(evidence, item, correct, latency())
@@ -40,7 +39,7 @@ function run(item: IdentifiedItem, outcomes: boolean[], latency = () => 900): It
 }
 
 describe('the cue ladder', () => {
-  it('runs rich recognition to delayed choice to reduced cue to free production to free reception', () => {
+  it('fades support while keeping printed letter-to-Morse response as production', () => {
     expect(CUE_RUNGS.map((rung) => rung.id)).toEqual([
       'rich-recognition',
       'delayed-recognition',
@@ -49,9 +48,9 @@ describe('the cue ladder', () => {
       'free-reception',
     ])
     expect(CUE_RUNGS.map((rung) => rung.response)).toEqual([
-      'choice',
-      'choice',
-      'choice',
+      'production',
+      'production',
+      'production',
       'production',
       'entry',
     ])
@@ -64,11 +63,11 @@ describe('the cue ladder', () => {
     expect(rungIndexFor(forward, emptyCueEvidence())).toBe(RICH_RUNG)
   })
 
-  it('gives a retrieval opportunity before alternatives on every rung after the first', () => {
-    expect(CUE_RUNGS[0].choiceDelayMs).toBe(0)
-    for (const rung of CUE_RUNGS.slice(1)) {
-      if (rung.response !== 'choice') continue
-      expect(rung.choiceDelayMs).toBeGreaterThan(0)
+  it('uses no visual multiple-choice delay or answer-revealing audio on production rungs', () => {
+    for (const rung of CUE_RUNGS.slice(0, FREE_RECEPTION_RUNG)) {
+      expect(rung.response).toBe('production')
+      expect(rung.choiceDelayMs).toBe(0)
+      expect(rung.allowsAudio).toBe(false)
     }
   })
 
@@ -79,7 +78,6 @@ describe('the cue ladder', () => {
         expect(revealedElementCount(rung, length)).toBeGreaterThanOrEqual(0)
       }
     }
-    // A single-element character has nothing that can be partially disclosed.
     expect(revealedElementCount(CUE_RUNGS[0], 1)).toBe(0)
     expect(revealedElementCount(CUE_RUNGS[0], 4)).toBe(2)
     expect(revealedElementCount(CUE_RUNGS[1], 4)).toBe(1)
@@ -92,6 +90,7 @@ describe('the cue ladder', () => {
       expect(rung.allowsArtwork).toBe(false)
       expect(rung.showsLength).toBe(false)
       expect(rung.revealPolicy).toBe('none')
+      expect(rung.allowsAudio).toBe(false)
     }
   })
 })
@@ -121,7 +120,6 @@ describe('fading', () => {
     expect(rungIndexFor(forward, afterError)).toBe(1)
     const afterSecondError = answer(afterError, forward, false)
     expect(rungIndexFor(forward, afterSecondError)).toBe(0)
-    // Never below the richest rung, however many errors follow.
     const afterThird = answer(afterSecondError, forward, false)
     expect(rungIndexFor(forward, afterThird)).toBe(0)
   })
@@ -147,7 +145,6 @@ describe('fading', () => {
     expect(rungIndexFor(both, atReception)).toBe(FREE_RECEPTION_RUNG)
     const slipped = answer(atReception, both, false)
     expect(rungIndexFor(both, slipped)).toBe(2)
-    // Climbing back returns to production first, not straight to reception.
     const recovering = answer(answer(slipped, both, true), both, true)
     expect(rungIndexFor(both, recovering)).toBe(FREE_PRODUCTION_RUNG)
   })
@@ -157,7 +154,6 @@ describe('fading', () => {
     const slow = run(forward, [true, true, true, true], () => 45_000)
     expect(fast?.directions['prompt-to-answer']?.lastLatencyMs).toBe(120)
     expect(slow?.directions['prompt-to-answer']?.lastLatencyMs).toBe(45_000)
-    // Identical outcomes, wildly different latencies, identical cue state.
     expect(rungIndexFor(forward, fast)).toBe(rungIndexFor(forward, slow))
     expect(fast?.cue).toBe(slow?.cue)
   })
@@ -216,14 +212,11 @@ describe('cue state stays separate from retention state', () => {
   })
 
   it('leaves the scheduler the sole authority over completion', () => {
-    // The same attempt resolves identically whether cue evidence is present,
-    // absent, at the richest rung or at the top of the ladder.
     const bare = resolveAttempt(topic, 2, 2)
     const cued = resolveAttempt(withItemEvidence(topic, forward.id, run(forward, Array(20).fill(true))!), 2, 2)
     expect(cued.to).toBe(bare.to)
     expect(cued.completed).toBe(bare.completed)
     expect(cued.gapDays).toBe(bare.gapDays)
-    // First exposure resolves identically whatever cue evidence exists.
     const { itemEvidence: _plain, ...plainStudy } = resolveStudy({ ...topic, status: 'unstarted' })
     const { itemEvidence: _withCue, ...cuedStudy } = resolveStudy(
       withItemEvidence({ ...topic, status: 'unstarted' }, forward.id, { cue: 'free', directions: {} }),
