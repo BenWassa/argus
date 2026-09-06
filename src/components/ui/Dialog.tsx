@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, type ReactNode } from 'react'
+import { registerBackBlocker } from '../../lib/navigation'
 
 interface DialogProps {
   title: string
@@ -29,6 +30,15 @@ export function Dialog({ title, onClose, children, closeLabel }: DialogProps) {
     const previousOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
 
+    // Browser/system Back is another close affordance for a modal surface. The
+    // App history adapter bounces the attempted route pop, while this callback
+    // reuses the dialog's existing close policy (including TopicForm's dirty
+    // discard safeguard) instead of inventing a parallel Android path.
+    const unregisterBack = registerBackBlocker(() => {
+      close.current()
+      return true
+    })
+
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === 'Escape') {
         e.stopPropagation()
@@ -54,6 +64,7 @@ export function Dialog({ title, onClose, children, closeLabel }: DialogProps) {
 
     document.addEventListener('keydown', onKeyDown, true)
     return () => {
+      unregisterBack()
       document.removeEventListener('keydown', onKeyDown, true)
       document.body.style.overflow = previousOverflow
       // Focus return runs on the next frame, after the list behind the dialog
