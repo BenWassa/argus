@@ -15,6 +15,12 @@ import {
   type LessonEntry,
   type LessonRun,
 } from '../../lib/morseLesson'
+import {
+  LESSON_RETRIEVAL_TARGET,
+  lessonSittingComplete,
+  newLessonSitting,
+  recordLessonRetrieval,
+} from '../../lib/morseLessonSitting'
 import { useLibrary } from '../../lib/store'
 import type { Topic } from '../../lib/types'
 import { MorseMnemonic } from './MorseMnemonic'
@@ -26,20 +32,19 @@ import './MorseLesson.css'
 /**
  * The guided Morse lesson: one dominant task at a time.
  *
- * Every rule lives in `src/lib/morseLesson.ts`. This component renders the step
- * that module hands it and reports one answer back, so what a learner is asked
- * next is decided by a pure function that can be exercised exhaustively without
- * a DOM.
+ * Every acquisition rule lives in `src/lib/morseLesson.ts`. A separate tiny
+ * runtime policy in `morseLessonSitting.ts` gives each visit a guaranteed finite
+ * boundary: ten answered retrievals. Introductions and reteach screens do not
+ * consume that budget, and correctness still affects support/reteaching rather
+ * than whether the learner is allowed to finish the sitting.
  *
  * **Nothing here is scored.** The component imports the lesson policy and the
  * store, and writes exactly one field: `Topic.lessonProgress`, through
  * `withLessonProgress`, which copies every other field of the topic through
  * verbatim. It does not import `scheduling.ts` or `cueLadder.ts`, so no
  * retrieval on this surface can record a retention attempt, move a scheduler
- * timestamp, write directional evidence or award completion. The one scheduler
- * transition Learn has always made — first exposure moving a topic off
- * `unstarted` — is still made once by `Learn.tsx` when the surface opens, and
- * is not affected by anything the learner answers here.
+ * timestamp, write directional evidence or award completion. Session XP is
+ * runtime-only and is never written to the topic.
  */
 
 interface MorseLessonProps {
@@ -208,12 +213,15 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
   const stepRef = useRef<HTMLDivElement>(null)
 
   const [run, setRun] = useState<LessonRun>(initialRun)
+  const [sitting, setSitting] = useState(newLessonSitting)
+  const [packetsAdvanced, setPacketsAdvanced] = useState(0)
   // The topic as this lesson has since written it. The prop is the snapshot
   // `Learn` took on entry, so starting the next packet has to read from here
   // rather than from a value that predates every support level just earned.
   const topicRef = useRef<Topic>(topic)
 
-  const step = run.feedback ? null : currentStep(run)
+  const sittingDone = lessonSittingComplete(sitting)
+  const step = run.feedback || sittingDone ? null : currentStep(run)
   const progress = lessonProgressCount(run)
   // Alternatives are a pure function of the run, so there is nothing to
   // memoise against a reshuffle: the same step always produces the same three.
@@ -224,21 +232,16 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
    * Every step replaces the control the learner just used, so focus has to be
    * placed deliberately or it falls to the document body and a keyboard or
    * screen-reader user loses the lesson. Feedback takes focus to Continue; a
-   * new step takes it to the step region, which announces the task; the end of
-   * a packet takes it to the heading that says so.
+   * new step takes it to the step region; a sitting/programme endpoint takes it
+   * to the summary heading.
    */
   useEffect(() => {
-    if (run.complete || run.finished) headingRef.current?.focus()
+    if (run.complete || run.finished || (sittingDone && !run.feedback)) headingRef.current?.focus()
     else if (run.feedback) continueRef.current?.focus({ preventScroll: true })
     else stepRef.current?.focus({ preventScroll: true })
-  }, [run.step, run.feedback, run.complete, run.finished])
+  }, [run.step, run.feedback, run.complete, run.finished, sittingDone])
 
-  /**
-   * Persist after every step. A lesson happens on a phone and gets interrupted;
-   * losing support levels already earned to an incoming call is exactly the
-   * resume failure #48 asks to avoid. `withLessonProgress` returns the same
-   * topic object when nothing changed, so this writes only on real change.
-   */
+  /** Persist only durable acquisition support after every lesson step. */
   function commit(next: LessonRun) {
     setRun(next)
     const updated = withLessonProgress(topicRef.current, lessonProgressOf(next))
@@ -248,6 +251,47 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
     }
   }
 
+  /**
+   * Count an answered retrieval once. Session XP is deliberately independent of
+   * correctness; the acquisition policy already uses correctness to fade or
+   * restore support and to schedule weak items later.
+   */
+  function answerStep(itemId: string, response: string) {
+    const next = answerLesson(run, itemId, response)
+    if (next === run || !next.feedback) return
+    setSitting((current) => recordLessonRetrieval(current, itemId, next.feedback?.correct ?? false))
+    commit(next)
+  }
+
+  /**
+   * Finish feedback, then cross a packet boundary automatically if the sitting
+   * still has retrievals left. Packet readiness remains real; it simply no
+   * longer dictates how long the current sitting must last.
+   */
+  function continueAfterFeedback() {
+    const cleared = advanceLesson(run)
+    if (cleared.complete && !sittingDone) {
+      const next = startLesson(topicRef.current)
+      if (next) {
+        if (next.packetIndex > cleared.packetIndex) {
+          setPacketsAdvanced((count) => count + (next.packetIndex - cleared.packetIndex))
+        }
+        setRun(next)
+        return
+      }
+    }
+    setRun(cleared)
+  }
+
+  function nextSitting() {
+    const next = startLesson(topicRef.current)
+    if (!next) return
+    setRun(next)
+    setSitting(newLessonSitting())
+    setPacketsAdvanced(0)
+  }
+
+  /** Legacy/direct-render fallback; normal in-product flow crosses automatically. */
   function nextPacket() {
     const next = startLesson(topicRef.current)
     if (next) setRun(next)
@@ -260,7 +304,7 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
           {run.finished ? 'Lesson' : `Lesson ${run.packetIndex + 1} of ${run.packetCount}`}
         </span>
         <span className="tabular">
-          {run.finished ? 'All packets settled' : `${progress.done} of ${progress.total} settled`}
+          {run.finished ? 'All packets settled' : `${sitting.retrievals} / ${LESSON_RETRIEVAL_TARGET} XP`}
         </span>
       </p>
       <button className="ghost small" type="button" onClick={onExit}>
@@ -293,7 +337,43 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
     )
   }
 
-  if (run.complete) {
+  if (sittingDone && !run.feedback) {
+    const packetsSettled = packetsAdvanced + (run.complete ? 1 : 0)
+    const revisit = sitting.revisitItemIds.length
+    return (
+      <section className="session morse-lesson">
+        {bar}
+        <h1 ref={headingRef} tabIndex={-1} className="lesson-title">
+          Lesson complete
+        </h1>
+        <p className="lesson-lede">
+          <strong>{sitting.retrievals} XP</strong> · {sitting.correct} correct · {revisit}{' '}
+          {revisit === 1 ? 'letter' : 'letters'} to revisit
+        </p>
+        {packetsSettled > 0 && (
+          <p className="lesson-foot">
+            {packetsSettled === 1 ? '1 packet settled this lesson.' : `${packetsSettled} packets settled this lesson.`}
+          </p>
+        )}
+        <div className="lesson-exits">
+          <button type="button" onClick={nextSitting}>
+            Next lesson
+          </button>
+          <button className="ghost" type="button" onClick={onExit}>
+            Stop here
+          </button>
+        </div>
+        <p className="lesson-foot">
+          Lesson XP is only this sitting's progress. Test is still the only place the A–Z claim is proved.
+        </p>
+      </section>
+    )
+  }
+
+  // Defensive/direct-render fallback for a completed run supplied from outside
+  // the normal finite-sitting flow. Real lesson play crosses packet boundaries
+  // automatically until the ten-retrieval sitting ends.
+  if (run.complete && sitting.retrievals === 0) {
     const last = run.packetIndex + 1 >= run.packetCount
     return (
       <section className="session morse-lesson">
@@ -341,6 +421,9 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
       >
         <span className="lesson-progress-fill" style={{ inlineSize: `${(progress.done / progress.total) * 100}%` }} />
       </div>
+      <p className="sr-only">
+        {progress.done} of {progress.total} settled. {sitting.retrievals} of {LESSON_RETRIEVAL_TARGET} lesson XP earned.
+      </p>
 
       {feedback && (
         <div className={`lesson-feedback${feedback.correct ? ' is-correct' : ''}`} role="status">
@@ -372,7 +455,7 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
               <span className="sr-only">{patternReading(feedback.pattern)}</span>
             </p>
           )}
-          <button ref={continueRef} className="lesson-next" type="button" onClick={() => commit(advanceLesson(run))}>
+          <button ref={continueRef} className="lesson-next" type="button" onClick={continueAfterFeedback}>
             Continue
           </button>
         </div>
@@ -408,7 +491,7 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
           options={options}
           playing={sounding?.glyph === step.entry.glyph}
           onToggle={() => toggle(step.entry.glyph)}
-          onAnswer={(response) => commit(answerLesson(run, step.entry.itemId, response))}
+          onAnswer={(response) => answerStep(step.entry.itemId, response)}
         />
       )}
 
