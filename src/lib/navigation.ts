@@ -20,6 +20,7 @@ export interface ArgusHistoryState {
 type BackBlocker = () => boolean
 
 const backBlockers: { token: symbol; handle: BackBlocker }[] = []
+let bypassNextBackBlocker = false
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
@@ -85,6 +86,16 @@ export function pushNavigationState(route: AppRoute, currentIndex: number): numb
   return nextIndex
 }
 
+/**
+ * Visible Argus Back/Close actions already passed their own product safeguards.
+ * Mark exactly the resulting traversal so a Test/dialog blocker does not ask a
+ * second time when the browser emits popstate for that deliberate history.back.
+ */
+export function backNavigation() {
+  bypassNextBackBlocker = true
+  window.history.back()
+}
+
 export function sameRoute(left: AppRoute, right: AppRoute): boolean {
   if (left.kind !== right.kind) return false
 
@@ -128,11 +139,16 @@ export function registerBackBlocker(handle: BackBlocker): () => void {
 }
 
 export function consumeBackBlocker(): boolean {
-  const blocker = backBlockers.at(-1)
+  if (bypassNextBackBlocker) {
+    bypassNextBackBlocker = false
+    return false
+  }
+  const blocker = backBlockers[backBlockers.length - 1]
   return blocker ? blocker.handle() : false
 }
 
 /** Test-only reset for module-global blocker state. */
 export function clearBackBlockersForTests() {
   backBlockers.splice(0, backBlockers.length)
+  bypassNextBackBlocker = false
 }
