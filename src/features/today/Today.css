@@ -56,6 +56,16 @@
   color: var(--warning);
 }
 
+/* Where a multi-sitting acquisition programme has actually got to. It sits
+   below the row's own meta line at text weight, because it explains the verb
+   rather than competing with it, and it wraps on a narrow screen instead of
+   squeezing the title. */
+.docket-detail {
+  color: var(--muted);
+  font-size: var(--t-small);
+  line-height: 1.4;
+}
+
 .today-actions {
   display: grid;
   justify-items: stretch;

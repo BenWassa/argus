@@ -8,8 +8,13 @@ continuous material.
 Primary code:
 
 - `src/lib/morseLesson.ts` — durable printed-acquisition and packet policy;
-- `src/lib/morseLessonSitting.ts` — runtime-only finite-sitting policy;
-- `src/lib/morseLessonListening.ts` — runtime-only listening-question policy;
+- `src/lib/morseLessonSitting.ts` — finite-sitting policy over the durable
+  `Topic.lessonSitting` field (#66);
+- `src/lib/morseLessonSittingStorage.ts` — one-way migration door for the retired
+  `argus.morse-learn-sittings.v1` sidecar; it can read and delete, never write;
+- `src/lib/morseLessonListening.ts` — within-lesson listening-question policy;
+- `src/lib/journey.ts` — the shared learner-journey derivation, and the
+  acquisition-readiness anchor Learn stamps (#67);
 - `src/features/learn/MorseLesson.tsx` — guided lesson surface;
 - `src/features/morse/MorseKeyInput.tsx` — shared letter → Morse response control;
 - `src/features/learn/MorseReference.tsx` — A–Z lookup surface.
@@ -28,17 +33,29 @@ There are exactly 26 logical scoring units, all typed bidirectional. Nothing in
 Learn — including a listening answer — can satisfy directional evidence,
 advance the scheduler or award completion.
 
-Learn persists only `Topic.lessonProgress`, one printed-acquisition support enum
-per item. Session XP and listening state are runtime-only and are never written
-to the learner record, export/import data, cue evidence or scheduler state.
+Learn persists exactly three things, all of them formative:
+
+- `Topic.lessonProgress` — one printed-acquisition support enum per item;
+- `Topic.lessonSitting` — progress through the current finite sitting (#66);
+- `Topic.acquisitionReadyAt` — when every letter had been produced unaided at
+  least once in Learn (#67).
+
+None of them is evidence. None can write `DirectionEvidence`, advance the
+scheduler or award completion. `acquisitionReadyAt` is the one that touches the
+schedule at all, and only in the restrictive direction: it is what stops a Test
+from banking retention before acquisition is finished, and it anchors the
+qualifying `learning → drilled` gap at readiness rather than at the learner's
+first sight of packet 1. See `docs/PROGRESS_ARCHITECTURE.md`.
+
+Audio playback position, key-press timing, the within-lesson queue and
+transient feedback remain runtime-only and are never written anywhere.
 
 ## Two independent progress clocks
 
 Every normal Morse Learn sitting has a fixed target of **10 answered formative
 retrievals**.
 
-- each answered retrieval consumes one unit and earns one session XP whether
-  correct or wrong;
+- each answered retrieval consumes one unit whether correct or wrong;
 - introductions and correction/reteach screens consume no budget;
 - `Can't listen now` consumes no budget because it is not an answered retrieval;
 - mistakes change teaching/support, not sitting length;
@@ -50,12 +67,32 @@ Packet readiness remains separate durable acquisition state: every character on
 the roster must be `settled` under the **printed** Learn support ladder. The
 packet index is derived from that state rather than stored independently.
 
-The UI therefore shows `Packet N of 13` and `X / 10 XP`. The main bar is the
-finite sitting target; the packet settled count is secondary context. The
-endpoint summary reports XP, correct count, unique letters to revisit, current
-packet progress and packet(s) settled during the sitting.
+The UI therefore shows `Packet N of 13` and `X / 10 retrievals`. The main bar is
+the finite sitting target; the packet settled count is secondary context. The
+endpoint summary reports the retrieval count, correct count, unique letters to
+revisit, current packet progress and packet(s) settled during the sitting.
 
-There is no global XP, streak, league, currency, shop or daily-goal schema.
+The count is a finite retrieval budget, not an economy. Earlier copy called it
+`XP`, which implied a currency Argus does not have and does not want; #62 retired
+that wording. There is no global XP, streak, league, currency, shop, badge or
+daily-goal schema.
+
+### The sitting is durable (#66)
+
+`Topic.lessonSitting` is the single durable authority for the active sitting. It
+stores the retrieval count, the correct count, the unique ids still to revisit
+and whether the learner declined listening for this sitting — and nothing else.
+It round-trips through export/import losslessly, survives reload and topic
+edits, and is validated at the storage boundary like every other per-item store.
+
+A fresh sitting has exactly one representation: the absent field. Starting the
+next sitting removes it rather than writing zeroes, so an old v5 record with no
+sitting and a record whose sitting has just been reset are the same state.
+
+The pre-#66 `argus.morse-learn-sittings.v1` sidecar is retired. On the first
+upgraded load, a sitting it still holds is adopted onto a topic that has none,
+and the key is then deleted. Import and reset clear it outright, so a sitting
+belonging to a replaced library can never surface inside its successor.
 
 ## Printed acquisition support ladder
 
@@ -150,12 +187,17 @@ Every live listening prompt exposes the secondary action:
 Choosing it:
 
 - applies no correctness or support penalty;
-- earns no XP and consumes no retrieval slot;
+- consumes no retrieval slot;
 - writes no formal or auditory evidence;
 - suppresses further listening prompts for the rest of the current sitting;
 - immediately leaves eligible visual work to occupy the unanswered slot.
 
-Suppression is runtime-only. `Next lesson` starts a new finite sitting with
+Suppression is durable for the sitting it belongs to (#66): `Can't listen now`
+is a statement about the sitting the learner is in, and a sitting now survives
+exit and reload, so resuming at 6/10 must not silently hand back listening
+questions. An audio *failure* is different — that is a fact about the device
+right now, not a decision — so it suppresses listening for the running lesson
+only and lifts on reload. `Next lesson` starts a new finite sitting with
 listening eligible again.
 
 A technical audio error follows the same non-blocking product path: playback is
@@ -184,14 +226,20 @@ pad with an unintroduced letter.
 
 ## Leaving and resuming
 
-`Topic.lessonProgress` persists meaningful printed acquisition changes. The
-within-sitting queue, XP tally, listening suppression and listening feedback do
-not.
+`Topic.lessonProgress` persists meaningful printed acquisition changes, and since
+#66 `Topic.lessonSitting` persists where the learner is inside the sitting they
+were doing. The within-lesson queue and listening feedback do not.
 
-Therefore reopening Learn starts a fresh 10-retrieval sitting reconstructed from
-the first packet not fully settled. Already introduced items stay introduced;
-weak printed items retain their support level; listening availability resets.
-There is no second durable session or auditory state machine.
+Therefore reopening Learn resumes the sitting in progress — its retrieval count,
+correct count, letters to revisit and listening declination — and rebuilds the
+lesson itself from the first packet not fully settled. Already introduced items
+stay introduced; weak printed items retain their support level. The queue is
+reconstructed rather than restored, which is the deliberate #48 behaviour: what
+resumes is the learner's position, not a frozen screen.
+
+There is still no second durable session record and no auditory state machine.
+`lessonSitting` is one small value on the topic, sitting beside `lessonProgress`,
+and both are formative.
 
 ## Morse alphabet and acquisition audio
 
@@ -218,7 +266,8 @@ See `docs/MORSE_VERBAL_MNEMONICS.md` for mnemonic grammar and provenance.
 2. `answerLesson` mutates only a `LessonRun` and never receives a `Topic`.
 3. `withLessonProgress` is the only acquisition write path and changes only
    `lessonProgress`.
-4. `morseLessonSitting.ts` and `morseLessonListening.ts` are runtime-only policy
+4. `morseLessonListening.ts` is within-lesson policy, and `morseLessonSitting.ts`
+   owns only the formative sitting field; neither is evidence policy
    modules and do not write a learner record.
 5. `MorseLesson.tsx` has one `upsertTopic` path, behind
    `withLessonProgress(topicRef.current, lessonProgressOf(next))`.

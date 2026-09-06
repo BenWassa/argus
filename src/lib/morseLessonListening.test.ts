@@ -77,7 +77,7 @@ describe('Morse listening question scheduling', () => {
     expect(shouldUseListeningQuestion(2, entry, state)).toBe(false)
   })
 
-  it("Can't listen now suppresses listening for the rest of this sitting without touching XP", () => {
+  it("Can't listen now suppresses listening for the rest of this sitting without spending a retrieval", () => {
     const entry = entryAtSupport('cued')
     const sitting = newLessonSitting()
     const state = suppressListening(newLessonListeningState())

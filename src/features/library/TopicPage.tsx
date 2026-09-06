@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { dueState } from '../../lib/scheduling'
-import { startLesson } from '../../lib/morseLesson'
+import { journeyFor } from '../../lib/journey'
 import { StatusTag, statusLabel } from '../../components/ui/StatusTag'
 import type { Mode, Topic } from '../../lib/types'
 
@@ -39,13 +38,21 @@ export function TopicPage({
   const heading = useRef<HTMLHeadingElement>(null)
   const runnable = topic.items.length > 0
   /**
+   * The same derivation Today and Library read. The Topic page is the one place
+   * that shows the dimensions separately — acquisition, retention, evidence —
+   * but it must not reach its own verdict about them: the primary action here is
+   * the same value as the verb on the Library row.
+   */
+  const journey = journeyFor(topic)
+  const { acquisition } = journey
+  /**
    * A topic the guided lesson drives has three jobs rather than two, and they
    * are not equal: the lesson is the acquisition action, Test is the evidence
    * action and the alphabet is a quiet lookup. Every other topic keeps exactly
    * the two-button choice it has always had.
    */
-  const lesson = runnable ? startLesson(topic) : null
-  const lessonStarted = Object.keys(topic.lessonProgress ?? {}).length > 0
+  const progressive = runnable && acquisition.progressive
+  const learnPrimary = journey.action === 'learn'
 
   useEffect(() => {
     heading.current?.focus()
@@ -74,8 +81,37 @@ export function TopicPage({
         </div>
         <div>
           <dt>Schedule</dt>
-          <dd>{dueState(topic).label}</dd>
+          <dd>{journey.statusLabel}</dd>
         </div>
+        {/* Acquisition and retention are different questions and get different
+            rows. Collapsing them is how `learning` came to be read as "the
+            lesson is finished" in the first place. */}
+        {progressive && (
+          <div>
+            <dt>Acquisition</dt>
+            <dd>
+              {acquisition.ready
+                ? `Ready · ${acquisition.settled} of ${acquisition.total} letters settled`
+                : `In progress · ${acquisition.settled} of ${acquisition.total} letters settled, packet ${acquisition.packet} of ${acquisition.packetCount}`}
+            </dd>
+          </div>
+        )}
+        {progressive && journey.sitting?.active && (
+          <div>
+            <dt>Current sitting</dt>
+            <dd className="tabular">
+              {journey.sitting.retrievals} of {journey.sitting.target} retrievals
+            </dd>
+          </div>
+        )}
+        {journey.evidence.bidirectional && (
+          <div>
+            <dt>Both-direction evidence</dt>
+            <dd className="tabular">
+              {journey.evidence.covered} of {journey.evidence.total} unaided
+            </dd>
+          </div>
+        )}
         <div>
           <dt>Track</dt>
           <dd>
@@ -94,38 +130,83 @@ export function TopicPage({
         )}
       </dl>
 
-      {runnable && lesson ? (
+      {runnable && progressive ? (
         <>
+          {/* One primary action, and it is the journey's. While acquisition is
+              incomplete that is the lesson on every surface; once it is ready it
+              is Test on every surface. */}
           <div className="mode-choice">
-            <button className="mode-btn is-primary" type="button" onClick={() => onStart('learn', [topic.id])}>
-              <span className="mode-name">{lessonStarted ? 'Continue lesson' : 'Start lesson'}</span>
-              <span className="mode-note">
-                {lesson.finished
-                  ? 'Every letter has been through the lesson. Nothing scored.'
-                  : `Guided packet ${lesson.packetIndex + 1} of ${lesson.packetCount}: new letters, then retrieval. Nothing scored.`}
-              </span>
-            </button>
-            <button className="mode-btn" type="button" onClick={() => onStart('test', [topic.id])}>
-              <span className="mode-name">Test</span>
-              <span className="mode-note">Every item, once, scored. This one counts.</span>
-            </button>
+            {learnPrimary ? (
+              <>
+                <button className="mode-btn is-primary" type="button" onClick={() => onStart('learn', [topic.id])}>
+                  <span className="mode-name">{journey.primaryLabel}</span>
+                  <span className="mode-note">
+                    Guided packet {acquisition.packet} of {acquisition.packetCount}: new letters,
+                    then retrieval. Nothing scored.
+                  </span>
+                </button>
+                <button className="mode-btn" type="button" onClick={() => onStart('test', [topic.id])}>
+                  <span className="mode-name">Test early</span>
+                  <span className="mode-note">
+                    Every item, once, scored — but the lesson has not been through every letter
+                    yet, so the run is recorded without moving the ladder.
+                  </span>
+                </button>
+              </>
+            ) : (
+              <>
+                <button className="mode-btn is-primary" type="button" onClick={() => onStart('test', [topic.id])}>
+                  <span className="mode-name">Test</span>
+                  <span className="mode-note">Every item, once, scored. This one counts.</span>
+                </button>
+                <button className="mode-btn" type="button" onClick={() => onStart('learn', [topic.id])}>
+                  <span className="mode-name">Lesson</span>
+                  <span className="mode-note">
+                    {acquisition.settled === acquisition.total
+                      ? 'Every letter has been through the lesson. Nothing scored.'
+                      : 'Go back over any letter the lesson still scaffolds. Nothing scored.'}
+                  </span>
+                </button>
+              </>
+            )}
           </div>
           <button className="quiet topic-reference" type="button" onClick={onOpenReference}>
             Morse alphabet — look up any letter
           </button>
         </>
       ) : runnable ? (
+        // Both modes stay reachable, and which one is primary follows the same
+        // journey Today and Library read. A topic nobody has opened yet asks to
+        // be read here too, rather than offering a scored Test as the lead
+        // action while every other surface says Learn.
         <div className="mode-choice">
-          <button className="mode-btn is-primary" type="button" onClick={() => onStart('test', [topic.id])}>
-            <span className="mode-name">Test</span>
-            <span className="mode-note">Every item, once, scored. This one counts.</span>
-          </button>
-          <button className="mode-btn" type="button" onClick={() => onStart('learn', [topic.id])}>
-            <span className="mode-name">Learn</span>
-            <span className="mode-note">
-              {topic.learn ? 'Read the briefing and finite reference. Nothing scored.' : 'Read the finite reference in full. Nothing scored.'}
-            </span>
-          </button>
+          {learnPrimary ? (
+            <>
+              <button className="mode-btn is-primary" type="button" onClick={() => onStart('learn', [topic.id])}>
+                <span className="mode-name">Learn</span>
+                <span className="mode-note">
+                  {topic.learn ? 'Read the briefing and finite reference. Nothing scored.' : 'Read the finite reference in full. Nothing scored.'}
+                </span>
+              </button>
+              <button className="mode-btn" type="button" onClick={() => onStart('test', [topic.id])}>
+                <span className="mode-name">Test</span>
+                <span className="mode-note">Every item, once, scored. This one counts.</span>
+              </button>
+            </>
+          ) : (
+            <>
+              <button className="mode-btn is-primary" type="button" onClick={() => onStart('test', [topic.id])}>
+                <span className="mode-name">Test</span>
+                <span className="mode-note">Every item, once, scored. This one counts.</span>
+              </button>
+              <button className="mode-btn" type="button" onClick={() => onStart('learn', [topic.id])}>
+                <span className="mode-name">Learn</span>
+                <span className="mode-note">
+                  {topic.learn ? 'Read the briefing and finite reference. Nothing scored.' : 'Read the finite reference in full. Nothing scored.'}
+                </span>
+              </button>
+            </>
+          )}
         </div>
       ) : (
         <div className="topic-unfinished">

@@ -124,14 +124,27 @@ export type LessonSupport = (typeof LESSON_SUPPORTS)[number]
 export type ItemLessonStore = Record<string, LessonSupport>
 
 /**
- * Durable progress through the current finite Morse Learn sitting (#59).
+ * Durable progress through the current finite Morse Learn sitting (#59, #66).
  * This is formative session bookkeeping only: it resumes the visible 0–10
  * sitting across exit/reload and cannot satisfy Test or scheduler evidence.
+ *
+ * `Topic.lessonSitting` is the single durable authority for this state (#66).
+ * Absent means a fresh sitting, and a fresh sitting is always written as the
+ * absent field rather than as zeroed counters, so "where am I in this sitting"
+ * has exactly one representation in a stored or exported record.
+ *
+ * `listeningSuppressed` is here rather than in runtime state because the sitting
+ * itself is now durable. `Can't listen now` is a statement about the sitting the
+ * learner is in; resuming that same sitting at 6/10 and silently regaining
+ * listening would contradict what they said. Audio errors, playback position and
+ * the within-lesson queue remain transient.
  */
 export interface MorseLessonSittingProgress {
   retrievals: number
   correct: number
   revisitItemIds: string[]
+  /** Learner declined listening questions for this sitting. Absent means no. */
+  listeningSuppressed?: boolean
 }
 
 /**
@@ -232,11 +245,30 @@ export interface Topic {
    */
   lessonProgress?: ItemLessonStore
   /**
-   * Current finite Morse Learn sitting (#59). Additive within v5: absent means
-   * a fresh 0/10 sitting. This is portable formative state only and is never
-   * formal evidence.
+   * Current finite Morse Learn sitting (#59, #66). Additive within v5: absent
+   * means a fresh 0/10 sitting. This is portable formative state only and is
+   * never formal evidence. Since #66 it is the sole durable authority: no
+   * sidecar store competes with it.
    */
   lessonSitting?: MorseLessonSittingProgress
+  /**
+   * When progressive acquisition first became ready — for Morse, when every
+   * required item had been produced unaided at least once in Learn (#67).
+   *
+   * Durable because it cannot be derived: `lessonProgress` says what support the
+   * lesson currently offers each item, never when the last one first settled,
+   * and a later miss legitimately restores support. Permanent for the same
+   * reason `completedAt` is: reaching the acquisition boundary is a historical
+   * fact, so a topic already past it is never dragged back to `Continue lesson`.
+   *
+   * It anchors the qualifying `learning → drilled` gap for progressive topics,
+   * so a programme spanning weeks does not arrive at its first scored Test with
+   * a clock that expired while the learner was still on packet 2. Absent on a
+   * topic whose acquisition is already complete means a record written before
+   * this field existed; the journey layer then falls back to `learningAt`, which
+   * is exactly the pre-#62 behaviour and can only ever be more permissive.
+   */
+  acquisitionReadyAt?: string | null
   /**
    * Catalog provenance. Optional only on the broad in-memory Topic shape so
    * seed authoring and old fixtures stay structurally compatible; storage

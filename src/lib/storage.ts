@@ -18,14 +18,24 @@ import {
   type LearnSection,
   type LearnSource,
   type MorseCharacterLearnItem,
+  type MorseLessonSittingProgress,
   type Topic,
   TOPIC_ORIGINS,
 } from './types'
 import { migratedItemId } from './items'
+import {
+  LESSON_RETRIEVAL_TARGET,
+  lessonSittingIsFresh,
+  withLessonSitting,
+  type LessonSitting,
+} from './morseLessonSitting'
+import { clearAllLessonSittings, readLessonSittingSidecar } from './morseLessonSittingStorage'
 import { seedLibrary } from './seed'
 import {
   NO_RECONCILIATION,
   SHIPPED_CATALOG_TOPIC_IDS,
+  catalogDefinitions,
+  freshCatalogTopic,
   inferredOrigin,
   reconcileCatalog,
   type CatalogReconciliation,
@@ -39,8 +49,26 @@ export function emptyLibrary(): CurrentLibrary {
   return { version: 5, topics: [], catalogDelivered: [...SHIPPED_CATALOG_TOPIC_IDS].sort() }
 }
 
-function freshSeedLibrary(): CurrentLibrary {
-  const migrated = parseLibrary(seedLibrary())
+/**
+ * The library a learner who has never used Argus starts with (#71).
+ *
+ * Built from the shipped catalog through `freshCatalogTopic`, which is the same
+ * door an existing library receives a new catalog topic through. That is the
+ * whole point: a first install and a later delivery hand over identical topics,
+ * so there is one definition of "a topic you have not done yet" rather than two.
+ *
+ * The seed carries demonstration learner state — a drilled NATO deck, a
+ * completed bearings record, attempt history with dates — because it doubles as
+ * the development and test fixture. None of it belongs to this learner. Shipping
+ * it as their permanent record would put a completion on the Progress screen
+ * that nobody earned, so delivery keeps the seed's *content* and drops every
+ * status, timestamp, attempt and evidence field it carries.
+ */
+function freshSeedLibrary(now: Date = new Date()): CurrentLibrary {
+  const migrated = parseLibrary({
+    version: 5,
+    topics: catalogDefinitions().map((definition) => freshCatalogTopic(definition, now)),
+  })
   if (!migrated.ok) return emptyLibrary()
   return {
     ...migrated.library,
@@ -106,23 +134,71 @@ export interface LoadedLibrary {
   report: CatalogReconciliation
 }
 
+/**
+ * Take over any active sitting the retired `argus.morse-learn-sittings.v1`
+ * sidecar still holds (#66).
+ *
+ * Adoption is deliberately one-directional and conservative: a sidecar sitting
+ * is used only for a topic whose canonical `lessonSitting` is absent, so the
+ * durable field always wins a disagreement, and revisit ids naming items the
+ * topic no longer has are dropped rather than failing the load — this is a
+ * migration of local formative bookkeeping, not an import that could fabricate
+ * progress. Running it a second time is a no-op, because the sidecar is removed
+ * as soon as the canonical store has taken over.
+ *
+ * It is called only from `loadLibraryWithReport`. An import or a reset replaces
+ * the whole library and clears the sidecar instead, so a sitting belonging to a
+ * replaced library can never appear inside its successor.
+ */
+export function adoptLegacyLessonSittings(library: CurrentLibrary): CurrentLibrary {
+  const sidecar = readLessonSittingSidecar()
+  if (Object.keys(sidecar).length === 0) return library
+
+  let changed = false
+  const topics = library.topics.map((topic) => {
+    if (topic.lessonSitting !== undefined) return topic
+    const found = sidecar[topic.id]
+    if (!found) return topic
+
+    const liveIds = new Set(topic.items.flatMap((item) => (item.id ? [item.id] : [])))
+    const revisitItemIds = found.revisitItemIds.filter((itemId) => liveIds.has(itemId))
+    const adopted = withLessonSitting(topic, { ...found, revisitItemIds })
+    if (adopted === topic) return topic
+    changed = true
+    return adopted
+  })
+
+  return changed ? { ...library, topics } : library
+}
+
 export function loadLibraryWithReport(now: Date = new Date()): LoadedLibrary {
   try {
     const found = [KEY, ...LEGACY_KEYS]
       .map((key) => ({ key, raw: localStorage.getItem(key) }))
       .find((entry) => entry.raw !== null)
-    if (!found?.raw) return { library: freshSeedLibrary(), report: NO_RECONCILIATION }
+    if (!found?.raw) {
+      // Nothing stored, so there is no record for a stray sidecar to belong to.
+      clearAllLessonSittings()
+      return { library: freshSeedLibrary(now), report: NO_RECONCILIATION }
+    }
 
     const parsed = parseLibrary(JSON.parse(found.raw))
-    if (!parsed.ok) return { library: freshSeedLibrary(), report: NO_RECONCILIATION }
+    if (!parsed.ok) {
+      clearAllLessonSittings()
+      return { library: freshSeedLibrary(now), report: NO_RECONCILIATION }
+    }
 
     // Promote a valid legacy record immediately. This makes the migration
     // durable even before the provider's first effect runs.
-    const reconciled = reconcileLoadedLibrary(parsed.library, now)
+    const adopted = adoptLegacyLessonSittings(parsed.library)
+    const reconciled = reconcileLoadedLibrary(adopted, now)
     if (found.key !== KEY || reconciled.library !== parsed.library) saveLibrary(reconciled.library)
+    // The canonical store now holds everything the sidecar did. Remove it so it
+    // can never become a competing source of truth again.
+    clearAllLessonSittings()
     return reconciled
   } catch {
-    return { library: freshSeedLibrary(), report: NO_RECONCILIATION }
+    return { library: freshSeedLibrary(now), report: NO_RECONCILIATION }
   }
 }
 
@@ -576,6 +652,94 @@ function parseLessonProgress(
 }
 
 /**
+ * The active finite Morse Learn sitting (#66).
+ *
+ * `Topic.lessonSitting` is the single durable authority for this state, so it is
+ * validated here exactly as strictly as cue and lesson evidence: an import
+ * either round-trips it losslessly or says why it cannot. Counters that could
+ * not have been produced by play are rejected rather than clamped, because a
+ * clamped counter is fabricated learner progress wearing a plausible shape.
+ *
+ * The compatibility rules, stated once so they can be tested rather than
+ * inferred:
+ *
+ * - a pre-v5 record has no durable item identity to key revisit ids by, so it
+ *   cannot have carried a sitting; ignore rather than reject;
+ * - an absent field is a fresh sitting, which is what every older v5 record has;
+ * - a revisit id naming an item this topic does not have is rejected, like every
+ *   other per-item store, so a mismatched pairing surfaces instead of being
+ *   silently dropped;
+ * - repeated revisit ids are deduplicated: the field is a set of letters to come
+ *   back to, and the sidecar it replaces deduplicated them too;
+ * - a sitting that records nothing is normalised back to the absent field, so a
+ *   fresh sitting has exactly one representation.
+ */
+function parseLessonSitting(
+  value: unknown,
+  where: string,
+  items: IdentifiedItem[],
+  sourceVersion: 2 | 3 | 4 | 5,
+): { ok: true; value: MorseLessonSittingProgress | undefined } | { ok: false; error: string } {
+  if (sourceVersion < 5) return { ok: true, value: undefined }
+  if (value === undefined || value === null) return { ok: true, value: undefined }
+  if (!isRecord(value)) {
+    return { ok: false, error: `${where} lessonSitting must be an object.` }
+  }
+
+  const retrievals = nonNegativeInteger(value.retrievals)
+  const correct = nonNegativeInteger(value.correct)
+  if (retrievals === null || correct === null) {
+    return { ok: false, error: `${where} lessonSitting counters must be non-negative integers.` }
+  }
+  if (retrievals > LESSON_RETRIEVAL_TARGET) {
+    return {
+      ok: false,
+      error: `${where} lessonSitting records ${retrievals} retrievals; a finite sitting is ${LESSON_RETRIEVAL_TARGET}.`,
+    }
+  }
+  if (correct > retrievals) {
+    return { ok: false, error: `${where} lessonSitting has more correct answers than retrievals.` }
+  }
+
+  if (!Array.isArray(value.revisitItemIds)) {
+    return { ok: false, error: `${where} lessonSitting needs a revisitItemIds list.` }
+  }
+  const liveIds = new Set(items.map((item) => item.id))
+  const revisitItemIds: string[] = []
+  for (const raw of value.revisitItemIds) {
+    const itemId = optionalText(raw)
+    if (!itemId) {
+      return { ok: false, error: `${where} lessonSitting has an empty revisit item id.` }
+    }
+    if (!liveIds.has(itemId)) {
+      return { ok: false, error: `${where} lessonSitting references unknown item id "${itemId}".` }
+    }
+    if (!revisitItemIds.includes(itemId)) revisitItemIds.push(itemId)
+  }
+  // Every revisit id was earned by one missed retrieval, and the list is a set.
+  // More distinct ids than there were misses could not have happened.
+  if (revisitItemIds.length > retrievals - correct) {
+    return {
+      ok: false,
+      error: `${where} lessonSitting lists more letters to revisit than it recorded misses.`,
+    }
+  }
+
+  if (value.listeningSuppressed !== undefined && typeof value.listeningSuppressed !== 'boolean') {
+    return { ok: false, error: `${where} lessonSitting listeningSuppressed must be true or false.` }
+  }
+  const listeningSuppressed = value.listeningSuppressed === true
+
+  const sitting: LessonSitting = {
+    retrievals,
+    correct,
+    revisitItemIds,
+    ...(listeningSuppressed ? { listeningSuppressed: true } : {}),
+  }
+  return { ok: true, value: lessonSittingIsFresh(sitting) ? undefined : sitting }
+}
+
+/**
  * Import validation and migration. An import replaces the whole library, so a
  * structurally plausible but semantically wrong file must be rejected here
  * rather than silently becoming the record. Every accepted input becomes v5.
@@ -627,6 +791,14 @@ export function parseLibrary(value: unknown): ParseResult {
     )
     if (!lessonProgress.ok) return lessonProgress
 
+    const lessonSitting = parseLessonSitting(
+      t.lessonSitting,
+      `${where} ("${title}")`,
+      items.items,
+      version.version,
+    )
+    if (!lessonSitting.ok) return lessonSitting
+
     const track = TRACKS.includes(t.track as never) ? (t.track as Topic['track']) : 'learning'
     let status = STATUSES.includes(t.status as never) ? (t.status as Topic['status']) : 'unstarted'
     const completedAt = typeof t.completedAt === 'string' ? t.completedAt : null
@@ -667,6 +839,13 @@ export function parseLibrary(value: unknown): ParseResult {
       history: Array.isArray(t.history) ? (t.history as Topic['history']) : [],
       itemEvidence: itemEvidence.value,
       lessonProgress: lessonProgress.value,
+      ...(lessonSitting.value ? { lessonSitting: lessonSitting.value } : {}),
+      // Absent on a record written before the anchor existed. The journey layer
+      // treats that as "unknown" and falls back to `learningAt`, so an upgrade
+      // can never make an already-acquired topic wait longer than it did before.
+      ...(typeof t.acquisitionReadyAt === 'string'
+        ? { acquisitionReadyAt: t.acquisitionReadyAt }
+        : {}),
       origin: TOPIC_ORIGINS.includes(t.origin as never)
         ? (t.origin as Topic['origin'])
         : undefined,

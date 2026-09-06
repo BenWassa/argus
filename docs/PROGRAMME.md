@@ -31,6 +31,27 @@ An early Test may create useful evidence, but it cannot counterfeit a delayed
 retention milestone, bypass a required gap, or silently postpone a required spot
 check.
 
+### Qualification: Learn is not always one exposure (#62)
+
+The sentence above describes an **ordinary** topic, where Learn is a single
+reading and `unstarted → learning` is the whole of acquisition. That assumption
+is not universal, and #62 is the correction.
+
+A **progressive** topic carries a multi-sitting acquisition programme. Morse is
+the first: its Learn is a guided lesson running over many sittings and many days,
+during which the scheduler status has been `learning` since the first one.
+`status === 'learning'` therefore does **not** by itself mean acquisition is
+finished and Test is the next action.
+
+The rule that replaces it: a progressive topic exposes an explicit acquisition
+readiness boundary, derived by `src/lib/journey.ts`. Until it is reached, every
+surface recommends continuing the lesson, and a Test result — early Test remains
+reachable — is recorded without advancing the retention ladder. The qualifying
+`learning → drilled` gap is anchored at readiness rather than at first exposure.
+
+Ordinary topics are unchanged in every respect. `docs/PROGRESS_ARCHITECTURE.md`
+is the authority for this model.
+
 ## Content model
 
 A topic has two structurally separate layers.

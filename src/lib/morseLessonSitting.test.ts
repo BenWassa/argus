@@ -12,9 +12,14 @@ import {
 import {
   LESSON_RETRIEVAL_TARGET,
   lessonSittingComplete,
+  lessonSittingIsFresh,
+  lessonSittingOf,
   lessonSittingRemaining,
   newLessonSitting,
   recordLessonRetrieval,
+  suppressSittingListening,
+  withLessonSitting,
+  withoutLessonSitting,
 } from './morseLessonSitting'
 import { parseLibrary } from './storage'
 import { seedLibrary } from './seed'
@@ -167,12 +172,52 @@ describe('finite Morse Learn sittings', () => {
     expect(run.packetIndex).toBeGreaterThan(firstPacket)
   })
 
-  it('keeps the sitting counter runtime-only and outside durable learner state', () => {
-    const sitting = recordLessonRetrieval(newLessonSitting(), 'item-a', true)
+  it('keeps the sitting durable on the topic and nowhere else (#66)', () => {
+    const sitting = recordLessonRetrieval(newLessonSitting(), 'item-a', false)
     const topic = morseTopic()
-    expect(sitting.retrievals).toBe(1)
-    expect(topic).not.toHaveProperty('xp')
+
+    // A fresh topic carries no sitting: absent is the fresh sitting.
     expect(topic).not.toHaveProperty('lessonSitting')
-    expect(topic).not.toHaveProperty('revisitItemIds')
+    expect(lessonSittingOf(topic)).toEqual(newLessonSitting())
+
+    const resumed = withLessonSitting(topic, sitting)
+    expect(resumed.lessonSitting).toEqual({ retrievals: 1, correct: 0, revisitItemIds: ['item-a'] })
+    // The sitting is the only field it touches. Nothing about the scheduler,
+    // the cue ladder or lesson support may ride along with a sitting write.
+    expect({ ...resumed, lessonSitting: undefined }).toEqual({ ...topic, lessonSitting: undefined })
+    // No economy: there is no score, currency or XP field anywhere on the topic.
+    expect(topic).not.toHaveProperty('xp')
+    expect(resumed).not.toHaveProperty('xp')
+  })
+
+  it('normalises a spent sitting back to the absent field when the next one starts', () => {
+    const topic = withLessonSitting(morseTopic(), {
+      retrievals: 10,
+      correct: 8,
+      revisitItemIds: ['item-a'],
+      listeningSuppressed: true,
+    })
+    expect(topic.lessonSitting?.listeningSuppressed).toBe(true)
+
+    // Starting the next sitting drops the field rather than storing zeroes, so
+    // "fresh" has one representation and the learner's listening declination
+    // lifts with the sitting it belonged to.
+    const next = withoutLessonSitting(topic)
+    expect(next).not.toHaveProperty('lessonSitting')
+    expect(withLessonSitting(topic, newLessonSitting())).not.toHaveProperty('lessonSitting')
+    expect(lessonSittingIsFresh(lessonSittingOf(next))).toBe(true)
+  })
+
+  it('carries the learner\'s listening declination with the sitting', () => {
+    const suppressed = suppressSittingListening(
+      recordLessonRetrieval(newLessonSitting(), 'item-a', true),
+    )
+    expect(suppressed.listeningSuppressed).toBe(true)
+    // Still just bookkeeping: suppression changes no counter.
+    expect(suppressed.retrievals).toBe(1)
+    expect(suppressed.correct).toBe(1)
+
+    const topic = withLessonSitting(morseTopic(), suppressed)
+    expect(lessonSittingOf(topic).listeningSuppressed).toBe(true)
   })
 })

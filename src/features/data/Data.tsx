@@ -104,7 +104,7 @@ export function Data() {
       {pendingImport && (
         <Confirm
           title="Replace library"
-          body={`Importing replaces all ${topics.length} topics on this device with the ${pendingImport.count} in this file, including their history, completion records, Learn support, item identity, and cue evidence. Export first if you want to keep what is here.`}
+          body={`Importing replaces all ${topics.length} topics on this device with the ${pendingImport.count} in this file, including their history, completion records, Learn support, any lesson sitting in progress, item identity, and cue evidence. Export first if you want to keep what is here.`}
           confirmLabel="Replace library"
           onCancel={() => setPendingImport(null)}
           onConfirm={() => {
@@ -117,7 +117,7 @@ export function Data() {
       {confirmReset && (
         <Confirm
           title="Reset library"
-          body={`All ${topics.length} topics, their Learn support, test history, completion records, and cue evidence will be removed from this device. This cannot be undone, and an export made now is the only copy you will have.`}
+          body={`All ${topics.length} topics, their Learn support, any lesson sitting in progress, test history, completion records, and cue evidence will be removed from this device. This cannot be undone, and an export made now is the only copy you will have.`}
           confirmLabel="Reset library"
           onCancel={() => setConfirmReset(false)}
           onConfirm={() => {

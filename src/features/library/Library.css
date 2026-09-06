@@ -184,6 +184,15 @@
    thirty can be read at a glance instead of one date at a time. Neutral by
    design: brass would spend the accent, and a semantic colour would turn a
    schedule into a scoreboard. */
+/* Acquisition progress, in words. Deliberately not the gap bar: a programme
+   being learned has not entered a retention gap, and drawing it as one would
+   make two different kinds of progress look like the same measurement. */
+.lib-acquisition {
+  color: var(--muted);
+  font-size: var(--t-small);
+  line-height: 1.4;
+}
+
 .lib-gap {
   display: block;
   width: 100%;

@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { catalogDefinition, collisions } from './catalog'
 import { clearLibrary, emptyLibrary, loadLibraryWithReport, saveLibrary } from './storage'
+import { LEGACY_LESSON_SITTING_KEY } from './morseLessonSittingStorage'
+import { SHIPPED_CATALOG_TOPIC_IDS } from './catalog'
 import type { CurrentLibrary, Topic } from './types'
 
 const KEY = 'argus.library.v5'
@@ -131,5 +133,159 @@ describe('loading a library that already exists on the device', () => {
     // that demotion is the explicit Morse migration, not catalog delivery.
     expect(morse?.status).toBe('drilled')
     expect(collisions(report)).toEqual([])
+  })
+})
+
+describe('the retired sitting sidecar is migrated, then gone (#66)', () => {
+  const MORSE = 'international-morse-letters-printed'
+
+  function sidecar(store: Record<string, unknown>) {
+    localStorage.setItem(LEGACY_LESSON_SITTING_KEY, JSON.stringify(store))
+  }
+
+  function morseItemId(index: number): string {
+    return `${MORSE}-item-${String(index).padStart(2, '0')}`
+  }
+
+  it('adopts an in-flight sitting onto the topic and removes the key', () => {
+    stored({ version: 5, topics: [shipped(MORSE)], catalogDelivered: [...SHIPPED_CATALOG_TOPIC_IDS] })
+    sidecar({ [MORSE]: { retrievals: 6, correct: 4, revisitItemIds: [morseItemId(2)] } })
+
+    const { library } = loadLibraryWithReport(NOW)
+    const morse = library.topics.find((topic) => topic.id === MORSE)
+
+    expect(morse?.lessonSitting).toEqual({
+      retrievals: 6,
+      correct: 4,
+      revisitItemIds: [morseItemId(2)],
+    })
+    // Migrated, saved and retired in one pass: no competing source of truth.
+    expect(localStorage.getItem(LEGACY_LESSON_SITTING_KEY)).toBeNull()
+    const persisted = JSON.parse(localStorage.getItem(KEY) as string) as CurrentLibrary
+    expect(persisted.topics.find((topic) => topic.id === MORSE)?.lessonSitting?.retrievals).toBe(6)
+  })
+
+  it('lets the canonical field win a disagreement with the sidecar', () => {
+    stored({
+      version: 5,
+      topics: [{ ...shipped(MORSE), lessonSitting: { retrievals: 2, correct: 2, revisitItemIds: [] } }],
+      catalogDelivered: [...SHIPPED_CATALOG_TOPIC_IDS],
+    })
+    sidecar({ [MORSE]: { retrievals: 9, correct: 1, revisitItemIds: [] } })
+
+    const { library } = loadLibraryWithReport(NOW)
+    expect(library.topics.find((topic) => topic.id === MORSE)?.lessonSitting?.retrievals).toBe(2)
+  })
+
+  it('drops revisit ids for items the topic no longer has', () => {
+    stored({ version: 5, topics: [shipped(MORSE)], catalogDelivered: [...SHIPPED_CATALOG_TOPIC_IDS] })
+    sidecar({ [MORSE]: { retrievals: 4, correct: 2, revisitItemIds: [morseItemId(1), 'deleted-item'] } })
+
+    const { library } = loadLibraryWithReport(NOW)
+    expect(library.topics.find((topic) => topic.id === MORSE)?.lessonSitting?.revisitItemIds)
+      .toEqual([morseItemId(1)])
+  })
+
+  it('never leaks a sitting into a library that was never the sidecar\'s', () => {
+    sidecar({ [MORSE]: { retrievals: 7, correct: 7, revisitItemIds: [] } })
+    // No stored library at all: a fresh install, or one just reset.
+    const { library } = loadLibraryWithReport(NOW)
+
+    expect(library.topics.every((topic) => topic.lessonSitting === undefined)).toBe(true)
+    expect(localStorage.getItem(LEGACY_LESSON_SITTING_KEY)).toBeNull()
+  })
+
+  it('ignores a sidecar entry naming a topic that is not in the library', () => {
+    stored({ version: 5, topics: [shipped('nato-phonetic')], catalogDelivered: [...SHIPPED_CATALOG_TOPIC_IDS] })
+    sidecar({ 'some-other-library-topic': { retrievals: 5, correct: 5, revisitItemIds: [] } })
+
+    const { library } = loadLibraryWithReport(NOW)
+    expect(library.topics.every((topic) => topic.lessonSitting === undefined)).toBe(true)
+  })
+})
+
+describe('a fresh install claims nothing the learner did not earn (#71)', () => {
+  it('delivers every shipped topic unstarted, with no history and no completions', () => {
+    const { library } = loadLibraryWithReport(NOW)
+
+    expect(library.topics.map((topic) => topic.id).sort()).toEqual([...SHIPPED_CATALOG_TOPIC_IDS].sort())
+    for (const topic of library.topics) {
+      expect(topic.status).toBe('unstarted')
+      expect(topic.history).toEqual([])
+      expect(topic.completedAt).toBeNull()
+      expect(topic.drilledAt).toBeNull()
+      expect(topic.learningAt).toBeNull()
+      expect(topic.lastTestedAt).toBeNull()
+      expect(topic.spotCheckedAt).toBeNull()
+      expect(topic.itemEvidence).toEqual({})
+      expect(topic.lessonProgress).toEqual({})
+      expect(topic).not.toHaveProperty('lessonSitting')
+      expect(topic.origin).toBe('catalog')
+    }
+    // Nothing to show on the Progress completion record, because nothing was done.
+    expect(library.topics.filter((topic) => topic.completedAt !== null)).toEqual([])
+  })
+
+  it('still ships the content: a fresh install is a real library, not an empty one', () => {
+    const { library } = loadLibraryWithReport(NOW)
+    const nato = library.topics.find((topic) => topic.id === 'nato-phonetic')
+
+    expect(nato?.items).toHaveLength(26)
+    expect(nato?.learn?.kind).toBe('concise')
+    expect(library.topics.find((topic) => topic.id === 'international-morse-letters-printed')?.items)
+      .toHaveLength(26)
+  })
+
+  it('preserves an in-flight sitting and readiness anchor through catalog delivery', () => {
+    const MORSE = 'international-morse-letters-printed'
+    const inFlight: Topic = {
+      ...shipped(MORSE),
+      status: 'learning',
+      learningAt: '2026-08-01T00:00:00.000Z',
+      lessonProgress: { [`${MORSE}-item-01`]: 'settled' },
+      lessonSitting: { retrievals: 4, correct: 3, revisitItemIds: [`${MORSE}-item-02`] },
+      acquisitionReadyAt: '2026-08-20T00:00:00.000Z',
+    }
+    // Only Morse has been delivered, so this load also delivers the rest.
+    stored({ version: 5, topics: [inFlight], catalogDelivered: [MORSE] })
+
+    const { library, report } = loadLibraryWithReport(NOW)
+    expect(report.added.length).toBeGreaterThan(0)
+
+    const kept = library.topics.find((topic) => topic.id === MORSE)
+    expect(kept?.lessonSitting).toEqual({
+      retrievals: 4,
+      correct: 3,
+      revisitItemIds: [`${MORSE}-item-02`],
+    })
+    expect(kept?.acquisitionReadyAt).toBe('2026-08-20T00:00:00.000Z')
+    expect(kept?.lessonProgress).toEqual({ [`${MORSE}-item-01`]: 'settled' })
+    // Newly delivered topics arrive with none of it.
+    for (const added of report.added) {
+      const topic = library.topics.find((candidate) => candidate.id === added)
+      expect(topic).not.toHaveProperty('lessonSitting')
+      expect(topic?.acquisitionReadyAt).toBeUndefined()
+      expect(topic?.status).toBe('unstarted')
+    }
+  })
+
+  it('does not reset an existing learner who really did earn their record', () => {
+    const earned: Topic = {
+      ...shipped('cardinal-bearings'),
+      status: 'completed',
+      learningAt: '2025-01-01T00:00:00.000Z',
+      drilledAt: '2025-02-01T00:00:00.000Z',
+      completedAt: '2025-03-05T00:00:00.000Z',
+      lastTestedAt: '2025-03-05T00:00:00.000Z',
+      history: [{ at: '2025-03-05T00:00:00.000Z', correct: 8, total: 8, resolvedTo: 'completed' }],
+    }
+    stored({ version: 5, topics: [earned], catalogDelivered: ['cardinal-bearings'] })
+
+    const { library } = loadLibraryWithReport(NOW)
+    const kept = library.topics.find((topic) => topic.id === 'cardinal-bearings')
+
+    expect(kept?.status).toBe('completed')
+    expect(kept?.completedAt).toBe('2025-03-05T00:00:00.000Z')
+    expect(kept?.history).toHaveLength(1)
   })
 })

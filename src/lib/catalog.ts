@@ -44,8 +44,12 @@ export function catalogDefinition(id: string): Topic | null {
  * catalog's content, and nothing that could be mistaken for learner evidence.
  */
 export function freshCatalogTopic(definition: Topic, now: Date = new Date()): Topic {
+  // Learner-state fields are stripped and then restated, rather than inherited.
+  // A catalog definition carries none of them today; if one ever did, delivery
+  // must not hand it over as progress this learner earned.
+  const { lessonSitting: _sitting, acquisitionReadyAt: _ready, ...content } = definition
   return {
-    ...definition,
+    ...content,
     origin: 'catalog',
     status: 'unstarted',
     createdAt: now.toISOString(),

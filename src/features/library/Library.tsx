@@ -1,6 +1,6 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useLibrary } from '../../lib/store'
-import { dueState, gapProgress, isDue, modeFor, shelves } from '../../lib/scheduling'
+import { journeyShelves, journeysFor, type JourneyEntry } from '../../lib/journey'
 import { Confirm } from '../../components/ui/Confirm'
 import { TopicForm, type Draft } from './TopicForm'
 import { TopicPage } from './TopicPage'
@@ -95,8 +95,13 @@ export function Library({
     })
   }, [topics, query, tracks])
 
-  const groups = useMemo(() => shelves(filtered), [filtered])
-  const dueCount = useMemo(() => topics.filter((t) => isDue(t) && t.items.length > 0).length, [topics])
+  // Shelf placement and row action are two readings of one derivation, so a row
+  // can no longer sit on `Due now` while its button says something else.
+  const groups = useMemo(() => journeyShelves(journeysFor(filtered)), [filtered])
+  const dueCount = useMemo(
+    () => journeysFor(topics).filter((entry) => entry.journey.due && entry.topic.items.length > 0).length,
+    [topics],
+  )
   const filtering = query.trim().length > 0 || tracks.length > 0
 
   const selectable = filtered.filter((t) => t.items.length > 0)
@@ -376,22 +381,22 @@ export function Library({
                 <section className="lib-shelf" key={shelf.id}>
                   <h2 className="lib-shelf-head">
                     {shelf.label}
-                    <span className="lib-shelf-count tabular">{shelf.topics.length}</span>
+                    <span className="lib-shelf-count tabular">{shelf.entries.length}</span>
                   </h2>
                   <ul className="index">
-                    {shelf.topics.map((topic) => (
+                    {shelf.entries.map((entry) => (
                       <Row
-                        key={topic.id}
-                        topic={topic}
+                        key={entry.topic.id}
+                        entry={entry}
                         onDueShelf={shelf.id === 'due'}
                         selecting={selecting}
-                        selected={chosen.includes(topic.id)}
-                        onOpen={() => openTopic(topic.id)}
-                        onToggle={() => toggleSelected(topic.id)}
+                        selected={chosen.includes(entry.topic.id)}
+                        onOpen={() => openTopic(entry.topic.id)}
+                        onToggle={() => toggleSelected(entry.topic.id)}
                         onAction={() =>
-                          topic.items.length === 0
-                            ? editTopic(topic, true)
-                            : onStart(modeFor(topic), [topic.id])
+                          entry.journey.action === 'author'
+                            ? editTopic(entry.topic, true)
+                            : onStart(entry.journey.action, [entry.topic.id])
                         }
                       />
                     ))}
@@ -426,7 +431,7 @@ export function Library({
 }
 
 interface RowProps {
-  topic: Topic
+  entry: JourneyEntry
   /** True on the Due now shelf, where the schedule line stops being a countdown
    *  and becomes the reason the topic surfaced. */
   onDueShelf: boolean
@@ -443,17 +448,22 @@ interface RowProps {
  * because a scored test is the most consequential thing in the product and an
  * icon cannot state a consequence.
  */
-function Row({ topic, onDueShelf, selecting, selected, onOpen, onToggle, onAction }: RowProps) {
+function Row({ entry, onDueShelf, selecting, selected, onOpen, onToggle, onAction }: RowProps) {
+  const { topic, journey } = entry
   const runnable = topic.items.length > 0
-  const action = !runnable ? 'Add items' : modeFor(topic) === 'learn' ? 'Learn' : 'Test'
-  const gap = gapProgress(topic)
-  const schedule = dueState(topic).label
+  // Verb, schedule line and progress bar all come from the same journey, so the
+  // row cannot say Test while Today says Continue Learn about the same topic.
+  const action = journey.actionLabel
+  // The bar is retention only. A topic still being acquired has not entered a
+  // gap, so it shows no gap progress rather than a bar that means something else.
+  const gap = journey.retention.gated ? null : journey.retention.gapProgress
+  const schedule = journey.statusLabel
   // Repair reads in warning on Today, so it reads in warning here. Decay is
   // routing information in both places, and it should look the same in both.
   const when = [
     'lib-when',
     onDueShelf ? 'is-due' : '',
-    topic.status === 'decayed' ? 'is-repair' : '',
+    journey.phase === 'repair' ? 'is-repair' : '',
   ]
     .filter(Boolean)
     .join(' ')
@@ -488,6 +498,11 @@ function Row({ topic, onDueShelf, selecting, selected, onOpen, onToggle, onActio
           </span>
           <span className={when}>{schedule}</span>
         </span>
+        {/* Acquisition in progress is not retention waiting, so it is said in
+            words rather than folded into the schedule bar. */}
+        {journey.phase === 'acquiring' && journey.acquisition.progressive && journey.detail && (
+          <span className="lib-acquisition">{journey.detail}</span>
+        )}
         {gap !== null && gap < 1 && (
           <span className="lib-gap" aria-hidden="true">
             <span className="lib-gap-fill" style={{ width: `${Math.round(gap * 100)}%` }} />

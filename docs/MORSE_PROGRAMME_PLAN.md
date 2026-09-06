@@ -127,8 +127,17 @@ to v5; supported older libraries migrate forward. Cue evidence is portable but
 remains structurally separate from scheduler history.
 
 #42, #51, #52 and #56 add no new durable schema field. The verbal phrase table,
-SVG rendering, Web Audio schedule, session XP/listening suppression and one-touch
-Morse-key timing are presentation/runtime concerns.
+SVG rendering, Web Audio schedule and one-touch Morse-key timing are
+presentation/runtime concerns.
+
+#59/#66 add `Topic.lessonSitting`: the active finite Learn sitting — retrieval
+count, correct count, letters to revisit and whether the learner declined
+listening for it. #67 adds `Topic.acquisitionReadyAt`: when every letter had been
+produced unaided at least once in Learn. Both stay inside v5, both are additive
+with a safe absent default, both round-trip through export/import, and neither is
+evidence. The retired `argus.morse-learn-sittings.v1` sidecar is migrated once at
+load and then deleted; `Topic.lessonSitting` is the single durable authority.
+See `docs/PROGRESS_ARCHITECTURE.md`.
 
 #48 adds exactly one optional field, `Topic.lessonProgress`: one
 `taught | cued | solo | settled` enum per item id. It stays inside v5 because
@@ -318,7 +327,7 @@ repoint old content at new artwork.
 | 5 | #28 | A–Z bidirectional curriculum + mobile acceptance | **Merged** |
 | C | #42 | Rhythmic verbal acquisition + working mobile audio | **Merged** via PR #43; real-device acceptance tracked under #44 |
 | D | #48 | Guided Learn lesson + separate A–Z reference + mnemonic grammar fix | **Merged** |
-| E | #51 | Fixed finite Learn sittings + session XP | **Merged** via PR #54 |
+| E | #51 | Fixed finite Learn sittings + finite retrieval budget | **Merged** via PR #54; sitting made durable by #66, `XP` wording retired by #62 |
 | F | #52 | Separate printed recall/listening + no-audio escape | **Merged** |
 | G | #56 | Unified keyed pattern entry; visual MC removed | **PR #57** |
 | 6 | #29 | Auditory reception / sending / continuous material | **Deferred pending learner validation** |
@@ -373,14 +382,20 @@ The full record is `docs/MORSE_LESSON.md`. In summary:
   of support level.
 - **Listening** is a distinct sound → letter formative prompt and is the only
   V1 Morse Learn multiple-choice interaction; `Can't listen now` suppresses it
-  for the rest of that sitting without penalty.
+  for the rest of that sitting without penalty, and that declination now resumes
+  with the sitting rather than lifting on reload.
 - **Morse alphabet** is a separate always-open A–Z lookup that writes nothing.
 - **Test** remains the sole scored retention/completion path. Its supported
   forward rungs now use the same keyed-production response rather than visual
   pattern choices.
 - Practice is **not** reintroduced. `Mode` stays `learn | test`.
-- The one durable Learn addition remains `Topic.lessonProgress`; session XP,
-  listening suppression and key timing are runtime-only.
+- Learn's durable additions are `Topic.lessonProgress`, `Topic.lessonSitting`
+  and `Topic.acquisitionReadyAt`, all formative; key timing, audio playback and
+  the within-lesson queue remain runtime-only. Listening suppression is durable
+  for the sitting the learner declined it in, and an audio *failure* is not.
+- The finite sitting is a retrieval budget, shown as `X / 10 retrievals`. It was
+  briefly called `XP`; #62 retired that wording rather than let the copy imply a
+  currency the product does not have.
 - #44's mnemonic-grammar correction remains: casing is not semantic, duration is
   an aligned `·`/`—` mark under each word, and deliberate repetition is
   explicitly explained.

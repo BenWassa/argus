@@ -64,16 +64,21 @@ export function isDue(topic: Topic, now: Date = new Date()): boolean {
   return dueState(topic, now).due
 }
 
+/**
+ * Repair first, then the delayed tests that can actually bank a completion, then
+ * unfinished work. Exported so the journey layer ranks the day's work the same
+ * way rather than inventing a second order for the same ladder.
+ */
+export const DUE_RANK: Record<Status, number> = {
+  decayed: 0,
+  drilled: 1,
+  learning: 2,
+  unstarted: 3,
+  completed: 4,
+}
+
 export function dueTopics(topics: Topic[], now: Date = new Date()): Topic[] {
-  // Repair first, then the delayed tests that can actually bank a completion,
-  // then unfinished work. Within a rank, the longest overdue goes first.
-  const rank: Record<Status, number> = {
-    decayed: 0,
-    drilled: 1,
-    learning: 2,
-    unstarted: 3,
-    completed: 4,
-  }
+  const rank = DUE_RANK
   return topics
     .filter((t) => isDue(t, now) && t.items.length > 0)
     .sort((a, b) => {
@@ -181,6 +186,24 @@ export interface Resolution {
   gapDays: number | null
 }
 
+export interface AttemptOptions {
+  /**
+   * Whether this attempt is allowed to move the topic along the retention
+   * ladder (#67).
+   *
+   * The scheduler stays generic and stays the retention authority: it does not
+   * know what progressive acquisition is, and it does not go looking. Eligibility
+   * is decided by the journey layer, which does, and is handed here as one
+   * boolean. `true` is the default and is every ordinary topic's answer.
+   *
+   * An ineligible attempt is recorded exactly like a voluntary early Test —
+   * scored, kept in history, `lastTestedAt` updated — and moves no status and no
+   * clock in either direction. It cannot advance a rung it has not earned, and
+   * equally it cannot demote one: refusing to bank a result is not a failure.
+   */
+  advancementEligible?: boolean
+}
+
 /**
  * Applies one test's result to a topic and reports the transition, so the
  * end screen can name what actually happened rather than reporting a bare
@@ -191,6 +214,7 @@ export function resolveAttempt(
   correct: number,
   total: number,
   now: Date = new Date(),
+  options: AttemptOptions = {},
 ): Resolution {
   const at = now.toISOString()
   const clean = total > 0 && correct / total >= PASS_THRESHOLD
@@ -201,9 +225,12 @@ export function resolveAttempt(
   let decayed = false
   let gapDays: number | null = null
 
+  const eligible = options.advancementEligible ?? true
   const due = dueState(topic, now).due
 
-  if (from === 'unstarted') {
+  if (!eligible) {
+    // Recorded, and nothing else. See `AttemptOptions.advancementEligible`.
+  } else if (from === 'unstarted') {
     // A first Test exposes the whole deck, but it cannot also prove retention.
     // Start the learning gap regardless of score.
     next.status = 'learning'
@@ -249,4 +276,30 @@ export function resolveAttempt(
   next.history = [...topic.history, { at, correct, total, resolvedTo: next.status }]
 
   return { topic: next, from, to: next.status, completed, decayed, gapDays }
+}
+
+/**
+ * Re-apply a resolution to the topic as it stands *now* rather than as it stood
+ * when the attempt was scored.
+ *
+ * A Test snapshots its topics at session start, because a bankable attempt has
+ * to run the deck it started with. Minutes later that snapshot can be stale: a
+ * lesson answer or a sibling write may have landed in between. Writing
+ * `resolution.topic` back whole would silently revert those. Only the fields the
+ * scheduler owns are copied across, and the attempt is appended to whatever
+ * history the topic currently has, so the retention decision is preserved
+ * without the snapshot's other fields riding along with it.
+ */
+export function applyResolution(current: Topic, resolution: Resolution): Topic {
+  const attempt = resolution.topic.history[resolution.topic.history.length - 1]
+  return {
+    ...current,
+    status: resolution.topic.status,
+    drilledAt: resolution.topic.drilledAt,
+    learningAt: resolution.topic.learningAt,
+    completedAt: resolution.topic.completedAt,
+    lastTestedAt: resolution.topic.lastTestedAt,
+    spotCheckedAt: resolution.topic.spotCheckedAt,
+    history: attempt ? [...current.history, attempt] : current.history,
+  }
 }
