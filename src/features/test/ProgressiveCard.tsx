@@ -28,8 +28,8 @@ export interface ProgressiveAnswer {
 interface ProgressiveCardProps {
   character: AcquisitionCharacter
   rung: CueRung
-  /** Legacy alternatives are ignored by the live printed-Morse ladder after #56. */
-  options: string[]
+  /** Kept temporarily at the call boundary while Session sheds old distractor plumbing. */
+  options?: string[]
   onAnswer: (answer: ProgressiveAnswer) => void
   /** Changes whenever a new card is shown, resetting every local state. */
   cardKey: string
@@ -97,8 +97,6 @@ function useCueAudio(audioText: string | undefined) {
 function CuePanel({ rung, character }: { rung: CueRung; character: AcquisitionCharacter }) {
   const cue = buildCuePayload(rung, character)
   const { playing, audioError, toggle } = useCueAudio(cue.audioText)
-  // An uncued rung produces a payload with nothing in it but its own id, so
-  // there is nothing here to render and nothing that could leak.
   if (
     cue.elementCount === undefined &&
     cue.revealedPattern === undefined &&
@@ -168,23 +166,19 @@ function CuePanel({ rung, character }: { rung: CueRung; character: AcquisitionCh
 }
 
 /**
- * One prompt on the acquisition ladder.
- *
- * The rung decides the direction and scaffolding. Every printed letter → Morse
- * rung now uses the same production response; only reverse printed recall uses
- * character entry. Nothing here knows about scheduler or completion state.
+ * The rung decides direction and scaffolding, not the forward response widget.
+ * Printed letter → Morse is always shared keyed production; printed pattern →
+ * letter is typed entry. Visual pattern-choice rendering no longer exists here.
  */
 export function ProgressiveCard({
   character,
   rung,
-  options,
   onAnswer,
   cardKey,
   now = defaultNow,
 }: ProgressiveCardProps) {
   const [entry, setEntry] = useState('')
   const [result, setResult] = useState<ProgressiveAnswer | null>(null)
-  const [optionsReady, setOptionsReady] = useState(rung.choiceDelayMs === 0)
   const startedAt = useRef(now())
   const nextRef = useRef<HTMLButtonElement>(null)
   const entryRef = useRef<HTMLInputElement>(null)
@@ -194,11 +188,7 @@ export function ProgressiveCard({
   useEffect(() => {
     setEntry('')
     setResult(null)
-    setOptionsReady(rung.choiceDelayMs === 0)
     startedAt.current = now()
-    if (rung.choiceDelayMs === 0) return
-    const timer = setTimeout(() => setOptionsReady(true), rung.choiceDelayMs)
-    return () => clearTimeout(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cardKey])
 
@@ -250,32 +240,6 @@ export function ProgressiveCard({
       </div>
 
       {!result && <CuePanel rung={rung} character={character} />}
-
-      {!result && rung.response === 'choice' && (
-        <div className="test-options" aria-busy={!optionsReady}>
-          {optionsReady ? (
-            options.map((option) => (
-              <button
-                className="test-option mono"
-                key={option}
-                type="button"
-                onClick={() => submit(option)}
-              >
-                <span aria-hidden="true">
-                  {rung.direction === 'prompt-to-answer' ? canonicalPattern(option) : option}
-                </span>
-                <span className="sr-only">
-                  {rung.direction === 'prompt-to-answer' ? patternReading(option) : option}
-                </span>
-              </button>
-            ))
-          ) : (
-            <p className="test-waiting" role="status">
-              Recall it now — the alternatives are coming.
-            </p>
-          )}
-        </div>
-      )}
 
       {!result && rung.response === 'production' && (
         <div className="test-production">
