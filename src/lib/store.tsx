@@ -45,7 +45,9 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
   const replaceLibrary = useCallback((next: CurrentLibrary) => {
     // An imported library goes through the same migration and catalog-delivery
     // boundary as a stored one, so what is on screen after an import is what
-    // would be on screen after a reload.
+    // would be on screen after a reload. An active local-only Morse sitting
+    // belongs to the replaced library and must not leak into the imported one.
+    clearAllLessonSittings()
     const reconciled = reconcileLoadedLibrary(next)
     setLibrary(reconciled.library)
     setCatalogReport(reconciled.report)
