@@ -256,8 +256,6 @@ describe('finite progress and evidence honesty', () => {
 })
 
 describe('accessibility and mobile composition', () => {
-  const topic = seededTopic(MORSE_ID)
-
   it('keeps practical touch targets and readable letter-choice controls', () => {
     const global = source('../../styles/global.css')
     expect(global).toMatch(/^button \{[^}]*min-height:\s*44px/m)
