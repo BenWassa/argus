@@ -1,14 +1,41 @@
-export const LESSON_RETRIEVAL_TARGET = 10
+import type { MorseLessonSittingProgress, Topic } from './types'
 
-export interface LessonSitting {
-  retrievals: number
-  correct: number
-  /** Runtime-only unique item ids missed during this sitting. */
-  revisitItemIds: string[]
-}
+export const LESSON_RETRIEVAL_TARGET = 10
+export type LessonSitting = MorseLessonSittingProgress
 
 export function newLessonSitting(): LessonSitting {
   return { retrievals: 0, correct: 0, revisitItemIds: [] }
+}
+
+/** Resume the current finite sitting, or start fresh for older records. */
+export function lessonSittingOf(topic: Pick<Topic, 'lessonSitting'>): LessonSitting {
+  const sitting = topic.lessonSitting
+  if (!sitting) return newLessonSitting()
+  return {
+    retrievals: sitting.retrievals,
+    correct: sitting.correct,
+    revisitItemIds: [...sitting.revisitItemIds],
+  }
+}
+
+/** Persist formative sitting bookkeeping without touching any formal evidence. */
+export function withLessonSitting(topic: Topic, sitting: LessonSitting): Topic {
+  const current = topic.lessonSitting
+  const unchanged =
+    current !== undefined &&
+    current.retrievals === sitting.retrievals &&
+    current.correct === sitting.correct &&
+    current.revisitItemIds.length === sitting.revisitItemIds.length &&
+    current.revisitItemIds.every((itemId, index) => itemId === sitting.revisitItemIds[index])
+  if (unchanged) return topic
+  return {
+    ...topic,
+    lessonSitting: {
+      retrievals: sitting.retrievals,
+      correct: sitting.correct,
+      revisitItemIds: [...sitting.revisitItemIds],
+    },
+  }
 }
 
 export function lessonSittingComplete(sitting: LessonSitting): boolean {
@@ -20,13 +47,10 @@ export function lessonSittingRemaining(sitting: LessonSitting): number {
 }
 
 /**
- * One answered formative retrieval earns one session point, regardless of
+ * One answered formative retrieval earns one sitting point, regardless of
  * correctness. Correctness still belongs to the acquisition policy: it fades or
- * restores support and decides what returns later. The point only says that one
- * finite unit of this sitting has been completed.
- *
- * This value is deliberately runtime-only. It is never written to Topic,
- * scheduler state, cue evidence, export/import data or a global XP balance.
+ * restores support and decides what returns later. The durable sitting field
+ * says only how far through this finite Learn sitting the learner has progressed.
  */
 export function recordLessonRetrieval(
   sitting: LessonSitting,

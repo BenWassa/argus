@@ -14,24 +14,6 @@ interface LearnProps {
   onReference: (topicId: string) => void
 }
 
-/**
- * Learn has two shapes, chosen by what the topic actually is.
- *
- * For a topic the guided Morse lesson can drive — a single topic whose scored
- * deck is the full canonical A–Z mapping — Learn is that lesson: one dominant
- * task at a time, introductions followed by retrieval, support fading with
- * success and returning after a miss. #48 replaced the scrollable packet
- * curriculum with it, and moved plain A–Z lookup to its own reference surface.
- *
- * For every other topic Learn is unchanged: a reading surface, not a test, with
- * the whole finite reference laid out at once and optional explanatory support
- * above it. Nothing is hidden, and explanatory support never becomes scored
- * material implicitly.
- *
- * Either way, opening Learn is first exposure and moves an `unstarted` topic to
- * `learning` exactly as it always has. That is the only scheduler transition
- * Learn makes, and no retrieval inside the lesson adds another.
- */
 export function Learn({ topicIds, onExit, onTest, onReference }: LearnProps) {
   const { topics, upsertTopic } = useLibrary()
   const headingRef = useRef<HTMLHeadingElement>(null)
@@ -40,18 +22,16 @@ export function Learn({ topicIds, onExit, onTest, onReference }: LearnProps) {
     topicIds.map((id) => topics.find((t) => t.id === id)).filter(Boolean) as Topic[],
   )
 
-  // Resolved once, from the topic as it stood on entry. A batched Learn run
-  // over several topics keeps the reading sheet: a guided lesson is a single
-  // topic's acquisition path, not something to interleave across decks.
+  // Resolve first exposure before constructing the guided lesson snapshot. This
+  // prevents later lesson-progress writes from re-upserting the older
+  // `unstarted` topic over the already-earned `learning` transition.
   const [lesson] = useState<{ topic: Topic; run: LessonRun } | null>(() => {
     if (included.length !== 1) return null
-    const run = startLesson(included[0])
-    return run ? { topic: included[0], run } : null
+    const prepared = resolveStudy(included[0])
+    const run = startLesson(prepared)
+    return run ? { topic: prepared, run } : null
   })
 
-  // Reading is the transition off `unstarted`. Banked on open rather than on
-  // exit, so a topic that was genuinely opened still counts as seen even if
-  // the user leaves by closing the tab.
   useEffect(() => {
     for (const topic of included) {
       const studied = resolveStudy(topic)
