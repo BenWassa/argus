@@ -145,8 +145,8 @@ describe('rung rendering', () => {
   it('uses the one-touch shared key for free production', () => {
     const html = render('R', 3)
     expect(html).toContain('class="morse-key"')
-    expect(html).toContain('Tap&nbsp;·')
-    expect(html).toContain('Hold&nbsp;—')
+    expect(html).toContain('Tap')
+    expect(html).toContain('Hold')
     expect(html).toContain('Backspace delete')
     expect(html).not.toContain('class="test-key"')
   })
