@@ -1,4 +1,13 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import {
+  animate,
+  motion,
+  useMotionValue,
+  useMotionValueEvent,
+  useReducedMotion,
+  useTransform,
+  type PanInfo,
+} from 'motion/react'
 import { useLibrary } from '../../lib/store'
 import { resolveAttempt, type Resolution } from '../../lib/scheduling'
 import { statusLabel } from '../../components/ui/StatusTag'
@@ -14,10 +23,23 @@ import { retentionCorrectCount } from '../../lib/items'
 import type { Item, ItemCueEvidence, ItemEvidenceStore, Topic } from '../../lib/types'
 import { ProgressiveCard, type ProgressiveAnswer } from './ProgressiveCard'
 import { testCardTextClass } from './textScale'
+import {
+  SWIPE_CUE_FULL_PX,
+  isTokenRecallDeck,
+  swipeCommitDistance,
+  swipeIntent,
+  type SwipeGrade,
+} from './swipeGrade'
 import './Session.css'
 
 /** Alternatives on a choice rung: the answer plus three distractors. */
 const CHOICE_OPTIONS = 4
+
+/** How far past its own width a committed card travels before it is gone. */
+const EXIT_OVERSHOOT_PX = 140
+
+/** Fallback width when nothing has been measured yet, e.g. before first layout. */
+const ASSUMED_CARD_WIDTH = 360
 
 interface Card {
   topicId: string
@@ -41,7 +63,23 @@ function shuffle<T>(list: T[]): T[] {
   return out
 }
 
-type Phase = 'asking' | 'revealed' | 'done'
+/**
+ * What is on screen, as one indivisible value.
+ *
+ * Answer confidentiality is a property of this shape, not of a transition
+ * duration. `index` and the reveal state are the same atom, so no render —
+ * batched, interrupted, re-entered or replayed — can pair the next card's
+ * index with a state that mounts an answer. A graded card holds `index` for
+ * the whole of its exit; the only move to the next index is to `asking`, and
+ * `asking` mounts no answer text at all.
+ */
+type View =
+  | { kind: 'asking'; index: number }
+  | { kind: 'revealed'; index: number }
+  | { kind: 'exiting'; index: number; grade: SwipeGrade }
+  | { kind: 'done' }
+
+type Phase = View['kind']
 
 function haptic(pattern: number | number[]) {
   try {
@@ -70,6 +108,12 @@ export function Session({ topicIds, onExit }: SessionProps) {
     return found
   })
 
+  // Which self-score topics grade by swipe alone. Decided once, from content,
+  // so the affordance can never change part-way through a deck.
+  const [swipeTopics] = useState<Set<string>>(
+    () => new Set(included.filter((topic) => isTokenRecallDeck(topic.items)).map((topic) => topic.id)),
+  )
+
   const [deck] = useState<Card[]>(() =>
     included.flatMap((topic) => {
       const profile = profiles.get(topic.id)
@@ -88,23 +132,70 @@ export function Session({ topicIds, onExit }: SessionProps) {
   // and merged into the topic separately from any status resolution.
   const [cueEvidence, setCueEvidence] = useState<Record<string, ItemEvidenceStore>>({})
 
-  const [index, setIndex] = useState(0)
-  const [phase, setPhase] = useState<Phase>('asking')
+  const [view, setView] = useState<View>({ kind: 'asking', index: 0 })
   const [tally, setTally] = useState<{ correct: number; total: number }>({ correct: 0, total: 0 })
   const [resolutions, setResolutions] = useState<Resolution[]>([])
   const [confirmingExit, setConfirmingExit] = useState(false)
+  /** Which grade the current drag has travelled far enough to commit. */
+  const [armed, setArmed] = useState<SwipeGrade | null>(null)
+  const [dragging, setDragging] = useState(false)
+  const [cardWidth, setCardWidth] = useState(0)
 
-  const revealRef = useRef<HTMLButtonElement>(null)
+  const cardRef = useRef<HTMLButtonElement>(null)
   const yesRef = useRef<HTMLButtonElement>(null)
   const headingRef = useRef<HTMLHeadingElement>(null)
-  const pointerStart = useRef<number | null>(null)
+  // The view as of this instant, not as of the last committed render. Grading
+  // reads it so two events in one React batch cannot both see `revealed`.
+  const viewRef = useRef<View>(view)
+  viewRef.current = view
+  // Closed the moment a grade is taken, reopened only when the next card is up.
+  const gradeLock = useRef(false)
+
+  const phase: Phase = view.kind
+  const index = view.kind === 'done' ? deck.length : view.index
   const card: Card | undefined = deck[index]
+  /** The answer is mounted only while the card that owns it owns the screen. */
+  const answerVisible = view.kind === 'revealed' || view.kind === 'exiting'
+  const swipeFirst = card ? swipeTopics.has(card.topicId) : false
+  const cardKey = card ? `${card.topicId}-${card.item.id ?? 'item'}-${index}` : 'empty'
+
+  const reduced = useReducedMotion() ?? false
+  const x = useMotionValue(0)
+  const commitDistance = swipeCommitDistance(cardWidth || ASSUMED_CARD_WIDTH)
+  const commitDistanceRef = useRef(commitDistance)
+  commitDistanceRef.current = commitDistance
+
+  const rotate = useTransform(x, [-320, 320], [-7, 7], { clamp: true })
+  const missStrength = useTransform(x, [-SWIPE_CUE_FULL_PX, -8, 0], [1, 0, 0])
+  const hitStrength = useTransform(x, [0, 8, SWIPE_CUE_FULL_PX], [0, 0, 1])
+
+  // Crossing the commit distance is a discrete, announced-to-the-eye event
+  // rather than one more increment of opacity, so a release is predictable.
+  useMotionValueEvent(x, 'change', (latest) => {
+    if (viewRef.current.kind !== 'revealed') return
+    const distance = commitDistanceRef.current
+    const next: SwipeGrade | null =
+      latest <= -distance ? 'incorrect' : latest >= distance ? 'correct' : null
+    setArmed((previous) => (previous === next ? previous : next))
+  })
+
+  useLayoutEffect(() => {
+    const node = cardRef.current
+    if (!node) return
+    const measure = () => setCardWidth(node.offsetWidth)
+    measure()
+    if (typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(measure)
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [cardKey])
 
   useEffect(() => {
     if (deck[index]?.character) return
-    if (phase === 'asking') revealRef.current?.focus({ preventScroll: true })
-    else if (phase === 'revealed') yesRef.current?.focus({ preventScroll: true })
-  }, [deck, phase, index])
+    // A swipe deck keeps focus on the card itself: the card is the control.
+    if (view.kind === 'asking') cardRef.current?.focus({ preventScroll: true })
+    else if (view.kind === 'revealed' && !swipeFirst) yesRef.current?.focus({ preventScroll: true })
+  }, [deck, index, view.kind, swipeFirst])
 
   useEffect(() => {
     if (phase === 'done') headingRef.current?.focus()
@@ -116,21 +207,22 @@ export function Session({ topicIds, onExit }: SessionProps) {
       // A ladder card owns its own keys; reveal/self-score does not apply to it.
       if (deck[index]?.character) return
 
-      if (phase === 'asking' && (event.key === ' ' || event.key === 'Enter')) {
+      if (view.kind === 'asking' && (event.key === ' ' || event.key === 'Enter')) {
         event.preventDefault()
         reveal()
-      } else if (phase === 'revealed' && (event.key === 'ArrowLeft' || event.key === '1')) {
+      } else if (view.kind === 'revealed' && (event.key === 'ArrowLeft' || event.key === '1')) {
         event.preventDefault()
-        score(false)
-      } else if (phase === 'revealed' && (event.key === 'ArrowRight' || event.key === '2')) {
+        commitGrade('incorrect')
+      } else if (view.kind === 'revealed' && (event.key === 'ArrowRight' || event.key === '2')) {
         event.preventDefault()
-        score(true)
+        commitGrade('correct')
       }
     }
 
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [phase, index])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view, deck, index])
 
   const topicPosition = useMemo(() => {
     if (!card) return { current: 0, of: 0 }
@@ -204,14 +296,74 @@ export function Session({ topicIds, onExit }: SessionProps) {
   }
 
   function reveal() {
-    if (phase !== 'asking') return
-    setPhase('revealed')
+    if (viewRef.current.kind !== 'asking') return
+    const next: View = { kind: 'revealed', index: viewRef.current.index }
+    viewRef.current = next
+    setView(next)
     haptic(8)
   }
 
-  function score(correct: boolean) {
-    if (!card || phase !== 'revealed') return
-    bankAndAdvance(correct)
+  /**
+   * Bank one answer against the attempt. This is the whole of the scoring
+   * contract and it is deliberately separate from moving the card: the score
+   * is taken the instant the grade is committed, while the card that earned it
+   * is still the card on screen.
+   */
+  function recordGrade(at: number, correct: boolean, evidence?: ItemEvidenceStore) {
+    const current = deck[at]
+    if (!current) return
+
+    const next = { correct: tally.correct + (correct ? 1 : 0), total: tally.total + 1 }
+    const following = deck[at + 1]
+    const topicFinished = !following || following.topicId !== current.topicId
+
+    if (topicFinished) {
+      bank(current.topicId, next, evidence ?? cueEvidence[current.topicId] ?? {})
+      setTally({ correct: 0, total: 0 })
+    } else {
+      setTally(next)
+    }
+  }
+
+  /**
+   * Take the grade and start the outgoing transition. The index does not move
+   * here, so nothing about the next card — least of all its answer — becomes
+   * reachable while the graded card is still on screen.
+   */
+  function commitGrade(grade: SwipeGrade) {
+    // One physical gesture, one grade. The lock closes the window React
+    // batching leaves open, where two events in a single tick would both still
+    // read the view as `revealed`.
+    if (gradeLock.current) return
+    if (viewRef.current.kind !== 'revealed') return
+    const at = viewRef.current.index
+    if (!deck[at]) return
+
+    gradeLock.current = true
+    // Hold the armed cue through the exit: the card is leaving *as* this grade,
+    // and dropping back to the un-armed treatment at the moment of commit would
+    // read as the gesture having been let go of.
+    setArmed(grade)
+    setDragging(false)
+    haptic(grade === 'correct' ? 12 : [10, 24, 10])
+    recordGrade(at, grade === 'correct')
+
+    const next: View = { kind: 'exiting', index: at, grade }
+    viewRef.current = next
+    setView(next)
+  }
+
+  /** The next prompt becomes active only from here: after the exit completed. */
+  function advance() {
+    if (viewRef.current.kind !== 'exiting') return
+    const at = viewRef.current.index
+    x.set(0)
+    setArmed(null)
+    setDragging(false)
+    gradeLock.current = false
+    const next: View = deck[at + 1] ? { kind: 'asking', index: at + 1 } : { kind: 'done' }
+    viewRef.current = next
+    setView(next)
   }
 
   /**
@@ -220,31 +372,38 @@ export function Session({ topicIds, onExit }: SessionProps) {
    * in the topic, and `PASS_THRESHOLD` is untouched.
    */
   function answerProgressive(answer: ProgressiveAnswer) {
-    if (!card) return
-    bankAndAdvance(answer.correct, noteAnswer(card, answer))
+    if (viewRef.current.kind === 'done') return
+    const at = viewRef.current.index
+    const current = deck[at]
+    if (!current) return
+    haptic(answer.correct ? 12 : [10, 24, 10])
+    recordGrade(at, answer.correct, noteAnswer(current, answer))
+    const next: View = deck[at + 1] ? { kind: 'asking', index: at + 1 } : { kind: 'done' }
+    viewRef.current = next
+    setView(next)
   }
 
-  function bankAndAdvance(correct: boolean, evidence?: ItemEvidenceStore) {
-    if (!card) return
-    haptic(correct ? 12 : [10, 24, 10])
+  function settleDrag(info: PanInfo) {
+    setDragging(false)
+    if (viewRef.current.kind !== 'revealed') return
+    const width = cardRef.current?.offsetWidth || cardWidth || ASSUMED_CARD_WIDTH
+    const grade = swipeIntent({
+      offsetX: info.offset.x,
+      offsetY: info.offset.y,
+      velocityX: info.velocity.x,
+      velocityY: info.velocity.y,
+      width,
+    })
 
-    const next = { correct: tally.correct + (correct ? 1 : 0), total: tally.total + 1 }
-    const following = deck[index + 1]
-    const topicFinished = !following || following.topicId !== card.topicId
-
-    if (topicFinished) {
-      bank(card.topicId, next, evidence ?? cueEvidence[card.topicId] ?? {})
-      setTally({ correct: 0, total: 0 })
-    } else {
-      setTally(next)
+    if (!grade) {
+      // Ambiguous, vertical, or let go on the way back: no score, and the card
+      // returns to rest under its own spring rather than snapping.
+      setArmed(null)
+      animate(x, 0, reduced ? { duration: 0 } : { type: 'spring', stiffness: 520, damping: 38 })
+      return
     }
 
-    if (following) {
-      setIndex((current) => current + 1)
-      setPhase('asking')
-    } else {
-      setPhase('done')
-    }
+    commitGrade(grade)
   }
 
   /**
@@ -268,14 +427,6 @@ export function Session({ topicIds, onExit }: SessionProps) {
     else exitSession()
   }
 
-  function finishSwipe(clientX: number) {
-    if (phase !== 'revealed' || pointerStart.current === null) return
-    const delta = clientX - pointerStart.current
-    pointerStart.current = null
-    if (Math.abs(delta) < 64) return
-    score(delta > 0)
-  }
-
   if (deck.length === 0) {
     return (
       <section className="session">
@@ -288,7 +439,7 @@ export function Session({ topicIds, onExit }: SessionProps) {
     )
   }
 
-  if (phase === 'done') {
+  if (view.kind === 'done' || !card) {
     return <TestDone resolutions={resolutions} onExit={onExit} headingRef={headingRef} />
   }
 
@@ -313,8 +464,6 @@ export function Session({ topicIds, onExit }: SessionProps) {
       </section>
     )
   }
-
-  const revealed = phase === 'revealed'
 
   if (card.character) {
     const rung = rungFor(card.item, evidenceFor(card))
@@ -344,8 +493,27 @@ export function Session({ topicIds, onExit }: SessionProps) {
     )
   }
 
+  const exiting = view.kind === 'exiting'
+  const gradable = view.kind === 'revealed'
+  const exitTarget = exiting
+    ? (view.grade === 'correct' ? 1 : -1) * ((cardWidth || ASSUMED_CARD_WIDTH) + EXIT_OVERSHOOT_PX)
+    : 0
+  // The card leaves under a spring, but it is off screen long before the spring
+  // has finished being precise about it, so the rest thresholds are coarse: the
+  // next card waits on the animation ending, and nothing is served by making it
+  // wait longer. Reduced motion removes the transition rather than the grade.
+  const exitTransition = reduced
+    ? { duration: 0 }
+    : {
+        x: { type: 'spring' as const, stiffness: 420, damping: 40, restDelta: 6, restSpeed: 40 },
+        opacity: { duration: 0.22, ease: 'easeOut' as const },
+      }
+
   return (
-    <section className="session rapid-session is-graded" aria-labelledby="prompt-heading">
+    <section
+      className={`session rapid-session is-graded${swipeFirst ? ' is-swipe-graded' : ''}`}
+      aria-labelledby="prompt-heading"
+    >
       <div className="session-bar">
         <p>
           <span className="session-topic">{card.topicTitle}</span>
@@ -362,19 +530,36 @@ export function Session({ topicIds, onExit }: SessionProps) {
         {card.item.prompt}
       </h1>
 
-      <div className="card-stage">
-        <button
-          ref={revealRef}
-          className={`flip-card${revealed ? ' is-revealed' : ''}`}
+      <div className={`card-stage${armed ? ` is-armed is-armed-${armed}` : ''}`}>
+        <motion.span className="grade-cue grade-cue-miss" style={{ opacity: missStrength }} aria-hidden="true">
+          <span className="grade-cue-arrow">←</span>
+          Incorrect
+        </motion.span>
+        <motion.span className="grade-cue grade-cue-hit" style={{ opacity: hitStrength }} aria-hidden="true">
+          Correct
+          <span className="grade-cue-arrow">→</span>
+        </motion.span>
+
+        <motion.button
+          key={cardKey}
+          ref={cardRef}
+          className={`flip-card${answerVisible ? ' is-revealed' : ''}${dragging ? ' is-dragging' : ''}`}
           type="button"
           onClick={reveal}
-          onPointerDown={(event) => {
-            if (revealed) pointerStart.current = event.clientX
-          }}
-          onPointerUp={(event) => finishSwipe(event.clientX)}
-          aria-expanded={revealed}
+          drag={gradable ? 'x' : false}
+          dragDirectionLock
+          dragMomentum={false}
+          onDragStart={() => setDragging(true)}
+          onDragEnd={(_event, info) => settleDrag(info)}
+          style={{ x, rotate: reduced ? 0 : rotate }}
+          animate={exiting ? { x: exitTarget, opacity: 0 } : false}
+          transition={exitTransition}
+          onAnimationComplete={advance}
+          aria-expanded={answerVisible}
           aria-label={
-            revealed ? `Answer: ${card.item.answer}` : `Prompt: ${card.item.prompt}. Reveal answer.`
+            answerVisible
+              ? `Answer: ${card.item.answer}`
+              : `Prompt: ${card.item.prompt}. Reveal answer.`
           }
         >
           <span className="flip-inner">
@@ -385,35 +570,88 @@ export function Session({ topicIds, onExit }: SessionProps) {
               </span>
             </span>
             <span className="flip-face flip-back">
+              <motion.span className="flip-wash flip-wash-miss" style={{ opacity: missStrength }} aria-hidden="true" />
+              <motion.span className="flip-wash flip-wash-hit" style={{ opacity: hitStrength }} aria-hidden="true" />
               <span className="flip-label">Answer</span>
+              {/* The answer text exists in the document only while this card is
+                  revealed or leaving. An unrevealed card has no answer to leak. */}
               <span className={`flip-value flip-value-answer${testCardTextClass(card.item.answer)}`}>
-                {card.item.answer}
+                {answerVisible ? card.item.answer : ''}
               </span>
             </span>
           </span>
-        </button>
+        </motion.button>
       </div>
 
       <p className="sr-only" aria-live="polite">
-        {revealed ? `Answer: ${card.item.answer}` : ''}
+        {view.kind === 'revealed'
+          ? `Answer: ${card.item.answer}.`
+          : view.kind === 'exiting'
+            ? `Marked ${view.grade === 'correct' ? 'correct' : 'incorrect'}.`
+            : `Prompt: ${card.item.prompt}.`}
       </p>
 
-      <div className={`recall-actions${revealed ? ' is-visible' : ''}`} aria-hidden={!revealed}>
-        <button className="ghost recall-miss" type="button" tabIndex={revealed ? 0 : -1} onClick={() => score(false)}>
-          Didn’t get it
-        </button>
-        <button ref={yesRef} type="button" tabIndex={revealed ? 0 : -1} onClick={() => score(true)}>
-          Got it
-        </button>
-      </div>
+      {swipeFirst ? (
+        <div className={`grade-hint${answerVisible ? ' is-visible' : ''}`}>
+          {/* Swipe is never the only way to grade. These carry the same two
+              actions for keyboard and screen-reader use; they are out of the
+              visual layout until focused, so nothing is hidden from a person
+              who reaches them. */}
+          <button
+            className="grade-fallback"
+            type="button"
+            tabIndex={gradable ? 0 : -1}
+            aria-hidden={!gradable}
+            onClick={() => commitGrade('incorrect')}
+          >
+            Mark incorrect
+          </button>
+          <p className="grade-hint-rail" aria-hidden="true">
+            <span className="grade-hint-side is-miss">← Incorrect</span>
+            <span className="grade-hint-side is-hit">Correct →</span>
+          </p>
+          <button
+            ref={yesRef}
+            className="grade-fallback"
+            type="button"
+            tabIndex={gradable ? 0 : -1}
+            aria-hidden={!gradable}
+            onClick={() => commitGrade('correct')}
+          >
+            Mark correct
+          </button>
+        </div>
+      ) : (
+        <div className={`recall-actions${answerVisible ? ' is-visible' : ''}`} aria-hidden={!gradable}>
+          <button
+            className="ghost recall-miss"
+            type="button"
+            tabIndex={gradable ? 0 : -1}
+            onClick={() => commitGrade('incorrect')}
+          >
+            Didn’t get it
+          </button>
+          <button
+            ref={yesRef}
+            type="button"
+            tabIndex={gradable ? 0 : -1}
+            onClick={() => commitGrade('correct')}
+          >
+            Got it
+          </button>
+        </div>
+      )}
 
       <p className="recall-shortcuts">
-        {revealed ? 'Swipe left or right, or use ← and →' : 'Tap the card or press Space'}
+        {answerVisible
+          ? swipeFirst
+            ? 'Swipe the card, or press ← and →'
+            : 'Or press ← and →'
+          : 'Tap the card or press Space'}
       </p>
     </section>
   )
 }
-
 function TestDone({
   resolutions,
   onExit,
