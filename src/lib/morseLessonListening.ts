@@ -10,6 +10,19 @@ export interface LessonListeningState {
   previousItemId: string | null
 }
 
+export interface ListeningFeedback {
+  itemId: string
+  glyph: MorseLetter
+  pattern: string
+  response: string
+  correct: boolean
+}
+
+export interface ListeningAnswer {
+  run: LessonRun
+  feedback: ListeningFeedback
+}
+
 export function newLessonListeningState(): LessonListeningState {
   return { suppressed: false, previousItemId: null }
 }
@@ -62,4 +75,46 @@ export function lessonListeningOptions(run: LessonRun, entry: LessonEntry): Mors
   const at = run.step % (options.length + 1)
   options.splice(at, 0, entry.glyph)
   return options
+}
+
+/**
+ * Answer a sound→letter formative prompt without touching printed support.
+ *
+ * The target is deferred for one intervening lesson step so the next question
+ * cannot simply reveal the same answer visually. `asked`, `done`, and `support`
+ * are deliberately unchanged: auditory reinforcement cannot make a printed
+ * packet ready, fade/restore printed acquisition support, or become durable
+ * evidence. Only ephemeral queue timing moves.
+ */
+export function answerListeningQuestion(
+  run: LessonRun,
+  itemId: string,
+  response: string,
+): ListeningAnswer | null {
+  const entry = run.entries.find((candidate) => candidate.itemId === itemId)
+  if (!entry || !entry.introduced || run.feedback || run.complete) return null
+
+  const normalised = response.trim().toUpperCase()
+  const correct = normalised === entry.glyph
+  const step = run.step + 1
+  const entries = run.entries.map((candidate) =>
+    candidate.itemId === itemId
+      ? {
+          ...candidate,
+          lastAskedAt: run.step,
+          notBefore: step + 1,
+        }
+      : candidate,
+  )
+
+  return {
+    run: { ...run, step, entries },
+    feedback: {
+      itemId,
+      glyph: entry.glyph,
+      pattern: entry.pattern,
+      response: normalised,
+      correct,
+    },
+  }
 }
