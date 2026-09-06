@@ -239,7 +239,7 @@ A learner can therefore be capable of uncued Morse recall today while still lack
 
 ### 6.2 Scored coverage — resolved by #24/#28
 
-Argus uses **exactly 26 logical items**, each typed `bidirectional`. Stable item identity and per-direction evidence prove both directions without duplicating the logical unit into 52 cards. `retentionCorrectCount` prevents a partial-direction path from presenting a passing attempt to the unchanged scheduler.
+Argus uses **exactly 26 logical items**, each typed `bidirectional`. Stable item identity and per-direction evidence prove both directions without duplicating the logical unit into 52 cards. `retentionCorrectCount` prevents a partial-direction path from presenting a passing attempt to the unchanged scheduler. After #68 it also prevents a partially *supported* one: only answers given with no scaffolding on screen count toward the claim, and a qualifying run in which any answer was cued cannot pass. See `docs/MORSE_CUE_LADDER.md`.
 
 This is the implemented resolution of the original 52-prompts-vs-bidirectional design question.
 

@@ -7,7 +7,14 @@ import {
   promptFor,
   type AcquisitionCharacter,
 } from '../../lib/acquisition'
-import { CUE_RUNGS, FREE_RECEPTION_RUNG, UNCUED_RUNGS, recordAnswer, rungFor } from '../../lib/cueLadder'
+import {
+  CUE_RUNGS,
+  FREE_RECEPTION_RUNG,
+  UNCUED_RUNGS,
+  isAssistedRung,
+  recordAnswer,
+  rungFor,
+} from '../../lib/cueLadder'
 import { MORSE_LETTERS, type MorseLetter } from '../../lib/morse'
 import { verbalMnemonic } from '../../lib/morseVerbalMnemonics'
 import { parseLibrary } from '../../lib/storage'
@@ -267,6 +274,7 @@ describe('a whole item’s journey up the ladder', () => {
       evidence = recordAnswer(evidence, {
         direction: rung.direction,
         correct: true,
+        assisted: isAssistedRung(rung),
         latencyMs: 700,
         at: '2026-01-01T00:00:00.000Z',
       })

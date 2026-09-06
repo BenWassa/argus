@@ -17,9 +17,9 @@ import {
   type AcquisitionCharacter,
   type AcquisitionProfile,
 } from '../../lib/acquisition'
-import { mergeItemEvidence, recordAnswer, rungFor } from '../../lib/cueLadder'
+import { isAssistedRung, mergeItemEvidence, recordAnswer, rungFor } from '../../lib/cueLadder'
 import { selectDistractors } from '../../lib/distractors'
-import { retentionCorrectCount } from '../../lib/items'
+import { retentionCorrectCount, type AttemptAnswer } from '../../lib/items'
 import { registerBackBlocker } from '../../lib/navigation'
 import type { Item, ItemCueEvidence, ItemEvidenceStore, Topic } from '../../lib/types'
 import { ProgressiveCard, type ProgressiveAnswer } from './ProgressiveCard'
@@ -132,6 +132,12 @@ export function Session({ topicIds, onExit }: SessionProps) {
   // Cue evidence accrued this session, held apart from the scheduler's tally
   // and merged into the topic separately from any status resolution.
   const [cueEvidence, setCueEvidence] = useState<Record<string, ItemEvidenceStore>>({})
+  // What this attempt actually asked and how it was supported, per topic. The
+  // merged evidence store cannot answer that: it is a lifetime tally and only
+  // ever grows, so read alone it says "has ever" where the completion gate has
+  // to ask "did, in this run". Discarded with the attempt on an early exit,
+  // exactly like the tally, because it is part of the attempt and not evidence.
+  const attemptAnswers = useRef<Record<string, AttemptAnswer[]>>({})
 
   const [view, setView] = useState<View>({ kind: 'asking', index: 0 })
   const [tally, setTally] = useState<{ correct: number; total: number }>({ correct: 0, total: 0 })
@@ -276,9 +282,17 @@ export function Session({ topicIds, onExit }: SessionProps) {
     // resolution decided.
     const mergedEvidence = { ...(topic.itemEvidence ?? {}), ...evidence }
     // Acquisition evidence remains separate state. It is used here only as a
-    // safety gate: an incomplete direction can never be presented to the
-    // unchanged scheduler as a passing attempt for a bidirectional boundary.
-    const schedulerCorrect = retentionCorrectCount(topic.items, mergedEvidence, attempt.correct)
+    // safety gate: neither an incomplete direction nor a supported answer can be
+    // presented to the unchanged scheduler as a passing attempt for a
+    // bidirectional boundary. The attempt's own answers are passed alongside the
+    // store so a run carried by cued history cannot bank a claim of independent
+    // recall (#68).
+    const schedulerCorrect = retentionCorrectCount(
+      topic.items,
+      mergedEvidence,
+      attempt.correct,
+      attemptAnswers.current[topicId] ?? [],
+    )
     const resolution = resolveAttempt(topic, schedulerCorrect, attempt.total)
     upsertTopic(mergeItemEvidence(resolution.topic, evidence))
     setResolutions((previous) => [...previous, resolution])
@@ -296,16 +310,28 @@ export function Session({ topicIds, onExit }: SessionProps) {
     if (!itemId) return topicStore
 
     const rung = rungFor(card.item, evidenceFor(card))
+    // What the card showed decides whether this counts as independent recall.
+    // It is taken from the rung that is on screen rather than restated here, so
+    // the two can never disagree.
+    const assisted = isAssistedRung(rung)
     const next = {
       ...topicStore,
       [itemId]: recordAnswer(evidenceFor(card), {
         direction: rung.direction,
         correct: answer.correct,
+        assisted,
         // Recorded from the first session, and read by nothing that decides
         // anything. It exists so a threshold can one day be more than a guess.
         latencyMs: answer.latencyMs,
         at: new Date().toISOString(),
       }),
+    }
+    attemptAnswers.current = {
+      ...attemptAnswers.current,
+      [card.topicId]: [
+        ...(attemptAnswers.current[card.topicId] ?? []),
+        { itemId, direction: rung.direction, correct: answer.correct, assisted },
+      ],
     }
     setCueEvidence((previous) => ({ ...previous, [card.topicId]: next }))
     return next

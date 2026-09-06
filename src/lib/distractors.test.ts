@@ -7,7 +7,7 @@ import {
   HIGH_CONFUSION,
   selectDistractors,
 } from './distractors'
-import { recordAnswer, rungFor } from './cueLadder'
+import { isAssistedRung, recordAnswer, rungFor } from './cueLadder'
 import type { IdentifiedItem, ItemCueEvidence, ItemEvidenceStore } from './types'
 
 const deck: IdentifiedItem[] = (Object.keys(MORSE_LETTERS) as MorseLetter[]).map((letter) => ({
@@ -25,9 +25,11 @@ function item(letter: MorseLetter): IdentifiedItem {
 function climbed(target: IdentifiedItem, count: number): ItemCueEvidence {
   let evidence: ItemCueEvidence | undefined
   for (let i = 0; i < count; i += 1) {
+    const rung = rungFor(target, evidence)
     evidence = recordAnswer(evidence, {
-      direction: rungFor(target, evidence).direction,
+      direction: rung.direction,
       correct: true,
+      assisted: isAssistedRung(rung),
       latencyMs: 800,
       at: '2026-01-01T00:00:00.000Z',
     })
