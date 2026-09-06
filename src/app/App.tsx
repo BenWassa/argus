@@ -216,10 +216,34 @@ function Routes() {
     navigate({ kind: 'run', mode, topicIds, origin }, replace)
   }
 
-  function openReference(topicId: string, replace = false) {
+  function openReference(topicId: string) {
     const current = routeRef.current
-    const origin = replace && current.kind === 'run' ? current.origin : parentFor(current)
-    navigate({ kind: 'reference', topicId, origin }, replace)
+    const topicRoute: ParentRoute = { kind: 'topic', topicId }
+    const reference: AppRoute = { kind: 'reference', topicId, origin: topicRoute }
+
+    if (current.kind === 'run') {
+      // Current-main behaviour already abandons Learn and closes the reference
+      // to this Topic. If Learn itself came from the Topic, replacing Learn is
+      // enough because that Topic entry is already directly behind it.
+      if (current.origin.kind === 'topic' && current.origin.topicId === topicId) {
+        navigate(reference, true)
+        return
+      }
+
+      // Learn can also launch from Today or Library. There is then no Topic
+      // entry behind the run, so turn the run entry into Topic and place the
+      // read-only reference above it. Back closes Reference -> Topic -> the
+      // original section, matching the pre-#45 product flow without replaying
+      // Learn or creating a duplicate section stop.
+      replaceNavigationState(topicRoute, historyIndex.current)
+      historyIndex.current = pushNavigationState(reference, historyIndex.current)
+      routeRef.current = reference
+      setRoute(reference)
+      return
+    }
+
+    const origin = current.kind === 'topic' ? current : parentFor(current)
+    navigate({ kind: 'reference', topicId, origin })
   }
 
   function navigateSection(next: View) {
@@ -248,7 +272,7 @@ function Routes() {
               topicIds={route.topicIds}
               onExit={goBack}
               onTest={(ids) => start('test', ids, true)}
-              onReference={(topicId) => openReference(topicId, true)}
+              onReference={openReference}
             />
           ) : (
             <Session
@@ -289,7 +313,7 @@ function Routes() {
       {view === 'library' && (
         <Library
           onStart={start}
-          onOpenReference={(id) => openReference(id)}
+          onOpenReference={openReference}
           openFormOnMount={authorOnEntry}
           openTopicOnMount={topicId}
           onOpenTopic={(id) => navigate({ kind: 'topic', topicId: id })}
