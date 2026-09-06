@@ -1,10 +1,8 @@
-/* The guided Morse lesson (#48).
+/* Guided Morse Learn (#48/#51/#52).
 
-   One dominant task per screen, sized for a thumb. The composition is a single
-   column at every width: a lesson is a sequence, not a dashboard, and nothing
-   here should invite scrolling past the thing being asked. Every size is in
-   `rem`/`em` or a token, so a reader at 200% text gets a taller screen rather
-   than a broken one. */
+   One dominant task per screen, sized for a thumb. The composition stays a
+   single column; all type sizes use rem/em/tokens so 200% text remains a
+   reflow problem rather than a clipped fixed-pixel layout. */
 
 .morse-lesson {
   display: grid;
@@ -35,10 +33,8 @@
   color: var(--subtle);
 }
 
-/* Determinate, and honest: it counts characters produced unaided, so it can sit
-   still through a run of misses rather than implying progress that has not
-   happened. The count is also written out in the bar, so the bar is never the
-   only carrier of the information. */
+/* The primary bar is #51's guaranteed finite sitting target. Packet readiness is
+   stated separately in text and remains durable acquisition state. */
 .lesson-progress {
   block-size: 6px;
   border-radius: var(--r-pill);
@@ -113,9 +109,8 @@
   color: var(--accent);
 }
 
-/* Whatever the check is still willing to show. It reads as a quiet aside beside
-   the question rather than as another card competing with it. */
-.lesson-support {
+.lesson-support,
+.lesson-listening-stimulus {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -124,6 +119,10 @@
   border-inline-start: 3px solid var(--line-strong);
   border-radius: 0 var(--r-md) var(--r-md) 0;
   background: var(--surface-2);
+}
+
+.lesson-listening-stimulus {
+  border-inline-start-color: var(--accent);
 }
 
 .lesson-length {
@@ -148,6 +147,17 @@
   letter-spacing: 0.16em;
 }
 
+.lesson-letter-option {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: var(--w-section);
+  letter-spacing: normal;
+}
+
+.lesson-audio-skip {
+  justify-self: start;
+}
+
 .lesson-production {
   display: grid;
   gap: var(--s-md);
@@ -165,8 +175,6 @@
   overflow-wrap: anywhere;
 }
 
-/* The same two oversized keys as the uncued Test rung, so the lesson hands the
-   learner over in the interaction they will be scored in. */
 .lesson-keys {
   display: grid;
   grid-template-columns: 1fr 1fr auto;
@@ -203,8 +211,6 @@
   font-family: var(--font-display);
   font-size: var(--t-section);
   font-weight: var(--w-section);
-  /* State is never colour-only: the verdict is spelled out in words, and a
-     miss additionally renders the whole reteach block. */
   color: var(--danger-2);
 }
 

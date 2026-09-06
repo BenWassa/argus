@@ -1,30 +1,38 @@
 /**
- * The compact Play/Stop control from #44, in one place so the Learn lesson, the
- * Morse alphabet reference and the packet reading surface cannot drift apart on
- * accessible name, state or touch target.
+ * Compact Play/Stop control shared by Learn and the A–Z reference.
  *
- * `button.icon` in `global.css` guarantees a 44×44 CSS px target even though the
- * drawn glyph is smaller. State is never colour-only: the glyph itself switches
- * between a play triangle and a stop square, and the accessible name switches
- * between "Play A Morse" and "Stop A Morse" to match.
+ * `button.icon` guarantees a 44×44 CSS px target. Ordinary instructional audio
+ * names its letter. A listening-question stimulus must not: `concealGlyph`
+ * switches to the neutral "Play/Stop Morse sound" name so a screen reader does
+ * not receive the answer that the visible prompt intentionally withholds.
  */
 export function MorsePlayButton({
   glyph,
   playing,
   onToggle,
   className = '',
+  concealGlyph = false,
 }: {
   glyph: string
   playing: boolean
   onToggle: () => void
   className?: string
+  concealGlyph?: boolean
 }) {
+  const label = concealGlyph
+    ? playing
+      ? 'Stop Morse sound'
+      : 'Play Morse sound'
+    : playing
+      ? `Stop ${glyph} Morse`
+      : `Play ${glyph} Morse`
+
   return (
     <button
       className={`ghost icon morse-play${playing ? ' is-playing' : ''}${className ? ` ${className}` : ''}`}
       type="button"
       onClick={onToggle}
-      aria-label={playing ? `Stop ${glyph} Morse` : `Play ${glyph} Morse`}
+      aria-label={label}
       aria-pressed={playing}
     >
       {playing ? (

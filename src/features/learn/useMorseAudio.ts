@@ -15,15 +15,8 @@ export interface Sounding {
 /**
  * One Morse player for a whole surface, at #44's acquisition speed.
  *
- * One player and one character at a time: starting a character cancels whatever
- * was playing, so the illuminated element on screen and the tone in the ear are
- * always the same event. Playback only ever starts from a click — nothing here
- * plays on mount, on navigation or on re-render.
- *
- * Shared by the Learn lesson, the Morse alphabet reference and the packet
- * reading surface, so all three keep the same lifecycle, the same
- * cancel-on-background behaviour and the same 12 WPM acquisition timing rather
- * than three copies that can drift apart.
+ * Playback starts only from an explicit user action. One player and one
+ * character run at a time; starting another cancels the prior schedule.
  */
 export function useMorseAudio() {
   const playerRef = useRef<MorseAudioPlayer | null>(null)
@@ -41,6 +34,8 @@ export function useMorseAudio() {
     playerRef.current?.cancel()
     setSounding(null)
   }, [clearTimers])
+
+  const clearError = useCallback(() => setAudioError(null), [])
 
   useEffect(() => {
     const onVisibility = () => {
@@ -67,18 +62,12 @@ export function useMorseAudio() {
         const schedule = await playerRef.current.play(glyph, LEARN_ACQUISITION_MORSE_TIMING)
         setSounding({ glyph, index: null })
 
-        // Element illumination is driven by the same schedule and the same
-        // start-delay constant as the tone. Nothing here invents a second
-        // timing model, so the visual and audible short/long sequence cannot
-        // silently drift apart.
         let offset = MORSE_AUDIO_START_DELAY_MS
         let element = 0
         for (const event of schedule.events) {
           if (event.kind === 'signal') {
             const at = offset
             const index = element
-            // Lit for exactly as long as the tone sounds, dark through the gap,
-            // so the silence between elements is as visible as the elements.
             timersRef.current.push(setTimeout(() => setSounding({ glyph, index }), at))
             timersRef.current.push(
               setTimeout(() => setSounding({ glyph, index: null }), at + event.durationMs),
@@ -89,9 +78,6 @@ export function useMorseAudio() {
         }
         timersRef.current.push(setTimeout(() => setSounding(null), offset + 80))
       } catch (error) {
-        // A second Play/Stop/background action is new user intent, not an audio
-        // failure. The player invalidates the stale request before it can
-        // schedule an oscillator; keep that cancellation silent in the UI.
         if (error instanceof MorsePlaybackCancelledError) return
         setSounding(null)
         setAudioError(
@@ -110,5 +96,5 @@ export function useMorseAudio() {
     [play, sounding, stop],
   )
 
-  return { sounding, audioError, play, stop, toggle }
+  return { sounding, audioError, clearError, play, stop, toggle }
 }

@@ -1,228 +1,176 @@
-# Morse Learn: guided acquisition, finite sittings, and reference
+# Morse Learn: guided acquisition, finite sittings, listening, and reference
 
-Issues #48 and #51. Parent #21. Preserves #28's completion boundary and the
-#42/#44 mnemonic/audio treatment. This document describes the shipped Morse
-Learn contract; #29 remains the separate future boundary for auditory reception,
-sending, WPM, groups, words, and continuous material.
+Issues #48, #51 and #52. Parent #21. Preserves #28's completion boundary and
+the #42/#44 mnemonic/audio treatment. #29 remains the separate future boundary
+for a claimed auditory-reception competency, sending, WPM, groups, words and
+continuous material.
 
 Primary code:
 
-- `src/lib/morseLesson.ts` — durable acquisition/packet policy;
+- `src/lib/morseLesson.ts` — durable printed-acquisition and packet policy;
 - `src/lib/morseLessonSitting.ts` — runtime-only finite-sitting policy;
-- `src/features/learn/MorseLesson.tsx` — lesson surface;
-- `src/features/learn/MorseReference.tsx` — A–Z lookup surface;
-- `src/features/learn/MorsePhrase.tsx` — shared rhythmic phrase rendering.
+- `src/lib/morseLessonListening.ts` — runtime-only listening-question policy;
+- `src/features/learn/MorseLesson.tsx` — guided lesson surface;
+- `src/features/learn/MorseReference.tsx` — A–Z lookup surface.
 
-Primary tests:
+## Product model and evidence boundary
 
-- `src/lib/morseLesson.test.ts`;
-- `src/lib/morseLessonSitting.test.ts`;
-- `src/features/learn/MorseLesson.test.tsx`;
-- `src/features/learn/MorseReference.test.tsx`;
-- `src/features/learn/MorseAcquisitionTreatment.test.tsx`.
-
-## Product model
-
-Morse exposes three jobs without changing Argus's global **Learn + Test** model.
-
-| Surface | Job | Durable writes |
-| --- | --- | --- |
-| **Learn / Continue lesson** | guided acquisition: introduce, retrieve, reteach, interleave, fade support | `Topic.lessonProgress` only |
-| **Test** | formal scored retention/completion | scheduler state + cue/directional evidence |
-| **Morse alphabet** | freely available A–Z lookup | none |
-
-Practice is not a third mode. Formative retrieval lives inside Learn. The
-alphabet is a reference surface, not a scheduled/scored mode.
+Morse still has only **Learn + Test** as product modes. Learn is guided
+acquisition; Test is the sole formal scored retention/completion path; Morse
+alphabet is a freely available non-scored reference.
 
 The formal completion claim remains exactly:
 
 > Can independently recall all A–Z printed Morse mappings in both directions.
 
-There are exactly 26 logical scoring units, all typed bidirectional. Learn never
-satisfies that claim by itself.
+There are exactly 26 logical scoring units, all typed bidirectional. Nothing in
+Learn — including a listening answer — can satisfy directional evidence,
+advance the scheduler or award completion.
+
+Learn persists only `Topic.lessonProgress`, one printed-acquisition support enum
+per item. Session XP and listening state are runtime-only and are never written
+to the learner record, export/import data, cue evidence or scheduler state.
 
 ## Two independent progress clocks
 
-#51 separates **how long the current sitting lasts** from **whether the current
-packet is acquisition-ready**.
-
-### Sitting progress — finite and runtime-only
-
-Every normal Morse Learn sitting has a target of **10 answered formative
+Every normal Morse Learn sitting has a fixed target of **10 answered formative
 retrievals**.
 
-- one answered retrieval consumes one unit whether correct or wrong;
-- one answered retrieval earns one session XP/point;
-- introductions do not consume the budget;
-- feedback/reteach screens do not consume the budget;
-- mistakes cannot extend the sitting beyond the target;
-- `Close` remains available at any time;
-- if the whole A–Z Learn programme finishes before another retrieval is
-  possible, the programme-complete screen is the natural earlier endpoint.
+- each answered retrieval consumes one unit and earns one session XP whether
+  correct or wrong;
+- introductions and correction/reteach screens consume no budget;
+- `Can't listen now` consumes no budget because it is not an answered retrieval;
+- mistakes change teaching/support, not sitting length;
+- a packet may span several sittings;
+- if a packet genuinely settles before the tenth retrieval, the same sitting may
+  continue into the next packet.
 
-Session XP is deliberately simple: it is a visible finite-work target, not a
-measure of mastery. Correctness still controls acquisition support and weak-item
-routing. There is no lifetime XP, streak, league, currency, shop, daily goal, or
-reward economy.
+Packet readiness remains separate durable acquisition state: every character on
+the roster must be `settled` under the **printed** Learn support ladder. The
+packet index is derived from that state rather than stored independently.
 
-The sitting state is a plain runtime value in `morseLessonSitting.ts`:
+The UI therefore shows `Packet N of 13` and `X / 10 XP`. The main bar is the
+finite sitting target; the packet settled count is secondary context. The
+endpoint summary reports XP, correct count, unique letters to revisit, current
+packet progress and packet(s) settled during the sitting.
 
-```ts
-interface LessonSitting {
-  retrievals: number
-  correct: number
-  revisitItemIds: string[]
-}
-```
+There is no global XP, streak, league, currency, shop or daily-goal schema.
 
-It is never written to `Topic`, storage, export/import data, cue evidence,
-directional evidence, or scheduler state. Dismissing the summary discards it.
-
-### Packet progress — durable acquisition state
-
-Packet readiness remains exactly the #48 contract. A packet advances only when
-every roster character is `settled` under the Learn support model. The packet
-index is derived from durable per-item support rather than stored as an
-independent counter.
-
-Consequences:
-
-- one packet can span several finite sittings;
-- a strong sitting can settle a packet before 10 retrievals;
-- when that happens and retrieval budget remains, the same sitting may continue
-  into the next packet;
-- ending a sitting never falsely settles a packet;
-- reopening Learn rebuilds from the durable unresolved acquisition state rather
-  than replaying the prior sitting's transient queue.
-
-The UI makes the distinction explicit. The header presents **Packet N of 13**
-and **X / 10 XP**. The main progress bar represents the finite sitting target.
-The current packet's settled count remains visible as secondary acquisition
-context rather than the dominant goal.
-
-At the endpoint the summary shows:
-
-- XP earned in this sitting;
-- number correct;
-- unique letters to revisit;
-- current packet progress;
-- packet(s) settled during the sitting when applicable;
-- a primary `Next lesson` action and a quiet exit.
-
-## Packet ordering and new-item load
-
-P1/P2 from `docs/MORSE_CHARACTER_ORDER.md` remain authoritative:
-complexity-ascending ordering with final-element confusables separated, two novel
-characters per packet, and up to five characters on the roster.
-
-The roster size is not the simultaneous new-item load. A packet introduces two
-new mappings; later rosters include prior material for interleaved retrieval.
-
-## Learn support ladder
+## Printed acquisition support ladder
 
 Learn support remains separate from the Test cue ladder:
 
-| Support | Live printed check | Response |
+| Support | Printed letter → Morse question | Response |
 | --- | --- | --- |
 | `taught` | rhythmic phrase with beat marks | choose a pattern |
-| `cued` | element count and, until #52 changes the modality contract, optional target playback | choose a pattern |
+| `cued` | element count only | choose a pattern |
 | `solo` | glyph only | key the pattern |
-| `settled` | same unaided format as `solo` | key the pattern when returned for interleaving |
+| `settled` | same unaided format as `solo` when interleaved | key the pattern |
 
-`settled` means only that Learn can withhold its acquisition scaffold. It is not
-retention, completion, or formal Test evidence.
+The critical #52 correction is that **no unanswered printed recall question
+exposes target playback**. A one-signal question such as `T` may show `1 signal`,
+but there is no Play control that can reveal whether the answer is dit or dah.
 
-One correct printed retrieval fades one support level. A miss restores support
-appropriate to the format that failed. A miss at an unaided format therefore
-returns to `cued`, not to another visually identical unaided state.
+Instructional target audio remains available during introduction, after an
+answer in correction/reteach, and in the A–Z reference. Audio is either teaching
+outside the live recall decision, or it is the stimulus of a distinct listening
+question.
 
-The correction screen reteaches the useful material — rhythmic phrase, SVG,
-canonical pattern, and acquisition-speed audio — rather than only displaying a
-wrong marker.
+One correct printed retrieval fades support one level. A printed miss restores
+support appropriate to the failed format and enters the existing delayed weak-
+item recurrence policy. `settled` is only a Learn-scaffold state; it is not
+retention or completion.
 
-## Weak-item recurrence and interleaving
+## Listening is a separate formative question type
 
-A missed character is barred for `WEAK_ITEM_DELAY_STEPS = 2` lesson steps.
-`nextStepIndex` additionally avoids `miss → correction → same question` when
-possible by reopening other settled roster material as interleaved retrieval.
+A listening question is **Morse sound → letter**.
 
-Returning characters from earlier packets arrive settled and are asked unaided.
-A miss on a returning character restores support and can block true packet
-readiness until it is produced unaided again.
+While unanswered:
 
-Sequencing and distractors are deterministic. Supported-check alternatives are
-drawn from encountered material and deterministic padding, avoid a target's
-final-element confusable during initial acquisition, and prefer same-length
-patterns where the element count is disclosed.
+- the sound is the stimulus;
+- the target letter, canonical pattern, mnemonic and SVG are not shown as the
+  identified answer;
+- the Play/Stop control has the neutral accessible name `Play Morse sound` /
+  `Stop Morse sound`, so a screen reader does not receive the hidden answer;
+- replay is allowed;
+- the learner chooses from a compact deterministic set containing only
+  characters already introduced.
 
-## Leaving, resuming, and sitting boundaries
+Listening is deliberately restrained and deterministic in V1. It is eligible on
+retrieval slots 3, 6 and 9, only after the target has moved beyond `taught` in
+printed acquisition. The immediately previous target is excluded from an
+instant modality flip, and answering a listening question defers that target in
+the ephemeral queue so the next question is not simply the same answer visually.
 
-`Topic.lessonProgress` is written after meaningful acquisition changes. The
-within-sitting queue and session XP are not persisted.
+### Auditory answers do not change printed packet readiness
 
-Therefore:
+`answerListeningQuestion` does not fade or restore `LessonSupport`, does not set
+`asked`/`done`, and therefore cannot settle a printed packet. It changes only
+runtime queue timing and returns runtime feedback.
 
-- leaving midway preserves support already earned;
-- reopening starts a fresh 10-retrieval sitting;
-- already introduced items are not introduced again merely because the prior
-  sitting ended;
-- the first packet not fully settled is reconstructed from durable support;
-- weak items remain weak because their support level persisted, while transient
-  queue timing is rebuilt deterministically.
+A correct or wrong listening answer does count as one of the sitting's 10
+formative retrievals, because the learner completed a question, but the result
+is not durable auditory evidence and does not create an auditory competency
+claim. A listening miss may be shown corrective material after the answer; it
+still carries no printed-support penalty.
 
-This deliberately avoids a second durable session-state machine.
+## `Can't listen now` and technical audio failure
 
-## Why Learn cannot award formal evidence
+Every live listening prompt exposes the secondary action:
 
-The separation is structural, not copywriting.
+> Can't listen now
 
-1. `morseLesson.ts` imports no scheduler, Test cue ladder, distractor engine, or
-   item-completion module.
-2. `answerLesson` takes and returns a `LessonRun`; it does not receive a `Topic`.
-3. `withLessonProgress` is the only acquisition function that writes a topic,
-   and it changes only `lessonProgress`.
-4. `MorseLesson.tsx` has one `upsertTopic` path, through
-   `withLessonProgress(topicRef.current, lessonProgressOf(next))`.
-5. `morseLessonSitting.ts` does not receive or mutate a topic at all.
-6. A perfect Learn programme leaves formal directional coverage absent, so a
-   later formal Test still has to demonstrate the exact bidirectional boundary.
+Choosing it:
 
-The existing first-exposure transition from `unstarted` to `learning` still
-belongs to `Learn.tsx` when Learn opens. Formative retrievals do not create
-additional scheduler transitions.
+- applies no correctness or support penalty;
+- earns no XP and consumes no retrieval slot;
+- writes no formal or auditory evidence;
+- suppresses further listening prompts for the rest of the current sitting;
+- immediately leaves eligible visual work to occupy the unanswered slot.
 
-## Durable state
+Suppression is runtime-only. `Next lesson` starts a new finite sitting with
+listening eligible again.
 
-The only Morse-Learn-specific durable state is:
+A technical audio error follows the same non-blocking product path: playback is
+stopped, listening is suppressed for the rest of that sitting, a concise status
+message is announced, and Learn continues visually. The audio-error state is
+cleared when the next sitting begins.
 
-```ts
-export type LessonSupport = 'taught' | 'cued' | 'solo' | 'settled'
-export type ItemLessonStore = Record<string, LessonSupport>
-// Topic.lessonProgress?: ItemLessonStore
-```
+A fully visual sitting still reaches the same 10-retrieval endpoint, including
+when all listening is skipped or unavailable.
 
-No schema version bump was required for #48 or #51. An absent field means no
-lesson progress. Parsing validates item IDs and support values, edit operations
-prune deleted items, and export/import remains lossless.
+## Packet ordering, weak items and interleaving
 
-The Test `ItemCueEvidence` store is intentionally not reused. Its directional
-fields participate in formal completion gating; writing Learn activity there
-would blur the exact evidence boundary this programme exists to preserve.
+P1/P2 from `docs/MORSE_CHARACTER_ORDER.md` remain authoritative:
+complexity-ascending ordering with final-element confusables separated, two novel
+characters per packet, and up to five characters on a roster.
 
-## Morse alphabet reference
+Printed misses remain barred for `WEAK_ITEM_DELAY_STEPS = 2` lesson steps and
+are not immediately repeated after correction. Returning characters from prior
+packets arrive settled and are retrieved unaided; a printed miss on one can
+restore support and block true packet readiness.
 
-The reference exposes all 26 letters alphabetically at all times. Each entry
-contains the letter, rhythmic phrase with aligned beat marks, canonical notation,
-secondary timing drawing, and compact Play/Stop control.
+Supported printed distractors remain deterministic, avoid a target's final-
+element confusable during early acquisition, and prefer same-length alternatives
+where element count is disclosed. Listening choices are also deterministic and
+never pad with an unintroduced letter.
 
-It imports no learner store/scheduler/cue ladder and therefore mutates nothing.
-The mnemonic grammar is shared with Learn; casing carries no timing semantics,
-and aligned `·`/`—` marks make deliberate repeated words read as repeated Morse
-beats rather than duplicated text.
+## Leaving and resuming
 
-See `docs/MORSE_VERBAL_MNEMONICS.md` for the mnemonic grammar and provenance.
+`Topic.lessonProgress` persists meaningful printed acquisition changes. The
+within-sitting queue, XP tally, listening suppression and listening feedback do
+not.
 
-## Audio and visual acquisition treatment
+Therefore reopening Learn starts a fresh 10-retrieval sitting reconstructed from
+the first packet not fully settled. Already introduced items stay introduced;
+weak printed items retain their support level; listening availability resets.
+There is no second durable session or auditory state machine.
+
+## Morse alphabet and acquisition audio
+
+The reference still exposes all 26 letters alphabetically with rhythmic phrase,
+canonical notation, timing drawing and compact Play/Stop control, and writes no
+learner progress.
 
 #42/#44 remain in force:
 
@@ -231,47 +179,60 @@ See `docs/MORSE_VERBAL_MNEMONICS.md` for the mnemonic grammar and provenance.
 - audio is generated from canonical Morse timing;
 - acquisition playback uses `LEARN_ACQUISITION_MORSE_TIMING` at 12 character
   WPM;
-- the compact Play control is accessible and touch-sized;
-- none of these cues may leak into the uncued formal Test boundary.
+- canonical dit:dah timing remains 1:3;
+- the compact audio control remains touch-sized and accessible;
+- no mnemonic/SVG/audio cue leaks into the formal uncued Test boundary.
 
-#52 follows #51 and corrects one remaining Learn defect: target playback inside a
-printed recall question can reveal the answer. That change is deliberately not
-pre-implemented by #51.
+See `docs/MORSE_VERBAL_MNEMONICS.md` for mnemonic grammar and provenance.
+
+## Structural safeguards
+
+1. `morseLesson.ts` imports no scheduler or formal Test-evidence module.
+2. `answerLesson` mutates only a `LessonRun` and never receives a `Topic`.
+3. `withLessonProgress` is the only acquisition write path and changes only
+   `lessonProgress`.
+4. `morseLessonSitting.ts` and `morseLessonListening.ts` are runtime-only policy
+   modules and do not write a learner record.
+5. `MorseLesson.tsx` has one `upsertTopic` path, behind
+   `withLessonProgress(topicRef.current, lessonProgressOf(next))`.
+6. Listening answers do not call that durable write path.
+
+The existing first-exposure `unstarted → learning` transition remains in
+`Learn.tsx`; it is not evidence from a formative retrieval.
 
 ## Preserved boundaries
 
-#48/#51 do not change:
+#52 does not change:
 
 - the exact printed A–Z completion claim;
-- 26 bidirectional scoring units;
-- formal Test directional evidence;
-- scheduler/retention semantics;
-- the uncued completion boundary;
-- migration/export/import integrity;
+- the 26 typed bidirectional scoring units;
+- formal Test direction/cue/scheduler/retention semantics;
+- migration or export/import integrity;
 - any non-Morse topic;
-- #29's separate auditory-reception/sending/WPM/groups/words/continuous-material
-  claims.
+- #29's future separately stated auditory-reception, sending, WPM, groups, words
+  or continuous-material competency.
 
 ## Validation boundary
 
-Automated coverage proves the structural contract, including:
+Automated coverage establishes, among other invariants:
 
-- all A–Z reference content remains canonical and non-mutating;
-- first-packet new-item load and support fading/restoration;
-- delayed weak-item recurrence and interleaving;
-- packet readiness remains dependent on settled acquisition state;
-- an all-wrong sitting still ends after 10 answered retrievals;
-- introductions do not consume the sitting budget;
-- every completed retrieval earns exactly one session XP;
-- one packet may span sittings;
-- a sitting may cross into a subsequent packet after genuine readiness;
-- session XP stays outside durable learner state;
-- Learn cannot award scheduler, directional, retention, or completion evidence;
-- Test remains bidirectional and uncued at the completion boundary;
-- reduced motion, text scaling, focus, touch sizing, and readable progress copy
-  remain covered.
+- no target Play control exists on unanswered printed questions, including the
+  one-signal `T` case;
+- listening prompt/control text does not identify the hidden target;
+- replay is available and choices are introduced-only/deterministic;
+- listening answers do not fade, restore, settle or durably write printed
+  acquisition state;
+- `Can't listen now` applies no retrieval/support penalty and suppresses the
+  rest of the sitting;
+- a new sitting resets suppression;
+- technical audio failure takes the same visual-only fallback;
+- a fully audio-suppressed sitting still ends at exactly 10 answered retrievals;
+- #51 packet/sitting separation remains intact;
+- Learn still cannot award formal directional, retention, scheduler or
+  completion evidence;
+- touch sizing, keyboard/screen-reader semantics, text scaling and reduced
+  motion remain covered by the repository gate.
 
-Automated checks establish correctness, not learning effectiveness. Real-device
-learner validation remains the evidence for whether the 10-retrieval sitting,
-new-item load, cue-fade pace, and correction treatment feel appropriate in
-practice.
+These tests establish product/evidence correctness, not auditory learning
+effectiveness or a reception-performance claim. Real-device learner validation
+remains necessary for those pedagogical judgments.

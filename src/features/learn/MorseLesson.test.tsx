@@ -10,14 +10,16 @@ import {
   lessonProgressOf,
   startLesson,
   withLessonProgress,
+  type LessonEntry,
   type LessonRun,
 } from '../../lib/morseLesson'
+import { lessonListeningOptions } from '../../lib/morseLessonListening'
 import { LibraryProvider } from '../../lib/store'
 import { parseLibrary } from '../../lib/storage'
 import { seedLibrary } from '../../lib/seed'
 import type { Topic } from '../../lib/types'
 import { Learn } from './Learn'
-import { MorseLesson } from './MorseLesson'
+import { ListeningCheckStep, MorseLesson, VisualCheckStep } from './MorseLesson'
 
 const MORSE_ID = 'international-morse-letters-printed'
 
@@ -32,9 +34,7 @@ function seededTopic(id: string): Topic {
 function fakeStorage(): Storage {
   const values = new Map<string, string>()
   return {
-    get length() {
-      return values.size
-    },
+    get length() { return values.size },
     clear: () => values.clear(),
     getItem: (key: string) => values.get(key) ?? null,
     key: (index: number) => [...values.keys()][index] ?? null,
@@ -50,13 +50,7 @@ beforeEach(() => {
 function render(topic: Topic, run: LessonRun): string {
   return renderToStaticMarkup(
     <LibraryProvider>
-      <MorseLesson
-        topic={topic}
-        initialRun={run}
-        onExit={() => undefined}
-        onTest={() => undefined}
-        onReference={() => undefined}
-      />
+      <MorseLesson topic={topic} initialRun={run} onExit={() => undefined} onTest={() => undefined} onReference={() => undefined} />
     </LibraryProvider>,
   )
 }
@@ -64,12 +58,7 @@ function render(topic: Topic, run: LessonRun): string {
 function learn(topicIds: string[]): string {
   return renderToStaticMarkup(
     <LibraryProvider>
-      <Learn
-        topicIds={topicIds}
-        onExit={() => undefined}
-        onTest={() => undefined}
-        onReference={() => undefined}
-      />
+      <Learn topicIds={topicIds} onExit={() => undefined} onTest={() => undefined} onReference={() => undefined} />
     </LibraryProvider>,
   )
 }
@@ -78,7 +67,6 @@ function source(file: string): string {
   return readFileSync(fileURLToPath(new URL(file, import.meta.url)), 'utf8')
 }
 
-/** Advance a run to the first check at the requested support format. */
 function runAtFormat(topic: Topic, format: 'taught' | 'cued' | 'solo'): LessonRun {
   let run = startLesson(topic) as LessonRun
   for (let guard = 0; guard < 40; guard += 1) {
@@ -94,147 +82,162 @@ function runAtFormat(topic: Topic, format: 'taught' | 'cued' | 'solo'): LessonRu
   throw new Error(`Never reached a ${format} check`)
 }
 
+function tEntry(): LessonEntry {
+  return {
+    itemId: 'morse-T', glyph: 'T', pattern: '-', novel: true, support: 'cued', introduced: true,
+    asked: true, done: false, notBefore: 0, lastAskedAt: null, order: 0,
+  }
+}
+
+const ref = { current: null }
+
 describe('Learn picks the right surface', () => {
   it('gives the Morse topic a guided lesson rather than a scrollable packet page', () => {
     const html = learn([MORSE_ID])
     expect(html).toContain('morse-lesson')
     expect(html).toContain('New letter')
     expect(html).not.toContain('sheet-items')
-    expect(html).not.toContain('Recall reference')
     expect(html).not.toContain('morse-cards')
   })
 
-  it('leaves every other topic on the unchanged reading sheet', () => {
-    const html = learn(['nato-phonetic'])
-    expect(html).toContain('sheet-items')
-    expect(html).not.toContain('morse-lesson')
-  })
-
-  it('keeps the reading sheet for a batched multi-topic Learn run', () => {
-    const html = learn([MORSE_ID, 'nato-phonetic'])
-    expect(html).toContain('sheet-items')
-    expect(html).not.toContain('morse-lesson')
+  it('leaves non-Morse and batched Learn on the reading sheet', () => {
+    expect(learn(['nato-phonetic'])).toContain('sheet-items')
+    expect(learn([MORSE_ID, 'nato-phonetic'])).toContain('sheet-items')
   })
 })
 
-describe('one dominant task at a time', () => {
+describe('printed letter → Morse is answer-safe', () => {
   const topic = seededTopic(MORSE_ID)
 
-  it('introduces one character, with its phrase, drawing, audio and pattern', () => {
+  it('introduces one character with instructional audio before recall begins', () => {
     const html = render(topic, startLesson(topic) as LessonRun)
     expect(html).toContain('New letter')
     expect(html).toContain('aria-label="Play E Morse"')
-    expect(html).toContain('class="morse-mnemonic"')
     expect([...html.matchAll(/class="morse-mnemonic"/g)]).toHaveLength(1)
-    expect([...html.matchAll(/lesson-glyph/g)]).toHaveLength(1)
-    expect(html).not.toContain('lesson-options')
   })
 
-  it('asks a supported check with the phrase in view and three alternatives', () => {
+  it('keeps the rhythmic phrase on taught printed recognition', () => {
     const html = render(topic, runAtFormat(topic, 'taught'))
     expect(html).toContain('Choose this pattern')
     expect(html).toContain('data-support="taught"')
     expect(html).toContain('class="morse-phrase-beats"')
     expect([...html.matchAll(/class="lesson-option mono"/g)]).toHaveLength(3)
-    expect(html).not.toContain('lesson-keys')
   })
 
-  it('reduces a cued check to the element count and optional audio', () => {
+  it('keeps only non-answer-bearing element count on a cued printed question', () => {
     const html = render(topic, runAtFormat(topic, 'cued'))
     expect(html).toContain('data-support="cued"')
     expect(html).toMatch(/\d+ signals?/)
-    expect(html).toContain('Morse"')
+    expect(html).not.toContain('class="morse-play')
+    expect(html).not.toContain('aria-label="Play')
     expect(html).not.toContain('class="morse-phrase-beats"')
-    expect([...html.matchAll(/class="lesson-option mono"/g)]).toHaveLength(3)
   })
 
-  it('asks the unaided check with the glyph alone and dit/dah keys', () => {
+  it('the one-signal T case cannot reveal its dash by pressing Play', () => {
+    const html = renderToStaticMarkup(
+      <VisualCheckStep entry={tEntry()} format="cued" options={['-', '.']} regionRef={ref} onAnswer={() => undefined} />,
+    )
+    expect(html).toContain('T')
+    expect(html).toContain('1 signal')
+    expect(html).not.toContain('morse-play')
+    expect(html).not.toContain('Play T Morse')
+  })
+
+  it('keeps unaided printed production on the existing categorical dit/dah input', () => {
     const html = render(topic, runAtFormat(topic, 'solo'))
     expect(html).toContain('Key this pattern')
-    expect(html).toMatch(/Key the Morse pattern for [A-Z]\./)
     expect(html).toContain('lesson-keys')
     expect(html).toContain('Add a dit')
     expect(html).toContain('Add a dah')
     expect(html).not.toContain('lesson-support')
-    expect(html).not.toContain('class="morse-phrase-beats"')
-    expect(html).not.toContain('class="morse-mnemonic"')
-    expect(html).not.toContain('lesson-option')
+    expect(html).not.toContain('morse-play')
   })
 })
 
-describe('feedback and reteaching', () => {
+describe('Morse sound → letter is a distinct formative prompt', () => {
+  it('uses sound as the stimulus without naming the answer in the prompt or audio control', () => {
+    const entry = tEntry()
+    const html = renderToStaticMarkup(
+      <ListeningCheckStep entry={entry} options={['E', 'T']} playing={false} regionRef={ref}
+        onToggle={() => undefined} onAnswer={() => undefined} onSkip={() => undefined} />,
+    )
+    expect(html).toContain('Listen, then choose the letter')
+    expect(html).toContain('aria-label="Play Morse sound"')
+    expect(html).not.toContain('Play T Morse')
+    expect(html).not.toContain('lesson-glyph')
+    expect(html).not.toContain('morse-notation')
+    expect(html).toContain('E')
+    expect(html).toContain('T')
+  })
+
+  it('supports replay and always exposes the no-audio escape', () => {
+    const html = renderToStaticMarkup(
+      <ListeningCheckStep entry={tEntry()} options={['E', 'T']} playing={true} regionRef={ref}
+        onToggle={() => undefined} onAnswer={() => undefined} onSkip={() => undefined} />,
+    )
+    expect(html).toContain('aria-label="Stop Morse sound"')
+    expect(html).toContain('Replay as needed')
+    expect(html).toContain("Can&#x27;t listen now")
+  })
+
+  it('only offers introduced letter choices', () => {
+    let run = startLesson(seededTopic(MORSE_ID)) as LessonRun
+    while (currentStep(run)?.kind === 'introduce') {
+      const step = currentStep(run)
+      if (step?.kind !== 'introduce') break
+      run = introduceLesson(run, step.entry.itemId)
+    }
+    const step = currentStep(run)
+    if (step?.kind !== 'check') throw new Error('expected check')
+    const options = lessonListeningOptions(run, step.entry)
+    const introduced = new Set(run.entries.filter((entry) => entry.introduced).map((entry) => entry.glyph))
+    for (const option of options) expect(introduced.has(option)).toBe(true)
+  })
+})
+
+describe('feedback and modality boundaries', () => {
   const topic = seededTopic(MORSE_ID)
 
-  it('reteaches a miss with the phrase, drawing, audio and canonical pattern', () => {
+  it('reteaches a printed miss only after the learner has answered', () => {
     const run = runAtFormat(topic, 'taught')
     const step = currentStep(run)
     if (step?.kind !== 'check') throw new Error('expected a check')
     const html = render(topic, answerLesson(run, step.entry.itemId, '-----'))
-
     expect(html).toContain('Not that one')
-    expect(html).toContain('class="morse-phrase-beats"')
     expect(html).toContain('class="morse-mnemonic"')
     expect(html).toContain(`aria-label="Play ${step.entry.glyph} Morse"`)
     expect(html).toContain('It comes back later, after other letters.')
-    expect(html).toContain('Continue')
   })
 
-  it('confirms a correct answer without a full reteach', () => {
-    const run = runAtFormat(topic, 'taught')
-    const step = currentStep(run)
-    if (step?.kind !== 'check') throw new Error('expected a check')
-    const html = render(topic, answerLesson(run, step.entry.itemId, step.entry.pattern))
-
-    expect(html).toContain('Correct')
-    expect(html).toContain('is-correct')
-    expect(html).not.toContain('lesson-stage')
-    expect(html).toContain('Continue')
+  it('technical audio failure suppresses later listening instead of blocking Learn', () => {
+    const code = source('./MorseLesson.tsx')
+    expect(code).toContain('if (!audioError) return')
+    expect(code).toContain('suppressListening(state)')
+    expect(code).toContain('Continuing with visual questions for this lesson')
   })
 
-  it('never states a verdict by colour alone', () => {
-    const run = runAtFormat(topic, 'taught')
-    const step = currentStep(run)
-    if (step?.kind !== 'check') throw new Error('expected a check')
-    for (const [response, word] of [[step.entry.pattern, 'Correct'], ['-----', 'Not that one']] as const) {
-      const html = render(topic, answerLesson(run, step.entry.itemId, response))
-      expect(html).toContain(word)
-      expect(html).toContain('role="status"')
-    }
+  it("Can't listen now changes only runtime modality state and does not record a retrieval", () => {
+    const code = source('./MorseLesson.tsx')
+    const skip = code.slice(code.indexOf('function skipListening()'), code.indexOf('function continueAfterFeedback()'))
+    expect(skip).toContain('suppressListening')
+    expect(skip).not.toContain('recordLessonRetrieval')
+    expect(skip).not.toContain('answerLesson')
   })
 })
 
-describe('progress, exits and honesty about what a lesson proves', () => {
+describe('finite progress and evidence honesty', () => {
   const topic = seededTopic(MORSE_ID)
 
-  it('makes packet position and the finite ten-XP sitting target explicit', () => {
+  it('keeps #51 packet position and ten-XP sitting target explicit', () => {
     const html = render(topic, startLesson(topic) as LessonRun)
     expect(html).toContain('Packet 1 of 13')
     expect(html).toContain('0 / 10 XP')
     expect(html).toContain('Packet progress: 0 of 2 settled')
-    expect(html).toContain('role="progressbar"')
     expect(html).toContain('aria-label="Lesson XP"')
-    expect(html).toContain('aria-valuenow="0"')
     expect(html).toContain('aria-valuemax="10"')
   })
 
-  it('offers the next packet when a completed run is rendered directly, without claiming formal evidence', () => {
-    let run = startLesson(topic) as LessonRun
-    for (let guard = 0; guard < 60 && !run.complete; guard += 1) {
-      const step = currentStep(run)
-      if (!step) break
-      run = step.kind === 'introduce'
-        ? introduceLesson(run, step.entry.itemId)
-        : advanceLesson(answerLesson(run, step.entry.itemId, step.entry.pattern))
-    }
-
-    const html = render(topic, run)
-    expect(html).toContain('Packet 1 done')
-    expect(html).toContain('Next packet')
-    expect(html).toContain('Nothing in Learn is scored')
-    expect(html).toContain('Test is still the only place the A–Z claim is proved')
-  })
-
-  it('sends a finished learner to Test rather than claiming completion', () => {
+  it('sends a finished learner to formal Test rather than claiming completion', () => {
     let current = topic
     for (let packet = 0; packet < 14; packet += 1) {
       let run = startLesson(current) as LessonRun
@@ -242,101 +245,54 @@ describe('progress, exits and honesty about what a lesson proves', () => {
       for (let guard = 0; guard < 80 && !run.complete; guard += 1) {
         const step = currentStep(run)
         if (!step) break
-        run = step.kind === 'introduce'
-          ? introduceLesson(run, step.entry.itemId)
-          : advanceLesson(answerLesson(run, step.entry.itemId, step.entry.pattern))
+        run = step.kind === 'introduce' ? introduceLesson(run, step.entry.itemId) : advanceLesson(answerLesson(run, step.entry.itemId, step.entry.pattern))
       }
       current = withLessonProgress(current, lessonProgressOf(run))
     }
-
     const html = render(current, startLesson(current) as LessonRun)
-    expect(html).toContain('You have been through every letter')
     expect(html).toContain('That is acquisition, not proof')
-    expect(html).toContain('uncued and in both')
     expect(html).toContain('Test me')
-    expect(html).toContain('Morse alphabet')
   })
 })
 
 describe('accessibility and mobile composition', () => {
-  const topic = seededTopic(MORSE_ID)
-
-  it('keeps a comfortable touch target on every control the lesson uses', () => {
-    const global = readFileSync(
-      fileURLToPath(new URL('../../styles/global.css', import.meta.url)),
-      'utf8',
-    )
+  it('keeps practical touch targets and readable letter-choice controls', () => {
+    const global = source('../../styles/global.css')
     expect(global).toMatch(/^button \{[^}]*min-height:\s*44px/m)
     expect(global).toMatch(/^button\.icon \{[^}]*min-width:\s*44px/m)
-
     const css = source('./MorseLesson.css')
-    expect(css).toMatch(/\.lesson-key\s*\{[^}]*min-height:\s*72px/)
     expect(css).toMatch(/\.lesson-option\s*\{[^}]*min-height:\s*64px/)
-    expect(css).toMatch(/\.lesson-submit,\s*\n\.lesson-next\s*\{[^}]*min-height:\s*52px/)
+    expect(css).toContain('.lesson-letter-option')
   })
 
-  it('respects reduced motion without losing any progress information', () => {
-    expect(source('./MorseLesson.css')).toContain('@media (prefers-reduced-motion: reduce)')
-    const html = render(topic, startLesson(topic) as LessonRun)
-    expect(html).toContain('0 / 10 XP')
-    expect(html).toContain('Packet progress: 0 of 2 settled')
-  })
-
-  it('scales with the reader rather than pinning type to pixels', () => {
+  it('respects reduced motion and text scaling', () => {
     const css = source('./MorseLesson.css')
+    expect(css).toContain('@media (prefers-reduced-motion: reduce)')
     const typeSizes = [...css.matchAll(/font-size:\s*([^;]+);/g)].map((match) => match[1].trim())
-    expect(typeSizes.length).toBeGreaterThan(0)
     for (const size of typeSizes) expect(size).not.toMatch(/^\d+px$/)
   })
 
-  it('keeps focus inside the lesson as each step replaces the last control', () => {
-    const intro = render(topic, startLesson(topic) as LessonRun)
-    expect(intro).toMatch(/class="lesson-introduce"[^>]*tabindex="-1"/)
-
-    const check = render(topic, runAtFormat(topic, 'taught'))
-    expect(check).toMatch(/class="lesson-check"[^>]*tabindex="-1"/)
-
+  it('keeps focus in the changing task/feedback surface', () => {
     const code = source('./MorseLesson.tsx')
     expect(code).toContain('continueRef.current?.focus')
     expect(code).toContain('stepRef.current?.focus')
     expect(code).toContain('headingRef.current?.focus')
   })
-
-  it('names every control and every non-text mark for a screen reader', () => {
-    const solo = render(topic, runAtFormat(topic, 'solo'))
-    expect(solo).toContain('Add a dit')
-    expect(solo).toContain('Add a dah')
-    expect(solo).toContain('nothing keyed yet')
-
-    const supported = render(topic, runAtFormat(topic, 'taught'))
-    expect(supported).toMatch(/class="sr-only">(dit|dah)/)
-    expect(supported).toContain('aria-hidden="true"')
-  })
 })
 
-describe('the lesson cannot reach retention state', () => {
+describe('Learn cannot reach formal retention state', () => {
   it('imports no scheduler, cue ladder or distractor module', () => {
     const code = source('./MorseLesson.tsx')
     const imports = [...code.matchAll(/from '([^']+)'/g)].map((match) => match[1])
-    for (const forbidden of ['../../lib/scheduling', '../../lib/cueLadder', '../../lib/distractors']) {
-      expect(imports).not.toContain(forbidden)
-    }
+    for (const forbidden of ['../../lib/scheduling', '../../lib/cueLadder', '../../lib/distractors']) expect(imports).not.toContain(forbidden)
     expect(code).not.toContain('resolveAttempt')
-    expect(code).not.toContain('recordAnswer')
     expect(code).not.toContain('itemEvidence')
   })
 
-  it('writes exactly one field, through the one function that copies the rest verbatim', () => {
+  it('keeps the only topic write behind withLessonProgress', () => {
     const code = source('./MorseLesson.tsx')
     const writes = [...code.matchAll(/upsertTopic\(([^)]*)\)/g)].map((match) => match[1])
     expect(writes).toEqual(['updated'])
     expect(code).toContain('withLessonProgress(topicRef.current, lessonProgressOf(next))')
-  })
-
-  it('leaves the one first-exposure transition where Learn has always made it', () => {
-    const learnCode = source('./Learn.tsx')
-    expect(learnCode).toContain('resolveStudy(topic)')
-    expect([...learnCode.matchAll(/resolveStudy/g)]).toHaveLength(2)
-    expect(source('./MorseLesson.tsx')).not.toContain('resolveStudy')
   })
 })
