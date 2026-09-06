@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { canonicalPattern, patternReading } from '../../lib/acquisition'
+import { canonicalPattern } from '../../lib/acquisition'
 import { canonicalNotation, mnemonicTextEquivalent, spokenRhythm } from '../../lib/morseMnemonics'
 import {
   advanceLesson,
