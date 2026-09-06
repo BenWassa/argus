@@ -12,8 +12,70 @@
 /* The stage owns the perspective, so the card flips against a fixed vanishing
    point instead of carrying its own and skewing as it turns. */
 .card-stage {
+  position: relative;
   display: grid;
   perspective: 1400px;
+}
+
+/* Edge cues sit on the stage rather than on the card, so they hold still while
+   the card travels. Deliberately calm: two small chips beside the card, not a
+   full-bleed colour wash over the answer you are still reading. */
+.grade-cue {
+  position: absolute;
+  /* Along the top of the card, where nothing is set: the answer stays wholly
+     legible under a cue about what will happen to it. */
+  top: var(--s-md);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: var(--s-xs);
+  padding: var(--s-sm) var(--s-md);
+  border: 1px solid currentcolor;
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  font-size: var(--t-label);
+  font-weight: var(--w-label);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  pointer-events: none;
+  transition:
+    background-color var(--t-fast) var(--ease),
+    scale var(--t-fast) var(--ease);
+}
+
+.grade-cue-miss {
+  left: var(--s-md);
+  color: var(--danger-2);
+}
+
+.grade-cue-hit {
+  right: var(--s-md);
+  color: var(--ok);
+}
+
+.grade-cue-arrow {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+/* Crossing the commit distance is a discrete change, not one more increment of
+   opacity, so what a release will do is legible before the finger lifts. */
+.card-stage.is-armed-incorrect .grade-cue-miss,
+.card-stage.is-armed-correct .grade-cue-hit {
+  background: currentcolor;
+  color: var(--bg);
+  scale: 1.07;
+}
+
+.card-stage.is-armed-incorrect .grade-cue-miss {
+  border-color: var(--danger-2);
+  background: var(--danger-2);
+}
+
+.card-stage.is-armed-correct .grade-cue-hit {
+  border-color: var(--ok);
+  background: var(--ok);
 }
 
 /* This button is a card surface, not a primary action. Keep its specificity
@@ -30,7 +92,15 @@ button.flip-card {
   background: transparent;
   box-shadow: none;
   cursor: pointer;
+  /* Vertical stays the page's: only the horizontal axis is the recogniser's. */
   touch-action: pan-y;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.flip-card.is-dragging {
+  cursor: grabbing;
 }
 
 button.flip-card:hover {
@@ -78,11 +148,31 @@ button.flip-card:active {
 
 /* The answer face is the one lit by brass: it is the thing you came for. */
 .flip-back {
+  position: relative;
+  overflow: hidden;
   transform: rotateY(180deg);
   border-color: rgb(214 181 116 / 52%);
   background:
     radial-gradient(circle at 50% 36%, rgb(214 181 116 / 14%), transparent 52%),
     linear-gradient(160deg, var(--surface-3), var(--surface));
+}
+
+/* The card itself trends toward the pending grade, from the edge it is being
+   dragged toward. An edge gradient rather than a flood: the answer stays the
+   most legible thing on the card. */
+.flip-wash {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.flip-wash-miss {
+  background: linear-gradient(to right, rgb(224 149 140 / 46%), rgb(224 149 140 / 10%) 42%, transparent 72%);
+}
+
+.flip-wash-hit {
+  background: linear-gradient(to left, rgb(157 197 162 / 46%), rgb(157 197 162 / 10%) 42%, transparent 72%);
 }
 
 .flip-label {
@@ -162,6 +252,67 @@ button.flip-card:active {
   color: var(--danger-2);
 }
 
+/* Swipe-first grading. This row occupies exactly the slot the two grading
+   buttons used to, so the thumb lands where it already did and the layout does
+   not shift between a token deck and a long-answer one. */
+.grade-hint {
+  position: relative;
+  display: grid;
+  align-items: center;
+  min-height: 56px;
+  margin-top: var(--s-md);
+  opacity: 0;
+  transform: translateY(6px);
+  transition:
+    opacity var(--t-fast) var(--ease),
+    transform var(--t-fast) var(--ease);
+}
+
+.grade-hint.is-visible {
+  opacity: 1;
+  transform: none;
+  transition-delay: calc(var(--t-flip) * 0.45);
+}
+
+.grade-hint-rail {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-md);
+  margin: 0;
+  padding: 0 var(--s-sm);
+  font-size: var(--t-label);
+  font-weight: var(--w-label);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.grade-hint-side.is-miss {
+  color: var(--danger-2);
+}
+
+.grade-hint-side.is-hit {
+  color: var(--ok);
+}
+
+/* Grading is never gesture-only. These carry the same two actions for keyboard
+   and screen-reader use. They are out of the visual layout until focused and
+   fully visible once focused, so nobody operates a control they cannot see. */
+.grade-fallback {
+  position: absolute;
+  left: 50%;
+  width: auto;
+  min-height: 44px;
+  translate: -50% 0;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.grade-fallback:focus {
+  z-index: 3;
+  clip-path: none;
+}
+
 .recall-shortcuts {
   min-height: 1.2em;
   margin-top: var(--s-sm);
@@ -229,6 +380,18 @@ button.flip-card:active {
     margin-top: 0;
   }
 
+  .grade-hint {
+    align-self: end;
+    min-height: 0;
+    margin-top: 0;
+  }
+
+  /* Short landscape has no room beside the card for a full chip. */
+  .grade-cue {
+    padding: var(--s-xs) var(--s-sm);
+    font-size: 0.66rem;
+  }
+
   .recall-shortcuts {
     align-self: start;
     margin-top: 0;
@@ -239,12 +402,22 @@ button.flip-card:active {
    the answer. */
 @media (prefers-reduced-motion: reduce) {
   .flip-inner,
-  .recall-actions {
+  .recall-actions,
+  .grade-hint,
+  .grade-cue {
     transition: none;
   }
 
-  .recall-actions.is-visible {
+  .recall-actions.is-visible,
+  .grade-hint.is-visible {
     transition-delay: 0s;
+  }
+
+  /* Meaning is unchanged: the cues still read, the colours still trend, and the
+     grade still commits. Only the decorative scale step goes. */
+  .card-stage.is-armed-incorrect .grade-cue-miss,
+  .card-stage.is-armed-correct .grade-cue-hit {
+    scale: 1;
   }
 }
 

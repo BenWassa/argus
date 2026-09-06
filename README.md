@@ -22,10 +22,11 @@ npm run dev
 
 Other commands:
 
-- `npm run check` — run the test suite, type-check and production build
+- `npm run check` — run the test suite, type-check, production build and the browser suite
 - `npm run build` — type-check and create the production build in `dist/`
 - `npm run preview` — serve the production build locally
 - `npm run typecheck` — run TypeScript without building
+- `npm run test:browser` — run the Playwright suite against the built app at phone, short-landscape and desktop sizes (needs `npx playwright install chromium` once)
 - `npm run test:rules` — run the Firestore Security Rules suite against a local emulator (needs Java)
 - `npm run inbox:rules` — render `firestore.rules` from its template for the configured UID
 - `npm run inbox -- list` / `npm run inbox -- mark-added ...` — maintainer content-inbox ingestion
