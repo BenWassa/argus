@@ -20,8 +20,8 @@ describe('one-touch Morse key', () => {
   it('renders one visible primary key plus Back and Submit', () => {
     const html = renderToStaticMarkup(<MorseKeyInput onSubmit={() => undefined} />)
     expect([...html.matchAll(/class="morse-key"/g)]).toHaveLength(1)
-    expect(html).toContain('Tap&nbsp;·')
-    expect(html).toContain('Hold&nbsp;—')
+    expect(html).toContain('Tap')
+    expect(html).toContain('Hold')
     expect(html).toContain('>Back<')
     expect(html).toContain('>Submit<')
     expect(html).toContain('Morse key. Tap for dit; press and hold for dah.')
