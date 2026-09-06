@@ -1,21 +1,30 @@
 import { describe, expect, it } from 'vitest'
 import {
+  advanceLesson,
   answerLesson,
   currentStep,
   introduceLesson,
+  lessonProgressOf,
   startLesson,
+  withLessonProgress,
   type LessonEntry,
   type LessonRun,
 } from './morseLesson'
 import {
   LISTENING_RETRIEVAL_INTERVAL,
+  answerListeningQuestion,
   lessonListeningOptions,
   newLessonListeningState,
   recordLessonQuestion,
   shouldUseListeningQuestion,
   suppressListening,
 } from './morseLessonListening'
-import { newLessonSitting } from './morseLessonSitting'
+import {
+  LESSON_RETRIEVAL_TARGET,
+  lessonSittingComplete,
+  newLessonSitting,
+  recordLessonRetrieval,
+} from './morseLessonSitting'
 import { parseLibrary } from './storage'
 import { seedLibrary } from './seed'
 import type { Topic } from './types'
@@ -111,5 +120,96 @@ describe('listening letter choices', () => {
     const entry = run.entries[0]
     expect(run.entries.filter((candidate) => candidate.introduced)).toHaveLength(2)
     expect(lessonListeningOptions(run, entry)).toHaveLength(2)
+  })
+})
+
+describe('auditory answers stay outside printed acquisition evidence', () => {
+  it('does not fade, restore, settle, or mark the target as printed-retrieved', () => {
+    let run = introducedRun()
+    const step = currentStep(run)
+    if (step?.kind !== 'check') throw new Error('expected printed check')
+
+    // Establish the character once in print so it is eligible for listening.
+    run = answerLesson(run, step.entry.itemId, step.entry.pattern)
+    run = advanceLesson(run)
+    const target = run.entries.find((entry) => entry.itemId === step.entry.itemId)
+    if (!target) throw new Error('target disappeared')
+    const before = { ...target }
+    const durableBefore = lessonProgressOf(run)
+
+    const answered = answerListeningQuestion(run, target.itemId, target.glyph)
+    if (!answered) throw new Error('expected listening answer')
+    const after = answered.run.entries.find((entry) => entry.itemId === target.itemId)
+
+    expect(answered.feedback.correct).toBe(true)
+    expect(after?.support).toBe(before.support)
+    expect(after?.asked).toBe(before.asked)
+    expect(after?.done).toBe(before.done)
+    expect(lessonProgressOf(answered.run)).toEqual(durableBefore)
+  })
+
+  it('an auditory miss also carries no printed-support penalty', () => {
+    const run = introducedRun()
+    const target = { ...run.entries[0], support: 'cued' as const }
+    const prepared: LessonRun = {
+      ...run,
+      entries: run.entries.map((entry) => entry.itemId === target.itemId ? target : entry),
+    }
+    const answered = answerListeningQuestion(prepared, target.itemId, target.glyph === 'E' ? 'I' : 'E')
+    if (!answered) throw new Error('expected listening answer')
+    expect(answered.feedback.correct).toBe(false)
+    expect(answered.run.entries.find((entry) => entry.itemId === target.itemId)?.support).toBe('cued')
+  })
+
+  it('defers the listened target so the next task is not the same answer visually', () => {
+    const run = introducedRun()
+    const target = { ...run.entries[0], support: 'cued' as const }
+    const prepared: LessonRun = {
+      ...run,
+      entries: run.entries.map((entry) => entry.itemId === target.itemId ? target : entry),
+    }
+    const answered = answerListeningQuestion(prepared, target.itemId, target.glyph)
+    if (!answered) throw new Error('expected listening answer')
+    const next = currentStep(answered.run)
+    expect(next?.kind).toBe('check')
+    if (next?.kind === 'check') expect(next.entry.itemId).not.toBe(target.itemId)
+  })
+})
+
+describe('visual-only fallback preserves the finite #51 sitting', () => {
+  it('an all-audio-skipped/suppressed sitting still reaches exactly 10 completed retrievals', () => {
+    let topic = morseTopic()
+    let run = startLesson(topic) as LessonRun
+    let sitting = newLessonSitting()
+    const listening = suppressListening(newLessonListeningState())
+
+    for (let guard = 0; guard < 250 && !lessonSittingComplete(sitting); guard += 1) {
+      const step = currentStep(run)
+      if (!step) {
+        if (!run.complete) throw new Error('no visual work available')
+        topic = withLessonProgress(topic, lessonProgressOf(run))
+        run = startLesson(topic) as LessonRun
+        continue
+      }
+      if (step.kind === 'introduce') {
+        run = introduceLesson(run, step.entry.itemId)
+        topic = withLessonProgress(topic, lessonProgressOf(run))
+        continue
+      }
+
+      expect(shouldUseListeningQuestion(sitting.retrievals, step.entry, listening)).toBe(false)
+      run = answerLesson(run, step.entry.itemId, step.entry.pattern)
+      if (!run.feedback) throw new Error('expected visual feedback')
+      sitting = recordLessonRetrieval(sitting, step.entry.itemId, run.feedback.correct)
+      topic = withLessonProgress(topic, lessonProgressOf(run))
+      if (!lessonSittingComplete(sitting)) {
+        run = advanceLesson(run)
+        if (run.complete) run = startLesson(topic) as LessonRun
+      }
+    }
+
+    expect(sitting.retrievals).toBe(LESSON_RETRIEVAL_TARGET)
+    expect(sitting.correct).toBe(LESSON_RETRIEVAL_TARGET)
+    expect(lessonSittingComplete(sitting)).toBe(true)
   })
 })
