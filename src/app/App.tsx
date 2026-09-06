@@ -10,6 +10,7 @@ import { Session } from '../features/test/Session'
 import { Learn } from '../features/learn/Learn'
 import { MorseReference } from '../features/learn/MorseReference'
 import {
+  backNavigation,
   consumeBackBlocker,
   pushNavigationState,
   readNavigationState,
@@ -174,7 +175,7 @@ function Routes() {
   }
 
   function goBack() {
-    window.history.back()
+    backNavigation()
   }
 
   function start(mode: Mode, topicIds: string[], replace = false) {
