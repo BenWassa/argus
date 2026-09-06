@@ -455,7 +455,17 @@ function parseDirectionEvidence(value: unknown, where: string): { ok: true; valu
   if (attempts === null || correct === null || consecutiveCorrect === null) {
     return { ok: false, error: `${where} counts must be non-negative integers.` }
   }
-  if (correct > attempts || consecutiveCorrect > correct) {
+  // #68: absent means zero, never "assume it was unaided". A pre-#68 record
+  // never stored the support level of its answers, so importing one withholds
+  // the formal claim until the learner re-earns it rather than inventing
+  // independent recall that was never observed. Present-but-invalid is still a
+  // hard failure: an import may not fabricate learner progress.
+  const unassistedCorrect =
+    value.unassistedCorrect === undefined ? 0 : nonNegativeInteger(value.unassistedCorrect)
+  if (unassistedCorrect === null) {
+    return { ok: false, error: `${where} counts must be non-negative integers.` }
+  }
+  if (correct > attempts || consecutiveCorrect > correct || unassistedCorrect > correct) {
     return { ok: false, error: `${where} has impossible correct/consecutive counts.` }
   }
 
@@ -472,7 +482,14 @@ function parseDirectionEvidence(value: unknown, where: string): { ok: true; valu
 
   return {
     ok: true,
-    value: { attempts, correct, consecutiveCorrect, lastAt: lastAt ?? null, lastLatencyMs },
+    value: {
+      attempts,
+      correct,
+      unassistedCorrect,
+      consecutiveCorrect,
+      lastAt: lastAt ?? null,
+      lastLatencyMs,
+    },
   }
 }
 

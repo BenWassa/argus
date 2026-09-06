@@ -109,6 +109,7 @@ choice remains only in the distinct sound → letter formative listening prompt.
 | P9 | Packet readiness | Every roster character — novel and returning — `settled`; packet index derived from durable support, never stored | Ratified | #48 |
 | P10 | Learn sitting boundary | 10 answered formative retrievals; correct/wrong both consume one slot; teaching screens do not | Ratified | #51 / PR #54 |
 | P11 | Listening boundary | Sound → letter is separate, optional-in-the-moment formative retrieval; `Can't listen now` suppresses it for the sitting | Ratified | #52 / PR #55 |
+| D9 | Evidence admissible to the completion claim | Only `unassistedCorrect` — correct answers at a rung showing no scaffolding; the qualifying run must itself be wholly uncued; the ladder alternates uncued directions rather than retiring one | Ratified | #68 |
 
 ## Why v5 exists
 
@@ -329,8 +330,9 @@ The final printed A–Z topic preserves:
 - v5 stable item identity and migration/export/import;
 - exactly 26 logical bidirectional Morse mapping units;
 - per-direction evidence separated from retention history;
-- complete correct evidence in both required directions before a potentially
-  passing retention attempt reaches the unchanged scheduler;
+- complete *independent* correct evidence in both required directions before a
+  potentially passing retention attempt reaches the unchanged scheduler, and a
+  qualifying run in which no answer was given with scaffolding on screen (#68);
 - no stronger claim from audio exposure, mnemonic use or key-hold duration.
 
 The completion claim remains limited to printed A–Z mapping recall in both
@@ -388,6 +390,9 @@ The full record is `docs/MORSE_LESSON.md`. In summary:
 - Every completion claim stays explicit, finite and completely testable.
 - Exactly 26 logical scoring units remain for printed A–Z.
 - Bidirectional completion cannot be inferred from one-direction evidence.
+- Completion cannot be inferred from supported evidence in any direction: a
+  correct answer given with a cue on screen fades that cue and contributes
+  nothing to a claim that says `independently` (#68).
 - Cue-bearing content cannot reach uncued rungs.
 - Cue progress cannot advance, skip, reset or postpone retention milestones.
 - Audio exposure/support does not imply an auditory-reception completion claim.

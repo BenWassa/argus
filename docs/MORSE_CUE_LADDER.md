@@ -148,6 +148,111 @@ Leaving Test early still discards the partial retention attempt while preserving
 cue evidence already earned. That distinction is intentional: retention attempts
 are atomic at topic level; acquisition evidence is per item/direction.
 
+## #68 — the completion-evidence audit
+
+#62 lane F asked one question about the exact claim:
+
+> Can independently recall all A–Z printed Morse mappings in both directions.
+
+> Does the completion-qualifying delayed Test itself honestly support it, and can
+> historical supported/cued evidence improperly supply part of it?
+
+### What the audit found
+
+Two real defects, both in the evidence layer rather than the scheduler.
+
+**1. Supported answers counted as independent recall.** `DirectionEvidence`
+carried one counter, `correct`, and `hasCompleteDirectionalCoverage` read it.
+`correct` is the right input for *fading* — getting a letter right with support
+is genuine acquisition progress and should fade the cue. It is the wrong input
+for a claim containing the word `independently`. A correct answer at the rich
+rung is given with half the pattern, the timing artwork, a verbal beat and the
+element count on screen. Under the old gate, 26 letters answered entirely that
+way satisfied directional coverage, and the delayed attempt completed.
+
+**2. The gate had no view of the attempt at all.** `itemEvidence` is a lifetime,
+monotonically non-decreasing store. Once each letter had ever been answered
+correctly in each direction, coverage was permanently true and could never fall
+again. It had stopped being a gate on the qualifying run and become a one-time
+historical latch. A learner whose letters had slipped back to a cued rung could
+answer the delayed test with cues visible and still bank the claim.
+
+A third finding follows from the ladder rather than the gate. `rungIndexFor`
+opened reverse recall on `forward.consecutiveCorrect >= CUE_FADE_STREAK`, and
+that counter only falls on a forward error. Once an item reached free reception
+it was never asked forward again, so there were no forward answers left to make
+one. Production was permanently abandoned after two answers, and **every** later
+qualifying Test was reception-only — while the claim asserted both directions.
+
+### What #68 changes
+
+**Independence is recorded, not assumed.** `DirectionEvidence` gains
+`unassistedCorrect`: correct answers given at a rung that shows no artwork, no
+verbal fragment, no revealed prefix, no element count and no audio. One
+predicate, `isAssistedRung`, defines that for both the evidence layer and
+`UNCUED_RUNGS`, so "was this independent?" cannot drift from what the card
+actually showed. Fading still reads `correct` and is unchanged.
+
+**Coverage counts only independent evidence.** `hasCompleteDirectionalCoverage`
+reads `unassistedCorrect`. Supported history can no longer supply any part of
+the claim, in either direction.
+
+**The attempt gives its own testimony.** `Session` records what each card asked
+and how it was supported, and passes it to `retentionCorrectCount` alongside the
+store. One supported answer anywhere in the run means the learner did not recall
+all 26 mappings unaided today, and the run cannot present as passing. A run that
+testifies about nothing, or that skips a unit, is not taken to have asked it
+unaided either: silence withholds the claim rather than letting a fully
+independent lifetime store be cashed in by a surface that records nothing. That
+record is part of the attempt, so an early exit discards it exactly as it
+discards the tally.
+
+**The ladder keeps both directions alive.** Once both uncued rungs are open, an
+item is asked in whichever required direction currently holds the weaker
+independent evidence, ties going to reception so the moment reverse first opens
+is unchanged. Reverse still opens only after forward production has held a full
+fade streak, and a `forward` item still tops out at free production.
+
+### What the qualifying attempt now establishes, exactly
+
+- all 26 logical units were asked and answered correctly in this run;
+- every answer in this run was given with no scaffolding of any kind;
+- every unit holds independent correct evidence in both required directions,
+  counting this run's answers;
+- at least `COMPLETION_GAP_DAYS` had passed since the topic was drilled.
+
+### The limit that remains, stated deliberately
+
+One attempt asks each unit once, so it carries at most 26 of the claim's 52
+directional requirements. The complementary direction is established by an
+earlier attempt.
+
+That is a property of the ratified model, not an oversight, and it is the reason
+#68 does not "fix" it. The topic has exactly 26 logical scoring units. Asking
+both directions of one mapping inside one card would disclose each answer with
+the other — show `A`, take `·—`, then ask what `·—` is — which makes the second
+response worthless. Separating them far enough apart to be honest means 52 cards,
+which is the duplication the model exists to avoid.
+
+So the strongest available contract is the one now implemented: no single
+attempt can demonstrate all 52 requirements, but **every event that contributes
+to the claim is now independent recall**, and the direction-alternating ladder
+keeps both halves under continuing examination instead of retiring one.
+
+### Compatibility
+
+`unassistedCorrect` is additive within v5 and absent means zero. A pre-#68 record
+never stored the support level of its answers, so an upgraded library withholds
+the formal claim until it is re-earned rather than inventing independence that
+was never observed. This can only withhold a claim, never fabricate one, and it
+touches no scheduler state: status, history, timestamps and existing
+`completedAt` records all stand. An import claiming more independent answers than
+correct ones is rejected at the storage boundary.
+
+Regression cover lives in `src/lib/morseCompletionEvidence.test.ts`, including an
+end-to-end simulation proving that completion remains reachable through ordinary
+honest practice and unreachable for a learner still being carried by the cues.
+
 ## Confusion model after #56
 
 `src/lib/confusion.ts` still provides the shared derived confusability model used
@@ -195,5 +300,11 @@ metadata without changing scored item identity or evidence semantics.
 - non-Morse Test behavior;
 - #29's separate future auditory reception, sending, WPM, groups, words and
   continuous-material boundary.
+
+#68 preserves all of the above. It adds one durable counter, changes which
+counter the completion gate reads, gives that gate the attempt's own testimony,
+and stops the ladder retiring a direction the claim still asserts. It changes no
+rung identifier, no cue state, no fade or restore rule, no scheduler behaviour
+and no completion claim.
 
 The resulting rule is simpler: **support fades, production stays production.**

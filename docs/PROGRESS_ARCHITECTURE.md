@@ -397,6 +397,25 @@ If the audit finds a real defect, fix only the evidence semantics needed to make
 - acquisition vs retention separation;
 - no auditory/sending/WPM claims.
 
+### Audit outcome (#68, lane F — settled)
+
+The audit found real defects and they are fixed. Full findings and reasoning are in `docs/MORSE_CUE_LADDER.md` under "#68 — the completion-evidence audit"; the answers to the three questions above are:
+
+- **Did the qualifying delayed attempt itself demonstrate the required uncued forward and reverse performance?** No. It demonstrated one direction per unit at whatever support level that unit had reached, and in steady state that was always reception, because the ladder retired production permanently once reverse opened.
+- **Could historical supported/cued correct events satisfy directional coverage?** Yes. `hasCompleteDirectionalCoverage` read `DirectionEvidence.correct`, which counts a correct answer given with half the pattern and the timing artwork on screen exactly like an unaided one.
+- **Could a partial-direction route reach the scheduler as a clean bidirectional result?** Not partial-direction, but partial-*independence* could: coverage was a lifetime latch, so once set it could never fall, and a run answered with cues restored still banked.
+
+The fix stays inside the evidence layer:
+
+- `DirectionEvidence.unassistedCorrect` records correct answers given at a rung showing no scaffolding of any kind; `isAssistedRung` is the single predicate deciding that, shared with `UNCUED_RUNGS`;
+- directional coverage counts only `unassistedCorrect`;
+- the qualifying attempt passes its own answers to `retentionCorrectCount`; one supported answer anywhere in the run withholds the pass, and so does a run that testifies about nothing or skips a unit;
+- once both uncued rungs are open, the ladder asks whichever direction holds the weaker independent evidence, so neither half of the claim is retired.
+
+Nothing else moved: 26 logical units, typed bidirectional semantics, `CUE_FADE_STREAK`, fade/restore rules, `scheduling.ts`, the completion claim itself, ordinary-topic behaviour and the Learn/Test evidence boundary are all unchanged. `unassistedCorrect` is additive within v5 and absent means zero, so an upgraded library withholds the claim until it is re-earned rather than assuming independence that was never recorded; no existing status, history or `completedAt` is altered.
+
+Cover: `src/lib/morseCompletionEvidence.test.ts`, including an end-to-end simulation showing completion remains reachable through honest practice and unreachable for a learner still carried by cues.
+
 ## Fresh-user progress integrity
 
 The permanent completion record must represent achievements earned by the current learner.
@@ -435,6 +454,7 @@ Use “XP” only if a later explicit product decision creates a real XP model. 
 | `status` + scheduler timestamps | yes | yes | scheduler | yes, through scheduler rules |
 | `history` | yes | yes | Test/scheduler | historical evidence only |
 | `itemEvidence` | yes | yes | Test cue/formal evidence | only through explicit completion gate |
+| `DirectionEvidence.unassistedCorrect` | yes | yes | Test formal evidence (#68) | it is the only evidence the completion gate reads |
 | `lessonProgress` | yes | yes | Learn acquisition | no |
 | `lessonSitting` | yes | yes | Learn finite sitting | no |
 | listening suppression for active sitting | recommended yes | yes if durable sitting semantics require it | Learn sitting | no |
@@ -501,7 +521,10 @@ The implementation is not complete until automated tests cover these product-lev
 - Learn answers cannot write `DirectionEvidence`;
 - sitting counters cannot advance scheduler state;
 - progressive readiness alone cannot award completion;
-- qualifying Morse completion remains bidirectional and uncued according to the audited contract.
+- qualifying Morse completion remains bidirectional and uncued according to the audited contract;
+- a supported correct answer fades a cue and contributes nothing to the completion claim;
+- one supported answer anywhere in a qualifying run withholds the pass;
+- a pre-#68 record loads with zero independent evidence rather than assuming it.
 
 ## Workstream decomposition
 

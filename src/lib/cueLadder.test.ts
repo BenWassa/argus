@@ -7,6 +7,7 @@ import {
   RICH_RUNG,
   UNCUED_RUNGS,
   emptyCueEvidence,
+  isAssistedRung,
   isEstablished,
   isInAcquisition,
   mergeItemEvidence,
@@ -27,6 +28,7 @@ function answer(evidence: ItemCueEvidence | undefined, item: IdentifiedItem, cor
   return recordAnswer(evidence, {
     direction: rung.direction,
     correct,
+    assisted: isAssistedRung(rung),
     latencyMs,
     at: '2026-01-01T00:00:00.000Z',
   })

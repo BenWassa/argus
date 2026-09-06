@@ -7,6 +7,7 @@ import {
   requiredDirections,
   retentionCorrectCount,
 } from './items'
+import type { AttemptAnswer } from './items'
 import type { IdentifiedItem, ItemCueEvidence } from './types'
 
 const existing: IdentifiedItem[] = [
@@ -88,6 +89,7 @@ describe('typed directional coverage', () => {
       'prompt-to-answer': {
         attempts: 1,
         correct: 1,
+        unassistedCorrect: 1,
         consecutiveCorrect: 1,
         lastAt: '2026-09-03T00:00:00.000Z',
         lastLatencyMs: 800,
@@ -126,6 +128,7 @@ describe('typed directional coverage', () => {
         'answer-to-prompt': {
           attempts: 2,
           correct: 1,
+          unassistedCorrect: 1,
           consecutiveCorrect: 1,
           lastAt: '2026-09-03T00:01:00.000Z',
           lastLatencyMs: 1200,
@@ -136,7 +139,20 @@ describe('typed directional coverage', () => {
     expect(hasCompleteTopicDirectionalCoverage([existing[1]], { 'item-b': both })).toBe(true)
     expect(hasCompleteTopicDirectionalCoverage([existing[1]], { 'item-b': forward })).toBe(false)
     expect(retentionCorrectCount([existing[1]], { 'item-b': forward }, 1)).toBe(0)
-    expect(retentionCorrectCount([existing[1]], { 'item-b': both }, 1)).toBe(1)
+
+    // #68: a bidirectional topic also has to say how this run asked each unit.
+    // Complete coverage on its own is a fact about the learner's history, not
+    // about the attempt in front of it.
+    const run: AttemptAnswer[] = [
+      { itemId: 'item-b', direction: 'answer-to-prompt', correct: true, assisted: false },
+    ]
+    expect(retentionCorrectCount([existing[1]], { 'item-b': both }, 1, run)).toBe(1)
+    expect(retentionCorrectCount([existing[1]], { 'item-b': both }, 1, [])).toBe(0)
+    expect(
+      retentionCorrectCount([existing[1]], { 'item-b': both }, 1, [{ ...run[0], assisted: true }]),
+    ).toBe(0)
+
+    // A forward-only topic never enters this gate, with or without a run.
     expect(retentionCorrectCount([existing[0]], undefined, 1)).toBe(1)
   })
 })
