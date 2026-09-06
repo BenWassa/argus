@@ -41,7 +41,7 @@ function worked(id: string): Topic {
       [topic.items[0].id as string]: {
         cue: 'free',
         directions: {
-          'prompt-to-answer': { attempts: 9, correct: 8, consecutiveCorrect: 4, lastAt: '2025-02-10T00:00:00.000Z', lastLatencyMs: 1200 },
+          'prompt-to-answer': { attempts: 9, correct: 8, unassistedCorrect: 3, consecutiveCorrect: 4, lastAt: '2025-02-10T00:00:00.000Z', lastLatencyMs: 1200 },
         },
       },
     },

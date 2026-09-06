@@ -92,7 +92,7 @@ describe('library import migration', () => {
           cue: 'reduced' as const,
           directions: {
             'prompt-to-answer': {
-              attempts: 4, correct: 3, consecutiveCorrect: 1,
+              attempts: 4, correct: 3, unassistedCorrect: 0, consecutiveCorrect: 1,
               lastAt: timestamp, lastLatencyMs: 700,
             },
           },
@@ -192,6 +192,7 @@ describe('v5 item semantics and lossless portable learning state', () => {
           'prompt-to-answer': {
             attempts: 3,
             correct: 2,
+            unassistedCorrect: 1,
             consecutiveCorrect: 2,
             lastAt: timestamp,
             lastLatencyMs: 840,
@@ -199,6 +200,7 @@ describe('v5 item semantics and lossless portable learning state', () => {
           'answer-to-prompt': {
             attempts: 2,
             correct: 1,
+            unassistedCorrect: 1,
             consecutiveCorrect: 1,
             lastAt: timestamp,
             lastLatencyMs: 1130,

@@ -54,10 +54,32 @@ export interface IdentifiedItem extends Item {
 export const CUE_STATES = ['rich', 'reduced', 'delayed-choice', 'free', 'auditory'] as const
 export type CueState = (typeof CUE_STATES)[number]
 
-/** Learning state: evidence for one stimulus/response direction of one item. */
+/**
+ * Learning state: evidence for one stimulus/response direction of one item.
+ *
+ * `correct` and `unassistedCorrect` deliberately answer two different
+ * questions, and #68 turns on keeping them apart:
+ *
+ *   correct            was the answer right? — the cue ladder fades on this
+ *   unassistedCorrect  was it right with *no* scaffolding on screen? — the only
+ *                      evidence the formal completion claim may read
+ *
+ * A correct answer at a supported rung is genuine acquisition progress and
+ * genuinely earns a fade. It is not independent recall, so it cannot support a
+ * claim that says `independently`. `unassistedCorrect` counts only answers given
+ * at a rung that shows no artwork, no verbal fragment, no revealed prefix, no
+ * element count and no audio.
+ *
+ * Additive within v5: absent in an older record means zero. That is deliberately
+ * conservative — the support level of pre-#68 evidence was never recorded, so it
+ * cannot be assumed independent — and it can only ever withhold a claim, never
+ * fabricate one.
+ */
 export interface DirectionEvidence {
   attempts: number
   correct: number
+  /** Correct answers given at a rung offering no scaffolding of any kind. */
+  unassistedCorrect: number
   consecutiveCorrect: number
   lastAt: string | null
   lastLatencyMs: number | null
@@ -82,8 +104,9 @@ export type ItemEvidenceStore = Record<string, ItemCueEvidence>
  * scaffolding the scored Test surface still offers an item; `LessonSupport` is
  * how much scaffolding the guided Learn lesson still offers it. Collapsing the
  * two would let a formative Learn answer change what formal Test shows, and
- * `DirectionEvidence` — which `hasCompleteDirectionalCoverage` reads to gate a
- * bidirectional retention attempt — must never receive a Learn answer at all.
+ * `DirectionEvidence` — whose `unassistedCorrect` counter
+ * `hasCompleteDirectionalCoverage` reads to gate a bidirectional retention
+ * attempt — must never receive a Learn answer at all.
  *
  *   taught   introduced; retrieved with the whole rhythmic phrase in view
  *   cued     retrieved with element count and optional canonical audio only

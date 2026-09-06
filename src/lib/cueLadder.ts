@@ -130,15 +130,26 @@ export const RICH_RUNG = 0
 export const FREE_PRODUCTION_RUNG = 3
 export const FREE_RECEPTION_RUNG = 4
 
+/**
+ * Whether a rung puts any scaffolding at all in front of the learner.
+ *
+ * One predicate, read by both the presentation layer and the evidence layer, so
+ * "was this answer independent?" can never drift away from "what did the card
+ * actually show?". Adding a new kind of support to `CueRung` without extending
+ * this predicate is the mistake this single definition exists to prevent.
+ */
+export function isAssistedRung(rung: CueRung): boolean {
+  return (
+    rung.allowsArtwork ||
+    rung.allowsVerbalCue ||
+    rung.allowsAudio ||
+    rung.showsLength ||
+    rung.revealPolicy !== 'none'
+  )
+}
+
 /** The rungs at which no cue of any kind may reach the learner. */
-export const UNCUED_RUNGS = CUE_RUNGS.filter(
-  (rung) =>
-    !rung.allowsArtwork &&
-    !rung.allowsVerbalCue &&
-    !rung.allowsAudio &&
-    rung.revealPolicy === 'none' &&
-    !rung.showsLength,
-)
+export const UNCUED_RUNGS = CUE_RUNGS.filter((rung) => !isAssistedRung(rung))
 
 /**
  * Fade on N consecutive correct answers at a rung, accuracy-primary. Latency is
@@ -149,6 +160,7 @@ export const CUE_FADE_STREAK = 2
 export const EMPTY_DIRECTION_EVIDENCE: DirectionEvidence = {
   attempts: 0,
   correct: 0,
+  unassistedCorrect: 0,
   consecutiveCorrect: 0,
   lastAt: null,
   lastLatencyMs: null,
@@ -176,13 +188,27 @@ function cueRungBase(cue: CueState): number {
 /**
  * Cue state alone cannot distinguish free production from free reception, so
  * reverse direction opens only after production has held a full fade streak.
+ *
+ * Once both uncued rungs are open, the ladder asks whichever required direction
+ * currently holds the *weaker independent* evidence, ties going to reception so
+ * the moment reverse first opens is unchanged. Before #68 the item pinned to
+ * reception permanently: `forward.consecutiveCorrect` only ever falls on a
+ * forward error, and once the item stopped being asked forward there were no
+ * forward answers left to make one. A topic whose claim asserts both directions
+ * would then never ask for production again after two answers, and every later
+ * qualifying Test was reception-only. Alternating keeps both halves of the
+ * claim under active examination without adding a rung, a cue state or a card.
  */
 export function rungIndexFor(item: Item, evidence: ItemCueEvidence | undefined): number {
   const base = cueRungBase(evidence?.cue ?? 'rich')
   if (base < FREE_PRODUCTION_RUNG) return base
   if (!requiredDirections(item).includes('answer-to-prompt')) return FREE_PRODUCTION_RUNG
   const forward = directionEvidence(evidence, 'prompt-to-answer')
-  return forward.consecutiveCorrect >= CUE_FADE_STREAK ? FREE_RECEPTION_RUNG : FREE_PRODUCTION_RUNG
+  if (forward.consecutiveCorrect < CUE_FADE_STREAK) return FREE_PRODUCTION_RUNG
+  const reverse = directionEvidence(evidence, 'answer-to-prompt')
+  return reverse.unassistedCorrect <= forward.unassistedCorrect
+    ? FREE_RECEPTION_RUNG
+    : FREE_PRODUCTION_RUNG
 }
 
 export function rungFor(item: Item, evidence: ItemCueEvidence | undefined): CueRung {
@@ -199,6 +225,13 @@ export function revealedElementCount(rung: CueRung, answerLength: number): numbe
 export interface RecordedAnswer {
   direction: ItemDirection
   correct: boolean
+  /**
+   * Whether the rung this answer was given at showed the learner any
+   * scaffolding. Required rather than defaulted: a caller that has a rung in
+   * hand knows the answer, and a silent default would be exactly the way a
+   * supported answer could once again be recorded as independent recall.
+   */
+  assisted: boolean
   /** Recorded from the first session. Gates nothing in v1. */
   latencyMs: number | null
   at: string
@@ -219,9 +252,13 @@ export function recordAnswer(
   const current = evidence ?? emptyCueEvidence()
   const before = directionEvidence(current, answer.direction)
 
+  const unassisted = answer.correct && !answer.assisted
+
   const updated: DirectionEvidence = {
     attempts: before.attempts + 1,
     correct: before.correct + (answer.correct ? 1 : 0),
+    // Fading still reads `correct`; only the formal claim reads this counter.
+    unassistedCorrect: before.unassistedCorrect + (unassisted ? 1 : 0),
     consecutiveCorrect: answer.correct ? before.consecutiveCorrect + 1 : 0,
     lastAt: answer.at,
     lastLatencyMs: answer.latencyMs,
