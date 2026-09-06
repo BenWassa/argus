@@ -113,9 +113,10 @@ export function morseAcquisitionProfile(topic: Topic): AcquisitionProfile | null
  * character and every rung rather than checked by reading JSX.
  *
  * A visual/verbal cue never contains the whole answer. `revealedRawPattern`
- * and `verbalBeats` are the same strict prefix. Canonical audio is deliberately
- * available only at the final supported rung, where it is a cue, never at the
- * uncued production/reverse-recall rungs that prove the completion claim.
+ * and `verbalBeats` are the same strict prefix. After #56 no live printed
+ * letter → pattern rung exposes canonical target audio; sound is either
+ * instruction/feedback outside the recall decision or the stimulus of a
+ * separate listening question in Learn.
  */
 export interface CuePayload {
   rungId: string
