@@ -7,7 +7,7 @@ import {
   promptFor,
   type AcquisitionCharacter,
 } from '../../lib/acquisition'
-import { CUE_RUNGS, UNCUED_RUNGS, recordAnswer, rungFor } from '../../lib/cueLadder'
+import { CUE_RUNGS, FREE_RECEPTION_RUNG, UNCUED_RUNGS, recordAnswer, rungFor } from '../../lib/cueLadder'
 import { MORSE_LETTERS, type MorseLetter } from '../../lib/morse'
 import { verbalMnemonic } from '../../lib/morseVerbalMnemonics'
 import { parseLibrary } from '../../lib/storage'
@@ -28,12 +28,12 @@ function character(letter: MorseLetter): AcquisitionCharacter {
   }
 }
 
-function render(letter: MorseLetter, rungIndex: number, options: string[] = []) {
+function render(letter: MorseLetter, rungIndex: number) {
   return renderToStaticMarkup(
     <ProgressiveCard
       character={character(letter)}
       rung={CUE_RUNGS[rungIndex]}
-      options={options}
+      options={[]}
       onAnswer={() => undefined}
       cardKey={`${letter}-${rungIndex}`}
       now={() => 0}
@@ -46,8 +46,6 @@ describe('cue-bearing content cannot reach an uncued rung', () => {
     for (const rung of UNCUED_RUNGS) {
       for (const letter of letters) {
         const payload = buildCuePayload(rung, character(letter))
-        // Asserted on the payload's own keys, so a cue field added later
-        // without a rung check fails here rather than reaching a learner.
         expect(Object.keys(payload)).toEqual(['rungId'])
       }
     }
@@ -68,10 +66,6 @@ describe('cue-bearing content cannot reach an uncued rung', () => {
   })
 
   it('never shows the answer side of the item before it is answered', () => {
-    // Free production asks for the pattern, so the pattern may not appear.
-    // The dit and dah keys themselves legend the two marks that exist, which is
-    // the keypad's alphabet rather than this item's answer, so the check is on
-    // everything above them.
     for (const letter of letters) {
       const above = render(letter, 3).split('class="test-production"')[0]
       const canonical = Array.from(MORSE_LETTERS[letter]).map((m) => (m === '.' ? '·' : '—')).join(' ')
@@ -79,8 +73,6 @@ describe('cue-bearing content cannot reach an uncued rung', () => {
       expect(above).not.toContain(character(letter).reading)
       expect(above).not.toContain(verbalMnemonic(letter).phrase)
     }
-    // Free reception asks for the character, so the glyph may not appear as the
-    // prompt or anywhere else on the card.
     for (const letter of letters) {
       const reception = render(letter, 4)
       expect(reception).not.toContain(`>${letter}<`)
@@ -107,10 +99,6 @@ describe('cue-bearing content cannot reach an uncued rung', () => {
   })
 })
 
-// Beat words are editorial and change when the mnemonic set is revised; only
-// the prefix/suffix boundary is a real invariant, so derive the words rather
-// than hard-coding them. Matching is anchored to the rendered beat element so
-// a short word cannot pass by colliding with unrelated markup ("run" in "rung").
 const R_BEATS = verbalMnemonic('R').beats.map((beat) => beat.text)
 
 function containsBeatWord(html: string, word: string): boolean {
@@ -118,47 +106,62 @@ function containsBeatWord(html: string, word: string): boolean {
 }
 
 describe('rung rendering', () => {
-  it('offers reduced verbal + SVG timing support at the richest Test rung', () => {
-    const html = render('R', 0, ['.-.', '.--', '-.-', '...'])
-    expect(html).toContain('test-option')
+  it('uses keyed production with reduced verbal + SVG support at the richest Test rung', () => {
+    const html = render('R', 0)
+    expect(html).toContain('class="morse-key"')
+    expect(html).not.toContain('class="test-option mono')
     expect(html).toContain('test-cue')
     expect(html).toContain('3 elements in total')
-    expect(html).toContain('Rhythm cue')
+    expect(html).toContain('Rhythm support')
     expect(containsBeatWord(html, R_BEATS[0])).toBe(true)
     expect(containsBeatWord(html, R_BEATS[1])).toBe(true)
     expect(html).toContain('<svg')
-    // The final beat is the part of the answer this rung must still withhold.
     expect(containsBeatWord(html, R_BEATS[2])).toBe(false)
   })
 
-  it('withholds alternatives while leaving only one opening verbal/visual beat', () => {
-    const html = render('R', 1, ['.-.', '.--', '-.-', '...'])
-    expect(html).toContain('the alternatives are coming')
+  it('uses the same key with one opening verbal/visual beat at the next rung', () => {
+    const html = render('R', 1)
+    expect(html).toContain('class="morse-key"')
+    expect(html).not.toContain('the alternatives are coming')
     expect(html).not.toContain('class="test-option mono')
-    expect(html).toContain('aria-busy="true"')
     expect(containsBeatWord(html, R_BEATS[0])).toBe(true)
     expect(containsBeatWord(html, R_BEATS[1])).toBe(false)
     expect(html).toContain('<svg')
   })
 
-  it('removes verbal/SVG cues at canonical support and offers user-triggered audio', () => {
-    const html = render('R', 2, ['.-.', '.--', '-.-', '...'])
+  it('reduces to element-count support without target audio or multiple choice', () => {
+    const html = render('R', 2)
     expect(html).toContain('3 elements in total')
+    expect(html).toContain('class="morse-key"')
     expect(html).not.toContain('test-cue-pattern')
     expect(html).not.toContain('test-cue-verbal')
     expect(html).not.toContain('<svg')
-    expect(html).toContain('Play canonical rhythm')
-    expect(html).toContain('device media volume')
+    expect(html).not.toContain('Play canonical rhythm')
+    expect(html).not.toContain('class="test-option mono')
     const payload = buildCuePayload(CUE_RUNGS[2], character('R'))
-    expect(payload.audioText).toBe('R')
+    expect(payload.audioText).toBeUndefined()
   })
 
-  it('gives dit and dah keys plus a keyboard route for production', () => {
+  it('uses the one-touch shared key for free production', () => {
     const html = render('R', 3)
-    expect(html).toContain('Add a dit')
-    expect(html).toContain('Add a dah')
-    expect(html).toContain('full stop for a dit')
-    expect(html).toContain('test-key')
+    expect(html).toContain('class="morse-key"')
+    expect(html).toContain('Tap')
+    expect(html).toContain('Hold')
+    expect(html).toContain('Backspace delete')
+    expect(html).not.toContain('class="test-key"')
+  })
+
+  it('uses keyed production on every forward rung and typed entry only for reverse recall', () => {
+    for (let rungIndex = 0; rungIndex < FREE_RECEPTION_RUNG; rungIndex += 1) {
+      const html = render('R', rungIndex)
+      expect(html).toContain('class="morse-key"')
+      expect(html).not.toContain('class="test-option mono')
+      expect(html).not.toContain('Play canonical rhythm')
+    }
+    const reverse = render('Q', FREE_RECEPTION_RUNG)
+    expect(reverse).toContain('Which character is this?')
+    expect(reverse).toContain('test-entry-input')
+    expect(reverse).not.toContain('class="morse-key"')
   })
 
   it('prompts with the printed pattern and takes a typed character for reception', () => {
@@ -172,11 +175,13 @@ describe('rung rendering', () => {
 })
 
 describe('grading a response', () => {
-  it('accepts the canonical pattern for production, whitespace and all', () => {
-    expect(isCorrectResponse(CUE_RUNGS[3], character('R'), '.-.')).toBe(true)
-    expect(isCorrectResponse(CUE_RUNGS[3], character('R'), '. - .')).toBe(true)
-    expect(isCorrectResponse(CUE_RUNGS[3], character('R'), '.--')).toBe(false)
-    expect(isCorrectResponse(CUE_RUNGS[3], character('R'), '')).toBe(false)
+  it('accepts canonical Morse production at supported and free rungs', () => {
+    for (const rungIndex of [0, 1, 2, 3]) {
+      expect(isCorrectResponse(CUE_RUNGS[rungIndex], character('R'), '.-.')).toBe(true)
+      expect(isCorrectResponse(CUE_RUNGS[rungIndex], character('R'), '. - .')).toBe(true)
+      expect(isCorrectResponse(CUE_RUNGS[rungIndex], character('R'), '.--')).toBe(false)
+      expect(isCorrectResponse(CUE_RUNGS[rungIndex], character('R'), '')).toBe(false)
+    }
   })
 
   it('accepts the character in any case for reception', () => {
@@ -246,7 +251,6 @@ describe('which topics the ladder drives', () => {
     const e = [...profile.values()].find((entry) => entry.glyph === 'E')!
     expect(e.mnemonicId).toBe('asset-E')
     expect(e.textLabel).toBe('E is dit.')
-    // And verbal, artwork and audio still never reach an uncued rung.
     expect(Object.keys(buildCuePayload(CUE_RUNGS[3], e))).toEqual(['rungId'])
   })
 })
@@ -254,7 +258,7 @@ describe('which topics the ladder drives', () => {
 describe('a whole item’s journey up the ladder', () => {
   const item: IdentifiedItem = { id: 'i-R', kind: 'bidirectional', prompt: 'R', answer: '.-.' }
 
-  it('moves through recognition, delay, reduction, free production and reverse recall', () => {
+  it('moves through supported production, free production and reverse recall', () => {
     let evidence: ItemCueEvidence | undefined
     const seen: string[] = []
     for (let i = 0; i < 10; i += 1) {

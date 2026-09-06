@@ -6,7 +6,6 @@ import {
   answerLesson,
   currentStep,
   introduceLesson,
-  lessonOptions,
   lessonProgressCount,
   lessonProgressOf,
   startLesson,
@@ -33,6 +32,7 @@ import {
 import type { MorseLetter } from '../../lib/morse'
 import { useLibrary } from '../../lib/store'
 import type { Topic } from '../../lib/types'
+import { MorseKeyInput } from '../morse/MorseKeyInput'
 import { MorseMnemonic } from './MorseMnemonic'
 import { MorseBeatGrammarNote, MorsePhrase } from './MorsePhrase'
 import { MorsePlayButton } from './MorsePlayButton'
@@ -81,31 +81,23 @@ function CharacterStage({
   )
 }
 
-/** Printed letter → Morse. No target playback is exposed while unanswered. */
+/** Printed letter → Morse. Support changes the cue, never the response mechanism. */
 export function VisualCheckStep({
   entry,
   format,
-  options,
   regionRef,
   onAnswer,
 }: {
   entry: LessonEntry
   format: LessonCheckFormat
-  options: string[]
   regionRef: React.RefObject<HTMLDivElement | null>
   onAnswer: (response: string) => void
 }) {
-  const [entered, setEntered] = useState('')
-
   return (
     <div className="lesson-check" ref={regionRef} tabIndex={-1} data-question="visual">
-      <p className="lesson-task">{format === 'solo' ? 'Key this pattern' : 'Choose this pattern'}</p>
+      <p className="lesson-task">Key this pattern</p>
       <p className="lesson-glyph" aria-hidden="true">{entry.glyph}</p>
-      <h2 className="sr-only">
-        {format === 'solo'
-          ? `Key the Morse pattern for ${entry.glyph}.`
-          : `Choose the Morse pattern for ${entry.glyph}.`}
-      </h2>
+      <h2 className="sr-only">Key the Morse pattern for {entry.glyph}.</h2>
 
       {format === 'taught' && (
         <div className="lesson-support" data-support="taught">
@@ -121,36 +113,7 @@ export function VisualCheckStep({
         </div>
       )}
 
-      {format === 'solo' ? (
-        <div className="lesson-production">
-          <p className="lesson-entry mono" aria-live="polite">
-            <span aria-hidden="true">{entered ? canonicalPattern(entered) : '—'}</span>
-            <span className="sr-only">{entered ? patternReading(entered) : 'nothing keyed yet'}</span>
-          </p>
-          <div className="lesson-keys">
-            <button className="lesson-key" type="button" onClick={() => setEntered((c) => `${c}.`)}>
-              <span aria-hidden="true">·</span><span className="sr-only">Add a dit</span>
-            </button>
-            <button className="lesson-key" type="button" onClick={() => setEntered((c) => `${c}-`)}>
-              <span aria-hidden="true">—</span><span className="sr-only">Add a dah</span>
-            </button>
-            <button className="ghost lesson-key-small" type="button" disabled={!entered}
-              onClick={() => setEntered((c) => c.slice(0, -1))}>Back</button>
-          </div>
-          <button className="lesson-submit" type="button" disabled={!entered} onClick={() => onAnswer(entered)}>
-            Check
-          </button>
-        </div>
-      ) : (
-        <div className="lesson-options">
-          {options.map((option) => (
-            <button className="lesson-option mono" key={option} type="button" onClick={() => onAnswer(option)}>
-              <span aria-hidden="true">{canonicalPattern(option)}</span>
-              <span className="sr-only">{patternReading(option)}</span>
-            </button>
-          ))}
-        </div>
-      )}
+      <MorseKeyInput submitLabel="Check" onSubmit={onAnswer} />
     </div>
   )
 }
@@ -213,7 +176,6 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
   const step = hasFeedback || sittingDone ? null : currentStep(run)
   const packetProgress = lessonProgressCount(run)
   const listening = step?.kind === 'check' && shouldUseListeningQuestion(sitting.retrievals, step.entry, listeningState)
-  const visualOptions = step?.kind === 'check' && !listening && step.format !== 'solo' ? lessonOptions(run, step.entry) : []
   const audioOptions = step?.kind === 'check' && listening ? lessonListeningOptions(run, step.entry) : []
 
   useEffect(() => {
@@ -438,7 +400,7 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
 
       {!hasFeedback && step?.kind === 'check' && !listening && (
         <VisualCheckStep key={`visual-${step.entry.itemId}-${run.step}`} regionRef={stepRef} entry={step.entry}
-          format={step.format} options={visualOptions} onAnswer={(response) => answerVisual(step.entry.itemId, response)} />
+          format={step.format} onAnswer={(response) => answerVisual(step.entry.itemId, response)} />
       )}
 
       {(audioNotice || audioError) && <p className="morse-audio-error" role="status">{audioNotice ?? `${audioError} Continuing visually.`}</p>}

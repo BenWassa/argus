@@ -106,7 +106,7 @@ describe('Learn picks the right surface', () => {
   })
 })
 
-describe('printed letter → Morse is answer-safe', () => {
+describe('printed letter → Morse uses one production mechanism', () => {
   const topic = seededTopic(MORSE_ID)
 
   it('introduces one character with instructional audio before recall begins', () => {
@@ -116,45 +116,49 @@ describe('printed letter → Morse is answer-safe', () => {
     expect([...html.matchAll(/class="morse-mnemonic"/g)]).toHaveLength(1)
   })
 
-  it('keeps the rhythmic phrase on taught printed recognition', () => {
+  it('keeps the rhythmic phrase on taught support but requires keyed production', () => {
     const html = render(topic, runAtFormat(topic, 'taught'))
-    expect(html).toContain('Choose this pattern')
+    expect(html).toContain('Key this pattern')
     expect(html).toContain('data-support="taught"')
     expect(html).toContain('class="morse-phrase-beats"')
-    expect([...html.matchAll(/class="lesson-option mono"/g)]).toHaveLength(3)
+    expect(html).toContain('class="morse-key"')
+    expect(html).not.toContain('class="lesson-option mono"')
   })
 
-  it('keeps only non-answer-bearing element count on a cued printed question', () => {
+  it('keeps only non-answer-bearing element count on cued production', () => {
     const html = render(topic, runAtFormat(topic, 'cued'))
     expect(html).toContain('data-support="cued"')
     expect(html).toMatch(/\d+ signals?/)
+    expect(html).toContain('class="morse-key"')
     expect(html).not.toContain('class="morse-play')
     expect(html).not.toContain('aria-label="Play')
     expect(html).not.toContain('class="morse-phrase-beats"')
+    expect(html).not.toContain('class="lesson-option mono"')
   })
 
-  it('the one-signal T case cannot reveal its dash by pressing Play', () => {
+  it('the one-signal T case has no audio hint or pattern choices', () => {
     const html = renderToStaticMarkup(
-      <VisualCheckStep entry={tEntry()} format="cued" options={['-', '.']} regionRef={ref} onAnswer={() => undefined} />,
+      <VisualCheckStep entry={tEntry()} format="cued" regionRef={ref} onAnswer={() => undefined} />,
     )
     expect(html).toContain('T')
     expect(html).toContain('1 signal')
+    expect(html).toContain('Morse key. Tap for dit; press and hold for dah.')
     expect(html).not.toContain('morse-play')
-    expect(html).not.toContain('Play T Morse')
+    expect(html).not.toContain('lesson-option mono')
   })
 
-  it('keeps unaided printed production on the existing categorical dit/dah input', () => {
+  it('uses the same shared key at solo support with no scaffold', () => {
     const html = render(topic, runAtFormat(topic, 'solo'))
     expect(html).toContain('Key this pattern')
-    expect(html).toContain('lesson-keys')
-    expect(html).toContain('Add a dit')
-    expect(html).toContain('Add a dah')
+    expect(html).toContain('class="morse-key"')
+    expect(html).toContain('Tap')
+    expect(html).toContain('Hold')
     expect(html).not.toContain('lesson-support')
     expect(html).not.toContain('morse-play')
   })
 })
 
-describe('Morse sound → letter is a distinct formative prompt', () => {
+describe('Morse sound → letter is the only multiple-choice Morse Learn prompt', () => {
   it('uses sound as the stimulus without naming the answer in the prompt or audio control', () => {
     const entry = tEntry()
     const html = renderToStaticMarkup(
@@ -166,6 +170,7 @@ describe('Morse sound → letter is a distinct formative prompt', () => {
     expect(html).not.toContain('Play T Morse')
     expect(html).not.toContain('lesson-glyph')
     expect(html).not.toContain('morse-notation')
+    expect(html).toContain('lesson-letter-option')
     expect(html).toContain('E')
     expect(html).toContain('T')
   })
@@ -256,17 +261,18 @@ describe('finite progress and evidence honesty', () => {
 })
 
 describe('accessibility and mobile composition', () => {
-  it('keeps practical touch targets and readable letter-choice controls', () => {
+  it('keeps one practical primary Morse key and readable listening choices', () => {
     const global = source('../../styles/global.css')
     expect(global).toMatch(/^button \{[^}]*min-height:\s*44px/m)
-    expect(global).toMatch(/^button\.icon \{[^}]*min-width:\s*44px/m)
-    const css = source('./MorseLesson.css')
-    expect(css).toMatch(/\.lesson-option\s*\{[^}]*min-height:\s*64px/)
-    expect(css).toContain('.lesson-letter-option')
+    const keyCss = source('../morse/MorseKeyInput.css')
+    expect(keyCss).toMatch(/\.morse-key\s*\{[^}]*min-height:\s*84px/)
+    expect(keyCss).toContain('touch-action: none')
+    const lessonCss = source('./MorseLesson.css')
+    expect(lessonCss).toContain('.lesson-letter-option')
   })
 
   it('respects reduced motion and text scaling', () => {
-    const css = source('./MorseLesson.css')
+    const css = `${source('./MorseLesson.css')}\n${source('../morse/MorseKeyInput.css')}`
     expect(css).toContain('@media (prefers-reduced-motion: reduce)')
     const typeSizes = [...css.matchAll(/font-size:\s*([^;]+);/g)].map((match) => match[1].trim())
     for (const size of typeSizes) expect(size).not.toMatch(/^\d+px$/)
