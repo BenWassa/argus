@@ -29,6 +29,7 @@ import {
   newLessonSitting,
   recordLessonRetrieval,
 } from '../../lib/morseLessonSitting'
+import { loadLessonSitting, saveLessonSitting } from '../../lib/morseLessonSittingStorage'
 import type { MorseLetter } from '../../lib/morse'
 import { useLibrary } from '../../lib/store'
 import type { Topic } from '../../lib/types'
@@ -164,7 +165,7 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
   const stepRef = useRef<HTMLDivElement>(null)
 
   const [run, setRun] = useState<LessonRun>(initialRun)
-  const [sitting, setSitting] = useState(newLessonSitting)
+  const [sitting, setSitting] = useState(() => loadLessonSitting(topic.id))
   const [listeningState, setListeningState] = useState(newLessonListeningState)
   const [listeningFeedback, setListeningFeedback] = useState<ListeningFeedback | null>(null)
   const [audioNotice, setAudioNotice] = useState<string | null>(null)
@@ -200,11 +201,17 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
     }
   }
 
+  function persistSitting(next: typeof sitting) {
+    setSitting(next)
+    saveLessonSitting(topic.id, next)
+  }
+
   function answerVisual(itemId: string, response: string) {
     const next = answerLesson(run, itemId, response)
     if (next === run || !next.feedback) return
     setListeningState((state) => recordLessonQuestion(state, itemId))
-    setSitting((current) => recordLessonRetrieval(current, itemId, next.feedback?.correct ?? false))
+    const nextSitting = recordLessonRetrieval(sitting, itemId, next.feedback.correct)
+    persistSitting(nextSitting)
     commit(next)
   }
 
@@ -215,7 +222,7 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
     setRun(answered.run)
     setListeningFeedback(answered.feedback)
     setListeningState((state) => recordLessonQuestion(state, itemId))
-    setSitting((current) => recordLessonRetrieval(current, itemId, answered.feedback.correct))
+    persistSitting(recordLessonRetrieval(sitting, itemId, answered.feedback.correct))
   }
 
   function skipListening() {
@@ -249,7 +256,8 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
     stop()
     clearError()
     setRun(next)
-    setSitting(newLessonSitting())
+    const freshSitting = newLessonSitting()
+    persistSitting(freshSitting)
     setListeningState(newLessonListeningState())
     setListeningFeedback(null)
     setAudioNotice(null)
