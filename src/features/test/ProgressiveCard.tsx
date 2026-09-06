@@ -15,6 +15,7 @@ import {
 } from '../../lib/morseAudio'
 import type { CueRung } from '../../lib/cueLadder'
 import { MorseMnemonic } from '../learn/MorseMnemonic'
+import { MorseKeyInput } from '../morse/MorseKeyInput'
 import './ProgressiveMorseCue.css'
 
 export interface ProgressiveAnswer {
@@ -27,7 +28,7 @@ export interface ProgressiveAnswer {
 interface ProgressiveCardProps {
   character: AcquisitionCharacter
   rung: CueRung
-  /** Alternatives for a choice rung, already including the answer, shuffled. */
+  /** Legacy alternatives are ignored by the live printed-Morse ladder after #56. */
   options: string[]
   onAnswer: (answer: ProgressiveAnswer) => void
   /** Changes whenever a new card is shown, resetting every local state. */
@@ -169,9 +170,9 @@ function CuePanel({ rung, character }: { rung: CueRung; character: AcquisitionCh
 /**
  * One prompt on the acquisition ladder.
  *
- * The rung decides the direction, what scaffolding is shown, how the response
- * is given and whether alternatives are delayed. Nothing here knows about
- * status, history or retention; it reports one answer and its latency upward.
+ * The rung decides the direction and scaffolding. Every printed letter → Morse
+ * rung now uses the same production response; only reverse printed recall uses
+ * character entry. Nothing here knows about scheduler or completion state.
  */
 export function ProgressiveCard({
   character,
@@ -196,8 +197,6 @@ export function ProgressiveCard({
     setOptionsReady(rung.choiceDelayMs === 0)
     startedAt.current = now()
     if (rung.choiceDelayMs === 0) return
-    // van den Broek et al. (2023): the prompt stands alone first, so retrieval
-    // is attempted before recognition support arrives.
     const timer = setTimeout(() => setOptionsReady(true), rung.choiceDelayMs)
     return () => clearTimeout(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -223,27 +222,11 @@ export function ProgressiveCard({
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
-      const typing = event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement
-      if (result) {
-        if (event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault()
-          advance()
-        }
-        return
-      }
-      if (rung.response !== 'production' || typing) return
-      if (event.key === '.') {
+      if (!result) return
+      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return
+      if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault()
-        setEntry((current) => current + '.')
-      } else if (event.key === '-') {
-        event.preventDefault()
-        setEntry((current) => current + '-')
-      } else if (event.key === 'Backspace') {
-        event.preventDefault()
-        setEntry((current) => current.slice(0, -1))
-      } else if (event.key === 'Enter' && entry) {
-        event.preventDefault()
-        submit(entry)
+        advance()
       }
     }
     window.addEventListener('keydown', onKeyDown)
@@ -296,37 +279,7 @@ export function ProgressiveCard({
 
       {!result && rung.response === 'production' && (
         <div className="test-production">
-          <p className="test-entry mono" aria-live="polite">
-            <span aria-hidden="true">{entry ? canonicalPattern(entry) : '—'}</span>
-            <span className="sr-only">{entry ? patternReading(entry) : 'nothing keyed yet'}</span>
-          </p>
-          <div className="test-keys">
-            <button className="test-key" type="button" onClick={() => setEntry((c) => c + '.')}>
-              <span aria-hidden="true">·</span>
-              <span className="sr-only">Add a dit</span>
-            </button>
-            <button className="test-key" type="button" onClick={() => setEntry((c) => c + '-')}>
-              <span aria-hidden="true">—</span>
-              <span className="sr-only">Add a dah</span>
-            </button>
-            <button
-              className="ghost test-key-small"
-              type="button"
-              onClick={() => setEntry((c) => c.slice(0, -1))}
-              disabled={entry.length === 0}
-            >
-              Back
-            </button>
-          </div>
-          <button
-            className="test-submit"
-            type="button"
-            disabled={entry.length === 0}
-            onClick={() => submit(entry)}
-          >
-            Submit
-          </button>
-          <p className="test-hint">Keys: full stop for a dit, hyphen for a dah, Enter to submit.</p>
+          <MorseKeyInput onSubmit={submit} />
         </div>
       )}
 
