@@ -101,6 +101,7 @@ function Routes() {
   const topicsRef = useRef(topics)
   topicsRef.current = topics
   const historyIndex = useRef(initialHistory?.index ?? 0)
+  const blockedBackBounce = useRef(false)
 
   useEffect(() => {
     // Seed/normalise the existing document entry. Never push a synthetic root:
@@ -115,9 +116,18 @@ function Routes() {
         return
       }
 
+      // A guarded Back has already moved the browser cursor to the prior entry.
+      // `history.forward()` returns it to the route that never actually left;
+      // this popstate is only that cursor correction, not a route restoration.
+      if (blockedBackBounce.current && state.index === historyIndex.current) {
+        blockedBackBounce.current = false
+        return
+      }
+
       const direction = Math.sign(state.index - historyIndex.current)
 
       if (direction < 0 && consumeBackBlocker()) {
+        blockedBackBounce.current = true
         // The browser cursor already moved when popstate fired. Bounce to the
         // still-current Argus entry without applying the target route; the
         // blocker has reused the surface's existing close/confirmation policy.
