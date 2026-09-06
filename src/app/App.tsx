@@ -88,6 +88,17 @@ function parentFor(route: AppRoute): ParentRoute {
   return route.origin
 }
 
+function focusAfterTraversal(previous: AppRoute, next: AppRoute) {
+  if (sameRoute(previous, next)) return
+  if (next.kind !== 'section') return
+
+  // Topic -> Library has a stronger target: Library restores the row that
+  // launched the Topic, with #main as its own fallback when that row vanished.
+  if (previous.kind === 'topic' && next.view === 'library') return
+
+  window.requestAnimationFrame(() => document.getElementById('main')?.focus())
+}
+
 function Routes() {
   const { topics } = useLibrary()
   const [initialHistory] = useState(readNavigationState)
@@ -143,6 +154,7 @@ function Routes() {
         return
       }
 
+      const previous = routeRef.current
       const next = restoreRoute(state.route, topicsRef.current, false)
       if (!sameRoute(next, state.route)) replaceNavigationState(next, state.index)
 
@@ -150,18 +162,27 @@ function Routes() {
       routeRef.current = next
       setAuthorOnEntry(false)
       setRoute(next)
+      focusAfterTraversal(previous, next)
     }
 
     window.addEventListener('popstate', onPopState)
     return () => window.removeEventListener('popstate', onPopState)
   }, [])
 
-  // Topic deletion or another live-library change can invalidate the route
-  // currently on screen. Replace it in place so stale history degrades safely
-  // without adding a phantom Back stop.
+  // Topic deletion is itself a meaningful return to Library. Use the existing
+  // previous Library entry instead of replacing the Topic entry with a second
+  // consecutive Library stop that would require an extra system Back.
   useEffect(() => {
-    const next = liveRoute(routeRef.current, topics)
-    if (sameRoute(next, routeRef.current)) return
+    const current = routeRef.current
+    if (current.kind === 'topic' && !topics.some((topic) => topic.id === current.topicId)) {
+      backNavigation()
+      return
+    }
+
+    // Other live-library changes can invalidate a run/reference origin. Replace
+    // those in place so stale history degrades safely without a phantom stop.
+    const next = liveRoute(current, topics)
+    if (sameRoute(next, current)) return
     replaceNavigationState(next, historyIndex.current)
     routeRef.current = next
     setRoute(next)
