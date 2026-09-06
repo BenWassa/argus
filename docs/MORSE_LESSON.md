@@ -1,8 +1,8 @@
 # Morse Learn: guided acquisition, finite sittings, listening, and reference
 
-Issues #48, #51 and #52. Parent #21. Preserves #28's completion boundary and
-the #42/#44 mnemonic/audio treatment. #29 remains the separate future boundary
-for a claimed auditory-reception competency, sending, WPM, groups, words and
+Issues #48, #51, #52 and #56. Parent #21. Preserves #28's completion boundary
+and the #42/#44 mnemonic treatment. #29 remains the separate future boundary for
+a claimed auditory-reception competency, sending, WPM, groups, words and
 continuous material.
 
 Primary code:
@@ -11,6 +11,7 @@ Primary code:
 - `src/lib/morseLessonSitting.ts` — runtime-only finite-sitting policy;
 - `src/lib/morseLessonListening.ts` — runtime-only listening-question policy;
 - `src/features/learn/MorseLesson.tsx` — guided lesson surface;
+- `src/features/morse/MorseKeyInput.tsx` — shared letter → Morse response control;
 - `src/features/learn/MorseReference.tsx` — A–Z lookup surface.
 
 ## Product model and evidence boundary
@@ -58,16 +59,41 @@ There is no global XP, streak, league, currency, shop or daily-goal schema.
 
 ## Printed acquisition support ladder
 
-Learn support remains separate from the Test cue ladder:
+#56 makes the response rule intentionally simple:
+
+> **If the answer is a Morse pattern, the learner produces the pattern.**
+
+The support level changes only what help is visible. It never switches the
+learner between recognition and production.
 
 | Support | Printed letter → Morse question | Response |
 | --- | --- | --- |
-| `taught` | rhythmic phrase with beat marks | choose a pattern |
-| `cued` | element count only | choose a pattern |
-| `solo` | glyph only | key the pattern |
-| `settled` | same unaided format as `solo` when interleaved | key the pattern |
+| `taught` | rhythmic phrase with beat marks | shared Morse key |
+| `cued` | element count only | shared Morse key |
+| `solo` | glyph only | shared Morse key |
+| `settled` | same unaided format as `solo` when interleaved | shared Morse key |
 
-The critical #52 correction is that **no unanswered printed recall question
+The shared `MorseKeyInput` is used by both Learn and Test:
+
+- one visible primary touch target;
+- tap / short press appends dit `·`;
+- press-and-hold appends dah `—`;
+- the accumulated pattern is visible immediately;
+- `Back` removes one element;
+- `Check` / `Submit` evaluates the complete sequence;
+- keyboard equivalents are `.` for dit, `-` for dah, Backspace to delete and
+  Enter to submit.
+
+The hold threshold is an **input classification**, not sending evidence. Press
+duration is not returned to Learn, Test, the scheduler or the evidence store and
+must never become a WPM/sending claim through this control.
+
+Pointer cancellation/lost capture produces no element. The key suppresses
+long-press browser UI and touch scrolling while an active press is being
+classified, so one press cannot accidentally become a dit plus a dah or a page
+gesture.
+
+The #52 answer-safety rule remains: **no unanswered printed recall question
 exposes target playback**. A one-signal question such as `T` may show `1 signal`,
 but there is no Play control that can reveal whether the answer is dit or dah.
 
@@ -83,7 +109,8 @@ retention or completion.
 
 ## Listening is a separate formative question type
 
-A listening question is **Morse sound → letter**.
+A listening question is **Morse sound → letter** and is the one V1 Morse Learn
+interaction that retains multiple-choice recognition.
 
 While unanswered:
 
@@ -150,10 +177,10 @@ are not immediately repeated after correction. Returning characters from prior
 packets arrive settled and are retrieved unaided; a printed miss on one can
 restore support and block true packet readiness.
 
-Supported printed distractors remain deterministic, avoid a target's final-
-element confusable during early acquisition, and prefer same-length alternatives
-where element count is disclosed. Listening choices are also deterministic and
-never pad with an unintroduced letter.
+Visual pattern distractors are no longer part of the Learn response model.
+Confusion metadata still informs curriculum sequencing and can remain useful in
+other discrimination contexts. Listening choices remain deterministic and never
+pad with an unintroduced letter.
 
 ## Leaving and resuming
 
@@ -196,36 +223,49 @@ See `docs/MORSE_VERBAL_MNEMONICS.md` for mnemonic grammar and provenance.
 5. `MorseLesson.tsx` has one `upsertTopic` path, behind
    `withLessonProgress(topicRef.current, lessonProgressOf(next))`.
 6. Listening answers do not call that durable write path.
+7. `MorseKeyInput` reports only the completed dot/dash string. It does not report
+   press duration, speed or sending metrics.
+8. Learn and Test import that same shared input rather than maintaining separate
+   dit/dah entry widgets.
 
 The existing first-exposure `unstarted → learning` transition remains in
 `Learn.tsx`; it is not evidence from a formative retrieval.
 
 ## Preserved boundaries
 
-#52 does not change:
+#56 does not change:
 
 - the exact printed A–Z completion claim;
 - the 26 typed bidirectional scoring units;
-- formal Test direction/cue/scheduler/retention semantics;
+- scheduler/retention resolution or the requirement for both directions;
+- Learn acquisition evidence vs formal Test evidence separation;
 - migration or export/import integrity;
 - any non-Morse topic;
 - #29's future separately stated auditory-reception, sending, WPM, groups, words
   or continuous-material competency.
 
+It does intentionally change the **response mechanism** on supported printed
+Test rungs from multiple choice to keyed production. The cue state names remain
+durable-compatible even where an older state name contains `choice`.
+
 ## Validation boundary
 
 Automated coverage establishes, among other invariants:
 
+- every unanswered visual letter → Morse Learn check uses keyed production and
+  exposes no pattern alternatives;
+- all forward printed Test rungs use the same shared keyed-production control;
+- one short press classifies as one dit and one hold as one dah;
+- interrupted pointers produce no phantom element;
+- keyboard and accessible alternatives remain available;
 - no target Play control exists on unanswered printed questions, including the
   one-signal `T` case;
 - listening prompt/control text does not identify the hidden target;
-- replay is available and choices are introduced-only/deterministic;
+- listening remains the only Morse Learn multiple-choice prompt;
 - listening answers do not fade, restore, settle or durably write printed
   acquisition state;
 - `Can't listen now` applies no retrieval/support penalty and suppresses the
   rest of the sitting;
-- a new sitting resets suppression;
-- technical audio failure takes the same visual-only fallback;
 - a fully audio-suppressed sitting still ends at exactly 10 answered retrievals;
 - #51 packet/sitting separation remains intact;
 - Learn still cannot award formal directional, retention, scheduler or
