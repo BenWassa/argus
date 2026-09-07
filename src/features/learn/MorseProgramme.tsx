@@ -3,6 +3,7 @@ import { startLesson, type LessonRun } from '../../lib/morseLesson'
 import { morseLessonPath, startReplayLesson } from '../../lib/morseLessonPath'
 import { useLibrary } from '../../lib/store'
 import { MorseLesson } from './MorseLesson'
+import { MorseReplay } from './MorseReplay'
 import './MorseProgramme.css'
 
 interface MorseProgrammeProps {
@@ -49,12 +50,15 @@ export function MorseProgramme({ topicId, onExit, onTest, onReference }: MorsePr
     )
   }
 
+  if (active?.replay) {
+    return <MorseReplay initialRun={active.run} onExit={() => setActive(null)} />
+  }
+
   if (active) {
     return (
       <MorseLesson
         topic={topic}
         initialRun={active.run}
-        replay={active.replay}
         onExit={() => setActive(null)}
         onTest={onTest}
         onReference={onReference}
