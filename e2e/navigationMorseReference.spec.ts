@@ -123,14 +123,33 @@ test('completed lesson replay stays inside Learn history and never mutates the s
 test('reference cards keep the phone hierarchy without horizontal overflow', async ({ page }, testInfo) => {
   test.skip(!testInfo.project.name.startsWith('phone-'), 'phone-width rendering contract')
   await openApp(page)
-  await page.locator('.docket .index-row').click()
-  await page.getByRole('button', { name: 'Morse alphabet' }).click()
+  await page.getByRole('button', { name: 'Library', exact: true }).click()
+  await page.locator(`[data-row="${MORSE_ID}"]`).click()
+
+  await expect(page.getByRole('heading', { name: 'Morse alphabet', level: 2 })).toBeVisible()
+  await expect(page.getByText('Show all 26 items')).toHaveCount(0)
 
   const cards = page.locator('.morse-ref-card')
   await expect(cards).toHaveCount(26)
   await expect(cards.first().locator('.morse-ref-letter')).toHaveText('A')
   await expect(cards.first().locator('.morse-ref-pattern')).toContainText('· —')
   await expect(cards.first().locator('.morse-ref-mnemonic')).toHaveText('A LONG')
-  await expect(cards.first().getByRole('button', { name: 'Play A Morse' })).toBeVisible()
+  const play = cards.first().getByRole('button', { name: 'Play A Morse' })
+  await expect(play).toBeVisible()
+  expect(await play.evaluate((button) => Math.min(button.getBoundingClientRect().width, button.getBoundingClientRect().height))).toBeGreaterThanOrEqual(44)
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+
+  await page.evaluate(() => { document.documentElement.style.fontSize = '200%' })
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+})
+
+test('Topic reference playback does not write learner state', async ({ page }) => {
+  await openApp(page)
+  await page.getByRole('button', { name: 'Library', exact: true }).click()
+  await page.locator(`[data-row="${MORSE_ID}"]`).click()
+
+  const before = await page.evaluate((key) => window.localStorage.getItem(key), STORE_KEY)
+  await page.getByRole('button', { name: 'Play A Morse' }).click()
+  await expect(page.getByRole('button', { name: /Stop A Morse|Play A Morse/ })).toBeVisible()
+  expect(await page.evaluate((key) => window.localStorage.getItem(key), STORE_KEY)).toBe(before)
 })

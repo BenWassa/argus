@@ -110,7 +110,6 @@ function renderLibrary() {
     <LibraryProvider>
       <Library
         onStart={() => undefined}
-        onOpenReference={() => undefined}
         onOpenTopic={() => undefined}
         onCloseTopic={() => undefined}
       />
@@ -124,7 +123,6 @@ function renderTopicPage(topic: Topic) {
       topic={topic}
       onBack={() => undefined}
       onStart={() => undefined}
-      onOpenReference={() => undefined}
       onEdit={() => undefined}
       onDelete={() => undefined}
     />,
@@ -541,6 +539,15 @@ describe('Progress projects the journey rather than inventing a fourth reading',
 })
 
 describe('ordinary topics keep the behaviour they had', () => {
+  it('keeps the generic item disclosure for a non-Morse topic', () => {
+    const ordinary = blank('cardinal-bearings')
+    renderTopicPage(ordinary)
+
+    expect(screen.getByText(`Show all ${ordinary.items.length} items`)).toBeTruthy()
+    expect(document.querySelector('.fold-items')).not.toBeNull()
+    expect(document.querySelector('.topic-morse-reference')).toBeNull()
+  })
+
   it('reads an unstarted topic, then proves it, on every surface alike', () => {
     const fresh = blank('primary-survey')
     install([fresh])
@@ -579,5 +586,18 @@ describe('ordinary topics keep the behaviour they had', () => {
     expect(document.querySelector('.mode-choice')).toBeNull()
     expect(document.body.textContent).toContain('no items yet')
     expect(screen.getByRole('button', { name: 'Add items' })).toBeTruthy()
+  })
+})
+
+describe('the Morse Topic owns an always-visible shared alphabet reference', () => {
+  it('replaces the generic 26-item fold with all 26 learning cards', () => {
+    renderTopicPage(blank(MORSE_ID))
+
+    expect(screen.getByRole('heading', { name: 'Morse alphabet', level: 2 })).toBeTruthy()
+    expect(document.querySelectorAll('.morse-ref-card')).toHaveLength(26)
+    expect(document.querySelector('.topic-morse-reference details')).toBeNull()
+    expect(document.body.textContent).not.toContain('Show all 26 items')
+    expect(document.querySelector('.fold-items')).toBeNull()
+    expect(screen.queryByRole('button', { name: /look up any letter/i })).toBeNull()
   })
 })
