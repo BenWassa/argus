@@ -1,0 +1,41 @@
+.morse-replay {
+  display: grid;
+  align-content: start;
+  gap: var(--s-lg);
+}
+
+.morse-replay-feedback {
+  display: grid;
+  gap: var(--s-xs);
+  padding: var(--s-md);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--surface-2);
+}
+
+.morse-replay-feedback.is-correct {
+  border-color: var(--correct);
+}
+
+.morse-replay-feedback strong,
+.morse-replay-feedback span,
+.morse-replay-summary h1,
+.morse-replay-summary p {
+  margin: 0;
+}
+
+.morse-replay-summary {
+  display: grid;
+  gap: var(--s-md);
+  max-width: 34rem;
+}
+
+.morse-replay-summary h1 {
+  font-family: var(--font-display);
+  font-size: var(--t-page);
+  line-height: 1.08;
+}
+
+.morse-replay-summary p {
+  color: var(--muted);
+}
