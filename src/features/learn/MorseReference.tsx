@@ -1,8 +1,7 @@
 import { useEffect, useRef } from 'react'
-import { canonicalNotation, mnemonicTextEquivalent, spokenRhythm } from '../../lib/morseMnemonics'
+import { canonicalNotation, spokenRhythm } from '../../lib/morseMnemonics'
 import { MORSE_LETTERS, type MorseLetter } from '../../lib/morse'
-import { MorseMnemonic } from './MorseMnemonic'
-import { MorseBeatGrammarNote, MorsePhrase } from './MorsePhrase'
+import { verbalMnemonic } from '../../lib/morseVerbalMnemonics'
 import { MorsePlayButton } from './MorsePlayButton'
 import { useMorseAudio } from './useMorseAudio'
 import './MorseReference.css'
@@ -10,56 +9,42 @@ import './MorseReference.css'
 /**
  * The Morse alphabet: a lookup surface, and nothing else.
  *
- * #48 separates the two jobs the old Learn page was doing at once. This is the
- * reference half: all 26 letters, alphabetically, always available, with no
- * locking, no progression and no evidence of any kind.
+ * #76 deliberately breaks from the old compressed row treatment. Each letter
+ * gets one compact learning card with four immediate anchors: large glyph,
+ * large canonical pattern, mnemonic phrase and sound. The SVG remains useful in
+ * guided acquisition but is omitted here so the reference can optimize fast
+ * letter ↔ pattern lookup without visual competition.
  *
- * That last property is structural rather than promised. This module imports no
- * store, no scheduler and no cue ladder — it takes no library, no topic and no
- * mutation callback, and it derives every letter from the canonical
- * `MORSE_LETTERS` table. There is nothing here that *could* write scheduler,
- * cue or completion state, however long a learner browses or however many times
- * they press Play. `MorseReference.test.tsx` asserts that import boundary
- * directly, so a later edit that reaches for the store fails the gate.
+ * The purity boundary from #48 remains structural: this module imports no store,
+ * scheduler or cue ladder and receives no topic or mutation callback.
  */
 
 const ALPHABET = Object.keys(MORSE_LETTERS).sort() as MorseLetter[]
 
-function ReferenceRow({
+function ReferenceCard({
   glyph,
   playing,
-  activeIndex,
   onToggle,
 }: {
   glyph: MorseLetter
   playing: boolean
-  activeIndex: number | null
   onToggle: () => void
 }) {
   const pattern = MORSE_LETTERS[glyph]
+  const mnemonic = verbalMnemonic(glyph)
 
   return (
-    <li className={`morse-ref-row${playing ? ' is-sounding' : ''}`}>
-      <span className="morse-ref-letter" aria-hidden="true">
-        {glyph}
-      </span>
+    <li className={`morse-ref-card${playing ? ' is-sounding' : ''}`}>
+      <span className="morse-ref-letter" aria-hidden="true">{glyph}</span>
 
       <div className="morse-ref-body">
-        <MorsePhrase glyph={glyph} />
-        <div className="morse-ref-visual">
-          <MorseMnemonic
-            glyph={glyph}
-            pattern={pattern}
-            textLabel={mnemonicTextEquivalent(glyph, pattern)}
-            activeIndex={activeIndex}
-          />
-          <p className="morse-ref-canonical">
-            <span className="morse-notation" aria-hidden="true">
-              {canonicalNotation(pattern)}
-            </span>
-            <span className="morse-rhythm">{spokenRhythm(pattern)}</span>
-          </p>
-        </div>
+        <p className="morse-ref-pattern">
+          <span aria-hidden="true">{canonicalNotation(pattern)}</span>
+          <span className="sr-only">{glyph}: {spokenRhythm(pattern)}</span>
+        </p>
+        <p className="morse-ref-mnemonic" aria-label={`Mnemonic for ${glyph}: ${mnemonic.phrase}`}>
+          {mnemonic.phrase}
+        </p>
       </div>
 
       <MorsePlayButton glyph={glyph} playing={playing} onToggle={onToggle} />
@@ -82,29 +67,22 @@ export function MorseReference({ onExit }: { onExit: () => void }) {
           <span className="session-topic">Morse alphabet</span>
           <span className="tabular">26 letters</span>
         </p>
-        <button className="ghost small" type="button" onClick={onExit}>
-          Close
-        </button>
+        <button className="ghost small" type="button" onClick={onExit}>Close</button>
       </div>
 
-      <h1 ref={headingRef} tabIndex={-1} className="morse-ref-title">
-        Morse alphabet
-      </h1>
+      <h1 ref={headingRef} tabIndex={-1} className="morse-ref-title">Morse alphabet</h1>
 
       <p className="morse-ref-lede">
-        Every letter, A to Z, always available. Looking something up here is not a test and changes
-        nothing about your progress.
+        Letter, pattern, mnemonic, sound. This is a reference: use it whenever you want, and it
+        changes nothing about your progress.
       </p>
-
-      <MorseBeatGrammarNote className="morse-ref-grammar" />
 
       <ul className="morse-ref-list">
         {ALPHABET.map((glyph) => (
-          <ReferenceRow
+          <ReferenceCard
             key={glyph}
             glyph={glyph}
             playing={sounding?.glyph === glyph}
-            activeIndex={sounding?.glyph === glyph ? sounding.index : null}
             onToggle={() => toggle(glyph)}
           />
         ))}
@@ -116,14 +94,13 @@ export function MorseReference({ onExit }: { onExit: () => void }) {
 
       {audioError && (
         <p className="morse-audio-error" role="status">
-          {audioError} Audio is optional here; the phrase, its beat marks, the drawing and the
-          written pattern all state the same mapping.
+          {audioError} Audio is optional here; the written pattern and mnemonic remain available.
         </p>
       )}
 
       <p className="morse-ref-foot">
-        Play uses your device's media volume. Recall of these mappings in both directions is proved
-        in Test, never here.
+        Play uses your device&apos;s media volume. Recall in both printed directions is proved in Test,
+        never here.
       </p>
     </section>
   )
