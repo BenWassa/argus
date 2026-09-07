@@ -54,7 +54,7 @@
 
 .morse-ref-card.is-sounding {
   border-color: var(--accent);
-  box-shadow: inset 3px 0 0 var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
 }
 
 .morse-ref-letter {

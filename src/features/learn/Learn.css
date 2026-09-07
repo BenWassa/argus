@@ -61,7 +61,7 @@
   font-weight: var(--w-label);
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--subtle);
 }
 
 .learn-overview {
@@ -109,7 +109,7 @@
 }
 
 .learn-steps li::marker {
-  color: var(--accent);
+  color: var(--subtle);
   font-variant-numeric: tabular-nums;
 }
 
@@ -228,8 +228,8 @@
 
 .learn-case-takeaway {
   margin-top: var(--s-lg);
-  padding-left: var(--s-md);
-  border-left: 2px solid var(--accent);
+  padding-top: var(--s-md);
+  border-top: 1px solid var(--line-strong);
 }
 
 /* Sources and limitations remain visible and readable, but subordinate to the
@@ -303,7 +303,7 @@
   align-self: start;
   padding-top: 3px;
   font-size: var(--t-label);
-  color: var(--accent);
+  color: var(--subtle);
 }
 
 .sheet-prompt {

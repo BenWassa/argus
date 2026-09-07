@@ -116,13 +116,14 @@
   align-items: center;
   gap: var(--s-sm) var(--s-md);
   padding: var(--s-md);
-  border-inline-start: 3px solid var(--line-strong);
-  border-radius: 0 var(--r-md) var(--r-md) 0;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-md);
   background: var(--surface-2);
 }
 
 .lesson-listening-stimulus {
-  border-inline-start-color: var(--accent);
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface-2));
 }
 
 .lesson-length {

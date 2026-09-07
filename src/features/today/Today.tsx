@@ -1,5 +1,5 @@
 import { useLibrary } from '../../lib/store'
-import { dueEntries, journeysFor, type JourneyEntry } from '../../lib/journey'
+import { dueEntries, journeysFor, TEST_CONSEQUENCE_NOTE, type JourneyEntry } from '../../lib/journey'
 import type { Mode } from '../../lib/types'
 import './Today.css'
 
@@ -214,9 +214,7 @@ export function Today({ onStart, onGoToLibrary }: TodayProps) {
           )}
         </div>
 
-        <p className="today-consequence">
-          Tests are scored. The ladder moves only when its required evidence gap is satisfied.
-        </p>
+        <p className="today-consequence">{TEST_CONSEQUENCE_NOTE}</p>
       </div>
     </>
   )

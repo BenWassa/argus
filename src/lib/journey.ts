@@ -400,6 +400,11 @@ export function dueEntries(entries: JourneyEntry[]): JourneyEntry[] {
     })
 }
 
+/** Shown wherever a Test action is offered, so Today and Library never drift
+ *  into stating this consequence two different ways. */
+export const TEST_CONSEQUENCE_NOTE =
+  'Tests are scored. The ladder moves only when its required evidence gap is satisfied.'
+
 export type ShelfId = 'due' | 'active' | 'completed' | 'unfinished'
 
 export interface JourneyShelf {

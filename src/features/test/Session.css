@@ -444,7 +444,7 @@ button.flip-card:active {
   font-weight: var(--w-label);
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--subtle);
 }
 
 .test-rung-instruction {
@@ -597,13 +597,14 @@ button.flip-card:active {
   display: grid;
   gap: var(--s-sm);
   padding: var(--s-md);
-  border-left: 3px solid var(--danger);
-  background: var(--surface-2);
+  border: 1px solid color-mix(in srgb, var(--danger) 45%, var(--line));
+  background: color-mix(in srgb, var(--danger) 10%, var(--surface-2));
   border-radius: var(--r-md);
 }
 
 .test-feedback.is-correct {
-  border-left-color: var(--ok);
+  border-color: color-mix(in srgb, var(--ok) 45%, var(--line));
+  background: color-mix(in srgb, var(--ok) 10%, var(--surface-2));
 }
 
 .test-feedback-verdict {

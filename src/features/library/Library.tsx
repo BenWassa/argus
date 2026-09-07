@@ -1,6 +1,6 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useLibrary } from '../../lib/store'
-import { journeyShelves, journeysFor, type JourneyEntry } from '../../lib/journey'
+import { journeyShelves, journeysFor, TEST_CONSEQUENCE_NOTE, type JourneyEntry } from '../../lib/journey'
 import { Confirm } from '../../components/ui/Confirm'
 import { TopicForm, type Draft } from './TopicForm'
 import { TopicPage } from './TopicPage'
@@ -400,9 +400,7 @@ export function Library({
                 </section>
               ))}
 
-              <p className="lib-consequence">
-                Tests are scored. The ladder moves only when its required evidence gap is satisfied.
-              </p>
+              <p className="lib-consequence">{TEST_CONSEQUENCE_NOTE}</p>
             </div>
           )}
         </>
