@@ -392,6 +392,140 @@ describe('formative lesson progress is durable and portable', () => {
   })
 })
 
+describe('the active Morse Learn sitting is durable and portable (#66)', () => {
+  const MORSE_ITEMS = [
+    { id: 'item-1', kind: 'bidirectional', prompt: 'E', answer: '.' },
+    { id: 'item-2', kind: 'bidirectional', prompt: 'T', answer: '-' },
+  ]
+
+  function withSitting(sitting: unknown): Record<string, unknown> {
+    return { version: 5, topics: [currentTopic({ items: MORSE_ITEMS, lessonSitting: sitting })] }
+  }
+
+  function parsed(sitting: unknown) {
+    const result = parseLibrary(withSitting(sitting))
+    if (!result.ok) throw new Error(result.error)
+    return result.library.topics[0]
+  }
+
+  function rejection(sitting: unknown): string {
+    const result = parseLibrary(withSitting(sitting))
+    if (result.ok) throw new Error('Expected the import to be rejected.')
+    return result.error
+  }
+
+  it('round-trips retrievals, correct count and revisit ids losslessly', () => {
+    const sitting = { retrievals: 6, correct: 4, revisitItemIds: ['item-2'] }
+    const topic = parsed(sitting)
+    expect(topic.lessonSitting).toEqual(sitting)
+
+    // Export is the stored record, so re-importing it has to be a fixed point.
+    const again = parseLibrary(JSON.parse(JSON.stringify({ version: 5, topics: [topic] })))
+    expect(again.ok && again.library.topics[0].lessonSitting).toEqual(sitting)
+  })
+
+  it('round-trips the learner\'s listening declination with the sitting', () => {
+    const sitting = { retrievals: 3, correct: 3, revisitItemIds: [], listeningSuppressed: true }
+    expect(parsed(sitting).lessonSitting).toEqual(sitting)
+    // False is the default, and is stored as the absence of the flag.
+    expect(parsed({ retrievals: 3, correct: 3, revisitItemIds: [], listeningSuppressed: false }).lessonSitting)
+      .toEqual({ retrievals: 3, correct: 3, revisitItemIds: [] })
+  })
+
+  it('treats an older v5 record with no sitting as a fresh sitting', () => {
+    const result = parseLibrary({ version: 5, topics: [currentTopic({ items: MORSE_ITEMS })] })
+    expect(result.ok && result.library.topics[0]).not.toHaveProperty('lessonSitting')
+  })
+
+  it('normalises a sitting that records nothing back to the absent field', () => {
+    expect(parsed({ retrievals: 0, correct: 0, revisitItemIds: [] })).not.toHaveProperty('lessonSitting')
+  })
+
+  it('rejects counters that no sitting could have produced', () => {
+    expect(rejection({ retrievals: 11, correct: 0, revisitItemIds: [] })).toContain('finite sitting is 10')
+    expect(rejection({ retrievals: 3, correct: 4, revisitItemIds: [] })).toContain('more correct answers than retrievals')
+    expect(rejection({ retrievals: 2, correct: -1, revisitItemIds: [] })).toContain('non-negative integers')
+    expect(rejection({ retrievals: 1.5, correct: 1, revisitItemIds: [] })).toContain('non-negative integers')
+    // Two distinct letters to revisit cannot come out of one missed retrieval.
+    expect(rejection({ retrievals: 3, correct: 2, revisitItemIds: ['item-1', 'item-2'] }))
+      .toContain('more letters to revisit than it recorded misses')
+  })
+
+  it('rejects a revisit id naming an item this topic does not have', () => {
+    expect(rejection({ retrievals: 2, correct: 1, revisitItemIds: ['item-9'] }))
+      .toContain('unknown item id "item-9"')
+  })
+
+  it('rejects a malformed sitting rather than silently dropping it', () => {
+    expect(rejection('6/10')).toContain('lessonSitting must be an object')
+    expect(rejection({ retrievals: 2, correct: 1 })).toContain('revisitItemIds list')
+    expect(rejection({ retrievals: 2, correct: 1, revisitItemIds: ['item-1'], listeningSuppressed: 'yes' }))
+      .toContain('listeningSuppressed must be true or false')
+  })
+
+  it('deduplicates repeated revisit ids', () => {
+    expect(parsed({ retrievals: 4, correct: 2, revisitItemIds: ['item-1', 'item-1'] })?.lessonSitting)
+      .toEqual({ retrievals: 4, correct: 2, revisitItemIds: ['item-1'] })
+  })
+
+  it('ignores a sitting on a pre-v5 record, which had no item ids to key it by', () => {
+    const result = parseLibrary({
+      version: 4,
+      topics: [legacyTopic({ lessonSitting: { retrievals: 5, correct: 5, revisitItemIds: [] } })],
+    })
+    expect(result.ok && result.library.topics[0]).not.toHaveProperty('lessonSitting')
+  })
+
+  it('keeps the sitting alongside, and independent of, every sibling progress field', () => {
+    const result = parseLibrary({
+      version: 5,
+      topics: [
+        currentTopic({
+          items: MORSE_ITEMS,
+          status: 'drilled',
+          drilledAt: timestamp,
+          learningAt: timestamp,
+          lastTestedAt: timestamp,
+          history: [{ at: timestamp, correct: 2, total: 2, resolvedTo: 'drilled' }],
+          itemEvidence: {
+            'item-1': {
+              cue: 'free',
+              directions: {
+                'prompt-to-answer': {
+                  attempts: 3, correct: 3, unassistedCorrect: 2,
+                  consecutiveCorrect: 3, lastAt: timestamp, lastLatencyMs: 900,
+                },
+              },
+            },
+          },
+          lessonProgress: { 'item-1': 'settled' },
+          lessonSitting: { retrievals: 5, correct: 5, revisitItemIds: [] },
+          acquisitionReadyAt: timestamp,
+        }),
+      ],
+    })
+    if (!result.ok) throw new Error(result.error)
+    const topic = result.library.topics[0]
+
+    expect(topic.lessonSitting).toEqual({ retrievals: 5, correct: 5, revisitItemIds: [] })
+    expect(topic.lessonProgress).toEqual({ 'item-1': 'settled' })
+    expect(topic.itemEvidence?.['item-1'].cue).toBe('free')
+    expect(topic.acquisitionReadyAt).toBe(timestamp)
+    expect(topic.status).toBe('drilled')
+    expect(topic.history).toHaveLength(1)
+  })
+
+  it('carries the acquisition-readiness anchor, and defaults it to unknown', () => {
+    expect(parsed({ retrievals: 1, correct: 1, revisitItemIds: [] })).not.toHaveProperty('acquisitionReadyAt')
+    const result = parseLibrary({
+      version: 5,
+      topics: [currentTopic({ items: MORSE_ITEMS, acquisitionReadyAt: 42 })],
+    })
+    // A non-string anchor is not a fabricated one: it simply is not recorded.
+    expect(result.ok && result.library.topics[0]).not.toHaveProperty('acquisitionReadyAt')
+  })
+})
+
 describe('structured Learn import and export shape', () => {
   it('migrates richer v4 Learn content without changing the scored items', () => {
     const first = parseLibrary({

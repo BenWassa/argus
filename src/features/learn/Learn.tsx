@@ -15,7 +15,7 @@ interface LearnProps {
 }
 
 export function Learn({ topicIds, onExit, onTest, onReference }: LearnProps) {
-  const { topics, upsertTopic } = useLibrary()
+  const { topics, updateTopic } = useLibrary()
   const headingRef = useRef<HTMLHeadingElement>(null)
 
   const [included] = useState<Topic[]>(() =>
@@ -34,8 +34,9 @@ export function Learn({ topicIds, onExit, onTest, onReference }: LearnProps) {
 
   useEffect(() => {
     for (const topic of included) {
-      const studied = resolveStudy(topic)
-      if (studied !== topic) upsertTopic(studied)
+      // Functional, so first exposure composes with whatever else has touched
+      // this topic rather than reinstating the snapshot Learn opened with.
+      updateTopic(topic.id, (current) => resolveStudy(current))
     }
     headingRef.current?.focus()
     // eslint-disable-next-line react-hooks/exhaustive-deps

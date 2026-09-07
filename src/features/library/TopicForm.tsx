@@ -6,6 +6,7 @@ import {
   type ItemDraft,
 } from '../../lib/items'
 import { pruneLessonProgress } from '../../lib/morseLesson'
+import { pruneLessonSitting } from '../../lib/morseLessonSitting'
 import { TRACKS, type Item, type LearnContent, type Topic, type Track } from '../../lib/types'
 
 /** Starting values for a new topic. Used to hand the user a worked example
@@ -112,6 +113,7 @@ export function TopicForm({
 
     const now = new Date().toISOString()
     const reconciledItems = reconcileAuthoredItems(topic?.items ?? [], items)
+    const sitting = pruneLessonSitting(topic?.lessonSitting, reconciledItems)
     onSave({
       id: topic?.id ?? `topic-${Date.now()}`,
       title: title.trim(),
@@ -134,6 +136,13 @@ export function TopicForm({
       // only when its item is actually deleted.
       itemEvidence: pruneItemEvidence(topic?.itemEvidence, reconciledItems),
       lessonProgress: pruneLessonProgress(topic?.lessonProgress, reconciledItems),
+      // The active finite sitting is durable learner progress too, so an edit to
+      // the title carries it through. Only revisit ids for genuinely deleted
+      // items are dropped; the counters are what the learner already answered.
+      ...(sitting ? { lessonSitting: sitting } : {}),
+      // Acquisition readiness is a historical fact about the learner, not a
+      // property of the current item list. Editing content never retracts it.
+      ...(topic?.acquisitionReadyAt ? { acquisitionReadyAt: topic.acquisitionReadyAt } : {}),
       // Editing changes content, not ownership. A topic authored here is the
       // user's; an edited catalog topic stays a catalog topic, so routine
       // edits are never reported as a shipped-content collision.

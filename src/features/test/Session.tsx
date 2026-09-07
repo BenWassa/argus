@@ -9,7 +9,8 @@ import {
   type PanInfo,
 } from 'motion/react'
 import { useLibrary } from '../../lib/store'
-import { resolveAttempt, type Resolution } from '../../lib/scheduling'
+import { applyResolution, resolveAttempt, type Resolution } from '../../lib/scheduling'
+import { journeyFor } from '../../lib/journey'
 import { statusLabel } from '../../components/ui/StatusTag'
 import {
   expectedAnswer,
@@ -90,8 +91,18 @@ function haptic(pattern: number | number[]) {
   }
 }
 
+/**
+ * A banked attempt, and whether progressive-acquisition readiness withheld its
+ * advancement (#67). The end screen has to be able to say why a clean run left
+ * the ladder where it was; "held at learning" alone reads like a bug.
+ */
+interface BankedAttempt {
+  resolution: Resolution
+  withheldByAcquisition: boolean
+}
+
 export function Session({ topicIds, onExit }: SessionProps) {
-  const { topics, upsertTopic } = useLibrary()
+  const { topics, updateTopic } = useLibrary()
 
   // Snapshot the topics and deck at session start. A bankable attempt always
   // runs every item in a topic; fast interaction must not weaken the boundary.
@@ -141,7 +152,12 @@ export function Session({ topicIds, onExit }: SessionProps) {
 
   const [view, setView] = useState<View>({ kind: 'asking', index: 0 })
   const [tally, setTally] = useState<{ correct: number; total: number }>({ correct: 0, total: 0 })
-  const [resolutions, setResolutions] = useState<Resolution[]>([])
+  const [banked, setBanked] = useState<BankedAttempt[]>([])
+  // The library as it stands now, not as it stood when the deck was built. A
+  // lesson answer or a sibling write can land while a Test is open, and the
+  // attempt should resolve against the topic that exists rather than a snapshot.
+  const liveTopics = useRef(topics)
+  liveTopics.current = topics
   const [confirmingExit, setConfirmingExit] = useState(false)
   /** Which grade the current drag has travelled far enough to commit. */
   const [armed, setArmed] = useState<SwipeGrade | null>(null)
@@ -275,7 +291,9 @@ export function Session({ topicIds, onExit }: SessionProps) {
     attempt: { correct: number; total: number },
     evidence: ItemEvidenceStore,
   ) {
-    const topic = included.find((candidate) => candidate.id === topicId)
+    const topic =
+      liveTopics.current.find((candidate) => candidate.id === topicId) ??
+      included.find((candidate) => candidate.id === topicId)
     if (!topic) return
     // The scheduler resolves the attempt exactly as it always has. Cue evidence
     // is merged in afterwards, as a separate field, and changes nothing the
@@ -293,9 +311,23 @@ export function Session({ topicIds, onExit }: SessionProps) {
       attempt.correct,
       attemptAnswers.current[topicId] ?? [],
     )
-    const resolution = resolveAttempt(topic, schedulerCorrect, attempt.total)
-    upsertTopic(mergeItemEvidence(resolution.topic, evidence))
-    setResolutions((previous) => [...previous, resolution])
+    // The second gate, and the one #67 adds. Early Test stays reachable for a
+    // topic still in progressive acquisition — it is a legitimate thing to want
+    // to try — but a run given before the learner has met every letter cannot
+    // bank retention the acquisition programme has not yet earned. The journey
+    // layer decides that; the scheduler is simply told the answer.
+    const { advancementEligible } = journeyFor(topic)
+    const resolution = resolveAttempt(topic, schedulerCorrect, attempt.total, new Date(), {
+      advancementEligible,
+    })
+    // Composed onto the latest topic rather than written back whole, so lesson
+    // support, the active sitting and anything else earned since the deck was
+    // built survive the bank.
+    updateTopic(topicId, (current) => mergeItemEvidence(applyResolution(current, resolution), evidence))
+    setBanked((previous) => [
+      ...previous,
+      { resolution, withheldByAcquisition: !advancementEligible },
+    ])
   }
 
   function evidenceFor(card: Card): ItemCueEvidence | undefined {
@@ -455,11 +487,10 @@ export function Session({ topicIds, onExit }: SessionProps) {
    * it is written out rather than thrown away with the attempt.
    */
   function exitSession() {
-    const banked = new Set(resolutions.map((resolution) => resolution.topic.id))
+    const resolved = new Set(banked.map((entry) => entry.resolution.topic.id))
     for (const [topicId, store] of Object.entries(cueEvidence)) {
-      if (banked.has(topicId)) continue
-      const live = topics.find((candidate) => candidate.id === topicId)
-      if (live) upsertTopic(mergeItemEvidence(live, store))
+      if (resolved.has(topicId)) continue
+      updateTopic(topicId, (current) => mergeItemEvidence(current, store))
     }
     onExit()
   }
@@ -482,7 +513,7 @@ export function Session({ topicIds, onExit }: SessionProps) {
   }
 
   if (view.kind === 'done' || !card) {
-    return <TestDone resolutions={resolutions} onExit={onExit} headingRef={headingRef} />
+    return <TestDone banked={banked} onExit={onExit} headingRef={headingRef} />
   }
 
   if (confirmingExit) {
@@ -695,20 +726,23 @@ export function Session({ topicIds, onExit }: SessionProps) {
   )
 }
 function TestDone({
-  resolutions,
+  banked,
   onExit,
   headingRef,
 }: {
-  resolutions: Resolution[]
+  banked: BankedAttempt[]
   onExit: () => void
   headingRef: React.RefObject<HTMLHeadingElement | null>
 }) {
-  const completed = resolutions.filter((resolution) => resolution.completed)
-  const decayed = resolutions.filter((resolution) => resolution.decayed)
-  const changed = resolutions.filter(
+  const resolutions = banked.map((entry) => entry.resolution)
+  const withheld = banked.filter((entry) => entry.withheldByAcquisition)
+  const moved = banked.filter((entry) => !entry.withheldByAcquisition).map((entry) => entry.resolution)
+  const completed = moved.filter((resolution) => resolution.completed)
+  const decayed = moved.filter((resolution) => resolution.decayed)
+  const changed = moved.filter(
     (resolution) => !resolution.completed && !resolution.decayed && resolution.to !== resolution.from,
   )
-  const held = resolutions.filter(
+  const held = moved.filter(
     (resolution) => !resolution.completed && !resolution.decayed && resolution.to === resolution.from,
   )
 
@@ -753,6 +787,14 @@ function TestDone({
       {held.map((resolution) => (
         <p className="transition" key={resolution.topic.id}>
           <strong>{resolution.topic.title}</strong> held at {statusLabel(resolution.to).toLowerCase()}.
+        </p>
+      ))}
+
+      {withheld.map((entry) => (
+        <p className="transition" key={entry.resolution.topic.id}>
+          <strong>{entry.resolution.topic.title}</strong>: the lesson has not been through every
+          letter yet, so this run is recorded but does not move the ladder. Finish the lesson and
+          the delayed test starts counting from there.
         </p>
       ))}
 

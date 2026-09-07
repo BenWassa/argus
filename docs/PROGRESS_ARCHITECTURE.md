@@ -5,7 +5,9 @@ Baseline assessed: `fd253386118aec7044e99d9c540287a518078121`
 
 ## Purpose
 
-Argus has accumulated several valid but independent forms of learner state. That separation is useful where the states answer genuinely different questions, but the product currently lacks one shared interpretation of them. The result is contradictory navigation, incomplete portability and a Progress screen that cannot explain where the learner actually is.
+Argus had accumulated several valid but independent forms of learner state. That separation is useful where the states answer genuinely different questions, but the product lacked one shared interpretation of them. The result was contradictory navigation, incomplete portability and a Progress screen that could not explain where the learner actually was.
+
+**Status: implemented.** The programme landed as one integrated change closing #66, #67, #69, #70 and #71 (#68 landed separately). The sections below remain the contract; "Implementation record" near the end says what was built and why, for the decisions this document left open.
 
 This document defines the durable architecture for learner progress. It is not a proposal to collapse acquisition, evidence, retention and session state into one score. Instead, it establishes one derived learner journey over those distinct dimensions so Today, Library, Topic, Progress, Learn and Test all tell the same story.
 
@@ -192,14 +194,14 @@ Ordinary non-progressive topics preserve existing behavior unless a separate pro
 
 ## Active Morse sitting: one durable authority
 
-#59 intended the active 10-retrieval sitting to survive exit/reload and export/import. The current repository contains an architectural contradiction:
+#59 intended the active 10-retrieval sitting to survive exit/reload and export/import. When #62 was scoped the repository contained an architectural contradiction:
 
-- `Topic.lessonSitting` exists in the type model and is described as portable durable state;
-- `lessonSittingOf()` / `withLessonSitting()` exist;
-- runtime Morse Learn still persists the sitting in a separate localStorage sidecar;
-- `parseLibrary()` does not currently round-trip `lessonSitting`.
+- `Topic.lessonSitting` existed in the type model and was described as portable durable state;
+- `lessonSittingOf()` / `withLessonSitting()` existed;
+- runtime Morse Learn still persisted the sitting in a separate localStorage sidecar;
+- `parseLibrary()` did not round-trip `lessonSitting`.
 
-This must be resolved.
+**Settled by #66.** `Topic.lessonSitting` is now the sole durable authority; the sidecar is a read-and-delete migration door with no write path at all. See the implementation record below.
 
 ### Canonical target
 
@@ -212,6 +214,8 @@ interface MorseLessonSittingProgress {
   retrievals: number
   correct: number
   revisitItemIds: string[]
+  /** The learner's own `Can't listen now`, for this sitting. */
+  listeningSuppressed?: boolean
 }
 ```
 
@@ -262,6 +266,8 @@ If an active sitting itself is now durable across exit/reload, the implementatio
 Do not leave the system in a contradictory state where the learner resumes at 6/10 but silently regains listening after having said they cannot listen for that sitting.
 
 Recommended behavior: preserve suppression for the durable sitting, while keeping audio-error details and playback state transient.
+
+**Settled by #66**, taking the recommendation with one distinction the recommendation implies but does not state: the learner's `Can't listen now` is durable for the sitting, and a technical *audio failure* is not. One is a decision about the sitting they are in; the other is a fact about this device right now, and a reload that fixes the device should restore listening. `listeningSuppressed` therefore records only the declination, and the audio-failure path suppresses listening for the running lesson alone.
 
 ## Write-composition safety
 
@@ -457,7 +463,9 @@ Use “XP” only if a later explicit product decision creates a real XP model. 
 | `DirectionEvidence.unassistedCorrect` | yes | yes | Test formal evidence (#68) | it is the only evidence the completion gate reads |
 | `lessonProgress` | yes | yes | Learn acquisition | no |
 | `lessonSitting` | yes | yes | Learn finite sitting | no |
-| listening suppression for active sitting | recommended yes | yes if durable sitting semantics require it | Learn sitting | no |
+| `lessonSitting.listeningSuppressed` | yes | yes | Learn sitting | no |
+| `acquisitionReadyAt` | yes | yes | Learn acquisition | no — it only ever *withholds* advancement, and anchors the gap |
+| audio-failure listening suppression | no | no | runtime presentation | no |
 | current audio playback | no | no | runtime presentation | no |
 | key press duration | no | no | input presentation | no |
 | navigation history | session only | no | navigation | no |
@@ -580,6 +588,108 @@ The implementation is not complete until automated tests cover these product-lev
 - preserve existing users;
 - reconcile current docs/comments/tests;
 - verify exact production behavior.
+
+## Implementation record (#62 — settled)
+
+The programme landed as one integrated change closing #66, #67, #69, #70 and #71. This section records the decisions the sections above left to implementation, so the reasoning is reviewable rather than reconstructed from a diff.
+
+### The journey layer
+
+`src/lib/journey.ts`, one pure function `journeyFor(topic, now) => TopicJourney`. It holds nothing: every value is derived from durable fields owned by somebody else, so a surface and a test cannot get different answers, and there is no fifth progress database.
+
+`TopicJourney` keeps the four dimensions apart and adds an interpretation over them:
+
+| Field | What it answers |
+|---|---|
+| `acquisition` | progressive? started? ready? letters settled, packet position, readiness anchor |
+| `evidence` | bidirectional? how many logical units hold independent both-direction evidence |
+| `retention` | scheduler status, schedule label, due/wait, gap progress, effective anchor, gated |
+| `sitting` | retrievals of target, correct, letters to revisit, listening declined |
+| `phase` | `authoring` / `acquiring` / `due` / `waiting` / `repair` |
+| `action`, `actionLabel`, `primaryLabel` | the one recommended next action, in each surface's voice |
+| `statusLabel`, `detail` | why it is where it is, and one concise supporting line |
+| `advancementEligible` | may a scored attempt move the retention ladder now? |
+
+There is deliberately no aggregate score and no percentage.
+
+`scheduling.ts` remains the retention authority. The journey layer does not reimplement `dueState`: it hands the scheduler an *anchored copy* of the topic (only `learningAt` can differ) and asks. Every gap, threshold and label therefore still has one implementation.
+
+### Readiness representation: an explicit anchor
+
+The document allowed a readiness timestamp, a controlled reset of `learningAt`, or an equivalent derivation. The implementation uses **an explicit durable timestamp, `Topic.acquisitionReadyAt`**.
+
+Why not re-anchor `learningAt`: that field is scheduler-owned, and moving it from the Learn surface would put a second writer on retention state — precisely the confusion of ownership this programme exists to remove. An explicit anchor is a fact about *acquisition*, written by the layer that owns acquisition, and read by the journey layer when it computes the effective gap.
+
+Why it cannot be derived: `lessonProgress` says what support the lesson currently offers each item. It cannot say when the last one first settled, and a later miss legitimately restores support. The moment readiness was reached is not recoverable from it.
+
+Three consequences, each tested:
+
+1. **Readiness is permanent once reached**, like `completedAt`. A miss in a later lesson restores that letter's scaffolding without retracting the fact that the learner produced all 26 unaided.
+2. **The anchor is written in the same functional update as the answer that earned it**, so the clock starts at readiness rather than a render later.
+3. **A record with acquisition complete but no anchor** — written before the field existed, or imported — falls back to `learningAt`. That is exactly the pre-#62 behaviour, so an upgrade can only ever be more permissive, never make an existing learner wait longer.
+
+### Two deliberate limits on the gate
+
+The readiness gate applies only while the topic is `unstarted` or `learning`.
+
+A topic that has genuinely reached `drilled`, `completed` or `decayed` holds retention evidence, and **retention evidence outranks lesson scaffolding**. An existing learner who drilled printed Morse before the guided lesson shipped is not sent back to packet 1, and a completed topic can never be dragged backwards into acquisition by lesson state. This is what keeps "do not reset existing learner progress" true in the one place it could plausibly have been violated.
+
+### How the gate reaches the scheduler
+
+`resolveAttempt` gained one option, `advancementEligible`, defaulting to `true`. The scheduler does not know what progressive acquisition is and does not go looking; the journey layer decides and hands it a boolean.
+
+An ineligible attempt is recorded exactly like a voluntary early Test — scored, kept in history, `lastTestedAt` updated — and moves no status and no clock **in either direction**. It cannot advance a rung it has not earned, and equally cannot demote one: withholding a pass is not a failure. The Test end screen says so in words rather than reporting "held at learning", which reads like a bug.
+
+### Write composition
+
+`useLibrary()` gained `updateTopic(id, current => next)` alongside `upsertTopic(topic)`.
+
+`upsertTopic` remains correct where replacing the record *is* the intent: creation, authoring, import. Every independent learner-progress write now uses `updateTopic`, so a lesson answer, a sitting write, a readiness anchor, a scheduler resolution and cue evidence compose with the latest topic instead of reinstating a snapshot captured when a surface mounted.
+
+Test needs one extra piece, because a bankable attempt must resolve against the deck it ran: `applyResolution(current, resolution)` copies across only the scheduler-owned fields and appends the new attempt to whatever history the topic *currently* has. The retention decision is preserved without the snapshot's siblings riding along with it.
+
+The store owns composition only. Domain policy stays in domain modules and arrives as a pure function.
+
+### Sitting storage and sidecar migration
+
+`Topic.lessonSitting` is validated at the storage boundary as strictly as cue and lesson evidence. The documented compatibility rules:
+
+- a pre-v5 record cannot have carried a sitting (no durable item ids to key revisit ids by) — ignored rather than rejected;
+- an absent field is a fresh sitting, which is what every older v5 record has;
+- a revisit id naming an item the topic does not have is **rejected**, like every other per-item store;
+- repeated revisit ids are **deduplicated**: the field is a set;
+- counters that no sitting could have produced are rejected rather than clamped — a clamped counter is fabricated progress wearing a plausible shape. This includes more distinct letters to revisit than there were misses;
+- a sitting recording nothing is normalised back to the absent field, so **a fresh sitting has exactly one representation**. Starting the next sitting removes the field rather than writing zeroes.
+
+Sidecar migration runs in `loadLibraryWithReport` only. It adopts a sidecar sitting onto a topic that has none (the canonical field always wins a disagreement), drops revisit ids for items the topic no longer has, saves, and then deletes the key. Import and reset clear the key outright, so a sitting belonging to a replaced library can never surface inside its successor. `morseLessonSittingStorage.ts` now exports no write path at all, and a test asserts that, so a dual-write cannot be reintroduced by a later refactor.
+
+### Fresh-user progress
+
+`freshSeedLibrary()` builds a first-run library from `catalogDefinitions()` through `freshCatalogTopic` — the same door an existing library receives a new catalog topic through. A first install and a later delivery therefore hand over identical topics.
+
+The seed keeps its demonstration learner state, because it doubles as the development and test fixture; none of it reaches a production fresh install. Previously a new user's Progress screen opened on a completed bearings topic and a drilled NATO deck that nobody had earned.
+
+Existing learners are untouched: reconciliation still only ever appends, and a stored record's status, history and `completedAt` are preserved through upgrade.
+
+### Surface wiring
+
+Today, Library, Topic and Progress all read `journeyFor`. Two smaller consequences worth recording:
+
+- **Library's gap bar is retention only.** A topic still being acquired has not entered a gap, so it shows its acquisition position in words instead. Drawing both as the same bar would make two different kinds of progress look like one measurement.
+- **Topic's primary action follows the journey for ordinary topics too.** An unstarted ordinary topic previously offered Test as its lead control while Today and Library both said Learn. Both modes remain reachable; which one is primary is now the journey's answer everywhere.
+
+Progress lost its three-counter strip. Total topics, completed and repair were all true and none of them answered the question the screen is for. The sections are the journey's own phases, so Progress cannot become a fourth reading of the same topic.
+
+### Terminology
+
+The ten-answer Morse sitting is shown as `X / 10 retrievals`. `XP` is gone from the product surface, and a test asserts it stays gone: the count is a finite retrieval budget, and naming it after a currency implied an economy Argus explicitly rejects.
+
+### Where the invariants live
+
+- `src/lib/journey.test.ts` — the derivation itself: routing, readiness, the anchored clock, the gate, ordinary-topic regression, evidence separation, ranking and shelves.
+- `src/features/crossSurface.test.tsx` — the consistency contract. Nine learner states are each asserted across all four surfaces, comparing rendered verbs, schedule lines, shelf placement and Progress section against the shared derivation rather than against hard-coded strings, so a label change cannot quietly let the surfaces disagree again.
+- `src/lib/storage.test.ts`, `src/lib/storageLoad.test.ts` — sitting validation, export/import round-trip, old-v5 compatibility, sidecar adoption and isolation, fresh-install integrity, existing-learner preservation.
+- `src/lib/morseCompletionEvidence.test.ts` — unchanged; the #68 completion contract is untouched by this programme.
 
 ## Non-goals
 

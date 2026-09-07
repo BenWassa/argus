@@ -19,6 +19,21 @@ Two ways to engage a topic:
 
 The split exists because retention and exposure are different things, and the interface should never let one be mistaken for the other. A surface shaped like a flashcard must conceal its answer; a surface meant for reading and scanning must not pretend to be a card.
 
+For most topics Learn is a single reading, and moving to `learning` is the whole of acquisition. Some topics need more: Morse's Learn is a guided lesson running over many sittings and days, and its status is `learning` throughout. For those, finishing acquisition is a distinct event from first exposure, and until it happens every surface keeps recommending the lesson — an early Test stays available, but it is recorded rather than banked. `docs/PROGRESS_ARCHITECTURE.md` is the authority.
+
+## What progress means
+
+Argus tracks four different things about a topic and deliberately does not average them:
+
+- **Acquisition** — can you retrieve this without the teaching support you are currently using?
+- **Evidence** — have you demonstrated the directions and conditions the scored boundary requires?
+- **Retention** — has that recall survived the required gap?
+- **Current sitting** — where are you inside the finite task you are doing right now?
+
+One shared derivation reads all four and answers the only question the learner actually asks — *what should I do next, and why* — so Today, Library, Topic and Progress cannot contradict each other about the same topic at the same instant. There is no single progress percentage, because a number averaging those four would not mean anything.
+
+The Progress screen shows live work, work the schedule is holding, work that decayed, and the permanent completion record. It is a review surface, not a dashboard.
+
 ## Content boundary
 
 A topic has two structurally separate content layers with different claims:
@@ -62,7 +77,8 @@ The tradecraft and survival tracks pull hard toward military, prepper, or tactic
 - The generic AI-generated dashboard: a hero, four equal metric cards, a grid of identical rounded topic cards. Flagged directly in design critique as "category-interchangeable" — recognizable ingredients, generic composition.
 - Repetitive card scaffolding used as a default container for everything (stats, topics, modes, panels) — it flattens hierarchy instead of establishing it.
 - Military, survivalist, or "prepper" visual language: tactical iconography, rugged/camo textures, alarm-red urgency, game-like HUD elements.
-- Gamification: streaks, badges, XP, leaderboards, shame-based nudging for missed days. Retention decay is information, not punishment.
+- Gamification: streaks, badges, XP, leaderboards, shame-based nudging for missed days. Retention decay is information, not punishment. The ten-answer Morse Learn sitting is a finite retrieval budget and is named as one — earlier copy called it `XP`, which implied a currency the product does not have.
+- A single aggregate progress percentage. Acquisition, evidence, retention and completion answer different questions; one number combining them would be precise and untrue.
 - Desktop-as-widened-mobile: cosmetic breakpoint scaling instead of a real task-oriented desktop layout (side rail, dense authoring views).
 - Decorative gradients, ornamental rings, and non-functional visual flourish anywhere in the Test loop.
 

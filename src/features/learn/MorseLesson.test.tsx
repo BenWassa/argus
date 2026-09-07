@@ -243,13 +243,26 @@ describe('feedback and modality boundaries', () => {
 describe('finite progress and evidence honesty', () => {
   const topic = seededTopic(MORSE_ID)
 
-  it('keeps #51 packet position and ten-XP sitting target explicit', () => {
+  it('states packet position and the finite sitting target in plain terms', () => {
     const html = render(topic, startLesson(topic) as LessonRun)
     expect(html).toContain('Packet 1 of 13')
-    expect(html).toContain('0 / 10 XP')
+    // #62: the ten-answer sitting is a finite retrieval budget, not an economy.
+    // Argus rejects a global XP model, so the copy must not imply one.
+    expect(html).toContain('0 / 10 retrievals')
+    expect(html).not.toContain('XP')
     expect(html).toContain('Packet progress: 0 of 2 settled')
-    expect(html).toContain('aria-label="Lesson XP"')
+    expect(html).toContain('aria-label="Retrievals this sitting"')
     expect(html).toContain('aria-valuemax="10"')
+  })
+
+  it('resumes the durable sitting from the topic rather than a sidecar', () => {
+    const resumed: Topic = {
+      ...topic,
+      lessonSitting: { retrievals: 6, correct: 4, revisitItemIds: [topic.items[0].id as string] },
+    }
+    const html = render(resumed, startLesson(resumed) as LessonRun)
+    expect(html).toContain('6 / 10 retrievals')
+    expect(html).toContain('aria-valuenow="6"')
   })
 
   it('sends a finished learner to formal Test rather than claiming completion', () => {
@@ -305,10 +318,31 @@ describe('Learn cannot reach formal retention state', () => {
     expect(code).not.toContain('itemEvidence')
   })
 
-  it('keeps the only topic write behind withLessonProgress', () => {
+  it('writes only formative acquisition state, and only through composing updates', () => {
     const code = source('./MorseLesson.tsx')
-    const writes = [...code.matchAll(/upsertTopic\(([^)]*)\)/g)].map((match) => match[1])
-    expect(writes).toEqual(['updated'])
-    expect(code).toContain('withLessonProgress(topicRef.current, lessonProgressOf(next))')
+
+    // Whole-object writes would reinstate every sibling field as it looked when
+    // the lesson opened, including a scheduler resolution banked since (#62).
+    expect(code).not.toContain('upsertTopic')
+
+    // Every durable write this surface makes, and what it is allowed to touch:
+    // lesson support, the finite sitting, and the acquisition-readiness anchor.
+    // Nothing here can reach status, history, timestamps or `DirectionEvidence`.
+    const updaters = [...code.matchAll(/updateTopic\(topic\.id,/g)].map((match) =>
+      code.slice(match.index ?? 0, (match.index ?? 0) + 160),
+    )
+    expect(updaters.length).toBeGreaterThan(0)
+    for (const updater of updaters) {
+      expect(updater).toMatch(
+        /withAcquisitionReadiness|withLessonProgress|withLessonSitting|withoutLessonSitting/,
+      )
+    }
+
+    // The one thing imported from the journey layer is the acquisition anchor.
+    // That layer can see the scheduler; this surface still must not.
+    const journeyImport = code.slice(code.indexOf("from '../../lib/journey'") - 120, code.indexOf("from '../../lib/journey'"))
+    expect(journeyImport).toContain('withAcquisitionReadiness')
+    expect(journeyImport).not.toContain('resolveAttempt')
+    expect(journeyImport).not.toContain('journeyFor')
   })
 })

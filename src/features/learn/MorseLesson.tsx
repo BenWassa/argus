@@ -26,10 +26,15 @@ import {
 import {
   LESSON_RETRIEVAL_TARGET,
   lessonSittingComplete,
+  lessonSittingOf,
   newLessonSitting,
   recordLessonRetrieval,
+  suppressSittingListening,
+  withLessonSitting,
+  withoutLessonSitting,
+  type LessonSitting,
 } from '../../lib/morseLessonSitting'
-import { loadLessonSitting, saveLessonSitting } from '../../lib/morseLessonSittingStorage'
+import { withAcquisitionReadiness } from '../../lib/journey'
 import type { MorseLetter } from '../../lib/morse'
 import { useLibrary } from '../../lib/store'
 import type { Topic } from '../../lib/types'
@@ -160,18 +165,32 @@ export function ListeningCheckStep({
 }
 
 export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: MorseLessonProps) {
-  const { upsertTopic } = useLibrary()
+  const { topics, updateTopic } = useLibrary()
   const { sounding, audioError, clearError, stop, toggle } = useMorseAudio()
   const headingRef = useRef<HTMLHeadingElement>(null)
   const stepRef = useRef<HTMLDivElement>(null)
 
   const [run, setRun] = useState<LessonRun>(initialRun)
-  const [sitting, setSitting] = useState(() => loadLessonSitting(topic.id))
-  const [listeningState, setListeningState] = useState(newLessonListeningState)
+  // The sitting resumes from the topic itself (#66). There is no sidecar store:
+  // what the learner sees at 6/10 is the same value an export carries.
+  const [sitting, setSitting] = useState<LessonSitting>(() => lessonSittingOf(topic))
+  const [listeningState, setListeningState] = useState(() => ({
+    ...newLessonListeningState(),
+    // A durable sitting has to resume the learner's own declaration with it.
+    // Saying "can't listen now" and being handed a listening question again
+    // after a reload, still inside the same sitting, is the contradiction the
+    // durable field exists to prevent.
+    suppressed: Boolean(topic.lessonSitting?.listeningSuppressed),
+  }))
   const [listeningFeedback, setListeningFeedback] = useState<ListeningFeedback | null>(null)
   const [audioNotice, setAudioNotice] = useState<string | null>(null)
   const [packetsAdvanced, setPacketsAdvanced] = useState(0)
-  const topicRef = useRef<Topic>(topic)
+  // The lesson's own view of the topic, kept current from the store rather than
+  // frozen at mount, so resuming a packet reads the support levels that exist
+  // now. Writes go through `updateTopic` and never replay this value.
+  const live = topics.find((candidate) => candidate.id === topic.id) ?? topic
+  const topicRef = useRef<Topic>(live)
+  topicRef.current = live
 
   const sittingDone = lessonSittingComplete(sitting)
   const hasFeedback = Boolean(run.feedback || listeningFeedback)
@@ -192,18 +211,27 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
     else if (!hasFeedback) stepRef.current?.focus({ preventScroll: true })
   }, [run.step, run.complete, run.finished, sittingDone, hasFeedback, listeningState.suppressed])
 
+  /**
+   * Persist one lesson step.
+   *
+   * Functional rather than whole-object (#62): a Test banked minutes ago, or a
+   * sibling write, may have changed this topic since the lesson opened, and
+   * writing back a captured copy would quietly undo it. `withLessonProgress`
+   * touches nothing but lesson support, and `withAcquisitionReadiness` stamps
+   * the readiness anchor in the same update as the answer that earned it, so the
+   * retention clock starts at readiness rather than one render later.
+   */
   function commit(next: LessonRun) {
     setRun(next)
-    const updated = withLessonProgress(topicRef.current, lessonProgressOf(next))
-    if (updated !== topicRef.current) {
-      topicRef.current = updated
-      upsertTopic(updated)
-    }
+    const progress = lessonProgressOf(next)
+    updateTopic(topic.id, (current) =>
+      withAcquisitionReadiness(withLessonProgress(current, progress)),
+    )
   }
 
-  function persistSitting(next: typeof sitting) {
+  function persistSitting(next: LessonSitting) {
     setSitting(next)
-    saveLessonSitting(topic.id, next)
+    updateTopic(topic.id, (current) => withLessonSitting(current, next))
   }
 
   function movePastVisualFeedback(answeredRun: LessonRun, nextSitting: typeof sitting) {
@@ -263,10 +291,17 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
     return () => clearTimeout(timer)
   }, [listeningFeedback])
 
+  /**
+   * The learner declining listening is durable for this sitting; an audio
+   * *failure* is not. One is a decision that belongs to the sitting they are in,
+   * the other is a fact about this device right now, and restoring listening
+   * after a reload that fixes it is the right answer for the second.
+   */
   function skipListening() {
     stop()
     setListeningState((state) => suppressListening(state))
-    setAudioNotice('Listening skipped. This lesson will stay visual.')
+    persistSitting(suppressSittingListening(sitting))
+    setAudioNotice('Listening skipped. This sitting will stay visual.')
   }
 
   function nextSitting() {
@@ -275,8 +310,11 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
     stop()
     clearError()
     setRun(next)
-    const freshSitting = newLessonSitting()
-    persistSitting(freshSitting)
+    // The next finite sitting starts clean, and a clean sitting is the absent
+    // field rather than stored zeroes. The learner's listening declination
+    // belonged to the sitting that just ended, so it lifts with it.
+    setSitting(newLessonSitting())
+    updateTopic(topic.id, withoutLessonSitting)
     setListeningState(newLessonListeningState())
     setListeningFeedback(null)
     setAudioNotice(null)
@@ -295,7 +333,9 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
           {run.finished ? 'Morse programme' : `Packet ${run.packetIndex + 1} of ${run.packetCount}`}
         </span>
         <span className="tabular">
-          {run.finished ? 'All packets settled' : `${sitting.retrievals} / ${LESSON_RETRIEVAL_TARGET} XP`}
+          {run.finished
+            ? 'All packets settled'
+            : `${sitting.retrievals} / ${LESSON_RETRIEVAL_TARGET} retrievals`}
         </span>
       </p>
       <button className="ghost small" type="button" onClick={onExit}>Close</button>
@@ -326,14 +366,14 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
       <section className="session morse-lesson">
         {bar}
         <h1 ref={headingRef} tabIndex={-1} className="lesson-title">Lesson complete</h1>
-        <p className="lesson-lede"><strong>{sitting.retrievals} XP</strong> · {sitting.correct} correct · {revisit} {revisit === 1 ? 'letter' : 'letters'} to revisit</p>
+        <p className="lesson-lede"><strong>{sitting.retrievals} retrievals</strong> · {sitting.correct} correct · {revisit} {revisit === 1 ? 'letter' : 'letters'} to revisit</p>
         <p className="lesson-foot">Packet {run.packetIndex + 1} of {run.packetCount}: {packetProgress.done} of {packetProgress.total} settled.</p>
         {packetsSettled > 0 && <p className="lesson-foot">{packetsSettled === 1 ? '1 packet settled this sitting.' : `${packetsSettled} packets settled this sitting.`}</p>}
         <div className="lesson-exits">
           <button type="button" onClick={nextSitting}>Next lesson</button>
           <button className="ghost" type="button" onClick={onExit}>Stop here</button>
         </div>
-        <p className="lesson-foot">XP is only this sitting&apos;s progress. Test is still the only place the A–Z claim is proved.</p>
+        <p className="lesson-foot">That count is this sitting&apos;s progress and nothing else. Test is still the only place the A–Z claim is proved.</p>
       </section>
     )
   }
@@ -362,7 +402,7 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
       {bar}
       <h1 ref={headingRef} tabIndex={-1} className="sr-only">Morse lesson, packet {run.packetIndex + 1} of {run.packetCount}</h1>
       <div className="lesson-progress" role="progressbar" aria-valuemin={0} aria-valuemax={LESSON_RETRIEVAL_TARGET}
-        aria-valuenow={sitting.retrievals} aria-label="Lesson XP">
+        aria-valuenow={sitting.retrievals} aria-label="Retrievals this sitting">
         <span className="lesson-progress-fill" style={{ inlineSize: `${(sitting.retrievals / LESSON_RETRIEVAL_TARGET) * 100}%` }} />
       </div>
       <p className="lesson-foot">Packet progress: {packetProgress.done} of {packetProgress.total} settled.</p>

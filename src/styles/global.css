@@ -137,7 +137,6 @@ p {
 
 /* Counts, positions, dates: never let them reflow as the digits change. */
 .tabular,
-.stat-value,
 .session-bar {
   font-variant-numeric: tabular-nums;
 }
@@ -478,46 +477,118 @@ main:focus {
 
 /* ------------------------------------------------------------ progress -- */
 
-/* One instrument panel divided by hairlines, not a row of separate cards. */
-.stat-strip {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  margin: var(--s-lg) 0 var(--s-2xl);
-  border: 1px solid var(--line);
-  border-radius: var(--r-lg);
-  background: linear-gradient(180deg, var(--surface-2), var(--surface));
-  box-shadow: var(--edge);
-  overflow: hidden;
+/* Four states, one vocabulary. Progress is a review surface, so the rows are
+   read rather than pressed: the controls that start work live on Today. There
+   is no counter strip and no percentage — acquisition, retention and completion
+   are different measurements and averaging them would say nothing true. */
+.progress-section {
+  margin-top: var(--s-2xl);
 }
 
-.stat-strip > div {
-  padding: var(--s-lg) var(--s-md);
-}
-
-.stat-strip > div + div {
-  border-left: 1px solid var(--line);
-}
-
-.stat-value {
-  font-family: var(--font-display);
-  font-size: 2.1rem;
-  font-weight: var(--w-display);
-  line-height: 1;
-  letter-spacing: -0.02em;
-  font-variant-numeric: tabular-nums;
-}
-
-.stat-strip > div:first-child .stat-value {
-  color: var(--accent-2);
-}
-
-.stat-label {
-  margin-top: var(--s-xs);
+.progress-section h2 {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-md);
+  font-family: var(--font);
   font-size: var(--t-label);
   font-weight: var(--w-label);
-  letter-spacing: 0.06em;
+  letter-spacing: 0.09em;
+  line-height: 1.2;
   text-transform: uppercase;
+  color: var(--muted);
+}
+
+.progress-count {
   color: var(--subtle);
+}
+
+.progress-note {
+  margin-top: var(--s-xs);
+  font-size: var(--t-small);
+  color: var(--subtle);
+}
+
+.progress-list {
+  margin-top: var(--s-md);
+  border-top: 1px solid var(--line);
+}
+
+.progress-list li {
+  display: grid;
+  gap: 5px;
+  padding: var(--s-md) 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.progress-title {
+  font-family: var(--font-display);
+  font-size: var(--t-component);
+  font-weight: var(--w-component);
+  letter-spacing: -0.008em;
+}
+
+.progress-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-sm) var(--s-md);
+  font-size: var(--t-small);
+}
+
+/* The one thing that is true of this topic now, in the schedule's own words. */
+.progress-state {
+  font-size: var(--t-label);
+  font-weight: var(--w-label);
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* Repair reads in warning on Today and in Library, so it reads in warning here.
+   It routes work; it does not scold. */
+.progress-state.is-repair {
+  color: var(--warning);
+}
+
+/* The concise next-step line: letters settled, packet position, active sitting. */
+.progress-detail {
+  font-size: var(--t-small);
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+/* Retention only, exactly as in Library. A topic still being acquired has not
+   entered a gap and shows no bar. */
+.progress-gap {
+  display: block;
+  width: 100%;
+  max-width: 132px;
+  height: 1px;
+  margin-top: 3px;
+  background: var(--line);
+}
+
+.progress-gap-fill {
+  display: block;
+  height: 100%;
+  background: var(--line-hover);
+}
+
+.progress-aside {
+  margin-top: var(--s-xl);
+  font-size: var(--t-small);
+  color: var(--subtle);
+}
+
+.progress-record-head {
+  margin-top: var(--s-2xl);
+}
+
+.progress-totals {
+  margin-top: var(--s-md);
+  font-size: var(--t-small);
+  color: var(--muted);
 }
 
 /* The completion record. This is the artifact the product exists to build, so

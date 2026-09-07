@@ -1,6 +1,6 @@
 import { useLibrary } from '../../lib/store'
-import { dueState, dueTopics, modeFor } from '../../lib/scheduling'
-import type { Mode, Topic } from '../../lib/types'
+import { dueEntries, journeysFor, type JourneyEntry } from '../../lib/journey'
+import type { Mode } from '../../lib/types'
 import './Today.css'
 
 const WORDS = [
@@ -17,8 +17,12 @@ function topicCount(n: number): string {
   return `${count(n)} ${n === 1 ? 'topic' : 'topics'}`
 }
 
-function itemsIn(topics: Topic[]): number {
-  return topics.reduce((n, t) => n + t.items.length, 0)
+function itemsIn(entries: JourneyEntry[]): number {
+  return entries.reduce((n, entry) => n + entry.topic.items.length, 0)
+}
+
+function idsIn(entries: JourneyEntry[]): string[] {
+  return entries.map((entry) => entry.topic.id)
 }
 
 function sentence(s: string): string {
@@ -55,8 +59,13 @@ export function Today({ onStart, onGoToLibrary }: TodayProps) {
     month: 'short',
   })
 
-  const practicable = topics.filter((t) => t.items.length > 0)
-  const due = dueTopics(topics)
+  // One derivation for the whole page. Today asks the journey layer what each
+  // topic needs rather than reading status and reaching its own conclusion, so
+  // the verb here and the verb in Library are the same value, not two rules that
+  // happen to agree.
+  const entries = journeysFor(topics)
+  const practicable = entries.filter((entry) => entry.topic.items.length > 0)
+  const due = dueEntries(entries)
 
   // Nothing authored yet. Teach the entry gate rather than showing a blank.
   if (topics.length === 0) {
@@ -110,7 +119,7 @@ export function Today({ onStart, onGoToLibrary }: TodayProps) {
     // The most common day. Show the shape of the schedule instead of a dead end:
     // every one of these is reachable now as a voluntary early Test.
     const horizon = [...practicable]
-      .sort((a, b) => dueState(a).waitDays - dueState(b).waitDays)
+      .sort((a, b) => a.journey.waitDays - b.journey.waitDays)
       .slice(0, 5)
 
     return (
@@ -125,12 +134,11 @@ export function Today({ onStart, onGoToLibrary }: TodayProps) {
           Test any topic now. The score is recorded, but required gaps and clocks do not move early.
         </p>
         <ul className="index docket">
-          {horizon.map((topic) => (
+          {horizon.map((entry) => (
             <DocketRow
-              key={topic.id}
-              topic={topic}
-              verb="Test"
-              onLaunch={() => onStart('test', [topic.id])}
+              key={entry.topic.id}
+              entry={entry}
+              onLaunch={() => onStart('test', [entry.topic.id])}
             />
           ))}
         </ul>
@@ -139,7 +147,7 @@ export function Today({ onStart, onGoToLibrary }: TodayProps) {
           <button
             className="ghost"
             type="button"
-            onClick={() => onStart('test', practicable.map((t) => t.id))}
+            onClick={() => onStart('test', idsIn(practicable))}
           >
             Test everything · {itemsIn(practicable)} items
           </button>
@@ -148,12 +156,13 @@ export function Today({ onStart, onGoToLibrary }: TodayProps) {
     )
   }
 
-  // The ladder decides the mode: a topic never seen wants reading, everything
-  // else wants proving. `dueTopics` already ranks the list by urgency, so the
-  // single primary action follows whichever mode the top-ranked topic needs.
-  const toLearn = due.filter((topic) => modeFor(topic) === 'learn')
-  const toTest = due.filter((topic) => modeFor(topic) === 'test')
-  const leadMode = modeFor(due[0])
+  // The journey decides the mode. A topic never seen wants reading; a topic
+  // still being acquired wants more of the same lesson; everything else wants
+  // proving. `dueEntries` already ranks the list by urgency, so the single
+  // primary action follows whichever mode the top-ranked topic needs.
+  const toLearn = due.filter((entry) => entry.journey.action === 'learn')
+  const toTest = due.filter((entry) => entry.journey.action === 'test')
+  const leadMode: Mode = due[0].journey.action === 'learn' ? 'learn' : 'test'
   const leadGroup = leadMode === 'learn' ? toLearn : toTest
   const altGroup = leadMode === 'learn' ? toTest : toLearn
   const altMode: Mode = leadMode === 'learn' ? 'test' : 'learn'
@@ -172,24 +181,22 @@ export function Today({ onStart, onGoToLibrary }: TodayProps) {
       <Head verdict={verdict} stamp={stamp} />
 
       <ul className="index docket">
-        {due.map((topic) => {
-          const mode = modeFor(topic)
-          return (
-            <DocketRow
-              key={topic.id}
-              topic={topic}
-              verb={mode === 'learn' ? 'Learn' : 'Test'}
-              onLaunch={() => onStart(mode, [topic.id])}
-            />
-          )
-        })}
+        {due.map((entry) => (
+          <DocketRow
+            key={entry.topic.id}
+            entry={entry}
+            onLaunch={() =>
+              onStart(entry.journey.action === 'learn' ? 'learn' : 'test', [entry.topic.id])
+            }
+          />
+        ))}
       </ul>
 
       <div className="today-actions">
         <button
           className="today-go"
           type="button"
-          onClick={() => onStart(leadMode, leadGroup.map((t) => t.id))}
+          onClick={() => onStart(leadMode, idsIn(leadGroup))}
         >
           {leadMode === 'learn' ? 'Learn' : 'Test'} {topicCount(leadGroup.length)} ·{' '}
           {itemsIn(leadGroup)} items
@@ -200,7 +207,7 @@ export function Today({ onStart, onGoToLibrary }: TodayProps) {
             <button
               className="quiet"
               type="button"
-              onClick={() => onStart(altMode, altGroup.map((t) => t.id))}
+              onClick={() => onStart(altMode, idsIn(altGroup))}
             >
               {altMode === 'learn' ? 'Learn' : 'Test'} the other {count(altGroup.length)}
             </button>
@@ -231,29 +238,26 @@ function Head({ verdict, stamp }: { verdict: string; stamp: string }) {
  * reason it surfaced today rather than the rung it sits on: the rung is a fact
  * about the topic, the reason is a fact about today.
  */
-function DocketRow({
-  topic,
-  verb,
-  onLaunch,
-}: {
-  topic: Topic
-  verb: string
-  onLaunch: () => void
-}) {
-  const { label } = dueState(topic)
+function DocketRow({ entry, onLaunch }: { entry: JourneyEntry; onLaunch: () => void }) {
+  const { topic, journey } = entry
   return (
     <li>
       <button type="button" className="index-row" onClick={onLaunch}>
-        <span className="sr-only">{verb}: </span>
+        <span className="sr-only">{journey.actionLabel}: </span>
         <span className="index-title">{topic.title}</span>
         <span className="index-meta">
-          <span className={`due-reason${topic.status === 'decayed' ? ' is-repair' : ''}`}>
-            {label}
+          <span className={`due-reason${journey.phase === 'repair' ? ' is-repair' : ''}`}>
+            {journey.statusLabel}
           </span>
           <span className="tabular">
             {topic.items.length} {topic.items.length === 1 ? 'item' : 'items'}
           </span>
         </span>
+        {/* Acquisition progress is the reason a Morse row keeps saying Learn, so
+            the row carries it rather than making the learner open the topic. */}
+        {journey.phase === 'acquiring' && journey.acquisition.progressive && journey.detail && (
+          <span className="docket-detail">{journey.detail}</span>
+        )}
       </button>
     </li>
   )

@@ -195,8 +195,61 @@ function rosterIdentity(topic: Topic): Map<MorseLetter, AcquisitionCharacter> | 
   return byGlyph.size === ALL_MORSE_LETTERS.length ? byGlyph : null
 }
 
+let packetPlan: CharacterPacket[] | null = null
+
+/**
+ * The packet plan. Derived once: `buildCharacterPackets()` is a pure function of
+ * the frozen A–Z alphabet and takes no arguments, and the journey layer asks for
+ * the programme's position on every render of Today, Library and Progress.
+ */
 export function lessonPackets(): CharacterPacket[] {
-  return buildCharacterPackets()
+  if (!packetPlan) packetPlan = buildCharacterPackets()
+  return packetPlan
+}
+
+/**
+ * Where the learner stands in the whole progressive acquisition programme, or
+ * `null` for a topic the guided lesson does not drive.
+ *
+ * This is the acquisition dimension as the shared journey layer needs it (#67):
+ * derived from durable `lessonProgress` and nothing else, cheap enough to call
+ * per topic per render, and carrying no scheduler, evidence or sitting state.
+ * `startLesson` answers a different question — what to put on screen next — and
+ * builds a whole run to do it.
+ */
+export interface MorseAcquisitionPosition {
+  /** Roster characters the lesson has stopped scaffolding. */
+  settled: number
+  /** Characters in the programme. 26 for the shipped A–Z topic. */
+  total: number
+  /** 1-based packet position. Equals `packetCount` once the programme settles. */
+  packet: number
+  packetCount: number
+  /** True once the learner has met any of it. */
+  started: boolean
+  /** True once every character has been produced unaided at least once. */
+  ready: boolean
+}
+
+export function morseAcquisitionPosition(topic: Topic): MorseAcquisitionPosition | null {
+  const byGlyph = rosterIdentity(topic)
+  if (!byGlyph) return null
+
+  const packets = lessonPackets()
+  const store = topic.lessonProgress ?? {}
+  const supports = [...byGlyph.values()].map((character) => store[character.itemId])
+
+  const packetIndex = firstUnsettledPacket(packets, byGlyph, store)
+  const ready = packetIndex >= packets.length
+
+  return {
+    settled: supports.filter((support) => support === 'settled').length,
+    total: byGlyph.size,
+    packet: Math.min(packetIndex + 1, packets.length),
+    packetCount: packets.length,
+    started: supports.some((support) => support !== undefined),
+    ready,
+  }
 }
 
 /**
