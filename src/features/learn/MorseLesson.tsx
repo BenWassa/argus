@@ -121,7 +121,7 @@ export function VisualCheckStep({
         </div>
       )}
 
-      <MorseKeyInput submitLabel="Check" onSubmit={onAnswer} />
+      <MorseKeyInput expectedLength={entry.pattern.length} onSubmit={onAnswer} />
     </div>
   )
 }
