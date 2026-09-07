@@ -140,7 +140,10 @@ test('reference cards keep the phone hierarchy without horizontal overflow', asy
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
 
   await page.evaluate(() => { document.documentElement.style.fontSize = '200%' })
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+  expect(await cards.evaluateAll((elements) => elements.every((card) => {
+    const bounds = card.getBoundingClientRect()
+    return bounds.left >= 0 && bounds.right <= window.innerWidth && card.scrollWidth <= card.clientWidth
+  }))).toBe(true)
 })
 
 test('Topic reference playback does not write learner state', async ({ page }) => {
