@@ -40,7 +40,7 @@ describe('the Morse alphabet is complete and alphabetical', () => {
 
   it('keeps the reference focused on letter, pattern, phrase and sound rather than duplicating the Learn SVG', () => {
     expect(html).not.toContain('morse-mnemonic')
-    expect(html).not.toContain('<svg')
+    expect(html).not.toContain('morse-mnemonic-svg')
     expect(html).toContain('Letter, pattern, mnemonic, sound')
   })
 

@@ -74,11 +74,13 @@ export function MorseProgramme({ topicId, onExit, onTest, onReference }: MorsePr
   const allComplete = !current
 
   function continueCurrent() {
+    if (!topic) return
     const run = startLesson(topic)
     if (run) setActive({ run, replay: false })
   }
 
   function replay(index: number) {
+    if (!topic) return
     const run = startReplayLesson(topic, index)
     if (run) setActive({ run, replay: true })
   }

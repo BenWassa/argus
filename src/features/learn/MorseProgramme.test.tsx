@@ -19,7 +19,7 @@ describe('Morse programme path', () => {
   it('distinguishes current, replayable and locked actions accessibly', () => {
     const code = source('./MorseProgramme.tsx')
     expect(code).toContain('aria-current={lesson.state === \'current\' ? \'step\' : undefined}')
-    expect(code).toContain('>Replay</button>')
+    expect(code).toMatch(/>\s*Replay\s*<\/button>/)
     expect(code).toContain('disabled aria-label={`Lesson ${lesson.number} locked`}')
     expect(code).toContain('Replay is formative review only')
   })
