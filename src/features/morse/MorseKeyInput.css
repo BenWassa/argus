@@ -1,5 +1,5 @@
-/* Shared Morse pattern production for Learn and Test (#56).
-   One visible key owns pointer input: tap = dit, hold = dah. */
+/* Shared Morse pattern production for Learn and Test (#77).
+   One visible key owns pointer input: short press = dit, hold = dah. */
 
 .morse-key-input {
   display: grid;
@@ -9,26 +9,19 @@
 .morse-key-entry {
   margin: 0;
   min-height: 2.2em;
-  padding: var(--s-md);
-  border-bottom: 2px solid var(--line-strong);
+  padding: 0;
   font-family: var(--font-mono);
-  font-size: 1.5rem;
+  font-size: 1.8rem;
+  line-height: 1.2;
   letter-spacing: 0.16em;
   text-align: center;
   overflow-wrap: anywhere;
 }
 
-.morse-key-controls {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: var(--s-sm);
-  align-items: stretch;
-}
-
 .morse-key {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  align-items: center;
+  place-items: center;
+  width: 100%;
   min-height: 84px;
   padding: var(--s-md) var(--s-lg);
   border-radius: var(--r-lg);
@@ -38,40 +31,17 @@
   -webkit-touch-callout: none;
 }
 
-.morse-key-short,
-.morse-key-long {
-  font-family: var(--font-mono);
-  font-size: 1.35rem;
-  line-height: 1;
-  text-align: center;
-}
-
-.morse-key-long {
-  border-inline-start: 1px solid currentColor;
-}
-
-.morse-key-back {
-  min-height: 84px;
-  padding-inline: var(--s-md);
-}
-
-.morse-key-submit {
-  min-height: 52px;
-}
-
-.morse-key-hint {
-  margin: 0;
-  font-size: var(--t-small);
-  color: var(--subtle);
-  text-align: center;
+.morse-key-face {
+  display: block;
+  inline-size: clamp(3.5rem, 24vw, 6.5rem);
+  block-size: 0.55rem;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.38;
 }
 
 @media (orientation: landscape) and (max-height: 560px) {
   .morse-key {
-    min-height: 64px;
-  }
-
-  .morse-key-back {
     min-height: 64px;
   }
 }

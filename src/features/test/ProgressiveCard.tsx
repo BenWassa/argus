@@ -36,6 +36,8 @@ interface ProgressiveCardProps {
   now?: () => number
 }
 
+const PRODUCTION_FEEDBACK_MS = 800
+
 function defaultNow(): number {
   return typeof performance !== 'undefined' ? performance.now() : Date.now()
 }
@@ -182,6 +184,8 @@ export function ProgressiveCard({
   const startedAt = useRef(now())
   const nextRef = useRef<HTMLButtonElement>(null)
   const entryRef = useRef<HTMLInputElement>(null)
+  const onAnswerRef = useRef(onAnswer)
+  onAnswerRef.current = onAnswer
 
   const prompt = useMemo(() => promptFor(rung, character), [rung, character])
 
@@ -193,8 +197,11 @@ export function ProgressiveCard({
   }, [cardKey])
 
   useEffect(() => {
-    if (result) nextRef.current?.focus({ preventScroll: true })
-    else if (rung.response === 'entry') entryRef.current?.focus({ preventScroll: true })
+    if (result) {
+      if (rung.response !== 'production') nextRef.current?.focus({ preventScroll: true })
+    } else if (rung.response === 'entry') {
+      entryRef.current?.focus({ preventScroll: true })
+    }
   }, [result, rung.response, cardKey])
 
   function submit(response: string) {
@@ -211,8 +218,15 @@ export function ProgressiveCard({
   }
 
   useEffect(() => {
+    if (!result || rung.response !== 'production') return
+    const answer = result
+    const timer = setTimeout(() => onAnswerRef.current(answer), PRODUCTION_FEEDBACK_MS)
+    return () => clearTimeout(timer)
+  }, [result, rung.response])
+
+  useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
-      if (!result) return
+      if (!result || rung.response === 'production') return
       if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return
       if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault()
@@ -243,7 +257,7 @@ export function ProgressiveCard({
 
       {!result && rung.response === 'production' && (
         <div className="test-production">
-          <MorseKeyInput onSubmit={submit} />
+          <MorseKeyInput expectedLength={character.pattern.length} onSubmit={submit} />
         </div>
       )}
 
@@ -286,9 +300,11 @@ export function ProgressiveCard({
             <span className="mono" aria-hidden="true">{canonicalPattern(character.pattern)}</span>
             <span className="sr-only">{character.reading}</span>
           </p>
-          <button ref={nextRef} className="test-next" type="button" onClick={advance}>
-            Next
-          </button>
+          {rung.response !== 'production' && (
+            <button ref={nextRef} className="test-next" type="button" onClick={advance}>
+              Next
+            </button>
+          )}
         </div>
       )}
     </section>
