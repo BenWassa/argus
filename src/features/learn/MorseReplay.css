@@ -14,7 +14,7 @@
 }
 
 .morse-replay-feedback.is-correct {
-  border-color: var(--correct);
+  border-color: var(--ok);
 }
 
 .morse-replay-feedback strong,
