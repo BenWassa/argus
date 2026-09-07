@@ -208,7 +208,8 @@ export function MorseKeyInput({
   }, [beginTone, commitElement, playReleasedTone])
 
   const cancelPress = useCallback((pointerId: number) => {
-    if (pressRef.current?.pointerId !== pointerId) return
+    const press = pressRef.current
+    if (!press || press.pointerId !== pointerId || press.releasedElement) return
     audioGenerationRef.current += 1
     pressRef.current = null
     clearReleasedToneTimer()
