@@ -52,8 +52,41 @@ function ReferenceCard({
   )
 }
 
-export function MorseReference({ onExit }: { onExit: () => void }) {
+/**
+ * The complete, pure lookup surface shared by the standalone reference route
+ * and the progressive Morse Topic page. Audio state is local to the mounted
+ * reference and cannot reach learner progress.
+ */
+export function MorseReferenceCards() {
   const { sounding, audioError, toggle } = useMorseAudio()
+
+  return (
+    <>
+      <ul className="morse-ref-list">
+        {ALPHABET.map((glyph) => (
+          <ReferenceCard
+            key={glyph}
+            glyph={glyph}
+            playing={sounding?.glyph === glyph}
+            onToggle={() => toggle(glyph)}
+          />
+        ))}
+      </ul>
+
+      <p className="sr-only" aria-live="polite">
+        {sounding ? `Playing ${sounding.glyph}.` : ''}
+      </p>
+
+      {audioError && (
+        <p className="morse-audio-error" role="status">
+          {audioError} Audio is optional here; the written pattern and mnemonic remain available.
+        </p>
+      )}
+    </>
+  )
+}
+
+export function MorseReference({ onExit }: { onExit: () => void }) {
   const headingRef = useRef<HTMLHeadingElement>(null)
 
   useEffect(() => {
@@ -77,26 +110,7 @@ export function MorseReference({ onExit }: { onExit: () => void }) {
         changes nothing about your progress.
       </p>
 
-      <ul className="morse-ref-list">
-        {ALPHABET.map((glyph) => (
-          <ReferenceCard
-            key={glyph}
-            glyph={glyph}
-            playing={sounding?.glyph === glyph}
-            onToggle={() => toggle(glyph)}
-          />
-        ))}
-      </ul>
-
-      <p className="sr-only" aria-live="polite">
-        {sounding ? `Playing ${sounding.glyph}.` : ''}
-      </p>
-
-      {audioError && (
-        <p className="morse-audio-error" role="status">
-          {audioError} Audio is optional here; the written pattern and mnemonic remain available.
-        </p>
-      )}
+      <MorseReferenceCards />
 
       <p className="morse-ref-foot">
         Play uses your device&apos;s media volume. Recall in both printed directions is proved in Test,

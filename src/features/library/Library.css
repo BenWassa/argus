@@ -454,12 +454,30 @@
   color: var(--muted);
 }
 
-/* Lookup is a third job, not a third mode. It sits below the two mode buttons
-   at text weight so it reads as "and you can always look something up" rather
-   than as a competing choice. */
-.topic-reference {
-  margin-top: var(--s-md);
-  text-align: start;
+/* Morse replaces the generic item disclosure with the shared, always-visible
+   lookup cards. The rule provides a firm boundary from progress and actions. */
+.topic-morse-reference {
+  display: grid;
+  gap: var(--s-md);
+  margin-top: var(--s-2xl);
+  padding-top: var(--s-xl);
+  border-top: 1px solid var(--line);
+}
+
+.topic-morse-reference h2,
+.topic-morse-reference-lede {
+  margin: 0;
+}
+
+.topic-morse-reference h2 {
+  font-family: var(--font-display);
+  font-size: var(--t-section);
+  font-weight: var(--w-section);
+}
+
+.topic-morse-reference-lede {
+  max-width: 52ch;
+  color: var(--muted);
 }
 
 .topic-admin {

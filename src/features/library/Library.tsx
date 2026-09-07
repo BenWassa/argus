@@ -14,8 +14,6 @@ import './Library.css'
 
 interface LibraryProps {
   onStart: (mode: Mode, topicIds: string[]) => void
-  /** Opens the Morse alphabet reference for a topic the lesson recognises. */
-  onOpenReference: (topicId: string) => void
   /** Durable topic navigation is owned by App/history, not only local state. */
   onOpenTopic: (topicId: string) => void
   onCloseTopic: () => void
@@ -45,7 +43,6 @@ const EXAMPLE: Draft = {
 
 export function Library({
   onStart,
-  onOpenReference,
   onOpenTopic,
   onCloseTopic,
   openFormOnMount = false,
@@ -262,7 +259,6 @@ export function Library({
           topic={open}
           onBack={leaveTopic}
           onStart={onStart}
-          onOpenReference={() => onOpenReference(open.id)}
           onEdit={() => editTopic(open, open.items.length === 0)}
           onDelete={() => setPendingDelete(open)}
         />

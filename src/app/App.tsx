@@ -313,7 +313,6 @@ function Routes() {
       {view === 'library' && (
         <Library
           onStart={start}
-          onOpenReference={openReference}
           openFormOnMount={authorOnEntry}
           openTopicOnMount={topicId}
           onOpenTopic={(id) => navigate({ kind: 'topic', topicId: id })}

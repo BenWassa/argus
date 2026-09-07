@@ -5,10 +5,11 @@ import { describe, expect, it } from 'vitest'
 import { MORSE_LETTERS, type MorseLetter } from '../../lib/morse'
 import { canonicalNotation, spokenRhythm } from '../../lib/morseMnemonics'
 import { verbalMnemonic } from '../../lib/morseVerbalMnemonics'
-import { MorseReference } from './MorseReference'
+import { MorseReference, MorseReferenceCards } from './MorseReference'
 
 const letters = Object.keys(MORSE_LETTERS) as MorseLetter[]
 const html = renderToStaticMarkup(<MorseReference onExit={() => undefined} />)
+const sharedCardsHtml = renderToStaticMarkup(<MorseReferenceCards />)
 
 function source(file: string): string {
   return readFileSync(fileURLToPath(new URL(file, import.meta.url)), 'utf8')
@@ -36,6 +37,13 @@ describe('the Morse alphabet is complete and alphabetical', () => {
     }
 
     expect([...html.matchAll(/aria-label="Play [A-Z] Morse"/g)]).toHaveLength(26)
+  })
+
+  it('puts the complete card presentation in the shared component', () => {
+    expect([...sharedCardsHtml.matchAll(/<li class="morse-ref-card/g)]).toHaveLength(26)
+    expect(sharedCardsHtml).toContain('A LONG')
+    expect(sharedCardsHtml).toContain('aria-label="Play A Morse"')
+    expect(sharedCardsHtml).toContain('aria-label="Play Z Morse"')
   })
 
   it('keeps the reference focused on letter, pattern, phrase and sound rather than duplicating the Learn SVG', () => {
@@ -80,6 +88,7 @@ describe('the reference cannot write progress', () => {
   it('takes no topic and no mutation callback at all', () => {
     const code = source('./MorseReference.tsx')
     expect(code).toContain('export function MorseReference({ onExit }: { onExit: () => void })')
+    expect(code).toContain('export function MorseReferenceCards()')
   })
 
   it('derives its content from the canonical table rather than from a topic', () => {

@@ -128,16 +128,35 @@
 
 @media (max-width: 360px) {
   .morse-ref-card {
-    grid-template-columns: 3.4rem minmax(0, 1fr) auto;
+    grid-template-columns: min(3.4rem, 18vw) minmax(0, 1fr) auto;
     gap: 0 var(--s-sm);
     padding-inline: var(--s-sm);
   }
 
   .morse-ref-letter {
-    font-size: 2.7rem;
+    font-size: min(2.7rem, 15vw);
   }
 
   .morse-ref-pattern {
-    font-size: 1.8rem;
+    font-size: min(1.8rem, 9vw);
+    white-space: normal;
+  }
+}
+
+/* At 200% text size a current 390px phone has the same available text width
+   as a narrow handset. Keep the fixed visual anchors bounded by the viewport;
+   the mnemonic remains relative-sized and wraps freely. */
+@media (min-width: 361px) and (max-width: 480px) {
+  .morse-ref-card {
+    grid-template-columns: min(3.8rem, 18vw) minmax(0, 1fr) auto;
+  }
+
+  .morse-ref-letter {
+    font-size: min(3rem, 15vw);
+  }
+
+  .morse-ref-pattern {
+    font-size: min(2rem, 9vw);
+    white-space: normal;
   }
 }

@@ -1,14 +1,13 @@
 import { useEffect, useRef } from 'react'
 import { journeyFor } from '../../lib/journey'
 import { StatusTag, statusLabel } from '../../components/ui/StatusTag'
+import { MorseReferenceCards } from '../learn/MorseReference'
 import type { Mode, Topic } from '../../lib/types'
 
 interface TopicPageProps {
   topic: Topic
   onBack: () => void
   onStart: (mode: Mode, topicIds: string[]) => void
-  /** Opens the Morse alphabet. Rendered only for a topic the lesson drives. */
-  onOpenReference: () => void
   onEdit: () => void
   onDelete: () => void
 }
@@ -31,7 +30,6 @@ export function TopicPage({
   topic,
   onBack,
   onStart,
-  onOpenReference,
   onEdit,
   onDelete,
 }: TopicPageProps) {
@@ -170,9 +168,6 @@ export function TopicPage({
               </>
             )}
           </div>
-          <button className="quiet topic-reference" type="button" onClick={onOpenReference}>
-            Morse alphabet — look up any letter
-          </button>
         </>
       ) : runnable ? (
         // Both modes stay reachable, and which one is primary follows the same
@@ -220,7 +215,15 @@ export function TopicPage({
         </div>
       )}
 
-      {runnable && (
+      {runnable && progressive ? (
+        <section className="topic-morse-reference" aria-labelledby="topic-morse-reference-title">
+          <h2 id="topic-morse-reference-title">Morse alphabet</h2>
+          <p className="topic-morse-reference-lede">
+            Look up any letter, pattern, mnemonic or sound. Reference use does not change your progress.
+          </p>
+          <MorseReferenceCards />
+        </section>
+      ) : runnable && (
         <details className="fold">
           <summary>
             Show all {topic.items.length} {topic.items.length === 1 ? 'item' : 'items'}
