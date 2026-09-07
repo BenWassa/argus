@@ -61,7 +61,8 @@ test('Learn opened from Today still closes Morse reference to Topic, then Today'
   await openApp(page)
 
   await page.locator('.docket .index-row').click()
-  await expect(page.getByRole('heading', { name: 'You have been through every letter' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Learn Morse A–Z' })).toBeVisible()
+  await expect(page.getByRole('list', { name: 'Morse lesson path' }).getByRole('listitem')).toHaveCount(13)
   expect(await state(page)).toMatchObject({
     index: 1,
     route: { kind: 'run' },
@@ -99,4 +100,37 @@ test('Learn opened from Today still closes Morse reference to Topic, then Today'
   await expect(page.getByRole('heading', { name: source.title, level: 1 })).toBeVisible()
   await page.evaluate(() => window.history.forward())
   await expect(page.getByRole('heading', { name: 'Morse alphabet', level: 1 })).toBeVisible()
+})
+
+test('completed lesson replay stays inside Learn history and never mutates the saved topic', async ({ page }) => {
+  await openApp(page)
+  await page.locator('.docket .index-row').click()
+
+  const before = await page.evaluate((key) => window.localStorage.getItem(key), STORE_KEY)
+  const historyBefore = await state(page)
+  await page.getByRole('list', { name: 'Morse lesson path' }).getByRole('button', { name: 'Replay' }).first().click()
+
+  await expect(page.getByRole('heading', { name: 'Replay Morse lesson 1' })).toBeVisible()
+  await expect(page.getByText('0 / 10 max')).toBeVisible()
+  expect(await state(page)).toEqual(historyBefore)
+
+  await page.getByRole('button', { name: 'Close' }).click()
+  await expect(page.getByRole('heading', { name: 'Learn Morse A–Z' })).toBeFocused()
+  expect(await page.evaluate((key) => window.localStorage.getItem(key), STORE_KEY)).toBe(before)
+  expect(await state(page)).toEqual(historyBefore)
+})
+
+test('reference cards keep the phone hierarchy without horizontal overflow', async ({ page }, testInfo) => {
+  test.skip(!testInfo.project.name.startsWith('phone-'), 'phone-width rendering contract')
+  await openApp(page)
+  await page.locator('.docket .index-row').click()
+  await page.getByRole('button', { name: 'Morse alphabet' }).click()
+
+  const cards = page.locator('.morse-ref-card')
+  await expect(cards).toHaveCount(26)
+  await expect(cards.first().locator('.morse-ref-letter')).toHaveText('A')
+  await expect(cards.first().locator('.morse-ref-pattern')).toContainText('· —')
+  await expect(cards.first().locator('.morse-ref-mnemonic')).toHaveText('A LONG')
+  await expect(cards.first().getByRole('button', { name: 'Play A Morse' })).toBeVisible()
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
 })

@@ -1,0 +1,134 @@
+.morse-programme {
+  display: grid;
+  align-content: start;
+  gap: var(--s-lg);
+  padding-bottom: max(var(--s-2xl), env(safe-area-inset-bottom));
+}
+
+.morse-programme-head {
+  display: grid;
+  gap: var(--s-sm);
+}
+
+.morse-programme-head h1,
+.morse-programme-head p {
+  margin: 0;
+}
+
+.morse-programme-head h1 {
+  font-family: var(--font-display);
+  font-size: var(--t-page);
+  font-weight: var(--w-page);
+  line-height: 1.08;
+}
+
+.morse-programme-head p,
+.morse-programme-foot {
+  max-width: 54ch;
+  color: var(--muted);
+}
+
+.morse-programme-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-sm);
+  margin-top: var(--s-xs);
+}
+
+.morse-path {
+  display: grid;
+  gap: var(--s-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.morse-path-item {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr) auto;
+  grid-template-areas:
+    "number main status"
+    "number main action";
+  align-items: center;
+  gap: var(--s-xs) var(--s-md);
+  padding: var(--s-md);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+}
+
+.morse-path-item.is-current {
+  border-color: var(--accent);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.morse-path-item.is-locked {
+  background: var(--surface-2);
+  color: var(--subtle);
+}
+
+.morse-path-number {
+  grid-area: number;
+  align-self: stretch;
+  display: grid;
+  place-items: center;
+  border-inline-end: 1px solid var(--line);
+  font-size: var(--t-small);
+  color: var(--subtle);
+}
+
+.morse-path-main {
+  grid-area: main;
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.morse-path-new-label,
+.morse-path-status {
+  font-size: var(--t-small);
+  color: var(--subtle);
+}
+
+.morse-path-letters {
+  font-family: var(--font-display);
+  font-size: clamp(1.45rem, 6vw, 2rem);
+  line-height: 1;
+  letter-spacing: 0.05em;
+}
+
+.morse-path-status {
+  grid-area: status;
+  justify-self: end;
+}
+
+.morse-path-item.is-current .morse-path-status {
+  color: var(--accent);
+  font-weight: var(--w-strong);
+}
+
+.morse-path-action {
+  grid-area: action;
+  justify-self: end;
+  min-width: 5.5rem;
+}
+
+.morse-programme-foot {
+  margin: 0;
+  font-size: var(--t-small);
+}
+
+@media (max-width: 380px) {
+  .morse-path-item {
+    grid-template-columns: 2.2rem minmax(0, 1fr);
+    grid-template-areas:
+      "number main"
+      "number status"
+      "number action";
+  }
+
+  .morse-path-status,
+  .morse-path-action {
+    justify-self: start;
+  }
+}
