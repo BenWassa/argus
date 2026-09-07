@@ -1,9 +1,7 @@
-/* The Morse alphabet (#48): a lookup surface, not 26 lesson cards.
-
-   Each letter is one compact row — glyph, phrase with its beat marks, drawing,
-   canonical notation and one Play control — so the whole alphabet can be
-   thumbed through on a phone. Rows share the border between them rather than
-   each carrying a card, which is what keeps 26 of them scannable. */
+/* Morse alphabet reference (#76).
+   Each compact card gives the letter, a large canonical pattern, the mnemonic
+   phrase and one centered Play control. Guided-Learn SVGs stay in Learn; this
+   surface optimizes fast lookup rather than carrying every scaffold at once. */
 
 .morse-reference {
   display: grid;
@@ -21,94 +19,125 @@
 }
 
 .morse-ref-lede,
-.morse-ref-grammar,
 .morse-ref-foot {
   max-width: 52ch;
   margin: 0;
   color: var(--muted);
 }
 
-.morse-ref-grammar,
 .morse-ref-foot {
   font-size: var(--t-small);
-}
-
-.morse-ref-foot {
   color: var(--subtle);
 }
 
 .morse-ref-list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s-sm);
   margin: 0;
   padding: 0;
   list-style: none;
-  border-block-start: 1px solid var(--line);
 }
 
-.morse-ref-row {
+.morse-ref-card {
   display: grid;
-  grid-template-columns: 2.2em minmax(0, 1fr) auto;
+  grid-template-columns: clamp(3.8rem, 18vw, 5.8rem) minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
   align-items: center;
-  gap: var(--s-sm) var(--s-md);
-  padding-block: var(--s-md);
-  border-block-end: 1px solid var(--line);
+  gap: 0 var(--s-md);
+  min-height: 5.6rem;
+  padding: var(--s-sm) var(--s-md);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--surface);
 }
 
-.morse-ref-row.is-sounding {
-  background: var(--accent-wash);
+.morse-ref-card.is-sounding {
+  border-color: var(--accent);
+  box-shadow: inset 3px 0 0 var(--accent);
 }
 
 .morse-ref-letter {
+  grid-column: 1;
+  grid-row: 1 / 3;
+  align-self: stretch;
+  display: grid;
+  place-items: center;
+  border-inline-end: 1px solid var(--line);
+  padding-inline-end: var(--s-sm);
   font-family: var(--font-display);
-  font-size: 2rem;
+  font-size: clamp(3rem, 15vw, 4.6rem);
   font-weight: var(--w-display);
-  line-height: 1;
+  line-height: 0.9;
   color: var(--ink);
 }
 
 .morse-ref-body {
+  grid-column: 2;
+  grid-row: 1 / 3;
   display: grid;
-  gap: var(--s-xs);
+  align-content: center;
+  gap: 0.3rem;
   min-width: 0;
 }
 
-.morse-ref-visual {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--s-xs) var(--s-md);
-}
-
-.morse-ref-visual .morse-mnemonic {
-  display: block;
-  flex: 0 1 14em;
-  min-width: 0;
-  height: auto;
-}
-
-.morse-ref-canonical {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: var(--s-sm);
+.morse-ref-pattern,
+.morse-ref-mnemonic {
   margin: 0;
 }
 
-/* The reference phrase is a lookup, not a first-exposure hook, so it is set a
-   step smaller than the lesson's while keeping the same beat-mark grammar. */
-.morse-ref-row .morse-phrase {
-  font-size: clamp(1.05rem, 4.2vw, 1.3rem);
+.morse-ref-pattern {
+  font-family: var(--font-mono);
+  font-size: clamp(2rem, 9vw, 3rem);
+  font-weight: var(--w-strong);
+  line-height: 1;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
 }
 
-/* At 200% text, or on a very narrow phone, the drawing and canonical notation
-   drop under the phrase rather than competing with it for the same line. The
-   letter and its Play control stay on the row so a thumb always knows where
-   the control is. */
-@media (max-width: 460px) {
-  .morse-ref-letter {
-    font-size: 1.7rem;
+.morse-ref-mnemonic {
+  overflow-wrap: anywhere;
+  font-size: clamp(1rem, 4vw, 1.2rem);
+  font-weight: var(--w-strong);
+  line-height: 1.15;
+}
+
+.morse-ref-card > .morse-play {
+  grid-column: 3;
+  grid-row: 1 / 3;
+  align-self: center;
+}
+
+@media (min-width: 760px) {
+  .morse-ref-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .morse-ref-visual .morse-mnemonic {
-    flex-basis: 100%;
+  .morse-ref-card {
+    grid-template-columns: 4.5rem minmax(0, 1fr) auto;
+  }
+
+  .morse-ref-letter {
+    font-size: 3.5rem;
+  }
+
+  .morse-ref-pattern {
+    font-size: 2.2rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .morse-ref-card {
+    grid-template-columns: 3.4rem minmax(0, 1fr) auto;
+    gap: 0 var(--s-sm);
+    padding-inline: var(--s-sm);
+  }
+
+  .morse-ref-letter {
+    font-size: 2.7rem;
+  }
+
+  .morse-ref-pattern {
+    font-size: 1.8rem;
   }
 }
