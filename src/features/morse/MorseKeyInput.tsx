@@ -260,7 +260,7 @@ export function MorseKeyInput({
         className="morse-key"
         type="button"
         disabled={entry.length >= expectedLength}
-        aria-label="Morse key. Tap for dit; press and hold for dah. The answer grades automatically when complete."
+        aria-label="Morse key. Tap for dit; press and hold for dah. Hold duration only chooses the element; the answer grades automatically when complete."
         aria-keyshortcuts=". -"
         onPointerDown={(event) => {
           if (event.button !== 0 || pressRef.current || lockedRef.current) return
