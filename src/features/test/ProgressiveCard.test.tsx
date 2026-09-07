@@ -149,12 +149,13 @@ describe('rung rendering', () => {
     expect(payload.audioText).toBeUndefined()
   })
 
-  it('uses the one-touch shared key for free production', () => {
+  it('uses the uncluttered shared key for free production', () => {
     const html = render('R', 3)
     expect(html).toContain('class="morse-key"')
-    expect(html).toContain('Tap')
-    expect(html).toContain('Hold')
-    expect(html).toContain('Backspace delete')
+    expect(html).toContain('grades automatically when complete')
+    expect(html).not.toContain('morse-key-hint')
+    expect(html).not.toContain('>Back<')
+    expect(html).not.toContain('>Submit<')
     expect(html).not.toContain('class="test-key"')
   })
 
