@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { startLesson, type LessonRun } from '../../lib/morseLesson'
 import { morseLessonPath, startReplayLesson } from '../../lib/morseLessonPath'
 import { useLibrary } from '../../lib/store'
@@ -40,6 +40,10 @@ export function MorseProgramme({ topicId, onExit, onTest, onReference }: MorsePr
   const [active, setActive] = useState<ActiveLesson | null>(null)
 
   const path = useMemo(() => (topic ? morseLessonPath(topic) : null), [topic])
+
+  useEffect(() => {
+    if (!active) headingRef.current?.focus({ preventScroll: true })
+  }, [active])
 
   if (!topic || !path) {
     return (
