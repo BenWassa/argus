@@ -71,7 +71,7 @@ describe('one-touch Morse key', () => {
 
   it('uses the sample audio identity and click-free edge shaping for the sidetone', () => {
     const code = source('./MorseKeyInput.tsx')
-    expect(code).toContain("DEFAULT_MORSE_AUDIO")
+    expect(code).toContain('DEFAULT_MORSE_AUDIO')
     expect(code).toContain('MORSE_AUDIO_EDGE_RAMP_MS')
     expect(code).toContain('LEARN_ACQUISITION_MORSE_TIMING')
     expect(code).not.toContain('MORSE_KEY_TONE_HZ')
@@ -88,11 +88,14 @@ describe('one-touch Morse key', () => {
     expect(code).toContain('Never block Morse entry because sound is unavailable')
   })
 
-  it('cancels interrupted pointers without appending phantom input', () => {
+  it('ignores normal pointer-capture loss after release but cancels interrupted active presses', () => {
     const code = source('./MorseKeyInput.tsx')
     const cancel = code.slice(code.indexOf('const cancelPress'), code.indexOf('useEffect(() =>'))
+    expect(cancel).toContain('press.releasedElement')
     expect(cancel).toContain('pressRef.current = null')
     expect(cancel).not.toContain('commitElement(')
+    expect(code).toContain('onPointerCancel={(event) => cancelPress(event.pointerId)}')
+    expect(code).toContain('onLostPointerCapture={(event) => cancelPress(event.pointerId)}')
   })
 
   it('prevents long-press browser gestures and keeps timing-free keyboard entry', () => {
