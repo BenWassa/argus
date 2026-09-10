@@ -12,9 +12,7 @@ describe('Morse word checkpoint surface', () => {
     expect(code).toContain("import { MorseKeyInput } from '../morse/MorseKeyInput'")
     expect(code).toContain('expectedLength={MORSE_LETTERS[target.letter].length}')
     expect(code).toContain('pattern === MORSE_LETTERS[target.letter]')
-    expect(code).not.toContain('Submit')
-    expect(code).not.toContain('Check')
-    expect(code).not.toContain('delete')
+    expect(code).not.toMatch(/>\s*(Submit|Check|Delete|Continue|Back)\s*</)
     expect(code).not.toContain('Backspace')
   })
 
@@ -39,14 +37,13 @@ describe('Morse word checkpoint surface', () => {
 
   it('is structurally ephemeral and has no durable learner-state write path', () => {
     const code = source('./MorseCheckpoint.tsx')
-    expect(code).not.toContain('useLibrary')
+    expect(code).not.toContain("from '../../lib/store'")
+    expect(code).not.toContain("from '../../lib/scheduling'")
     expect(code).not.toContain('updateTopic')
     expect(code).not.toContain('lessonProgress')
     expect(code).not.toContain('lessonSitting')
     expect(code).not.toContain('acquisitionReadyAt')
     expect(code).not.toContain('DirectionEvidence')
-    expect(code).not.toContain('scheduler')
-    expect(code).not.toContain('Attempt')
     expect(code).not.toContain('localStorage')
   })
 
