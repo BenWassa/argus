@@ -113,6 +113,32 @@
   min-width: 5.5rem;
 }
 
+.morse-path-checkpoint {
+  margin-block: var(--s-xs);
+  border-style: dashed;
+  background: var(--surface-2);
+}
+
+.morse-path-checkpoint.is-unlocked {
+  border-color: var(--accent);
+}
+
+.morse-path-checkpoint-mark {
+  font-weight: var(--w-strong);
+  letter-spacing: 0.04em;
+}
+
+.morse-path-checkpoint-title {
+  font-family: var(--font-display);
+  font-weight: var(--w-section);
+  line-height: 1.15;
+}
+
+.morse-path-checkpoint.is-unlocked .morse-path-status {
+  color: var(--accent);
+  font-weight: var(--w-strong);
+}
+
 .morse-programme-foot {
   margin: 0;
   font-size: var(--t-small);

@@ -2,21 +2,36 @@
 
 Issue: #78  
 Parent: #21  
-Status: **planned Batch 3; not yet implemented**
+Status: **implemented by #78**
 
 This document records the durable product/architecture contract for the first
 whole-word application moments inside the existing Morse Learn journey.
 
 It does not change the formal Morse completion boundary, create a Practice mode,
-or define a new competency. Until #78 is implemented and merged, this file is
-planning authority only; current runtime behaviour remains whatever is present on
-`main`.
+or define a new competency. The runtime implementation follows this contract in
+`src/lib/morseWordCheckpoints.ts`, `src/features/learn/MorseCheckpoint.tsx`, and
+the existing `MorseProgramme` lesson path.
+
+## Implementation record
+
+#78 implements exactly two interstitial milestones after canonical Lessons 4 and
+7. Their eligibility is projected from the existing lesson path, their allowed
+letters are derived from `lessonPackets()`, and the curated corpus is validated
+against those derived sets at runtime/test time. The checkpoint runner owns only
+transient React state and reuses the shared #77 `MorseKeyInput`; it has no learner
+store, scheduler, Test-evidence, lesson-progress, sitting or completion write
+path.
+
+The canonical programme remains 13 lessons. A checkpoint never gates the next
+lesson and has no durable completion flag. Once a milestone has been reached,
+later lesson reach is sufficient proof to keep that checkpoint available if
+repair temporarily moves canonical Learn back to an older lesson.
 
 ## Purpose
 
-The guided A–Z programme currently teaches and retrieves individual printed
-letter → Morse mappings. #78 adds two deliberately small moments where the
-learner combines mappings they have already encountered into familiar words.
+The guided A–Z programme teaches and retrieves individual printed letter → Morse
+mappings. #78 adds two deliberately small moments where the learner combines
+mappings they have already encountered into familiar words.
 
 The objective is application and motivation, not broader Morse fluency.
 
@@ -45,10 +60,10 @@ With two novel characters per lesson, the current milestone sets are:
 
 `O` is introduced in Lesson 8, not Lesson 7.
 
-Implementation tests must derive milestone sets from `lessonPackets()` and fail
-if any curated warm-up or word contains a letter not available at that point.
-The literal sets above document current truth; they are not a second runtime
-source of truth.
+Implementation tests derive milestone sets from `lessonPackets()` and fail if any
+curated warm-up or word contains a letter not available at that point. The
+literal sets above document current truth; they are not a second runtime source
+of truth.
 
 ## Checkpoint 1 — after Lesson 4
 
@@ -66,7 +81,7 @@ Flow:
 3. concise completion state;
 4. return to the lesson path.
 
-`TIME` is a suitable default word for the current Lesson-4 set.
+The shipped word is `TIME`.
 
 ## Checkpoint 2 — after Lesson 7
 
@@ -75,12 +90,11 @@ The second checkpoint appears immediately after Lesson 7.
 Flow:
 
 1. four brief individual-letter keyed warm-ups;
-2. two modest familiar words, or one short plus one longer word;
+2. two modest familiar words;
 3. concise completion state;
 4. return to the lesson path.
 
-Suitable examples for the current Lesson-7 set include `TRAIN`, `WATER`,
-`NIGHT`, `DREAM`, `HEART` and `GARDEN`.
+The shipped words are `TRAIN` and `GARDEN`.
 
 Do not use stale examples containing `O` before Lesson 8.
 
@@ -96,9 +110,9 @@ The checkpoints are interstitial milestones. They must not:
 - create a parallel unlock database;
 - require a durable `checkpointCompleted` flag merely for presentation.
 
-Availability should be derived from the existing lesson-path/acquisition
-authority. Once a milestone has genuinely been reached, its checkpoint remains
-available even if later repair causes an older lesson to become current again.
+Availability is derived from the existing lesson-path/acquisition authority. Once
+a milestone has genuinely been reached, its checkpoint remains available even if
+later repair causes an older lesson to become current again.
 
 Checkpoint completion itself is not an acquisition prerequisite. A learner may
 continue to Lesson 5 or Lesson 8 without passing the checkpoint.
@@ -164,8 +178,8 @@ Requirements:
 
 ## UI/accessibility boundary
 
-The checkpoint should look and behave like part of the existing phone-first
-Morse programme, not like a separate dashboard or mode.
+The checkpoint looks and behaves like part of the existing phone-first Morse
+programme, not like a separate dashboard or mode.
 
 Preserve:
 
@@ -178,7 +192,7 @@ Preserve:
 
 ## Validation contract
 
-#78 implementation must add deterministic coverage for:
+#78 automated coverage establishes:
 
 - exact Lesson-4 and Lesson-7 unlock boundaries;
 - locked-before / available-after behaviour;
@@ -196,8 +210,7 @@ Preserve:
 - phone width, focus/accessibility and 200% text;
 - preservation of #45, #75, corrected #76 and #77 behaviour.
 
-The full repository gate and exact production build must be green before #78 is
-merged.
+The full repository gate and exact production build remain the merge gate.
 
 ## Explicit non-goals
 

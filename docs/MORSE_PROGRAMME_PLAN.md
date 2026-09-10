@@ -3,8 +3,8 @@
 Parent issue: #21  
 Research baseline: `docs/MORSE_CODE_LEARNING_PRD.md` (PR #22; amended by #42)  
 Execution-plan origin: PR #30  
-Current correction: #56 — keyed production for every visual letter → Morse retrieval  
-Prior corrections: #48 guided Learn + separate A–Z reference; #51 finite sittings; #52 visual/listening separation; #42/#44 rhythmic verbal acquisition + production mobile audio
+Current programme state: #75 lesson path/replay; corrected #76 shared A–Z reference; #77 direct auto-grading Morse key; #78 early word checkpoints  
+Prior corrections: #48 guided Learn; #51 finite sittings; #52 visual/listening separation; #56 keyed production; #42/#44 rhythmic verbal acquisition + production mobile audio
 
 ## Document hierarchy
 
@@ -19,7 +19,8 @@ For settled/current behaviour, authority is narrower and newer:
 2. ratified decisions in this programme plan;
 3. focused durable design records such as `MORSE_CHARACTER_ORDER.md`,
    `MORSE_VERBAL_MNEMONICS.md`, `MORSE_MNEMONIC_GRAMMAR.md`,
-   `MORSE_CUE_LADDER.md`, and `MORSE_LESSON.md`;
+   `MORSE_CUE_LADDER.md`, `MORSE_LESSON.md`, and
+   `MORSE_WORD_CHECKPOINTS.md`;
 4. the PRD for research rationale and future-skill framing.
 
 Where the PRD still describes an option as unresolved but a later decision below
@@ -49,7 +50,10 @@ Cue/acquisition evidence and retention/completion evidence are separate
 dimensions. Cue progress must never qualify, skip, reset, or counterfeit a
 retention gap. `src/lib/scheduling.ts` remains the authority for completion.
 
-## Current implementation state through #56
+#75 lesson replay and #78 word checkpoints add no fourth durable clock. Both are
+formative, ephemeral projections inside Learn.
+
+## Current implementation state through #78
 
 #28 absorbed the narrow #23 control topic in place. The same topic id and 26
 stable item ids define 26 `bidirectional` logical units. Existing history,
@@ -81,10 +85,25 @@ without penalty.
 > **If the answer is a Morse pattern, the learner produces the pattern.**
 
 Visual support may fade, but the response mechanism does not switch to multiple
-choice. Learn and Test share one Morse-key control: tap = dit, hold = dah. The
-press duration is categorical UI input only and is not retained as sending/WPM
+choice. Learn and Test share one Morse-key control: tap = dit, hold = dah. #77
+makes that control direct: the answer starts blank, expected element count
+triggers exactly-once automatic grading, and there is no Back/delete or
+Submit/Check correction step. Keyboard `.`/`-` follows the same contract. Press
+duration is categorical UI input only and is not retained as sending/WPM
 evidence. Printed pattern → letter remains typed character entry. Multiple
 choice remains only in the distinct sound → letter formative listening prompt.
+
+#75 exposes the canonical `lessonPackets()` curriculum as 13 visible lessons and
+allows completed/reached lessons to be replayed without modifying canonical
+Learn state. Corrected #76 puts the shared compact A–Z learning cards directly on
+the Morse Topic page while retaining the standalone lookup surface.
+
+#78 adds two non-gating application milestones after Lessons 4 and 7. They begin
+with four keyed letter warm-ups and then use a tiny deterministic corpus (`TIME`;
+then `TRAIN` + `GARDEN`). Allowed letters are derived mechanically from
+`lessonPackets()`, so the Lesson-7 milestone cannot accidentally admit `O`, which
+unlocks in Lesson 8. Checkpoint runs are local-only and write no lesson support,
+sitting, readiness, scheduler, Test evidence or completion state.
 
 ## Decisions register
 
@@ -97,19 +116,23 @@ choice remains only in the distinct sound → letter formative listening prompt.
 | D5 | Per-item acquisition evidence | Topic sibling of scheduler `history`, keyed by item id | Implemented default | #24 / PR #33 |
 | D6 | Primary early acquisition channel | Original rhythmic verbal A–Z set; SVG retained as secondary timing scaffold | Implemented | #42 / PR #43 |
 | D7 | Where formative retrieval lives | Inside Learn, as a guided packet lesson with its own support ladder; Practice is not reintroduced | Ratified | #48 |
-| D8 | Response when the answer is a Morse pattern | Produce it with the shared Morse key at every visual support level; visual MC removed | Ratified | #56 / PR #57 |
+| D8 | Response when the answer is a Morse pattern | Produce it with the shared direct Morse key at every visual support level; expected length auto-grades; no edit/confirmation flow | Ratified | #56 / PR #57; interaction simplified by #77 |
+| D9 | Evidence admissible to the completion claim | Only `unassistedCorrect` — correct answers at a rung showing no scaffolding; the qualifying run must itself be wholly uncued; the ladder alternates uncued directions rather than retiring one | Ratified | #68 |
+| D10 | Visible acquisition curriculum | Expose exactly the canonical 13 `lessonPackets()` lessons; replay reached lessons locally without a second progress model | Ratified | #75 |
+| D11 | A–Z reference placement | Reuse one compact learning-card representation; all 26 visible directly on the Morse Topic page and available in standalone reference | Ratified | #76 |
+| D12 | Direct keyed-entry lifecycle | Blank start, shared sidetone identity, expected-length auto-grade exactly once, no Back/delete/Submit/Check | Ratified | #77 |
+| D13 | Early word application | Interstitial checkpoints after Lessons 4 and 7; mechanically eligible deterministic content; no gating or durable checkpoint state | Ratified | #78 |
 | P1 | Character order | Complexity-ascending with final-element confusables split | Ratified | #26 / PR #34 |
 | P2 | Novel characters per packet | Up to 5 visible, 2 novel; independent config | Implemented default | #26 / PR #34 |
 | P3 | Cue fading | Two consecutive correct at current rung; latency recorded but not gating | Implemented default | #27 / PR #35; presentation reconciled by #42/#56 |
 | P4 | Default audio rhythm | 20 WPM character, ~9 WPM effective; adjustable | Implemented default | #25 / PR #31 |
 | P5 | Visual asset model | Original generated timing SVG; no borrowed per-letter artwork; secondary to verbal cue | Implemented | #26 / PR #34; role corrected by #42 |
 | P6 | Temporary printed baseline | Absorb in place; retain ids/evidence/history, activate bidirectional semantics | Implemented | #28 |
-| P7 | Mobile Web Audio lifecycle | Direct-play context create/resume; verify running; browser owns lifecycle suspension; explicit cancel/replay; deliberate gain; click-free 2ms element edges | Implemented; physical acceptance pending | #42 / PR #43 |
+| P7 | Mobile Web Audio lifecycle | Direct-play context create/resume; verify running; browser owns lifecycle suspension; explicit cancel/replay; deliberate gain; click-free 2ms element edges | Implemented; physical acceptance pending | #42 / PR #43; keyed first-press path hardened by #77 |
 | P8 | Lesson fade/restore rule | Fade one level per correct retrieval; a miss restores one level below the format used; missed items barred 2 steps and never asked next | Implemented default | #48 |
 | P9 | Packet readiness | Every roster character — novel and returning — `settled`; packet index derived from durable support, never stored | Ratified | #48 |
 | P10 | Learn sitting boundary | 10 answered formative retrievals; correct/wrong both consume one slot; teaching screens do not | Ratified | #51 / PR #54 |
 | P11 | Listening boundary | Sound → letter is separate, optional-in-the-moment formative retrieval; `Can't listen now` suppresses it for the sitting | Ratified | #52 / PR #55 |
-| D9 | Evidence admissible to the completion claim | Only `unassistedCorrect` — correct answers at a rung showing no scaffolding; the qualifying run must itself be wholly uncued; the ladder alternates uncued directions rather than retiring one | Ratified | #68 |
 
 ## Why v5 exists
 
@@ -126,9 +149,10 @@ v4 seed as a migration input. Current exported/runtime libraries are normalized
 to v5; supported older libraries migrate forward. Cue evidence is portable but
 remains structurally separate from scheduler history.
 
-#42, #51, #52 and #56 add no new durable schema field. The verbal phrase table,
-SVG rendering, Web Audio schedule and one-touch Morse-key timing are
-presentation/runtime concerns.
+#42, #51, #52, #56, #75, #76, #77 and #78 add no new durable schema field for
+their presentation/runtime concerns. The verbal phrase table, SVG rendering,
+Web Audio schedule, direct Morse-key timing, lesson path/replay, reference-card
+placement and word-checkpoint run state do not create learner-data stores.
 
 #59/#66 add `Topic.lessonSitting`: the active finite Learn sitting — retrieval
 count, correct count, letters to revisit and whether the learner declined
@@ -194,7 +218,7 @@ characters returning for retrieval. Both values are separately configurable.
 The same-screen confusable constraint outranks visual padding, so early packets
 may contain fewer than five characters. This is intentional and tested.
 
-## P3 / D8 — Test ladder after #56
+## P3 / D8 / D12 — Test ladder and direct key after #77
 
 The durable five-rung ladder and its identifiers remain unchanged, but the first
 three rungs no longer use recognition choices:
@@ -209,10 +233,18 @@ three rungs no longer use recognition choices:
 5. `free-reception` — uncued **printed** Morse → typed letter response for items
    whose semantics require the reverse direction.
 
-The first four all render the same shared `MorseKeyInput`. Tap/short press adds a
-dit; hold adds a dah; Back deletes one element; Submit grades the complete
-pattern. Keyboard equivalents are `.`, `-`, Backspace and Enter. Timing is not
-returned as evidence and therefore cannot imply sending skill or WPM.
+The first four all render the same shared `MorseKeyInput`. A fresh answer is
+blank. Tap/short press commits a dit and hold commits a dah. The caller provides
+the expected element count; reaching it submits exactly once and grades
+immediately. There is no Back/delete, Submit/Check or correction/confirmation
+path. Keyboard `.` and `-` use the same automatic grading behavior; Backspace
+and Enter are not response controls. Timing is not returned as evidence and
+therefore cannot imply sending skill or WPM.
+
+#77 also unifies the keyed sidetone with sample playback's tonal identity and
+click-free edge shaping and handles the fresh-mobile `AudioContext.resume()` race
+so a quick first release is sounded before it is committed rather than silently
+lost.
 
 The historical rung ids and durable cue-state name `delayed-choice` remain for
 compatibility. Their names do not control the current response widget.
@@ -329,8 +361,13 @@ repoint old content at new artwork.
 | D | #48 | Guided Learn lesson + separate A–Z reference + mnemonic grammar fix | **Merged** |
 | E | #51 | Fixed finite Learn sittings + finite retrieval budget | **Merged** via PR #54; sitting made durable by #66, `XP` wording retired by #62 |
 | F | #52 | Separate printed recall/listening + no-audio escape | **Merged** |
-| G | #56 | Unified keyed pattern entry; visual MC removed | **PR #57** |
+| G | #56 | Unified keyed pattern entry; visual MC removed | **Merged** via PR #57 |
+| H | #75 | Visible 13-lesson path + ephemeral replay | **Merged** |
+| I | #76 | Shared compact A–Z reference on Topic page | **Merged**, including owner corrective |
+| J | #77 | Direct auto-grading Morse key + sidetone/first-press hardening | **Merged** |
+| K | #78 | Early word-application checkpoints after Lessons 4 and 7 | **Implemented in current #78 branch; merge gate pending** |
 | 6 | #29 | Auditory reception / sending / continuous material | **Deferred pending learner validation** |
+| P | #79 | Desktop specialist review | **Parked; not part of #78** |
 
 ## Completion boundary
 
@@ -342,11 +379,13 @@ The final printed A–Z topic preserves:
 - complete *independent* correct evidence in both required directions before a
   potentially passing retention attempt reaches the unchanged scheduler, and a
   qualifying run in which no answer was given with scaffolding on screen (#68);
-- no stronger claim from audio exposure, mnemonic use or key-hold duration.
+- no stronger claim from audio exposure, mnemonic use, word-checkpoint use or
+  key-hold duration.
 
 The completion claim remains limited to printed A–Z mapping recall in both
-directions. Auditory reception, sending, words/phrases and WPM competence remain
-outside it.
+directions. #78's tiny word application is explicitly formative and adds no word
+competency claim. Auditory reception, sending, broader words/phrases and WPM
+competence remain outside it.
 
 ## Provenance sources for order/speed/mnemonic comparison
 
@@ -369,33 +408,46 @@ outside it.
 The video is a method/design precedent, not the canonical source of Morse and
 not the source of the full Argus A–Z phrase set.
 
-## #48/#51/#52/#56 — current Learn contract
+## #48/#51/#52/#56/#75/#76/#77/#78 — current Learn contract
 
 The full record is `docs/MORSE_LESSON.md`. In summary:
 
 - **Learn** is a guided lesson: introduce two new characters, retrieve them
   shortly after, reteach a miss and bring it back after intervening material,
   fade support with success and interleave prior-packet characters.
-- Every sitting ends after **10 answered formative retrievals**; wrong answers
-  change support/reteaching, not session length.
+- Every canonical sitting ends after **10 answered formative retrievals**; wrong
+  answers change support/reteaching, not session length.
 - Printed letter → pattern retrieval always uses the shared Morse key regardless
   of support level.
+- #77 direct keying starts blank, auto-grades exactly once at expected element
+  count, exposes no Back/delete/Submit/Check path and uses `.`/`-` keyboard entry
+  under the same rule.
 - **Listening** is a distinct sound → letter formative prompt and is the only
   V1 Morse Learn multiple-choice interaction; `Can't listen now` suppresses it
   for the rest of that sitting without penalty, and that declination now resumes
   with the sitting rather than lifting on reload.
-- **Morse alphabet** is a separate always-open A–Z lookup that writes nothing.
+- **Morse lessons** exposes exactly the canonical 13-packet path. Reached lessons
+  are replayable, and replay never changes canonical acquisition/sitting/Test
+  state.
+- **Word checkpoints** sit after Lessons 4 and 7 without renumbering or gating
+  lessons. Four keyed warm-ups precede `TIME`, then four warm-ups precede
+  `TRAIN` + `GARDEN`; eligibility comes from `lessonPackets()` and the run is
+  wholly ephemeral.
+- **Morse alphabet** is one shared A–Z card reference. Corrected #76 renders all
+  26 cards directly on the Morse Topic page instead of the generic disclosure;
+  playback/reference viewing writes nothing.
 - **Test** remains the sole scored retention/completion path. Its supported
-  forward rungs now use the same keyed-production response rather than visual
+  forward rungs use the same keyed-production response rather than visual
   pattern choices.
 - Practice is **not** reintroduced. `Mode` stays `learn | test`.
-- Learn's durable additions are `Topic.lessonProgress`, `Topic.lessonSitting`
-  and `Topic.acquisitionReadyAt`, all formative; key timing, audio playback and
-  the within-lesson queue remain runtime-only. Listening suppression is durable
-  for the sitting the learner declined it in, and an audio *failure* is not.
+- Learn's only durable additions remain `Topic.lessonProgress`,
+  `Topic.lessonSitting` and `Topic.acquisitionReadyAt`, all formative; replay,
+  checkpoint position, key timing, audio playback and the within-lesson queue
+  remain runtime-only. Listening suppression is durable for the sitting the
+  learner declined it in, and an audio *failure* is not.
 - The finite sitting is a retrieval budget, shown as `X / 10 retrievals`. It was
   briefly called `XP`; #62 retired that wording rather than let the copy imply a
-  currency the product does not have.
+  currency the product does not have. #78 adds no new XP/progress subsystem.
 - #44's mnemonic-grammar correction remains: casing is not semantic, duration is
   an aligned `·`/`—` mark under each word, and deliberate repetition is
   explicitly explained.
@@ -418,10 +470,14 @@ The full record is `docs/MORSE_LESSON.md`. In summary:
 - Existing non-Morse topics keep their scheduler/completion semantics.
 - Export/import and migration preserve durable learner state.
 - #29 stays deferred until the corrected A–Z foundation receives real learner
-  validation.
+  validation; #79 stays parked and is not pulled into #78.
 - Formative Learn retrieval never counts as a retention attempt, never advances
   a scheduler interval, never writes directional evidence and never awards
   completion.
+- Lesson replay and word checkpoints never mutate canonical acquisition support,
+  the active sitting, readiness, scheduler/Test evidence or completion.
+- Checkpoint unlock and content eligibility are derived from the canonical lesson
+  authority; the two checkpoint runs do not gate Lessons 5 or 8.
 - Reference viewing and playback write no evidence of any kind.
 - No automated test is presented as evidence that the lesson design works for
   human learners.
