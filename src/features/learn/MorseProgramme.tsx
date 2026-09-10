@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { startLesson, type LessonRun } from '../../lib/morseLesson'
 import { morseLessonPath, startReplayLesson } from '../../lib/morseLessonPath'
 import {
@@ -132,7 +132,7 @@ export function MorseProgramme({ topicId, onExit, onTest, onReference }: MorsePr
           const letters = lesson.novel.join(' · ')
           const checkpoint = checkpointAfter.get(lesson.number)
           return (
-            <div className="morse-path-group" key={lesson.index}>
+            <Fragment key={lesson.index}>
               <li
                 className={`morse-path-item morse-path-lesson is-${lesson.state}`}
                 aria-current={lesson.state === 'current' ? 'step' : undefined}
@@ -170,7 +170,7 @@ export function MorseProgramme({ topicId, onExit, onTest, onReference }: MorsePr
                   </span>
                   <span className="morse-path-status">{checkpoint.unlocked ? 'Available' : 'Locked'}</span>
                   <button
-                    className={`${checkpoint.unlocked ? 'ghost ' : 'ghost '}small morse-path-action`}
+                    className="ghost small morse-path-action"
                     type="button"
                     disabled={!checkpoint.unlocked}
                     aria-label={checkpoint.unlocked
@@ -182,7 +182,7 @@ export function MorseProgramme({ topicId, onExit, onTest, onReference }: MorsePr
                   </button>
                 </li>
               )}
-            </div>
+            </Fragment>
           )
         })}
       </ol>
