@@ -57,12 +57,29 @@ async function state(page: Page) {
   })
 }
 
+async function keyPattern(page: Page, pattern: string) {
+  await page.keyboard.type(pattern)
+}
+
+async function finishCheckpointWarmups(page: Page) {
+  await keyPattern(page, '.')
+  await expect(page.getByText('Warm-up 2 of 4', { exact: true })).toBeVisible({ timeout: 2_000 })
+  await keyPattern(page, '-')
+  await expect(page.getByText('Warm-up 3 of 4', { exact: true })).toBeVisible({ timeout: 2_000 })
+  await keyPattern(page, '.-')
+  await expect(page.getByText('Warm-up 4 of 4', { exact: true })).toBeVisible({ timeout: 2_000 })
+  await keyPattern(page, '..-')
+  await expect(page.getByText('Word 1 of 1', { exact: true })).toBeVisible({ timeout: 2_000 })
+}
+
 test('Learn opened from Today still closes Morse reference to Topic, then Today', async ({ page }) => {
   await openApp(page)
 
   await page.locator('.docket .index-row').click()
   await expect(page.getByRole('heading', { name: 'Learn Morse A–Z' })).toBeVisible()
-  await expect(page.getByRole('list', { name: 'Morse lesson path' }).getByRole('listitem')).toHaveCount(13)
+  const path = page.getByRole('list', { name: 'Morse lesson path' })
+  await expect(path.locator('.morse-path-lesson')).toHaveCount(13)
+  await expect(path.locator('.morse-path-checkpoint')).toHaveCount(2)
   expect(await state(page)).toMatchObject({
     index: 1,
     route: { kind: 'run' },
@@ -118,6 +135,80 @@ test('completed lesson replay stays inside Learn history and never mutates the s
   await expect(page.getByRole('heading', { name: 'Learn Morse A–Z' })).toBeFocused()
   expect(await page.evaluate((key) => window.localStorage.getItem(key), STORE_KEY)).toBe(before)
   expect(await state(page)).toEqual(historyBefore)
+})
+
+test('unlocked word checkpoint auto-advances through a miss and never mutates saved Learn or Test state', async ({ page }) => {
+  await openApp(page)
+  await page.locator('.docket .index-row').click()
+
+  const before = await page.evaluate((key) => window.localStorage.getItem(key), STORE_KEY)
+  const historyBefore = await state(page)
+  await page.getByRole('button', { name: 'Start word checkpoint after lesson 4' }).click()
+
+  await expect(page.getByText('Checkpoint after lesson 4', { exact: true })).toBeVisible()
+  await expect(page.getByText('Warm-up 1 of 4', { exact: true })).toBeVisible()
+  expect(await state(page)).toEqual(historyBefore)
+
+  // E expects one element. A dah is immediately a miss; there is no edit or
+  // confirmation opportunity before the checkpoint moves on.
+  await keyPattern(page, '-')
+  await expect(page.getByRole('status')).toContainText('Miss')
+  await expect(page.getByText('Warm-up 2 of 4', { exact: true })).toBeVisible({ timeout: 2_000 })
+
+  await keyPattern(page, '-')
+  await expect(page.getByText('Warm-up 3 of 4', { exact: true })).toBeVisible({ timeout: 2_000 })
+  await keyPattern(page, '.-')
+  await expect(page.getByText('Warm-up 4 of 4', { exact: true })).toBeVisible({ timeout: 2_000 })
+  await keyPattern(page, '..-')
+  await expect(page.getByText('Word 1 of 1', { exact: true })).toBeVisible({ timeout: 2_000 })
+
+  const word = page.locator('.morse-checkpoint-word')
+  await expect(word).toHaveText('TIME')
+  await expect(word.locator('.is-current')).toHaveText('T')
+
+  await keyPattern(page, '-')
+  await expect(word.locator('.is-current')).toHaveText('I', { timeout: 2_000 })
+  await keyPattern(page, '..')
+  await expect(word.locator('.is-current')).toHaveText('M', { timeout: 2_000 })
+  await keyPattern(page, '--')
+  await expect(word.locator('.is-current')).toHaveText('E', { timeout: 2_000 })
+  await keyPattern(page, '.')
+
+  await expect(page.getByRole('heading', { name: 'Word checkpoint complete' })).toBeVisible({ timeout: 2_000 })
+  expect(await page.evaluate((key) => window.localStorage.getItem(key), STORE_KEY)).toBe(before)
+  expect(await state(page)).toEqual(historyBefore)
+
+  await page.getByRole('button', { name: 'Back to lessons' }).click()
+  await expect(page.getByRole('heading', { name: 'Learn Morse A–Z' })).toBeFocused()
+  await expect(page.getByRole('button', { name: 'Start word checkpoint after lesson 4' })).toBeVisible()
+  expect(await page.evaluate((key) => window.localStorage.getItem(key), STORE_KEY)).toBe(before)
+  expect(await state(page)).toEqual(historyBefore)
+})
+
+test('word checkpoint remains usable at phone width and 200% text with the whole word visible', async ({ page }, testInfo) => {
+  test.skip(!testInfo.project.name.startsWith('phone-'), 'phone-width checkpoint rendering contract')
+  await openApp(page)
+  await page.locator('.docket .index-row').click()
+  await page.getByRole('button', { name: 'Start word checkpoint after lesson 4' }).click()
+  await finishCheckpointWarmups(page)
+
+  const target = page.locator('.morse-checkpoint-target')
+  const word = page.locator('.morse-checkpoint-word')
+  await expect(word).toHaveText('TIME')
+  await expect(word.locator('.is-current')).toHaveText('T')
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+  expect(await target.evaluate((element) => {
+    const bounds = element.getBoundingClientRect()
+    return bounds.left >= 0 && bounds.right <= window.innerWidth && element.scrollWidth <= element.clientWidth
+  })).toBe(true)
+
+  await page.evaluate(() => { document.documentElement.style.fontSize = '200%' })
+  await expect(word).toBeVisible()
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+  expect(await target.evaluate((element) => {
+    const bounds = element.getBoundingClientRect()
+    return bounds.left >= 0 && bounds.right <= window.innerWidth && element.scrollWidth <= element.clientWidth
+  })).toBe(true)
 })
 
 test('reference cards keep the phone hierarchy without horizontal overflow', async ({ page }, testInfo) => {
