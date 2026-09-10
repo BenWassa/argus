@@ -80,7 +80,9 @@ export function MorseProgramme({ topicId, onExit, onTest, onReference }: MorsePr
 
   const current = path.find((lesson) => lesson.state === 'current')
   const allComplete = !current
-  const checkpointAfter = new Map(checkpoints.map((checkpoint) => [checkpoint.afterLesson, checkpoint]))
+  const checkpointAfter = new Map<number, MorseWordCheckpointPathItem>(
+    checkpoints.map((checkpoint) => [checkpoint.afterLesson, checkpoint]),
+  )
 
   function continueCurrent() {
     if (!topic) return
