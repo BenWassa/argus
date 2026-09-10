@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { lessonPackets } from './morseLesson'
 import { morseLessonPath } from './morseLessonPath'
+import type { MorseLetter } from './morse'
 import {
   checkpointEligibleLetters,
   checkpointTargets,
@@ -56,7 +57,7 @@ describe('Morse word checkpoint curriculum', () => {
       expect(checkpoint.warmups).toHaveLength(4)
       expect(checkpoint.warmups.every((letter) => eligible.has(letter))).toBe(true)
       for (const word of checkpoint.words) {
-        expect(Array.from(word).every((letter) => eligible.has(letter as never))).toBe(true)
+        expect(Array.from(word).every((letter) => eligible.has(letter as MorseLetter))).toBe(true)
       }
     }
 
