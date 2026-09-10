@@ -1,7 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { startLesson, type LessonRun } from '../../lib/morseLesson'
 import { morseLessonPath, startReplayLesson } from '../../lib/morseLessonPath'
+import {
+  morseWordCheckpointPath,
+  type MorseWordCheckpointPathItem,
+} from '../../lib/morseWordCheckpoints'
 import { useLibrary } from '../../lib/store'
+import { MorseCheckpoint } from './MorseCheckpoint'
 import { MorseLesson } from './MorseLesson'
 import { MorseReplay } from './MorseReplay'
 import './MorseProgramme.css'
@@ -13,10 +18,9 @@ interface MorseProgrammeProps {
   onReference: () => void
 }
 
-interface ActiveLesson {
-  run: LessonRun
-  replay: boolean
-}
+type ActiveRun =
+  | { kind: 'lesson'; run: LessonRun; replay: boolean }
+  | { kind: 'checkpoint'; checkpoint: MorseWordCheckpointPathItem }
 
 function stateLabel(state: 'completed' | 'current' | 'unlocked' | 'locked'): string {
   if (state === 'completed') return 'Completed'
@@ -26,26 +30,26 @@ function stateLabel(state: 'completed' | 'current' | 'unlocked' | 'locked'): str
 }
 
 /**
- * The learner-facing A–Z curriculum map (#75).
+ * The learner-facing A–Z curriculum map (#75 + #78).
  *
- * The path owns no progress. It projects `morseLessonPath(topic)`, which in turn
- * derives from the exact packet plan and durable acquisition support that drive
- * normal Learn. Selecting a completed lesson creates an ephemeral replay run;
- * only selecting Current enters the canonical acquisition flow.
+ * The path owns no progress. Canonical lessons project `morseLessonPath(topic)`;
+ * the two application checkpoints project the same path plus mechanically
+ * validated content and remain local/formative when run.
  */
 export function MorseProgramme({ topicId, onExit, onTest, onReference }: MorseProgrammeProps) {
   const { topics } = useLibrary()
   const topic = topics.find((candidate) => candidate.id === topicId)
   const headingRef = useRef<HTMLHeadingElement>(null)
-  const [active, setActive] = useState<ActiveLesson | null>(null)
+  const [active, setActive] = useState<ActiveRun | null>(null)
 
   const path = useMemo(() => (topic ? morseLessonPath(topic) : null), [topic])
+  const checkpoints = useMemo(() => (topic ? morseWordCheckpointPath(topic) : null), [topic])
 
   useEffect(() => {
     if (!active) headingRef.current?.focus({ preventScroll: true })
   }, [active])
 
-  if (!topic || !path) {
+  if (!topic || !path || !checkpoints) {
     return (
       <section className="session morse-lesson">
         <h1>Morse lesson unavailable</h1>
@@ -54,11 +58,15 @@ export function MorseProgramme({ topicId, onExit, onTest, onReference }: MorsePr
     )
   }
 
-  if (active?.replay) {
+  if (active?.kind === 'checkpoint') {
+    return <MorseCheckpoint checkpoint={active.checkpoint} onExit={() => setActive(null)} />
+  }
+
+  if (active?.kind === 'lesson' && active.replay) {
     return <MorseReplay initialRun={active.run} onExit={() => setActive(null)} />
   }
 
-  if (active) {
+  if (active?.kind === 'lesson') {
     return (
       <MorseLesson
         topic={topic}
@@ -72,17 +80,23 @@ export function MorseProgramme({ topicId, onExit, onTest, onReference }: MorsePr
 
   const current = path.find((lesson) => lesson.state === 'current')
   const allComplete = !current
+  const checkpointAfter = new Map(checkpoints.map((checkpoint) => [checkpoint.afterLesson, checkpoint]))
 
   function continueCurrent() {
     if (!topic) return
     const run = startLesson(topic)
-    if (run) setActive({ run, replay: false })
+    if (run) setActive({ kind: 'lesson', run, replay: false })
   }
 
   function replay(index: number) {
     if (!topic) return
     const run = startReplayLesson(topic, index)
-    if (run) setActive({ run, replay: true })
+    if (run) setActive({ kind: 'lesson', run, replay: true })
+  }
+
+  function startCheckpoint(checkpoint: MorseWordCheckpointPathItem) {
+    if (!checkpoint.unlocked) return
+    setActive({ kind: 'checkpoint', checkpoint })
   }
 
   return (
@@ -99,7 +113,7 @@ export function MorseProgramme({ topicId, onExit, onTest, onReference }: MorsePr
         <h1 ref={headingRef} tabIndex={-1}>Learn Morse A–Z</h1>
         <p>
           Work forward two new letters at a time. Completed lessons stay available for a quick
-          refresher whenever you want them.
+          refresher, with small word checkpoints after lessons 4 and 7.
         </p>
         <div className="morse-programme-actions">
           {!allComplete && current && (
@@ -116,41 +130,65 @@ export function MorseProgramme({ topicId, onExit, onTest, onReference }: MorsePr
         {path.map((lesson) => {
           const status = stateLabel(lesson.state)
           const letters = lesson.novel.join(' · ')
+          const checkpoint = checkpointAfter.get(lesson.number)
           return (
-            <li
-              key={lesson.index}
-              className={`morse-path-item is-${lesson.state}`}
-              aria-current={lesson.state === 'current' ? 'step' : undefined}
-            >
-              <span className="morse-path-number tabular" aria-hidden="true">
-                {String(lesson.number).padStart(2, '0')}
-              </span>
-              <span className="morse-path-main">
-                <span className="morse-path-new-label">New letters</span>
-                <strong className="morse-path-letters">{letters}</strong>
-              </span>
-              <span className="morse-path-status">{status}</span>
+            <div className="morse-path-group" key={lesson.index}>
+              <li
+                className={`morse-path-item morse-path-lesson is-${lesson.state}`}
+                aria-current={lesson.state === 'current' ? 'step' : undefined}
+              >
+                <span className="morse-path-number tabular" aria-hidden="true">
+                  {String(lesson.number).padStart(2, '0')}
+                </span>
+                <span className="morse-path-main">
+                  <span className="morse-path-new-label">New letters</span>
+                  <strong className="morse-path-letters">{letters}</strong>
+                </span>
+                <span className="morse-path-status">{status}</span>
 
-              {lesson.state === 'current' ? (
-                <button className="small morse-path-action" type="button" onClick={continueCurrent}>
-                  Continue
-                </button>
-              ) : lesson.replayable ? (
-                <button className="ghost small morse-path-action" type="button" onClick={() => replay(lesson.index)}>
-                  Replay
-                </button>
-              ) : (
-                <button className="ghost small morse-path-action" type="button" disabled aria-label={`Lesson ${lesson.number} locked`}>
-                  Locked
-                </button>
+                {lesson.state === 'current' ? (
+                  <button className="small morse-path-action" type="button" onClick={continueCurrent}>
+                    Continue
+                  </button>
+                ) : lesson.replayable ? (
+                  <button className="ghost small morse-path-action" type="button" onClick={() => replay(lesson.index)}>
+                    Replay
+                  </button>
+                ) : (
+                  <button className="ghost small morse-path-action" type="button" disabled aria-label={`Lesson ${lesson.number} locked`}>
+                    Locked
+                  </button>
+                )}
+              </li>
+
+              {checkpoint && (
+                <li className={`morse-path-item morse-path-checkpoint${checkpoint.unlocked ? ' is-unlocked' : ' is-locked'}`}>
+                  <span className="morse-path-number morse-path-checkpoint-mark" aria-hidden="true">CP</span>
+                  <span className="morse-path-main">
+                    <span className="morse-path-new-label">Word checkpoint</span>
+                    <strong className="morse-path-checkpoint-title">After lesson {checkpoint.afterLesson}</strong>
+                  </span>
+                  <span className="morse-path-status">{checkpoint.unlocked ? 'Available' : 'Locked'}</span>
+                  <button
+                    className={`${checkpoint.unlocked ? 'ghost ' : 'ghost '}small morse-path-action`}
+                    type="button"
+                    disabled={!checkpoint.unlocked}
+                    aria-label={checkpoint.unlocked
+                      ? `Start word checkpoint after lesson ${checkpoint.afterLesson}`
+                      : `Word checkpoint after lesson ${checkpoint.afterLesson} locked`}
+                    onClick={() => startCheckpoint(checkpoint)}
+                  >
+                    {checkpoint.unlocked ? 'Start' : 'Locked'}
+                  </button>
+                </li>
               )}
-            </li>
+            </div>
           )
         })}
       </ol>
 
       <p className="morse-programme-foot">
-        Replay is formative review only. Formal A–Z evidence is still earned in Test.
+        Replays and word checkpoints are formative review only. Formal A–Z evidence is still earned in Test.
       </p>
     </section>
   )
