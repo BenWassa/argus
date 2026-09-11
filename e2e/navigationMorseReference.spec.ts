@@ -61,6 +61,20 @@ async function keyPattern(page: Page, pattern: string) {
   await page.keyboard.type(pattern)
 }
 
+async function waitForLearnFirstExposure(page: Page) {
+  await expect.poll(async () => {
+    const raw = await page.evaluate((key) => window.localStorage.getItem(key), STORE_KEY)
+    if (!raw) return { status: null, hasLearningAt: false }
+
+    const stored = JSON.parse(raw) as { topics: Topic[] }
+    const topic = stored.topics.find((candidate) => candidate.id === MORSE_ID)
+    return {
+      status: topic?.status ?? null,
+      hasLearningAt: typeof topic?.learningAt === 'string',
+    }
+  }).toEqual({ status: 'learning', hasLearningAt: true })
+}
+
 async function finishCheckpointWarmups(page: Page) {
   await keyPattern(page, '.')
   await expect(page.getByText('Warm-up 2 of 4', { exact: true })).toBeVisible({ timeout: 2_000 })
@@ -122,6 +136,7 @@ test('Learn opened from Today still closes Morse reference to Topic, then Today'
 test('completed lesson replay stays inside Learn history and never mutates the saved topic', async ({ page }) => {
   await openApp(page)
   await page.locator('.docket .index-row').click()
+  await waitForLearnFirstExposure(page)
 
   const before = await page.evaluate((key) => window.localStorage.getItem(key), STORE_KEY)
   const historyBefore = await state(page)
@@ -140,6 +155,7 @@ test('completed lesson replay stays inside Learn history and never mutates the s
 test('unlocked word checkpoint auto-advances through a miss and never mutates saved Learn or Test state', async ({ page }) => {
   await openApp(page)
   await page.locator('.docket .index-row').click()
+  await waitForLearnFirstExposure(page)
 
   const before = await page.evaluate((key) => window.localStorage.getItem(key), STORE_KEY)
   const historyBefore = await state(page)
