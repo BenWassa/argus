@@ -2,7 +2,7 @@
 
 Issue: #78  
 Parent: #21  
-Status: **implemented by #78**
+Status: **implemented by #78; integrated into the forward journey by #87/#88**
 
 This document records the durable product/architecture contract for the first
 whole-word application moments inside the existing Morse Learn journey.
@@ -25,7 +25,9 @@ path.
 The canonical programme remains 13 lessons. A checkpoint never gates the next
 lesson and has no durable completion flag. Once a milestone has been reached,
 later lesson reach is sufficient proof to keep that checkpoint available if
-repair temporarily moves canonical Learn back to an older lesson.
+repair temporarily moves canonical Learn back to an older lesson. #88 additionally
+surfaces a newly unlocked checkpoint automatically at the lesson-completion
+boundary; this is an ephemeral handoff event, not a second unlock database.
 
 ## Purpose
 
@@ -79,7 +81,7 @@ Flow:
    known set;
 2. one simple familiar word;
 3. concise completion state;
-4. return to the lesson path.
+4. continue naturally into the lesson journey.
 
 The shipped word is `TIME`.
 
@@ -92,7 +94,7 @@ Flow:
 1. four brief individual-letter keyed warm-ups;
 2. two modest familiar words;
 3. concise completion state;
-4. return to the lesson path.
+4. continue naturally into the lesson journey.
 
 The shipped words are `TRAIN` and `GARDEN`.
 
@@ -117,6 +119,21 @@ later repair causes an older lesson to become current again.
 Checkpoint completion itself is not an acquisition prerequisite. A learner may
 continue to Lesson 5 or Lesson 8 without passing the checkpoint.
 
+## Automatic milestone handoff (#88)
+
+When canonical progression **newly** reaches Lesson 4 or Lesson 7, the completion
+boundary automatically offers the corresponding checkpoint before ordinary
+forward navigation resumes. The invitation is deliberately small: a restrained
+lesson-complete acknowledgement, a one-line explanation of the word activity and
+the expected warm-up/word size. `Start checkpoint` enters it directly.
+
+Skipping is explicitly non-gating: the next lesson remains available and the
+checkpoint remains on the lesson path for later voluntary use. Replaying Lesson 4
+or 7, or repairing an older lesson after the milestone was already reached, must
+not falsely recreate a first-unlock event. Completing the checkpoint keeps the
+learner in the Morse journey and offers the next canonical continuation. None of
+these transitions writes checkpoint completion, skip or seen state.
+
 ## Interaction contract
 
 Reuse the shared direct Morse key introduced by #77. Do not create a second
@@ -137,7 +154,13 @@ For every warm-up target and every character in a word:
 Do not introduce Back, delete, Submit, Check, or Continue between characters.
 
 Touch duration remains categorical input only. It is not sending timing, WPM,
-or formal evidence.
+or formal evidence. #87 separates that classification from the audible element:
+every accepted dit/dah is rendered as a complete tone, the final tone finishes
+before the answer boundary advances, and the answer region remains locked through
+brief visible correct/wrong feedback and the target transition. Automatic
+advance remains. Reduced motion removes nonessential animation but not the safety
+gate, and the shared Morse key uses a tactile tonal/elevation press state rather
+than blue/accent styling.
 
 ## Formative-only state boundary
 
@@ -192,7 +215,7 @@ Preserve:
 
 ## Validation contract
 
-#78 automated coverage establishes:
+#78/#87/#88 automated coverage establishes:
 
 - exact Lesson-4 and Lesson-7 unlock boundaries;
 - locked-before / available-after behaviour;
@@ -231,6 +254,6 @@ material contemplated by #29. Their purpose is to test whether tiny formative
 application moments improve the A–Z learning journey without changing its
 completion claim.
 
-After #78 is merged, the next product step is integrated real-device validation
-of the Morse journey before deciding whether the A–Z foundation is mature enough
-to open the next competency stream.
+With #87/#88 implemented on current `main`, the next gate is fresh integrated
+real-device Pixel/PWA acceptance under #42 before deciding whether the A–Z
+foundation is mature enough to open #29 or other later competency work.
