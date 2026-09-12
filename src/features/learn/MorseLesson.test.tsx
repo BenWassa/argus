@@ -138,7 +138,7 @@ describe('printed letter → Morse uses one production mechanism', () => {
 
   it('the one-signal T case has no answer audio hint or pattern choices', () => {
     const html = renderToStaticMarkup(
-      <VisualCheckStep entry={tEntry()} format="cued" regionRef={ref} onAnswer={() => undefined} />,
+      <VisualCheckStep entry={tEntry()} format="cued" regionRef={ref} armed onAnswer={() => undefined} />,
     )
     expect(html).toContain('T')
     expect(html).toContain('1 signal')
@@ -162,7 +162,7 @@ describe('Morse sound → letter is the only multiple-choice Morse Learn prompt'
   it('uses sound as the stimulus without naming the answer in the prompt or audio control', () => {
     const entry = tEntry()
     const html = renderToStaticMarkup(
-      <ListeningCheckStep entry={entry} options={['E', 'T']} playing={false} regionRef={ref}
+      <ListeningCheckStep entry={entry} options={['E', 'T']} playing={false} regionRef={ref} armed
         onToggle={() => undefined} onAnswer={() => undefined} onSkip={() => undefined} />,
     )
     expect(html).toContain('Listen, then choose the letter')
@@ -177,7 +177,7 @@ describe('Morse sound → letter is the only multiple-choice Morse Learn prompt'
 
   it('supports replay and always exposes the no-audio escape', () => {
     const html = renderToStaticMarkup(
-      <ListeningCheckStep entry={tEntry()} options={['E', 'T']} playing={true} regionRef={ref}
+      <ListeningCheckStep entry={tEntry()} options={['E', 'T']} playing={true} regionRef={ref} armed
         onToggle={() => undefined} onAnswer={() => undefined} onSkip={() => undefined} />,
     )
     expect(html).toContain('aria-label="Stop Morse sound"')
@@ -215,11 +215,15 @@ describe('feedback and modality boundaries', () => {
     expect(html).not.toContain('>Continue<')
   })
 
-  it('correct answers advance immediately while misses auto-advance after a short reteach', () => {
+  it('acknowledges both verdicts on one shared boundary and never adds a Continue action', () => {
     const code = source('./MorseLesson.tsx')
-    expect(code).toContain('if (next.feedback.correct) movePastVisualFeedback(next, nextSitting)')
-    expect(code).toContain('RETEACH_VISIBLE_MS')
-    expect(code).toContain('setTimeout(() => movePastVisualFeedback')
+    // A hit used to call `movePastVisualFeedback` synchronously inside
+    // `answerVisual`, which cleared `run.feedback` in the same tick it was set.
+    expect(code).not.toContain('if (next.feedback.correct) movePastVisualFeedback(next, nextSitting)')
+    expect(code).toContain('pendingAdvance.current = () => movePastVisualFeedback(next, nextSitting)')
+    expect(code).toContain('answered(next.feedback.correct)')
+    // Durations live in the shared policy, never as a private literal here.
+    expect(code).not.toMatch(/setTimeout\([^)]*\d{3}/)
     expect(code).not.toContain('function continueAfterFeedback')
     expect(code).not.toContain('>Continue</button>')
   })

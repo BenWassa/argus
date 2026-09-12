@@ -889,6 +889,16 @@ main:focus {
   }
 }
 
+/* The keyed-retrieval swap (#87). Shared by Learn, replay and the #78 word
+   checkpoints, so it is defined once here rather than in whichever feature
+   stylesheet happens to be loaded alongside the surface using it. */
+@keyframes morse-target-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

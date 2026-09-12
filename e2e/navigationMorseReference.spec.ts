@@ -58,6 +58,10 @@ async function state(page: Page) {
 }
 
 async function keyPattern(page: Page, pattern: string) {
+  // Since #87 the key is deliberately inert while the previous verdict stands
+  // and through the transition behind it, so a letter is keyed once its target
+  // is actually armed rather than typed blind into the boundary.
+  await expect(page.locator('.morse-key')).toBeEnabled({ timeout: 4_000 })
   await page.keyboard.type(pattern)
 }
 

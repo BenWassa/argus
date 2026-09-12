@@ -253,3 +253,40 @@
     transition: none;
   }
 }
+
+/*
+ * The retrieval swap (#87), shared in spirit with the checkpoint surface: a
+ * short settle so one retrieval visibly ends before the next begins. Input is
+ * gated by `inert` on `.lesson-answer` / `.lesson-options` for the whole of
+ * this window, so removing the motion below removes nothing load-bearing.
+ */
+.lesson-check,
+.lesson-introduce,
+.lesson-feedback {
+  animation: morse-target-in var(--t-base) var(--ease) both;
+}
+
+.lesson-answer {
+  display: grid;
+  width: 100%;
+}
+
+/* A hit is acknowledged, not celebrated: the same quiet layer a miss uses,
+   holding one word, with no brass and no lift. */
+.lesson-feedback.is-correct {
+  display: grid;
+  justify-items: start;
+  gap: var(--s-xs);
+}
+
+.lesson-feedback.is-correct .lesson-verdict {
+  color: var(--ok);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lesson-check,
+  .lesson-introduce,
+  .lesson-feedback {
+    animation: none;
+  }
+}

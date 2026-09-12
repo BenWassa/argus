@@ -28,10 +28,18 @@ describe('Morse word checkpoint surface', () => {
     const code = source('./MorseCheckpoint.tsx')
     expect(code).toContain('setFeedback({')
     expect(code).toContain("correct: pattern === MORSE_LETTERS[target.letter]")
-    expect(code).toContain('setTimeout(() => {')
+    // The dwell is owned by the shared #87 lifecycle, not by a private timer
+    // with a private duration that could drift from Learn's.
+    expect(code).toContain('useKeyedResponse')
+    expect(code).not.toContain('setTimeout(')
+    expect(code).not.toContain('MORSE_CHECKPOINT_FEEDBACK_MS')
     expect(code).toContain('setIndex((current) => current + 1)')
+    expect(code).toContain('answered(pattern === MORSE_LETTERS[target.letter])')
     expect(code).toContain("feedback.correct ? 'Correct' : 'Miss'")
     expect(code).not.toMatch(/feedback\.correct[^\n]+setIndex/)
+    // The next letter is not answerable while the previous result stands.
+    expect(code).toContain('inert={!armed}')
+    expect(code).toContain('locked={!armed}')
     expect(code).not.toContain('>Continue<')
   })
 
