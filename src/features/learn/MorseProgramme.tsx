@@ -22,8 +22,8 @@ type ActiveRun =
   | { kind: 'lesson'; run: LessonRun; replay: boolean }
   | { kind: 'checkpoint'; checkpoint: MorseWordCheckpointPathItem }
 
-function stateLabel(state: 'completed' | 'current' | 'unlocked' | 'locked'): string {
-  if (state === 'completed') return 'Completed'
+function stateLabel(state: 'completed' | 'current' | 'unlocked' | 'locked'): string | null {
+  if (state === 'completed') return null
   if (state === 'current') return 'Current'
   if (state === 'unlocked') return 'Unlocked'
   return 'Locked'
@@ -114,7 +114,7 @@ export function MorseProgramme({ topicId, onExit, onTest, onReference }: MorsePr
       <header className="morse-programme-head">
         <h1 ref={headingRef} tabIndex={-1}>Learn Morse A–Z</h1>
         <p>
-          Work forward two new letters at a time. Completed lessons stay available for a quick
+          Work forward two new letters at a time. Earlier lessons stay available for a quick
           refresher, with small word checkpoints after lessons 4 and 7.
         </p>
         <div className="morse-programme-actions">
@@ -143,10 +143,9 @@ export function MorseProgramme({ topicId, onExit, onTest, onReference }: MorsePr
                   {String(lesson.number).padStart(2, '0')}
                 </span>
                 <span className="morse-path-main">
-                  <span className="morse-path-new-label">New letters</span>
                   <strong className="morse-path-letters">{letters}</strong>
                 </span>
-                <span className="morse-path-status">{status}</span>
+                {status && <span className="morse-path-status">{status}</span>}
 
                 {lesson.state === 'current' ? (
                   <button className="small morse-path-action" type="button" onClick={continueCurrent}>

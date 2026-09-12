@@ -40,6 +40,9 @@
   --danger-2: #e9a9a1;
   --danger-ink: #1d100e;
   --ok: #9dc5a2;
+  /* Completion is a restrained field green, distinct from the brass used for
+     the action currently in progress. */
+  --complete: #748c65;
   --warning: #d8bd79;
 
   /* Radii */
