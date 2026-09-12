@@ -182,7 +182,10 @@ While unanswered:
   `Stop Morse sound`, so a screen reader does not receive the hidden answer;
 - replay is allowed;
 - the learner chooses from a compact deterministic set containing only
-  characters already introduced.
+  characters already introduced anywhere in the topic so far — not only the
+  current packet's own small roster, which stays capped at a handful of
+  characters for the whole lesson and would otherwise keep offering the same
+  one or two distractors long after the learner has met many more.
 
 Listening is deliberately restrained and deterministic in V1. It is eligible on
 retrieval slots 3, 6 and 9, only after the target has moved beyond `taught` in

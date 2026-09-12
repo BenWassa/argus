@@ -6,6 +6,7 @@ import {
   answerLesson,
   currentStep,
   introduceLesson,
+  introducedGlyphs,
   lessonProgressCount,
   lessonProgressOf,
   startLesson,
@@ -215,7 +216,9 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
   const step = hasFeedback || sittingDone ? null : currentStep(run)
   const packetProgress = lessonProgressCount(run)
   const listening = step?.kind === 'check' && shouldUseListeningQuestion(sitting.retrievals, step.entry, listeningState)
-  const audioOptions = step?.kind === 'check' && listening ? lessonListeningOptions(run, step.entry) : []
+  const audioOptions = step?.kind === 'check' && listening
+    ? lessonListeningOptions(run, step.entry, introducedGlyphs(live))
+    : []
 
   useEffect(() => {
     if (!audioError) return

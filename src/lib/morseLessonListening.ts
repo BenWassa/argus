@@ -60,18 +60,37 @@ export function shouldUseListeningQuestion(
 /**
  * Compact deterministic letter choices for a sound stimulus.
  *
- * Only characters already introduced in this packet roster may appear. The
- * first packet therefore legitimately offers two choices rather than padding
- * with an unfamiliar letter. The answer position rotates by lesson step.
+ * `knownGlyphs` is every character introduced anywhere in the topic so far
+ * (see `introducedGlyphs`), not just this packet's own small roster: a
+ * packet's roster stays capped at a handful of characters for the whole
+ * lesson, and a distractor pool scoped to it would keep offering the same one
+ * or two letters again and again long after the learner has met many more.
+ * Only characters the learner has actually met may appear at all, and the very
+ * first packet legitimately offers two choices rather than padding with an
+ * unfamiliar letter, because nothing else exists yet to draw from.
+ *
+ * Both which two distractors appear and where the answer lands rotate by
+ * lesson step, so the pair actually varies as a sitting progresses rather than
+ * settling on the same two letters for its whole duration, while remaining a
+ * pure function of the run: the same step over the same known pool always
+ * looks the same, which is what keeps this testable without a DOM.
  */
-export function lessonListeningOptions(run: LessonRun, entry: LessonEntry): MorseLetter[] {
-  const alternatives = run.entries
-    .filter((candidate) => candidate.introduced && candidate.itemId !== entry.itemId)
-    .sort((a, b) => a.order - b.order)
-    .map((candidate) => candidate.glyph)
-    .slice(0, 2)
+export function lessonListeningOptions(
+  run: LessonRun,
+  entry: LessonEntry,
+  knownGlyphs: readonly MorseLetter[],
+): MorseLetter[] {
+  const pool = knownGlyphs.filter((glyph) => glyph !== entry.glyph)
+  const alternatives: MorseLetter[] = []
+  if (pool.length > 0) {
+    const distractorCount = Math.min(2, pool.length)
+    const start = run.step % pool.length
+    for (let offset = 0; offset < distractorCount; offset += 1) {
+      alternatives.push(pool[(start + offset) % pool.length])
+    }
+  }
 
-  const options = alternatives.filter((glyph, index, all) => all.indexOf(glyph) === index)
+  const options = [...alternatives]
   const at = run.step % (options.length + 1)
   options.splice(at, 0, entry.glyph)
   return options

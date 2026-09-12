@@ -2,6 +2,7 @@ import { morseAcquisitionProfile, type AcquisitionCharacter } from './acquisitio
 import { isConfusable } from './confusion'
 import { MORSE_LETTERS, morsePattern, type MorseLetter } from './morse'
 import {
+  ACQUISITION_ORDER,
   ALL_MORSE_LETTERS,
   buildCharacterPackets,
   complexityOrderedLetters,
@@ -270,6 +271,28 @@ export function firstUnsettledPacket(
     if (!settled) return packet.index
   }
   return packets.length
+}
+
+/**
+ * Every character introduced anywhere in the topic so far, oldest first.
+ *
+ * A packet's own roster is deliberately small (novel plus a handful of
+ * interleaved review characters, capped at `visible`), so it is the wrong pool
+ * for a reinforcement question to draw distractors from once the learner is
+ * several packets in: by packet 5 there may be ten characters genuinely known,
+ * while the packet's own roster still only touches three or four of them. This
+ * is that wider pool, for callers that want variety proportional to what has
+ * actually been learned rather than to which handful of letters this packet's
+ * roster happens to contain.
+ */
+export function introducedGlyphs(topic: Topic): MorseLetter[] {
+  const byGlyph = rosterIdentity(topic)
+  if (!byGlyph) return []
+  const store = topic.lessonProgress ?? {}
+  return ACQUISITION_ORDER.filter((glyph) => {
+    const character = byGlyph.get(glyph)
+    return character !== undefined && store[character.itemId] !== undefined
+  })
 }
 
 /**
