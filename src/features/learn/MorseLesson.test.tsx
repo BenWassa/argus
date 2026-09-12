@@ -131,7 +131,8 @@ describe('Learn picks the right surface', () => {
   it('gives the Morse topic a guided lesson rather than a scrollable packet page', () => {
     const html = learn([MORSE_ID])
     expect(html).toContain('morse-lesson')
-    expect(html).toContain('New letter')
+    expect(html).toContain('Learn Morse A–Z')
+    expect(html).toContain('Start lesson 1')
     expect(html).not.toContain('sheet-items')
     expect(html).not.toContain('morse-cards')
   })
