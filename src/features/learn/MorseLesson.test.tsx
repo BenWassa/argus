@@ -1,12 +1,17 @@
+// @vitest-environment jsdom
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { act, cleanup, fireEvent, render as renderDom, screen } from '@testing-library/react'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { MORSE_LETTERS } from '../../lib/morse'
 import {
   advanceLesson,
   answerLesson,
   currentStep,
   introduceLesson,
+  introducedGlyphs,
+  lessonPackets,
   lessonProgressOf,
   startLesson,
   withLessonProgress,
@@ -14,10 +19,11 @@ import {
   type LessonRun,
 } from '../../lib/morseLesson'
 import { lessonListeningOptions } from '../../lib/morseLessonListening'
+import { MORSE_FEEDBACK_CORRECT_MS, MORSE_TRANSITION_MS, morseElementDurationMs } from '../../lib/morseResponse'
 import { LibraryProvider } from '../../lib/store'
-import { parseLibrary } from '../../lib/storage'
+import { parseLibrary, saveLibrary } from '../../lib/storage'
 import { seedLibrary } from '../../lib/seed'
-import type { Topic } from '../../lib/types'
+import type { ItemLessonStore, Topic } from '../../lib/types'
 import { Learn } from './Learn'
 import { ListeningCheckStep, MorseLesson, VisualCheckStep } from './MorseLesson'
 
@@ -80,6 +86,36 @@ function runAtFormat(topic: Topic, format: 'taught' | 'cued' | 'solo'): LessonRu
     run = advanceLesson(answerLesson(run, step.entry.itemId, step.entry.pattern))
   }
   throw new Error(`Never reached a ${format} check`)
+}
+
+function itemIdForGlyph(value: Topic, glyph: string): string {
+  const item = value.items.find((candidate) => candidate.prompt === glyph)
+  if (!item?.id) throw new Error(`Missing item for ${glyph}.`)
+  return item.id
+}
+
+/** Mirrors `morseWordCheckpoints.test.ts`'s fixture helper: settle whole lessons mechanically. */
+function settledThroughLesson(value: Topic, lessonNumber: number): Topic {
+  const progress: ItemLessonStore = { ...(value.lessonProgress ?? {}) }
+  for (const packet of lessonPackets().slice(0, lessonNumber)) {
+    for (const glyph of packet.characters) progress[itemIdForGlyph(value, glyph)] = 'settled'
+  }
+  return { ...value, lessonProgress: progress }
+}
+
+/**
+ * `MorseLesson` resolves `live`/`topicRef` from the library store, not from
+ * its own `topic` prop, so an interactive test has to seed the store with the
+ * exact same progress the prop and `initialRun` already reflect — otherwise
+ * the first persisted answer would silently overwrite it.
+ */
+function seedLibraryWithTopic(value: Topic): void {
+  const parsed = parseLibrary(seedLibrary())
+  if (!parsed.ok) throw new Error(parsed.error)
+  saveLibrary({
+    ...parsed.library,
+    topics: parsed.library.topics.map((candidate) => (candidate.id === value.id ? value : candidate)),
+  })
 }
 
 function tEntry(): LessonEntry {
@@ -186,17 +222,62 @@ describe('Morse sound → letter is the only multiple-choice Morse Learn prompt'
   })
 
   it('only offers introduced letter choices', () => {
-    let run = startLesson(seededTopic(MORSE_ID)) as LessonRun
+    let topic = seededTopic(MORSE_ID)
+    let run = startLesson(topic) as LessonRun
     while (currentStep(run)?.kind === 'introduce') {
       const step = currentStep(run)
       if (step?.kind !== 'introduce') break
       run = introduceLesson(run, step.entry.itemId)
     }
+    topic = withLessonProgress(topic, lessonProgressOf(run))
     const step = currentStep(run)
     if (step?.kind !== 'check') throw new Error('expected check')
-    const options = lessonListeningOptions(run, step.entry)
+    const options = lessonListeningOptions(run, step.entry, introducedGlyphs(topic))
     const introduced = new Set(run.entries.filter((entry) => entry.introduced).map((entry) => entry.glyph))
     for (const option of options) expect(introduced.has(option)).toBe(true)
+  })
+
+  it('draws distractors from characters learned in earlier packets, not only this packet roster', () => {
+    // Walk the topic through packets 0 and 1 to settled, so packet 2's roster
+    // (N, S plus review) is not the only pool a listening question can draw
+    // from: E, I, T and A are also genuinely known by this point.
+    let topic = seededTopic(MORSE_ID)
+    let run = startLesson(topic) as LessonRun
+    for (
+      let guard = 0;
+      guard < 200 && (run.packetIndex < 2 || currentStep(run)?.kind === 'introduce');
+      guard += 1
+    ) {
+      const step = currentStep(run)
+      if (!step) {
+        topic = withLessonProgress(topic, lessonProgressOf(run))
+        run = startLesson(topic) as LessonRun
+        continue
+      }
+      if (step.kind === 'introduce') {
+        run = introduceLesson(run, step.entry.itemId)
+      } else {
+        run = answerLesson(run, step.entry.itemId, step.entry.pattern)
+        if (run.feedback?.correct) run = advanceLesson(run)
+      }
+      topic = withLessonProgress(topic, lessonProgressOf(run))
+    }
+    expect(run.packetIndex).toBe(2)
+    expect(currentStep(run)?.kind).toBe('check')
+
+    const known = introducedGlyphs(topic)
+    expect(known).toEqual(expect.arrayContaining(['E', 'I', 'T', 'A']))
+
+    const step = currentStep(run)
+    if (step?.kind !== 'check') throw new Error('expected check')
+    const seen = new Set<string>()
+    for (let lessonStep = 0; lessonStep < known.length; lessonStep += 1) {
+      const options = lessonListeningOptions({ ...run, step: lessonStep }, step.entry, known)
+      for (const option of options) seen.add(option)
+    }
+    // Rotating through every step surfaces letters from outside packet 2's own
+    // small roster: the pool is the whole topic, not just the current packet.
+    expect(seen.has('E') || seen.has('I') || seen.has('T') || seen.has('A')).toBe(true)
   })
 })
 
@@ -220,7 +301,7 @@ describe('feedback and modality boundaries', () => {
     // A hit used to call `movePastVisualFeedback` synchronously inside
     // `answerVisual`, which cleared `run.feedback` in the same tick it was set.
     expect(code).not.toContain('if (next.feedback.correct) movePastVisualFeedback(next, nextSitting)')
-    expect(code).toContain('pendingAdvance.current = () => movePastVisualFeedback(next, nextSitting)')
+    expect(code).toContain('pendingAdvance.current = () => movePastVisualFeedback(next, nextSitting, pathBeforeAnswer)')
     expect(code).toContain('answered(next.feedback.correct)')
     // Durations live in the shared policy, never as a private literal here.
     expect(code).not.toMatch(/setTimeout\([^)]*\d{3}/)
@@ -348,5 +429,205 @@ describe('Learn cannot reach formal retention state', () => {
     expect(journeyImport).toContain('withAcquisitionReadiness')
     expect(journeyImport).not.toContain('resolveAttempt')
     expect(journeyImport).not.toContain('journeyFor')
+  })
+})
+
+describe('#88 automatic word-checkpoint handoff at lesson completion', () => {
+  async function settle() {
+    await act(async () => {
+      await Promise.resolve()
+      await Promise.resolve()
+    })
+  }
+
+  async function keyElement(element: '.' | '-') {
+    fireEvent.keyDown(window, { key: element, repeat: false })
+    await settle()
+  }
+
+  function advanceTime(ms: number) {
+    act(() => {
+      vi.advanceTimersByTime(ms)
+    })
+  }
+
+  async function keyPattern(pattern: string) {
+    for (const element of pattern) {
+      await keyElement(element as '.' | '-')
+      advanceTime(morseElementDurationMs(element as '.' | '-') + 10)
+    }
+  }
+
+  /**
+   * Drive the real rendered lesson — introductions and keyed checks alike —
+   * one answer at a time until either the checkpoint invitation appears or
+   * the guard trips. This exercises the actual timer-gated boundary #88 adds
+   * rather than the pure functions underneath it, so it is the one test that
+   * would fail if the milestone were wired to the wrong render path.
+   */
+  async function driveUntilCheckpointInviteOrDone(maxSteps = 60) {
+    for (let step = 0; step < maxSteps; step += 1) {
+      if (screen.queryByRole('button', { name: 'Start checkpoint' })) return
+      const gotIt = screen.queryByRole('button', { name: 'Got it' })
+      if (gotIt) {
+        fireEvent.click(gotIt)
+        continue
+      }
+      const glyph = document.querySelector('.lesson-glyph')?.textContent as keyof typeof MORSE_LETTERS | undefined
+      if (!glyph) throw new Error('Expected either a "Got it" introduction or a keyed check on screen.')
+      await keyPattern(MORSE_LETTERS[glyph])
+      // Split rather than combined: returning right after the feedback dwell,
+      // before the transition elapses, is what lets a caller observe the
+      // invitation arriving still gated rather than already armed.
+      advanceTime(MORSE_FEEDBACK_CORRECT_MS)
+      if (screen.queryByRole('button', { name: 'Start checkpoint' })) return
+      advanceTime(MORSE_TRANSITION_MS)
+    }
+    throw new Error(`Did not reach the checkpoint invitation within ${maxSteps} steps.`)
+  }
+
+  async function completeCheckpoint(maxTargets = 20) {
+    for (let targetIndex = 0; targetIndex < maxTargets; targetIndex += 1) {
+      if (screen.queryByRole('heading', { name: 'Word checkpoint complete' })) return
+      const label = document.querySelector('.morse-checkpoint-target')?.getAttribute('aria-label') ?? ''
+      const glyph = label.match(/^Key (?:the Morse pattern for )?([A-Z])(?:\s|$)/)?.[1] as keyof typeof MORSE_LETTERS | undefined
+      if (!glyph) throw new Error(`Could not read the checkpoint target from "${label}".`)
+      await keyPattern(MORSE_LETTERS[glyph])
+      advanceTime(MORSE_FEEDBACK_CORRECT_MS + MORSE_TRANSITION_MS)
+    }
+    throw new Error(`Did not complete the checkpoint within ${maxTargets} targets.`)
+  }
+
+  function presetTopic(): Topic {
+    const base = settledThroughLesson(seededTopic(MORSE_ID), 3)
+    // Listening questions pick their own DOM branch; suppressing them keeps
+    // this test driving the one keyed-check shape it knows how to answer.
+    return { ...base, lessonSitting: { retrievals: 0, correct: 0, revisitItemIds: [], listeningSuppressed: true } }
+  }
+
+  beforeEach(() => {
+    vi.useFakeTimers()
+  })
+
+  afterEach(() => {
+    cleanup()
+    vi.useRealTimers()
+  })
+
+  it('surfaces the lesson-4 checkpoint invitation automatically, without a trip through the lesson path', async () => {
+    const topic = presetTopic()
+    seedLibraryWithTopic(topic)
+
+    renderDom(
+      <LibraryProvider>
+        <MorseLesson topic={topic} initialRun={startLesson(topic) as LessonRun} onExit={vi.fn()} onTest={vi.fn()} onReference={vi.fn()} />
+      </LibraryProvider>,
+    )
+
+    await driveUntilCheckpointInviteOrDone()
+
+    expect(screen.getByText('Lesson 4 complete')).toBeTruthy()
+    expect(screen.getByText(/Word checkpoint/)).toBeTruthy()
+    expect(screen.getByText(/one letter at a time/)).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Start checkpoint' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Skip for now' })).toBeTruthy()
+  })
+
+  it('gates the invitation buttons until the preceding tap\'s transition settles, then starts the checkpoint directly', async () => {
+    const topic = presetTopic()
+    seedLibraryWithTopic(topic)
+
+    renderDom(
+      <LibraryProvider>
+        <MorseLesson topic={topic} initialRun={startLesson(topic) as LessonRun} onExit={vi.fn()} onTest={vi.fn()} onReference={vi.fn()} />
+      </LibraryProvider>,
+    )
+
+    await driveUntilCheckpointInviteOrDone()
+    const start = screen.getByRole('button', { name: 'Start checkpoint' })
+    expect(start.closest('.lesson-exits')?.hasAttribute('inert')).toBe(true)
+
+    advanceTime(MORSE_TRANSITION_MS)
+    expect(start.closest('.lesson-exits')?.hasAttribute('inert')).toBe(false)
+
+    fireEvent.click(start)
+    expect(screen.getByText('Warm-up 1 of 4')).toBeTruthy()
+  })
+
+  it('resumes the lesson untouched when the invitation is skipped, leaving the checkpoint for later replay', async () => {
+    const topic = presetTopic()
+    seedLibraryWithTopic(topic)
+
+    renderDom(
+      <LibraryProvider>
+        <MorseLesson topic={topic} initialRun={startLesson(topic) as LessonRun} onExit={vi.fn()} onTest={vi.fn()} onReference={vi.fn()} />
+      </LibraryProvider>,
+    )
+
+    await driveUntilCheckpointInviteOrDone()
+    advanceTime(MORSE_TRANSITION_MS)
+    fireEvent.click(screen.getByRole('button', { name: 'Skip for now' }))
+
+    // Lesson 5 continues exactly as an un-invited sitting would: no gate, no
+    // memory that an invitation was ever shown.
+    expect(screen.queryByRole('button', { name: 'Start checkpoint' })).toBeNull()
+    expect(screen.getByText('Packet 5 of 13')).toBeTruthy()
+  })
+
+  it('returns to the lesson after completing the checkpoint, without a stop at the path', async () => {
+    const topic = presetTopic()
+    seedLibraryWithTopic(topic)
+
+    renderDom(
+      <LibraryProvider>
+        <MorseLesson topic={topic} initialRun={startLesson(topic) as LessonRun} onExit={vi.fn()} onTest={vi.fn()} onReference={vi.fn()} />
+      </LibraryProvider>,
+    )
+
+    await driveUntilCheckpointInviteOrDone()
+    advanceTime(MORSE_TRANSITION_MS)
+    fireEvent.click(screen.getByRole('button', { name: 'Start checkpoint' }))
+
+    expect(screen.getByText('Warm-up 1 of 4')).toBeTruthy()
+    await completeCheckpoint()
+    expect(screen.getByRole('heading', { name: 'Word checkpoint complete' })).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Keep going' }))
+    expect(screen.queryByRole('heading', { name: 'Learn Morse A–Z' })).toBeNull()
+    expect(screen.getByText('Packet 5 of 13')).toBeTruthy()
+  })
+
+  it('does not invite again when the already-unlocked checkpoint is replayed from the path', () => {
+    const code = source('./MorseLesson.tsx')
+    expect(code).toContain('checkpointNewlyUnlocked(pathBeforeAnswer, pathNow, completedLessonNumber)')
+    expect(code).toContain('const pathBeforeAnswer = morseLessonPath(topicRef.current)')
+    // The snapshot is taken before `commit`, never after — taking it later
+    // would compare the topic against itself and never find a crossing.
+    const answerVisual = code.slice(code.indexOf('function answerVisual'), code.indexOf('function answerListening'))
+    expect(answerVisual.indexOf('pathBeforeAnswer')).toBeLessThan(answerVisual.indexOf('commit(next)'))
+  })
+
+  it('writes no new durable checkpoint state and introduces no second unlock system', () => {
+    const code = source('./MorseLesson.tsx')
+    const newState = code.slice(code.indexOf('CheckpointHandoff | null>(null)'), code.indexOf('function commit'))
+    expect(newState).not.toContain('updateTopic(')
+    expect(code).not.toContain('checkpointSkipped')
+    expect(code).not.toContain('checkpointSeen')
+    expect(code).not.toContain('checkpointCompleted')
+  })
+
+  it('keeps the milestone screen quiet: one primary action, one secondary, no gamification copy', () => {
+    const code = source('./MorseLesson.tsx')
+    expect(code).toContain('Start checkpoint')
+    expect(code).toContain('Skip for now')
+    expect(code).not.toMatch(/\bbadge\b|\bconfetti\b|\bstreak\b|\bXP\b/i)
+    expect(code).toContain('Optional and formative: skipping never blocks the next lesson.')
+  })
+
+  it('reuses the #87 touch-safe boundary for every terminal screen, not only the new one', () => {
+    const code = source('./MorseLesson.tsx')
+    const exitGroups = [...code.matchAll(/<div className="lesson-exits"[^>]*>/g)].map((match) => match[0])
+    expect(exitGroups.length).toBeGreaterThanOrEqual(4)
+    for (const group of exitGroups) expect(group).toContain('inert={!armed}')
   })
 })

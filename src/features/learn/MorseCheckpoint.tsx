@@ -13,6 +13,9 @@ import './MorseCheckpoint.css'
 interface MorseCheckpointProps {
   checkpoint: MorseWordCheckpoint
   onExit: () => void
+  /** Set only when #88's automatic handoff is waiting to resume the lesson it interrupted. */
+  onContinue?: () => void
+  continueLabel?: string
 }
 
 interface CheckpointFeedback {
@@ -29,7 +32,7 @@ interface CheckpointFeedback {
  * on exactly the same schedule as a Learn retrieval, and the next letter cannot
  * be keyed by a tap that was still in flight when the previous one landed.
  */
-export function MorseCheckpoint({ checkpoint, onExit }: MorseCheckpointProps) {
+export function MorseCheckpoint({ checkpoint, onExit, onContinue, continueLabel }: MorseCheckpointProps) {
   const targets = useMemo(() => checkpointTargets(checkpoint), [checkpoint])
   const [index, setIndex] = useState(0)
   const [feedback, setFeedback] = useState<CheckpointFeedback | null>(null)
@@ -76,7 +79,14 @@ export function MorseCheckpoint({ checkpoint, onExit }: MorseCheckpointProps) {
         <div className="morse-checkpoint-summary">
           <h1 ref={headingRef} tabIndex={-1}>Word checkpoint complete</h1>
           <p>You applied letters you already know. This run did not change saved lesson or Test progress.</p>
-          <button type="button" onClick={onExit}>Back to lessons</button>
+          {onContinue ? (
+            <div className="lesson-exits" inert={!armed}>
+              <button type="button" onClick={onContinue}>{continueLabel ?? 'Keep going'}</button>
+              <button className="ghost" type="button" onClick={onExit}>Back to lessons</button>
+            </div>
+          ) : (
+            <button type="button" disabled={!armed} onClick={onExit}>Back to lessons</button>
+          )}
         </div>
       </section>
     )
