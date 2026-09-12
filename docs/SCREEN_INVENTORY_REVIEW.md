@@ -1,5 +1,17 @@
 # Argus screen inventory and consolidation brief
 
+> **Authority status — proposed next programme, not current product behavior.**
+> This document contains the next major screen/learning-experience overhaul to be
+> revisited and designed before implementation. Its proposed information
+> architecture, assessment model and durable state do **not** supersede current
+> `PRODUCT.md`, `docs/PROGRESS_ARCHITECTURE.md` or shipped behavior merely by
+> appearing here. In particular, badges/achievement state, First Messages, new
+> milestone/freshness state, Home/Lessons navigation and removal of Progress are
+> unratified proposals. Badge concepts directly conflict with the current
+> `PRODUCT.md` anti-gamification contract and require an explicit product decision
+> before implementation. #90 may be reshaped or partly superseded by this
+> programme; it must not be implemented simply because it remains open.
+
 ## Revised direction following owner feedback
 
 This section supersedes the recommendations below. The original inventory remains useful as a description of the implementation, but its retain/reject decisions were too restrictive: distinct learning semantics do not require separate user-facing destinations. This revision is a researched proposal for the next reviewer, not an implemented UI change. No browser walkthrough or usage analytics informed this review; overlap findings come from source inspection.
@@ -12,11 +24,11 @@ This section supersedes the recommendations below. The original inventory remain
 - Opening Morse should land on its learning stages. The complete alphabet should be a reference reached deliberately.
 - Embed assessment in the curated curriculum. Remove the prominent Learn-versus-Test choice. Place an always-available full assessment at the end of the path.
 
-These preferences are the design direction. Exact layout, assessment semantics and migration details remain decisions for the follow-up review.
+These preferences set the direction for the next design programme, not a ratified production contract. Exact layout, assessment semantics, migration/state changes and any conflict with current product principles must be resolved explicitly before implementation.
 
-## Approved overhaul scope: Morse milestones and independent use
+## Proposed overhaul scope requiring ratification: Morse milestones and independent use
 
-### Core decision
+### Proposed core decision
 
 **Independent use is the milestone.** Cue fading stays inside Learning as an adaptive aid to reach independence; it is never a compulsory gate before an assessment can demonstrate independent ability. Assessment prompts begin uncued. When a learner asks for or needs help, the attempt continues as useful practice, while the recorded response is marked assisted and cannot count as independent evidence.
 
@@ -30,7 +42,7 @@ Speed is captured from the first release, but does not decide an initial achieve
 | First messages | Handle short unfamiliar words and simple sentences without cues, at the learner's own pace | Yes | Finish with a practical message challenge; sentence success never substitutes for letter-level coverage because context can supply a missing character. |
 | Building fluency | Handle longer, varied messages with consistent accuracy and progressively less hesitation | Later | Store timing now; defer speed tiers, formal criteria and advanced badges until use data exists. |
 
-An achievement badge records that a milestone was once earned. It remains earned. Current practice and retention results describe how fresh the skill is, without rewriting achievement history.
+The proposal currently suggests that an achievement badge record a milestone once earned, while later practice/retention describe freshness. **This is not ratified production behavior:** current `PRODUCT.md` explicitly rejects badges/gamification, so this concept must be reconsidered or separately approved before any state/schema/UI implementation.
 
 ### Assessment rules
 
@@ -70,7 +82,7 @@ Ordinary finite-reference topics use the same Home and Lessons structure without
 
 ### Initial delivery boundary
 
-Ship these together:
+The proposal currently groups these for a possible first delivery; none is authorized for implementation by this document alone:
 
 - Persistent first-visit splash preference, independent of library data.
 - Home and Lessons navigation, with current Today/Library content reorganized around the new responsibilities.

@@ -1,6 +1,6 @@
 # Morse Learn: guided acquisition, finite sittings, listening, path, and reference
 
-Issues #48, #51, #52, #56, #75, #76, #77 and #78. Parent #21. Preserves #28's
+Issues #48, #51, #52, #56, #75, #76, #77, #78, #87 and #88. Parent #21. Preserves #28's
 completion boundary and the #42/#44 mnemonic treatment. #29 remains the separate
 future boundary for claimed auditory-reception competency, sending/WPM and
 broader groups/continuous material; #78's tiny word checkpoints are formative
@@ -25,6 +25,8 @@ Primary code:
 - `src/features/learn/MorseReplay.tsx` — local-only lesson replay;
 - `src/features/learn/MorseCheckpoint.tsx` — local-only word checkpoint runner;
 - `src/features/morse/MorseKeyInput.tsx` — shared letter → Morse response control;
+- `src/lib/morseResponse.ts` / `src/features/morse/useKeyedResponse.ts` — shared
+  keyed feedback/transition timing and interaction gate (#87);
 - `src/features/learn/MorseReference.tsx` — shared A–Z lookup cards used by the
   standalone reference and the always-visible Topic-page alphabet (#76).
 
@@ -154,6 +156,17 @@ long-press browser UI and touch scrolling while an active press is being
 classified, so one press cannot accidentally become a dit plus a dah or a page
 gesture.
 
+#87 now owns the complete keyed-response boundary. Press duration chooses only
+dit versus dah; the shared audio path renders that accepted element completely,
+so a quick tap is not a clipped chirp and the final element finishes before the
+answer advances. Once an answer commits, keyed input is inert through the brief
+`Correct`/wrong feedback dwell and target transition; automatic advance remains,
+but the next target is not live until that transition is finished. Learn, replay
+and word checkpoints share this policy. Reduced motion may remove the visual
+movement but never the input gate. The Morse key's pressed state is tactile and
+tonal/elevation-based rather than blue/accent. None of this changes lesson
+support, Test evidence, scoring, readiness or retention semantics.
+
 The #52 answer-safety rule remains: **no unanswered printed recall question
 exposes target playback**. A one-signal question such as `T` may show `1 signal`,
 but there is no Play control that can reveal whether the answer is dit or dah.
@@ -271,8 +284,17 @@ and every warm-up/word is mechanically checked against that set. Current content
 is `TIME` after Lesson 4 and `TRAIN` + `GARDEN` after Lesson 7; `O` is explicitly
 ineligible there because it first appears in Lesson 8. The full word remains
 visible while the current character is emphasized. Correct and wrong responses
-both receive brief feedback and advance automatically; a miss changes nothing
-outside that transient feedback.
+both receive the shared #87 feedback/transition treatment and advance
+automatically; a miss changes nothing outside that transient feedback.
+
+#88 adds the forward milestone handoff without adding checkpoint state. When
+canonical progression newly unlocks the Lesson-4 or Lesson-7 checkpoint, the
+lesson completion boundary automatically presents a brief invitation. Starting
+there enters the checkpoint directly. Skipping remains non-gating and leaves the
+unlocked checkpoint available from the lesson path; replay or later repair of an
+already reached lesson does not recreate a first-unlock invitation. Completing a
+checkpoint continues naturally into the lesson journey rather than requiring the
+learner to rediscover their place.
 
 Lesson selection, replay and checkpoint selection remain microstate inside the
 existing Learn route, preserving #45 browser History / Android Back behavior.
@@ -369,7 +391,7 @@ Automated coverage establishes, among other invariants:
   exposes no pattern alternatives;
 - all forward printed Test rungs use the same shared keyed-production control;
 - one short press classifies as one dit and one hold as one dah;
-- keyed entry starts blank, auto-grades once at expected length and exposes no
+- keyed entry starts blank, commits once at expected length and exposes no
   Back/delete/Submit/Check correction flow;
 - interrupted pointers produce no phantom element;
 - keyboard and accessible alternatives remain available;

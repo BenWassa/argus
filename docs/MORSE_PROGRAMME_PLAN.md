@@ -3,7 +3,7 @@
 Parent issue: #21  
 Research baseline: `docs/MORSE_CODE_LEARNING_PRD.md` (PR #22; amended by #42)  
 Execution-plan origin: PR #30  
-Current programme state: #75 lesson path/replay; corrected #76 shared A–Z reference; #77 direct auto-grading Morse key; #78 early word checkpoints  
+Current programme state: #75 lesson path/replay; corrected #76 shared A–Z reference; #77 direct Morse key; #78 early word checkpoints; #87 touch-safe shared keyed-response lifecycle; #88 seamless milestone checkpoint handoff
 Prior corrections: #48 guided Learn; #51 finite sittings; #52 visual/listening separation; #56 keyed production; #42/#44 rhythmic verbal acquisition + production mobile audio
 
 ## Document hierarchy
@@ -53,7 +53,7 @@ retention gap. `src/lib/scheduling.ts` remains the authority for completion.
 #75 lesson replay and #78 word checkpoints add no fourth durable clock. Both are
 formative, ephemeral projections inside Learn.
 
-## Current implementation state through #78
+## Current implementation state through #88
 
 #28 absorbed the narrow #23 control topic in place. The same topic id and 26
 stable item ids define 26 `bidirectional` logical units. Existing history,
@@ -105,6 +105,24 @@ then `TRAIN` + `GARDEN`). Allowed letters are derived mechanically from
 unlocks in Lesson 8. Checkpoint runs are local-only and write no lesson support,
 sitting, readiness, scheduler, Test evidence or completion state.
 
+#87 makes the keyed answer boundary explicit across Learn, lesson replay and word
+checkpoints. Dit/dah classification is separate from rendering the complete tone;
+the final element finishes before progression, both correct and wrong feedback
+remain briefly visible, automatic advance is retained, and input stays locked
+through feedback/transition so the following target cannot receive a carry-over
+tap or key repeat. Reduced motion removes unnecessary animation but not the
+safety gate. The Morse key communicates press through elevation/tone rather than
+a blue/accent repaint. These are interaction changes only: Learn/Test evidence,
+scoring, acquisition and retention semantics are unchanged.
+
+#88 integrates the existing Lesson-4 and Lesson-7 checkpoints into the forward
+journey. When canonical progression newly unlocks one, lesson completion presents
+a restrained invitation automatically. `Start checkpoint` enters it directly;
+skip/continue remains non-gating and leaves the checkpoint available on the path.
+Replay or repair of an already reached milestone does not manufacture a new
+first-unlock event, and checkpoint completion continues naturally into the
+lesson journey. Checkpoint work remains formative and non-evidentiary.
+
 ## Decisions register
 
 | # | Decision | Settled answer | Status | Implemented by |
@@ -122,6 +140,8 @@ sitting, readiness, scheduler, Test evidence or completion state.
 | D11 | A–Z reference placement | Reuse one compact learning-card representation; all 26 visible directly on the Morse Topic page and available in standalone reference | Ratified | #76 |
 | D12 | Direct keyed-entry lifecycle | Blank start, shared sidetone identity, expected-length auto-grade exactly once, no Back/delete/Submit/Check | Ratified | #77 |
 | D13 | Early word application | Interstitial checkpoints after Lessons 4 and 7; mechanically eligible deterministic content; no gating or durable checkpoint state | Ratified | #78 |
+| D14 | Keyed response boundary | Complete element audio, locked feedback/transition lifecycle, automatic advance and tactile non-blue key styling shared by Learn/replay/checkpoints | Ratified | #87 |
+| D15 | Checkpoint milestone handoff | Newly unlocking Lesson-4/7 checkpoints are invited automatically; direct start, non-gating skip, no replay/repair false retrigger | Ratified | #88 |
 | P1 | Character order | Complexity-ascending with final-element confusables split | Ratified | #26 / PR #34 |
 | P2 | Novel characters per packet | Up to 5 visible, 2 novel; independent config | Implemented default | #26 / PR #34 |
 | P3 | Cue fading | Two consecutive correct at current rung; latency recorded but not gating | Implemented default | #27 / PR #35; presentation reconciled by #42/#56 |
@@ -149,10 +169,11 @@ v4 seed as a migration input. Current exported/runtime libraries are normalized
 to v5; supported older libraries migrate forward. Cue evidence is portable but
 remains structurally separate from scheduler history.
 
-#42, #51, #52, #56, #75, #76, #77 and #78 add no new durable schema field for
-their presentation/runtime concerns. The verbal phrase table, SVG rendering,
-Web Audio schedule, direct Morse-key timing, lesson path/replay, reference-card
-placement and word-checkpoint run state do not create learner-data stores.
+#42, #51, #52, #56, #75, #76, #77, #78, #87 and #88 add no new durable schema
+field for their presentation/runtime concerns. The verbal phrase table, SVG
+rendering, Web Audio schedule, keyed response lifecycle, lesson path/replay,
+reference-card placement, checkpoint invitation and word-checkpoint run state do
+not create learner-data stores.
 
 #59/#66 add `Topic.lessonSitting`: the active finite Learn sitting — retrieval
 count, correct count, letters to revisit and whether the learner declined
@@ -234,12 +255,15 @@ three rungs no longer use recognition choices:
    whose semantics require the reverse direction.
 
 The first four all render the same shared `MorseKeyInput`. A fresh answer is
-blank. Tap/short press commits a dit and hold commits a dah. The caller provides
-the expected element count; reaching it submits exactly once and grades
-immediately. There is no Back/delete, Submit/Check or correction/confirmation
-path. Keyboard `.` and `-` use the same automatic grading behavior; Backspace
-and Enter are not response controls. Timing is not returned as evidence and
-therefore cannot imply sending skill or WPM.
+blank. Tap/short press classifies a dit and hold classifies a dah. The caller
+provides the expected element count; reaching it commits exactly once, but #87
+decouples that categorical input from complete audible element playback. The
+final accepted tone is allowed to finish before the answer boundary advances,
+then the answer region stays locked through brief visible feedback and the small
+target transition before the next target becomes live. There is no Back/delete,
+Submit/Check or correction/confirmation path. Keyboard `.` and `-` follow the
+same gated contract; Backspace and Enter are not response controls. Timing is
+not returned as evidence and therefore cannot imply sending skill or WPM.
 
 #77 also unifies the keyed sidetone with sample playback's tonal identity and
 click-free edge shaping and handles the fresh-mobile `AudioContext.resume()` race
