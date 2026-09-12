@@ -15,6 +15,7 @@ import {
   type LessonEntry,
   type LessonRun,
 } from '../../lib/morseLesson'
+import { morseLessonPath, type MorseLessonPathItem } from '../../lib/morseLessonPath'
 import {
   answerListeningQuestion,
   lessonListeningOptions,
@@ -35,17 +36,32 @@ import {
   withoutLessonSitting,
   type LessonSitting,
 } from '../../lib/morseLessonSitting'
+import {
+  checkpointNewlyUnlocked,
+  morseWordCheckpointPath,
+  type MorseWordCheckpointPathItem,
+} from '../../lib/morseWordCheckpoints'
 import { withAcquisitionReadiness } from '../../lib/journey'
 import type { MorseLetter } from '../../lib/morse'
 import { useLibrary } from '../../lib/store'
 import type { Topic } from '../../lib/types'
 import { MorseKeyInput } from '../morse/MorseKeyInput'
 import { useKeyedResponse } from '../morse/useKeyedResponse'
+import { MorseCheckpoint } from './MorseCheckpoint'
 import { MorseMnemonic } from './MorseMnemonic'
 import { MorseBeatGrammarNote, MorsePhrase } from './MorsePhrase'
 import { MorsePlayButton } from './MorsePlayButton'
 import { useMorseAudio } from './useMorseAudio'
 import './MorseLesson.css'
+
+/** The two #78 word-checkpoint milestones, mechanically tied to lessonPackets() via morseWordCheckpoints. */
+const CHECKPOINT_LESSON_NUMBERS = new Set([4, 7])
+
+interface CheckpointHandoff {
+  checkpoint: MorseWordCheckpointPathItem
+  /** The run to resume into once the learner starts, skips, or finishes the checkpoint. */
+  resume: LessonRun
+}
 
 interface MorseLessonProps {
   topic: Topic
@@ -193,6 +209,13 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
   const [listeningFeedback, setListeningFeedback] = useState<ListeningFeedback | null>(null)
   const [audioNotice, setAudioNotice] = useState<string | null>(null)
   const [packetsAdvanced, setPacketsAdvanced] = useState(0)
+  // #88: a milestone lesson just settled and its word checkpoint is being
+  // offered before the learner is sent on. Local and ephemeral like the
+  // checkpoint itself — losing it on reload re-derives the same choice from
+  // `morseWordCheckpointPath`, it just skips one invitation rather than
+  // corrupting anything durable.
+  const [checkpointInvite, setCheckpointInvite] = useState<CheckpointHandoff | null>(null)
+  const [runningCheckpoint, setRunningCheckpoint] = useState<CheckpointHandoff | null>(null)
   /**
    * The advance that belongs to the answer currently on screen. It is captured
    * at answer time rather than rebuilt on render, because the run and sitting
@@ -228,9 +251,9 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
   }, [audioError, stop])
 
   useEffect(() => {
-    if (run.complete || run.finished || (sittingDone && !hasFeedback)) headingRef.current?.focus()
+    if (checkpointInvite || run.complete || run.finished || (sittingDone && !hasFeedback)) headingRef.current?.focus()
     else if (!hasFeedback && armed) stepRef.current?.focus({ preventScroll: true })
-  }, [run.step, run.complete, run.finished, sittingDone, hasFeedback, armed, listeningState.suppressed])
+  }, [run.step, run.complete, run.finished, sittingDone, hasFeedback, armed, listeningState.suppressed, checkpointInvite])
 
   /**
    * Persist one lesson step.
@@ -255,19 +278,76 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
     updateTopic(topic.id, (current) => withLessonSitting(current, next))
   }
 
-  function movePastVisualFeedback(answeredRun: LessonRun, nextSitting: typeof sitting) {
+  /**
+   * Which #78 checkpoint, if any, this exact packet settlement just unlocked
+   * for the first time (#88).
+   *
+   * `pathBeforeAnswer` is a snapshot taken in `answerVisual` before that
+   * answer's progress was persisted — the one moment this comparison needs
+   * and the render loop never naturally holds onto, since by the time this
+   * runs `topicRef.current` already reflects the committed answer. Comparing
+   * it against the path now is what tells a genuine first crossing apart from
+   * passing through a later lesson-complete screen, or a repair re-settling an
+   * already-reached lesson.
+   */
+  function newlyUnlockedCheckpoint(
+    completedLessonNumber: number,
+    pathBeforeAnswer: MorseLessonPathItem[] | null,
+  ): MorseWordCheckpointPathItem | null {
+    if (!pathBeforeAnswer || !CHECKPOINT_LESSON_NUMBERS.has(completedLessonNumber)) return null
+    const pathNow = morseLessonPath(topicRef.current)
+    if (!pathNow) return null
+    if (!checkpointNewlyUnlocked(pathBeforeAnswer, pathNow, completedLessonNumber)) return null
+    const checkpoints = morseWordCheckpointPath(topicRef.current)
+    return checkpoints?.find((checkpoint) => checkpoint.afterLesson === completedLessonNumber) ?? null
+  }
+
+  function movePastVisualFeedback(
+    answeredRun: LessonRun,
+    nextSitting: typeof sitting,
+    pathBeforeAnswer: MorseLessonPathItem[] | null,
+  ) {
     const cleared = advanceLesson(answeredRun)
+    const invite = cleared.complete ? newlyUnlockedCheckpoint(cleared.packetIndex + 1, pathBeforeAnswer) : null
+
     if (cleared.complete && !lessonSittingComplete(nextSitting)) {
       const next = startLesson(topicRef.current)
       if (next) {
         if (next.packetIndex > cleared.packetIndex) {
           setPacketsAdvanced((count) => count + (next.packetIndex - cleared.packetIndex))
         }
+        if (invite) {
+          setCheckpointInvite({ checkpoint: invite, resume: next })
+          return
+        }
         setRun(next)
         return
       }
     }
+
+    if (invite) {
+      setCheckpointInvite({ checkpoint: invite, resume: cleared })
+      return
+    }
     setRun(cleared)
+  }
+
+  function startInvitedCheckpoint() {
+    if (!checkpointInvite) return
+    setRunningCheckpoint(checkpointInvite)
+    setCheckpointInvite(null)
+  }
+
+  function skipInvitedCheckpoint() {
+    if (!checkpointInvite) return
+    setRun(checkpointInvite.resume)
+    setCheckpointInvite(null)
+  }
+
+  function finishRunningCheckpoint() {
+    if (!runningCheckpoint) return
+    setRun(runningCheckpoint.resume)
+    setRunningCheckpoint(null)
   }
 
   function answerVisual(itemId: string, response: string) {
@@ -277,11 +357,15 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
     setListeningState((state) => recordLessonQuestion(state, itemId))
     const nextSitting = recordLessonRetrieval(sitting, itemId, next.feedback.correct)
     persistSitting(nextSitting)
+    // Snapshot the path before this answer's progress commits (#88): it is
+    // the "before" side of the newly-unlocked comparison, and the only point
+    // at which `topicRef.current` has not yet absorbed this answer.
+    const pathBeforeAnswer = morseLessonPath(topicRef.current)
     commit(next)
     // A hit used to advance in the same tick it was recorded, so its feedback
     // existed in state for less than a frame and the learner never saw it. Both
     // verdicts now stand for their policy duration before the surface moves.
-    pendingAdvance.current = () => movePastVisualFeedback(next, nextSitting)
+    pendingAdvance.current = () => movePastVisualFeedback(next, nextSitting, pathBeforeAnswer)
     answered(next.feedback.correct)
   }
 
@@ -355,6 +439,41 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
     </div>
   )
 
+  if (runningCheckpoint) {
+    return (
+      <MorseCheckpoint
+        checkpoint={runningCheckpoint.checkpoint}
+        onExit={onExit}
+        onContinue={finishRunningCheckpoint}
+        continueLabel="Keep going"
+      />
+    )
+  }
+
+  if (checkpointInvite) {
+    const { checkpoint } = checkpointInvite
+    const wordCount = checkpoint.words.length
+    return (
+      <section className="session morse-lesson">
+        {bar}
+        <h1 ref={headingRef} tabIndex={-1} className="lesson-title">Lesson {checkpoint.afterLesson} complete</h1>
+        <p className="lesson-lede">You now know enough letters to use a few of them together.</p>
+        <div className="checkpoint-invite-card">
+          <p className="lesson-task">Word checkpoint</p>
+          <p>Key a real word one letter at a time, using only letters you already know.</p>
+          <p className="lesson-foot">
+            {checkpoint.warmups.length} quick warm-ups, then {wordCount === 1 ? 'one word' : `${wordCount} words`}.
+          </p>
+        </div>
+        <div className="lesson-exits" inert={!armed}>
+          <button type="button" onClick={startInvitedCheckpoint}>Start checkpoint</button>
+          <button className="ghost" type="button" onClick={skipInvitedCheckpoint}>Skip for now</button>
+        </div>
+        <p className="lesson-foot">Optional and formative: skipping never blocks the next lesson.</p>
+      </section>
+    )
+  }
+
   if (run.finished) {
     return (
       <section className="session morse-lesson">
@@ -364,7 +483,7 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
           All 26 characters have been produced unaided at least once in Learn. That is acquisition, not proof:
           the printed A–Z claim is earned in Test, uncued and in both directions.
         </p>
-        <div className="lesson-exits">
+        <div className="lesson-exits" inert={!armed}>
           <button type="button" onClick={onTest}>Test me</button>
           <button className="ghost" type="button" onClick={onReference}>Morse alphabet</button>
         </div>
@@ -382,7 +501,7 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
         <p className="lesson-lede"><strong>{sitting.retrievals} retrievals</strong> · {sitting.correct} correct · {revisit} {revisit === 1 ? 'letter' : 'letters'} to revisit</p>
         <p className="lesson-foot">Packet {run.packetIndex + 1} of {run.packetCount}: {packetProgress.done} of {packetProgress.total} settled.</p>
         {packetsSettled > 0 && <p className="lesson-foot">{packetsSettled === 1 ? '1 packet settled this sitting.' : `${packetsSettled} packets settled this sitting.`}</p>}
-        <div className="lesson-exits">
+        <div className="lesson-exits" inert={!armed}>
           <button type="button" onClick={nextSitting}>Next lesson</button>
           <button className="ghost" type="button" onClick={onExit}>Stop here</button>
         </div>
@@ -398,7 +517,7 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
         {bar}
         <h1 ref={headingRef} tabIndex={-1} className="lesson-title">Packet {run.packetIndex + 1} done</h1>
         <p className="lesson-lede">Every character in this packet was produced from the letter alone. {last ? 'That was the last packet.' : 'The next packet brings two new characters and mixes these back in.'}</p>
-        <div className="lesson-exits">
+        <div className="lesson-exits" inert={!armed}>
           <button type="button" onClick={nextPacket}>{last ? 'Finish' : 'Next packet'}</button>
           <button className="ghost" type="button" onClick={onExit}>Stop here</button>
         </div>

@@ -4,6 +4,7 @@ import { morseLessonPath } from './morseLessonPath'
 import type { MorseLetter } from './morse'
 import {
   checkpointEligibleLetters,
+  checkpointNewlyUnlocked,
   checkpointTargets,
   morseWordCheckpointPath,
   morseWordCheckpoints,
@@ -98,6 +99,38 @@ describe('Morse word checkpoint curriculum', () => {
     morseWordCheckpointPath(value)
     morseWordCheckpoints()
     expect(JSON.stringify(value)).toBe(before)
+  })
+
+  it('flags the exact crossing for #88 automatic handoff, never a render-time read of one path alone', () => {
+    const fresh = topic()
+    const before = morseLessonPath(fresh)!
+    const after4 = morseLessonPath(settledThroughLesson(fresh, 4))!
+    const after7 = morseLessonPath(settledThroughLesson(fresh, 7))!
+
+    // The crossing itself.
+    expect(checkpointNewlyUnlocked(before, after4, 4)).toBe(true)
+    // Lesson 4 settling must not also flag the unrelated lesson-7 checkpoint.
+    expect(checkpointNewlyUnlocked(before, after4, 7)).toBe(false)
+    // Passing through a later lesson-complete screen, with lesson 4 already
+    // unlocked on both sides, is not a second crossing.
+    expect(checkpointNewlyUnlocked(after4, after7, 4)).toBe(false)
+    expect(checkpointNewlyUnlocked(after4, after7, 7)).toBe(true)
+  })
+
+  it('does not re-flag a milestone when later repair regresses and re-settles an older lesson', () => {
+    // The repair scenario from the unlock test above: lesson 1 regresses to
+    // `current` while lesson 8 stays reached, so the checkpoint after lesson 4
+    // was unlocked throughout and a repaired re-completion of lesson 4 must not
+    // replay the first-unlock invitation.
+    const base = settledThroughLesson(topic(), 8)
+    const progress = { ...(base.lessonProgress ?? {}) }
+    progress[itemIdForGlyph(base, lessonPackets()[0].novel[0])] = 'cued'
+    const repairing = { ...base, lessonProgress: progress }
+    const repaired = settledThroughLesson(repairing, 8)
+
+    const duringRepair = morseLessonPath(repairing)!
+    const afterRepair = morseLessonPath(repaired)!
+    expect(checkpointNewlyUnlocked(duringRepair, afterRepair, 4)).toBe(false)
   })
 
   it('flattens four warm-ups before deterministic whole-word character targets', () => {

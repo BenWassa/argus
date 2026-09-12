@@ -248,6 +248,31 @@
   gap: var(--s-sm);
 }
 
+/*
+ * The #88 milestone invitation. One quiet card stating what the activity is
+ * and how long it runs — restrained on purpose: no badge, no celebration
+ * graphic, nothing that would make skipping it feel like giving something up.
+ */
+.checkpoint-invite-card {
+  display: grid;
+  gap: var(--s-sm);
+  padding: var(--s-lg);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-lg);
+  background: var(--surface-2);
+  animation: morse-target-in var(--t-base) var(--ease) both;
+}
+
+.checkpoint-invite-card p {
+  margin: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .checkpoint-invite-card {
+    animation: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .lesson-progress-fill {
     transition: none;

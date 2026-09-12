@@ -126,6 +126,25 @@ export function morseWordCheckpointPath(topic: Topic): MorseWordCheckpointPathIt
   }))
 }
 
+/**
+ * True exactly on the crossing (#88): `afterLesson` was locked in `before` and
+ * is unlocked in `after`.
+ *
+ * `checkpointUnlocked` is forever-true once a milestone is reached, so reading
+ * it alone at render time cannot tell "just now" from "weeks ago" — the same
+ * reason a later repair that regresses and re-settles an older lesson must not
+ * replay the first-unlock moment, because by then a later lesson had already
+ * kept the checkpoint unlocked throughout. Comparing two path snapshots, rather
+ * than reading one index, is what stays correct if lesson support changes.
+ */
+export function checkpointNewlyUnlocked(
+  before: readonly MorseLessonPathItem[],
+  after: readonly MorseLessonPathItem[],
+  afterLesson: number,
+): boolean {
+  return !checkpointUnlocked(before, afterLesson) && checkpointUnlocked(after, afterLesson)
+}
+
 /** Flatten the fixed warm-up → word run without creating a progress or practice subsystem. */
 export function checkpointTargets(checkpoint: MorseWordCheckpoint): MorseCheckpointTarget[] {
   const targets: MorseCheckpointTarget[] = checkpoint.warmups.map((letter) => ({

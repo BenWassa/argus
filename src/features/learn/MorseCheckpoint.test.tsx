@@ -67,4 +67,16 @@ describe('Morse word checkpoint surface', () => {
     expect(css).toContain('@media (max-width: 380px)')
     expect(css).not.toMatch(/font-size:\s*\d+px/)
   })
+
+  it('offers a #88 continuation back into the interrupted lesson only when one is handed in', () => {
+    const code = source('./MorseCheckpoint.tsx')
+    // The manual path-triggered flow (#78, unchanged) still passes only
+    // `onExit` and must keep its single "Back to lessons" button.
+    expect(code).toContain('onContinue?: () => void')
+    expect(code).toContain('onContinue ? (')
+    expect(code).toContain('{continueLabel ?? \'Keep going\'}')
+    expect(code).toMatch(/<button type="button" disabled=\{!armed\} onClick=\{onExit\}>Back to lessons<\/button>/)
+    // Never the bare word the between-character advance test above forbids.
+    expect(code).not.toContain('>Continue<')
+  })
 })
