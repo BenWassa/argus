@@ -27,6 +27,7 @@ import {
 } from './morseLessonSitting'
 import { parseLibrary } from './storage'
 import { seedLibrary } from './seed'
+import type { MorseLetter } from './morse'
 import type { Topic } from './types'
 
 function morseTopic(): Topic {
@@ -97,11 +98,16 @@ describe('Morse listening question scheduling', () => {
 })
 
 describe('listening letter choices', () => {
-  it('contains the target and only already-introduced characters', () => {
+  function knownGlyphsOf(run: LessonRun) {
+    return run.entries.filter((candidate) => candidate.introduced).map((candidate) => candidate.glyph)
+  }
+
+  it('contains the target and only already-known characters', () => {
     const run = introducedRun()
     const entry = run.entries[0]
-    const options = lessonListeningOptions(run, entry)
-    const introduced = new Set(run.entries.filter((candidate) => candidate.introduced).map((candidate) => candidate.glyph))
+    const known = knownGlyphsOf(run)
+    const options = lessonListeningOptions(run, entry, known)
+    const introduced = new Set(known)
 
     expect(options).toContain(entry.glyph)
     expect(options.length).toBeGreaterThanOrEqual(2)
@@ -112,14 +118,55 @@ describe('listening letter choices', () => {
   it('is deterministic for the same lesson step', () => {
     const run = introducedRun()
     const entry = run.entries[0]
-    expect(lessonListeningOptions(run, entry)).toEqual(lessonListeningOptions(run, entry))
+    const known = knownGlyphsOf(run)
+    expect(lessonListeningOptions(run, entry, known)).toEqual(lessonListeningOptions(run, entry, known))
   })
 
   it('does not rely on a future/unintroduced padding character in the first packet', () => {
     const run = introducedRun()
     const entry = run.entries[0]
-    expect(run.entries.filter((candidate) => candidate.introduced)).toHaveLength(2)
-    expect(lessonListeningOptions(run, entry)).toHaveLength(2)
+    const known = knownGlyphsOf(run)
+    expect(known).toHaveLength(2)
+    expect(lessonListeningOptions(run, entry, known)).toHaveLength(2)
+  })
+
+  it('draws distractors from every known character, not only this packet roster', () => {
+    // The pool passed in stands for the whole topic's progress (#87 follow-up
+    // feedback: a learner well past packet 2 kept seeing the same two early
+    // letters as the entire choice set). A run's own `entries` never exceeds
+    // its packet's small roster, so a wide pool exercises letters that could
+    // never come from `run.entries` alone.
+    const run = introducedRun()
+    const entry = run.entries[0]
+    const known: MorseLetter[] = ['E', 'I', 'T', 'A', 'N', 'S', 'M', 'U', 'R', 'D']
+
+    const seen = new Set<string>()
+    for (let step = 0; step < known.length; step += 1) {
+      for (const option of lessonListeningOptions({ ...run, step }, entry, known)) seen.add(option)
+    }
+
+    const beyondPacket = [...seen].filter((glyph) => !['E', 'I'].includes(glyph))
+    expect(beyondPacket.length).toBeGreaterThan(0)
+  })
+
+  it('rotates which distractors appear as the lesson step advances', () => {
+    const run = introducedRun()
+    const entry = run.entries[0]
+    const known: MorseLetter[] = ['E', 'I', 'T', 'A', 'N', 'S']
+
+    const atStepZero = lessonListeningOptions({ ...run, step: 0 }, entry, known)
+    const atLaterStep = lessonListeningOptions({ ...run, step: 3 }, entry, known)
+    expect(atStepZero).not.toEqual(atLaterStep)
+  })
+
+  it('still excludes any character the pool does not contain', () => {
+    const run = introducedRun()
+    const entry = run.entries[0]
+    const known: MorseLetter[] = ['E', 'I', 'T']
+    for (let step = 0; step < 6; step += 1) {
+      const options = lessonListeningOptions({ ...run, step }, entry, known)
+      for (const option of options) expect(known).toContain(option)
+    }
   })
 })
 
