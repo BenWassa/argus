@@ -7,10 +7,10 @@ import {
   type LessonRun,
 } from '../../lib/morseLesson'
 import { VisualCheckStep } from './MorseLesson'
+import { useKeyedResponse } from '../morse/useKeyedResponse'
 import './MorseReplay.css'
 
 export const MORSE_REPLAY_RETRIEVAL_LIMIT = 10
-const REPLAY_FEEDBACK_MS = 850
 
 interface MorseReplayProps {
   initialRun: LessonRun
@@ -29,28 +29,31 @@ export function MorseReplay({ initialRun, onExit }: MorseReplayProps) {
   const [retrievals, setRetrievals] = useState(0)
   const headingRef = useRef<HTMLHeadingElement>(null)
   const stepRef = useRef<HTMLDivElement>(null)
+  const pendingAdvance = useRef<(() => void) | null>(null)
+  // Replay is a refresher, not a lesser surface: it runs the same #87 boundary
+  // as Learn so the keyed interaction feels identical wherever it is met.
+  const { armed, answered: gradeAnswered } = useKeyedResponse(() => {
+    const advance = pendingAdvance.current
+    pendingAdvance.current = null
+    advance?.()
+  })
 
   const finished = run.complete || retrievals >= MORSE_REPLAY_RETRIEVAL_LIMIT
   const step = run.feedback || finished ? null : currentStep(run)
 
   useEffect(() => {
     if (finished) headingRef.current?.focus({ preventScroll: true })
-    else if (!run.feedback) stepRef.current?.focus({ preventScroll: true })
-  }, [finished, run.feedback, run.step])
-
-  useEffect(() => {
-    if (!run.feedback) return
-    const answered = run
-    const timer = setTimeout(() => setRun(advanceLesson(answered)), REPLAY_FEEDBACK_MS)
-    return () => clearTimeout(timer)
-  }, [run.feedback])
+    else if (!run.feedback && armed) stepRef.current?.focus({ preventScroll: true })
+  }, [finished, run.feedback, run.step, armed])
 
   function answer(itemId: string, response: string) {
-    if (run.feedback || finished) return
-    const answered = answerLesson(run, itemId, response)
-    if (answered === run || !answered.feedback) return
+    if (run.feedback || finished || !armed) return
+    const answeredRun = answerLesson(run, itemId, response)
+    if (answeredRun === run || !answeredRun.feedback) return
     setRetrievals((count) => count + 1)
-    setRun(answered)
+    setRun(answeredRun)
+    pendingAdvance.current = () => setRun(advanceLesson(answeredRun))
+    gradeAnswered(answeredRun.feedback.correct)
   }
 
   if (finished && !run.feedback) {
@@ -103,6 +106,7 @@ export function MorseReplay({ initialRun, onExit }: MorseReplayProps) {
           entry={step.entry}
           format={step.format}
           regionRef={stepRef}
+          armed={armed}
           onAnswer={(response) => answer(step.entry.itemId, response)}
         />
       )}

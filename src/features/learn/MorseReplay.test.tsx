@@ -32,8 +32,12 @@ describe('Morse lesson replay', () => {
   it('reuses the real lesson answer/advance policy locally', () => {
     const code = source('./MorseReplay.tsx')
     expect(code).toContain('answerLesson(run, itemId, response)')
-    expect(code).toContain('advanceLesson(answered)')
+    expect(code).toContain('advanceLesson(answeredRun)')
     expect(code).toContain('<VisualCheckStep')
+    // Replay runs the same keyed boundary as Learn rather than its own timing.
+    expect(code).toContain('useKeyedResponse')
+    expect(code).not.toContain('REPLAY_FEEDBACK_MS')
+    expect(code).toContain('armed={armed}')
   })
 
   it('states explicitly that replay changes neither saved lesson position nor Test evidence', () => {

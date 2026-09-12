@@ -73,10 +73,33 @@ describe('one-touch Morse key', () => {
     const code = source('./MorseKeyInput.tsx')
     expect(code).toContain('DEFAULT_MORSE_AUDIO')
     expect(code).toContain('MORSE_AUDIO_EDGE_RAMP_MS')
-    expect(code).toContain('LEARN_ACQUISITION_MORSE_TIMING')
+    // Element length is no longer computed inline from the WPM constant; it
+    // comes from the shared policy so keyed and played Morse cannot diverge.
+    expect(code).toContain('morseElementDurationMs')
     expect(code).not.toContain('MORSE_KEY_TONE_HZ')
     expect(code).not.toContain('MORSE_KEY_TONE_GAIN')
     expect(code).toContain('linearRampToValueAtTime(0')
+  })
+
+  it('sounds a complete element rather than cutting the tone at finger-contact duration', () => {
+    const code = source('./MorseKeyInput.tsx')
+    expect(code).toContain('finishSustainedTone')
+    // The release path extends the live tone to the canonical element length
+    // measured from when the tone started, then commits when it ends.
+    expect(code).toContain('startedAt + morseElementDurationMs(element) / 1000')
+    expect(code).toContain('commitElement(element, Math.max(0, (end - at) * 1000)')
+    // The old behaviour stopped the oscillator and graded in the same breath.
+    expect(code).not.toMatch(/stopTone\(\)\n\s+commitElement\(element\)\n\s+\} else \{/)
+  })
+
+  it('refuses pointer, click and keyboard entry while the parent holds the gate', () => {
+    const code = source('./MorseKeyInput.tsx')
+    expect(code).toContain('locked?: boolean')
+    expect(code).toContain('const inputBlocked = locked')
+    expect(code).toContain('if (typing || inputBlocked || event.repeat) return')
+    expect(code).toContain('lockedRef.current || inputBlocked) return')
+    expect(code).toContain("if (event.detail === 0 && !inputBlocked) keyElement('.')")
+    expect(code).toContain('disabled={inputBlocked || entry.length >= expectedLength}')
   })
 
   it('retries a released first press after AudioContext resume instead of losing it', () => {
@@ -96,6 +119,32 @@ describe('one-touch Morse key', () => {
     expect(cancel).not.toContain('commitElement(')
     expect(code).toContain('onPointerCancel={(event) => cancelPress(event.pointerId)}')
     expect(code).toContain('onLostPointerCapture={(event) => cancelPress(event.pointerId)}')
+  })
+
+  it('presses as a physical key rather than repainting itself in an unrelated colour', () => {
+    const css = source('./MorseKeyInput.css')
+    // Pressed state is elevation and tone. The key keeps its own identity.
+    expect(css).toContain("[data-pressed='true']")
+    expect(css).toContain('transform: translateY(2px)')
+    expect(css).toContain('box-shadow: none')
+    expect(css).toContain('filter: brightness(0.88)')
+    // Chrome on Android otherwise washes the tapped control in blue.
+    expect(css).toContain('-webkit-tap-highlight-color: transparent')
+    // And otherwise latches :hover on it after the tap that caused it.
+    expect(css).toContain('@media (hover: hover) and (pointer: fine)')
+    expect(css).toContain('.morse-key,\n.morse-key:hover')
+    // Nothing may recolour the key into a track/state hue.
+    expect(css).not.toMatch(/--(learning|survival|tradecraft|danger|ok)\)/)
+  })
+
+  it('keeps the interaction gate out of CSS so reduced motion cannot unlock it', () => {
+    const css = source('./MorseKeyInput.css')
+    const code = source('./MorseKeyInput.tsx')
+    // Reduced motion removes travel and transition, never the refusal: the
+    // refusal is `disabled` plus the parent's `inert`, both in markup.
+    expect(css).toContain('@media (prefers-reduced-motion: reduce)')
+    expect(css).not.toContain('pointer-events: none')
+    expect(code).toContain('disabled={inputBlocked || entry.length >= expectedLength}')
   })
 
   it('prevents long-press browser gestures and keeps timing-free keyboard entry', () => {

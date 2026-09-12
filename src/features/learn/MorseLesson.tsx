@@ -39,13 +39,12 @@ import type { MorseLetter } from '../../lib/morse'
 import { useLibrary } from '../../lib/store'
 import type { Topic } from '../../lib/types'
 import { MorseKeyInput } from '../morse/MorseKeyInput'
+import { useKeyedResponse } from '../morse/useKeyedResponse'
 import { MorseMnemonic } from './MorseMnemonic'
 import { MorseBeatGrammarNote, MorsePhrase } from './MorsePhrase'
 import { MorsePlayButton } from './MorsePlayButton'
 import { useMorseAudio } from './useMorseAudio'
 import './MorseLesson.css'
-
-const RETEACH_VISIBLE_MS = 1400
 
 interface MorseLessonProps {
   topic: Topic
@@ -94,11 +93,13 @@ export function VisualCheckStep({
   entry,
   format,
   regionRef,
+  armed,
   onAnswer,
 }: {
   entry: LessonEntry
   format: LessonCheckFormat
   regionRef: React.RefObject<HTMLDivElement | null>
+  armed: boolean
   onAnswer: (response: string) => void
 }) {
   return (
@@ -121,7 +122,11 @@ export function VisualCheckStep({
         </div>
       )}
 
-      <MorseKeyInput expectedLength={entry.pattern.length} onSubmit={onAnswer} />
+      {/* `inert` rather than `pointer-events: none`: the tap that finished the
+          previous retrieval must not fall through to anything at all. */}
+      <div className="lesson-answer" inert={!armed}>
+        <MorseKeyInput expectedLength={entry.pattern.length} locked={!armed} onSubmit={onAnswer} />
+      </div>
     </div>
   )
 }
@@ -135,6 +140,7 @@ export function ListeningCheckStep({
   onToggle,
   onAnswer,
   onSkip,
+  armed,
 }: {
   entry: LessonEntry
   options: MorseLetter[]
@@ -143,6 +149,7 @@ export function ListeningCheckStep({
   onToggle: () => void
   onAnswer: (response: string) => void
   onSkip: () => void
+  armed: boolean
 }) {
   return (
     <div className="lesson-check" ref={regionRef} tabIndex={-1} data-question="listening">
@@ -152,7 +159,7 @@ export function ListeningCheckStep({
         <MorsePlayButton glyph={entry.glyph} playing={playing} onToggle={onToggle} concealGlyph />
         <p className="lesson-length">Replay as needed.</p>
       </div>
-      <div className="lesson-options" aria-label="Letter choices">
+      <div className="lesson-options" aria-label="Letter choices" inert={!armed}>
         {options.map((option) => (
           <button className="lesson-option lesson-letter-option" key={option} type="button" onClick={() => onAnswer(option)}>
             {option}
@@ -185,6 +192,17 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
   const [listeningFeedback, setListeningFeedback] = useState<ListeningFeedback | null>(null)
   const [audioNotice, setAudioNotice] = useState<string | null>(null)
   const [packetsAdvanced, setPacketsAdvanced] = useState(0)
+  /**
+   * The advance that belongs to the answer currently on screen. It is captured
+   * at answer time rather than rebuilt on render, because the run and sitting
+   * it must act on are the ones that existed when the learner responded.
+   */
+  const pendingAdvance = useRef<(() => void) | null>(null)
+  const { phase, armed, answered, reset: resetResponse } = useKeyedResponse(() => {
+    const advance = pendingAdvance.current
+    pendingAdvance.current = null
+    advance?.()
+  })
   // The lesson's own view of the topic, kept current from the store rather than
   // frozen at mount, so resuming a packet reads the support levels that exist
   // now. Writes go through `updateTopic` and never replay this value.
@@ -208,8 +226,8 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
 
   useEffect(() => {
     if (run.complete || run.finished || (sittingDone && !hasFeedback)) headingRef.current?.focus()
-    else if (!hasFeedback) stepRef.current?.focus({ preventScroll: true })
-  }, [run.step, run.complete, run.finished, sittingDone, hasFeedback, listeningState.suppressed])
+    else if (!hasFeedback && armed) stepRef.current?.focus({ preventScroll: true })
+  }, [run.step, run.complete, run.finished, sittingDone, hasFeedback, armed, listeningState.suppressed])
 
   /**
    * Persist one lesson step.
@@ -250,46 +268,33 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
   }
 
   function answerVisual(itemId: string, response: string) {
+    if (!armed) return
     const next = answerLesson(run, itemId, response)
     if (next === run || !next.feedback) return
     setListeningState((state) => recordLessonQuestion(state, itemId))
     const nextSitting = recordLessonRetrieval(sitting, itemId, next.feedback.correct)
     persistSitting(nextSitting)
     commit(next)
-    if (next.feedback.correct) movePastVisualFeedback(next, nextSitting)
+    // A hit used to advance in the same tick it was recorded, so its feedback
+    // existed in state for less than a frame and the learner never saw it. Both
+    // verdicts now stand for their policy duration before the surface moves.
+    pendingAdvance.current = () => movePastVisualFeedback(next, nextSitting)
+    answered(next.feedback.correct)
   }
 
   function answerListening(itemId: string, response: string) {
-    const answered = answerListeningQuestion(run, itemId, response)
-    if (!answered) return
+    if (!armed) return
+    const result = answerListeningQuestion(run, itemId, response)
+    if (!result) return
     stop()
-    setRun(answered.run)
+    setRun(result.run)
     setListeningState((state) => recordLessonQuestion(state, itemId))
-    const nextSitting = recordLessonRetrieval(sitting, itemId, answered.feedback.correct)
+    const nextSitting = recordLessonRetrieval(sitting, itemId, result.feedback.correct)
     persistSitting(nextSitting)
-    if (answered.feedback.correct) {
-      setListeningFeedback(null)
-    } else {
-      setListeningFeedback(answered.feedback)
-    }
+    setListeningFeedback(result.feedback)
+    pendingAdvance.current = () => setListeningFeedback(null)
+    answered(result.feedback.correct)
   }
-
-  useEffect(() => {
-    if (run.feedback?.correct !== false) return
-    const answeredRun = run
-    const sittingAtAnswer = sitting
-    const timer = setTimeout(() => movePastVisualFeedback(answeredRun, sittingAtAnswer), RETEACH_VISIBLE_MS)
-    return () => clearTimeout(timer)
-    // `movePastVisualFeedback` intentionally uses the state captured for this
-    // answer; a new answer cannot occur while feedback owns the surface.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [run.feedback])
-
-  useEffect(() => {
-    if (!listeningFeedback || listeningFeedback.correct) return
-    const timer = setTimeout(() => setListeningFeedback(null), RETEACH_VISIBLE_MS)
-    return () => clearTimeout(timer)
-  }, [listeningFeedback])
 
   /**
    * The learner declining listening is durable for this sitting; an audio
@@ -309,6 +314,8 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
     if (!next) return
     stop()
     clearError()
+    resetResponse()
+    pendingAdvance.current = null
     setRun(next)
     // The next finite sitting starts clean, and a clean sitting is the absent
     // field rather than stored zeroes. The learner's listening declination
@@ -323,7 +330,10 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
 
   function nextPacket() {
     const next = startLesson(topicRef.current)
-    if (next) setRun(next)
+    if (!next) return
+    resetResponse()
+    pendingAdvance.current = null
+    setRun(next)
   }
 
   const bar = (
@@ -398,7 +408,7 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
   const shownListeningFeedback = listeningFeedback
 
   return (
-    <section className="session morse-lesson">
+    <section className="session morse-lesson" data-phase={phase}>
       {bar}
       <h1 ref={headingRef} tabIndex={-1} className="sr-only">Morse lesson, packet {run.packetIndex + 1} of {run.packetCount}</h1>
       <div className="lesson-progress" role="progressbar" aria-valuemin={0} aria-valuemax={LESSON_RETRIEVAL_TARGET}
@@ -406,6 +416,12 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
         <span className="lesson-progress-fill" style={{ inlineSize: `${(sitting.retrievals / LESSON_RETRIEVAL_TARGET) * 100}%` }} />
       </div>
       <p className="lesson-foot">Packet progress: {packetProgress.done} of {packetProgress.total} settled.</p>
+
+      {(feedback?.correct || shownListeningFeedback?.correct) && (
+        <div className="lesson-feedback is-correct" role="status" aria-live="polite">
+          <p className="lesson-verdict">Correct</p>
+        </div>
+      )}
 
       {shownListeningFeedback && !shownListeningFeedback.correct && (
         <div className="lesson-feedback" role="status" aria-live="assertive">
@@ -442,12 +458,12 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
       {!hasFeedback && step?.kind === 'check' && listening && (
         <ListeningCheckStep key={`listen-${step.entry.itemId}-${run.step}`} regionRef={stepRef} entry={step.entry}
           options={audioOptions} playing={sounding?.glyph === step.entry.glyph} onToggle={() => toggle(step.entry.glyph)}
-          onAnswer={(response) => answerListening(step.entry.itemId, response)} onSkip={skipListening} />
+          onAnswer={(response) => answerListening(step.entry.itemId, response)} onSkip={skipListening} armed={armed} />
       )}
 
       {!hasFeedback && step?.kind === 'check' && !listening && (
         <VisualCheckStep key={`visual-${step.entry.itemId}-${run.step}`} regionRef={stepRef} entry={step.entry}
-          format={step.format} onAnswer={(response) => answerVisual(step.entry.itemId, response)} />
+          format={step.format} armed={armed} onAnswer={(response) => answerVisual(step.entry.itemId, response)} />
       )}
 
       {(audioNotice || audioError) && <p className="morse-audio-error" role="status">{audioNotice ?? `${audioError} Continuing visually.`}</p>}

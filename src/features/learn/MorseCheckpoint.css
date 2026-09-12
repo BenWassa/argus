@@ -108,3 +108,32 @@
     transition: none;
   }
 }
+
+/*
+ * The retrieval swap (#87).
+ *
+ * The target is keyed by index, so each letter mounts fresh and plays this
+ * once. It is orientation, not decoration: it marks the window in which input
+ * is deliberately unavailable, which is why the gate is `inert` in the markup
+ * and not this animation. Under reduced motion the movement goes and the gate
+ * stays.
+ */
+.morse-checkpoint-target {
+  animation: morse-target-in var(--t-base) var(--ease) both;
+}
+
+.morse-checkpoint-answer {
+  display: grid;
+  width: 100%;
+}
+
+.morse-checkpoint-feedback {
+  animation: morse-target-in var(--t-fast) var(--ease) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .morse-checkpoint-target,
+  .morse-checkpoint-feedback {
+    animation: none;
+  }
+}

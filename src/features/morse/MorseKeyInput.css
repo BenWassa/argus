@@ -29,6 +29,41 @@
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
+  /* Chrome on Android paints a translucent blue wash over any tapped control.
+     On a key the learner presses hundreds of times that reads as the key
+     changing into a different, unrelated thing every time it is used. */
+  -webkit-tap-highlight-color: transparent;
+  transition: transform var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease),
+    filter var(--t-fast) var(--ease);
+}
+
+/*
+ * The key is a physical object, so its state is elevation and tone, never hue
+ * (#87). It keeps the brass identity it has at rest through hover and press;
+ * what changes is that it sits down into the surface and loses its lift.
+ *
+ * The generic `button:hover` repaint is deliberately cancelled here. On
+ * Android and in the installed PWA a tap leaves :hover latched on the control
+ * it landed on, so an inherited hover colour survives the press that caused it
+ * and the key stays visibly "on" until something else is touched.
+ */
+.morse-key,
+.morse-key:hover {
+  border-color: var(--accent);
+  background: linear-gradient(180deg, var(--accent-2), var(--accent));
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .morse-key:hover {
+    filter: brightness(1.05);
+  }
+}
+
+.morse-key[data-pressed='true'],
+.morse-key:active {
+  transform: translateY(2px);
+  box-shadow: none;
+  filter: brightness(0.88);
 }
 
 .morse-key-face {
@@ -43,5 +78,18 @@
 @media (orientation: landscape) and (max-height: 560px) {
   .morse-key {
     min-height: 64px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The depressed state is information about what the key is doing, so it
+     survives; only its travel is removed. */
+  .morse-key {
+    transition: none;
+  }
+
+  .morse-key[data-pressed='true'],
+  .morse-key:active {
+    transform: none;
   }
 }
