@@ -18,11 +18,17 @@ import {
   type AcquisitionCharacter,
   type AcquisitionProfile,
 } from '../../lib/acquisition'
-import { isAssistedRung, mergeItemEvidence, recordAnswer, rungFor } from '../../lib/cueLadder'
+import {
+  isAssistedRung,
+  mergeItemEvidence,
+  recordAnswer,
+  rungFor,
+  withBaselineCue,
+} from '../../lib/cueLadder'
 import { selectDistractors } from '../../lib/distractors'
 import { retentionCorrectCount, type AttemptAnswer } from '../../lib/items'
 import { registerBackBlocker } from '../../lib/navigation'
-import type { Item, ItemCueEvidence, ItemEvidenceStore, Topic } from '../../lib/types'
+import type { CueState, Item, ItemCueEvidence, ItemEvidenceStore, Topic } from '../../lib/types'
 import { ProgressiveCard, type ProgressiveAnswer } from './ProgressiveCard'
 import { testCardTextClass } from './textScale'
 import {
@@ -99,6 +105,12 @@ function haptic(pattern: number | number[]) {
 interface BankedAttempt {
   resolution: Resolution
   withheldByAcquisition: boolean
+  /**
+   * True when the learner answered every card correctly and the run still could
+   * not bank, because the bidirectional claim does not yet hold independent
+   * evidence in both directions. Recorded work, not a failed recall (#90).
+   */
+  nonQualifying: boolean
 }
 
 export function Session({ topicIds, onExit }: SessionProps) {
@@ -109,6 +121,21 @@ export function Session({ topicIds, onExit }: SessionProps) {
   const [included] = useState<Topic[]>(() =>
     topicIds.map((id) => topics.find((t) => t.id === id)).filter(Boolean) as Topic[],
   )
+  /**
+   * The rung each topic's untested items open at.
+   *
+   * `free` only for a topic whose guided acquisition has actually finished, and
+   * readiness is permanent, so this is stable for the whole session. Every other
+   * topic — ordinary, imported, legacy, or still mid-curriculum — gets `rich`,
+   * which is exactly the behaviour it has always had.
+   */
+  const [baselines] = useState<Map<string, CueState>>(() => {
+    const found = new Map<string, CueState>()
+    for (const topic of included) {
+      found.set(topic.id, journeyFor(topic).acquisition.ready ? 'free' : 'rich')
+    }
+    return found
+  })
   // Which topics the acquisition ladder drives. Every other topic keeps the
   // reveal-and-self-score card exactly as it is.
   const [profiles] = useState<Map<string, AcquisitionProfile>>(() => {
@@ -316,7 +343,16 @@ export function Session({ topicIds, onExit }: SessionProps) {
     // to try — but a run given before the learner has met every letter cannot
     // bank retention the acquisition programme has not yet earned. The journey
     // layer decides that; the scheduler is simply told the answer.
-    const { advancementEligible } = journeyFor(topic)
+    const { advancementEligible: journeyEligible } = journeyFor(topic)
+    // The third gate, and the one #90 asks for. A run the learner answered
+    // correctly end to end, which still cannot qualify because the bidirectional
+    // claim has not accumulated independent evidence in both directions, is
+    // recorded work rather than a failed recall. Scoring it as a failure would
+    // reset the one-day clock and route twenty-six correct answers back to
+    // drilling, which is both untrue and the opposite of what happened.
+    const cleanRun = attempt.total > 0 && attempt.correct === attempt.total
+    const nonQualifying = cleanRun && schedulerCorrect < attempt.total
+    const advancementEligible = journeyEligible && !nonQualifying
     const resolution = resolveAttempt(topic, schedulerCorrect, attempt.total, new Date(), {
       advancementEligible,
     })
@@ -326,14 +362,24 @@ export function Session({ topicIds, onExit }: SessionProps) {
     updateTopic(topicId, (current) => mergeItemEvidence(applyResolution(current, resolution), evidence))
     setBanked((previous) => [
       ...previous,
-      { resolution, withheldByAcquisition: !advancementEligible },
+      { resolution, withheldByAcquisition: !journeyEligible, nonQualifying },
     ])
   }
 
+  /**
+   * The evidence the ladder reads, with the acquisition-derived opening rung
+   * applied when the item has never been tested.
+   *
+   * One place, so presentation and recording cannot disagree about which rung
+   * this card is at, and so a supported answer can never be folded as though it
+   * had been given uncued. Nothing here is written: `withBaselineCue` returns a
+   * value, and `recordAnswer` is still the only path to durable evidence.
+   */
   function evidenceFor(card: Card): ItemCueEvidence | undefined {
     if (!card.item.id) return undefined
     const topic = included.find((candidate) => candidate.id === card.topicId)
-    return cueEvidence[card.topicId]?.[card.item.id] ?? topic?.itemEvidence?.[card.item.id]
+    const stored = cueEvidence[card.topicId]?.[card.item.id] ?? topic?.itemEvidence?.[card.item.id]
+    return withBaselineCue(stored, baselines.get(card.topicId) ?? 'rich')
   }
 
   function noteAnswer(card: Card, answer: ProgressiveAnswer): ItemEvidenceStore {
@@ -736,7 +782,12 @@ function TestDone({
 }) {
   const resolutions = banked.map((entry) => entry.resolution)
   const withheld = banked.filter((entry) => entry.withheldByAcquisition)
-  const moved = banked.filter((entry) => !entry.withheldByAcquisition).map((entry) => entry.resolution)
+  // Correct end to end, and still not a qualifying run. Named separately because
+  // it is the opposite of a failure and must not be reported as one.
+  const building = banked.filter((entry) => entry.nonQualifying && !entry.withheldByAcquisition)
+  const moved = banked
+    .filter((entry) => !entry.withheldByAcquisition && !entry.nonQualifying)
+    .map((entry) => entry.resolution)
   const completed = moved.filter((resolution) => resolution.completed)
   const decayed = moved.filter((resolution) => resolution.decayed)
   const changed = moved.filter(
@@ -795,6 +846,15 @@ function TestDone({
           <strong>{entry.resolution.topic.title}</strong>: the lesson has not been through every
           letter yet, so this run is recorded but does not move the ladder. Finish the lesson and
           the delayed test starts counting from there.
+        </p>
+      ))}
+
+      {building.map((entry) => (
+        <p className="transition" key={entry.resolution.topic.id}>
+          <strong>{entry.resolution.topic.title}</strong>: every answer correct. The claim covers
+          both printed directions, and this run has not yet seen both for every letter, so it is
+          recorded as progress rather than banked. Nothing was lost and no clock went backwards.
+          The next run asks the directions still outstanding.
         </p>
       ))}
 

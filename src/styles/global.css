@@ -637,7 +637,13 @@ main:focus {
 
 /* ------------------------------------------------------------- session -- */
 
+/* `.session` owns the measure and the gutter for every full-screen task, so the
+   shell around it must not add a second one. It did, which cost a session
+   surface 36px of width against the same content on a section page, and at
+   320px with 200% text that was the difference between the alphabet fitting and
+   overflowing. One element owns the gutter. */
 .session-shell main {
+  padding-inline: 0;
   padding-bottom: 0;
 }
 

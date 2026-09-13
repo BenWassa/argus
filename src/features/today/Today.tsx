@@ -1,5 +1,12 @@
 import { useLibrary } from '../../lib/store'
-import { dueEntries, journeysFor, TEST_CONSEQUENCE_NOTE, type JourneyEntry } from '../../lib/journey'
+import {
+  dueEntries,
+  journeysFor,
+  launchFor,
+  TEST_CONSEQUENCE_NOTE,
+  type JourneyEntry,
+} from '../../lib/journey'
+import type { RunTarget } from '../../lib/navigation'
 import type { Mode } from '../../lib/types'
 import './Today.css'
 
@@ -47,11 +54,12 @@ const PRIMER = [
 ]
 
 interface TodayProps {
-  onStart: (mode: Mode, topicIds: string[]) => void
+  onStart: (mode: Mode, topicIds: string[], target?: RunTarget) => void
+  onOpenTopic: (topicId: string) => void
   onGoToLibrary: () => void
 }
 
-export function Today({ onStart, onGoToLibrary }: TodayProps) {
+export function Today({ onStart, onOpenTopic, onGoToLibrary }: TodayProps) {
   const { topics } = useLibrary()
   const stamp = new Date().toLocaleDateString(undefined, {
     weekday: 'short',
@@ -156,20 +164,44 @@ export function Today({ onStart, onGoToLibrary }: TodayProps) {
     )
   }
 
-  // The journey decides the mode. A topic never seen wants reading; a topic
-  // still being acquired wants more of the same lesson; everything else wants
-  // proving. `dueEntries` already ranks the list by urgency, so the single
-  // primary action follows whichever mode the top-ranked topic needs.
-  const toLearn = due.filter((entry) => entry.journey.action === 'learn')
+  // The journey decides the action, and `launchFor` decides where it happens.
+  // An ordinary topic's reference is its own page, so reading opens the topic
+  // rather than a full-screen route that repeats it; a guided lesson is a real
+  // bounded task and stays a run. `dueEntries` already ranks the day, so the one
+  // primary action follows whatever the top-ranked topic needs.
+  // Three kinds of work, and they are genuinely different things to be told you
+  // have: a guided lesson is a bounded task, a reading is a page to open, and a
+  // Test is scored. Collapsing the first two into one word made the headline
+  // vague for no gain.
+  const lessons = due.filter(
+    (entry) => entry.journey.action === 'learn' && entry.journey.acquisition.progressive,
+  )
+  const toRead = due.filter(
+    (entry) => entry.journey.action === 'learn' && !entry.journey.acquisition.progressive,
+  )
   const toTest = due.filter((entry) => entry.journey.action === 'test')
-  const leadMode: Mode = due[0].journey.action === 'learn' ? 'learn' : 'test'
-  const leadGroup = leadMode === 'learn' ? toLearn : toTest
-  const altGroup = leadMode === 'learn' ? toTest : toLearn
-  const altMode: Mode = leadMode === 'learn' ? 'test' : 'learn'
+  const lead = due[0]
+  const leadsWithTest = lead.journey.action === 'test'
+
+  function launch(entry: JourneyEntry) {
+    const target = launchFor(entry.journey)
+    if (target.kind === 'open' || target.kind === 'author') {
+      onOpenTopic(entry.topic.id)
+      return
+    }
+    onStart(
+      target.mode,
+      [entry.topic.id],
+      target.mode === 'learn' ? { kind: 'lesson' } : undefined,
+    )
+  }
 
   const verdict = sentence(
     [
-      toLearn.length > 0 ? `${count(toLearn.length)} to read` : null,
+      lessons.length > 0
+        ? `${count(lessons.length)} ${lessons.length === 1 ? 'lesson' : 'lessons'}`
+        : null,
+      toRead.length > 0 ? `${count(toRead.length)} to read` : null,
       toTest.length > 0 ? `${count(toTest.length)} to prove` : null,
     ]
       .filter(Boolean)
@@ -182,39 +214,49 @@ export function Today({ onStart, onGoToLibrary }: TodayProps) {
 
       <ul className="index docket">
         {due.map((entry) => (
-          <DocketRow
-            key={entry.topic.id}
-            entry={entry}
-            onLaunch={() =>
-              onStart(entry.journey.action === 'learn' ? 'learn' : 'test', [entry.topic.id])
-            }
-          />
+          <DocketRow key={entry.topic.id} entry={entry} onLaunch={() => launch(entry)} />
         ))}
       </ul>
 
       <div className="today-actions">
-        <button
-          className="today-go"
-          type="button"
-          onClick={() => onStart(leadMode, idsIn(leadGroup))}
-        >
-          {leadMode === 'learn' ? 'Learn' : 'Test'} {topicCount(leadGroup.length)} ·{' '}
-          {itemsIn(leadGroup)} items
-        </button>
+        {/* Batching is for proving, not for reading. Running three readings
+            back to back was never a task with a beginning and an end, and the
+            batch Learn button existed only because a reading route existed to
+            batch. A scored run over several topics still is one. */}
+        {/* Verb first, context underneath. A single line would have to carry a
+            verb, a count and sometimes a topic title, and a primary action that
+            wraps to three lines on a phone is not a primary action. */}
+        {leadsWithTest ? (
+          <button
+            className="today-go"
+            type="button"
+            onClick={() => onStart('test', idsIn(toTest))}
+          >
+            <span className="today-go-verb">Test {topicCount(toTest.length)}</span>
+            <span className="today-go-note tabular">{itemsIn(toTest)} items</span>
+          </button>
+        ) : (
+          <button className="today-go" type="button" onClick={() => launch(lead)}>
+            <span className="today-go-verb">{lead.journey.primaryLabel}</span>
+            <span className="today-go-note">{lead.topic.title}</span>
+          </button>
+        )}
 
         <div className="today-alts">
-          {altGroup.length > 0 && (
+          {!leadsWithTest && toTest.length > 0 && (
             <button
               className="quiet"
               type="button"
-              onClick={() => onStart(altMode, idsIn(altGroup))}
+              onClick={() => onStart('test', idsIn(toTest))}
             >
-              {altMode === 'learn' ? 'Learn' : 'Test'} the other {count(altGroup.length)}
+              Test the other {count(toTest.length)}
             </button>
           )}
         </div>
 
-        <p className="today-consequence">{TEST_CONSEQUENCE_NOTE}</p>
+        {/* Said where a scored run is actually on offer, and nowhere else. A
+            day of lessons and readings was carrying a note about Test. */}
+        {toTest.length > 0 && <p className="today-consequence">{TEST_CONSEQUENCE_NOTE}</p>}
       </div>
     </>
   )

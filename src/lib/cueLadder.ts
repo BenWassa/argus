@@ -177,6 +177,62 @@ export function directionEvidence(
   return evidence?.directions[direction] ?? EMPTY_DIRECTION_EVIDENCE
 }
 
+/** Whether this item has ever actually been answered inside Test. */
+export function hasTestAnswer(evidence: ItemCueEvidence | undefined): boolean {
+  if (!evidence) return false
+  return Object.values(evidence.directions).some((direction) => (direction?.attempts ?? 0) > 0)
+}
+
+/**
+ * The rung an item starts Test at when it has never been tested (#90, item 6).
+ *
+ * Learn and Test keep separate evidence, and they must: a formative answer can
+ * never become formal evidence. But separate evidence was being read as *no
+ * information*, and the result was measurably absurd. A learner reaching
+ * acquisition readiness has produced all twenty-six mappings unaided across
+ * roughly two hundred formative retrievals; Test then opened every one of them
+ * at `rich`, with the rhythm phrase and half the pattern on screen, and made
+ * them climb four rungs again. The first run that could even qualify came about
+ * two hundred and thirty questions later.
+ *
+ * So Learn state chooses the *presentation*, and only the presentation. This
+ * writes nothing: `DirectionEvidence` stays at zero until an answer actually
+ * happens in Test, a miss lets the ladder restore support in the ordinary way,
+ * and a topic that never completed guided acquisition — an import, a legacy
+ * library, an ordinary topic — keeps the richer opening it has always had.
+ */
+export function withBaselineCue(
+  evidence: ItemCueEvidence | undefined,
+  baseline: CueState,
+): ItemCueEvidence | undefined {
+  if (baseline === 'rich') return evidence
+  if (hasTestAnswer(evidence)) return evidence
+  return { cue: baseline, directions: evidence?.directions ?? {} }
+}
+
+/**
+ * Which direction an untested bidirectional item is asked first.
+ *
+ * A stable split over the deck, so one run exercises both halves of the claim
+ * instead of spending itself entirely on production. Seeded from the item id
+ * rather than shuffled, so the allocation is repeatable in tests and identical
+ * across devices, and paired with the weakness rule below it gives every item
+ * both directions within two full runs.
+ */
+function directionSeed(id: string): number {
+  let hash = 2166136261
+  for (let index = 0; index < id.length; index += 1) {
+    hash ^= id.charCodeAt(index)
+    hash = Math.imul(hash, 16777619)
+  }
+  return hash >>> 0
+}
+
+export function firstUncuedDirection(item: Item): ItemDirection {
+  const key = item.id ?? item.prompt
+  return directionSeed(key) % 2 === 0 ? 'prompt-to-answer' : 'answer-to-prompt'
+}
+
 /** Cue states in ladder order. `auditory` belongs to later reception work. */
 const CUE_ORDER: CueState[] = ['rich', 'delayed-choice', 'reduced', 'free']
 
@@ -203,8 +259,24 @@ export function rungIndexFor(item: Item, evidence: ItemCueEvidence | undefined):
   const base = cueRungBase(evidence?.cue ?? 'rich')
   if (base < FREE_PRODUCTION_RUNG) return base
   if (!requiredDirections(item).includes('answer-to-prompt')) return FREE_PRODUCTION_RUNG
+
+  // Never asked in Test. Split the deck so the first uncued run exercises both
+  // directions rather than production twenty-six times over.
+  if (!hasTestAnswer(evidence)) {
+    return firstUncuedDirection(item) === 'answer-to-prompt'
+      ? FREE_RECEPTION_RUNG
+      : FREE_PRODUCTION_RUNG
+  }
+
+  // Reverse opens once forward holds one *independent* correct answer, which is
+  // a fact about recall without scaffolding rather than about a streak that any
+  // supported answer could feed. The old guard needed two consecutive correct
+  // answers counted at any rung, which in practice meant eight complete
+  // production-only runs before reverse printed recall was ever asked for (#90,
+  // item 7). Nothing about the completion claim moves: it still requires
+  // independent evidence in both directions plus a fully unassisted attempt.
   const forward = directionEvidence(evidence, 'prompt-to-answer')
-  if (forward.consecutiveCorrect < CUE_FADE_STREAK) return FREE_PRODUCTION_RUNG
+  if (forward.unassistedCorrect < 1) return FREE_PRODUCTION_RUNG
   const reverse = directionEvidence(evidence, 'answer-to-prompt')
   return reverse.unassistedCorrect <= forward.unassistedCorrect
     ? FREE_RECEPTION_RUNG

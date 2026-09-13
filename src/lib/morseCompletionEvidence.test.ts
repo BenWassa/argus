@@ -244,7 +244,7 @@ describe('the qualifying delayed attempt and the words "both directions"', () =>
     expect(Math.abs(forward - reverse)).toBeLessThanOrEqual(1)
   })
 
-  it('still opens reverse only after forward production has held a full fade streak', () => {
+  it('opens reverse only after one independent forward production, never before', () => {
     const item: IdentifiedItem = { id: 'i-s', kind: 'bidirectional', prompt: 'S', answer: '...' }
     const forwardOnly: IdentifiedItem = { id: 'i-r', kind: 'forward', prompt: 'R', answer: '.-.' }
     let cue: ItemCueEvidence | undefined
@@ -260,8 +260,41 @@ describe('the qualifying delayed attempt and the words "both directions"', () =>
         at: '2026-01-01T00:00:00.000Z',
       })
     }
-    expect(rungs.indexOf('free-reception')).toBeGreaterThan(rungs.indexOf('free-production'))
-    expect(rungs.filter((id) => id === 'free-production').length).toBeGreaterThanOrEqual(2)
+    // The climb through the assisted rungs is untouched: six supported answers
+    // before any uncued rung is reached at all.
+    expect(rungs.slice(0, 6)).toEqual([
+      'rich-recognition',
+      'rich-recognition',
+      'delayed-recognition',
+      'delayed-recognition',
+      'reduced-recognition',
+      'reduced-recognition',
+    ])
+
+    // Production still comes first, and reverse still cannot open until forward
+    // has been produced with nothing on screen. #90 changes only how much of
+    // that is required: one independent production rather than a streak of two,
+    // which previously meant eight complete production-only runs before printed
+    // pattern-to-letter recall was asked for even once.
+    const firstReception = rungs.indexOf('free-reception')
+    const firstProduction = rungs.indexOf('free-production')
+    expect(firstProduction).toBe(6)
+    expect(firstReception).toBeGreaterThan(firstProduction)
+
+    let beforeReverse: ItemCueEvidence | undefined
+    for (let i = 0; i < firstReception; i += 1) {
+      const rung = rungFor(item, beforeReverse)
+      beforeReverse = recordAnswer(beforeReverse, {
+        direction: rung.direction,
+        correct: true,
+        assisted: isAssistedRung(rung),
+        latencyMs: 700,
+        at: '2026-01-01T00:00:00.000Z',
+      })
+    }
+    expect(
+      beforeReverse?.directions['prompt-to-answer']?.unassistedCorrect ?? 0,
+    ).toBeGreaterThanOrEqual(1)
 
     // A forward-only item never reaches reverse recall at all.
     let plain: ItemCueEvidence | undefined

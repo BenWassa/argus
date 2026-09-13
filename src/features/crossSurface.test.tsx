@@ -22,13 +22,18 @@ import type { Topic } from '../lib/types'
 import { Today } from './today/Today'
 import { Library } from './library/Library'
 import { TopicPage } from './library/TopicPage'
-import { Progress } from './progress/Progress'
 
 /**
  * The surface-consistency contract (#62, #69, #70).
  *
- * The defect this suite exists to prevent is not a rendering bug. It is four
- * screens each reading raw status fields and reaching their own conclusion, so
+ * Three surfaces now rather than four: Progress was a third projection of this
+ * same derivation, and its live sections are Library's shelves while its
+ * permanent record closes Library. Removing a destination must not weaken the
+ * contract, so every assertion it carried is still made here against the surface
+ * that absorbed it.
+ *
+ * The defect this suite exists to prevent is not a rendering bug. It is screens
+ * each reading raw status fields and reaching their own conclusion, so
  * one Morse topic could say `Continue lesson` on Topic, `Test` in Library and
  * `Ready to drill` on Today at the same instant, all of them internally
  * consistent and one learner state.
@@ -100,7 +105,11 @@ function install(topics: Topic[]): void {
 function renderToday() {
   return render(
     <LibraryProvider>
-      <Today onStart={() => undefined} onGoToLibrary={() => undefined} />
+      <Today
+        onStart={() => undefined}
+        onOpenTopic={() => undefined}
+        onGoToLibrary={() => undefined}
+      />
     </LibraryProvider>,
   )
 }
@@ -110,8 +119,10 @@ function renderLibrary() {
     <LibraryProvider>
       <Library
         onStart={() => undefined}
+        onReference={() => undefined}
         onOpenTopic={() => undefined}
         onCloseTopic={() => undefined}
+        onOpenData={() => undefined}
       />
     </LibraryProvider>,
   )
@@ -119,22 +130,31 @@ function renderLibrary() {
 
 function renderTopicPage(topic: Topic) {
   return render(
-    <TopicPage
-      topic={topic}
-      onBack={() => undefined}
-      onStart={() => undefined}
-      onEdit={() => undefined}
-      onDelete={() => undefined}
-    />,
+    <LibraryProvider>
+      <TopicPage
+        topic={topic}
+        onBack={() => undefined}
+        onStart={() => undefined}
+        onReference={() => undefined}
+        onEdit={() => undefined}
+        onDelete={() => undefined}
+      />
+    </LibraryProvider>,
   )
 }
 
-function renderProgress() {
-  return render(
-    <LibraryProvider>
-      <Progress />
-    </LibraryProvider>,
-  )
+/**
+ * The topic as its own page leaves it.
+ *
+ * Opening an ordinary topic is now the exposure event, because the reference is
+ * on that page. Today and Library describe the topic as stored; the Topic page
+ * describes it as opened, and for an unstarted ordinary topic those are
+ * legitimately one rung apart. A curriculum topic is untouched: reading its path
+ * is not learning the alphabet.
+ */
+function asOpened(topic: Topic): Topic {
+  const progressive = journeyFor(topic).acquisition.progressive
+  return progressive || topic.items.length === 0 ? topic : resolveStudy(topic)
 }
 
 /** The row for one topic on a list surface, whichever list is on screen. */
@@ -145,19 +165,27 @@ function rowFor(title: string, scope: HTMLElement = document.body): HTMLElement 
   return row
 }
 
-/** Progress shows a decayed topic twice on purpose: as work, and in the record. */
-function progressWork(): HTMLElement {
+/** Library lists a decayed topic twice on purpose: as work, and in the record. */
+function libraryShelves(): HTMLElement {
   const work = document.createElement('div')
-  for (const section of document.querySelectorAll('.progress-section')) {
-    work.appendChild(section.cloneNode(true))
+  for (const shelf of document.querySelectorAll('.lib-shelf')) {
+    work.appendChild(shelf.cloneNode(true))
   }
   return work
+}
+
+/** The docket alone. Today's primary action now names its topic too, and the
+ *  docket is where the per-topic verdict is said. */
+function todayDocket(): HTMLElement {
+  const docket = document.querySelector('.docket')
+  if (!docket) throw new Error('Today rendered no docket')
+  return docket as HTMLElement
 }
 
 /** What Today tells the learner to do with this topic. */
 function todayVerb(topic: Topic): string {
   renderToday()
-  const row = rowFor(topic.title)
+  const row = rowFor(topic.title, todayDocket())
   // The verb is the row's screen-reader prefix: the row *is* the control.
   const verb = row.querySelector('.sr-only')?.textContent ?? ''
   return verb.replace(/:\s*$/, '').trim()
@@ -165,52 +193,36 @@ function todayVerb(topic: Topic): string {
 
 function todaySchedule(topic: Topic): string {
   renderToday()
-  return rowFor(topic.title).querySelector('.due-reason')?.textContent?.trim() ?? ''
+  return rowFor(topic.title, todayDocket()).querySelector('.due-reason')?.textContent?.trim() ?? ''
 }
 
 /** What Library's action button says for this topic. */
 function libraryVerb(topic: Topic): string {
   renderLibrary()
-  return rowFor(topic.title).querySelector('.lib-action')?.textContent?.trim() ?? ''
+  return rowFor(topic.title, libraryShelves()).querySelector('.lib-action')?.textContent?.trim() ?? ''
 }
 
 function librarySchedule(topic: Topic): string {
   renderLibrary()
-  return rowFor(topic.title).querySelector('.lib-when')?.textContent?.trim() ?? ''
+  return rowFor(topic.title, libraryShelves()).querySelector('.lib-when')?.textContent?.trim() ?? ''
 }
 
 /** Which shelf Library placed this topic on. */
 function libraryShelf(topic: Topic): string {
   renderLibrary()
-  const shelf = rowFor(topic.title).closest('section')
+  const shelf = rowFor(topic.title, libraryShelves()).closest('section')
   return shelf?.querySelector('.lib-shelf-head')?.textContent?.replace(/\d+$/, '').trim() ?? ''
 }
 
-/** The Topic page's single primary action. */
+/** The Topic page's single primary action. There is only ever one. */
 function topicPrimary(topic: Topic): string {
   renderTopicPage(topic)
-  const primary = document.querySelector('.mode-btn.is-primary .mode-name')
-  return primary?.textContent?.trim() ?? ''
+  return document.querySelector('.topic-primary-verb')?.textContent?.trim() ?? ''
 }
 
 function topicSchedule(topic: Topic): string {
   renderTopicPage(topic)
-  const terms = [...document.querySelectorAll('.topic-facts dt')]
-  const schedule = terms.find((term) => term.textContent === 'Schedule')
-  return schedule?.parentElement?.querySelector('dd')?.textContent?.trim() ?? ''
-}
-
-/** Which Progress section this topic landed in, and what it says there. */
-function progressSection(topic: Topic): { heading: string; state: string } {
-  renderProgress()
-  // Scoped to the work sections: the permanent completion record deliberately
-  // lists a decayed topic too, and that is not where its current state is said.
-  const row = rowFor(topic.title, progressWork())
-  const section = row.closest('section')
-  return {
-    heading: section?.querySelector('h2')?.textContent?.replace(/\d+$/, '').trim() ?? '',
-    state: row.querySelector('.progress-state')?.textContent?.trim() ?? '',
-  }
+  return document.querySelector('.topic-state-label')?.textContent?.trim() ?? ''
 }
 
 beforeEach(() => {
@@ -222,13 +234,12 @@ afterEach(() => {
   localStorage.clear()
 })
 
-describe('one learner state, four surfaces, one recommendation', () => {
+describe('one learner state, three surfaces, one recommendation', () => {
   interface Scenario {
     name: string
     topic: () => Topic
-    /** Where Library shelves it and Progress files it, for the same state. */
+    /** Where Library shelves it, for that same state. */
     shelf: string
-    section: string
   }
 
   const scenarios: Scenario[] = [
@@ -236,13 +247,11 @@ describe('one learner state, four surfaces, one recommendation', () => {
       name: 'a Morse topic nobody has opened',
       topic: () => blank(MORSE_ID),
       shelf: 'Due now',
-      section: 'In progress',
     },
     {
       name: 'a Morse topic partway through acquisition',
       topic: () => acquire(resolveStudy(blank(MORSE_ID), new Date(Date.now() - 6 * DAY)), 4),
       shelf: 'Due now',
-      section: 'In progress',
     },
     {
       name: 'a Morse topic that reached readiness today',
@@ -250,8 +259,7 @@ describe('one learner state, four surfaces, one recommendation', () => {
         ...acquire(resolveStudy(blank(MORSE_ID), new Date(Date.now() - 40 * DAY)), 14),
         acquisitionReadyAt: ago(0),
       }),
-      shelf: 'In progress',
-      section: 'Waiting',
+      shelf: 'Waiting',
     },
     {
       name: 'a Morse topic ready and past its anchored gap',
@@ -260,32 +268,27 @@ describe('one learner state, four surfaces, one recommendation', () => {
         acquisitionReadyAt: ago(3),
       }),
       shelf: 'Due now',
-      section: 'In progress',
     },
     {
       name: 'an ordinary topic nobody has opened',
       topic: () => blank('cardinal-bearings'),
       shelf: 'Due now',
-      section: 'In progress',
     },
     {
       name: 'an ordinary topic waiting out its delayed test',
       topic: () => blank('cardinal-bearings', { status: 'drilled', drilledAt: ago(4) }),
-      shelf: 'In progress',
-      section: 'Waiting',
+      shelf: 'Waiting',
     },
     {
       name: 'an ordinary topic ready for its delayed test',
       topic: () =>
         blank('cardinal-bearings', { status: 'drilled', drilledAt: ago(COMPLETION_GAP_DAYS + 1) }),
       shelf: 'Due now',
-      section: 'In progress',
     },
     {
       name: 'a topic that decayed and needs repair',
       topic: () => blank('cardinal-bearings', { status: 'decayed', completedAt: ago(200) }),
       shelf: 'Due now',
-      section: 'Repair',
     },
     {
       name: 'a completed topic waiting for its spot check',
@@ -296,8 +299,7 @@ describe('one learner state, four surfaces, one recommendation', () => {
           completedAt: ago(20),
           lastTestedAt: ago(20),
         }),
-      shelf: 'Completed',
-      section: 'Waiting',
+      shelf: 'Waiting',
     },
   ]
 
@@ -307,11 +309,12 @@ describe('one learner state, four surfaces, one recommendation', () => {
       install([topic])
       const journey = journeyFor(topic)
 
-      // The verb. Today and Library must both be the journey's own word, and
-      // Topic's primary control must launch the same mode.
+      // Today and Library describe the topic as stored, so they are asked first:
+      // opening the Topic page is itself an exposure event for an ordinary topic
+      // and would otherwise change the state underneath the later assertions.
       expect(libraryVerb(topic)).toBe(journey.actionLabel)
       cleanup()
-      expect(topicPrimary(topic)).toBe(journey.primaryLabel)
+      expect(librarySchedule(topic)).toBe(journey.statusLabel)
       cleanup()
 
       if (journey.due) {
@@ -321,20 +324,21 @@ describe('one learner state, four surfaces, one recommendation', () => {
         cleanup()
       }
 
-      // The schedule line. One sentence about this topic, said the same way
-      // wherever it appears.
-      expect(librarySchedule(topic)).toBe(journey.statusLabel)
+      // The Topic page describes the topic as its own page leaves it. For an
+      // unstarted ordinary topic that is deliberately one rung further on,
+      // because the reading it used to route to now happens here.
+      const opened = journeyFor(asOpened(topic))
+      install([topic])
+      expect(topicPrimary(topic)).toBe(opened.primaryLabel)
       cleanup()
-      expect(topicSchedule(topic)).toBe(journey.statusLabel)
+      install([topic])
+      expect(topicSchedule(topic)).toBe(opened.statusLabel)
       cleanup()
 
       // Placement. A row on `Due now` whose button says nothing is doable, or a
       // topic filed under Waiting that Today is asking for, is the same defect.
+      install([topic])
       expect(libraryShelf(topic)).toBe(scenario.shelf)
-      cleanup()
-      const progress = progressSection(topic)
-      expect(progress.heading).toBe(scenario.section)
-      expect(progress.state).toBe(journey.statusLabel)
     })
   }
 })
@@ -348,22 +352,23 @@ describe('partially acquired Morse is never routed to Test', () => {
     expect(morseAcquisitionPosition(partial)?.ready).toBe(false)
     install([partial])
 
-    expect(todayVerb(partial)).toBe('Continue Learn')
+    expect(todayVerb(partial)).toBe('Continue')
     cleanup()
-    expect(libraryVerb(partial)).toBe('Continue Learn')
+    expect(libraryVerb(partial)).toBe('Continue')
     cleanup()
-    expect(topicPrimary(partial)).toBe('Continue lesson')
+    expect(topicPrimary(partial)).toBe(journeyFor(partial).primaryLabel)
+    expect(topicPrimary(partial)).toMatch(/^Continue lesson \d+$/)
   })
 
-  it('says Learn rather than Continue Learn before the first sitting', () => {
+  it('says Start lesson rather than Continue before the first sitting', () => {
     const fresh = blank(MORSE_ID)
     install([fresh])
 
-    expect(todayVerb(fresh)).toBe('Learn')
+    expect(todayVerb(fresh)).toBe('Start lesson')
     cleanup()
-    expect(libraryVerb(fresh)).toBe('Learn')
+    expect(libraryVerb(fresh)).toBe('Start lesson')
     cleanup()
-    expect(topicPrimary(fresh)).toBe('Start lesson')
+    expect(topicPrimary(fresh)).toBe('Start lesson 1')
   })
 
   it('never offers Test as the lead action while acquisition is incomplete', () => {
@@ -375,21 +380,25 @@ describe('partially acquired Morse is never routed to Test', () => {
     // topic due, it must be the lesson, and the generic `Test everything` batch
     // must not be reachable as the day's required action.
     const primary = document.querySelector('.today-go')
-    expect(primary?.textContent).toContain('Learn')
+    expect(primary?.textContent).toContain('lesson')
     expect(primary?.textContent).not.toContain('Test')
     expect(document.body.textContent).not.toContain('Test everything')
   })
 
-  it('offers Test on the Topic page only as an explicitly non-advancing option', () => {
+  it('offers Test on the Topic page only as an explicitly non-advancing path entry', () => {
     const partial = acquire(resolveStudy(blank(MORSE_ID), new Date(Date.now() - 6 * DAY)), 3)
     install([partial])
     renderTopicPage(partial)
 
-    const secondary = [...document.querySelectorAll('.mode-btn')].find(
-      (button) => !button.classList.contains('is-primary'),
-    )
-    expect(secondary?.querySelector('.mode-name')?.textContent).toBe('Test early')
-    expect(secondary?.textContent).toContain('without moving the ladder')
+    // Exactly one prominent control, and it is the lesson. The scored run is
+    // still reachable, from its own place at the end of the curriculum, and it
+    // states its consequence there rather than as a standing second button.
+    expect(document.querySelectorAll('.topic-primary')).toHaveLength(1)
+    expect(document.querySelector('.topic-primary-verb')?.textContent).toContain('lesson')
+
+    const check = document.querySelector('.morse-path-check')
+    expect(check?.querySelector('.morse-path-action')?.textContent).toBe('Try early')
+    expect(check?.textContent).toContain('without moving the ladder')
   })
 
   it('shows acquisition progress as words, never as a retention gap bar', () => {
@@ -401,10 +410,6 @@ describe('partially acquired Morse is never routed to Test', () => {
     expect(row.querySelector('.lib-acquisition')?.textContent).toContain('letters settled')
     // The gap bar means retention, and this topic has not entered a gap.
     expect(row.querySelector('.lib-gap')).toBeNull()
-    cleanup()
-
-    renderProgress()
-    expect(rowFor(partial.title).querySelector('.progress-gap')).toBeNull()
   })
 
   it('carries the active finite sitting through to the surfaces that show it', () => {
@@ -415,10 +420,12 @@ describe('partially acquired Morse is never routed to Test', () => {
     }
     install([resumed])
 
-    expect(todayVerb(resumed)).toBe('Continue Learn')
+    expect(todayVerb(resumed)).toBe('Continue')
     cleanup()
     renderToday()
-    expect(rowFor(resumed.title).textContent).toContain('6 of 10 retrievals this sitting')
+    expect(rowFor(resumed.title, todayDocket()).textContent).toContain(
+      '6 of 10 retrievals this sitting',
+    )
     cleanup()
     renderTopicPage(resumed)
     expect(document.body.textContent).toContain('6 of 10 retrievals')
@@ -446,7 +453,9 @@ describe('acquisition readiness moves every surface together', () => {
     // early Test stays reachable, it simply is not what today asks for.
     renderToday()
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Nothing due')
-    expect(rowFor(topic.title).querySelector('.sr-only')?.textContent).toContain('Test')
+    expect(rowFor(topic.title, todayDocket()).querySelector('.sr-only')?.textContent).toContain(
+      'Test',
+    )
   })
 
   it('starts the delayed-test clock at readiness rather than at first exposure', () => {
@@ -458,7 +467,7 @@ describe('acquisition readiness moves every surface together', () => {
     expect(topic.learningAt).not.toBeNull()
     expect(librarySchedule(topic)).toBe('Test in 1 day')
     cleanup()
-    expect(progressSection(topic)).toEqual({ heading: 'Waiting', state: 'Test in 1 day' })
+    expect(libraryShelf(topic)).toBe('Waiting')
   })
 
   it('becomes due once the anchored gap has actually passed', () => {
@@ -473,8 +482,8 @@ describe('acquisition readiness moves every surface together', () => {
   })
 })
 
-describe('Progress projects the journey rather than inventing a fourth reading', () => {
-  it('separates live work, waiting, repair and the permanent record', () => {
+describe('Library absorbed Progress without losing what it said', () => {
+  it('separates live work, waiting and the permanent record', () => {
     const topics = [
       acquire(resolveStudy(blank(MORSE_ID), new Date(Date.now() - 6 * DAY)), 3),
       blank('cardinal-bearings', { status: 'decayed', completedAt: ago(200) }),
@@ -487,15 +496,20 @@ describe('Progress projects the journey rather than inventing a fourth reading',
       }),
     ]
     install(topics)
-    renderProgress()
+    renderLibrary()
 
-    const headings = [...document.querySelectorAll('.progress-section h2')].map((h) =>
+    const headings = [...document.querySelectorAll('.lib-shelf-head')].map((h) =>
       h.textContent?.replace(/\d+$/, '').trim(),
     )
-    expect(headings).toEqual(['In progress', 'Waiting', 'Repair'])
+    expect(headings).toEqual(['Due now', 'Waiting'])
 
-    // Decay routes work without erasing history: the bearings topic is in
-    // Repair *and* still holds its place in the permanent record.
+    // Repair is not a fourth shelf: a decayed topic is due, and its own row says
+    // so in warning rather than being filed away from the work it needs.
+    const bearings = rowFor('Cardinal and intercardinal bearings', libraryShelves())
+    expect(bearings.querySelector('.lib-when.is-repair')?.textContent).toBe('Needs repair')
+
+    // Decay routes work without erasing history: the bearings topic is due for
+    // repair *and* still holds its place in the permanent record.
     const record = document.querySelector('.record') as HTMLElement
     expect(within(record).getByText('Cardinal and intercardinal bearings')).toBeTruthy()
     expect(within(record).getByText('NATO phonetic alphabet')).toBeTruthy()
@@ -506,11 +520,16 @@ describe('Progress projects the journey rather than inventing a fourth reading',
       acquire(resolveStudy(blank(MORSE_ID), new Date(Date.now() - 6 * DAY)), 3),
       blank('cardinal-bearings', { status: 'completed', drilledAt: ago(80), completedAt: ago(20) }),
     ])
-    renderProgress()
+    renderLibrary()
 
     const text = document.body.textContent ?? ''
-    for (const banned of ['streak', 'badge', 'XP', 'Level', 'leaderboard', 'points']) {
-      expect(text.toLowerCase()).not.toContain(banned.toLowerCase())
+    for (const banned of ['streak', 'badge', 'leaderboard', 'points']) {
+      expect(text.toLowerCase()).not.toContain(banned)
+    }
+    // Whole words: `Export` legitimately contains the letters of the currency
+    // this product does not have.
+    for (const banned of [/\bXP\b/, /\bLevel\b/i]) {
+      expect(text).not.toMatch(banned)
     }
     // No aggregate percentage: acquisition, retention and completion are
     // different measurements and averaging them would say nothing true.
@@ -520,50 +539,67 @@ describe('Progress projects the journey rather than inventing a fourth reading',
 
   it('shows a fresh install no achievements at all', () => {
     // No stored library: the first-run delivery path.
-    renderProgress()
+    renderLibrary()
 
     expect(document.body.textContent).toContain('No completions yet')
     expect(document.querySelector('.record')).toBeNull()
-    const headings = [...document.querySelectorAll('.progress-section h2')].map((h) =>
-      h.textContent?.replace(/\d+$/, '').trim(),
-    )
-    expect(headings).toEqual(['In progress'])
     // Every shipped topic, and every one of them not started.
-    expect(document.querySelectorAll('.progress-list li')).toHaveLength(
+    expect(document.querySelectorAll('.lib-shelf .index-entry')).toHaveLength(
       SHIPPED_CATALOG_TOPIC_IDS.length,
     )
-    for (const state of document.querySelectorAll('.progress-state')) {
-      expect(state.textContent).toBe('Not started')
+    for (const when of document.querySelectorAll('.lib-when')) {
+      expect(when.textContent).toBe('Not started')
     }
+  })
+
+  it('keeps export and import reachable without spending a navigation slot on them', () => {
+    install([blank('cardinal-bearings')])
+    renderLibrary()
+    expect(screen.getByRole('button', { name: 'Data and backup' })).toBeTruthy()
   })
 })
 
 describe('ordinary topics keep the behaviour they had', () => {
-  it('keeps the generic item disclosure for a non-Morse topic', () => {
+  it('puts the finite reference on the page instead of behind a disclosure', () => {
     const ordinary = blank('cardinal-bearings')
     renderTopicPage(ordinary)
 
-    expect(screen.getByText(`Show all ${ordinary.items.length} items`)).toBeTruthy()
-    expect(document.querySelector('.fold-items')).not.toBeNull()
-    expect(document.querySelector('.topic-morse-reference')).toBeNull()
+    // The separate reading route repeated this page's title, scope and every
+    // item. The material is now the body of the page, visible and unconcealed,
+    // which is what a surface that hides nothing should look like.
+    expect(document.querySelectorAll('.sheet-items li')).toHaveLength(ordinary.items.length)
+    expect(document.body.textContent).not.toContain('Show all')
+    expect(document.querySelector('.morse-path')).toBeNull()
+    // Nothing on a reading surface is card-shaped, because nothing is concealed.
+    expect(document.querySelector('.flip-card')).toBeNull()
+  })
+
+  it('renders a briefing above the scored set, with the boundary between them visible', () => {
+    const briefed = blank('ooda-loop')
+    renderTopicPage(briefed)
+
+    expect(document.querySelector('.learn-support')).not.toBeNull()
+    expect(screen.getByRole('heading', { name: 'Recall reference', level: 2 })).toBeTruthy()
+    expect(document.querySelectorAll('.sheet-items li')).toHaveLength(briefed.items.length)
   })
 
   it('reads an unstarted topic, then proves it, on every surface alike', () => {
     const fresh = blank('primary-survey')
     install([fresh])
 
-    expect(todayVerb(fresh)).toBe('Learn')
+    expect(todayVerb(fresh)).toBe('Read')
     cleanup()
-    expect(libraryVerb(fresh)).toBe('Learn')
+    expect(libraryVerb(fresh)).toBe('Read')
     cleanup()
-    expect(topicPrimary(fresh)).toBe('Learn')
+    // Opening it is the reading, so the page it lands on already asks for proof.
+    expect(topicPrimary(fresh)).toBe('Test')
     cleanup()
 
     const exposed = resolveStudy(fresh, new Date(Date.now() - 2 * DAY))
     install([exposed])
     expect(todayVerb(exposed)).toBe('Test')
     cleanup()
-    expect(todaySchedule(exposed)).toBe('Ready to drill')
+    expect(todaySchedule(exposed)).toBe('Read, ready to test')
     cleanup()
     expect(libraryVerb(exposed)).toBe('Test')
     cleanup()
@@ -583,21 +619,41 @@ describe('ordinary topics keep the behaviour they had', () => {
     expect(journey.advancementEligible).toBe(false)
 
     renderTopicPage(empty)
-    expect(document.querySelector('.mode-choice')).toBeNull()
+    expect(document.querySelector('.topic-primary')).toBeNull()
     expect(document.body.textContent).toContain('no items yet')
     expect(screen.getByRole('button', { name: 'Add items' })).toBeTruthy()
   })
 })
 
-describe('the Morse Topic owns an always-visible shared alphabet reference', () => {
-  it('replaces the generic 26-item fold with all 26 learning cards', () => {
+describe('opening Morse lands on the curriculum', () => {
+  it('makes the path the body of the page, with the alphabet a deliberate step away', () => {
     renderTopicPage(blank(MORSE_ID))
 
-    expect(screen.getByRole('heading', { name: 'Morse alphabet', level: 2 })).toBeTruthy()
-    expect(document.querySelectorAll('.morse-ref-card')).toHaveLength(26)
-    expect(document.querySelector('.topic-morse-reference details')).toBeNull()
+    // Thirteen lessons, two word checkpoints and the Test that closes them.
+    expect(document.querySelectorAll('.morse-path-lesson')).toHaveLength(13)
+    expect(document.querySelectorAll('.morse-path-checkpoint')).toHaveLength(2)
+    expect(document.querySelectorAll('.morse-path-check')).toHaveLength(1)
+
+    // The reference used to be twenty-six cards sitting on this page, which was
+    // right when the page had nothing better to be. The curriculum is better,
+    // and a long lookup deserves its own surface rather than the top of this one.
+    expect(document.querySelectorAll('.morse-ref-card')).toHaveLength(0)
+    expect(screen.getByRole('button', { name: 'Morse alphabet' })).toBeTruthy()
     expect(document.body.textContent).not.toContain('Show all 26 items')
-    expect(document.querySelector('.fold-items')).toBeNull()
-    expect(screen.queryByRole('button', { name: /look up any letter/i })).toBeNull()
+  })
+
+  it('shows the whole finite shape from the first sitting, locked entries included', () => {
+    renderTopicPage(blank(MORSE_ID))
+
+    const states = [...document.querySelectorAll('.morse-path-lesson')].map((item) =>
+      item.querySelector('.morse-path-status')?.textContent ?? null,
+    )
+    // Only what the action word cannot say. A locked row states `Locked` where
+    // its control would be, so labelling it twice was noise.
+    expect(states[0]).toBe('Current')
+    expect(states.slice(1).every((state) => state === null)).toBe(true)
+    // A locked entry is stated, never offered as a control that does nothing.
+    expect(document.querySelectorAll('.morse-path-action.is-locked').length).toBeGreaterThan(0)
+    expect([...document.querySelectorAll('button')].some((b) => b.disabled)).toBe(false)
   })
 })

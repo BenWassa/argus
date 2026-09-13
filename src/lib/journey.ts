@@ -129,7 +129,14 @@ export interface TopicJourney {
   /** Present only for a topic with a finite Learn sitting. */
   sitting: SittingView | null
   action: TopicAction
-  /** The verb on a row or button: `Learn`, `Continue Learn`, `Test`, `Add items`. */
+  /**
+   * The verb on a row or button: `Read`, `Continue`, `Test`, `Add items`.
+   *
+   * `Learn` is gone from it. It named an internal mode rather than an action,
+   * and it named two different things: opening an ordinary topic's reference,
+   * and continuing a guided lesson that runs over weeks. Those are not the same
+   * verb and the learner was the one paying for the ambiguity.
+   */
   actionLabel: string
   /** The fuller name of the same action, for the Topic page's primary control. */
   primaryLabel: string
@@ -281,7 +288,7 @@ export function journeyFor(topic: Topic, now: Date = new Date()): TopicJourney {
     // programme's own endpoint is reached.
     const parts = [
       `${acquisition.settled} of ${acquisition.total} letters settled`,
-      `packet ${acquisition.packet} of ${acquisition.packetCount}`,
+      `lesson ${acquisition.packet} of ${acquisition.packetCount}`,
     ]
     if (sitting?.active) {
       parts.push(`${sitting.retrievals} of ${sitting.target} retrievals this sitting`)
@@ -300,12 +307,12 @@ export function journeyFor(topic: Topic, now: Date = new Date()): TopicJourney {
       },
       sitting,
       action: 'learn',
-      actionLabel: acquisition.started ? 'Continue Learn' : 'Learn',
-      primaryLabel: acquisition.started ? 'Continue lesson' : 'Start lesson',
+      actionLabel: acquisition.started ? 'Continue' : 'Start lesson',
+      primaryLabel: `${acquisition.started ? 'Continue' : 'Start'} lesson ${acquisition.packet}`,
       statusLabel: acquisition.started ? 'Lesson in progress' : 'Not started',
       detail: acquisition.started
         ? parts.join(' · ')
-        : `Guided lesson, packet 1 of ${acquisition.packetCount}. ${acquisition.total} letters.`,
+        : `Guided lesson, ${acquisition.packetCount} lessons, ${acquisition.total} letters.`,
       due: true,
       waitDays: 0,
       advancementEligible: false,
@@ -315,6 +322,11 @@ export function journeyFor(topic: Topic, now: Date = new Date()): TopicJourney {
   if (topic.status === 'unstarted') {
     // Ordinary first exposure. Unchanged: read it, then it comes back to be
     // proved. This is the branch `modeFor` used to be the whole of.
+    //
+    // A progressive topic can reach here only when acquisition is already ready
+    // while the scheduler still says `unstarted`, which no production sequence
+    // produces but an import or a fixture can. It is still a curriculum, so it
+    // still asks for its lesson rather than for a reading it does not have.
     return {
       topicId: topic.id,
       phase: 'acquiring',
@@ -323,8 +335,8 @@ export function journeyFor(topic: Topic, now: Date = new Date()): TopicJourney {
       retention,
       sitting,
       action: 'learn',
-      actionLabel: 'Learn',
-      primaryLabel: 'Learn',
+      actionLabel: acquisition.progressive ? 'Start lesson' : 'Read',
+      primaryLabel: acquisition.progressive ? `Start lesson ${acquisition.packet}` : 'Read',
       statusLabel: retention.label,
       detail: null,
       due: true,
@@ -335,12 +347,23 @@ export function journeyFor(topic: Topic, now: Date = new Date()): TopicJourney {
 
   // A progressive topic waiting out its anchored learning gap is not "drilled
   // today" — nothing drilled it. Say what is actually true of it.
+  //
+  // Neither is an ordinary topic that has only been read. `learning` is entered
+  // by exposure, so the scheduler's own `Drilled today` describes a drill that
+  // never happened, and that wording became much more visible once opening the
+  // topic page is the exposure event rather than a separate reading route.
   const progressiveLearning = acquisition.progressive && topic.status === 'learning'
+  const readNotDrilled =
+    !acquisition.progressive && topic.status === 'learning' && topic.history.length === 0
   const statusLabel = progressiveLearning
     ? scheduled.due
       ? 'Ready to test'
       : `Test in ${days(scheduled.waitDays)}`
-    : scheduled.label
+    : readNotDrilled
+      ? scheduled.due
+        ? 'Read, ready to test'
+        : 'Read today'
+      : scheduled.label
 
   const phase: JourneyPhase =
     topic.status === 'decayed' ? 'repair' : scheduled.due ? 'due' : 'waiting'
@@ -369,6 +392,30 @@ export function journeyFor(topic: Topic, now: Date = new Date()): TopicJourney {
 /** The mode the journey's recommended action launches. Authoring launches none. */
 export function modeForAction(action: TopicAction): Mode | null {
   return action === 'author' ? null : action
+}
+
+/**
+ * What pressing the recommended action actually opens.
+ *
+ * `action` says *what the learner should do*; this says *where that happens*,
+ * and the two are no longer the same thing for reading. An ordinary topic's
+ * reference is the topic page itself, so `learn` there means "open it and read
+ * it" rather than "launch a full-screen reading route that repeats the page you
+ * just left". A progressive topic's `learn` is a real bounded task with its own
+ * response mechanism and durable sitting, so it stays a run.
+ *
+ * Every surface asks this rather than branching on `progressive` itself, so
+ * Today, Library and Topic cannot start the same topic three different ways.
+ */
+export type TopicLaunch =
+  | { kind: 'open' }
+  | { kind: 'run'; mode: Mode }
+  | { kind: 'author' }
+
+export function launchFor(journey: TopicJourney): TopicLaunch {
+  if (journey.action === 'author') return { kind: 'author' }
+  if (journey.action === 'test') return { kind: 'run', mode: 'test' }
+  return journey.acquisition.progressive ? { kind: 'run', mode: 'learn' } : { kind: 'open' }
 }
 
 export interface JourneyEntry {
@@ -405,7 +452,7 @@ export function dueEntries(entries: JourneyEntry[]): JourneyEntry[] {
 export const TEST_CONSEQUENCE_NOTE =
   'Tests are scored. The ladder moves only when its required evidence gap is satisfied.'
 
-export type ShelfId = 'due' | 'active' | 'completed' | 'unfinished'
+export type ShelfId = 'due' | 'waiting' | 'unfinished'
 
 export interface JourneyShelf {
   id: ShelfId
@@ -414,9 +461,19 @@ export interface JourneyShelf {
 }
 
 /**
- * The library ordered the way the schedule reads it. Shelf placement now follows
- * the journey rather than raw status, so the shelf a topic sits on and the verb
- * on its action button are two readings of one derivation and cannot disagree.
+ * The library ordered the way the schedule reads it. Shelf placement follows the
+ * journey rather than raw status, so the shelf a topic sits on and the verb on
+ * its action button are two readings of one derivation and cannot disagree.
+ *
+ * Three shelves, because there are three answers to "can I do this now": yes,
+ * not yet, and not until it has items. Repair is not a fourth shelf — a decayed
+ * topic is due, and its row already says `Needs repair` in warning, so pulling
+ * it out would split the docket to restate what the row states.
+ *
+ * A completed topic resting between spot checks sits in `waiting` and appears
+ * again in the completion record below. That is deliberate and not duplication:
+ * the shelf says where it is now, the record says what was earned, and decay
+ * changes the first without touching the second.
  */
 export function journeyShelves(entries: JourneyEntry[]): JourneyShelf[] {
   const due = dueEntries(entries)
@@ -430,16 +487,7 @@ export function journeyShelves(entries: JourneyEntry[]): JourneyShelf[] {
 
   const all: JourneyShelf[] = [
     { id: 'due', label: 'Due now', entries: due },
-    {
-      id: 'active',
-      label: 'In progress',
-      entries: waiting.filter((entry) => entry.topic.status !== 'completed').sort(bySoonest),
-    },
-    {
-      id: 'completed',
-      label: 'Completed',
-      entries: waiting.filter((entry) => entry.topic.status === 'completed').sort(bySoonest),
-    },
+    { id: 'waiting', label: 'Waiting', entries: waiting.sort(bySoonest) },
     {
       id: 'unfinished',
       label: 'Needs items',

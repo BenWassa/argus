@@ -42,7 +42,7 @@ const LIBRARY = JSON.stringify({
 async function openApp(page: Page) {
   await page.addInitScript(
     ([library, storeKey, splashKey]) => {
-      window.sessionStorage.setItem(splashKey, 'true')
+      window.localStorage.setItem(splashKey, 'true')
       window.localStorage.setItem(storeKey, library)
     },
     [LIBRARY, STORE_KEY, SPLASH_KEY] as const,
@@ -65,18 +65,15 @@ async function keyPattern(page: Page, pattern: string) {
   await page.keyboard.type(pattern)
 }
 
-async function waitForLearnFirstExposure(page: Page) {
-  await expect.poll(async () => {
-    const raw = await page.evaluate((key) => window.localStorage.getItem(key), STORE_KEY)
-    if (!raw) return { status: null, hasLearningAt: false }
-
-    const stored = JSON.parse(raw) as { topics: Topic[] }
-    const topic = stored.topics.find((candidate) => candidate.id === MORSE_ID)
-    return {
-      status: topic?.status ?? null,
-      hasLearningAt: typeof topic?.learningAt === 'string',
-    }
-  }).toEqual({ status: 'learning', hasLearningAt: true })
+/**
+ * The Morse topic page, which is where the curriculum lives. Opening it does not
+ * mark the topic learning: reading a path is not learning an alphabet, and the
+ * tests below depend on the stored record being untouched until a lesson runs.
+ */
+async function openMorseTopic(page: Page) {
+  await page.getByRole('button', { name: 'Library', exact: true }).click()
+  await page.locator(`[data-row="${MORSE_ID}"]`).click()
+  await expect(page.getByRole('heading', { name: morse.title, level: 1 })).toBeVisible()
 }
 
 async function finishCheckpointWarmups(page: Page) {
@@ -90,84 +87,91 @@ async function finishCheckpointWarmups(page: Page) {
   await expect(page.getByText('Word 1 of 1', { exact: true })).toBeVisible({ timeout: 2_000 })
 }
 
-test('Learn opened from Today still closes Morse reference to Topic, then Today', async ({ page }) => {
+test('the alphabet returns to the lesson it was opened from, not past it', async ({ page }) => {
   await openApp(page)
 
+  // The docket resumes the curriculum directly.
   await page.locator('.docket .index-row').click()
-  await expect(page.getByRole('heading', { name: 'Learn Morse A–Z' })).toBeVisible()
-  const path = page.getByRole('list', { name: 'Morse lesson path' })
-  await expect(path.locator('.morse-path-lesson')).toHaveCount(13)
-  await expect(path.locator('.morse-path-checkpoint')).toHaveCount(2)
-  expect(await state(page)).toMatchObject({
-    index: 1,
-    route: { kind: 'run' },
-  })
+  await expect(page.locator('.morse-lesson')).toBeVisible()
+  expect(await state(page)).toMatchObject({ index: 1, route: { kind: 'run', mode: 'learn' } })
 
   await page.getByRole('button', { name: 'Morse alphabet' }).click()
   await expect(page.getByRole('heading', { name: 'Morse alphabet', level: 1 })).toBeVisible()
-  expect(await state(page)).toMatchObject({
-    index: 2,
-    route: {
-      kind: 'reference',
-      topicId: MORSE_ID,
-      origin: { kind: 'topic', topicId: MORSE_ID },
-    },
-  })
+  expect(await state(page)).toMatchObject({ index: 2, route: { kind: 'reference', topicId: MORSE_ID } })
 
+  // The change this replaces: Back used to abandon the lesson and land on the
+  // Topic page, which is why App had to rewrite the run entry into a Topic entry
+  // on the way in. The sitting is durable, so Back now returns to the lesson.
   await page.evaluate(() => window.history.back())
-  const topicHeading = page.getByRole('heading', { name: source.title, level: 1 })
-  await expect(topicHeading).toBeVisible()
-  await expect(topicHeading).toBeFocused()
-  expect(await state(page)).toMatchObject({
-    index: 1,
-    route: { kind: 'topic', topicId: MORSE_ID },
-  })
+  await expect(page.locator('.morse-lesson')).toBeVisible()
+  expect(await state(page)).toMatchObject({ index: 1, route: { kind: 'run', mode: 'learn' } })
 
   await page.evaluate(() => window.history.back())
   await expect(page.getByRole('button', { name: 'Today', exact: true })).toHaveAttribute(
     'aria-current',
     'page',
   )
-  await expect(page.locator('#main')).toBeFocused()
   expect((await state(page)).index).toBe(0)
-
-  await page.evaluate(() => window.history.forward())
-  await expect(page.getByRole('heading', { name: source.title, level: 1 })).toBeVisible()
-  await page.evaluate(() => window.history.forward())
-  await expect(page.getByRole('heading', { name: 'Morse alphabet', level: 1 })).toBeVisible()
 })
 
-test('completed lesson replay stays inside Learn history and never mutates the saved topic', async ({ page }) => {
+test('opening Morse lands on the curriculum, with the alphabet a step away', async ({ page }) => {
   await openApp(page)
-  await page.locator('.docket .index-row').click()
-  await waitForLearnFirstExposure(page)
+  await openMorseTopic(page)
+
+  const path = page.getByRole('list', { name: 'Morse curriculum' })
+  await expect(path.locator('.morse-path-lesson')).toHaveCount(13)
+  await expect(path.locator('.morse-path-checkpoint')).toHaveCount(2)
+  await expect(path.locator('.morse-path-check')).toHaveCount(1)
+  expect(await state(page)).toMatchObject({ index: 2, route: { kind: 'topic', topicId: MORSE_ID } })
+
+  // Twenty-six lookup cards no longer sit above the curriculum on this page.
+  await expect(page.locator('.morse-ref-card')).toHaveCount(0)
+  await page.getByRole('button', { name: 'Morse alphabet' }).click()
+  await expect(page.getByRole('heading', { name: 'Morse alphabet', level: 1 })).toBeVisible()
+  expect(await state(page)).toMatchObject({
+    index: 3,
+    route: { kind: 'reference', topicId: MORSE_ID, origin: { kind: 'topic', topicId: MORSE_ID } },
+  })
+
+  await page.evaluate(() => window.history.back())
+  const heading = page.getByRole('heading', { name: morse.title, level: 1 })
+  await expect(heading).toBeVisible()
+  await expect(heading).toBeFocused()
+})
+
+test('a lesson replay writes nothing and returns to the curriculum', async ({ page }) => {
+  await openApp(page)
+  await openMorseTopic(page)
 
   const before = await page.evaluate((key) => window.localStorage.getItem(key), STORE_KEY)
-  const historyBefore = await state(page)
-  await page.getByRole('list', { name: 'Morse lesson path' }).getByRole('button', { name: 'Replay' }).first().click()
+  const onTopic = await state(page)
+  await page.getByRole('button', { name: 'Replay lesson 1', exact: true }).click()
 
   await expect(page.getByRole('heading', { name: 'Replay Morse lesson 1' })).toBeVisible()
   await expect(page.getByText('0 / 10 max')).toBeVisible()
-  expect(await state(page)).toEqual(historyBefore)
+  // A replay is a task, so it is a route: Android Back leaves it the same way
+  // the visible Close does, rather than unwinding an invisible selection.
+  expect(await state(page)).toMatchObject({
+    index: onTopic.index + 1,
+    route: { kind: 'run', mode: 'learn' },
+  })
 
   await page.getByRole('button', { name: 'Close' }).click()
-  await expect(page.getByRole('heading', { name: 'Learn Morse A–Z' })).toBeFocused()
+  await expect(page.getByRole('heading', { name: morse.title, level: 1 })).toBeFocused()
   expect(await page.evaluate((key) => window.localStorage.getItem(key), STORE_KEY)).toBe(before)
-  expect(await state(page)).toEqual(historyBefore)
+  expect(await state(page)).toEqual(onTopic)
 })
 
 test('unlocked word checkpoint auto-advances through a miss and never mutates saved Learn or Test state', async ({ page }) => {
   await openApp(page)
-  await page.locator('.docket .index-row').click()
-  await waitForLearnFirstExposure(page)
+  await openMorseTopic(page)
 
   const before = await page.evaluate((key) => window.localStorage.getItem(key), STORE_KEY)
-  const historyBefore = await state(page)
+  const onTopic = await state(page)
   await page.getByRole('button', { name: 'Start word checkpoint after lesson 4' }).click()
 
   await expect(page.getByText('Checkpoint after lesson 4', { exact: true })).toBeVisible()
   await expect(page.getByText('Warm-up 1 of 4', { exact: true })).toBeVisible()
-  expect(await state(page)).toEqual(historyBefore)
 
   // E expects one element. A dah is immediately a miss; there is no edit or
   // confirmation opportunity before the checkpoint moves on.
@@ -196,19 +200,18 @@ test('unlocked word checkpoint auto-advances through a miss and never mutates sa
 
   await expect(page.getByRole('heading', { name: 'Word checkpoint complete' })).toBeVisible({ timeout: 2_000 })
   expect(await page.evaluate((key) => window.localStorage.getItem(key), STORE_KEY)).toBe(before)
-  expect(await state(page)).toEqual(historyBefore)
 
   await page.getByRole('button', { name: 'Back to lessons' }).click()
-  await expect(page.getByRole('heading', { name: 'Learn Morse A–Z' })).toBeFocused()
+  await expect(page.getByRole('heading', { name: morse.title, level: 1 })).toBeFocused()
   await expect(page.getByRole('button', { name: 'Start word checkpoint after lesson 4' })).toBeVisible()
   expect(await page.evaluate((key) => window.localStorage.getItem(key), STORE_KEY)).toBe(before)
-  expect(await state(page)).toEqual(historyBefore)
+  expect(await state(page)).toEqual(onTopic)
 })
 
 test('word checkpoint remains usable at phone width and 200% text with the whole word visible', async ({ page }, testInfo) => {
   test.skip(!testInfo.project.name.startsWith('phone-'), 'phone-width checkpoint rendering contract')
   await openApp(page)
-  await page.locator('.docket .index-row').click()
+  await openMorseTopic(page)
   await page.getByRole('button', { name: 'Start word checkpoint after lesson 4' }).click()
   await finishCheckpointWarmups(page)
 
@@ -234,10 +237,10 @@ test('word checkpoint remains usable at phone width and 200% text with the whole
 test('reference cards keep the phone hierarchy without horizontal overflow', async ({ page }, testInfo) => {
   test.skip(!testInfo.project.name.startsWith('phone-'), 'phone-width rendering contract')
   await openApp(page)
-  await page.getByRole('button', { name: 'Library', exact: true }).click()
-  await page.locator(`[data-row="${MORSE_ID}"]`).click()
+  await openMorseTopic(page)
+  await page.getByRole('button', { name: 'Morse alphabet' }).click()
 
-  await expect(page.getByRole('heading', { name: 'Morse alphabet', level: 2 })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Morse alphabet', level: 1 })).toBeVisible()
   await expect(page.getByText('Show all 26 items')).toHaveCount(0)
 
   const cards = page.locator('.morse-ref-card')
@@ -257,10 +260,10 @@ test('reference cards keep the phone hierarchy without horizontal overflow', asy
   }))).toBe(true)
 })
 
-test('Topic reference playback does not write learner state', async ({ page }) => {
+test('reference playback does not write learner state', async ({ page }) => {
   await openApp(page)
-  await page.getByRole('button', { name: 'Library', exact: true }).click()
-  await page.locator(`[data-row="${MORSE_ID}"]`).click()
+  await openMorseTopic(page)
+  await page.getByRole('button', { name: 'Morse alphabet' }).click()
 
   const before = await page.evaluate((key) => window.localStorage.getItem(key), STORE_KEY)
   await page.getByRole('button', { name: 'Play A Morse' }).click()

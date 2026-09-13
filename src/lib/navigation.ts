@@ -6,9 +6,23 @@ export type ParentRoute =
   | { kind: 'section'; view: View }
   | { kind: 'topic'; topicId: string }
 
+/**
+ * Which task inside a guided run the learner asked for.
+ *
+ * The canonical lesson is the default and needs no target: it resumes whatever
+ * `startLesson` says is current, which is the whole point of a durable sitting.
+ * Replay and checkpoint name a specific path entry, and neither persists any
+ * learner state, so a reloaded run entry falling back to its origin loses
+ * nothing it was responsible for.
+ */
+export type RunTarget =
+  | { kind: 'lesson' }
+  | { kind: 'replay'; index: number }
+  | { kind: 'checkpoint'; afterLesson: number }
+
 export type AppRoute =
   | ParentRoute
-  | { kind: 'run'; mode: Mode; topicIds: string[]; origin: ParentRoute }
+  | { kind: 'run'; mode: Mode; topicIds: string[]; origin: ParentRoute; target?: RunTarget }
   | { kind: 'reference'; topicId: string; origin: ParentRoute }
 
 export interface ArgusHistoryState {
@@ -26,12 +40,28 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
 }
 
+/**
+ * A history entry naming a destination that no longer exists (`progress`) fails
+ * validation, so `readNavigationState` returns null and the app falls back to
+ * its root rather than restoring a route it can no longer render.
+ */
 function isView(value: unknown): value is View {
-  return value === 'today' || value === 'library' || value === 'progress' || value === 'data'
+  return value === 'today' || value === 'library' || value === 'data'
 }
 
 function isMode(value: unknown): value is Mode {
   return value === 'learn' || value === 'test'
+}
+
+function isRunTarget(value: unknown): value is RunTarget {
+  if (!isRecord(value)) return false
+  if (value.kind === 'lesson') return true
+  if (value.kind === 'replay') return Number.isInteger(value.index) && (value.index as number) >= 0
+  return (
+    value.kind === 'checkpoint' &&
+    Number.isInteger(value.afterLesson) &&
+    (value.afterLesson as number) > 0
+  )
 }
 
 function isTopicIds(value: unknown): value is string[] {
@@ -49,6 +79,7 @@ export function isAppRoute(value: unknown): value is AppRoute {
   if (!isRecord(value) || typeof value.kind !== 'string') return false
 
   if (value.kind === 'run') {
+    if (value.target !== undefined && !isRunTarget(value.target)) return false
     return isMode(value.mode) && isTopicIds(value.topicIds) && isParentRoute(value.origin)
   }
 
@@ -107,6 +138,7 @@ export function sameRoute(left: AppRoute, right: AppRoute): boolean {
   if (left.kind === 'run' && right.kind === 'run') {
     return (
       left.mode === right.mode &&
+      sameTarget(left.target, right.target) &&
       left.topicIds.length === right.topicIds.length &&
       left.topicIds.every((id, index) => id === right.topicIds[index]) &&
       sameParent(left.origin, right.origin)
@@ -114,6 +146,16 @@ export function sameRoute(left: AppRoute, right: AppRoute): boolean {
   }
 
   return false
+}
+
+function sameTarget(left: RunTarget | undefined, right: RunTarget | undefined): boolean {
+  if (!left || !right) return !left && !right
+  if (left.kind !== right.kind) return false
+  if (left.kind === 'replay' && right.kind === 'replay') return left.index === right.index
+  if (left.kind === 'checkpoint' && right.kind === 'checkpoint') {
+    return left.afterLesson === right.afterLesson
+  }
+  return true
 }
 
 function sameParent(left: ParentRoute, right: ParentRoute): boolean {

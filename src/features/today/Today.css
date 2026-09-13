@@ -76,10 +76,29 @@
 /* The one lit surface on Today is the required action itself. A day with
    nothing due carries no brass and no shadow, because there is no work. */
 .today-go {
+  display: grid;
+  gap: 2px;
   width: 100%;
-  min-height: 52px;
-  font-size: var(--t-component);
+  min-height: 56px;
+  padding: var(--s-md) var(--s-lg);
+  text-align: left;
   box-shadow: var(--edge), var(--shadow-key);
+}
+
+.today-go-verb {
+  font-size: var(--t-component);
+  font-weight: var(--w-component);
+}
+
+/* Never the whole story on its own line: the count, or which topic this is. */
+.today-go-note {
+  overflow: hidden;
+  font-size: var(--t-label);
+  font-weight: var(--w-body);
+  letter-spacing: 0.01em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: rgb(28 21 10 / 74%);
 }
 
 .today-alts {

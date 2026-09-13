@@ -1,0 +1,262 @@
+/* One topic, one page.
+
+   The old sheet opened on a definition list of five internal progress fields and
+   two equally-weighted mode buttons, then folded the material away underneath.
+   The order here is the order of the task: what this is, where it stands, the
+   one thing to do, and then the material itself. */
+
+.topic-back {
+  margin-bottom: var(--s-md);
+  padding-left: 0;
+}
+
+.topic-title:focus {
+  outline: none;
+}
+
+.topic-head {
+  display: grid;
+  gap: var(--s-md);
+}
+
+/* The boundary is the reason the topic exists, so it is set as content in the
+   serif rather than as a muted caption under the title. */
+.topic-scope {
+  max-width: 42ch;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--t-section);
+  font-weight: var(--w-body);
+  line-height: 1.32;
+  letter-spacing: -0.006em;
+  color: var(--muted);
+}
+
+/* One line of state, replacing a seven-row table of internal dimensions. The
+   dimensions still exist and still disagree usefully; the learner was never the
+   one who needed to hold all four at once. */
+.topic-state {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-sm) var(--s-md);
+  margin: 0;
+  padding-top: var(--s-md);
+  border-top: 1px solid var(--line);
+  font-size: var(--t-label);
+  font-weight: var(--w-label);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.topic-state-label {
+  color: var(--ink);
+}
+
+/* Repair reads in warning on Today and in Library, so it reads in warning here.
+   It routes work; it does not scold. */
+.topic-state-label.is-repair {
+  color: var(--warning);
+}
+
+.topic-state-meta {
+  color: var(--subtle);
+}
+
+.topic-detail {
+  max-width: 52ch;
+  margin: 0;
+  font-size: var(--t-small);
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+/* ------------------------------------------------------------- action -- */
+
+.topic-act {
+  display: grid;
+  justify-items: start;
+  gap: var(--s-sm);
+  margin-top: var(--s-xl);
+}
+
+/* The one lit surface on this page. There is no second button of the same shape
+   beside it, because the journey already chose and a matched pair would ask the
+   learner to make a decision that has been made. */
+.topic-primary {
+  display: grid;
+  gap: 3px;
+  width: 100%;
+  min-height: 60px;
+  padding: var(--s-md) var(--s-lg);
+  text-align: left;
+  box-shadow: var(--edge), var(--shadow-key);
+}
+
+.topic-primary-verb {
+  font-size: var(--t-component);
+  font-weight: var(--w-component);
+}
+
+.topic-primary-note {
+  font-size: var(--t-label);
+  font-weight: var(--w-body);
+  letter-spacing: 0.01em;
+  color: rgb(28 21 10 / 74%);
+}
+
+/* Available, not recommended. It never takes the primary's shape. */
+.topic-alt {
+  padding-left: 0;
+}
+
+.topic-consequence {
+  max-width: 52ch;
+  margin: 0;
+  font-size: var(--t-small);
+  line-height: 1.45;
+  color: var(--subtle);
+}
+
+.topic-unfinished {
+  display: grid;
+  justify-items: start;
+  gap: var(--s-md);
+  margin-top: var(--s-lg);
+}
+
+.topic-unfinished p {
+  color: var(--muted);
+}
+
+/* --------------------------------------------------------------- body -- */
+
+/* The material, or the curriculum. Whichever this topic has, it is the page
+   rather than a disclosure on it or a separate route that repeats it. */
+.topic-body {
+  margin-top: var(--s-2xl);
+  padding-top: var(--s-lg);
+  border-top: 1px solid var(--line-strong);
+}
+
+.topic-body-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-md);
+}
+
+.topic-body-head h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--t-section);
+  font-weight: var(--w-section);
+}
+
+.topic-reference-head {
+  margin: 0 0 var(--s-sm);
+  font-size: var(--t-label);
+  font-weight: var(--w-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--subtle);
+}
+
+/* Structured support comes first and needs air before the finite set begins,
+   so the boundary between explanation and scored material stays legible. */
+.topic-body .learn-support + .topic-reference-head {
+  margin-top: var(--s-2xl);
+  padding-top: var(--s-lg);
+  border-top: 2px solid var(--line-strong);
+}
+
+.topic-body-foot {
+  max-width: 56ch;
+  margin-top: var(--s-lg);
+  font-size: var(--t-small);
+  line-height: 1.45;
+  color: var(--subtle);
+}
+
+.topic-earned {
+  margin-top: var(--s-lg);
+  font-size: var(--t-small);
+  color: var(--muted);
+}
+
+/* --------------------------------------------------------------- fold -- */
+
+/* Detail the page holds but does not lead with. Native disclosure, because a
+   disclosure is exactly what this is. */
+.fold {
+  margin-top: var(--s-xl);
+  border-block: 1px solid var(--line);
+}
+
+.fold summary {
+  padding: var(--s-md) 0;
+  font-size: var(--t-label);
+  font-weight: var(--w-label);
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.fold summary:hover {
+  color: var(--ink);
+}
+
+.fold summary:focus-visible {
+  outline: 2px solid var(--accent-2);
+  outline-offset: 2px;
+}
+
+.fold-history {
+  padding-bottom: var(--s-md);
+  border-top: 1px solid var(--line);
+}
+
+.fold-history li {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s-md);
+  padding: 9px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: var(--t-label);
+  font-variant-numeric: tabular-nums;
+}
+
+.fold-history li:last-child {
+  border-bottom: 0;
+}
+
+.fold-resolved {
+  min-width: 8ch;
+  text-align: right;
+  color: var(--muted);
+}
+
+/* -------------------------------------------------------------- admin -- */
+
+.topic-admin {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-lg);
+  margin-top: var(--s-2xl);
+}
+
+.topic-admin .quiet.is-danger {
+  color: var(--danger);
+}
+
+.topic-admin .quiet.is-danger:hover {
+  color: var(--danger-2);
+}
+
+@media (min-width: 980px) {
+  .topic-primary {
+    max-width: 420px;
+  }
+}

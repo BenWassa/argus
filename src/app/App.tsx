@@ -4,10 +4,9 @@ import { shouldShowSplash, SplashScreen } from '../components/SplashScreen'
 import { LibraryProvider, useLibrary } from '../lib/store'
 import { Today } from '../features/today/Today'
 import { Library } from '../features/library/Library'
-import { Progress } from '../features/progress/Progress'
 import { Data } from '../features/data/Data'
 import { Session } from '../features/test/Session'
-import { Learn } from '../features/learn/Learn'
+import { LessonRun } from '../features/learn/LessonRun'
 import { MorseReference } from '../features/learn/MorseReference'
 import {
   backNavigation,
@@ -20,6 +19,7 @@ import {
   type ParentRoute,
 } from '../lib/navigation'
 import type { Mode, Topic, View } from '../lib/types'
+import type { RunTarget } from '../lib/navigation'
 
 const ROOT_ROUTE: ParentRoute = { kind: 'section', view: 'today' }
 
@@ -49,10 +49,27 @@ function safeParent(route: ParentRoute, topics: Topic[]): ParentRoute {
 }
 
 /**
- * Validate identifiers against the live library. A restored run is deliberately
- * not reconstructed: Test/Learn session state is in memory, not history, so a
- * reload/Forward traversal falls back to the route that launched it rather than
- * silently starting a fresh scored attempt.
+ * True for a run whose position is durable rather than held in memory.
+ *
+ * A canonical Morse lesson is the only one. Its retrieval count, correct count,
+ * letters to revisit and listening declination live in `Topic.lessonSitting`, so
+ * restoring that entry resumes exactly where the learner was rather than
+ * fabricating a fresh task. That is what lets the alphabet reference return to
+ * the lesson it was opened from instead of abandoning it.
+ *
+ * A Test run is never resumable: restoring it would start a new scored attempt.
+ * A replay or word checkpoint deliberately persists nothing, so there is no
+ * position to return to and restoring one would silently restart it.
+ */
+function resumableRun(route: Extract<AppRoute, { kind: 'run' }>): boolean {
+  return route.mode === 'learn' && (route.target?.kind ?? 'lesson') === 'lesson'
+}
+
+/**
+ * Validate identifiers against the live library. A run that holds its state in
+ * memory is deliberately not reconstructed: a reload or Forward traversal falls
+ * back to the route that launched it rather than silently starting a fresh
+ * scored attempt. A run backed by durable state resumes instead.
  */
 function restoreRoute(route: AppRoute, topics: Topic[], restoreRun: boolean): AppRoute {
   if (route.kind === 'section') return route
@@ -67,7 +84,7 @@ function restoreRoute(route: AppRoute, topics: Topic[], restoreRun: boolean): Ap
       : origin
   }
 
-  if (!restoreRun) return origin
+  if (!restoreRun && !resumableRun(route)) return origin
   return route.topicIds.every((id) => topics.some((topic) => topic.id === id))
     ? { ...route, origin }
     : origin
@@ -209,40 +226,27 @@ function Routes() {
     backNavigation()
   }
 
-  function start(mode: Mode, topicIds: string[], replace = false) {
+  function start(mode: Mode, topicIds: string[], target?: RunTarget, replace = false) {
     if (topicIds.length === 0) return
     const current = routeRef.current
     const origin = replace && current.kind === 'run' ? current.origin : parentFor(current)
-    navigate({ kind: 'run', mode, topicIds, origin }, replace)
+    navigate({ kind: 'run', mode, topicIds, origin, target }, replace)
   }
 
+  /**
+   * The alphabet, and then back to whatever asked for it.
+   *
+   * This used to rewrite history: it replaced the running Learn entry with a
+   * Topic entry and pushed the reference above that, because a Back into a run
+   * entry always fell through to the run's origin and would have abandoned the
+   * lesson. A canonical lesson is now restorable from its durable sitting, so
+   * the reference is simply pushed and Back lands on the surface it was opened
+   * from, lesson included. The reference itself still writes nothing.
+   */
   function openReference(topicId: string) {
     const current = routeRef.current
-    const topicRoute: ParentRoute = { kind: 'topic', topicId }
-    const reference: AppRoute = { kind: 'reference', topicId, origin: topicRoute }
-
-    if (current.kind === 'run') {
-      // Current-main behaviour already abandons Learn and closes the reference
-      // to this Topic. If Learn itself came from the Topic, replacing Learn is
-      // enough because that Topic entry is already directly behind it.
-      if (current.origin.kind === 'topic' && current.origin.topicId === topicId) {
-        navigate(reference, true)
-        return
-      }
-
-      // Learn can also launch from Today or Library. There is then no Topic
-      // entry behind the run, so turn the run entry into Topic and place the
-      // read-only reference above it. Back closes Reference -> Topic -> the
-      // original section, matching the pre-#45 product flow without replaying
-      // Learn or creating a duplicate section stop.
-      replaceNavigationState(topicRoute, historyIndex.current)
-      historyIndex.current = pushNavigationState(reference, historyIndex.current)
-      routeRef.current = reference
-      setRoute(reference)
-      return
-    }
-
-    const origin = current.kind === 'topic' ? current : parentFor(current)
+    const origin: ParentRoute =
+      current.kind === 'section' || current.kind === 'topic' ? current : current.origin
     navigate({ kind: 'reference', topicId, origin })
   }
 
@@ -251,12 +255,18 @@ function Routes() {
     setAuthorOnEntry(false)
 
     if (current.kind === 'section' && current.view === next) return
-    // Library is already the active section while a Topic page is open. Its
-    // nav button therefore behaves like the page's visible Back control rather
-    // than pushing a duplicate Library stop.
-    if (current.kind === 'topic' && next === 'library') {
-      goBack()
-      return
+    // Library is already the active section while a Topic page or the Data
+    // utility is open. Its nav button therefore behaves like that page's visible
+    // Back control rather than pushing a duplicate Library stop.
+    if (next === 'library') {
+      if (current.kind === 'topic') {
+        goBack()
+        return
+      }
+      if (current.kind === 'section' && current.view === 'data') {
+        goBack()
+        return
+      }
     }
 
     navigate({ kind: 'section', view: next })
@@ -267,12 +277,13 @@ function Routes() {
       <div className="app-shell session-shell">
         <main id="main" tabIndex={-1}>
           {route.mode === 'learn' ? (
-            <Learn
-              key={route.topicIds.join()}
-              topicIds={route.topicIds}
+            <LessonRun
+              key={`${route.topicIds[0]}-${route.target?.kind ?? 'lesson'}`}
+              topicId={route.topicIds[0]}
+              target={route.target ?? { kind: 'lesson' }}
               onExit={goBack}
-              onTest={(ids) => start('test', ids, true)}
-              onReference={openReference}
+              onCheck={() => start('test', route.topicIds, undefined, true)}
+              onReference={() => openReference(route.topicIds[0])}
             />
           ) : (
             <Session
@@ -298,12 +309,16 @@ function Routes() {
 
   const view: View = route.kind === 'topic' ? 'library' : route.view
   const topicId = route.kind === 'topic' ? route.topicId : null
+  // Topic and Data are both children of Library, so both mark Library current.
+  // The bar names where you are in the app, not which component is mounted.
+  const navView = view === 'data' ? 'library' : view
 
   return (
-    <AppShell view={view} onNavigate={navigateSection}>
+    <AppShell view={navView} onNavigate={navigateSection}>
       {view === 'today' && (
         <Today
           onStart={start}
+          onOpenTopic={(id) => navigate({ kind: 'topic', topicId: id })}
           onGoToLibrary={() => {
             setAuthorOnEntry(true)
             navigate({ kind: 'section', view: 'library' })
@@ -313,14 +328,15 @@ function Routes() {
       {view === 'library' && (
         <Library
           onStart={start}
+          onReference={openReference}
           openFormOnMount={authorOnEntry}
           openTopicOnMount={topicId}
           onOpenTopic={(id) => navigate({ kind: 'topic', topicId: id })}
           onCloseTopic={goBack}
+          onOpenData={() => navigate({ kind: 'section', view: 'data' })}
         />
       )}
-      {view === 'progress' && <Progress />}
-      {view === 'data' && <Data />}
+      {view === 'data' && <Data onBack={goBack} />}
     </AppShell>
   )
 }

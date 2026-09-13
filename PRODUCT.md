@@ -12,7 +12,17 @@ The job to be done, every session: see what's due, do the one thing the schedule
 
 ## Modes
 
-Two ways to engage a topic:
+Two ways to engage a topic. They remain two different things with two different
+consequences, and the interface must never let one be mistaken for the other.
+Only one of them is a word the learner reads.
+
+**`Learn` is no longer a user-facing name.** It named an internal mode rather
+than an action, and it named two unlike things: opening an ordinary topic's
+reference, and continuing a guided lesson that runs over weeks. An ordinary
+topic's reference is now the topic page itself, so reading it is `Read` and
+happens by opening the topic; a curriculum's acquisition is `Lesson N`. The
+semantics below are unchanged, and so is every evidence boundary that depends on
+them.
 
 - **Learn** — ungraded reading/exposure. Every topic exposes its complete finite prompt/answer reference with nothing hidden. Topics may optionally place structured explanatory support above that reference: concise context for topics that need a little help, or a fuller briefing with sections, definitions, lists, tables, integrated case studies, sources and limitations. Reference-only topics remain as compact as before. Reading moves an `unstarted` topic to `learning`; nothing is scored.
 - **Test** — flashcards, every scored item once, self-scored. Every Test creates history, while the scheduler decides whether that result is timely enough to advance the ladder. An early Test cannot satisfy or postpone required delayed evidence.
@@ -30,9 +40,11 @@ Argus tracks four different things about a topic and deliberately does not avera
 - **Retention** — has that recall survived the required gap?
 - **Current sitting** — where are you inside the finite task you are doing right now?
 
-One shared derivation reads all four and answers the only question the learner actually asks — *what should I do next, and why* — so Today, Library, Topic and Progress cannot contradict each other about the same topic at the same instant. There is no single progress percentage, because a number averaging those four would not mean anything.
+One shared derivation reads all four and answers the only question the learner actually asks — *what should I do next, and why* — so Today, Library and Topic cannot contradict each other about the same topic at the same instant. There is no single progress percentage, because a number averaging those four would not mean anything.
 
-The Progress screen shows live work, work the schedule is holding, work that decayed, and the permanent completion record. It is a review surface, not a dashboard.
+The learner is not asked to hold all four at once. Each surface states one sentence about a topic, in the schedule's own words, and the consequences of the other dimensions are stated where they bite: on a Test's end screen, on a row's status line. The dimensions stay four separate fields; they stopped being a printed table.
+
+**Progress is not a destination.** Its live sections were a third projection of the same derivation Library already shelves, and its one unique artifact — the permanent completion record — now closes Library, composed rather than listed. Nothing it showed was lost. Navigation is two destinations, `Today` and `Library`; `Data` keeps its own route and is reached from the foot of Library, because export and import must stay first-class and easy to find, not because they need a quarter of the bottom bar for a handful of uses a year.
 
 ## Content boundary
 

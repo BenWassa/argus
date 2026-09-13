@@ -720,3 +720,73 @@ The progress architecture is complete when:
 9. ordinary topics preserve current scheduler semantics;
 10. migration/export/import remain lossless for durable learner state;
 11. full automated gates and exact production acceptance are green.
+
+---
+
+## Amendment — the learning-experience overhaul (#92)
+
+The record above documents #62 as it landed and is left intact. This section
+records what a later programme changed about the *surfaces* that read this
+architecture, so the two are not in contradiction. Nothing in the state model,
+the evidence boundaries, the scheduler or the storage version moved.
+
+### What changed
+
+**Progress is no longer one of the four surfaces.** Its live sections were a
+third projection of `journeyFor` over the same topics Library already shelves,
+and its permanent completion record now closes Library. The cross-surface
+invariant is therefore stated over **Today, Library and Topic**; the matrix
+requirement "Today, Library, Topic and Progress use the same derived journey"
+holds unchanged for the three that remain, and `src/features/crossSurface.test.tsx`
+still asserts every scenario it asserted before against the surface that
+absorbed each one.
+
+**`journeyFor` gained one derived value and changed several labels.**
+`launchFor(journey)` says *where* the recommended action happens, because an
+ordinary topic's reference is now the topic page rather than a separate route;
+`learn` for such a topic opens the topic, and `learn` for a progressive topic is
+still a run. Labels moved from mode names to actions: `Read`, `Start lesson N`,
+`Continue`, `Test`. The derivation, the phases and `advancementEligible` are
+unchanged.
+
+**Ordinary first exposure moved with the reading.** `unstarted → learning` for an
+ordinary topic is stamped by opening its page, which is where its reference now
+is; for a curriculum topic it is stamped by opening a canonical lesson, never by
+a replay, a word checkpoint or a visit to the path. This is the same event in the
+same circumstances as the deleted Learn route performed it.
+
+**Test presentation now reads Learn state.** An item whose topic has reached
+acquisition readiness opens Test uncued instead of restarting the support ladder
+at `rich` (#90, item 6), and an untested bidirectional item's first direction is
+allocated by a stable split so one run exercises both halves of the claim (#90,
+item 7). This is presentation only: `withBaselineCue` returns a value and writes
+nothing, `DirectionEvidence` stays at zero until an answer actually occurs in
+Test, a miss restores support through the ordinary ladder, and a topic that never
+completed guided acquisition keeps the opening it has always had. Reverse recall
+now opens on one *independent* forward production rather than a two-answer
+streak; the completion gate still reads only `unassistedCorrect` and still
+requires both directions plus a fully unassisted qualifying attempt.
+
+**A clean run that cannot qualify is no longer scored as a failure** (#90, item
+8). A run the learner answered correctly end to end, which still cannot bank
+because bidirectional coverage is incomplete, is recorded with
+`advancementEligible: false` and named as progress on the end screen. It moves no
+status and no clock in either direction, rather than resetting the one-day gap as
+though twenty-six correct answers had been a failed recall.
+
+### What did not change
+
+The four state dimensions and their owners; `Topic.lessonSitting`,
+`lessonProgress` and `acquisitionReadyAt`; the storage version and every
+migration rule; `scheduling.ts` and the 1 / 30 / 90-day ladder; the #68
+completion-evidence contract; the 26 typed bidirectional scoring units; the exact
+printed A–Z completion claim; ordinary-topic scheduler semantics; export and
+import. **No schema change and no new durable field were required.**
+
+### Still outstanding from #90
+
+Items 2, 3, 4, 5 and 9 — item-aware question selection, the sitting-scope novel
+budget and its spacing policy, cumulative review coverage, listening balance and
+the checkpoint arc — are lesson scheduling policy behind the lesson surface, are
+unaffected by any of the above, and carry the one additive migration in that
+programme. They remain open and separable.

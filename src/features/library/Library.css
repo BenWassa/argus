@@ -269,232 +269,6 @@
   gap: var(--s-md);
 }
 
-/* ---------------------------------------------------------- topic page -- */
-
-.topic-back {
-  margin-bottom: var(--s-md);
-  padding-left: 0;
-}
-
-.topic-title:focus {
-  outline: none;
-}
-
-/* The boundary is the reason the topic exists, so it is set as content in the
-   serif rather than as a muted caption under the title. */
-.topic-scope {
-  max-width: 42ch;
-  margin-top: var(--s-md);
-  font-family: var(--font-display);
-  font-size: var(--t-section);
-  font-weight: var(--w-body);
-  line-height: 1.32;
-  letter-spacing: -0.006em;
-  color: var(--muted);
-}
-
-.topic-facts {
-  display: grid;
-  gap: var(--s-sm);
-  margin-top: var(--s-xl);
-  padding: var(--s-md) 0;
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
-}
-
-.topic-facts > div {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--s-md);
-  font-size: var(--t-label);
-}
-
-.topic-facts dt {
-  color: var(--subtle);
-}
-
-.topic-facts dd {
-  margin: 0;
-  color: var(--ink);
-  font-variant-numeric: tabular-nums;
-}
-
-.topic-unfinished {
-  display: grid;
-  justify-items: start;
-  gap: var(--s-md);
-  margin-top: var(--s-lg);
-}
-
-.topic-unfinished p {
-  color: var(--muted);
-}
-
-/* Choosing a mode is choosing what the next few minutes cost you, so each one
-   states its consequence rather than relying on its verb. */
-.mode-choice {
-  display: grid;
-  gap: var(--s-sm);
-  margin-top: var(--s-lg);
-}
-
-.mode-btn {
-  display: grid;
-  gap: 2px;
-  min-height: 56px;
-  padding: var(--s-md);
-  border: 1px solid var(--line-strong);
-  border-radius: var(--r-md);
-  text-align: left;
-  color: var(--ink);
-  background: var(--surface-2);
-  box-shadow: var(--edge);
-}
-
-.mode-btn:hover:not(:disabled) {
-  border-color: var(--line-hover);
-  background: var(--surface-3);
-}
-
-.mode-btn.is-primary {
-  color: var(--accent-ink);
-  border-color: var(--accent);
-  background: linear-gradient(180deg, var(--accent-2), var(--accent));
-  box-shadow: var(--edge), var(--shadow-sm);
-}
-
-.mode-btn.is-primary:hover:not(:disabled) {
-  background: var(--accent-2);
-  border-color: var(--accent-2);
-}
-
-.mode-name {
-  font-size: var(--t-component);
-  font-weight: var(--w-component);
-}
-
-.mode-note {
-  font-size: var(--t-label);
-  font-weight: var(--w-body);
-  color: var(--muted);
-}
-
-.mode-btn.is-primary .mode-note {
-  color: rgb(28 21 10 / 74%);
-}
-
-/* Detail the page holds but does not lead with. Native disclosure, because a
-   disclosure is exactly what this is. */
-.fold {
-  margin-top: var(--s-lg);
-  border-bottom: 1px solid var(--line);
-}
-
-.fold:first-of-type {
-  border-top: 1px solid var(--line);
-}
-
-.fold summary {
-  padding: var(--s-md) 0;
-  font-size: var(--t-label);
-  font-weight: var(--w-label);
-  letter-spacing: 0.045em;
-  text-transform: uppercase;
-  color: var(--muted);
-  cursor: pointer;
-}
-
-.fold summary:hover {
-  color: var(--ink);
-}
-
-.fold summary:focus-visible {
-  outline: 2px solid var(--accent-2);
-  outline-offset: 2px;
-}
-
-.fold-items,
-.fold-history {
-  padding-bottom: var(--s-md);
-  border-top: 1px solid var(--line);
-}
-
-.fold-items li,
-.fold-history li {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--s-md);
-  padding: 9px 0;
-  border-bottom: 1px solid var(--line);
-  font-size: var(--t-label);
-}
-
-.fold-items li:last-child,
-.fold-history li:last-child {
-  border-bottom: 0;
-}
-
-.fold-prompt {
-  color: var(--muted);
-}
-
-.fold-answer {
-  font-family: var(--font-display);
-  font-size: var(--t-small);
-  text-align: right;
-}
-
-.fold-history li {
-  font-variant-numeric: tabular-nums;
-}
-
-.fold-resolved {
-  min-width: 8ch;
-  text-align: right;
-  color: var(--muted);
-}
-
-/* Morse replaces the generic item disclosure with the shared, always-visible
-   lookup cards. The rule provides a firm boundary from progress and actions. */
-.topic-morse-reference {
-  display: grid;
-  gap: var(--s-md);
-  margin-top: var(--s-2xl);
-  padding-top: var(--s-xl);
-  border-top: 1px solid var(--line);
-}
-
-.topic-morse-reference h2,
-.topic-morse-reference-lede {
-  margin: 0;
-}
-
-.topic-morse-reference h2 {
-  font-family: var(--font-display);
-  font-size: var(--t-section);
-  font-weight: var(--w-section);
-}
-
-.topic-morse-reference-lede {
-  max-width: 52ch;
-  color: var(--muted);
-}
-
-.topic-admin {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--s-lg);
-  margin-top: var(--s-2xl);
-}
-
-.topic-admin .quiet.is-danger {
-  color: var(--danger);
-}
-
-.topic-admin .quiet.is-danger:hover {
-  color: var(--danger-2);
-}
-
 /* -------------------------------------------------------------- desktop -- */
 
 @media (min-width: 980px) {
@@ -514,10 +288,6 @@
 
   .lib-select-toggle {
     margin-left: var(--s-sm);
-  }
-
-  .mode-choice {
-    max-width: 420px;
   }
 }
 
@@ -622,4 +392,50 @@
   grid-column: 2;
   grid-row: 1 / span 2;
   align-self: center;
+}
+
+/* ------------------------------------------------- record and utility -- */
+
+/* The permanent record closes the library, because it is the artifact the
+   product exists to build and the only thing the removed Progress destination
+   held that existed nowhere else. It is read, never pressed: no filter, no
+   control, no badge. */
+.lib-record {
+  margin-top: var(--s-3xl);
+  padding-top: var(--s-lg);
+  border-top: 1px solid var(--line-strong);
+}
+
+.lib-record-head {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--t-section);
+  font-weight: var(--w-section);
+}
+
+.lib-record-totals {
+  margin-top: var(--s-md);
+  font-size: var(--t-small);
+  color: var(--muted);
+}
+
+/* Export and import stay first-class and easy to find without spending a
+   quarter of the bottom bar on an action used a few times a year. */
+.lib-utility {
+  display: grid;
+  justify-items: start;
+  gap: 2px;
+  margin-top: var(--s-2xl);
+  padding-top: var(--s-lg);
+  border-top: 1px solid var(--line);
+}
+
+.lib-data {
+  padding-left: 0;
+  font-size: var(--t-body);
+}
+
+.lib-utility-note {
+  font-size: var(--t-small);
+  color: var(--subtle);
 }

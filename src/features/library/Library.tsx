@@ -1,9 +1,17 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useLibrary } from '../../lib/store'
-import { journeyShelves, journeysFor, TEST_CONSEQUENCE_NOTE, type JourneyEntry } from '../../lib/journey'
+import {
+  journeyShelves,
+  journeysFor,
+  launchFor,
+  TEST_CONSEQUENCE_NOTE,
+  type JourneyEntry,
+} from '../../lib/journey'
+import type { RunTarget } from '../../lib/navigation'
 import { Confirm } from '../../components/ui/Confirm'
 import { TopicForm, type Draft } from './TopicForm'
 import { TopicPage } from './TopicPage'
+import { CompletionRecord } from './CompletionRecord'
 import { CaptureSheet } from './CaptureSheet'
 import { WantToLearn } from './WantToLearn'
 import { useInbox } from '../../lib/inbox/useInbox'
@@ -13,10 +21,14 @@ import { TRACKS, type Mode, type Topic, type Track } from '../../lib/types'
 import './Library.css'
 
 interface LibraryProps {
-  onStart: (mode: Mode, topicIds: string[]) => void
+  onStart: (mode: Mode, topicIds: string[], target?: RunTarget) => void
+  /** The Morse alphabet, opened from the topic page and returning to it. */
+  onReference: (topicId: string) => void
   /** Durable topic navigation is owned by App/history, not only local state. */
   onOpenTopic: (topicId: string) => void
   onCloseTopic: () => void
+  /** Export/import/reset. A Library utility with its own route, not a tab. */
+  onOpenData: () => void
   /** Set when Today sends the user here to author their first topic. */
   openFormOnMount?: boolean
   /** Current topic identity restored by browser Back/Forward when present. */
@@ -43,8 +55,10 @@ const EXAMPLE: Draft = {
 
 export function Library({
   onStart,
+  onReference,
   onOpenTopic,
   onCloseTopic,
+  onOpenData,
   openFormOnMount = false,
   openTopicOnMount = null,
 }: LibraryProps) {
@@ -119,17 +133,43 @@ export function Library({
     if (openId && !topics.some((t) => t.id === openId)) setOpenId(null)
   }, [openId, topics])
 
+  /**
+   * Land back on the row you left from.
+   *
+   * The row can move while you are away, and now usually does: opening an
+   * ordinary topic is its exposure event, so by the time you come back it has
+   * left `Due now` for `Waiting` and been re-rendered under a different shelf.
+   * A single-frame restore raced that write and sometimes focused nothing.
+   *
+   * So this re-runs as the list settles and gives up only once it has, rather
+   * than after a fixed number of frames. `#main` is the floor, because a filter
+   * can also hide the row entirely.
+   */
   useEffect(() => {
     if (open || !returnTo.current) return
     const id = returnTo.current
-    returnTo.current = null
-    requestAnimationFrame(() => {
+    let frame = 0
+    let raf = 0
+
+    const settle = () => {
       const row = list.current?.querySelector<HTMLElement>(`[data-row="${CSS.escape(id)}"]`)
-      // A filter can hide the row you came from, so there is a floor to land on.
-      if (row) row.focus()
-      else document.getElementById('main')?.focus()
-    })
-  }, [open])
+      if (row) {
+        returnTo.current = null
+        row.focus()
+        return
+      }
+      if (frame >= 3) {
+        returnTo.current = null
+        document.getElementById('main')?.focus()
+        return
+      }
+      frame += 1
+      raf = requestAnimationFrame(settle)
+    }
+
+    raf = requestAnimationFrame(settle)
+    return () => cancelAnimationFrame(raf)
+  }, [open, topics])
 
   function openTopic(id: string) {
     setOpenId(id)
@@ -259,6 +299,7 @@ export function Library({
           topic={open}
           onBack={leaveTopic}
           onStart={onStart}
+          onReference={onReference}
           onEdit={() => editTopic(open, open.items.length === 0)}
           onDelete={() => setPendingDelete(open)}
         />
@@ -389,11 +430,24 @@ export function Library({
                         selected={chosen.includes(entry.topic.id)}
                         onOpen={() => openTopic(entry.topic.id)}
                         onToggle={() => toggleSelected(entry.topic.id)}
-                        onAction={() =>
-                          entry.journey.action === 'author'
-                            ? editTopic(entry.topic, true)
-                            : onStart(entry.journey.action, [entry.topic.id])
-                        }
+                        onAction={() => {
+                          // One derivation decides the verb and where it leads,
+                          // so a row cannot start a topic differently from Today.
+                          const target = launchFor(entry.journey)
+                          if (target.kind === 'author') {
+                            editTopic(entry.topic, true)
+                            return
+                          }
+                          if (target.kind === 'open') {
+                            openTopic(entry.topic.id)
+                            return
+                          }
+                          onStart(
+                            target.mode,
+                            [entry.topic.id],
+                            target.mode === 'learn' ? { kind: 'lesson' } : undefined,
+                          )
+                        }}
                       />
                     ))}
                   </ul>
@@ -403,6 +457,20 @@ export function Library({
               <p className="lib-consequence">{TEST_CONSEQUENCE_NOTE}</p>
             </div>
           )}
+
+          {/* The permanent record, and then the one utility that owns the
+              learner's data. Both are read or reached deliberately, so they
+              close the page rather than competing with the shelves. */}
+          <CompletionRecord topics={topics} />
+
+          <div className="lib-utility">
+            <button className="quiet lib-data" type="button" onClick={onOpenData}>
+              Data and backup
+            </button>
+            <p className="lib-utility-note">
+              Export the whole library to a file you own, or replace it from one.
+            </p>
+          </div>
         </>
       )}
 

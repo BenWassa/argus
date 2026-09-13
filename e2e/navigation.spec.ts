@@ -48,7 +48,7 @@ async function installLibrary(page: Page, initialState: unknown = null) {
       // The same init script can be present when a root-Back test returns to a
       // data: page. Storage is intentionally touched only on the Argus origin.
       if (location.protocol === 'http:' || location.protocol === 'https:') {
-        window.sessionStorage.setItem(splashKey, 'true')
+        window.localStorage.setItem(splashKey, 'true')
         window.localStorage.setItem(storeKey, library)
         ;(window as unknown as { __argusInitialHistoryLength: number }).__argusInitialHistoryLength =
           window.history.length
@@ -159,12 +159,14 @@ test('Back unwinds Topic and Library, and Forward restores the Topic without dup
 test('runs remember their real Today, Library and Topic origins', async ({ page }) => {
   await openApp(page)
 
-  // Today -> Learn -> Back = Today.
+  // Today -> Topic -> Back = Today. Reading an ordinary topic is no longer a
+  // full-screen run that repeats the page behind it; the reference is the page,
+  // so the docket row opens the topic and adds exactly one history stop.
   await page.locator('.docket .index-row').click()
-  await expect(page.getByRole('button', { name: 'Test me' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: TOPIC.title, level: 1 })).toBeVisible()
   expect(await navigationState(page)).toMatchObject({
     index: 1,
-    route: { kind: 'run', mode: 'learn', origin: { kind: 'section', view: 'today' } },
+    route: { kind: 'topic', topicId: TOPIC.id },
   })
   await systemBack(page)
   await expect(page.getByRole('button', { name: 'Today', exact: true })).toHaveAttribute(
@@ -172,8 +174,8 @@ test('runs remember their real Today, Library and Topic origins', async ({ page 
     'page',
   )
 
-  // After Learn has marked an ordinary topic learning, Library correctly routes
-  // it to Test. This assertion is about preserving the Library origin, not
+  // Opening the topic marked it learning, so Library correctly routes it to
+  // Test. This assertion is about preserving the Library origin, not
   // re-testing scheduler/mode selection semantics.
   await openLibrary(page)
   await page.locator(`[data-row="${TOPIC.id}"]`).locator('..').locator('.lib-action').click()
@@ -186,7 +188,7 @@ test('runs remember their real Today, Library and Topic origins', async ({ page 
 
   // Topic -> Test -> Back = Topic.
   await openTopic(page)
-  await page.locator('.mode-btn').filter({ hasText: /^Test/ }).click()
+  await page.locator('.topic-primary').click()
   await expect(page.locator('.flip-card')).toBeVisible()
   expect(await navigationState(page)).toMatchObject({
     route: { kind: 'run', mode: 'test', origin: { kind: 'topic', topicId: TOPIC.id } },
@@ -195,23 +197,28 @@ test('runs remember their real Today, Library and Topic origins', async ({ page 
   await expect(page.getByRole('heading', { name: TOPIC.title, level: 1 })).toBeVisible()
 })
 
-test('Learn to Test me replaces the run entry instead of adding a Learn Back stop', async ({ page }) => {
+test('reading an ordinary topic adds no Back stop of its own', async ({ page }) => {
+  // This replaces the old `Learn -> Test me replaces the run entry` case. That
+  // dance existed because reading was a separate full-screen route that had to
+  // be spliced out of history on the way to Test. The reading is now the topic
+  // page, so there is no entry to splice: Topic -> Test -> Back is two stops,
+  // not three, and the reference never leaves the page it belongs to.
   await openApp(page)
   await openLibrary(page)
   await openTopic(page)
 
-  await page.locator('.mode-btn').filter({ hasText: /^Learn/ }).click()
-  const learned = await navigationState(page)
-  expect(learned).toMatchObject({
-    index: 3,
-    route: { kind: 'run', mode: 'learn', origin: { kind: 'topic', topicId: TOPIC.id } },
-  })
+  const onTopic = await navigationState(page)
+  expect(onTopic).toMatchObject({ index: 2, route: { kind: 'topic', topicId: TOPIC.id } })
 
-  await page.getByRole('button', { name: 'Test me' }).click()
+  // The complete finite set is on the page, unconcealed, with no disclosure and
+  // no second route rendering the same items.
+  await expect(page.locator('.sheet-items li')).toHaveCount(TOPIC.items.length)
+  await expect(page.getByText('Show all')).toHaveCount(0)
+
+  await page.locator('.topic-primary').click()
   await expect(page.locator('.flip-card')).toBeVisible()
-  const tested = await navigationState(page)
-  expect(tested).toMatchObject({
-    index: learned.index,
+  expect(await navigationState(page)).toMatchObject({
+    index: 3,
     route: { kind: 'run', mode: 'test', origin: { kind: 'topic', topicId: TOPIC.id } },
   })
 
@@ -224,7 +231,7 @@ test('partial Test Back reuses End test, Back resumes, and confirmed exit preser
   await openApp(page)
   await openLibrary(page)
   await openTopic(page)
-  await page.locator('.mode-btn').filter({ hasText: /^Test/ }).click()
+  await page.locator('.topic-primary').click()
 
   await page.locator('.flip-card').click()
   // Keyboard grading is part of the stable Test contract and does not depend on
@@ -262,6 +269,36 @@ test('partial Test Back reuses End test, Back resumes, and confirmed exit preser
     [STORE_KEY, TOPIC.id] as const,
   )
   expect(history).toEqual([])
+})
+
+test('Data is a Library utility with its own route, Back and current tab', async ({ page }) => {
+  await openApp(page)
+  await openLibrary(page)
+
+  // Export and import stay first-class and easy to find without holding a
+  // quarter of the bottom bar for an action used a few times a year.
+  await page.getByRole('button', { name: 'Data and backup' }).click()
+  await expect(page.getByRole('heading', { name: 'Data', level: 1 })).toBeVisible()
+  expect(await navigationState(page)).toMatchObject({
+    index: 2,
+    route: { kind: 'section', view: 'data' },
+  })
+
+  // Data is a child of Library, so Library is where you are.
+  await expect(page.getByRole('button', { name: 'Library', exact: true })).toHaveAttribute(
+    'aria-current',
+    'page',
+  )
+
+  await page.getByRole('button', { name: 'Back to Library' }).click()
+  await expect(page.getByRole('heading', { name: 'Library', level: 1 })).toBeVisible()
+  expect((await navigationState(page)).index).toBe(1)
+
+  // And the nav button behaves like that Back rather than pushing a duplicate.
+  await page.getByRole('button', { name: 'Data and backup' }).click()
+  await page.getByRole('button', { name: 'Library', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Library', level: 1 })).toBeVisible()
+  expect((await navigationState(page)).index).toBe(1)
 })
 
 test('system Back dismisses clean and dirty dialogs before changing route', async ({ page }) => {

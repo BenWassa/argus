@@ -35,7 +35,7 @@ const LIBRARY = JSON.stringify({
 export async function openNatoTest(page: Page) {
   await page.addInitScript(
     ([library, storeKey, splashKey]) => {
-      window.sessionStorage.setItem(splashKey, 'true')
+      window.localStorage.setItem(splashKey, 'true')
       window.localStorage.setItem(storeKey, library)
     },
     [LIBRARY, STORE_KEY, SPLASH_KEY] as const,

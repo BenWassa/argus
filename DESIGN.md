@@ -194,9 +194,13 @@ The rule says *at most*, not *exactly*. A view with nothing to light is allowed 
 
 Two ways to engage a topic. Learn exposes the material; Test is the only recall interaction.
 
+`Learn` is a semantic, not a label: the learner reads `Read` for an ordinary
+topic and `Lesson N` for a curriculum, and `Test` is the only mode name that
+reaches them, because it is the only one with a consequence to state.
+
 | Mode | Surface | Records |
 |---|---|---|
-| **Learn** | A reading sheet. Every topic shows its finite prompt/answer reference in full; optional concise or briefing support may precede it. Nothing is concealed. | Moves `unstarted` → `learning`. No score. |
+| **Learn** | The topic page itself for an ordinary topic: the finite prompt/answer reference in full, preceded by optional concise or briefing support, concealing nothing. A guided lesson for a curriculum topic. | Moves `unstarted` → `learning`. No score. |
 | **Test** | Flashcards with a 3D flip, every scored item once, self-scored | Records the attempt; moves the ladder only when scheduled evidence conditions are met |
 
 Learn has three valid visual outcomes. A **reference-only** topic keeps the compact title/scope/count + numbered set with no additional scaffolding. **Concise support** adds only the small amount of explanation/provenance/limitation the topic needs. A **briefing** may add short sections, lists, definitions, compact tables and integrated case studies before a visibly separate `Recall reference` section. The extra structure is never mandatory simply because the renderer supports it.

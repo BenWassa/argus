@@ -60,6 +60,11 @@ const LIBRARY = JSON.stringify({
  * test exercises the tap/hold boundary rather than host scheduling.
  */
 async function tapKey(page: Page) {
+  // The deliberate press waits for the key to actually arm. `Locator.evaluate`
+  // waits only for attachment, and since #87 an attached key is inert while a
+  // verdict stands or a transition runs, so pressing on attachment alone races
+  // the boundary this file exists to test rather than testing it.
+  await expect(page.locator('.morse-key')).toBeEnabled({ timeout: 4_000 })
   await page.locator('.morse-key').evaluate((element) => {
     const options = { pointerId: 1, button: 0, isPrimary: true, bubbles: true, cancelable: true }
     element.dispatchEvent(new PointerEvent('pointerdown', options))
@@ -87,13 +92,16 @@ async function strayTap(page: Page) {
 async function openCheckpoint(page: Page) {
   await page.addInitScript(
     ([library, storeKey, splashKey]) => {
-      window.sessionStorage.setItem(splashKey, 'true')
+      window.localStorage.setItem(splashKey, 'true')
       window.localStorage.setItem(storeKey, library)
     },
     [LIBRARY, STORE_KEY, SPLASH_KEY] as const,
   )
   await page.goto('./')
-  await page.locator('.docket .index-row').click()
+  // The curriculum path lives on the Morse topic page, so a checkpoint is
+  // reached by opening the topic rather than from inside a Learn run.
+  await page.getByRole('button', { name: 'Library', exact: true }).click()
+  await page.locator(`[data-row="${MORSE_ID}"]`).click()
   await page.getByRole('button', { name: 'Start word checkpoint after lesson 4' }).click()
   await expect(page.getByText('Warm-up 1 of 4', { exact: true })).toBeVisible()
 }

@@ -298,7 +298,17 @@ export interface CurrentLibrary {
 /** The seed is itself a v5 record; storage remains the migration boundary. */
 export type Library = LegacyLibraryV4 | CurrentLibrary
 
-export type View = 'today' | 'library' | 'progress' | 'data'
+/**
+ * Top-level destinations.
+ *
+ * Two of them are navigation: Today is the docket, Library is everything owned.
+ * `data` is a Library utility with its own route rather than a third thumb-level
+ * slot, because export/import is a handful of uses a year and the bottom bar is
+ * the scarcest space in the product. Progress is gone as a destination: its live
+ * sections were a third reading of the same `journeyFor` derivation Library
+ * already shelves, and its permanent completion record now closes Library.
+ */
+export type View = 'today' | 'library' | 'data'
 
 /** Learn is ungraded exposure; Test is the single scored recall interaction. */
 export const MODES = ['learn', 'test'] as const

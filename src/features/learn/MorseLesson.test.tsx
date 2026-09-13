@@ -24,7 +24,7 @@ import { LibraryProvider } from '../../lib/store'
 import { parseLibrary, saveLibrary } from '../../lib/storage'
 import { seedLibrary } from '../../lib/seed'
 import type { ItemLessonStore, Topic } from '../../lib/types'
-import { Learn } from './Learn'
+import { LessonRun as GuidedRun } from './LessonRun'
 import { ListeningCheckStep, MorseLesson, VisualCheckStep } from './MorseLesson'
 
 const MORSE_ID = 'international-morse-letters-printed'
@@ -61,10 +61,16 @@ function render(topic: Topic, run: LessonRun): string {
   )
 }
 
-function learn(topicIds: string[]): string {
+function guidedRun(topicId: string): string {
   return renderToStaticMarkup(
     <LibraryProvider>
-      <Learn topicIds={topicIds} onExit={() => undefined} onTest={() => undefined} onReference={() => undefined} />
+      <GuidedRun
+        topicId={topicId}
+        target={{ kind: 'lesson' }}
+        onExit={() => undefined}
+        onCheck={() => undefined}
+        onReference={() => undefined}
+      />
     </LibraryProvider>,
   )
 }
@@ -127,19 +133,23 @@ function tEntry(): LessonEntry {
 
 const ref = { current: null }
 
-describe('Learn picks the right surface', () => {
-  it('gives the Morse topic a guided lesson rather than a scrollable packet page', () => {
-    const html = learn([MORSE_ID])
+describe('the guided run mounts one task and never a menu', () => {
+  it('opens the Morse lesson itself rather than a curriculum picker', () => {
+    const html = guidedRun(MORSE_ID)
     expect(html).toContain('morse-lesson')
-    expect(html).toContain('Learn Morse A–Z')
-    expect(html).toContain('Start lesson 1')
+    // The path is the topic page's body now, so the run does not repeat it.
+    expect(html).not.toContain('morse-path')
+    expect(html).not.toContain('Curriculum')
+    expect(html).toContain('New letter')
+    // Reading material belongs to the topic page and never to a run.
     expect(html).not.toContain('sheet-items')
-    expect(html).not.toContain('morse-cards')
   })
 
-  it('leaves non-Morse and batched Learn on the reading sheet', () => {
-    expect(learn(['nato-phonetic'])).toContain('sheet-items')
-    expect(learn([MORSE_ID, 'nato-phonetic'])).toContain('sheet-items')
+  it('renders nothing for a topic with no curriculum, rather than a reading route', () => {
+    // An ordinary topic's reference is its own page. There is no longer a
+    // full-screen reading run for one to fall back to, so a stale entry naming
+    // one leaves rather than rendering an empty shell.
+    expect(guidedRun('nato-phonetic')).toBe('')
   })
 })
 
@@ -329,14 +339,14 @@ describe('feedback and modality boundaries', () => {
 describe('finite progress and evidence honesty', () => {
   const topic = seededTopic(MORSE_ID)
 
-  it('states packet position and the finite sitting target in plain terms', () => {
+  it('states lesson position and the finite sitting target in plain terms', () => {
     const html = render(topic, startLesson(topic) as LessonRun)
-    expect(html).toContain('Packet 1 of 13')
+    expect(html).toContain('Lesson 1 of 13')
     // #62: the ten-answer sitting is a finite retrieval budget, not an economy.
     // Argus rejects a global XP model, so the copy must not imply one.
     expect(html).toContain('0 / 10 retrievals')
     expect(html).not.toContain('XP')
-    expect(html).toContain('Packet progress: 0 of 2 settled')
+    expect(html).toContain('Lesson progress: 0 of 2 settled')
     expect(html).toContain('aria-label="Retrievals this sitting"')
     expect(html).toContain('aria-valuemax="10"')
   })
@@ -572,7 +582,7 @@ describe('#88 automatic word-checkpoint handoff at lesson completion', () => {
     // Lesson 5 continues exactly as an un-invited sitting would: no gate, no
     // memory that an invitation was ever shown.
     expect(screen.queryByRole('button', { name: 'Start checkpoint' })).toBeNull()
-    expect(screen.getByText('Packet 5 of 13')).toBeTruthy()
+    expect(screen.getByText('Lesson 5 of 13')).toBeTruthy()
   })
 
   it('returns to the lesson after completing the checkpoint, without a stop at the path', async () => {
@@ -595,7 +605,7 @@ describe('#88 automatic word-checkpoint handoff at lesson completion', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Keep going' }))
     expect(screen.queryByRole('heading', { name: 'Learn Morse A–Z' })).toBeNull()
-    expect(screen.getByText('Packet 5 of 13')).toBeTruthy()
+    expect(screen.getByText('Lesson 5 of 13')).toBeTruthy()
   })
 
   it('does not invite again when the already-unlocked checkpoint is replayed from the path', () => {

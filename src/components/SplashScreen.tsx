@@ -1,6 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
 import './SplashScreen.css'
 
+/**
+ * Durable, and deliberately not part of the library.
+ *
+ * The splash is a first-visit welcome, so "seen" has to survive closing the tab
+ * the way the learner's own memory of it does. `sessionStorage` made it a
+ * per-browsing-session gate: a new session replayed a 6.5-second interruption in
+ * front of a task-first home. It lives outside `argus.library.v5` on purpose, so
+ * importing or resetting a library never resurrects the intro, and clearing site
+ * data does.
+ */
 const SPLASH_SEEN_KEY = 'argus-splash-seen'
 const EXIT_MS = 180
 
@@ -10,7 +20,7 @@ type SplashScreenProps = {
 
 export function shouldShowSplash() {
   try {
-    return sessionStorage.getItem(SPLASH_SEEN_KEY) !== 'true'
+    return localStorage.getItem(SPLASH_SEEN_KEY) !== 'true'
   } catch {
     return true
   }
@@ -29,7 +39,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
     completed.current = true
 
     try {
-      sessionStorage.setItem(SPLASH_SEEN_KEY, 'true')
+      localStorage.setItem(SPLASH_SEEN_KEY, 'true')
     } catch {
       // The splash still dismisses when storage is unavailable.
     }

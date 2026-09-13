@@ -1,5 +1,13 @@
-/* A page of a reference manual: running head, a stated boundary, then the set
-   itself as a numbered index. Scannable in any order, nothing concealed. */
+/* Reading: the finite reference and its optional structured support.
+
+   This was the stylesheet of a separate full-screen Learn route that repeated
+   the topic page's title, scope and every item. The route is gone and the
+   treatment stayed exactly as it was, because it was never the problem: an
+   editorial, answer-visible index is the right form for material that conceals
+   nothing. It is now rendered as the body of the topic page itself.
+
+   A page of a reference manual: a stated boundary, then the set itself as a
+   numbered index. Scannable in any order, nothing concealed. */
 
 .learn-sheet {
   padding-bottom: calc(var(--s-3xl) + env(safe-area-inset-bottom));

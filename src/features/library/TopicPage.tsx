@@ -1,13 +1,24 @@
 import { useEffect, useRef } from 'react'
 import { journeyFor } from '../../lib/journey'
-import { StatusTag, statusLabel } from '../../components/ui/StatusTag'
-import { MorseReferenceCards } from '../learn/MorseReference'
+import { resolveStudy } from '../../lib/scheduling'
+import { useLibrary } from '../../lib/store'
+import { morseLessonPath } from '../../lib/morseLessonPath'
+import { morseWordCheckpointPath } from '../../lib/morseWordCheckpoints'
+import { statusLabel } from '../../components/ui/StatusTag'
+import { LearnSupport } from '../learn/LearnSupport'
+import { MorsePath } from '../learn/MorsePath'
+// The reference and the structured support keep the editorial treatment they
+// were designed with; only where they are rendered changed.
+import '../learn/Reading.css'
+import type { RunTarget } from '../../lib/navigation'
 import type { Mode, Topic } from '../../lib/types'
+import './TopicPage.css'
 
 interface TopicPageProps {
   topic: Topic
   onBack: () => void
-  onStart: (mode: Mode, topicIds: string[]) => void
+  onStart: (mode: Mode, topicIds: string[], target?: RunTarget) => void
+  onReference: (topicId: string) => void
   onEdit: () => void
   onDelete: () => void
 }
@@ -21,186 +32,140 @@ function stamp(iso: string): string {
 }
 
 /**
- * A topic is a place, not a dialog. It has a scope statement to read, two
- * modes to choose between, a history worth seeing, and two administrative
- * actions that must not sit at the same weight as the modes. A sheet flattened
- * all of that to one altitude and buried the modes under the item list.
+ * One topic, one page, and the page is the work.
+ *
+ * This surface used to be a status sheet: a definition list of five internal
+ * progress dimensions, then two equally-shaped mode buttons, then the material
+ * folded away behind `Show all 26 items`. The material then appeared a second
+ * time on a separate full-screen Learn route that repeated the title, the scope
+ * and every item, adding only a briefing and a `Test me` footer.
+ *
+ * Two things changed.
+ *
+ * **The body is the content.** For an ordinary topic the reference is the page,
+ * set as editorial reading exactly as the Learn sheet set it, which is why the
+ * separate reading route is gone rather than merely hidden. For a curriculum
+ * topic the body is the path, so opening Morse lands on the curriculum instead
+ * of on a facts table with the alphabet underneath it.
+ *
+ * **There is one action.** `journeyFor` already computed what to do next and
+ * every other surface already displayed its verdict; showing two same-sized
+ * buttons afterwards asked the learner to ratify a decision the product had
+ * made. The recommended action is the only prominent control. The other path
+ * stays reachable at text weight, because "available but not recommended" is a
+ * real state and hiding it would be a different kind of lie.
+ *
+ * What did not change: acquisition, evidence, retention and sitting remain four
+ * separate facts owned by four separate fields. They are simply no longer
+ * printed as a table. Their consequences are stated where they bite.
  */
 export function TopicPage({
   topic,
   onBack,
   onStart,
+  onReference,
   onEdit,
   onDelete,
 }: TopicPageProps) {
+  const { updateTopic } = useLibrary()
   const heading = useRef<HTMLHeadingElement>(null)
   const runnable = topic.items.length > 0
+
+  const path = runnable ? morseLessonPath(topic) : null
+  const checkpoints = path ? morseWordCheckpointPath(topic) : null
+  const course = Boolean(path && checkpoints)
+
   /**
-   * The same derivation Today and Library read. The Topic page is the one place
-   * that shows the dimensions separately — acquisition, retention, evidence —
-   * but it must not reach its own verdict about them: the primary action here is
-   * the same value as the verb on the Library row.
+   * Opening an ordinary topic is the exposure event, because the reference is
+   * on this page and reading it is the whole of acquisition for that kind of
+   * topic. The separate Learn route used to stamp this on mount and nothing
+   * about the meaning changed when the route went away, only where it happens.
+   *
+   * A curriculum topic is exempt: its exposure is a lesson, and `MorseLesson`
+   * owns that write. Reading the path is not learning the alphabet.
+   *
+   * The displayed journey is computed from the resolved topic rather than the
+   * stored one so the page does not paint one frame of a verdict it is in the
+   * act of invalidating.
    */
-  const journey = journeyFor(topic)
-  const { acquisition } = journey
-  /**
-   * A topic the guided lesson drives has three jobs rather than two, and they
-   * are not equal: the lesson is the acquisition action, Test is the evidence
-   * action and the alphabet is a quiet lookup. Every other topic keeps exactly
-   * the two-button choice it has always had.
-   */
-  const progressive = runnable && acquisition.progressive
-  const learnPrimary = journey.action === 'learn'
+  const exposed = !course && runnable ? resolveStudy(topic) : topic
+  const journey = journeyFor(exposed)
+
+  useEffect(() => {
+    if (course || !runnable) return
+    updateTopic(topic.id, (current) => resolveStudy(current))
+    // Exposure belongs to opening this topic, not to every render of it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [topic.id, course, runnable])
 
   useEffect(() => {
     heading.current?.focus()
   }, [topic.id])
 
+  const { acquisition } = journey
+  const testing = journey.action === 'test'
+
+  function startCheck() {
+    onStart('test', [topic.id])
+  }
+
   return (
     <article className="topic">
-      <button className="quiet topic-back" type="button" onClick={onBack}>
+      <button className="quiet topic-back" type="button" aria-label="Back to Library" onClick={onBack}>
         <span aria-hidden="true">←</span> Library
       </button>
 
-      <h1 ref={heading} tabIndex={-1} className="topic-title">
-        {topic.title}
-      </h1>
+      <header className="topic-head">
+        <h1 ref={heading} tabIndex={-1} className="topic-title">
+          {topic.title}
+        </h1>
 
-      {/* The boundary is the reason the topic is allowed to exist, so it reads
-          as content rather than as a caption under the title. */}
-      <p className="topic-scope">{topic.scope}</p>
+        {/* The boundary is the reason the topic is allowed to exist, so it reads
+            as content rather than as a caption under the title. */}
+        <p className="topic-scope">{topic.scope}</p>
 
-      <dl className="topic-facts">
-        <div>
-          <dt>Status</dt>
-          <dd>
-            <StatusTag status={topic.status} />
-          </dd>
-        </div>
-        <div>
-          <dt>Schedule</dt>
-          <dd>{journey.statusLabel}</dd>
-        </div>
-        {/* Acquisition and retention are different questions and get different
-            rows. Collapsing them is how `learning` came to be read as "the
-            lesson is finished" in the first place. */}
-        {progressive && (
-          <div>
-            <dt>Acquisition</dt>
-            <dd>
-              {acquisition.ready
-                ? `Ready · ${acquisition.settled} of ${acquisition.total} letters settled`
-                : `In progress · ${acquisition.settled} of ${acquisition.total} letters settled, packet ${acquisition.packet} of ${acquisition.packetCount}`}
-            </dd>
-          </div>
-        )}
-        {progressive && journey.sitting?.active && (
-          <div>
-            <dt>Current sitting</dt>
-            <dd className="tabular">
-              {journey.sitting.retrievals} of {journey.sitting.target} retrievals
-            </dd>
-          </div>
-        )}
-        {journey.evidence.bidirectional && (
-          <div>
-            <dt>Both-direction evidence</dt>
-            <dd className="tabular">
-              {journey.evidence.covered} of {journey.evidence.total} unaided
-            </dd>
-          </div>
-        )}
-        <div>
-          <dt>Track</dt>
-          <dd>
-            <span className={`track track-${topic.track}`}>{topic.track}</span>
-          </dd>
-        </div>
-        <div>
-          <dt>Items</dt>
-          <dd className="tabular">{topic.items.length}</dd>
-        </div>
-        {topic.completedAt && (
-          <div>
-            <dt>First completed</dt>
-            <dd className="tabular">{stamp(topic.completedAt)}</dd>
-          </div>
-        )}
-      </dl>
+        {/* One line of state, in the learner's words. Four dimensions still exist
+            and still disagree usefully; this is the journey's one sentence about
+            all of them. */}
+        <p className="topic-state">
+          <span className={`track track-${topic.track}`}>{topic.track}</span>
+          <span className="topic-state-meta tabular">
+            {topic.items.length} {topic.items.length === 1 ? 'item' : 'items'}
+          </span>
+          <span className={`topic-state-label${journey.phase === 'repair' ? ' is-repair' : ''}`}>
+            {journey.statusLabel}
+          </span>
+        </p>
 
-      {runnable && progressive ? (
-        <>
-          {/* One primary action, and it is the journey's. While acquisition is
-              incomplete that is the lesson on every surface; once it is ready it
-              is Test on every surface. */}
-          <div className="mode-choice">
-            {learnPrimary ? (
-              <>
-                <button className="mode-btn is-primary" type="button" onClick={() => onStart('learn', [topic.id])}>
-                  <span className="mode-name">{journey.primaryLabel}</span>
-                  <span className="mode-note">
-                    Guided packet {acquisition.packet} of {acquisition.packetCount}: new letters,
-                    then retrieval. Nothing scored.
-                  </span>
-                </button>
-                <button className="mode-btn" type="button" onClick={() => onStart('test', [topic.id])}>
-                  <span className="mode-name">Test early</span>
-                  <span className="mode-note">
-                    Every item, once, scored — but the lesson has not been through every letter
-                    yet, so the run is recorded without moving the ladder.
-                  </span>
-                </button>
-              </>
-            ) : (
-              <>
-                <button className="mode-btn is-primary" type="button" onClick={() => onStart('test', [topic.id])}>
-                  <span className="mode-name">Test</span>
-                  <span className="mode-note">Every item, once, scored. This one counts.</span>
-                </button>
-                <button className="mode-btn" type="button" onClick={() => onStart('learn', [topic.id])}>
-                  <span className="mode-name">Lesson</span>
-                  <span className="mode-note">
-                    {acquisition.settled === acquisition.total
-                      ? 'Every letter has been through the lesson. Nothing scored.'
-                      : 'Go back over any letter the lesson still scaffolds. Nothing scored.'}
-                  </span>
-                </button>
-              </>
-            )}
-          </div>
-        </>
-      ) : runnable ? (
-        // Both modes stay reachable, and which one is primary follows the same
-        // journey Today and Library read. A topic nobody has opened yet asks to
-        // be read here too, rather than offering a scored Test as the lead
-        // action while every other surface says Learn.
-        <div className="mode-choice">
-          {learnPrimary ? (
-            <>
-              <button className="mode-btn is-primary" type="button" onClick={() => onStart('learn', [topic.id])}>
-                <span className="mode-name">Learn</span>
-                <span className="mode-note">
-                  {topic.learn ? 'Read the briefing and finite reference. Nothing scored.' : 'Read the finite reference in full. Nothing scored.'}
-                </span>
-              </button>
-              <button className="mode-btn" type="button" onClick={() => onStart('test', [topic.id])}>
-                <span className="mode-name">Test</span>
-                <span className="mode-note">Every item, once, scored. This one counts.</span>
-              </button>
-            </>
-          ) : (
-            <>
-              <button className="mode-btn is-primary" type="button" onClick={() => onStart('test', [topic.id])}>
-                <span className="mode-name">Test</span>
-                <span className="mode-note">Every item, once, scored. This one counts.</span>
-              </button>
-              <button className="mode-btn" type="button" onClick={() => onStart('learn', [topic.id])}>
-                <span className="mode-name">Learn</span>
-                <span className="mode-note">
-                  {topic.learn ? 'Read the briefing and finite reference. Nothing scored.' : 'Read the finite reference in full. Nothing scored.'}
-                </span>
-              </button>
-            </>
+        {journey.detail && <p className="topic-detail">{journey.detail}</p>}
+      </header>
+
+      {runnable ? (
+        <div className="topic-act">
+          <PrimaryAction
+            journey={journey}
+            course={course}
+            onLesson={() => onStart('learn', [topic.id], { kind: 'lesson' })}
+            onCheck={startCheck}
+          />
+
+          {/* The path not recommended, at text weight. It never takes the shape
+              of the primary control, and it states its own consequence. */}
+          {course && testing && (
+            <button
+              className="quiet topic-alt"
+              type="button"
+              onClick={() => onStart('learn', [topic.id], { kind: 'lesson' })}
+            >
+              Go back over a lesson
+            </button>
+          )}
+          {!course && (
+            <p className="topic-consequence">
+              {journey.advancementEligible
+                ? 'Scored, every item once. The ladder moves only when the required gap is satisfied.'
+                : 'Scored and recorded, but the ladder does not move until acquisition is finished.'}
+            </p>
           )}
         </div>
       ) : (
@@ -215,29 +180,57 @@ export function TopicPage({
         </div>
       )}
 
-      {runnable && progressive ? (
-        <section className="topic-morse-reference" aria-labelledby="topic-morse-reference-title">
-          <h2 id="topic-morse-reference-title">Morse alphabet</h2>
-          <p className="topic-morse-reference-lede">
-            Look up any letter, pattern, mnemonic or sound. Reference use does not change your progress.
+      {course && path && checkpoints ? (
+        <section className="topic-body" aria-labelledby="topic-course-head">
+          <div className="topic-body-head">
+            <h2 id="topic-course-head">Curriculum</h2>
+            <button className="quiet" type="button" onClick={() => onReference(topic.id)}>
+              Morse alphabet
+            </button>
+          </div>
+
+          <MorsePath
+            path={path}
+            checkpoints={checkpoints}
+            ready={acquisition.ready}
+            onLesson={(index, replay) =>
+              onStart('learn', [topic.id], replay ? { kind: 'replay', index } : { kind: 'lesson' })
+            }
+            onCheckpoint={(checkpoint) =>
+              onStart('learn', [topic.id], {
+                kind: 'checkpoint',
+                afterLesson: checkpoint.afterLesson,
+              })
+            }
+            onCheck={startCheck}
+          />
+
+          <p className="topic-body-foot">
+            Lessons, replays and word checkpoints are practice and record no score. Test is the
+            only place the A–Z claim is proved.
           </p>
-          <MorseReferenceCards />
         </section>
-      ) : runnable && (
-        <details className="fold">
-          <summary>
-            Show all {topic.items.length} {topic.items.length === 1 ? 'item' : 'items'}
-          </summary>
-          <ol className="fold-items">
+      ) : runnable ? (
+        /* The reference, as reading rather than as a fold. A card shape promises
+           a concealed answer; this conceals nothing, so it is set as a list. */
+        <section className="topic-body" aria-labelledby="topic-reference-head">
+          {topic.learn && <LearnSupport content={topic.learn} />}
+
+          <h2 id="topic-reference-head" className="topic-reference-head">
+            {topic.learn ? 'Recall reference' : 'The complete set'}
+          </h2>
+
+          <ol className="sheet-items">
             {topic.items.map((item, i) => (
-              <li key={`${item.prompt}-${i}`}>
-                <span className="fold-prompt">{item.prompt}</span>
-                <span className="fold-answer">{item.answer}</span>
+              <li key={item.id ?? `${item.prompt}-${i}`}>
+                <span className="sheet-num tabular">{String(i + 1).padStart(2, '0')}</span>
+                <span className="sheet-prompt">{item.prompt}</span>
+                <span className="sheet-answer">{item.answer}</span>
               </li>
             ))}
           </ol>
-        </details>
-      )}
+        </section>
+      ) : null}
 
       {topic.history.length > 0 && (
         <details className="fold">
@@ -259,8 +252,14 @@ export function TopicPage({
         </details>
       )}
 
-      {/* Editing and deleting are administration, not testing. They sit below
-          the fold at text weight so they never compete with the modes. */}
+      {topic.completedAt && (
+        <p className="topic-earned">
+          First completed {stamp(topic.completedAt)}. That stays true whatever happens next.
+        </p>
+      )}
+
+      {/* Editing and deleting are administration, not learning. They sit below
+          the content at text weight so they never compete with the action. */}
       <div className="topic-admin">
         <button className="quiet" type="button" onClick={onEdit}>
           Edit topic
@@ -270,5 +269,50 @@ export function TopicPage({
         </button>
       </div>
     </article>
+  )
+}
+
+/**
+ * The one prominent control, and it is the journey's answer rather than this
+ * page's opinion of it. Its label carries the consequence, because a scored run
+ * is the most consequential thing in the product and a verb alone cannot say so.
+ */
+function PrimaryAction({
+  journey,
+  course,
+  onLesson,
+  onCheck,
+}: {
+  journey: ReturnType<typeof journeyFor>
+  course: boolean
+  onLesson: () => void
+  onCheck: () => void
+}) {
+  if (journey.action === 'learn' && course) {
+    const { acquisition, sitting } = journey
+    return (
+      <button className="topic-primary" type="button" onClick={onLesson}>
+        <span className="topic-primary-verb">{journey.primaryLabel}</span>
+        <span className="topic-primary-note">
+          {sitting?.active
+            ? `Pick up at ${sitting.retrievals} of ${sitting.target} retrievals.`
+            : `Two new letters, then retrieval. Lesson ${acquisition.packet} of ${acquisition.packetCount}.`}
+        </span>
+      </button>
+    )
+  }
+
+  // One name for the scored run, everywhere. The curriculum's last entry is a
+  // Test, not a differently-named cousin of one: two words for one consequence
+  // is exactly the ambiguity this pass exists to remove.
+  return (
+    <button className="topic-primary" type="button" onClick={onCheck}>
+      <span className="topic-primary-verb">{journey.primaryLabel}</span>
+      <span className="topic-primary-note">
+        {course
+          ? 'Every letter, both printed directions, no support.'
+          : 'Every item, once, scored by you.'}
+      </span>
+    </button>
   )
 }

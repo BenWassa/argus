@@ -427,7 +427,7 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
     <div className="session-bar">
       <p>
         <span className="session-topic">
-          {run.finished ? 'Morse programme' : `Packet ${run.packetIndex + 1} of ${run.packetCount}`}
+          {run.finished ? 'Morse curriculum' : `Lesson ${run.packetIndex + 1} of ${run.packetCount}`}
         </span>
         <span className="tabular">
           {run.finished
@@ -499,8 +499,8 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
         {bar}
         <h1 ref={headingRef} tabIndex={-1} className="lesson-title">Lesson complete</h1>
         <p className="lesson-lede"><strong>{sitting.retrievals} retrievals</strong> · {sitting.correct} correct · {revisit} {revisit === 1 ? 'letter' : 'letters'} to revisit</p>
-        <p className="lesson-foot">Packet {run.packetIndex + 1} of {run.packetCount}: {packetProgress.done} of {packetProgress.total} settled.</p>
-        {packetsSettled > 0 && <p className="lesson-foot">{packetsSettled === 1 ? '1 packet settled this sitting.' : `${packetsSettled} packets settled this sitting.`}</p>}
+        <p className="lesson-foot">Lesson {run.packetIndex + 1} of {run.packetCount}: {packetProgress.done} of {packetProgress.total} settled.</p>
+        {packetsSettled > 0 && <p className="lesson-foot">{packetsSettled === 1 ? '1 lesson settled this sitting.' : `${packetsSettled} lessons settled this sitting.`}</p>}
         <div className="lesson-exits" inert={!armed}>
           <button type="button" onClick={nextSitting}>Next lesson</button>
           <button className="ghost" type="button" onClick={onExit}>Stop here</button>
@@ -515,10 +515,10 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
     return (
       <section className="session morse-lesson">
         {bar}
-        <h1 ref={headingRef} tabIndex={-1} className="lesson-title">Packet {run.packetIndex + 1} done</h1>
-        <p className="lesson-lede">Every character in this packet was produced from the letter alone. {last ? 'That was the last packet.' : 'The next packet brings two new characters and mixes these back in.'}</p>
+        <h1 ref={headingRef} tabIndex={-1} className="lesson-title">Lesson {run.packetIndex + 1} done</h1>
+        <p className="lesson-lede">Every character in this packet was produced from the letter alone. {last ? 'That was the last lesson.' : 'The next lesson brings two new characters and mixes these back in.'}</p>
         <div className="lesson-exits" inert={!armed}>
-          <button type="button" onClick={nextPacket}>{last ? 'Finish' : 'Next packet'}</button>
+          <button type="button" onClick={nextPacket}>{last ? 'Finish' : 'Next lesson'}</button>
           <button className="ghost" type="button" onClick={onExit}>Stop here</button>
         </div>
         <p className="lesson-foot">Nothing in Learn is scored. Test is still the only place the A–Z claim is proved.</p>
@@ -537,7 +537,7 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
         aria-valuenow={sitting.retrievals} aria-label="Retrievals this sitting">
         <span className="lesson-progress-fill" style={{ inlineSize: `${(sitting.retrievals / LESSON_RETRIEVAL_TARGET) * 100}%` }} />
       </div>
-      <p className="lesson-foot">Packet progress: {packetProgress.done} of {packetProgress.total} settled.</p>
+      <p className="lesson-foot">Lesson progress: {packetProgress.done} of {packetProgress.total} settled.</p>
 
       {(feedback?.correct || shownListeningFeedback?.correct) && (
         <div className="lesson-feedback is-correct" role="status" aria-live="polite">

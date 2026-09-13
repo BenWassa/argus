@@ -4,7 +4,14 @@ import { exportFilename, parseLibrary } from '../../lib/storage'
 import { collisions } from '../../lib/catalog'
 import { Confirm } from '../../components/ui/Confirm'
 
-export function Data() {
+/**
+ * Export, import and reset. A Library utility with its own route rather than a
+ * permanent navigation slot: it is used a handful of times a year, and
+ * `PRODUCT.md` asks for it to be first-class and easy to find, not for it to
+ * hold a quarter of the bottom bar. Reached from the foot of Library, and its
+ * own Back control returns there the way Topic does.
+ */
+export function Data({ onBack }: { onBack: () => void }) {
   const { topics, library, catalogReport, replaceLibrary, resetLibrary } = useLibrary()
   const fileInput = useRef<HTMLInputElement>(null)
   const [message, setMessage] = useState<{ tone: 'ok' | 'error'; text: string } | null>(null)
@@ -50,6 +57,10 @@ export function Data() {
 
   return (
     <>
+      <button className="quiet topic-back" type="button" aria-label="Back to Library" onClick={onBack}>
+        <span aria-hidden="true">←</span> Library
+      </button>
+
       <h1>Data</h1>
       <p className="lede-text">
         Everything lives in this browser. Export writes the whole library to a JSON file you own;

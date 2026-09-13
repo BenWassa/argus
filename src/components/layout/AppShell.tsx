@@ -1,17 +1,30 @@
 import type { ReactNode } from 'react'
 import type { View } from '../../lib/types'
 
+type NavView = Extract<View, 'today' | 'library'>
+
 interface AppShellProps {
-  view: View
-  onNavigate: (view: View) => void
+  /** The section to mark current. A child route passes its parent. */
+  view: NavView
+  onNavigate: (view: NavView) => void
   children: ReactNode
 }
 
-const NAV: { id: View; label: string; path: string }[] = [
+/**
+ * Two destinations, and they are the two the learner actually has.
+ *
+ * Today is the docket: what the schedule wants now. Library is everything owned,
+ * including the permanent completion record. Progress used to sit here and was a
+ * third projection of the derivation Library already shelves; Data used to sit
+ * here and is used a handful of times a year. Both were spending half the bottom
+ * bar on under five percent of sessions.
+ *
+ * Data keeps its route and reaches it from Library, exactly as Topic does, and
+ * marks Library current while it is open.
+ */
+const NAV: { id: NavView; label: string; path: string }[] = [
   { id: 'today', label: 'Today', path: 'M4 7h16M4 12h16M4 17h9' },
   { id: 'library', label: 'Library', path: 'M5 4h5v16H5zM14 4h5v16h-5' },
-  { id: 'progress', label: 'Progress', path: 'M4 19V9m5 10V5m5 14v-7m5 7V8' },
-  { id: 'data', label: 'Data', path: 'M12 4v11m0 0 4-4m-4 4-4-4M5 19h14' },
 ]
 
 export function AppShell({ view, onNavigate, children }: AppShellProps) {

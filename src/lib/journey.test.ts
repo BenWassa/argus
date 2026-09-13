@@ -82,13 +82,13 @@ function acquiredMorse(): Topic {
 }
 
 describe('progressive acquisition routes the learner to Learn until it is ready', () => {
-  it('sends a fresh Morse topic to Learn, and calls it starting rather than continuing', () => {
+  it('sends a fresh Morse topic to its lesson, and calls it starting rather than continuing', () => {
     const journey = journeyFor(freshMorse(), NOW)
 
     expect(journey.phase).toBe('acquiring')
     expect(journey.action).toBe('learn')
-    expect(journey.actionLabel).toBe('Learn')
-    expect(journey.primaryLabel).toBe('Start lesson')
+    expect(journey.actionLabel).toBe('Start lesson')
+    expect(journey.primaryLabel).toBe('Start lesson 1')
     expect(journey.acquisition.progressive).toBe(true)
     expect(journey.acquisition.started).toBe(false)
     expect(journey.acquisition.ready).toBe(false)
@@ -98,7 +98,7 @@ describe('progressive acquisition routes the learner to Learn until it is ready'
     expect(journey.advancementEligible).toBe(false)
   })
 
-  it('keeps saying Continue Learn after a sitting or two, not Test', () => {
+  it('keeps saying Continue after a sitting or two, not Test', () => {
     // This is the exact P0 defect: opening Learn sets status to `learning`, and
     // the old rule read `learning` as "everything else, so Test".
     const partial = acquire(resolveStudy(freshMorse(), new Date(NOW.getTime() - 3 * DAY)), 4)
@@ -107,14 +107,14 @@ describe('progressive acquisition routes the learner to Learn until it is ready'
     const journey = journeyFor(partial, NOW)
     expect(journey.phase).toBe('acquiring')
     expect(journey.action).toBe('learn')
-    expect(journey.actionLabel).toBe('Continue Learn')
-    expect(journey.primaryLabel).toBe('Continue lesson')
+    expect(journey.actionLabel).toBe('Continue')
+    expect(journey.primaryLabel).toBe(`Continue lesson ${journey.acquisition.packet}`)
     expect(journey.acquisition.started).toBe(true)
     expect(journey.acquisition.ready).toBe(false)
     expect(journey.acquisition.settled).toBeGreaterThan(0)
     expect(journey.acquisition.settled).toBeLessThan(26)
     expect(journey.detail).toContain('letters settled')
-    expect(journey.detail).toContain(`packet ${journey.acquisition.packet} of 13`)
+    expect(journey.detail).toContain(`lesson ${journey.acquisition.packet} of 13`)
   })
 
   it('reports the active finite sitting alongside acquisition, without conflating them', () => {
@@ -290,14 +290,14 @@ describe('an ineligible Test is recorded and moves nothing', () => {
 })
 
 describe('ordinary topics keep exactly the behaviour they had', () => {
-  it('routes an unstarted ordinary topic to Learn, then to Test', () => {
+  it('routes an unstarted ordinary topic to its reference, then to Test', () => {
     const bearings = { ...seeded('cardinal-bearings'), status: 'unstarted' as const, completedAt: null, history: [] }
 
     const fresh = journeyFor(bearings, NOW)
     expect(fresh.acquisition.progressive).toBe(false)
     expect(fresh.action).toBe('learn')
-    expect(fresh.actionLabel).toBe('Learn')
-    expect(fresh.primaryLabel).toBe('Learn')
+    expect(fresh.actionLabel).toBe('Read')
+    expect(fresh.primaryLabel).toBe('Read')
     expect(fresh.statusLabel).toBe('Not started')
     expect(fresh.due).toBe(true)
     // An ordinary Learn is one exposure, so it is advancement-eligible at once.
@@ -306,12 +306,14 @@ describe('ordinary topics keep exactly the behaviour they had', () => {
     const exposed = resolveStudy(bearings, NOW)
     const sameDay = journeyFor(exposed, NOW)
     expect(sameDay.action).toBe('test')
-    expect(sameDay.statusLabel).toBe('Drilled today')
+    // Read, not drilled. The scheduler's own `Drilled today` describes a drill
+    // that never happened, and exposure is what put the topic on this rung.
+    expect(sameDay.statusLabel).toBe('Read today')
     expect(sameDay.due).toBe(false)
 
     const nextDay = journeyFor(exposed, new Date(NOW.getTime() + DAY))
     expect(nextDay.due).toBe(true)
-    expect(nextDay.statusLabel).toBe('Ready to drill')
+    expect(nextDay.statusLabel).toBe('Read, ready to test')
     expect(nextDay.advancementEligible).toBe(true)
   })
 
@@ -385,7 +387,7 @@ describe('the day and the shelves read from the same derivation', () => {
 
     expect(shelfOf('cardinal-bearings')).toBe('due')
     expect(shelfOf(MORSE_ID)).toBe('due')
-    expect(shelfOf('primary-survey')).toBe('active')
+    expect(shelfOf('primary-survey')).toBe('waiting')
     expect(shelfOf('ooda-loop')).toBe('unfinished')
 
     // Nothing appears twice, and every topic appears once.

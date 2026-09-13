@@ -65,14 +65,16 @@ function library(): string {
 async function openLessonFour(page: Page) {
   await page.addInitScript(
     ([lib, storeKey, splashKey]) => {
-      window.sessionStorage.setItem(splashKey, 'true')
+      window.localStorage.setItem(splashKey, 'true')
       window.localStorage.setItem(storeKey, lib)
     },
     [library(), STORE_KEY, SPLASH_KEY] as const,
   )
   await page.goto('./')
+  // The docket row resumes the curriculum directly. There is no intervening
+  // menu: the path is the topic page's body, and Today already knows which
+  // lesson is current.
   await page.locator('.docket .index-row').click()
-  await page.getByRole('button', { name: /^(Start|Continue) lesson 4$/ }).click()
 }
 
 /**
@@ -130,7 +132,7 @@ test('Lesson 4 completion surfaces the checkpoint invitation automatically, gate
 
   await skip.click()
   // Skipping changes nothing about the forward journey: Lesson 5 begins.
-  await expect(page.getByText('Packet 5 of 13', { exact: true })).toBeVisible()
+  await expect(page.getByText('Lesson 5 of 13', { exact: true })).toBeVisible()
 })
 
 test('starting the invitation goes directly into the checkpoint', async ({ page }) => {
@@ -153,7 +155,12 @@ test('the checkpoint remains available on the path after the automatic invitatio
   await expect(page.getByRole('button', { name: 'Skip for now' })).toBeEnabled({ timeout: 2_000 })
   await page.getByRole('button', { name: 'Skip for now' }).click()
 
-  await expect(page.getByText('Packet 5 of 13', { exact: true })).toBeVisible()
+  await expect(page.getByText('Lesson 5 of 13', { exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Close' }).click()
+
+  // Skipping is non-gating and leaves the checkpoint on the curriculum, which
+  // is the topic page's body rather than a screen inside the run.
+  await page.getByRole('button', { name: 'Library', exact: true }).click()
+  await page.locator(`[data-row="${MORSE_ID}"]`).click()
   await expect(page.getByRole('button', { name: 'Start word checkpoint after lesson 4' })).toBeVisible()
 })

@@ -1,0 +1,181 @@
+/* The curriculum as a table of contents, not a deck of cards.
+
+   The path used to be fifteen identically bordered, individually filled tiles
+   stacked vertically, which is the one composition `DESIGN.md` names as an
+   anti-reference and is also the least legible way to show a fixed sequence: at
+   fifteen repeats the border stops separating anything. It is now a dense index
+   with one continuous spine, which is what a finite curriculum actually is, and
+   it lets the whole thirteen-lesson shape fit a phone screen.
+
+   The One Lit Surface rule is why no row carries a shadow or an edge highlight:
+   on this page the lit surface is the primary action in the header. The current
+   row is marked by the accent on its spine, number and status, which the One
+   Accent Rule allows as current state rather than as a second action. */
+
+.morse-path {
+  display: grid;
+  margin: var(--s-md) 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--line);
+}
+
+.morse-path-item {
+  display: grid;
+  grid-template-columns: 2.75rem minmax(0, 1fr) auto;
+  grid-template-areas:
+    "number main action"
+    "number status action";
+  align-items: center;
+  column-gap: var(--s-md);
+  row-gap: 2px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+/* The spine. One continuous rule behind the number column, so the sequence
+   reads as one object rather than as N separate ones. */
+.morse-path-number {
+  grid-area: number;
+  align-self: stretch;
+  display: grid;
+  place-items: center;
+  position: relative;
+  font-size: var(--t-small);
+  font-variant-numeric: tabular-nums;
+  color: var(--subtle);
+}
+
+.morse-path-number::after {
+  content: "";
+  position: absolute;
+  inset-block: -12px;
+  inset-inline-end: 0;
+  width: 1px;
+  background: var(--line);
+}
+
+.morse-path-item:last-child .morse-path-number::after {
+  inset-block-end: 0;
+}
+
+.morse-path-main {
+  grid-area: main;
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.morse-path-letters {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: var(--w-section);
+  line-height: 1.1;
+  letter-spacing: 0.06em;
+}
+
+.morse-path-checkpoint-title {
+  font-family: var(--font-display);
+  font-size: var(--t-component);
+  font-weight: var(--w-section);
+  line-height: 1.2;
+}
+
+.morse-path-note {
+  font-size: var(--t-small);
+  line-height: 1.35;
+  color: var(--subtle);
+}
+
+.morse-path-status {
+  grid-area: status;
+  font-size: var(--t-label);
+  font-weight: var(--w-label);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--subtle);
+}
+
+.morse-path-action {
+  grid-area: action;
+  justify-self: end;
+  min-width: 5.5rem;
+}
+
+/* A locked entry is stated, never offered. It is not a disabled button, because
+   a disabled control invites a press that will do nothing; it is a word. */
+.morse-path-action.is-locked {
+  align-self: center;
+  min-height: 0;
+  font-size: var(--t-label);
+  font-weight: var(--w-label);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--subtle);
+}
+
+/* ------------------------------------------------------------- states -- */
+
+.morse-path-item.is-completed .morse-path-number,
+.morse-path-item.is-completed .morse-path-status {
+  color: var(--complete);
+}
+
+.morse-path-item.is-locked .morse-path-letters {
+  color: var(--muted);
+}
+
+.morse-path-item.is-current,
+.morse-path-item.is-ready {
+  background: var(--accent-wash);
+}
+
+.morse-path-item.is-current .morse-path-number,
+.morse-path-item.is-current .morse-path-status,
+.morse-path-item.is-ready .morse-path-number {
+  color: var(--accent);
+}
+
+.morse-path-item.is-current .morse-path-number::after,
+.morse-path-item.is-ready .morse-path-number::after {
+  background: var(--accent);
+}
+
+.morse-path-mark {
+  font-size: var(--t-label);
+  font-weight: var(--w-label);
+  letter-spacing: 0.04em;
+}
+
+/* The two non-lesson entries carry their own mark rather than a number, so the
+   spine still reads as a sequence while the eye can find them. */
+.morse-path-checkpoint .morse-path-number,
+.morse-path-check .morse-path-number {
+  color: var(--muted);
+}
+
+.morse-path-checkpoint.is-unlocked .morse-path-number,
+.morse-path-checkpoint.is-unlocked .morse-path-status {
+  color: var(--complete);
+}
+
+/* The check closes the list, so it closes the spine too. */
+.morse-path-check {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+@media (max-width: 380px) {
+  .morse-path-item {
+    grid-template-columns: 2.4rem minmax(0, 1fr);
+    grid-template-areas:
+      "number main"
+      "number status"
+      "number action";
+    row-gap: 6px;
+  }
+
+  .morse-path-action {
+    justify-self: start;
+  }
+}
