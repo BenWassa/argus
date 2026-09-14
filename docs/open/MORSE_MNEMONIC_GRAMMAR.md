@@ -3,7 +3,7 @@
 Workstream 3 (#26), repositioned by #42. The SVG system remains the one
 canonical visual representation of Morse timing, but it is now explicitly a
 **secondary visual scaffold** under the rhythmic verbal mnemonic described in
-`docs/MORSE_VERBAL_MNEMONICS.md`.
+`docs/open/MORSE_VERBAL_MNEMONICS.md`.
 
 Code: `src/lib/morseMnemonics.ts` (geometry), `src/features/learn/MorseMnemonic.tsx`
 (drawing), `src/features/learn/MorseCharacterPacket.tsx` (the packet surface).
@@ -149,7 +149,7 @@ no asset, drawing or per-character visual mnemonic from it is used here.
 artwork, so existing content and learner state do not need a migration.
 
 The new verbal phrases have separate provenance and are documented in
-`docs/MORSE_VERBAL_MNEMONICS.md`; they are not silently treated as a new version
+`docs/open/MORSE_VERBAL_MNEMONICS.md`; they are not silently treated as a new version
 of the SVG asset set.
 
 ## What this work does not do

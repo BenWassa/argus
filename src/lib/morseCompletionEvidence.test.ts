@@ -26,7 +26,7 @@ import type { DirectionEvidence, IdentifiedItem, ItemCueEvidence, ItemEvidenceSt
  * Every test here attacks one word of it. `independently` means no scaffolding
  * reached the learner; `all A–Z` means 26 logical units, none excused; `both
  * directions` means neither half may be inferred from the other. The audit these
- * cover is written up in `docs/MORSE_CUE_LADDER.md`.
+ * cover is written up in `docs/open/MORSE_CUE_LADDER.md`.
  */
 
 const MORSE_TOPIC_ID = 'international-morse-letters-printed'

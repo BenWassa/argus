@@ -187,7 +187,7 @@ export interface AttemptAnswer {
  * asked back to back without each disclosing the other, so no single attempt
  * can demonstrate all 52 directional requirements. What #68 changes is that
  * every event which may contribute is now independent recall. See the audit
- * section of `docs/MORSE_CUE_LADDER.md`.
+ * section of `docs/open/MORSE_CUE_LADDER.md`.
  */
 export function isQualifyingAttempt(
   items: Item[],

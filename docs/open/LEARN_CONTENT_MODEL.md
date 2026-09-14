@@ -187,8 +187,8 @@ notation and spoken rhythm as visible text beneath, and an explicit play control
 for synchronised audio. Nothing plays without a click.
 
 The grammar, its accessibility contract and its provenance are specified in
-`docs/MORSE_MNEMONIC_GRAMMAR.md`; the sequence and packet composition in
-`docs/MORSE_CHARACTER_ORDER.md`.
+`docs/open/MORSE_MNEMONIC_GRAMMAR.md`; the sequence and packet composition in
+`docs/open/MORSE_CHARACTER_ORDER.md`.
 
 Packets are Learn content, so the block obeys every rule above: no card is
 locked, hidden, gated or scored, and the packet surface holds no progress state

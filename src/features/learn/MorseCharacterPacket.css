@@ -7,7 +7,7 @@
    exemplar where `A` is the short beat. Every visible word is now rendered
    uppercase by `MorsePhrase`, so casing carries no information and can carry no
    contradiction; the `·`/`—` mark beneath each word carries the duration, and
-   `docs/MORSE_VERBAL_MNEMONICS.md` records the same rule. The authored casing
+  `docs/open/MORSE_VERBAL_MNEMONICS.md` records the same rule. The authored casing
    survives in the accessible text equivalent.
 
    Aligning one mark under one word is also what stops deliberate repetition

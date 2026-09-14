@@ -9,7 +9,7 @@ export { differsOnlyInFinalElement }
  *
  * The order is *generated* from a stated rule rather than transcribed from
  * folklore, so the rule can be argued with and the sequence re-derived. See
- * `docs/MORSE_CHARACTER_ORDER.md` for the comparison against Koch and CW
+ * `docs/open/MORSE_CHARACTER_ORDER.md` for the comparison against Koch and CW
  * Academy orders required by PRD §10.2. It is not official and not optimal;
  * it is a defensible order for a *printed* first boundary.
  */
@@ -160,5 +160,5 @@ export function buildCharacterPackets(config: PacketPlanConfig = {}): CharacterP
   return packets
 }
 
-/** The shipped sequence. Recorded in `docs/MORSE_CHARACTER_ORDER.md`. */
+/** The shipped sequence. Recorded in `docs/open/MORSE_CHARACTER_ORDER.md`. */
 export const ACQUISITION_ORDER: MorseLetter[] = buildAcquisitionOrder()

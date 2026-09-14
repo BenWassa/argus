@@ -1,27 +1,35 @@
 # Argus learning-experience design decision
 
-> **Status — batches 0 to 4 are implemented on this branch; 5 and 6 are not.**
-> The paper below was written first, as an independent proposal. An
-> implementation record at the end says exactly what shipped, what changed during
-> implementation, and what was deliberately left. The unresolved decisions in §15
-> were resolved by taking this paper's own recommendation in each case; every one
-> of them remains the owner's to overturn.
+> **Status — batches 0 to 4 shipped and merged to `main`; 5 and 6 are not.**
+> The paper below was written first, as an independent proposal, and is now the
+> authoritative record of Argus's shipped information architecture: `PRODUCT.md`
+> and `DESIGN.md` have themselves been updated to match it, and it formally
+> supersedes `docs/closed/SCREEN_INVENTORY_REVIEW.md`'s Home/Lessons/badge/milestone
+> proposal (see that document's own superseded banner). The implementation record
+> at the end says exactly what shipped, what changed during implementation, and
+> what was deliberately left. **This is action taken, not a rubber stamp**: the
+> nine decisions in §15 were resolved by taking this paper's own recommendation
+> in each case, and none of them has had an explicit owner sign-off — see
+> `docs/open/ARGUS_OVERHAUL_RATIFICATION.md` for the short list still needing one,
+> chiefly §15.1, §15.3 and §15.5. Batches 5 and 6 remain unimplemented and
+> unratified; do not build them from this document alone until that ratification
+> package is resolved.
 >
 > **Original authority note — independent design proposal for #92.**
 > This paper is a first-principles frontend/product architecture proposal written
-> from fresh `main` at `550e3cf1ec9bbfb9e0ee823d80cbedae29b5b066`. It does not
-> supersede `PRODUCT.md`, `DESIGN.md` or `docs/PROGRESS_ARCHITECTURE.md`, and it
-> ratifies nothing. It exists to give the #92 synthesis pass an independent
-> position to reconcile against `docs/SCREEN_INVENTORY_REVIEW.md`, which is
-> likewise proposal-only. No state, schema, scheduler or evidence behaviour is
-> changed by this document. No code was written for it.
+> from fresh `main` at `550e3cf1ec9bbfb9e0ee823d80cbedae29b5b066`. §§1–16 (the
+> proposal, before "Implementation record") do not themselves supersede
+> `PRODUCT.md`, `DESIGN.md` or `docs/open/PROGRESS_ARCHITECTURE.md` by appearing here;
+> they became authoritative only once batches 0–4 actually shipped, as recorded
+> below. No state, schema, scheduler or evidence behaviour was changed by the
+> proposal itself, and batch 6's migration has still not landed.
 
 Scope reviewed: `PRODUCT.md`, `DESIGN.md`, `README.md`,
-`docs/SCREEN_INVENTORY_REVIEW.md`, `docs/PROGRESS_ARCHITECTURE.md`,
-`docs/PROGRAMME.md`, `docs/MORSE_LESSON.md`, `docs/MORSE_PROGRAMME_PLAN.md`,
-`docs/MORSE_CUE_LADDER.md`, `docs/MORSE_WORD_CHECKPOINTS.md`,
-`docs/MORSE_CHARACTER_ORDER.md`, `docs/NAVIGATION_HISTORY.md`,
-`docs/LEARN_CONTENT_MODEL.md`, `docs/LIBRARY_AUDIT.md`; `src/app/App.tsx`,
+`docs/closed/SCREEN_INVENTORY_REVIEW.md`, `docs/open/PROGRESS_ARCHITECTURE.md`,
+`docs/closed/PROGRAMME.md`, `docs/open/MORSE_LESSON.md`, `docs/open/MORSE_PROGRAMME_PLAN.md`,
+`docs/open/MORSE_CUE_LADDER.md`, `docs/open/MORSE_WORD_CHECKPOINTS.md`,
+`docs/open/MORSE_CHARACTER_ORDER.md`, `docs/open/NAVIGATION_HISTORY.md`,
+`docs/open/LEARN_CONTENT_MODEL.md`, `docs/closed/LIBRARY_AUDIT.md`; `src/app/App.tsx`,
 `src/lib/navigation.ts`, `src/lib/journey.ts`, `src/lib/scheduling.ts`,
 `src/lib/cueLadder.ts`, `src/lib/types.ts`, the Today/Library/Topic/Progress/Data
 surfaces, generic Learn, Test `Session`, the Morse programme/lesson/replay/
@@ -200,7 +208,7 @@ duplicated renderings of the same content disappear.
 ### Decision: one topic surface, whose *body is the content*, with the recommended action as the only prominent control.
 
 Argus has three ordinary content densities, already specified in
-`docs/LEARN_CONTENT_MODEL.md` and already implemented in `LearnSupport.tsx`:
+`docs/open/LEARN_CONTENT_MODEL.md` and already implemented in `LearnSupport.tsx`:
 reference-only, concise support, briefing. They do not need three UIs and they
 do not need a separate route. They need one page that renders what the topic
 actually has.
@@ -481,7 +489,7 @@ would blur three completion claims into one. If they are wanted, they are topics
 2 checkpoints, the check — derived from state that already exists.
 
 **Badges: reject.** They contradict `PRODUCT.md`'s explicit anti-gamification
-contract and `docs/PROGRESS_ARCHITECTURE.md`'s non-goals. The stated motivation —
+contract and `docs/open/PROGRESS_ARCHITECTURE.md`'s non-goals. The stated motivation —
 "an earned milestone should stay visible after later weak retention" — describes
 behaviour Argus already has, in `completedAt` and the record that survives decay.
 A badge would solve a problem the product solved two programmes ago, at the cost
@@ -547,7 +555,7 @@ Therefore this redesign may **not**:
   topic with its own criterion;
 - let a word or phrase satisfy any part of the printed 26-unit claim.
 
-Word checkpoints stay exactly what `docs/MORSE_WORD_CHECKPOINTS.md` says they
+Word checkpoints stay exactly what `docs/open/MORSE_WORD_CHECKPOINTS.md` says they
 are: formative, ephemeral, non-gating application inside the printed topic. Making
 them path entries changes their visibility, not their semantics.
 
@@ -729,7 +737,7 @@ on the daily path 3 → 0. The last row is the one that matters.
 - No usage data exists, so every frequency claim here is inferred from
   `PRODUCT.md`'s stated user and the shipped library's actual shape.
 - It ratifies nothing, changes nothing, and should be reconciled against
-  `docs/SCREEN_INVENTORY_REVIEW.md` by the #92 synthesis pass rather than
+  `docs/closed/SCREEN_INVENTORY_REVIEW.md` by the #92 synthesis pass rather than
   replacing it unread.
 
 

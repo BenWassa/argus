@@ -58,7 +58,7 @@ scheduler or award completion. `acquisitionReadyAt` is the one that touches the
 schedule at all, and only in the restrictive direction: it is what stops a Test
 from banking retention before acquisition is finished, and it anchors the
 qualifying `learning → drilled` gap at readiness rather than at the learner's
-first sight of packet 1. See `docs/PROGRESS_ARCHITECTURE.md`.
+first sight of packet 1. See `docs/open/PROGRESS_ARCHITECTURE.md`.
 
 Lesson replay and word checkpoints persist **none** of those fields. Their run,
 feedback and position are component-local and disappear on exit.
@@ -250,7 +250,7 @@ when all listening is skipped or unavailable.
 
 ## Packet ordering, weak items and interleaving
 
-P1/P2 from `docs/MORSE_CHARACTER_ORDER.md` remain authoritative:
+P1/P2 from `docs/open/MORSE_CHARACTER_ORDER.md` remain authoritative:
 complexity-ascending ordering with final-element confusables separated, two novel
 characters per packet, and up to five characters on a roster.
 
@@ -338,7 +338,7 @@ the Morse Topic page instead of the generic `Show all 26 items` disclosure; all
 - the compact audio control remains touch-sized and accessible;
 - no mnemonic/SVG/audio cue leaks into the formal uncued Test boundary.
 
-See `docs/MORSE_VERBAL_MNEMONICS.md` for mnemonic grammar and provenance.
+See `docs/open/MORSE_VERBAL_MNEMONICS.md` for mnemonic grammar and provenance.
 
 ## Structural safeguards
 

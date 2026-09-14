@@ -208,7 +208,7 @@ part of its completion claim.
 One component, `MorsePhrase`, renders it everywhere, so no surface can grow its
 own grammar:
 
-- the **guided Learn lesson** (`docs/MORSE_LESSON.md`) shows the whole phrase
+- the **guided Learn lesson** (`docs/open/MORSE_LESSON.md`) shows the whole phrase
   when introducing a character and when reteaching a miss, and at its `taught`
   check;
 - the **Morse alphabet reference** shows it on every one of the 26 rows;

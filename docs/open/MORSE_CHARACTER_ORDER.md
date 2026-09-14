@@ -1,7 +1,7 @@
 # Morse character order and packet composition
 
 Workstream 3 (#26). Implements **P1 (ratified)** and **P2 (default)** from
-`docs/MORSE_PROGRAMME_PLAN.md` and records the comparison requested by the Morse
+`docs/open/MORSE_PROGRAMME_PLAN.md` and records the comparison requested by the Morse
 research PRD.
 
 Code: `src/lib/morseOrder.ts`. Tests: `src/lib/morseOrder.test.ts`.

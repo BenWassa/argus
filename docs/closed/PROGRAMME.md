@@ -8,7 +8,7 @@ Original content-rewrite baseline: `c1cc753eb89c9aa5379d1a885892703cf20e65ba`
 
 The Learn/Test + content-quality product work is implemented. This document is a
 programme closeout/ledger, not the authority for the newer Morse architecture.
-Morse-specific work is tracked under #21 and `docs/MORSE_PROGRAMME_PLAN.md`.
+Morse-specific work is tracked under #21 and `docs/open/MORSE_PROGRAMME_PLAN.md`.
 
 The current durable library boundary is **v5**, introduced later by Morse
 workstream #24. The original #7 programme produced v4 structured Learn content;
@@ -49,7 +49,7 @@ surface recommends continuing the lesson, and a Test result — early Test remai
 reachable — is recorded without advancing the retention ladder. The qualifying
 `learning → drilled` gap is anchored at readiness rather than at first exposure.
 
-Ordinary topics are unchanged in every respect. `docs/PROGRESS_ARCHITECTURE.md`
+Ordinary topics are unchanged in every respect. `docs/open/PROGRESS_ARCHITECTURE.md`
 is the authority for this model.
 
 ## Content model
@@ -117,7 +117,7 @@ directions and nothing else; auditory reception, sending, WPM, words and phrases
 remain outside it, under #29.
 
 Detailed source decisions for the original four topics remain in
-`docs/SEEDED_CONTENT_PROVENANCE.md`. Morse provenance and programme decisions are
+`docs/closed/SEEDED_CONTENT_PROVENANCE.md`. Morse provenance and programme decisions are
 recorded separately in the Morse docs.
 
 ## Editorial standard

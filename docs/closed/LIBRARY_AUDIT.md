@@ -86,8 +86,8 @@ Boundary discipline that still holds:
   “knowing Morse.” Those remain #29's scope.
 
 Canonical mapping/timing provenance is ITU-R M.1677-1. Character-order/training
-provenance is recorded in `docs/MORSE_CHARACTER_ORDER.md` and
-`docs/MORSE_PROVENANCE_RECONCILIATION.md`.
+provenance is recorded in `docs/open/MORSE_CHARACTER_ORDER.md` and
+`docs/closed/MORSE_PROVENANCE_RECONCILIATION.md`.
 
 ## OODA loop
 
@@ -157,8 +157,8 @@ first-class content requirements, not generic README disclaimers.
 
 ## Source records
 
-- `docs/SEEDED_CONTENT_PROVENANCE.md` — original four-topic research/source record.
-- `docs/MORSE_CHARACTER_ORDER.md` — Morse order rule + corrected Koch/CW Academy
+- `docs/closed/SEEDED_CONTENT_PROVENANCE.md` — original four-topic research/source record.
+- `docs/open/MORSE_CHARACTER_ORDER.md` — Morse order rule + corrected Koch/CW Academy
   comparison.
-- `docs/MORSE_PROVENANCE_RECONCILIATION.md` — pre-#28 provenance/docs closeout.
-- `docs/MORSE_PROGRAMME_PLAN.md` — v5 Morse decisions and implementation status.
+- `docs/closed/MORSE_PROVENANCE_RECONCILIATION.md` — pre-#28 provenance/docs closeout.
+- `docs/open/MORSE_PROGRAMME_PLAN.md` — v5 Morse decisions and implementation status.

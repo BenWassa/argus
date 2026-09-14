@@ -33,23 +33,24 @@ Other commands:
 
 ### Content inbox
 
-Argus can capture "want to learn" notes into a small Firestore inbox, kept entirely outside the local learning library. It is optional: with no Firebase configuration the capture surface reports itself unavailable and the rest of Argus is unaffected. Copy `.env.example` to `.env.local` to configure it. Everything it reads is public web configuration; no privileged credential belongs in the client. See `docs/CONTENT_INBOX.md`.
+Argus can capture "want to learn" notes into a small Firestore inbox, kept entirely outside the local learning library. It is optional: with no Firebase configuration the capture surface reports itself unavailable and the rest of Argus is unaffected. Copy `.env.example` to `.env.local` to configure it. Everything it reads is public web configuration; no privileged credential belongs in the client. See `docs/open/CONTENT_INBOX.md`.
 
 The production site is deployed to **https://benwassa.github.io/argus/** by GitHub Actions whenever `main` is updated.
 
 ## Durable product and programme documentation
 
+- `docs/README.md` — documentation lifecycle and open/closed housekeeping.
 - `PRODUCT.md` — current implemented product contract and design principles.
 - `DESIGN.md` / `DESIGN.json` — current visual and interaction system.
-- `docs/LEARN_CONTENT_MODEL.md` — structured Learn schema/editorial contract.
-- `docs/LIBRARY_AUDIT.md` — reconciled shipped-library boundary/content audit.
-- `docs/SEEDED_CONTENT_PROVENANCE.md` — authoritative source record for the original seeded topics.
-- `docs/CONTENT_INBOX.md` — content-inbox and curated-ingestion architecture, and the Firebase setup it needs.
-- `docs/PROGRAMME.md` — Learn/Test + content-quality programme closeout.
-- `docs/MORSE_CODE_LEARNING_PRD.md` — dated Morse research/design baseline retained for rationale; later ratified decisions supersede its deliberately open implementation questions.
-- `docs/MORSE_PROGRAMME_PLAN.md` — current Morse programme decisions, workstream ownership and implementation status.
-- `docs/MORSE_CHARACTER_ORDER.md` — shipped character order/packet rule and verified Koch/CW Academy provenance comparison.
-- `docs/MORSE_PROVENANCE_RECONCILIATION.md` — provenance/doc-reconciliation closeout for the pre-#28 documentation lane.
+- `docs/open/LEARN_CONTENT_MODEL.md` — structured Learn schema/editorial contract.
+- `docs/closed/LIBRARY_AUDIT.md` — reconciled shipped-library boundary/content audit.
+- `docs/closed/SEEDED_CONTENT_PROVENANCE.md` — authoritative source record for the original seeded topics.
+- `docs/open/CONTENT_INBOX.md` — content-inbox and curated-ingestion architecture, and the Firebase setup it needs.
+- `docs/closed/PROGRAMME.md` — Learn/Test + content-quality programme closeout.
+- `docs/closed/MORSE_CODE_LEARNING_PRD.md` — dated Morse research/design baseline retained for rationale; later ratified decisions supersede its deliberately open implementation questions.
+- `docs/open/MORSE_PROGRAMME_PLAN.md` — current Morse programme decisions, workstream ownership and implementation status.
+- `docs/open/MORSE_CHARACTER_ORDER.md` — shipped character order/packet rule and verified Koch/CW Academy provenance comparison.
+- `docs/closed/MORSE_PROVENANCE_RECONCILIATION.md` — provenance/doc-reconciliation closeout for the pre-#28 documentation lane.
 
 `argus-prd.md` is the original July 2026 vision document. Where it describes superseded runtime/schema details, `PRODUCT.md` and the durable programme documents above govern current implemented behaviour.
 

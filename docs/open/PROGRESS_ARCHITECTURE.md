@@ -405,7 +405,7 @@ If the audit finds a real defect, fix only the evidence semantics needed to make
 
 ### Audit outcome (#68, lane F — settled)
 
-The audit found real defects and they are fixed. Full findings and reasoning are in `docs/MORSE_CUE_LADDER.md` under "#68 — the completion-evidence audit"; the answers to the three questions above are:
+The audit found real defects and they are fixed. Full findings and reasoning are in `docs/open/MORSE_CUE_LADDER.md` under "#68 — the completion-evidence audit"; the answers to the three questions above are:
 
 - **Did the qualifying delayed attempt itself demonstrate the required uncued forward and reverse performance?** No. It demonstrated one direction per unit at whatever support level that unit had reached, and in steady state that was always reception, because the ladder retired production permanently once reverse opened.
 - **Could historical supported/cued correct events satisfy directional coverage?** Yes. `hasCompleteDirectionalCoverage` read `DirectionEvidence.correct`, which counts a correct answer given with half the pattern and the timing artwork on screen exactly like an unaided one.

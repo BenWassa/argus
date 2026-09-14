@@ -7,7 +7,7 @@
 **#42 amendment:** 2026-09-04  
 **Product model:** Learn + Test only
 
-> **Document hierarchy:** the ratified decisions in `docs/MORSE_PROGRAMME_PLAN.md`
+> **Document hierarchy:** the ratified decisions in `docs/open/MORSE_PROGRAMME_PLAN.md`
 > and focused implementation documents override unresolved hypotheses in this
 > research baseline. #42 specifically supersedes the original PRD decision that
 > verbal mnemonics should be merely optional rescue cues.
@@ -43,7 +43,7 @@ The intended first-memory treatment is now explicit:
 
 The **rhythmic verbal mnemonic is the primary early memory hook**. The generated SVG remains a secondary visual scaffold that reinforces the same short/long sequence. Both are temporary: neither is part of the completion criterion and neither may leak into the final uncued Test rungs.
 
-This correction is an implementation/product decision prompted by production use, not a claim that controlled evidence has proved verbal mnemonics superior to visual mnemonics. The A–Z phrase set and provenance are recorded in `docs/MORSE_VERBAL_MNEMONICS.md`; the SVG grammar is recorded in `docs/MORSE_MNEMONIC_GRAMMAR.md`.
+This correction is an implementation/product decision prompted by production use, not a claim that controlled evidence has proved verbal mnemonics superior to visual mnemonics. The A–Z phrase set and provenance are recorded in `docs/open/MORSE_VERBAL_MNEMONICS.md`; the SVG grammar is recorded in `docs/open/MORSE_MNEMONIC_GRAMMAR.md`.
 
 ---
 
@@ -239,7 +239,7 @@ A learner can therefore be capable of uncued Morse recall today while still lack
 
 ### 6.2 Scored coverage — resolved by #24/#28
 
-Argus uses **exactly 26 logical items**, each typed `bidirectional`. Stable item identity and per-direction evidence prove both directions without duplicating the logical unit into 52 cards. `retentionCorrectCount` prevents a partial-direction path from presenting a passing attempt to the unchanged scheduler. After #68 it also prevents a partially *supported* one: only answers given with no scaffolding on screen count toward the claim, and a qualifying run in which any answer was cued cannot pass. See `docs/MORSE_CUE_LADDER.md`.
+Argus uses **exactly 26 logical items**, each typed `bidirectional`. Stable item identity and per-direction evidence prove both directions without duplicating the logical unit into 52 cards. `retentionCorrectCount` prevents a partial-direction path from presenting a passing attempt to the unchanged scheduler. After #68 it also prevents a partially *supported* one: only answers given with no scaffolding on screen count toward the claim, and a qualifying run in which any answer was cued cannot pass. See `docs/open/MORSE_CUE_LADDER.md`.
 
 This is the implemented resolution of the original 52-prompts-vs-bidirectional design question.
 
@@ -338,7 +338,7 @@ Argus retains an original generated SVG system with consistent rules across all 
 - **reduced motion:** sequence semantics survive without positional motion;
 - **contrast:** short vs long remains distinguishable without colour alone.
 
-The SVG is not a bespoke pictorial illustration per letter and no longer carries the role of primary mnemonic. See `docs/MORSE_MNEMONIC_GRAMMAR.md`.
+The SVG is not a bespoke pictorial illustration per letter and no longer carries the role of primary mnemonic. See `docs/open/MORSE_MNEMONIC_GRAMMAR.md`.
 
 ### 8.3 Verbal/syllabic mnemonics — #42 decision
 
@@ -357,7 +357,7 @@ The Argus grammar is:
 - reduced Test may show only a strict opening prefix;
 - uncued Test shows none of it.
 
-The supplied method/example `A = "A LONG"` is retained. The other 25 phrases are original Argus editorial work, not a copied third-party mnemonic list. `docs/MORSE_VERBAL_MNEMONICS.md` records every phrase, rationale and provenance.
+The supplied method/example `A = "A LONG"` is retained. The other 25 phrases are original Argus editorial work, not a copied third-party mnemonic list. `docs/open/MORSE_VERBAL_MNEMONICS.md` records every phrase, rationale and provenance.
 
 Automated structural agreement is not evidence that the phrase set is maximally memorable. Human learner validation remains necessary.
 

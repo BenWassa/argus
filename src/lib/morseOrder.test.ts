@@ -52,7 +52,7 @@ describe('acquisition order', () => {
     expect([...ACQUISITION_ORDER].sort()).toEqual([...ALL_MORSE_LETTERS].sort())
   })
 
-  it('is the sequence recorded in docs/MORSE_CHARACTER_ORDER.md', () => {
+  it('is the sequence recorded in docs/open/MORSE_CHARACTER_ORDER.md', () => {
     // Pinned deliberately: the documented sequence and the shipped sequence are
     // the same artefact, and a silent re-ordering would invalidate the record.
     expect(ACQUISITION_ORDER.join('')).toBe('EITANSMURDWKGHOVFLBPXCZJYQ')

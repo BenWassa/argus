@@ -1,7 +1,7 @@
 # Argus programme — progressive Morse-code learning
 
 Parent issue: #21  
-Research baseline: `docs/MORSE_CODE_LEARNING_PRD.md` (PR #22; amended by #42)  
+Research baseline: `docs/closed/MORSE_CODE_LEARNING_PRD.md` (PR #22; amended by #42)
 Execution-plan origin: PR #30  
 Current programme state: #75 lesson path/replay; corrected #76 shared A–Z reference; #77 direct Morse key; #78 early word checkpoints; #87 touch-safe shared keyed-response lifecycle; #88 seamless milestone checkpoint handoff
 Prior corrections: #48 guided Learn; #51 finite sittings; #52 visual/listening separation; #56 keyed production; #42/#44 rhythmic verbal acquisition + production mobile audio
@@ -182,7 +182,7 @@ produced unaided at least once in Learn. Both stay inside v5, both are additive
 with a safe absent default, both round-trip through export/import, and neither is
 evidence. The retired `argus.morse-learn-sittings.v1` sidecar is migrated once at
 load and then deleted; `Topic.lessonSitting` is the single durable authority.
-See `docs/PROGRESS_ARCHITECTURE.md`.
+See `docs/open/PROGRESS_ARCHITECTURE.md`.
 
 #48 adds exactly one optional field, `Topic.lessonProgress`: one
 `taught | cued | solo | settled` enum per item id. It stays inside v5 because
@@ -228,7 +228,7 @@ review tightened that wording:
 
 Therefore P1 remains unchanged, but the rationale does not depend on an
 unsupported fixed Koch list or on calling Fundamental a character-order
-curriculum. See `docs/MORSE_CHARACTER_ORDER.md` for the full source record.
+curriculum. See `docs/open/MORSE_CHARACTER_ORDER.md` for the full source record.
 
 ## P2 — packet composition
 
@@ -434,7 +434,7 @@ not the source of the full Argus A–Z phrase set.
 
 ## #48/#51/#52/#56/#75/#76/#77/#78 — current Learn contract
 
-The full record is `docs/MORSE_LESSON.md`. In summary:
+The full record is `docs/open/MORSE_LESSON.md`. In summary:
 
 - **Learn** is a guided lesson: introduce two new characters, retrieve them
   shortly after, reteach a miss and bring it back after intervening material,

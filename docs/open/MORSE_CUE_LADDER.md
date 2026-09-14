@@ -1,11 +1,11 @@
 # The acquisition ladder inside Test
 
 Workstream 4 (#27), corrected by #42 and #56. Implements **D3 (ratified)** and
-**P3 (default)** from `docs/MORSE_PROGRAMME_PLAN.md` while preserving #28's
+**P3 (default)** from `docs/open/MORSE_PROGRAMME_PLAN.md` while preserving #28's
 bidirectional completion boundary.
 
 Learn has its own formative support ladder (`taught / cued / solo / settled`) in
-`Topic.lessonProgress`; see `docs/MORSE_LESSON.md`. Test has the separate durable
+`Topic.lessonProgress`; see `docs/open/MORSE_LESSON.md`. Test has the separate durable
 cue/evidence ladder documented here. Learn cannot write `ItemCueEvidence`.
 
 Primary code:

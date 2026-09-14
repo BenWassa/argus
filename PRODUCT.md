@@ -29,7 +29,7 @@ them.
 
 The split exists because retention and exposure are different things, and the interface should never let one be mistaken for the other. A surface shaped like a flashcard must conceal its answer; a surface meant for reading and scanning must not pretend to be a card.
 
-For most topics Learn is a single reading, and moving to `learning` is the whole of acquisition. Some topics need more: Morse's Learn is a guided lesson running over many sittings and days, and its status is `learning` throughout. For those, finishing acquisition is a distinct event from first exposure, and until it happens every surface keeps recommending the lesson — an early Test stays available, but it is recorded rather than banked. `docs/PROGRESS_ARCHITECTURE.md` is the authority.
+For most topics Learn is a single reading, and moving to `learning` is the whole of acquisition. Some topics need more: Morse's Learn is a guided lesson running over many sittings and days, and its status is `learning` throughout. For those, finishing acquisition is a distinct event from first exposure, and until it happens every surface keeps recommending the lesson — an early Test stays available, but it is recorded rather than banked. `docs/open/PROGRESS_ARCHITECTURE.md` is the authority.
 
 ## What progress means
 
@@ -67,7 +67,7 @@ Argus also carries a small **content inbox**, kept strictly outside the learning
 
 The library, its history and its cue evidence remain local-first and are never synchronized. Firestore stores only these requests, and the inbox being signed out or unreachable leaves every learning surface untouched.
 
-Turning a request into curriculum is editorial work that happens in the repository: research the subject, decide whether it carries one honest completion boundary, author deliberate ids, and open an ordinary reviewed pull request. A request is marked `added` only once the topics it became have actually shipped. Newly shipped catalog topics then reach an existing library as fresh unstarted topics, appended without touching anything already there. See `docs/CONTENT_INBOX.md`.
+Turning a request into curriculum is editorial work that happens in the repository: research the subject, decide whether it carries one honest completion boundary, author deliberate ids, and open an ordinary reviewed pull request. A request is marked `added` only once the topics it became have actually shipped. Newly shipped catalog topics then reach an existing library as fresh unstarted topics, appended without touching anything already there. See `docs/open/CONTENT_INBOX.md`.
 
 ## Product Purpose
 

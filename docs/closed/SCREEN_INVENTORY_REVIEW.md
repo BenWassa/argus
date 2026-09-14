@@ -1,16 +1,18 @@
 # Argus screen inventory and consolidation brief
 
-> **Authority status — proposed next programme, not current product behavior.**
-> This document contains the next major screen/learning-experience overhaul to be
-> revisited and designed before implementation. Its proposed information
-> architecture, assessment model and durable state do **not** supersede current
-> `PRODUCT.md`, `docs/PROGRESS_ARCHITECTURE.md` or shipped behavior merely by
-> appearing here. In particular, badges/achievement state, First Messages, new
-> milestone/freshness state, Home/Lessons navigation and removal of Progress are
-> unratified proposals. Badge concepts directly conflict with the current
-> `PRODUCT.md` anti-gamification contract and require an explicit product decision
-> before implementation. #90 may be reshaped or partly superseded by this
-> programme; it must not be implemented simply because it remains open.
+> **Authority status — superseded research, not current authority.**
+> This document's own closing section proposed the review that became
+> `docs/open/LEARNING_EXPERIENCE_DESIGN_DECISION.md`, which reconciled it under #92
+> and is now the authoritative record of Argus's information architecture: the
+> Today/Library navigation, the one-shell/two-bodies topic page, and the Morse
+> course-as-topic-page-body model it shipped supersede this document's
+> Home/Lessons proposal, its badge/milestone/First-Messages concepts (rejected
+> outright — see that document's §14), and its 8/13-screen counts (now stale:
+> navigation actually changed). Its per-surface duplication analysis and the
+> "what other learning apps demonstrate" research remain useful history and are
+> preserved unedited below. Do not treat any recommendation in this file as
+> live guidance — read `docs/open/LEARNING_EXPERIENCE_DESIGN_DECISION.md` and
+> `docs/open/ARGUS_OVERHAUL_RATIFICATION.md` instead.
 
 ## Revised direction following owner feedback
 
@@ -451,7 +453,7 @@ Only after that prototype decision should the team decide whether Progress or Da
 
 ## Paste-ready prompt for a follow-up design reviewer
 
-> Review `docs/SCREEN_INVENTORY_REVIEW.md`, `PRODUCT.md`, `DESIGN.md`, `src/app/App.tsx`, and the named feature components before proposing changes. Argus is a personal, mobile-first finite-skill library. Its central home job is “show what is due, do the one scheduled thing, leave.” We suspect the app feels fragmented despite having only 8 router-level screen types and 13 full-screen archetypes. Produce a decision, not a generic critique: (1) which of the five consolidation candidates should be accepted, rejected or prototyped first; (2) a before/after navigation and screen map; (3) the exact user journeys that improve or worsen; (4) an MVP implementation plan with file-level changes; and (5) a verification plan. Preserve Learn versus Test semantics, finite completion boundaries, no aggregate progress score, local-first data ownership, focus/back behavior, and the Morse programme's formative-versus-formal evidence boundaries. Do not recommend merging screens solely because they look similar; distinguish duplicate content from distinct task/persistence semantics.
+> Review `docs/closed/SCREEN_INVENTORY_REVIEW.md`, `PRODUCT.md`, `DESIGN.md`, `src/app/App.tsx`, and the named feature components before proposing changes. Argus is a personal, mobile-first finite-skill library. Its central home job is “show what is due, do the one scheduled thing, leave.” We suspect the app feels fragmented despite having only 8 router-level screen types and 13 full-screen archetypes. Produce a decision, not a generic critique: (1) which of the five consolidation candidates should be accepted, rejected or prototyped first; (2) a before/after navigation and screen map; (3) the exact user journeys that improve or worsen; (4) an MVP implementation plan with file-level changes; and (5) a verification plan. Preserve Learn versus Test semantics, finite completion boundaries, no aggregate progress score, local-first data ownership, focus/back behavior, and the Morse programme's formative-versus-formal evidence boundaries. Do not recommend merging screens solely because they look similar; distinguish duplicate content from distinct task/persistence semantics.
 
 ## Evidence consulted
 
@@ -460,4 +462,4 @@ Only after that prototype decision should the team decide whether Progress or Da
 - `src/app/App.tsx` and `src/lib/navigation.ts` for route model and history behavior.
 - `src/features/today/Today.tsx`, `library/Library.tsx`, `library/TopicPage.tsx`, `progress/Progress.tsx`, and `data/Data.tsx` for section responsibilities.
 - `src/features/learn/*` and `src/features/test/*` for full-screen task flows and state boundaries.
-- `docs/PROGRAMME.md` and `docs/PROGRESS_ARCHITECTURE.md` for current learning/progress authority.
+- `docs/closed/PROGRAMME.md` and `docs/open/PROGRESS_ARCHITECTURE.md` for current learning/progress authority.

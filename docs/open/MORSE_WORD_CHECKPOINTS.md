@@ -47,7 +47,7 @@ Production authority remains:
 - `src/lib/morseLesson.ts` → `lessonPackets()`;
 - `src/lib/morseOrder.ts` → `buildCharacterPackets()` / generated acquisition
   order;
-- `docs/MORSE_CHARACTER_ORDER.md` for the rationale and pinned sequence.
+- `docs/open/MORSE_CHARACTER_ORDER.md` for the rationale and pinned sequence.
 
 The current generated acquisition order is:
 
