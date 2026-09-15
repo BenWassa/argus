@@ -11,6 +11,7 @@ import { MorsePath } from '../learn/MorsePath'
 // were designed with; only where they are rendered changed.
 import '../learn/Reading.css'
 import type { RunTarget } from '../../lib/navigation'
+import { hasPractice, practiceItemCount } from '../../lib/practice'
 import type { Mode, Topic } from '../../lib/types'
 import './TopicPage.css'
 
@@ -105,6 +106,12 @@ export function TopicPage({
   const { acquisition } = journey
   const testing = journey.action === 'test'
 
+  // How many items a check has left outstanding, counted in items rather than
+  // in directions: a bidirectional item missed both ways is one thing to go and
+  // fix. Zero for any topic that keeps no per-item evidence, which is why an
+  // ordinary topic's offer lives on its check's end screen instead.
+  const practiceCount = hasPractice(topic) ? practiceItemCount(topic) : 0
+
   function startCheck() {
     onStart('test', [topic.id])
   }
@@ -148,6 +155,26 @@ export function TopicPage({
             onLesson={() => onStart('learn', [topic.id], { kind: 'lesson' })}
             onCheck={startCheck}
           />
+
+          {/* The standing offer to go back over what a check missed (#92 batch
+              5). Text weight, never the primary control: the recommended move
+              is still the check, because only the check can re-earn anything.
+              It disappears on its own once a later check answers those items
+              correctly, which is why nothing here has to remember being taken.
+
+              It appears only for a topic that keeps per-item evidence. An
+              ordinary reveal-and-grade topic records no per-item result, so
+              after its check ends there is nothing left to select on; that
+              topic's offer lives on the check's end screen instead. */}
+          {practiceCount > 0 && (
+            <button
+              className="quiet topic-alt"
+              type="button"
+              onClick={() => onStart('learn', [topic.id], { kind: 'practice' })}
+            >
+              Practise the {practiceCount} {practiceCount === 1 ? 'item' : 'items'} you missed
+            </button>
+          )}
 
           {/* The path not recommended, at text weight. It never takes the shape
               of the primary control, and it states its own consequence. */}

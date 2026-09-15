@@ -116,3 +116,62 @@ describe('Back blockers', () => {
     remove()
   })
 })
+
+describe('a practice run in the route model', () => {
+  const origin = { kind: 'section', view: 'library' } as const
+
+  function practice(itemIds?: string[]): AppRoute {
+    return {
+      kind: 'run',
+      mode: 'learn',
+      topicIds: ['topic-a'],
+      origin,
+      target: { kind: 'practice', ...(itemIds ? { itemIds } : {}) },
+    }
+  }
+
+  it('validates with and without an item list', () => {
+    expect(isAppRoute(practice())).toBe(true)
+    expect(isAppRoute(practice(['item-1', 'item-2']))).toBe(true)
+  })
+
+  it('rejects a malformed item list rather than restoring it', () => {
+    const bad = (itemIds: unknown): AppRoute =>
+      ({
+        kind: 'run',
+        mode: 'learn',
+        topicIds: ['topic-a'],
+        origin,
+        target: { kind: 'practice', itemIds },
+      }) as AppRoute
+
+    expect(isAppRoute(bad([]))).toBe(false)
+    expect(isAppRoute(bad(['ok', '']))).toBe(false)
+    expect(isAppRoute(bad('item-1'))).toBe(false)
+    expect(isAppRoute(bad([1, 2]))).toBe(false)
+  })
+
+  /**
+   * `navigate` no-ops on `sameRoute`, so two offers over different items have
+   * to read as different routes or the second one would silently do nothing.
+   */
+  it('tells two different practice sets apart', () => {
+    expect(sameRoute(practice(['a']), practice(['a']))).toBe(true)
+    expect(sameRoute(practice(['a']), practice(['b']))).toBe(false)
+    expect(sameRoute(practice(['a', 'b']), practice(['a']))).toBe(false)
+    // A derived run and a named run are not the same route either.
+    expect(sameRoute(practice(), practice(['a']))).toBe(false)
+    expect(sameRoute(practice(), practice())).toBe(true)
+  })
+
+  it('is not the same route as the lesson it shares a mode with', () => {
+    const lesson: AppRoute = {
+      kind: 'run',
+      mode: 'learn',
+      topicIds: ['topic-a'],
+      origin,
+      target: { kind: 'lesson' },
+    }
+    expect(sameRoute(practice(), lesson)).toBe(false)
+  })
+})

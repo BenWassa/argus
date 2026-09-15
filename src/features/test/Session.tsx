@@ -30,6 +30,7 @@ import { retentionCorrectCount, type AttemptAnswer } from '../../lib/items'
 import { registerBackBlocker } from '../../lib/navigation'
 import type { CueState, Item, ItemCueEvidence, ItemEvidenceStore, Topic } from '../../lib/types'
 import { ProgressiveCard, type ProgressiveAnswer } from './ProgressiveCard'
+import { targetsForItems } from '../../lib/practice'
 import { testCardTextClass } from './textScale'
 import {
   SWIPE_CUE_FULL_PX,
@@ -60,6 +61,15 @@ interface Card {
 interface SessionProps {
   topicIds: string[]
   onExit: () => void
+  /**
+   * Start a formative practice run over exactly what this check missed.
+   *
+   * The check is the only thing that knows. An ordinary reveal-and-grade topic
+   * writes no per-item evidence, so once this component unmounts the set is
+   * gone — which is why the offer is made here, with the ids in hand, rather
+   * than reconstructed afterwards from state that was never stored.
+   */
+  onPractice?: (topicId: string, itemIds: string[]) => void
 }
 
 function shuffle<T>(list: T[]): T[] {
@@ -113,7 +123,7 @@ interface BankedAttempt {
   nonQualifying: boolean
 }
 
-export function Session({ topicIds, onExit }: SessionProps) {
+export function Session({ topicIds, onExit, onPractice }: SessionProps) {
   const { topics, updateTopic } = useLibrary()
 
   // Snapshot the topics and deck at session start. A bankable attempt always
@@ -176,6 +186,17 @@ export function Session({ topicIds, onExit }: SessionProps) {
   // to ask "did, in this run". Discarded with the attempt on an early exit,
   // exactly like the tally, because it is part of the attempt and not evidence.
   const attemptAnswers = useRef<Record<string, AttemptAnswer[]>>({})
+
+  /**
+   * Item ids answered wrong in this run, per topic, in the order they were met.
+   *
+   * Run bookkeeping, not evidence: it is a ref, it never reaches a topic, and
+   * it dies with the component. Its only consumer is the end screen's offer to
+   * practise. Every grade path funnels through `recordGrade`, so recording it
+   * there covers self-scored cards and ladder cards alike — the durable
+   * `itemEvidence` path covers only the latter.
+   */
+  const missedItems = useRef<Record<string, string[]>>({})
 
   const [view, setView] = useState<View>({ kind: 'asking', index: 0 })
   const [tally, setTally] = useState<{ correct: number; total: number }>({ correct: 0, total: 0 })
@@ -433,6 +454,16 @@ export function Session({ topicIds, onExit }: SessionProps) {
     const current = deck[at]
     if (!current) return
 
+    if (!correct && current.item.id) {
+      const already = missedItems.current[current.topicId] ?? []
+      if (!already.includes(current.item.id)) {
+        missedItems.current = {
+          ...missedItems.current,
+          [current.topicId]: [...already, current.item.id],
+        }
+      }
+    }
+
     const next = { correct: tally.correct + (correct ? 1 : 0), total: tally.total + 1 }
     const following = deck[at + 1]
     const topicFinished = !following || following.topicId !== current.topicId
@@ -559,7 +590,15 @@ export function Session({ topicIds, onExit }: SessionProps) {
   }
 
   if (view.kind === 'done' || !card) {
-    return <TestDone banked={banked} onExit={onExit} headingRef={headingRef} />
+    return (
+      <TestDone
+        banked={banked}
+        missed={missedItems.current}
+        onExit={onExit}
+        onPractice={onPractice}
+        headingRef={headingRef}
+      />
+    )
   }
 
   if (confirmingExit) {
@@ -773,11 +812,16 @@ export function Session({ topicIds, onExit }: SessionProps) {
 }
 function TestDone({
   banked,
+  missed,
   onExit,
+  onPractice,
   headingRef,
 }: {
   banked: BankedAttempt[]
+  /** Item ids answered wrong in this run, per topic. */
+  missed: Record<string, string[]>
   onExit: () => void
+  onPractice?: (topicId: string, itemIds: string[]) => void
   headingRef: React.RefObject<HTMLHeadingElement | null>
 }) {
   const resolutions = banked.map((entry) => entry.resolution)
@@ -796,6 +840,32 @@ function TestDone({
   const held = moved.filter(
     (resolution) => !resolution.completed && !resolution.decayed && resolution.to === resolution.from,
   )
+
+  /**
+   * One offer, for the first topic in this run that missed something.
+   *
+   * A multi-topic Test that missed items in several topics could offer several
+   * practice runs, but a screen that ends in a column of competing buttons is
+   * the decision-on-the-daily-path problem this redesign spent batches 1 to 3
+   * removing. The first one is the one to go and fix; the rest keep their own
+   * offer on their topic pages.
+   *
+   * The count comes from `targetsForItems` rather than from the raw miss list,
+   * so the number on the button is exactly what the run will ask. A badly
+   * broken twenty-item check is bounded by `PRACTICE_LIMIT`, and an offer that
+   * promised twenty and then asked ten would be the screen lying about the
+   * work.
+   */
+  const practiceOffer = banked
+    .map((entry) => {
+      const topic = entry.resolution.topic
+      const asked = targetsForItems(topic, missed[topic.id] ?? [])
+      // Counted in items, not directions: an item missed both ways is one
+      // thing to go and fix.
+      const itemIds = [...new Set(asked.map((target) => target.item.id))]
+      return { topicId: topic.id, title: topic.title, itemIds }
+    })
+    .find((candidate) => candidate.itemIds.length > 0)
 
   return (
     <section className="session session-done">
@@ -862,7 +932,34 @@ function TestDone({
         <p className="transition">No topic ran to the end, so nothing changed rung.</p>
       )}
 
-      <button type="button" onClick={onExit}>
+      {/* The offer to go and fix what just broke, and the only new action on
+          this screen. It is deliberately not the accent: the end screen's one
+          brass moment belongs to banking a completion, and a miss is not an
+          event to mark. Practice records nothing, so taking it costs the
+          learner nothing but the time. */}
+      {practiceOffer && onPractice && (
+        <div className="practice-offer">
+          <p>
+            {practiceOffer.itemIds.length}{' '}
+            {practiceOffer.itemIds.length === 1 ? 'item' : 'items'} did not come back on{' '}
+            <strong>{practiceOffer.title}</strong>. Practice asks only those, records nothing, and
+            leaves the check to prove it.
+          </p>
+          <button
+            type="button"
+            onClick={() => onPractice(practiceOffer.topicId, practiceOffer.itemIds)}
+          >
+            Practise {practiceOffer.itemIds.length}{' '}
+            {practiceOffer.itemIds.length === 1 ? 'item' : 'items'}
+          </button>
+        </div>
+      )}
+
+      <button
+        className={practiceOffer && onPractice ? 'ghost' : undefined}
+        type="button"
+        onClick={onExit}
+      >
         Back to today
       </button>
     </section>

@@ -818,14 +818,29 @@ entry is a `Test`, not a differently-named cousin of one.
 
 ## What did not ship, and why
 
-**Batch 5, targeted repair.** Not implemented. It is genuinely new product
-behaviour resting on an unresolved decision (§15.5, whether repair is scored or
-formative), it touches the Session banking path, and a partial-deck run that
-could reach `resolveAttempt` is the one change here that could weaken the
-completion boundary. Batch 4 also delivered most of what repair was for: a second
-run after a miss now asks the weaker directions and restores support on exactly
-the items that failed, so what remains is a shorter run rather than an adaptive
-one. It wants the owner's answer first.
+**Batch 5, targeted repair.** ~~Not implemented.~~ **Shipped 2026-09-14**, once
+§15.5 was decided formative. It is documented as its own contract in
+`docs/open/TARGETED_PRACTICE.md`; the account below is what this paper got right
+and wrong about it.
+
+Right: it *is* genuinely new product behaviour, and a partial-deck run that could
+reach `resolveAttempt` was indeed the one change here able to weaken the
+completion boundary. That is why the built surface never reaches it — the
+practice module imports no store write, no scheduler and no evidence recorder at
+all, and a test asserts the absence of those imports rather than trusting the
+prose. It does not touch the Session banking path; it sits beside it.
+
+Wrong, in two places worth recording:
+
+- This paper calls the surface `repair`, which the shipped product already uses
+  for `JourneyPhase = 'repair'` — the learner-visible `Needs repair` on a
+  *decayed* topic, whose remedy is a full **scored** Test. The new surface is
+  therefore called **practice**, and the decay label is untouched.
+- "Batch 4 delivered most of what repair was for" holds only for Morse. An
+  ordinary reveal-and-grade check writes no per-item evidence at all, so it
+  neither asks weaker directions nor restores support on the items that failed —
+  there is nothing per-item to restore. This is also why practice can be offered
+  from an ordinary topic's *end screen* but not later from its topic page.
 
 **Batch 6, #90 lesson scheduling policy.** Not implemented, as the paper
 recommends: it is pure-function work behind the lesson surface, unaffected by any
@@ -834,7 +849,8 @@ programme.
 
 **Nothing in the state model moved.** No schema change, no new durable field, no
 migration, and no change to the scheduler, the cue-evidence contract, the #68
-completion gate or the printed A–Z claim.
+completion gate or the printed A–Z claim. Batch 5 held that line too: practice
+reads state that already exists and writes none of it.
 
 ## Still needing the owner
 
@@ -844,3 +860,7 @@ phone before anything builds on them: **§15.3**, the Morse reference cards, whi
 reverses part of a previously accepted decision; and **§15.1**, whether opening
 an ordinary topic should count as having read it. #42's real-device acceptance
 gate is untouched and still open.
+
+Batch 5 adds a third: the **practice** naming above, and the fact that its
+topic-page offer reaches only topics that keep per-item evidence. Both are set
+out in `docs/open/TARGETED_PRACTICE.md` and both are reversible.

@@ -1,0 +1,114 @@
+/* Practice is formative, and it should look it.
+ *
+ * The scored Test gets the full card stage, the swipe and the brass on its end
+ * screen. Practice deliberately reads quieter: a plain question block, a plain
+ * reveal, two grade buttons. The visual difference is doing real work — it is
+ * how the learner can tell, before answering anything, whether this run is
+ * going on their record. */
+
+.practice-run {
+  display: grid;
+  align-content: start;
+  gap: var(--s-lg);
+}
+
+.practice-stage {
+  display: grid;
+  gap: var(--s-md);
+  max-width: 34rem;
+}
+
+.practice-question,
+.practice-answer {
+  display: grid;
+  gap: var(--s-xs);
+  padding: var(--s-lg);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--surface-2);
+}
+
+.practice-question:focus-visible {
+  outline: 2px solid var(--line-hover);
+  outline-offset: 2px;
+}
+
+.practice-answer {
+  border-color: var(--line-strong);
+}
+
+.practice-label {
+  font-size: var(--t-label);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.practice-value {
+  font-family: var(--font-display);
+  font-size: var(--t-page);
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+
+/* The same two-step shrink the Test card uses, so a long phrase behaves the
+   same way wherever it is asked. */
+.practice-value.is-medium {
+  font-size: var(--t-section);
+}
+
+.practice-value.is-long {
+  font-size: var(--t-component);
+}
+
+.practice-reveal {
+  justify-self: start;
+}
+
+.practice-grade {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-sm);
+}
+
+.practice-feedback {
+  display: grid;
+  gap: var(--s-xs);
+  padding: var(--s-md);
+  /* A miss is the only thing that stops the run, so this block always reports
+     one. It reads in the same warning the rest of the app gives decay: it
+     routes work, it does not scold. */
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-lg);
+  background: var(--surface-2);
+  max-width: 34rem;
+}
+
+.practice-feedback strong,
+.practice-feedback span,
+.practice-summary h1,
+.practice-summary p {
+  margin: 0;
+}
+
+.practice-feedback button {
+  justify-self: start;
+  margin-top: var(--s-xs);
+}
+
+.practice-summary {
+  display: grid;
+  gap: var(--s-md);
+  max-width: 34rem;
+  justify-items: start;
+}
+
+.practice-summary h1 {
+  font-family: var(--font-display);
+  font-size: var(--t-page);
+  line-height: 1.08;
+}
+
+.practice-summary p {
+  color: var(--muted);
+}

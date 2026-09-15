@@ -14,11 +14,19 @@ export type ParentRoute =
  * Replay and checkpoint name a specific path entry, and neither persists any
  * learner state, so a reloaded run entry falling back to its origin loses
  * nothing it was responsible for.
+ *
+ * Practice names no path entry either, but it may name items. A check's end
+ * screen knows exactly what the learner just missed, including for an ordinary
+ * topic that keeps no per-item evidence at all, so it hands that set straight
+ * to the run. Entered from a topic page instead, `itemIds` is absent and the
+ * run derives its own queue from durable evidence. Practice persists nothing
+ * either way, so a reloaded entry falling back to its origin loses nothing.
  */
 export type RunTarget =
   | { kind: 'lesson' }
   | { kind: 'replay'; index: number }
   | { kind: 'checkpoint'; afterLesson: number }
+  | { kind: 'practice'; itemIds?: string[] }
 
 export type AppRoute =
   | ParentRoute
@@ -56,6 +64,9 @@ function isMode(value: unknown): value is Mode {
 function isRunTarget(value: unknown): value is RunTarget {
   if (!isRecord(value)) return false
   if (value.kind === 'lesson') return true
+  if (value.kind === 'practice') {
+    return value.itemIds === undefined || isIdList(value.itemIds)
+  }
   if (value.kind === 'replay') return Number.isInteger(value.index) && (value.index as number) >= 0
   return (
     value.kind === 'checkpoint' &&
@@ -64,7 +75,8 @@ function isRunTarget(value: unknown): value is RunTarget {
   )
 }
 
-function isTopicIds(value: unknown): value is string[] {
+/** A non-empty list of non-empty identifiers: topic ids, or practice item ids. */
+function isIdList(value: unknown): value is string[] {
   return Array.isArray(value) && value.length > 0 && value.every((id) => typeof id === 'string' && id.length > 0)
 }
 
@@ -80,7 +92,7 @@ export function isAppRoute(value: unknown): value is AppRoute {
 
   if (value.kind === 'run') {
     if (value.target !== undefined && !isRunTarget(value.target)) return false
-    return isMode(value.mode) && isTopicIds(value.topicIds) && isParentRoute(value.origin)
+    return isMode(value.mode) && isIdList(value.topicIds) && isParentRoute(value.origin)
   }
 
   if (value.kind === 'reference') {
@@ -154,6 +166,17 @@ function sameTarget(left: RunTarget | undefined, right: RunTarget | undefined): 
   if (left.kind === 'replay' && right.kind === 'replay') return left.index === right.index
   if (left.kind === 'checkpoint' && right.kind === 'checkpoint') {
     return left.afterLesson === right.afterLesson
+  }
+  if (left.kind === 'practice' && right.kind === 'practice') {
+    // Two practice runs over different item sets are different routes. Without
+    // this, navigating from one offer to another would be a no-op.
+    const leftItems = left.itemIds
+    const rightItems = right.itemIds
+    if (!leftItems || !rightItems) return !leftItems && !rightItems
+    return (
+      leftItems.length === rightItems.length &&
+      leftItems.every((id, index) => id === rightItems[index])
+    )
   }
   return true
 }

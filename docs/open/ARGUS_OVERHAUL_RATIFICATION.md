@@ -94,11 +94,37 @@ live.
 
 | Batch | What | Depends on | Gate |
 |---:|---|---|---|
-| 5 | Targeted repair (a bounded formative run over what a check just missed) | §15.5 — **decided: formative** | owner phone review |
+| ~~5~~ | ~~Targeted repair~~ — **shipped 2026-09-14** as *practice*. See `docs/open/TARGETED_PRACTICE.md` | §15.5 — decided: formative | **owner phone review outstanding** |
 | 6 | #90 lesson-scheduling policy (items 2, 3, 4, 5, 9) — the only additive migration in the whole programme | none (independent of 1–5 once batch 3 landed) | whole-programme simulation tests; owner review of spacing copy |
 
-Nothing else is outstanding from this programme. #42's real-device acceptance
-gate is unrelated and stays open on its own terms; #29 and #79 stay out of
+### Batch 5, as built
+
+A bounded formative run over what a check just missed, offered from the check's
+end screen and — while a miss still stands — from the topic page. It writes
+nothing: no cue evidence, no attempt, no `lastTestedAt`, no completion. The
+guarantee is structural (the module imports no write path, asserted by test)
+rather than documentary.
+
+Two things the paper did not anticipate, both settled in
+`docs/open/TARGETED_PRACTICE.md` and both worth your eye:
+
+1. **The word `repair` was already taken.** It ships as `JourneyPhase =
+   'repair'`, shown to the learner as `Needs repair` on a *decayed* topic whose
+   remedy is a full **scored** Test. Reusing it for an unscored partial run
+   would have blurred exactly the boundary this batch protects, so the new
+   surface is called **practice** and the decay label is untouched. Reversible,
+   but the decay label needs renaming first if you want `Repair` here.
+2. **Ordinary topics keep no per-item record.** Only progressive cue-ladder
+   cards write `itemEvidence`; an ordinary reveal-and-grade check records a
+   tally and nothing else. So the *topic-page* offer can only appear for Morse,
+   and an ordinary topic's offer lives on its check's end screen, lasting as
+   long as that screen. Closing that gap needs either a new durable field or
+   ordinary Test answers writing into the store that gates completion — both
+   outside batch 5's "no new durable state" boundary, and both deserving a
+   deliberate decision rather than being absorbed.
+
+Batch 6 is now the only implementation work left in this programme. #42's
+real-device acceptance gate is unrelated and stays open on its own terms; #29 and #79 stay out of
 scope entirely, per `LEARNING_EXPERIENCE_DESIGN_DECISION.md` §12 and the
 existing parked status on #79.
 
@@ -112,4 +138,6 @@ existing parked status on #79.
 - [x] Migration strategy — none for batches 0–4; batch 6 carries the one additive migration, not yet written.
 - [x] #90 reconciliation — table above.
 - [x] Execution plan — table above, batches 5–6 only.
+- [ ] **Owner phone review of batch 5** — the practice surface, its two entry
+      points, and the `practice`-not-`repair` naming call above.
 - [ ] **Owner review of §15.1 and §15.3** — the one item this package cannot close by itself. §15.5 was decided on 2026-09-14 (formative); §15.1 and §15.3 still want a deliberate phone look.

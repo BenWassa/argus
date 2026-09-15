@@ -631,3 +631,24 @@ button.flip-card:active {
   font-weight: var(--w-display);
   letter-spacing: 0;
 }
+
+/* The offer to practise what a check just missed (#92 batch 5).
+ *
+ * Sits below the outcome copy and above `Back to today`, so the screen still
+ * reads as an account of what happened first and an invitation second. It
+ * carries no accent: brass marks banking a completion, and a miss is not an
+ * event to mark. */
+.practice-offer {
+  display: grid;
+  gap: var(--s-sm);
+  justify-items: start;
+  padding: var(--s-md);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--surface-2);
+}
+
+.practice-offer p {
+  margin: 0;
+  color: var(--muted);
+}

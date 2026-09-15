@@ -7,6 +7,7 @@ import { Library } from '../features/library/Library'
 import { Data } from '../features/data/Data'
 import { Session } from '../features/test/Session'
 import { LessonRun } from '../features/learn/LessonRun'
+import { PracticeRun } from '../features/practice/PracticeRun'
 import { MorseReference } from '../features/learn/MorseReference'
 import {
   backNavigation,
@@ -273,6 +274,29 @@ function Routes() {
   }
 
   if (route.kind === 'run') {
+    // Practice is the one run that takes a whole Topic rather than an id, so it
+    // gets its own branch. `restoreRoute`/`liveRoute` already drop a run naming
+    // a topic the library no longer holds, which makes the missing case belt
+    // and braces — but a non-null assertion would be the wrong way to say so.
+    if (route.mode === 'learn' && route.target?.kind === 'practice') {
+      const practiceTopic = topics.find((candidate) => candidate.id === route.topicIds[0])
+      if (!practiceTopic) return null
+      const practiceItems = route.target.itemIds
+      return (
+        <div className="app-shell session-shell">
+          <main id="main" tabIndex={-1}>
+            <PracticeRun
+              key={`practice-${practiceTopic.id}-${practiceItems?.join() ?? 'derived'}`}
+              topic={practiceTopic}
+              itemIds={practiceItems}
+              onExit={goBack}
+              onCheck={() => start('test', route.topicIds, undefined, true)}
+            />
+          </main>
+        </div>
+      )
+    }
+
     return (
       <div className="app-shell session-shell">
         <main id="main" tabIndex={-1}>
@@ -290,6 +314,12 @@ function Routes() {
               key={`${route.mode}-${route.topicIds.join()}`}
               topicIds={route.topicIds}
               onExit={goBack}
+              // Replaces the finished check in history rather than stacking on
+              // top of it: Back from practice should reach whatever launched
+              // the check, not a completed run that would restart on entry.
+              onPractice={(topicId, itemIds) =>
+                start('learn', [topicId], { kind: 'practice', itemIds }, true)
+              }
             />
           )}
         </main>
