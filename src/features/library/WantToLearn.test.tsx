@@ -49,8 +49,6 @@ describe('the pending queue in Library', () => {
   })
 
   it('uses none of the language a topic uses', () => {
-    // The product rule made visible: a request has no boundary to finish, so it
-    // may not borrow the vocabulary of something that does.
     const html = queue()
     for (const word of [
       'unstarted',
@@ -84,10 +82,12 @@ describe('the pending queue in Library', () => {
     expect(queue()).toContain('saving…')
   })
 
-  it('offers a one-time sign-in and says the library is unaffected', () => {
+  it('does not offer a second sign-in when the shared app session is absent', () => {
     const html = queue({ status: 'signed-out', requests: [] })
-    expect(html).toContain('Sign in to the inbox')
-    expect(html).toContain('stay on this device')
+    expect(html).toContain('application account session')
+    expect(html).toContain('Argus entry')
+    expect(html).not.toContain('Sign in to the inbox')
+    expect(html).not.toContain('<button')
   })
 
   it('disappears entirely when the build has no inbox', () => {
@@ -116,7 +116,6 @@ describe('the capture sheet', () => {
     for (const label of ['Scope', 'Items', 'Sources', 'Title', 'prompt | answer', 'Completion']) {
       expect(html.includes(label), `capture asks for "${label}"`).toBe(false)
     }
-    // Exactly one place to type.
     expect(html.match(/<textarea/g)?.length).toBe(1)
     expect(html.includes('<input')).toBe(false)
   })
