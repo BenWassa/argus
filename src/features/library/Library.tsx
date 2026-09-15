@@ -8,6 +8,7 @@ import {
   type JourneyEntry,
 } from '../../lib/journey'
 import type { RunTarget } from '../../lib/navigation'
+import { resolveStudy } from '../../lib/scheduling'
 import { Confirm } from '../../components/ui/Confirm'
 import { TopicForm, type Draft } from './TopicForm'
 import { TopicPage } from './TopicPage'
@@ -62,7 +63,7 @@ export function Library({
   openFormOnMount = false,
   openTopicOnMount = null,
 }: LibraryProps) {
-  const { topics, upsertTopic, removeTopic } = useLibrary()
+  const { topics, upsertTopic, removeTopic, updateTopic } = useLibrary()
 
   const [openId, setOpenId] = useState<string | null>(openTopicOnMount)
   const [editing, setEditing] = useState<Topic | null>(null)
@@ -136,10 +137,10 @@ export function Library({
   /**
    * Land back on the row you left from.
    *
-   * The row can move while you are away, and now usually does: opening an
-   * ordinary topic is its exposure event, so by the time you come back it has
-   * left `Due now` for `Waiting` and been re-rendered under a different shelf.
-   * A single-frame restore raced that write and sometimes focused nothing.
+   * A row can still move while you are away because a deliberate action, a
+   * scored run or another concurrent write may change its journey. Browsing the
+   * topic itself does not. A single-frame restore must therefore tolerate either
+   * case rather than assuming the row is still under the same shelf.
    *
    * So this re-runs as the list settles and gives up only once it has, rather
    * than after a fixed number of frames. `#main` is the floor, because a filter
@@ -438,7 +439,8 @@ export function Library({
                             editTopic(entry.topic, true)
                             return
                           }
-                          if (target.kind === 'open') {
+                          if (target.kind === 'enroll') {
+                            updateTopic(entry.topic.id, (current) => resolveStudy(current))
                             openTopic(entry.topic.id)
                             return
                           }
@@ -505,8 +507,9 @@ interface RowProps {
 }
 
 /**
- * Two zones, separated by a hairline, each with one meaning: the left navigates
- * to the topic, the right runs it. The action carries its mode as a word,
+ * Two zones, separated by a hairline, each with one meaning: the left browses
+ * the topic without learner-state effects; the right performs the journey action.
+ * The action carries its consequence as a word,
  * because a scored test is the most consequential thing in the product and an
  * icon cannot state a consequence.
  */
