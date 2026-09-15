@@ -1,15 +1,23 @@
 import { morseAcquisitionProfile, type AcquisitionCharacter } from './acquisition'
 import { hasLaterSittingSuccess, morseReviewOf } from './morseReview'
+import { byRetrievalPriority } from './morseLessonPriority'
 import { isConfusable } from './confusion'
 import { MORSE_LETTERS, morsePattern, type MorseLetter } from './morse'
 import {
   ACQUISITION_ORDER,
   ALL_MORSE_LETTERS,
+  DEFAULT_PACKET_PLAN,
   buildCharacterPackets,
   complexityOrderedLetters,
   type CharacterPacket,
 } from './morseOrder'
-import { LESSON_SUPPORTS, type ItemLessonStore, type LessonSupport, type Topic } from './types'
+import {
+  LESSON_SUPPORTS,
+  type ItemLessonStore,
+  type LessonSupport,
+  type MorseReviewProgress,
+  type Topic,
+} from './types'
 
 /**
  * The guided Morse lesson policy (#48).
@@ -177,6 +185,12 @@ export interface LessonRun {
   complete: boolean
   /** True when every packet in the programme is already settled. */
   finished: boolean
+  /**
+   * True for a run that introduces nothing, because this sitting has already
+   * had its novel pair (#90 §3). The surface says so rather than looking like
+   * a stalled lesson.
+   */
+  reviewOnly?: boolean
 }
 
 export type LessonStep =
@@ -326,20 +340,102 @@ export function introducedGlyphs(topic: Topic): MorseLetter[] {
   })
 }
 
+export interface StartLessonOptions {
+  /**
+   * Whether this run may introduce the next pair of novel characters.
+   *
+   * False for a continuation inside a sitting that has already had its pair
+   * (#90 §3). The advertised shape of a sitting is two new letters; a packet
+   * that settles at retrieval 6 used to roll straight into the next packet's
+   * introductions, so a single sitting could quietly teach four letters or
+   * more. A review-only run fills the remaining slots from everything the
+   * learner has already met instead.
+   */
+  allowNovel?: boolean
+}
+
+/**
+ * Build a review-only roster: no introductions, drawn from everything the
+ * learner has already met, most urgent first (#90 §2, §3, §4).
+ *
+ * This is the "cumulative review" half of the novel budget, and it is also
+ * what finally gives late characters somewhere to be reviewed. Under packet
+ * rosters alone, eleven letters got no later review at all because review
+ * material was chosen by packet position; here it is chosen by how much each
+ * character actually needs it.
+ */
+function reviewRoster(
+  byGlyph: Map<MorseLetter, AcquisitionCharacter>,
+  store: ItemLessonStore,
+  review: MorseReviewProgress,
+  size: number,
+): LessonEntry[] {
+  const candidates = ACQUISITION_ORDER.flatMap((glyph, order) => {
+    const character = byGlyph.get(glyph)
+    if (!character) return []
+    const support = store[character.itemId]
+    // Only material the learner has actually met. A character with no stored
+    // support has never been introduced and must not appear without one.
+    if (support === undefined) return []
+    return [{ itemId: character.itemId, glyph, character, support, order }]
+  })
+
+  return [...candidates]
+    .sort(byRetrievalPriority(review))
+    .slice(0, size)
+    .map(({ glyph, character, support }, order) => ({
+      itemId: character.itemId,
+      glyph,
+      pattern: character.pattern,
+      novel: false,
+      support,
+      introduced: true,
+      asked: false,
+      done: false,
+      notBefore: 0,
+      lastAskedAt: null,
+      order,
+    }))
+}
+
 /**
  * Build the lesson for a topic's current position, or `null` for a topic the
  * guided lesson does not drive.
  *
  * Takes a `Topic` and returns a `LessonRun`; it reads `lessonProgress` and
- * nothing else about the learner, and it writes nothing at all.
+ * `morseReview` and nothing else about the learner, and it writes nothing at
+ * all.
  */
-export function startLesson(topic: Topic): LessonRun | null {
+export function startLesson(topic: Topic, options: StartLessonOptions = {}): LessonRun | null {
   const byGlyph = rosterIdentity(topic)
   if (!byGlyph) return null
 
   const packets = lessonPackets()
   const store = topic.lessonProgress ?? {}
   const packetIndex = firstUnsettledPacket(packets, byGlyph, store)
+
+  if (options.allowNovel === false && packetIndex < packets.length) {
+    const entries = reviewRoster(
+      byGlyph,
+      store,
+      morseReviewOf(topic),
+      DEFAULT_PACKET_PLAN.visible,
+    )
+    // Nothing met yet means nothing to review; the caller falls back rather
+    // than mounting an empty run.
+    if (entries.length === 0) return null
+    return {
+      topicId: topic.id,
+      packetIndex,
+      packetCount: packets.length,
+      step: 0,
+      entries,
+      feedback: null,
+      complete: false,
+      finished: false,
+      reviewOnly: true,
+    }
+  }
 
   if (packetIndex >= packets.length) {
     return {

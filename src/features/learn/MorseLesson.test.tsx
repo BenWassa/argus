@@ -422,15 +422,16 @@ describe('Learn cannot reach formal retention state', () => {
     expect(code).not.toContain('upsertTopic')
 
     // Every durable write this surface makes, and what it is allowed to touch:
-    // lesson support, the finite sitting, and the acquisition-readiness anchor.
-    // Nothing here can reach status, history, timestamps or `DirectionEvidence`.
+    // lesson support, the finite sitting, the formative review history, and the
+    // acquisition-readiness anchor. Nothing here can reach status, history,
+    // timestamps or `DirectionEvidence`.
     const updaters = [...code.matchAll(/updateTopic\(topic\.id,/g)].map((match) =>
-      code.slice(match.index ?? 0, (match.index ?? 0) + 160),
+      code.slice(match.index ?? 0, (match.index ?? 0) + 200),
     )
     expect(updaters.length).toBeGreaterThan(0)
     for (const updater of updaters) {
       expect(updater).toMatch(
-        /withAcquisitionReadiness|withLessonProgress|withLessonSitting|withoutLessonSitting/,
+        /withAcquisitionReadiness|withLessonProgress|withLessonSitting|withoutLessonSitting|withMorseReview/,
       )
     }
 
@@ -440,6 +441,25 @@ describe('Learn cannot reach formal retention state', () => {
     expect(journeyImport).toContain('withAcquisitionReadiness')
     expect(journeyImport).not.toContain('resolveAttempt')
     expect(journeyImport).not.toContain('journeyFor')
+  })
+
+  /**
+   * `withMorseReview` was added to the allowlist above, so the thing it writes
+   * has to be formative by construction rather than by assertion. It is: the
+   * module reaches no scheduler, no cue ladder and no evidence recorder, so a
+   * review write has no path to formal state even if a future edit here asked
+   * it for one.
+   */
+  it('keeps the review history formative by construction', () => {
+    const code = source('../../lib/morseReview.ts')
+    const imports = [...code.matchAll(/from '([^']+)'/g)].map((match) => match[1])
+    for (const forbidden of ['./scheduling', './cueLadder', './journey', './store']) {
+      expect(imports).not.toContain(forbidden)
+    }
+    expect(code).not.toContain('resolveAttempt')
+    expect(code).not.toContain('itemEvidence')
+    expect(code).not.toContain('completedAt')
+    expect(code).not.toContain('lastTestedAt')
   })
 })
 

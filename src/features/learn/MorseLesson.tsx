@@ -42,6 +42,14 @@ import {
   type MorseWordCheckpointPathItem,
 } from '../../lib/morseWordCheckpoints'
 import { withAcquisitionReadiness } from '../../lib/journey'
+import {
+  completeSitting,
+  morseReviewOf,
+  recordIntroduced,
+  recordListeningRetrieval,
+  recordPrintedRetrieval,
+  withMorseReview,
+} from '../../lib/morseReview'
 import type { MorseLetter } from '../../lib/morse'
 import { useLibrary } from '../../lib/store'
 import type { Topic } from '../../lib/types'
@@ -279,6 +287,44 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
   }
 
   /**
+   * Acknowledge an introduction, and record which sitting it happened in.
+   *
+   * The sitting ordinal is what makes #90 §4's "succeeded in a later sitting"
+   * answerable at all, and it can only be captured here — by the time the
+   * character is being retrieved, the fact of when it was first met is gone.
+   */
+  function introduce(itemId: string) {
+    commit(introduceLesson(run, itemId))
+    updateTopic(topic.id, (current) =>
+      withMorseReview(current, recordIntroduced(morseReviewOf(current), itemId)),
+    )
+  }
+
+  /**
+   * Record one printed retrieval in the review history.
+   *
+   * Functional against `current` rather than a captured copy, for the same
+   * reason `commit` is: a sibling write may have moved this topic since the
+   * lesson opened, and review history must compose with it rather than
+   * reinstate a stale snapshot.
+   */
+  function notePrinted(itemId: string, correct: boolean) {
+    updateTopic(topic.id, (current) =>
+      withMorseReview(current, recordPrintedRetrieval(morseReviewOf(current), itemId, correct)),
+    )
+  }
+
+  /**
+   * Record one listening retrieval. Kept in its own counters, so it can neither
+   * satisfy the printed claim nor reset printed staleness (#90 §5, #29).
+   */
+  function noteListening(itemId: string, correct: boolean) {
+    updateTopic(topic.id, (current) =>
+      withMorseReview(current, recordListeningRetrieval(morseReviewOf(current), itemId, correct)),
+    )
+  }
+
+  /**
    * Which #78 checkpoint, if any, this exact packet settlement just unlocked
    * for the first time (#88).
    *
@@ -311,7 +357,10 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
     const invite = cleared.complete ? newlyUnlockedCheckpoint(cleared.packetIndex + 1, pathBeforeAnswer) : null
 
     if (cleared.complete && !lessonSittingComplete(nextSitting)) {
-      const next = startLesson(topicRef.current)
+      // #90 §3: the sitting has already had its novel pair, so what fills the
+      // remaining retrievals is cumulative review rather than another pair.
+      // This is the whole fix for a sitting quietly teaching four letters.
+      const next = startLesson(topicRef.current, { allowNovel: false })
       if (next) {
         if (next.packetIndex > cleared.packetIndex) {
           setPacketsAdvanced((count) => count + (next.packetIndex - cleared.packetIndex))
@@ -357,6 +406,7 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
     setListeningState((state) => recordLessonQuestion(state, itemId))
     const nextSitting = recordLessonRetrieval(sitting, itemId, next.feedback.correct)
     persistSitting(nextSitting)
+    notePrinted(itemId, next.feedback.correct)
     // Snapshot the path before this answer's progress commits (#88): it is
     // the "before" side of the newly-unlocked comparison, and the only point
     // at which `topicRef.current` has not yet absorbed this answer.
@@ -378,6 +428,7 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
     setListeningState((state) => recordLessonQuestion(state, itemId))
     const nextSitting = recordLessonRetrieval(sitting, itemId, result.feedback.correct)
     persistSitting(nextSitting)
+    noteListening(itemId, result.feedback.correct)
     setListeningFeedback(result.feedback)
     pendingAdvance.current = () => setListeningFeedback(null)
     answered(result.feedback.correct)
@@ -408,7 +459,13 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
     // field rather than stored zeroes. The learner's listening declination
     // belonged to the sitting that just ended, so it lifts with it.
     setSitting(newLessonSitting())
-    updateTopic(topic.id, withoutLessonSitting)
+    // Closing the sitting is what makes the next one "later". Counted here,
+    // when the learner actually moves on, rather than when a sitting is merely
+    // abandoned — an abandoned sitting must not satisfy #90 §4 for work the
+    // learner never came back to.
+    updateTopic(topic.id, (current) =>
+      withMorseReview(withoutLessonSitting(current), completeSitting(morseReviewOf(current))),
+    )
     setListeningState(newLessonListeningState())
     setListeningFeedback(null)
     setAudioNotice(null)
@@ -573,7 +630,13 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
           <CharacterStage glyph={step.entry.glyph} pattern={step.entry.pattern} playing={sounding?.glyph === step.entry.glyph}
             activeIndex={sounding?.glyph === step.entry.glyph ? sounding.index : null} onToggle={() => toggle(step.entry.glyph)} />
           <MorseBeatGrammarNote className="lesson-grammar" />
-          <button className="lesson-next" type="button" onClick={() => commit(introduceLesson(run, step.entry.itemId))}>Got it</button>
+          <button
+            className="lesson-next"
+            type="button"
+            onClick={() => introduce(step.entry.itemId)}
+          >
+            Got it
+          </button>
         </div>
       )}
 
