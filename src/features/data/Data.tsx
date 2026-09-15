@@ -1,29 +1,26 @@
 import { useRef, useState } from 'react'
 import { useLibrary } from '../../lib/store'
+import { useProgressSync } from '../../lib/progressSyncReact'
 import { exportFilename, parseLibrary } from '../../lib/storage'
 import { collisions } from '../../lib/catalog'
 import { Confirm } from '../../components/ui/Confirm'
 
-/**
- * Export, import and reset. A Library utility with its own route rather than a
- * permanent navigation slot: it is used a handful of times a year, and
- * `PRODUCT.md` asks for it to be first-class and easy to find, not for it to
- * hold a quarter of the bottom bar. Reached from the foot of Library, and its
- * own Back control returns there the way Topic does.
- */
-export function Data({ onBack }: { onBack: () => void }) {
+interface DataProps {
+  onBack: () => void
+  accountLabel: string
+  onSignOut: () => void
+}
+
+export function Data({ onBack, accountLabel, onSignOut }: DataProps) {
   const { topics, library, catalogReport, replaceLibrary, resetLibrary } = useLibrary()
+  const sync = useProgressSync()
   const fileInput = useRef<HTMLInputElement>(null)
   const [message, setMessage] = useState<{ tone: 'ok' | 'error'; text: string } | null>(null)
   const [confirmReset, setConfirmReset] = useState(false)
   const [pendingImport, setPendingImport] = useState<{ file: File; count: number } | null>(null)
 
   function exportLibrary() {
-    // The whole durable record, not just the topics: catalog delivery history
-    // is part of what makes a re-import behave like the library it came from.
-    const blob = new Blob([JSON.stringify(library, null, 2)], {
-      type: 'application/json',
-    })
+    const blob = new Blob([JSON.stringify(library, null, 2)], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
@@ -33,8 +30,6 @@ export function Data({ onBack }: { onBack: () => void }) {
     setMessage({ tone: 'ok', text: `Exported ${topics.length} topics.` })
   }
 
-  // Validate before asking, so the confirmation can state real counts and a
-  // bad file never gets as far as a scary dialog.
   async function reviewImport(file: File) {
     try {
       const result = parseLibrary(JSON.parse(await file.text()))
@@ -51,9 +46,22 @@ export function Data({ onBack }: { onBack: () => void }) {
   async function applyImport(file: File) {
     const result = parseLibrary(JSON.parse(await file.text()))
     if (!result.ok) return
+    sync?.preserveBeforeChange('pre-import-library')
     replaceLibrary(result.library)
-    setMessage({ tone: 'ok', text: `Imported ${result.library.topics.length} topics.` })
+    setMessage({ tone: 'ok', text: `Imported ${result.library.topics.length} topics. Backup will reconcile this replacement.` })
   }
+
+  const syncLabel = sync?.status === 'synced'
+    ? 'Backed up'
+    : sync?.status === 'pending'
+      ? 'Saving backup…'
+      : sync?.status === 'offline'
+        ? 'Saved on this device · cloud offline'
+        : sync?.status === 'conflict'
+          ? 'Backup conflict protected'
+          : sync?.status === 'error'
+            ? 'Backup needs attention'
+            : 'Backup unavailable'
 
   return (
     <>
@@ -63,20 +71,40 @@ export function Data({ onBack }: { onBack: () => void }) {
 
       <h1>Data</h1>
       <p className="lede-text">
-        Everything lives in this browser. Export writes the whole library to a JSON file you own;
-        import replaces what is here with the contents of that file.
+        Your learner library is saved on this device first and backed up to your signed-in account.
+        Export writes the complete portable JSON record to a file you own.
       </p>
 
+      <section className="catalog-notice" aria-labelledby="backup-heading">
+        <h2 id="backup-heading">Account and backup</h2>
+        <p className="note">{accountLabel}</p>
+        <p className={sync?.status === 'error' || sync?.status === 'conflict' ? 'error' : 'note'} role="status" aria-live="polite">
+          {syncLabel}{sync?.error ? ` — ${sync.error}` : ''}
+        </p>
+        {sync && sync.recoveryCount > 0 && (
+          <p className="note">
+            {sync.recoveryCount} protected recovery {sync.recoveryCount === 1 ? 'copy is' : 'copies are'} retained on this device.
+          </p>
+        )}
+        <div className="actions start">
+          {sync && (sync.status === 'offline' || sync.status === 'error') && (
+            <button className="ghost" type="button" onClick={sync.retry}>Retry backup</button>
+          )}
+          {sync?.status === 'conflict' && (
+            <>
+              <button type="button" onClick={() => void sync.resolveConflict('local')}>Keep this device</button>
+              {sync.conflict?.cloud && (
+                <button className="ghost" type="button" onClick={() => void sync.resolveConflict('cloud')}>Use cloud copy</button>
+              )}
+            </>
+          )}
+          <button className="quiet" type="button" onClick={onSignOut}>Sign out</button>
+        </div>
+      </section>
+
       <div className="actions start">
-        <button type="button" onClick={exportLibrary} disabled={topics.length === 0}>
-          Export JSON
-        </button>
-        <button className="ghost" type="button" onClick={() => fileInput.current?.click()}>
-          Import JSON
-        </button>
-        {/* Driven by the real button above, and hidden from the accessibility
-            tree so it is not announced twice. Keyboard users reach the button,
-            never a label wrapping an unfocusable input. */}
+        <button type="button" onClick={exportLibrary} disabled={topics.length === 0}>Export JSON</button>
+        <button className="ghost" type="button" onClick={() => fileInput.current?.click()}>Import JSON</button>
         <input
           ref={fileInput}
           className="sr-only"
@@ -100,22 +128,16 @@ export function Data({ onBack }: { onBack: () => void }) {
 
       <h2>Reset</h2>
       <p className="lede-text">
-        Clears every topic and its history from this device. Export first if you want to keep a
-        copy.
+        Clears the learner library for this signed-in account. A pre-reset recovery copy is kept on this device.
       </p>
-      <button
-        className="danger"
-        type="button"
-        disabled={topics.length === 0}
-        onClick={() => setConfirmReset(true)}
-      >
+      <button className="danger" type="button" disabled={topics.length === 0} onClick={() => setConfirmReset(true)}>
         Reset library
       </button>
 
       {pendingImport && (
         <Confirm
           title="Replace library"
-          body={`Importing replaces all ${topics.length} topics on this device with the ${pendingImport.count} in this file, including their history, completion records, Learn support, any lesson sitting in progress, item identity, and cue evidence. Export first if you want to keep what is here.`}
+          body={`Importing replaces all ${topics.length} current topics with the ${pendingImport.count} in this file, including history, completion, lesson progress, Morse review state and cue evidence. The current account copy is preserved on this device first, then the imported library becomes the synced copy.`}
           confirmLabel="Replace library"
           onCancel={() => setPendingImport(null)}
           onConfirm={() => {
@@ -128,13 +150,14 @@ export function Data({ onBack }: { onBack: () => void }) {
       {confirmReset && (
         <Confirm
           title="Reset library"
-          body={`All ${topics.length} topics, their Learn support, any lesson sitting in progress, test history, completion records, and cue evidence will be removed from this device. This cannot be undone, and an export made now is the only copy you will have.`}
+          body={`All ${topics.length} topics and their durable learner state will be removed from this account backup. A pre-reset recovery copy is retained on this device.`}
           confirmLabel="Reset library"
           onCancel={() => setConfirmReset(false)}
           onConfirm={() => {
+            sync?.preserveBeforeChange('pre-reset-library')
             resetLibrary()
             setConfirmReset(false)
-            setMessage({ tone: 'ok', text: 'Library reset. Nothing is stored on this device.' })
+            setMessage({ tone: 'ok', text: 'Library reset. The account backup will be updated to match.' })
           }}
         />
       )}
@@ -147,36 +170,23 @@ interface CatalogNoticeProps {
   withheld: string[]
 }
 
-/**
- * Catalog delivery is quiet but never silent. New shipped topics are announced
- * because they appeared without being asked for, and a withheld one is
- * announced because the alternative would be overwriting the user's work.
- */
 function CatalogNotice({ added, withheld }: CatalogNoticeProps) {
   if (added.length === 0 && withheld.length === 0) return null
-
   return (
     <section className="catalog-notice">
       <h2>Shipped catalog</h2>
       {added.length > 0 && (
         <p className="note">
-          {added.length === 1 ? '1 new shipped topic was' : `${added.length} new shipped topics were`}{' '}
-          added to this library as unstarted. Nothing already here was changed.
+          {added.length === 1 ? '1 new shipped topic was' : `${added.length} new shipped topics were`} added to this library as unstarted. Nothing already here was changed.
         </p>
       )}
       {withheld.length > 0 && (
         <>
           <p className="note">
-            {withheld.length === 1 ? '1 shipped topic was' : `${withheld.length} shipped topics were`}{' '}
-            withheld because a topic of your own already uses the same id. Your version was kept as
-            it is. Rename or export yours if you want the shipped version instead.
+            {withheld.length === 1 ? '1 shipped topic was' : `${withheld.length} shipped topics were`} withheld because a topic of your own already uses the same id. Your version was kept as it is.
           </p>
           <ul className="index">
-            {withheld.map((id) => (
-              <li key={id} className="catalog-notice-id tabular">
-                {id}
-              </li>
-            ))}
+            {withheld.map((id) => <li key={id} className="catalog-notice-id tabular">{id}</li>)}
           </ul>
         </>
       )}
