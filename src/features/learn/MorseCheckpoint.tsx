@@ -121,8 +121,9 @@ export function MorseCheckpoint({ checkpoint, onExit, onContinue, continueLabel 
   if (!target) return null
 
   const wordNumber = target.wordIndex === null ? null : target.wordIndex + 1
+  const warmupNumber = target.kind === 'warmup' ? checkpoint.warmups.indexOf(target.letter) + 1 : null
   const stepLabel = target.kind === 'warmup'
-    ? `Warm-up ${index + 1} of ${checkpoint.warmups.length}`
+    ? `Warm-up ${warmupNumber} of ${checkpoint.warmups.length}`
     : `Word ${wordNumber} of ${checkpoint.words.length}`
 
   return (
