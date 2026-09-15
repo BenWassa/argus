@@ -1,5 +1,7 @@
 # Argus programme — progressive Morse-code learning
 
+> **#90/#92 closeout addendum — 2026-09-15.** The historical programme record below is retained, but status statements that stop at #88/#78 are superseded. Batch 6 is shipped on current `main`: additive `Topic.morseReview` supports item-aware cumulative review, a maximum of two novel characters per 10-retrieval sitting, later-sitting printed consolidation for new learners without regressing legacy/previously-ready learners, and need-balanced formative listening. The checkpoint arc is now Lessons **4 / 7 / 10 / 13** with #88 first-unlock handoff at all four milestones. #90 item 8 is also already complete through the explicit `advancementEligible: false` non-qualifying scheduler path. The whole-programme simulation covers visual-only/audio learners, repeated early/late misses, listening suppression, bounded completion, no late-letter starvation and balanced listening. Exact same-day spacing copy remains an owner presentation decision under #92; it is not missing scheduler work. #29 stays deferred, #79 stays parked, and #42 remains the separate Pixel acceptance gate.
+
 Parent issue: #21  
 Research baseline: `docs/closed/MORSE_CODE_LEARNING_PRD.md` (PR #22; amended by #42)
 Execution-plan origin: PR #30  
