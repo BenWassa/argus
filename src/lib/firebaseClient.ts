@@ -1,4 +1,4 @@
-import { firebaseConfig } from './inbox/config'
+import { firebaseConfig } from './firebaseConfig'
 
 export type FirebaseModules = {
   app: typeof import('firebase/app')
