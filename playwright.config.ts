@@ -1,12 +1,9 @@
 import { defineConfig, devices } from '@playwright/test'
 
 /**
- * Browser coverage for what JSDOM cannot prove: that a real pointer, on a real
- * compositor, at the sizes this app is actually used at, never puts a future
- * answer on screen and never grades a card twice.
- *
- * The viewports are the ones the issue names — the smallest phone still
- * supported, a current phone, short landscape, and a desktop pointer.
+ * Browser coverage for the production bundle. The explicit test-auth UID keeps
+ * existing interaction suites deterministic without weakening production auth;
+ * the bundle uses a per-UID local test cloud only when this flag is present.
  */
 export default defineConfig({
   testDir: './e2e',
@@ -18,8 +15,6 @@ export default defineConfig({
   use: {
     baseURL: 'http://127.0.0.1:4173/argus/',
     trace: 'on-first-retry',
-    // CI installs the browser Playwright asks for. Sandboxes that already ship
-    // a Chromium can point at it instead of downloading a second one.
     launchOptions: process.env.ARGUS_CHROMIUM
       ? { executablePath: process.env.ARGUS_CHROMIUM }
       : undefined,
@@ -43,8 +38,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    // The production bundle, not the dev server: this is the artifact that ships.
-    command: 'npm run build && npx vite preview --port 4173 --host 127.0.0.1',
+    command: 'VITE_ARGUS_TEST_AUTH_UID=argus-e2e-user npm run build && npx vite preview --port 4173 --host 127.0.0.1',
     url: 'http://127.0.0.1:4173/argus/',
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,
