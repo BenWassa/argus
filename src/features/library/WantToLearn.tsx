@@ -5,31 +5,21 @@ interface WantToLearnProps {
   status: InboxStatus
   requests: ContentRequest[]
   error: string | null
+  /** Retained in the component contract while callers migrate; app auth owns sign-in. */
   onSignIn: () => void
   onRemove: (request: ContentRequest) => void
-  /** Set while a specific request is being deleted. */
   removing: string | null
 }
 
-/**
- * The pending capture queue.
- *
- * Everything about this section is deliberately unlike a topic row: no track
- * chip, no item count, no schedule line, no shelf, no action to run it. It
- * cannot be started, tested, completed or counted, because a request has no
- * boundary to finish. It is a list of things to research later, and it is
- * rendered outside the shelves so it can never be mistaken for the library.
- */
+/** The pending capture queue, semantically separate from learner topics. */
 export function WantToLearn({
   status,
   requests,
   error,
-  onSignIn,
+  onSignIn: _onSignIn,
   onRemove,
   removing,
 }: WantToLearnProps) {
-  // A build without inbox configuration says nothing at all. Argus is not
-  // diminished by a cloud service it was never given.
   if (status === 'unconfigured') return null
 
   return (
@@ -44,20 +34,14 @@ export function WantToLearn({
       {status === 'loading' && <p className="note">Checking the inbox…</p>}
 
       {status === 'signed-out' && (
-        <div className="want-setup">
-          <p className="note">
-            Capture ideas here and turn them into researched topics later. It needs a one-time
-            sign-in; your library and its history stay on this device either way.
-          </p>
-          <button className="ghost" type="button" onClick={onSignIn}>
-            Sign in to the inbox
-          </button>
-        </div>
+        <p className="note">
+          The inbox is waiting for the application account session. Sign-in is managed at Argus entry.
+        </p>
       )}
 
       {status === 'unauthorized' && (
         <p className="note">
-          This account is not the one this inbox belongs to. Argus itself is unaffected.
+          This signed-in account does not own the configured content inbox. Learner progress remains isolated to this account.
         </p>
       )}
 
@@ -96,11 +80,7 @@ export function WantToLearn({
         </ul>
       )}
 
-      {error && (
-        <p className="error" role="status">
-          {error}
-        </p>
-      )}
+      {error && <p className="error" role="status">{error}</p>}
     </section>
   )
 }
