@@ -77,27 +77,11 @@ export function TopicPage({
   const course = Boolean(path && checkpoints)
 
   /**
-   * Opening an ordinary topic is the exposure event, because the reference is
-   * on this page and reading it is the whole of acquisition for that kind of
-   * topic. The separate Learn route used to stamp this on mount and nothing
-   * about the meaning changed when the route went away, only where it happens.
-   *
-   * A curriculum topic is exempt: its exposure is a lesson, and `MorseLesson`
-   * owns that write. Reading the path is not learning the alphabet.
-   *
-   * The displayed journey is computed from the resolved topic rather than the
-   * stored one so the page does not paint one frame of a verdict it is in the
-   * act of invalidating.
+   * The topic body is reference material. Rendering or revisiting it is read-only
+   * browsing and must not create learner state. The journey therefore reads the
+   * stored topic exactly as it stands.
    */
-  const exposed = !course && runnable ? resolveStudy(topic) : topic
-  const journey = journeyFor(exposed)
-
-  useEffect(() => {
-    if (course || !runnable) return
-    updateTopic(topic.id, (current) => resolveStudy(current))
-    // Exposure belongs to opening this topic, not to every render of it.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [topic.id, course, runnable])
+  const journey = journeyFor(topic)
 
   useEffect(() => {
     heading.current?.focus()
@@ -111,6 +95,10 @@ export function TopicPage({
   // fix. Zero for any topic that keeps no per-item evidence, which is why an
   // ordinary topic's offer lives on its check's end screen instead.
   const practiceCount = hasPractice(topic) ? practiceItemCount(topic) : 0
+
+  function startLearning() {
+    updateTopic(topic.id, (current) => resolveStudy(current))
+  }
 
   function startCheck() {
     onStart('test', [topic.id])
@@ -152,6 +140,7 @@ export function TopicPage({
           <PrimaryAction
             journey={journey}
             course={course}
+            onEnroll={startLearning}
             onLesson={() => onStart('learn', [topic.id], { kind: 'lesson' })}
             onCheck={startCheck}
           />
@@ -189,9 +178,11 @@ export function TopicPage({
           )}
           {!course && (
             <p className="topic-consequence">
-              {journey.advancementEligible
-                ? 'Scored, every item once. The ladder moves only when the required gap is satisfied.'
-                : 'Scored and recorded, but the ladder does not move until acquisition is finished.'}
+              {journey.action === 'enroll'
+                ? 'Browse freely. Starting learning records enrollment, not a score or evidence.'
+                : journey.advancementEligible
+                  ? 'Scored, every item once. The ladder moves only when the required gap is satisfied.'
+                  : 'Scored and recorded, but the ladder does not move until acquisition is finished.'}
             </p>
           )}
         </div>
@@ -307,14 +298,27 @@ export function TopicPage({
 function PrimaryAction({
   journey,
   course,
+  onEnroll,
   onLesson,
   onCheck,
 }: {
   journey: ReturnType<typeof journeyFor>
   course: boolean
+  onEnroll: () => void
   onLesson: () => void
   onCheck: () => void
 }) {
+  if (journey.action === 'enroll') {
+    return (
+      <button className="topic-primary" type="button" onClick={onEnroll}>
+        <span className="topic-primary-verb">{journey.primaryLabel}</span>
+        <span className="topic-primary-note">
+          Make this an active topic. Browsing the reference alone changes nothing.
+        </span>
+      </button>
+    )
+  }
+
   if (journey.action === 'learn' && course) {
     const { acquisition, sitting } = journey
     return (

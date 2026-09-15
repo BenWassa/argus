@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { cleanup, render, screen, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { LibraryProvider } from '../lib/store'
 import { SHIPPED_CATALOG_TOPIC_IDS } from '../lib/catalog'
 import { journeyFor } from '../lib/journey'
@@ -143,20 +143,6 @@ function renderTopicPage(topic: Topic) {
   )
 }
 
-/**
- * The topic as its own page leaves it.
- *
- * Opening an ordinary topic is now the exposure event, because the reference is
- * on that page. Today and Library describe the topic as stored; the Topic page
- * describes it as opened, and for an unstarted ordinary topic those are
- * legitimately one rung apart. A curriculum topic is untouched: reading its path
- * is not learning the alphabet.
- */
-function asOpened(topic: Topic): Topic {
-  const progressive = journeyFor(topic).acquisition.progressive
-  return progressive || topic.items.length === 0 ? topic : resolveStudy(topic)
-}
-
 /** The row for one topic on a list surface, whichever list is on screen. */
 function rowFor(title: string, scope: HTMLElement = document.body): HTMLElement {
   const heading = within(scope).getByText(title)
@@ -270,7 +256,7 @@ describe('one learner state, three surfaces, one recommendation', () => {
       shelf: 'Due now',
     },
     {
-      name: 'an ordinary topic nobody has opened',
+      name: 'an ordinary topic not yet enrolled',
       topic: () => blank('cardinal-bearings'),
       shelf: 'Due now',
     },
@@ -309,9 +295,8 @@ describe('one learner state, three surfaces, one recommendation', () => {
       install([topic])
       const journey = journeyFor(topic)
 
-      // Today and Library describe the topic as stored, so they are asked first:
-      // opening the Topic page is itself an exposure event for an ordinary topic
-      // and would otherwise change the state underneath the later assertions.
+      // Every surface describes the same stored topic. Opening Topic is browsing
+      // only, so it cannot advance the state underneath later assertions.
       expect(libraryVerb(topic)).toBe(journey.actionLabel)
       cleanup()
       expect(librarySchedule(topic)).toBe(journey.statusLabel)
@@ -324,15 +309,13 @@ describe('one learner state, three surfaces, one recommendation', () => {
         cleanup()
       }
 
-      // The Topic page describes the topic as its own page leaves it. For an
-      // unstarted ordinary topic that is deliberately one rung further on,
-      // because the reading it used to route to now happens here.
-      const opened = journeyFor(asOpened(topic))
+      // Topic browsing is side-effect free and therefore renders the same
+      // journey as Today and Library, including for a fresh ordinary topic.
       install([topic])
-      expect(topicPrimary(topic)).toBe(opened.primaryLabel)
+      expect(topicPrimary(topic)).toBe(journey.primaryLabel)
       cleanup()
       install([topic])
-      expect(topicSchedule(topic)).toBe(opened.statusLabel)
+      expect(topicSchedule(topic)).toBe(journey.statusLabel)
       cleanup()
 
       // Placement. A row on `Due now` whose button says nothing is doable, or a
@@ -558,7 +541,7 @@ describe('Library absorbed Progress without losing what it said', () => {
   })
 })
 
-describe('ordinary topics keep the behaviour they had', () => {
+describe('ordinary topic browsing and enrollment', () => {
   it('puts the finite reference on the page instead of behind a disclosure', () => {
     const ordinary = blank('cardinal-bearings')
     renderTopicPage(ordinary)
@@ -582,27 +565,38 @@ describe('ordinary topics keep the behaviour they had', () => {
     expect(document.querySelectorAll('.sheet-items li')).toHaveLength(briefed.items.length)
   })
 
-  it('reads an unstarted topic, then proves it, on every surface alike', () => {
+  it('keeps page-open side-effect free and starts only on the deliberate action', async () => {
     const fresh = blank('primary-survey')
     install([fresh])
 
-    expect(todayVerb(fresh)).toBe('Read')
+    expect(todayVerb(fresh)).toBe('Start')
     cleanup()
-    expect(libraryVerb(fresh)).toBe('Read')
-    cleanup()
-    // Opening it is the reading, so the page it lands on already asks for proof.
-    expect(topicPrimary(fresh)).toBe('Test')
+    expect(libraryVerb(fresh)).toBe('Start')
     cleanup()
 
-    const exposed = resolveStudy(fresh, new Date(Date.now() - 2 * DAY))
-    install([exposed])
-    expect(todayVerb(exposed)).toBe('Test')
-    cleanup()
-    expect(todaySchedule(exposed)).toBe('Read, ready to test')
-    cleanup()
-    expect(libraryVerb(exposed)).toBe('Test')
-    cleanup()
-    expect(topicPrimary(exposed)).toBe('Test')
+    install([fresh])
+    const beforeBrowse = (JSON.parse(localStorage.getItem(STORE_KEY) ?? '{}') as { topics?: Topic[] }).topics?.find(
+      (topic) => topic.id === fresh.id,
+    )
+    expect(beforeBrowse).toEqual(fresh)
+    renderTopicPage(fresh)
+    expect(document.querySelector('.topic-primary-verb')?.textContent).toBe('Start learning')
+    expect(document.querySelectorAll('.sheet-items li')).toHaveLength(fresh.items.length)
+    await waitFor(() => {
+      const stored = JSON.parse(localStorage.getItem(STORE_KEY) ?? '{}') as { topics?: Topic[] }
+      expect(stored.topics?.find((topic) => topic.id === fresh.id)).toEqual(beforeBrowse)
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: /Start learning/ }))
+    await waitFor(() => {
+      const stored = JSON.parse(localStorage.getItem(STORE_KEY) ?? '{}') as { topics?: Topic[] }
+      const enrolled = stored.topics?.find((topic) => topic.id === fresh.id)
+      expect(enrolled?.status).toBe('learning')
+      expect(enrolled?.learningAt).toBeTruthy()
+      expect(enrolled?.history).toEqual([])
+      expect(enrolled?.lastTestedAt).toBeNull()
+      expect(enrolled?.itemEvidence ?? {}).toEqual({})
+    })
   })
 
   it('treats a topic with no items as authoring rather than learner progress', () => {

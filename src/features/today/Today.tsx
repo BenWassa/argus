@@ -7,6 +7,7 @@ import {
   type JourneyEntry,
 } from '../../lib/journey'
 import type { RunTarget } from '../../lib/navigation'
+import { resolveStudy } from '../../lib/scheduling'
 import type { Mode } from '../../lib/types'
 import './Today.css'
 
@@ -60,7 +61,7 @@ interface TodayProps {
 }
 
 export function Today({ onStart, onOpenTopic, onGoToLibrary }: TodayProps) {
-  const { topics } = useLibrary()
+  const { topics, updateTopic } = useLibrary()
   const stamp = new Date().toLocaleDateString(undefined, {
     weekday: 'short',
     day: 'numeric',
@@ -164,28 +165,27 @@ export function Today({ onStart, onOpenTopic, onGoToLibrary }: TodayProps) {
     )
   }
 
-  // The journey decides the action, and `launchFor` decides where it happens.
-  // An ordinary topic's reference is its own page, so reading opens the topic
-  // rather than a full-screen route that repeats it; a guided lesson is a real
-  // bounded task and stays a run. `dueEntries` already ranks the day, so the one
-  // primary action follows whatever the top-ranked topic needs.
-  // Three kinds of work, and they are genuinely different things to be told you
-  // have: a guided lesson is a bounded task, a reading is a page to open, and a
-  // Test is scored. Collapsing the first two into one word made the headline
-  // vague for no gain.
+  // The journey decides the action, and `launchFor` decides what that action
+  // does. A fresh ordinary topic is explicitly started here before its reference
+  // opens; passive reference browsing happens only by navigating to the topic.
+  // A guided lesson is a bounded run and Test is scored. `dueEntries` already
+  // ranks the day, so the one primary action follows the top-ranked topic.
   const lessons = due.filter(
     (entry) => entry.journey.action === 'learn' && entry.journey.acquisition.progressive,
   )
-  const toRead = due.filter(
-    (entry) => entry.journey.action === 'learn' && !entry.journey.acquisition.progressive,
-  )
+  const toStart = due.filter((entry) => entry.journey.action === 'enroll')
   const toTest = due.filter((entry) => entry.journey.action === 'test')
   const lead = due[0]
   const leadsWithTest = lead.journey.action === 'test'
 
   function launch(entry: JourneyEntry) {
     const target = launchFor(entry.journey)
-    if (target.kind === 'open' || target.kind === 'author') {
+    if (target.kind === 'author') {
+      onOpenTopic(entry.topic.id)
+      return
+    }
+    if (target.kind === 'enroll') {
+      updateTopic(entry.topic.id, (current) => resolveStudy(current))
       onOpenTopic(entry.topic.id)
       return
     }
@@ -201,7 +201,7 @@ export function Today({ onStart, onOpenTopic, onGoToLibrary }: TodayProps) {
       lessons.length > 0
         ? `${count(lessons.length)} ${lessons.length === 1 ? 'lesson' : 'lessons'}`
         : null,
-      toRead.length > 0 ? `${count(toRead.length)} to read` : null,
+      toStart.length > 0 ? `${count(toStart.length)} to start` : null,
       toTest.length > 0 ? `${count(toTest.length)} to prove` : null,
     ]
       .filter(Boolean)
@@ -219,10 +219,9 @@ export function Today({ onStart, onOpenTopic, onGoToLibrary }: TodayProps) {
       </ul>
 
       <div className="today-actions">
-        {/* Batching is for proving, not for reading. Running three readings
-            back to back was never a task with a beginning and an end, and the
-            batch Learn button existed only because a reading route existed to
-            batch. A scored run over several topics still is one. */}
+        {/* Batching is for proving, not for enrollment or browsing. A scored
+            run over several topics is one task; starting several unrelated topics
+            or reading several references is not. */}
         {/* Verb first, context underneath. A single line would have to carry a
             verb, a count and sometimes a topic title, and a primary action that
             wraps to three lines on a phone is not a primary action. */}
@@ -255,7 +254,7 @@ export function Today({ onStart, onOpenTopic, onGoToLibrary }: TodayProps) {
         </div>
 
         {/* Said where a scored run is actually on offer, and nowhere else. A
-            day of lessons and readings was carrying a note about Test. */}
+            day of lessons or new starts should not carry a note about Test. */}
         {toTest.length > 0 && <p className="today-consequence">{TEST_CONSEQUENCE_NOTE}</p>}
       </div>
     </>

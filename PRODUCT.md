@@ -12,24 +12,31 @@ The job to be done, every session: see what's due, do the one thing the schedule
 
 ## Modes
 
-Two ways to engage a topic. They remain two different things with two different
-consequences, and the interface must never let one be mistaken for the other.
-Only one of them is a word the learner reads.
+Reference access, active learning and scored recall are different interactions
+with different consequences. The interface must not let one masquerade as
+another.
 
-**`Learn` is no longer a user-facing name.** It named an internal mode rather
-than an action, and it named two unlike things: opening an ordinary topic's
-reference, and continuing a guided lesson that runs over weeks. An ordinary
-topic's reference is now the topic page itself, so reading it is `Read` and
-happens by opening the topic; a curriculum's acquisition is `Lesson N`. The
-semantics below are unchanged, and so is every evidence boundary that depends on
-them.
+**Browse/reference ≠ enrolled learning.** Opening an ordinary topic is analogous
+to opening a course book: its finite reference and optional `topic.learn` support
+are immediately available to inspect, and that navigation performs no progress,
+scheduler or evidence write. Revisiting or scrolling the page is equally inert.
 
-- **Learn** — ungraded reading/exposure. Every topic exposes its complete finite prompt/answer reference with nothing hidden. Topics may optionally place structured explanatory support above that reference: concise context for topics that need a little help, or a fuller briefing with sections, definitions, lists, tables, integrated case studies, sources and limitations. Reference-only topics remain as compact as before. Reading moves an `unstarted` topic to `learning`; nothing is scored.
-- **Test** — flashcards, every scored item once, self-scored. Every Test creates history, while the scheduler decides whether that result is timely enough to advance the ladder. An early Test cannot satisfy or postpone required delayed evidence.
+- **Browse/reference** — read-only access to the complete finite material. It does not change `status`, `learningAt`, history, evidence, scheduling or completion.
+- **Learn** — the internal ungraded acquisition mode. For an ordinary topic the learner-facing boundary is the explicit **Start learning** action: it enrolls an `unstarted` topic by entering the existing `learning` state and starts the existing learning gap, but records no score or evidence. For a curriculum such as Morse, canonical lessons own the corresponding acquisition writes.
+- **Test** — flashcards, every scored item once, self-scored. Every Test creates history, while the scheduler decides whether that result is timely enough to advance the ladder. A Test started from an `unstarted` topic is itself a deliberate check/enrollment action, but that first run still cannot simultaneously prove retention; existing Test/evidence semantics are unchanged.
 
-The split exists because retention and exposure are different things, and the interface should never let one be mistaken for the other. A surface shaped like a flashcard must conceal its answer; a surface meant for reading and scanning must not pretend to be a card.
+`Learn` remains an implementation term rather than a generic button label. An
+ordinary topic says `Start learning`; Morse says `Lesson N`; scored recall says
+`Test`. The reference remains visible before and after enrollment, because access
+to information is not evidence that the learner chose to study it.
 
-For most topics Learn is a single reading, and moving to `learning` is the whole of acquisition. Some topics need more: Morse's Learn is a guided lesson running over many sittings and days, and its status is `learning` throughout. For those, finishing acquisition is a distinct event from first exposure, and until it happens every surface keeps recommending the lesson — an early Test stays available, but it is recorded rather than banked. `docs/open/PROGRESS_ARCHITECTURE.md` is the authority.
+For most ordinary topics enrollment is a single explicit state transition before
+the existing Test/retention ladder. Some topics need more acquisition: Morse's
+Learn is a guided lesson running over many sittings and days, and its status is
+`learning` throughout. For those, finishing acquisition is a distinct event from
+first lesson start, and until it happens every surface keeps recommending the
+lesson — an early Test stays available, but it is recorded rather than banked.
+`docs/open/PROGRESS_ARCHITECTURE.md` is the authority.
 
 ## What progress means
 

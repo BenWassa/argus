@@ -68,6 +68,20 @@ async function navigationState(page: Page): Promise<NavigationState> {
   return page.evaluate(() => window.history.state as NavigationState)
 }
 
+async function storedTopic(page: Page): Promise<Topic> {
+  return page.evaluate(
+    ([storeKey, topicId]) => {
+      const raw = window.localStorage.getItem(storeKey)
+      if (!raw) throw new Error('Missing Argus library')
+      const parsed = JSON.parse(raw) as { topics: Topic[] }
+      const topic = parsed.topics.find((candidate) => candidate.id === topicId)
+      if (!topic) throw new Error(`Missing topic ${topicId}`)
+      return topic
+    },
+    [STORE_KEY, TOPIC.id] as const,
+  )
+}
+
 async function systemBack(page: Page) {
   await page.evaluate(() => window.history.back())
 }
@@ -159,9 +173,8 @@ test('Back unwinds Topic and Library, and Forward restores the Topic without dup
 test('runs remember their real Today, Library and Topic origins', async ({ page }) => {
   await openApp(page)
 
-  // Today -> Topic -> Back = Today. Reading an ordinary topic is no longer a
-  // full-screen run that repeats the page behind it; the reference is the page,
-  // so the docket row opens the topic and adds exactly one history stop.
+  // Today -> Topic -> Back = Today. A fresh docket row is the deliberate
+  // Start action: it enrolls, opens the reference, and adds one history stop.
   await page.locator('.docket .index-row').click()
   await expect(page.getByRole('heading', { name: TOPIC.title, level: 1 })).toBeVisible()
   expect(await navigationState(page)).toMatchObject({
@@ -174,9 +187,8 @@ test('runs remember their real Today, Library and Topic origins', async ({ page 
     'page',
   )
 
-  // Opening the topic marked it learning, so Library correctly routes it to
-  // Test. This assertion is about preserving the Library origin, not
-  // re-testing scheduler/mode selection semantics.
+  // The deliberate Today start marked it learning, so Library correctly
+  // routes it to Test. This assertion is about preserving the Library origin.
   await openLibrary(page)
   await page.locator(`[data-row="${TOPIC.id}"]`).locator('..').locator('.lib-action').click()
   await waitForRouteKind(page, 'run')
@@ -197,12 +209,7 @@ test('runs remember their real Today, Library and Topic origins', async ({ page 
   await expect(page.getByRole('heading', { name: TOPIC.title, level: 1 })).toBeVisible()
 })
 
-test('reading an ordinary topic adds no Back stop of its own', async ({ page }) => {
-  // This replaces the old `Learn -> Test me replaces the run entry` case. That
-  // dance existed because reading was a separate full-screen route that had to
-  // be spliced out of history on the way to Test. The reading is now the topic
-  // page, so there is no entry to splice: Topic -> Test -> Back is two stops,
-  // not three, and the reference never leaves the page it belongs to.
+test('browsing an ordinary topic is side-effect free and Start enrolls without a Back stop', async ({ page }) => {
   await openApp(page)
   await openLibrary(page)
   await openTopic(page)
@@ -210,11 +217,28 @@ test('reading an ordinary topic adds no Back stop of its own', async ({ page }) 
   const onTopic = await navigationState(page)
   expect(onTopic).toMatchObject({ index: 2, route: { kind: 'topic', topicId: TOPIC.id } })
 
-  // The complete finite set is on the page, unconcealed, with no disclosure and
-  // no second route rendering the same items.
+  // The complete finite set is freely browsable and opening it has created no
+  // learner-progress, scheduler or evidence state.
   await expect(page.locator('.sheet-items li')).toHaveCount(TOPIC.items.length)
   await expect(page.getByText('Show all')).toHaveCount(0)
+  const browsed = await storedTopic(page)
+  expect(browsed.status).toBe('unstarted')
+  expect(browsed.learningAt).toBeNull()
+  expect(browsed.history).toEqual([])
+  expect(browsed.lastTestedAt).toBeNull()
+  await expect(page.locator('.topic-primary-verb')).toHaveText('Start learning')
 
+  // Deliberate Start changes only enrollment state and stays on the same route.
+  await page.locator('.topic-primary').click()
+  await expect(page.locator('.topic-primary-verb')).toHaveText('Test')
+  const enrolled = await storedTopic(page)
+  expect(enrolled.status).toBe('learning')
+  expect(enrolled.learningAt).not.toBeNull()
+  expect(enrolled.history).toEqual([])
+  expect(enrolled.lastTestedAt).toBeNull()
+  expect((await navigationState(page)).index).toBe(2)
+
+  // Test is still the scored run and therefore creates the next history entry.
   await page.locator('.topic-primary').click()
   await expect(page.locator('.flip-card')).toBeVisible()
   expect(await navigationState(page)).toMatchObject({
@@ -231,6 +255,9 @@ test('partial Test Back reuses End test, Back resumes, and confirmed exit preser
   await openApp(page)
   await openLibrary(page)
   await openTopic(page)
+  await expect(page.locator('.topic-primary-verb')).toHaveText('Start learning')
+  await page.locator('.topic-primary').click()
+  await expect(page.locator('.topic-primary-verb')).toHaveText('Test')
   await page.locator('.topic-primary').click()
 
   await page.locator('.flip-card').click()

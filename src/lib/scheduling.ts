@@ -164,10 +164,13 @@ export function shelves(topics: Topic[], now: Date = new Date()): Shelf[] {
 }
 
 /**
- * Reading a topic moves it off `unstarted`, because it has now been seen. No
- * attempt is recorded: nothing was scored. The exposure timestamp starts
- * the one-day learning gap, so a topic read today comes back tomorrow to be
- * drilled rather than immediately.
+ * Deliberately starting acquisition moves a topic off `unstarted`. For an
+ * ordinary topic this is explicit enrollment (`Start learning`); for a
+ * progressive topic it is the canonical lesson start. Merely browsing a
+ * reference must never call this function.
+ *
+ * No attempt or evidence is recorded: nothing was scored. The timestamp starts
+ * the existing one-day learning gap.
  */
 export function resolveStudy(topic: Topic, now: Date = new Date()): Topic {
   if (topic.status !== 'unstarted') return topic
@@ -231,8 +234,9 @@ export function resolveAttempt(
   if (!eligible) {
     // Recorded, and nothing else. See `AttemptOptions.advancementEligible`.
   } else if (from === 'unstarted') {
-    // A first Test exposes the whole deck, but it cannot also prove retention.
-    // Start the learning gap regardless of score.
+    // A first Test is itself a deliberate learning/check action, so it enrolls
+    // the topic, but it cannot also prove retention. Start the learning gap
+    // regardless of score.
     next.status = 'learning'
     next.learningAt = at
   } else if (!due && from !== 'decayed') {
