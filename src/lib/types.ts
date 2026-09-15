@@ -148,6 +148,53 @@ export interface MorseLessonSittingProgress {
 }
 
 /**
+ * Per-item formative review history for the Morse lesson (#90 batch 6).
+ *
+ * `lessonProgress` says what support the lesson currently offers an item. It
+ * cannot say *when* that support was earned, and the acquisition boundary
+ * #90 §4 asks for — "succeeded at least once in a sitting later than the one
+ * that introduced it" — is not derivable from a support level alone. Nor can a
+ * support level say which characters the listening cadence has actually
+ * reached, which is what makes #90 §5's coverage claim checkable.
+ *
+ * So this records the smallest thing that answers both: which sitting an item
+ * was introduced in, which sittings have retrieved it since, and how much
+ * listening it has had. Sittings are counted rather than timestamped because
+ * the question is "a different sitting", not "how long ago" — a counter cannot
+ * drift with the clock, survives export/import unchanged, and keeps the
+ * simulations deterministic.
+ *
+ * Formative throughout. Nothing here is evidence, nothing here can qualify a
+ * completion, and auditory counters deliberately make no competency claim —
+ * #29 remains the boundary for any auditory claim.
+ */
+export interface MorseReviewItem {
+  /** Sitting ordinal in which this item was first introduced. */
+  introducedIn: number
+  /** Latest sitting ordinal in which it was retrieved in print, right or wrong. */
+  lastSeenIn: number
+  /** Correct printed retrievals earned in a sitting later than `introducedIn`. */
+  laterCorrect: number
+  /** Listening retrievals offered. Formative support, never a claim. */
+  heard: number
+  /** Listening retrievals answered correctly. */
+  heardCorrect: number
+}
+
+/**
+ * The lesson's review history for one topic.
+ *
+ * `sittings` counts sittings *completed*, so the sitting in progress is always
+ * `sittings + 1`. Counting completions rather than starts means an abandoned
+ * sitting cannot inflate the ordinal and quietly satisfy "a later sitting" for
+ * work the learner never came back to.
+ */
+export interface MorseReviewProgress {
+  sittings: number
+  items: Record<string, MorseReviewItem>
+}
+
+/**
  * A narrow Morse Learn block. These fields are content definition: glyph,
  * canonical notation, mnemonic asset reference and the source text from which
  * the audio engine derives playback. The generated waveform/animation is
@@ -251,6 +298,13 @@ export interface Topic {
    * sidecar store competes with it.
    */
   lessonSitting?: MorseLessonSittingProgress
+  /**
+   * Formative Morse review history (#90 batch 6). Additive within v5: absent
+   * means a learner whose record predates it, and such a record is read as
+   * "no review history yet" rather than being back-filled with successes that
+   * never happened. A learner already past `acquisitionReadyAt` stays ready.
+   */
+  morseReview?: MorseReviewProgress
   /**
    * When progressive acquisition first became ready — for Morse, when every
    * required item had been produced unaided at least once in Learn (#67).

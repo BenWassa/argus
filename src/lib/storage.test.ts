@@ -640,3 +640,89 @@ describe('structured Learn import and export shape', () => {
     if (!parsed.ok) expect(parsed.error).toContain('same glyph')
   })
 })
+
+describe('formative Morse review history is durable and portable (#90)', () => {
+  const MORSE_ITEMS = [
+    { id: 'item-1', kind: 'bidirectional', prompt: 'E', answer: '.' },
+    { id: 'item-2', kind: 'bidirectional', prompt: 'T', answer: '-' },
+  ]
+
+  function withReview(morseReview: unknown): Record<string, unknown> {
+    return { version: 5, topics: [currentTopic({ items: MORSE_ITEMS, morseReview })] }
+  }
+
+  function parsed(morseReview: unknown) {
+    const result = parseLibrary(withReview(morseReview))
+    if (!result.ok) throw new Error(result.error)
+    return result.library.topics[0]
+  }
+
+  function rejection(morseReview: unknown): string {
+    const result = parseLibrary(withReview(morseReview))
+    if (result.ok) throw new Error('Expected the import to be rejected.')
+    return result.error
+  }
+
+  const ITEM = { introducedIn: 1, lastSeenIn: 2, laterCorrect: 1, heard: 2, heardCorrect: 1 }
+
+  it('round-trips the history losslessly', () => {
+    const review = { sittings: 2, items: { 'item-1': ITEM } }
+    const topic = parsed(review)
+    expect(topic.morseReview).toEqual(review)
+
+    // Export is the stored record, so re-importing it has to be a fixed point.
+    const again = parseLibrary(JSON.parse(JSON.stringify({ version: 5, topics: [topic] })))
+    expect(again.ok && again.library.topics[0].morseReview).toEqual(review)
+  })
+
+  /**
+   * The conservative half of the migration. A record written before this field
+   * existed reads as no history, never as back-filled successes.
+   */
+  it('treats an older v5 record with no history as having none', () => {
+    const result = parseLibrary({ version: 5, topics: [currentTopic({ items: MORSE_ITEMS })] })
+    expect(result.ok && result.library.topics[0]).not.toHaveProperty('morseReview')
+  })
+
+  it('ignores the field on a pre-v5 record, which had no durable item identity', () => {
+    const result = parseLibrary({
+      version: 4,
+      topics: [legacyTopic({ morseReview: { sittings: 3, items: {} } })],
+    })
+    expect(result.ok && result.library.topics[0]).not.toHaveProperty('morseReview')
+  })
+
+  it('normalises a history that records nothing back to the absent field', () => {
+    expect(parsed({ sittings: 0, items: {} })).not.toHaveProperty('morseReview')
+  })
+
+  it('rejects counters no run could have produced', () => {
+    expect(rejection({ sittings: -1, items: {} })).toContain('sittings must be a non-negative integer')
+    // The current sitting is only ever `sittings + 1`, so 4 is unreachable at 2.
+    expect(rejection({ sittings: 2, items: { 'item-1': { ...ITEM, introducedIn: 4 } } }))
+      .toContain('outside this record')
+    expect(rejection({ sittings: 2, items: { 'item-1': { ...ITEM, lastSeenIn: 9 } } }))
+      .toContain('outside this record')
+    expect(rejection({ sittings: 2, items: { 'item-1': { ...ITEM, introducedIn: 2, lastSeenIn: 1 } } }))
+      .toContain('last seen before it was introduced')
+    // Introduced in sitting 1 with 2 completed sittings gives at most 2 chances.
+    expect(rejection({ sittings: 2, items: { 'item-1': { ...ITEM, laterCorrect: 5 } } }))
+      .toContain('more later-sitting successes')
+    expect(rejection({ sittings: 2, items: { 'item-1': { ...ITEM, heard: 1, heardCorrect: 2 } } }))
+      .toContain('more correct listening answers')
+    expect(rejection({ sittings: 2, items: { 'item-1': { ...ITEM, heard: 1.5 } } }))
+      .toContain('non-negative integer counters')
+  })
+
+  it('rejects a record naming an item this topic does not have', () => {
+    expect(rejection({ sittings: 1, items: { 'item-9': ITEM } }))
+      .toContain('unknown item id "item-9"')
+  })
+
+  it('rejects a malformed history rather than silently dropping it', () => {
+    expect(rejection('two sittings')).toContain('morseReview must be an object')
+    expect(rejection({ sittings: 1, items: 'none' })).toContain('items must be an object')
+    expect(rejection({ sittings: 1, items: { 'item-1': 'settled' } }))
+      .toContain('must be an object')
+  })
+})

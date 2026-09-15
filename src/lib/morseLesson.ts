@@ -1,4 +1,5 @@
 import { morseAcquisitionProfile, type AcquisitionCharacter } from './acquisition'
+import { hasLaterSittingSuccess, morseReviewOf } from './morseReview'
 import { isConfusable } from './confusion'
 import { MORSE_LETTERS, morsePattern, type MorseLetter } from './morse'
 import {
@@ -230,6 +231,12 @@ export interface MorseAcquisitionPosition {
   started: boolean
   /** True once every character has been produced unaided at least once. */
   ready: boolean
+  /**
+   * Characters still owing a correct retrieval in a sitting later than the one
+   * that introduced them (#90 §4). Empty for a learner with no review history,
+   * which is what every record written before that history existed looks like.
+   */
+  awaitingConsolidation: MorseLetter[]
 }
 
 export function morseAcquisitionPosition(topic: Topic): MorseAcquisitionPosition | null {
@@ -241,7 +248,30 @@ export function morseAcquisitionPosition(topic: Topic): MorseAcquisitionPosition
   const supports = [...byGlyph.values()].map((character) => store[character.itemId])
 
   const packetIndex = firstUnsettledPacket(packets, byGlyph, store)
-  const ready = packetIndex >= packets.length
+  const settledEverything = packetIndex >= packets.length
+
+  /**
+   * #90 §4: settling every character is necessary but not sufficient. A
+   * character the learner produced unaided inside the sitting that taught it
+   * has not yet survived any gap, and surviving a gap is the whole difference
+   * between "I can do this now" and "I know this".
+   *
+   * Only characters the review history actually knows about are held to it. A
+   * record written before that history existed has no entries at all, so it
+   * reports nothing outstanding and a learner mid-programme on the old policy
+   * is neither blocked nor credited with successes they never earned. The
+   * permanence of `acquisitionReadyAt` covers anyone already past the line.
+   */
+  const review = morseReviewOf(topic)
+  const awaitingConsolidation = topic.acquisitionReadyAt
+    ? []
+    : [...byGlyph.entries()]
+        .filter(
+          ([, character]) =>
+            review.items[character.itemId] !== undefined &&
+            !hasLaterSittingSuccess(review, character.itemId),
+        )
+        .map(([glyph]) => glyph)
 
   return {
     settled: supports.filter((support) => support === 'settled').length,
@@ -249,7 +279,8 @@ export function morseAcquisitionPosition(topic: Topic): MorseAcquisitionPosition
     packet: Math.min(packetIndex + 1, packets.length),
     packetCount: packets.length,
     started: supports.some((support) => support !== undefined),
-    ready,
+    ready: settledEverything && awaitingConsolidation.length === 0,
+    awaitingConsolidation,
   }
 }
 

@@ -19,6 +19,8 @@ import {
   type LearnSource,
   type MorseCharacterLearnItem,
   type MorseLessonSittingProgress,
+  type MorseReviewItem,
+  type MorseReviewProgress,
   type Topic,
   TOPIC_ORIGINS,
 } from './types'
@@ -30,6 +32,7 @@ import {
   type LessonSitting,
 } from './morseLessonSitting'
 import { clearAllLessonSittings, readLessonSittingSidecar } from './morseLessonSittingStorage'
+import { morseReviewIsFresh } from './morseReview'
 import { seedLibrary } from './seed'
 import {
   NO_RECONCILIATION,
@@ -740,6 +743,113 @@ function parseLessonSitting(
 }
 
 /**
+ * Formative Morse review history (#90 batch 6).
+ *
+ * Validated as strictly as the sitting it sits beside, and for the same
+ * reason: it is durable learner state, so an import either round-trips it
+ * losslessly or says why it cannot. Counters that play could not have produced
+ * are rejected rather than clamped, because a clamped counter is fabricated
+ * progress wearing a plausible shape.
+ *
+ * The compatibility rules, stated so they can be tested rather than inferred:
+ *
+ * - a pre-v5 record has no durable item identity to key this by, so it cannot
+ *   have carried a history; ignore rather than reject;
+ * - an absent field is no history, which is what every older v5 record has;
+ * - an item id the topic does not have is rejected, like every other per-item
+ *   store, so a mismatched pairing surfaces instead of being silently dropped;
+ * - an ordinal past the recorded sitting count could not have been written,
+ *   because the current sitting is only ever `sittings + 1`;
+ * - a later-sitting success count above the sittings that have actually
+ *   elapsed since introduction could not have been earned;
+ * - correct listening answers cannot exceed listening retrievals;
+ * - a history that records nothing normalises back to the absent field, so an
+ *   empty history has exactly one representation.
+ */
+function parseMorseReview(
+  value: unknown,
+  where: string,
+  items: IdentifiedItem[],
+  sourceVersion: 2 | 3 | 4 | 5,
+): { ok: true; value: MorseReviewProgress | undefined } | { ok: false; error: string } {
+  if (sourceVersion < 5) return { ok: true, value: undefined }
+  if (value === undefined || value === null) return { ok: true, value: undefined }
+  if (!isRecord(value)) {
+    return { ok: false, error: `${where} morseReview must be an object.` }
+  }
+
+  const sittings = nonNegativeInteger(value.sittings)
+  if (sittings === null) {
+    return { ok: false, error: `${where} morseReview sittings must be a non-negative integer.` }
+  }
+  if (value.items !== undefined && value.items !== null && !isRecord(value.items)) {
+    return { ok: false, error: `${where} morseReview items must be an object keyed by item id.` }
+  }
+
+  // The sitting in progress is always one past the completed count, so no
+  // ordinal a real run could write ever exceeds it.
+  const highestOrdinal = sittings + 1
+  const liveIds = new Set(items.map((item) => item.id))
+  const parsed: Record<string, MorseReviewItem> = {}
+
+  for (const [itemId, raw] of Object.entries(value.items ?? {})) {
+    if (!liveIds.has(itemId)) {
+      return { ok: false, error: `${where} morseReview references unknown item id "${itemId}".` }
+    }
+    if (!isRecord(raw)) {
+      return { ok: false, error: `${where} morseReview for "${itemId}" must be an object.` }
+    }
+
+    const introducedIn = nonNegativeInteger(raw.introducedIn)
+    const lastSeenIn = nonNegativeInteger(raw.lastSeenIn)
+    const laterCorrect = nonNegativeInteger(raw.laterCorrect)
+    const heard = nonNegativeInteger(raw.heard)
+    const heardCorrect = nonNegativeInteger(raw.heardCorrect)
+    if (
+      introducedIn === null ||
+      lastSeenIn === null ||
+      laterCorrect === null ||
+      heard === null ||
+      heardCorrect === null
+    ) {
+      return {
+        ok: false,
+        error: `${where} morseReview for "${itemId}" needs non-negative integer counters.`,
+      }
+    }
+    if (introducedIn < 1 || introducedIn > highestOrdinal || lastSeenIn > highestOrdinal) {
+      return {
+        ok: false,
+        error: `${where} morseReview for "${itemId}" names a sitting outside this record's history.`,
+      }
+    }
+    if (lastSeenIn < introducedIn) {
+      return {
+        ok: false,
+        error: `${where} morseReview for "${itemId}" was last seen before it was introduced.`,
+      }
+    }
+    if (laterCorrect > Math.max(0, highestOrdinal - introducedIn)) {
+      return {
+        ok: false,
+        error: `${where} morseReview for "${itemId}" records more later-sitting successes than it had sittings to earn them in.`,
+      }
+    }
+    if (heardCorrect > heard) {
+      return {
+        ok: false,
+        error: `${where} morseReview for "${itemId}" has more correct listening answers than listening retrievals.`,
+      }
+    }
+
+    parsed[itemId] = { introducedIn, lastSeenIn, laterCorrect, heard, heardCorrect }
+  }
+
+  const review: MorseReviewProgress = { sittings, items: parsed }
+  return { ok: true, value: morseReviewIsFresh(review) ? undefined : review }
+}
+
+/**
  * Import validation and migration. An import replaces the whole library, so a
  * structurally plausible but semantically wrong file must be rejected here
  * rather than silently becoming the record. Every accepted input becomes v5.
@@ -799,6 +909,14 @@ export function parseLibrary(value: unknown): ParseResult {
     )
     if (!lessonSitting.ok) return lessonSitting
 
+    const morseReview = parseMorseReview(
+      t.morseReview,
+      `${where} ("${title}")`,
+      items.items,
+      version.version,
+    )
+    if (!morseReview.ok) return morseReview
+
     const track = TRACKS.includes(t.track as never) ? (t.track as Topic['track']) : 'learning'
     let status = STATUSES.includes(t.status as never) ? (t.status as Topic['status']) : 'unstarted'
     const completedAt = typeof t.completedAt === 'string' ? t.completedAt : null
@@ -840,6 +958,7 @@ export function parseLibrary(value: unknown): ParseResult {
       itemEvidence: itemEvidence.value,
       lessonProgress: lessonProgress.value,
       ...(lessonSitting.value ? { lessonSitting: lessonSitting.value } : {}),
+      ...(morseReview.value ? { morseReview: morseReview.value } : {}),
       // Absent on a record written before the anchor existed. The journey layer
       // treats that as "unknown" and falls back to `learningAt`, so an upgrade
       // can never make an already-acquired topic wait longer than it did before.

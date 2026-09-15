@@ -28,6 +28,15 @@ function seededTopic(id: string): Topic {
 const NATO = seededTopic('nato-phonetic')
 const ANSWER_FOR = new Map(NATO.items.map((item) => [item.prompt, item.answer]))
 
+/**
+ * A four-item topic, for the assertions that only need *a* finished check.
+ *
+ * Driving twenty-six cards through the reveal/grade/exit cycle is the expensive
+ * part of this file, and two of these tests care about what the end screen
+ * renders rather than about deck size.
+ */
+const SMALL = seededTopic('ooda-loop')
+
 function promptNow(): string {
   return screen.getByRole('heading', { level: 1 }).textContent ?? ''
 }
@@ -44,8 +53,8 @@ function press(key: string) {
  * Reveal is space; the grade keys are the same ones the swipe maps to, so this
  * drives the real component rather than a stand-in.
  */
-async function runDeck(wrongPrompts: Set<string>) {
-  for (let i = 0; i < NATO.items.length; i += 1) {
+async function runDeck(wrongPrompts: Set<string>, topic: Topic = NATO) {
+  for (let i = 0; i < topic.items.length; i += 1) {
     await waitFor(() => expect(document.querySelector('.flip-card')).not.toBeNull())
     const prompt = promptNow()
     press(' ')
@@ -94,11 +103,11 @@ describe('offering practice after a check', () => {
     const onPractice = vi.fn()
     render(
       <LibraryProvider>
-        <Session topicIds={['nato-phonetic']} onExit={() => undefined} onPractice={onPractice} />
+        <Session topicIds={[SMALL.id]} onExit={() => undefined} onPractice={onPractice} />
       </LibraryProvider>,
     )
 
-    await runDeck(new Set())
+    await runDeck(new Set(), SMALL)
 
     expect(document.querySelector('.practice-offer')).toBeNull()
     expect(onPractice).not.toHaveBeenCalled()
@@ -126,11 +135,11 @@ describe('offering practice after a check', () => {
   it('renders no offer when the host provides no practice route', async () => {
     render(
       <LibraryProvider>
-        <Session topicIds={['nato-phonetic']} onExit={() => undefined} />
+        <Session topicIds={[SMALL.id]} onExit={() => undefined} />
       </LibraryProvider>,
     )
 
-    await runDeck(new Set([NATO.items[0].prompt]))
+    await runDeck(new Set([SMALL.items[0].prompt]), SMALL)
 
     expect(document.querySelector('.practice-offer')).toBeNull()
     const back = screen.getByRole('button', { name: 'Back to today' })

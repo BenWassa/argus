@@ -7,6 +7,7 @@ import {
 } from '../../lib/items'
 import { pruneLessonProgress } from '../../lib/morseLesson'
 import { pruneLessonSitting } from '../../lib/morseLessonSitting'
+import { pruneMorseReview } from '../../lib/morseReview'
 import { TRACKS, type Item, type LearnContent, type Topic, type Track } from '../../lib/types'
 
 /** Starting values for a new topic. Used to hand the user a worked example
@@ -114,6 +115,7 @@ export function TopicForm({
     const now = new Date().toISOString()
     const reconciledItems = reconcileAuthoredItems(topic?.items ?? [], items)
     const sitting = pruneLessonSitting(topic?.lessonSitting, reconciledItems)
+    const review = pruneMorseReview(topic?.morseReview, reconciledItems)
     onSave({
       id: topic?.id ?? `topic-${Date.now()}`,
       title: title.trim(),
@@ -140,6 +142,10 @@ export function TopicForm({
       // the title carries it through. Only revisit ids for genuinely deleted
       // items are dropped; the counters are what the learner already answered.
       ...(sitting ? { lessonSitting: sitting } : {}),
+      // Review history is durable formative progress on the same footing. Only
+      // records for genuinely deleted items are dropped; the sitting count is
+      // how far through the programme the learner is, not a tally of letters.
+      ...(review ? { morseReview: review } : {}),
       // Acquisition readiness is a historical fact about the learner, not a
       // property of the current item list. Editing content never retracts it.
       ...(topic?.acquisitionReadyAt ? { acquisitionReadyAt: topic.acquisitionReadyAt } : {}),
