@@ -1,5 +1,7 @@
 import type { LessonEntry, LessonRun } from './morseLesson'
 import type { MorseLetter } from './morse'
+import { LISTENING_IMBALANCE_ALLOWANCE, hasListeningCoverage } from './morseReview'
+import type { MorseReviewProgress } from './types'
 
 /** One listening prompt at most every third completed formative retrieval. */
 export const LISTENING_RETRIEVAL_INTERVAL = 3
@@ -39,22 +41,97 @@ export function recordLessonQuestion(
 }
 
 /**
+ * Whether this retrieval slot is one the cadence offers to listening.
+ *
+ * Still the 3rd/6th/9th slot of a sitting: the cadence itself was never the
+ * problem, and a learner who has budgeted ten retrievals should not suddenly
+ * meet six of them by ear.
+ */
+export function isListeningSlot(retrievalsCompleted: number): boolean {
+  return (retrievalsCompleted + 1) % LISTENING_RETRIEVAL_INTERVAL === 0
+}
+
+/**
+ * Whether this character may be asked by ear at all.
+ *
+ * Listening is reinforcement, not the first presentation of a mapping, so a
+ * character still being taught is excluded. A target cannot immediately switch
+ * modality and repeat while its answer is still fresh.
+ */
+export function isListeningEligible(entry: LessonEntry, state: LessonListeningState): boolean {
+  if (state.suppressed) return false
+  if (!entry.introduced || entry.support === 'taught') return false
+  return state.previousItemId !== entry.itemId
+}
+
+/**
  * Listening is reinforcement, not the first presentation of a mapping.
  *
- * It is offered deterministically on the 3rd/6th/9th retrieval slots, only for
- * an introduced character that has already survived at least one printed
- * retrieval (`support !== taught`). A target cannot immediately switch modality
- * and repeat while its answer is still fresh.
+ * Retained for the narrow question it actually answers — may *this* entry be
+ * asked by ear on *this* slot. Which entry gets the slot is now decided by
+ * `chooseListeningTarget`, because asking whichever character the printed
+ * scheduler happened to pick is exactly what produced the baseline's modality
+ * gap (#90 §5).
  */
 export function shouldUseListeningQuestion(
   retrievalsCompleted: number,
   entry: LessonEntry,
   state: LessonListeningState,
 ): boolean {
-  if (state.suppressed) return false
-  if (!entry.introduced || entry.support === 'taught') return false
-  if (state.previousItemId === entry.itemId) return false
-  return (retrievalsCompleted + 1) % LISTENING_RETRIEVAL_INTERVAL === 0
+  return isListeningSlot(retrievalsCompleted) && isListeningEligible(entry, state)
+}
+
+/**
+ * How much this character wants a listening retrieval (#90 §5).
+ *
+ * Higher is more urgent. Coverage first — a character never met in sound
+ * outranks every character that has been, however shakily — then the balance
+ * term, which is simply "fewer times heard wins", and finally a nudge for a
+ * character whose last listening answer was wrong.
+ *
+ * The old policy had no term like this at all. It asked whichever character the
+ * printed queue offered on the third slot, which is why the measured baseline
+ * landed 51 listening questions on a repeating subset while other letters were
+ * never heard once.
+ */
+export function listeningNeed(itemId: string, review: MorseReviewProgress): number {
+  const item = review.items[itemId]
+  const heard = item?.heard ?? 0
+  const missed = item ? item.heard - item.heardCorrect : 0
+
+  const uncovered = hasListeningCoverage(review, itemId) ? 0 : 1000
+  // Negative, so fewer times heard scores higher. Bounded by the allowance so
+  // a character cannot be starved indefinitely by one that is merely behind.
+  const balance = -heard * 10
+  const struggling = Math.min(missed, LISTENING_IMBALANCE_ALLOWANCE + 1)
+
+  return uncovered + balance + struggling
+}
+
+/**
+ * Which character this listening slot should ask, or `null` for none.
+ *
+ * Chosen by need across every eligible character on the roster rather than by
+ * whichever one the printed queue offered. An ineligible or unavailable target
+ * yields the slot back to the visual path rather than losing the coverage —
+ * the slot is reallocated on the next one, because need is recomputed from
+ * durable state every time.
+ */
+export function chooseListeningTarget(
+  retrievalsCompleted: number,
+  entries: readonly LessonEntry[],
+  state: LessonListeningState,
+  review: MorseReviewProgress,
+): LessonEntry | null {
+  if (!isListeningSlot(retrievalsCompleted)) return null
+
+  const eligible = entries.filter((entry) => isListeningEligible(entry, state))
+  if (eligible.length === 0) return null
+
+  return [...eligible].sort(
+    (a, b) =>
+      listeningNeed(b.itemId, review) - listeningNeed(a.itemId, review) || a.order - b.order,
+  )[0]
 }
 
 /**

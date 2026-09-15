@@ -206,6 +206,25 @@ printed acquisition. The immediately previous target is excluded from an
 instant modality flip, and answering a listening question defers that target in
 the ephemeral queue so the next question is not simply the same answer visually.
 
+**Which character gets the slot is chosen by need (#90 §5).** The cadence is
+unchanged; what changed is that the slot no longer goes to whichever character
+the printed queue happened to offer. `chooseListeningTarget` ranks every
+eligible character by `listeningNeed`: coverage first, so a character never met
+in sound outranks every character that has been; then balance, so fewer times
+heard wins; then a bounded nudge for a character whose last listening answer
+was wrong. Ties fall back to roster order.
+
+The old rule was the cadence *alone*, which is why the measured baseline landed
+51 listening questions on a repeating subset while other letters were never
+heard once. Nothing eligible yields the slot back to the visual path rather
+than losing the coverage — need is recomputed from durable state on every slot,
+so the character gets its turn on the next one.
+
+Listening counters live in `morseReview` and are kept strictly apart from
+printed ones: a listening answer moves neither `laterCorrect` nor `lastSeenIn`,
+so it can neither satisfy a printed claim nor reset printed staleness. #29
+remains the boundary for any auditory competency claim, and none is made here.
+
 ### Auditory answers do not change printed packet readiness
 
 `answerListeningQuestion` does not fade or restore `LessonSupport`, does not set
@@ -253,6 +272,45 @@ when all listening is skipped or unavailable.
 P1/P2 from `docs/open/MORSE_CHARACTER_ORDER.md` remain authoritative:
 complexity-ascending ordering with final-element confusables separated, two novel
 characters per packet, and up to five characters on a roster.
+
+### One novel pair per sitting, then cumulative review (#90 §3)
+
+A packet that settles before retrieval 10 used to roll straight into the next
+packet's introductions, so one sitting could quietly teach four letters or more
+— the measured baseline's first sitting introduced `E I T A`. It no longer can:
+a continuation inside a sitting asks `startLesson` for a run that **cannot**
+introduce anything (`{ allowNovel: false }`), and that run fills its roster from
+everything the learner has already met.
+
+Spacing is **soft**: continuing immediately is allowed and contains review only,
+with the next novel pair recommended later. Hard spacing was rejected because it
+punishes the learner who usually has five minutes and today has twenty.
+
+### Review material is chosen by need, not by packet position (#90 §2)
+
+`byStaleness` orders a packet roster well and orders a programme badly: it knows
+nothing about whether a character has ever survived a gap between sittings, how
+weak its scaffolding is, or how long since it was last seen. Under it, eleven
+letters received no later review at all, because review material was drawn from
+packet position.
+
+`morseLessonPriority.ts` ranks the whole introduced set by a transparent
+weighted priority — consolidation, then scaffolding, then capped staleness, then
+a listening nudge — with acquisition order as the stable tie-break. The order is
+repeatable for a given history but is not a fixed sequence taught to the learner,
+because answering moves the terms it is computed from.
+
+### Acquisition readiness now requires consolidation (#90 §4)
+
+Settling every character is necessary but not sufficient. A character produced
+unaided inside the very sitting that taught it has survived no gap, so
+`morseAcquisitionPosition` also reports `awaitingConsolidation` and withholds
+`ready` until every character the review history knows about has a correct
+retrieval in a *later* sitting.
+
+Conservative by construction: a record written before that history existed has
+no entries to be held to, and `acquisitionReadyAt` is permanent, so no learner
+who already reached the boundary is dragged back.
 
 Printed misses remain barred for `WEAK_ITEM_DELAY_STEPS = 2` lesson steps and
 are not immediately repeated after correction. Returning characters from prior

@@ -21,7 +21,7 @@ import {
   lessonListeningOptions,
   newLessonListeningState,
   recordLessonQuestion,
-  shouldUseListeningQuestion,
+  chooseListeningTarget,
   suppressListening,
   type ListeningFeedback,
 } from '../../lib/morseLessonListening'
@@ -246,9 +246,20 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
   const hasFeedback = Boolean(run.feedback || listeningFeedback)
   const step = hasFeedback || sittingDone ? null : currentStep(run)
   const packetProgress = lessonProgressCount(run)
-  const listening = step?.kind === 'check' && shouldUseListeningQuestion(sitting.retrievals, step.entry, listeningState)
-  const audioOptions = step?.kind === 'check' && listening
-    ? lessonListeningOptions(run, step.entry, introducedGlyphs(live))
+  /**
+   * Which character this slot asks by ear, chosen by listening need across the
+   * whole roster rather than by whichever one the printed queue offered (#90
+   * §5). Asking the printed queue's pick is what produced the baseline's
+   * modality gap: a fixed cadence landing repeatedly on the same few letters
+   * while others were never heard at all.
+   */
+  const listeningEntry =
+    step?.kind === 'check'
+      ? chooseListeningTarget(sitting.retrievals, run.entries, listeningState, morseReviewOf(live))
+      : null
+  const listening = listeningEntry !== null
+  const audioOptions = listeningEntry
+    ? lessonListeningOptions(run, listeningEntry, introducedGlyphs(live))
     : []
 
   useEffect(() => {
@@ -640,10 +651,10 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
         </div>
       )}
 
-      {!hasFeedback && step?.kind === 'check' && listening && (
-        <ListeningCheckStep key={`listen-${step.entry.itemId}-${run.step}`} regionRef={stepRef} entry={step.entry}
-          options={audioOptions} playing={sounding?.glyph === step.entry.glyph} onToggle={() => toggle(step.entry.glyph)}
-          onAnswer={(response) => answerListening(step.entry.itemId, response)} onSkip={skipListening} armed={armed} />
+      {!hasFeedback && step?.kind === 'check' && listeningEntry && (
+        <ListeningCheckStep key={`listen-${listeningEntry.itemId}-${run.step}`} regionRef={stepRef} entry={listeningEntry}
+          options={audioOptions} playing={sounding?.glyph === listeningEntry.glyph} onToggle={() => toggle(listeningEntry.glyph)}
+          onAnswer={(response) => answerListening(listeningEntry.itemId, response)} onSkip={skipListening} armed={armed} />
       )}
 
       {!hasFeedback && step?.kind === 'check' && !listening && (
