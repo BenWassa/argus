@@ -300,8 +300,9 @@ export function morseAcquisitionPosition(topic: Topic): MorseAcquisitionPosition
 
 /**
  * The first packet the learner has not fully settled — the whole of the
- * lesson's durable position. Returns `packets.length` when every packet is
- * settled, which is the finished state rather than an index.
+ * lesson's durable position. A static packet's still-unsettled return remains
+ * an obligation, while settled returns are replaced by current review need.
+ * Returns `packets.length` when every packet obligation is settled.
  */
 export function firstUnsettledPacket(
   packets: CharacterPacket[],
@@ -316,6 +317,43 @@ export function firstUnsettledPacket(
     if (!settled) return packet.index
   }
   return packets.length
+}
+
+/**
+ * Review characters for an ordinary novel-pair run. The packet still supplies
+ * the canonical pair and its index; its historical static returns are no
+ * longer a learner selector. That static plan kept reintroducing early letters
+ * simply because they appeared in more future packets, even when a later
+ * character had the same or greater current need.
+ */
+function ordinaryReviewRoster(
+  byGlyph: Map<MorseLetter, AcquisitionCharacter>,
+  store: ItemLessonStore,
+  review: MorseReviewProgress,
+  packet: CharacterPacket,
+): MorseLetter[] {
+  const novel = new Set(packet.novel)
+  // Preserve any historical packet return that is still weak: it is already a
+  // confusable-safe obligation of this packet. Settled static returns must not
+  // keep winning future slots just because they appeared early in the plan.
+  const required = packet.review.filter((glyph) => {
+    const character = byGlyph.get(glyph)
+    return character !== undefined && store[character.itemId] !== 'settled'
+  })
+  const candidates = ACQUISITION_ORDER.flatMap((glyph, order) => {
+    const character = byGlyph.get(glyph)
+    const support = character ? store[character.itemId] : undefined
+    if (!character || support === undefined || novel.has(glyph) || required.includes(glyph)) return []
+    return [{ glyph, support, itemId: character.itemId, order }]
+  }).sort(byRetrievalPriority(review))
+
+  const selected: MorseLetter[] = [...required]
+  for (const candidate of candidates) {
+    if (selected.length >= DEFAULT_PACKET_PLAN.visible - packet.novel.length) break
+    if (packet.novel.concat(selected).some((other) => isConfusable(morsePattern(candidate.glyph), morsePattern(other)))) continue
+    selected.push(candidate.glyph)
+  }
+  return selected
 }
 
 /**
@@ -451,7 +489,8 @@ export function startLesson(topic: Topic, options: StartLessonOptions = {}): Les
   }
 
   const packet = packets[packetIndex]
-  const entries: LessonEntry[] = packet.characters.map((glyph, order) => {
+  const characters = [...packet.novel, ...ordinaryReviewRoster(byGlyph, store, morseReviewOf(topic), packet)]
+  const entries: LessonEntry[] = characters.map((glyph, order) => {
     const character = byGlyph.get(glyph) as AcquisitionCharacter
     const stored = store[character.itemId]
     const support = stored ?? 'taught'

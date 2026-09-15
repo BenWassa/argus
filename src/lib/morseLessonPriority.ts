@@ -80,6 +80,17 @@ export function retrievalPriority(
 export function byRetrievalPriority(
   review: MorseReviewProgress,
 ): (a: PriorityCandidate, b: PriorityCandidate) => number {
-  return (a, b) =>
-    retrievalPriority(b, review) - retrievalPriority(a, review) || a.order - b.order
+  return (a, b) => {
+    const need = retrievalPriority(b, review) - retrievalPriority(a, review)
+    if (need !== 0) return need
+
+    // The original final acquisition-order tie-break was deterministic, but
+    // it also meant that an otherwise equal E was always selected before a
+    // later character. `printed` is not another need term: it only shares a
+    // tie with genuinely equal need, and gives the less-exposed character the
+    // next turn. It is durable so reload cannot reset the fairness rule.
+    const printed = (review.items[a.itemId]?.printed ?? 0) - (review.items[b.itemId]?.printed ?? 0)
+    if (printed !== 0) return printed
+    return a.order - b.order
+  }
 }

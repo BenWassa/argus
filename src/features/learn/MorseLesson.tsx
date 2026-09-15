@@ -259,7 +259,7 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
       : null
   const listening = listeningEntry !== null
   const audioOptions = listeningEntry
-    ? lessonListeningOptions(run, listeningEntry, introducedGlyphs(live))
+    ? lessonListeningOptions(run, listeningEntry, introducedGlyphs(live), sitting.retrievals, morseReviewOf(live))
     : []
 
   useEffect(() => {
@@ -607,6 +607,7 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
         <span className="lesson-progress-fill" style={{ inlineSize: `${(sitting.retrievals / LESSON_RETRIEVAL_TARGET) * 100}%` }} />
       </div>
       <p className="lesson-foot">Lesson progress: {packetProgress.done} of {packetProgress.total} settled.</p>
+      {run.reviewOnly && <p className="lesson-review-label">Review</p>}
 
       {(feedback?.correct || shownListeningFeedback?.correct) && (
         <div className="lesson-feedback is-correct" role="status" aria-live="polite">

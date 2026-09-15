@@ -1,6 +1,6 @@
 # Morse Learn: guided acquisition, finite sittings, listening, path, and reference
 
-> **#90/#92 closeout addendum — 2026-09-15.** Current implementation supersedes stale status/details later in this historical contract where they conflict. Batch 6 is shipped: `Topic.morseReview` is additive formative scheduling state; one 10-retrieval sitting may introduce at most one two-character novel pair and fills the remainder with cumulative item-aware review; new learners require later-sitting **printed** success before acquisition readiness while legacy/previously-ready learners are not regressed; listening is selected by need and remains unable to alter printed evidence/history. The formative checkpoint arc is now **Lessons 4, 7, 10 and 13**, with #88 first-unlock handoff at all four, late-acquired characters in later material, one bounded local retry after intervening targets where practical, and a local-only completion summary. Checkpoint/replay work still writes no lesson support, sitting, `morseReview`, `DirectionEvidence`, retention timestamp or completion. The deterministic one-pair/review-only sitting policy is settled; the final same-day continuation/spacing **copy and presentation** remains an owner decision under #92. The shipped Morse topic currently uses a quiet `Morse alphabet` link rather than embedding all 26 cards; that placement remains an explicit #92 owner decision. #29 stays outside this contract and #42 remains the separate Pixel acceptance track.
+> **#90/#92/#96 closeout addendum — 2026-09-15.** Current implementation supersedes stale status/details later in this historical contract where they conflict. `Topic.morseReview` is additive formative scheduling state, now including a printed-retrieval count used only to break genuinely equal review need fairly; one 10-retrieval sitting may introduce at most one two-character novel pair and fills the remainder with cumulative item-aware review. New learners require later-sitting **printed** success before acquisition readiness while legacy/previously-ready learners are not regressed; listening is selected by need and remains unable to alter printed evidence/history. Ordinary lesson returns are now selected from actual need rather than static packet position, while any unsettled historical packet return remains an obligation. Cumulative continuation is visibly but quietly marked **Review**. Listening choice placement rotates by listening-slot ordinal rather than lesson step, so fixed cadence cannot teach a correct-answer position. The formative checkpoint arc is now **Lessons 4, 7, 10 and 13**, with #88 first-unlock handoff at all four, late-acquired characters in later material, one bounded local retry after intervening targets where practical, and a local-only completion summary. Checkpoint/replay work still writes no lesson support, sitting, `morseReview`, `DirectionEvidence`, retention timestamp or completion. The deterministic one-pair/review-only sitting policy is settled; the final same-day continuation/spacing **copy and presentation** remains an owner decision under #92. The shipped Morse topic currently uses a quiet `Morse alphabet` link rather than embedding all 26 cards; that placement remains an explicit #92 owner decision. #29 stays outside this contract and #42 remains the separate Pixel acceptance track.
 
 Issues #48, #51, #52, #56, #75, #76, #77, #78, #87 and #88. Parent #21. Preserves #28's
 completion boundary and the #42/#44 mnemonic treatment. #29 remains the separate
@@ -298,9 +298,15 @@ packet position.
 
 `morseLessonPriority.ts` ranks the whole introduced set by a transparent
 weighted priority — consolidation, then scaffolding, then capped staleness, then
-a listening nudge — with acquisition order as the stable tie-break. The order is
-repeatable for a given history but is not a fixed sequence taught to the learner,
-because answering moves the terms it is computed from.
+a listening nudge. When those needs are genuinely equal, fewer prior **printed**
+retrievals wins before acquisition order is consulted. This preserves need
+priority while preventing a fixed early-letter tie from repeating forever; the
+small printed counter is formative-only and legacy records begin at zero.
+
+Ordinary novel-pair lessons use the same ranking for their returning capacity.
+An unsettled return from the historical packet remains required so packet
+readiness keeps its existing meaning; settled static returns no longer consume a
+slot merely because their alphabet position created more future packets.
 
 ### Acquisition readiness now requires consolidation (#90 §4)
 

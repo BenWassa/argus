@@ -146,29 +146,40 @@ export function chooseListeningTarget(
  * first packet legitimately offers two choices rather than padding with an
  * unfamiliar letter, because nothing else exists yet to draw from.
  *
- * Both which two distractors appear and where the answer lands rotate by
- * lesson step, so the pair actually varies as a sitting progresses rather than
- * settling on the same two letters for its whole duration, while remaining a
- * pure function of the run: the same step over the same known pool always
- * looks the same, which is what keeps this testable without a DOM.
+ * Distractors vary by target, listening history and the current offered slot;
+ * answer placement rotates by listening-slot ordinal. Neither rule depends on
+ * the reset-prone lesson step that establishes the fixed listening cadence, so
+ * the correct answer cannot become a learnable cadence residue. The result is
+ * still a pure function of the durable/formative inputs and current sitting.
  */
 export function lessonListeningOptions(
   run: LessonRun,
   entry: LessonEntry,
   knownGlyphs: readonly MorseLetter[],
+  retrievalsCompleted: number = run.step,
+  review: MorseReviewProgress = { sittings: 0, items: {} },
 ): MorseLetter[] {
   const pool = knownGlyphs.filter((glyph) => glyph !== entry.glyph)
+  const targetIndex = Math.max(0, knownGlyphs.indexOf(entry.glyph))
+  const listeningAttempt = review.items[entry.itemId]?.heard ?? 0
   const alternatives: MorseLetter[] = []
   if (pool.length > 0) {
     const distractorCount = Math.min(2, pool.length)
-    const start = run.step % pool.length
+    // The target's durable listening count and the known-pool shape vary
+    // independently from the fixed 3rd/6th/9th cadence. This avoids the old
+    // `run.step % optionCount` coupling while retaining reproducible choices.
+    const start = (targetIndex * 5 + listeningAttempt * 7 + retrievalsCompleted) % pool.length
     for (let offset = 0; offset < distractorCount; offset += 1) {
       alternatives.push(pool[(start + offset) % pool.length])
     }
   }
 
   const options = [...alternatives]
-  const at = run.step % (options.length + 1)
+  // Offered slots are exactly the 3rd/6th/9th retrievals. Their ordinal (not
+  // the lesson-step counter, which resets at packet boundaries) gives a
+  // deterministic 0/1/2 rotation for three-choice questions.
+  const listeningOrdinal = Math.floor(retrievalsCompleted / LISTENING_RETRIEVAL_INTERVAL)
+  const at = listeningOrdinal % (options.length + 1)
   options.splice(at, 0, entry.glyph)
   return options
 }
