@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { clearLibrary, emptyLibrary, loadLibraryWithReport, reconcileLoadedLibrary, saveLibrary } from './storage'
+import { clearLibrary, emptyLibrary, loadLibraryWithReport, reconcileLoadedLibrary, saveLibrary, type LoadedLibrary } from './storage'
 import { NO_RECONCILIATION, type CatalogReconciliation } from './catalog'
 import { clearAllLessonSittings } from './morseLessonSittingStorage'
 import type { CurrentLibrary, Topic } from './types'
@@ -10,28 +10,9 @@ interface LibraryStore {
   library: CurrentLibrary
   /** What catalog reconciliation did the last time a library was loaded. */
   catalogReport: CatalogReconciliation
-  /**
-   * Whole-object replacement. Correct for creation, authoring and import, where
-   * replacing the record *is* the intent.
-   */
+  /** Whole-object replacement for creation, authoring and explicit import. */
   upsertTopic: (topic: Topic) => void
-  /**
-   * Functional update, and the primitive independent learner-progress writes
-   * should use (#62).
-   *
-   * Several systems now mutate sibling fields of the same topic — the scheduler,
-   * Test cue evidence, Learn support, the finite sitting — and a component that
-   * captured a topic when it mounted no longer holds a current one by the time
-   * it saves. `upsertTopic(stale)` then quietly reinstates every sibling field
-   * as it looked at capture time. Passing an updater instead means the change is
-   * applied to whatever the topic is *now*, so two independent writes compose
-   * rather than the later one erasing the earlier.
-   *
-   * The store owns composition only. Domain policy — what a lesson answer means,
-   * when a gap is satisfied, which evidence counts — stays in the domain modules
-   * and is handed here as a pure `current => next` function. An updater for a
-   * topic that no longer exists is dropped rather than recreating it.
-   */
+  /** Functional learner-progress update against the latest topic value. */
   updateTopic: (id: string, update: (current: Topic) => Topic) => void
   removeTopic: (id: string) => void
   replaceLibrary: (library: CurrentLibrary) => void
@@ -40,14 +21,22 @@ interface LibraryStore {
 
 const Ctx = createContext<LibraryStore | null>(null)
 
-export function LibraryProvider({ children }: { children: ReactNode }) {
-  const [loaded] = useState(loadLibraryWithReport)
+interface LibraryProviderProps {
+  children: ReactNode
+  /** Authenticated bootstrap supplies a fully reconciled per-UID record. */
+  initial?: LoadedLibrary
+  /** Legacy/local-only mode is retained for unit tests and storage tooling. */
+  persistLegacy?: boolean
+}
+
+export function LibraryProvider({ children, initial, persistLegacy = initial === undefined }: LibraryProviderProps) {
+  const [loaded] = useState<LoadedLibrary>(() => initial ?? loadLibraryWithReport())
   const [library, setLibrary] = useState<CurrentLibrary>(loaded.library)
   const [catalogReport, setCatalogReport] = useState<CatalogReconciliation>(loaded.report)
 
   useEffect(() => {
-    saveLibrary(library)
-  }, [library])
+    if (persistLegacy) saveLibrary(library)
+  }, [library, persistLegacy])
 
   const upsertTopic = useCallback((topic: Topic) => {
     setLibrary((prev) => {
@@ -75,10 +64,8 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const replaceLibrary = useCallback((next: CurrentLibrary) => {
-    // An imported library goes through the same migration and catalog-delivery
-    // boundary as a stored one, so what is on screen after an import is what
-    // would be on screen after a reload. An active local-only Morse sitting
-    // belongs to the replaced library and must not leak into the imported one.
+    // Import and remote reconciliation both pass through the same catalog
+    // boundary. The retired sidecar can never leak into a replacement record.
     clearAllLessonSittings()
     const reconciled = reconcileLoadedLibrary(next)
     setLibrary(reconciled.library)
@@ -86,11 +73,11 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const resetLibrary = useCallback(() => {
-    clearLibrary()
+    if (persistLegacy) clearLibrary()
     clearAllLessonSittings()
     setLibrary(emptyLibrary())
     setCatalogReport(NO_RECONCILIATION)
-  }, [])
+  }, [persistLegacy])
 
   const value = useMemo(
     () => ({
