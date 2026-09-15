@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { canonicalPattern } from '../../lib/acquisition'
 import { MORSE_LETTERS } from '../../lib/morse'
 import {
+  checkpointTargetKey,
   checkpointTargets,
+  withCheckpointRetry,
   type MorseCheckpointTarget,
   type MorseWordCheckpoint,
 } from '../../lib/morseWordCheckpoints'
@@ -24,18 +26,27 @@ interface CheckpointFeedback {
 }
 
 /**
- * Local-only application run for #78. This component deliberately imports no
+ * Local-only application run for #78/#90. This component deliberately imports no
  * library store, scheduler, lesson-progress or Test-evidence write path.
  *
  * Since #87 the response boundary is owned by `useKeyedResponse` rather than by
  * a private timer, so a checkpoint letter is graded, acknowledged and replaced
  * on exactly the same schedule as a Learn retrieval, and the next letter cannot
  * be keyed by a tap that was still in flight when the previous one landed.
+ *
+ * #90 adds one bounded local repair rule: a target missed for the first time is
+ * inserted once more after up to two intervening targets. The retry queue and
+ * completion summary exist only for this mounted run; neither can mutate Learn,
+ * Test, scheduler or retention state.
  */
 export function MorseCheckpoint({ checkpoint, onExit, onContinue, continueLabel }: MorseCheckpointProps) {
-  const targets = useMemo(() => checkpointTargets(checkpoint), [checkpoint])
+  const [targets, setTargets] = useState<MorseCheckpointTarget[]>(() => checkpointTargets(checkpoint))
   const [index, setIndex] = useState(0)
   const [feedback, setFeedback] = useState<CheckpointFeedback | null>(null)
+  const [attempts, setAttempts] = useState(0)
+  const [correctAnswers, setCorrectAnswers] = useState(0)
+  const [retries, setRetries] = useState(0)
+  const retriedTargets = useRef<Set<string>>(new Set())
   const headingRef = useRef<HTMLHeadingElement>(null)
   const targetRef = useRef<HTMLDivElement>(null)
 
@@ -57,11 +68,20 @@ export function MorseCheckpoint({ checkpoint, onExit, onContinue, continueLabel 
 
   function answer(pattern: string) {
     if (!target || !armed) return
-    setFeedback({
-      correct: pattern === MORSE_LETTERS[target.letter],
-      target,
-    })
-    answered(pattern === MORSE_LETTERS[target.letter])
+    const correct = pattern === MORSE_LETTERS[target.letter]
+    setAttempts((count) => count + 1)
+    if (correct) {
+      setCorrectAnswers((count) => count + 1)
+    } else {
+      const key = checkpointTargetKey(target)
+      if (!retriedTargets.current.has(key)) {
+        retriedTargets.current.add(key)
+        setTargets((current) => withCheckpointRetry(current, index, target))
+        setRetries((count) => count + 1)
+      }
+    }
+    setFeedback({ correct, target })
+    answered(correct)
   }
 
   const label = `Checkpoint after lesson ${checkpoint.afterLesson}`
@@ -78,6 +98,12 @@ export function MorseCheckpoint({ checkpoint, onExit, onContinue, continueLabel 
         </div>
         <div className="morse-checkpoint-summary">
           <h1 ref={headingRef} tabIndex={-1}>Word checkpoint complete</h1>
+          <p>
+            <strong>{correctAnswers} of {attempts} correct</strong>
+            {retries > 0
+              ? ` · ${retries} ${retries === 1 ? 'target' : 'targets'} revisited once`
+              : ' · no misses to revisit'}
+          </p>
           <p>You applied letters you already know. This run did not change saved lesson or Test progress.</p>
           {onContinue ? (
             <div className="lesson-exits" inert={!armed}>
