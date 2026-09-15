@@ -46,6 +46,7 @@ The production site is deployed to **https://benwassa.github.io/argus/** by GitH
 - `docs/closed/LIBRARY_AUDIT.md` — reconciled shipped-library boundary/content audit.
 - `docs/closed/SEEDED_CONTENT_PROVENANCE.md` — authoritative source record for the original seeded topics.
 - `docs/open/CONTENT_INBOX.md` — content-inbox and curated-ingestion architecture, and the Firebase setup it needs.
+- `docs/open/REDESIGN_INPUT_AUDIT.md` — current factual screen, state, issue-reconciliation, acceptance, and redesign-risk input package.
 - `docs/closed/PROGRAMME.md` — Learn/Test + content-quality programme closeout.
 - `docs/closed/MORSE_CODE_LEARNING_PRD.md` — dated Morse research/design baseline retained for rationale; later ratified decisions supersede its deliberately open implementation questions.
 - `docs/open/MORSE_PROGRAMME_PLAN.md` — current Morse programme decisions, workstream ownership and implementation status.
