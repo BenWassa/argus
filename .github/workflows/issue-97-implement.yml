@@ -24,11 +24,14 @@ jobs:
           fetch-depth: 0
 
       - name: Apply focused implementation
-        run: python scripts/apply-issue-97.py
+        run: |
+          python scripts/apply-issue-97.py
+          python scripts/fix-issue-97-test.py
 
       - name: Remove implementation-only bootstrap files
         run: |
           rm scripts/apply-issue-97.py
+          rm scripts/fix-issue-97-test.py
           rm .github/workflows/issue-97-implement.yml
 
       - name: Setup Node
