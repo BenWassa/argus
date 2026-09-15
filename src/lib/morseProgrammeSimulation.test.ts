@@ -10,7 +10,13 @@ import {
   withLessonProgress,
   type LessonRun,
 } from './morseLesson'
-import { chooseListeningTarget, newLessonListeningState, recordLessonQuestion } from './morseLessonListening'
+import {
+  chooseListeningTarget,
+  lessonListeningOptions,
+  newLessonListeningState,
+  recordLessonQuestion,
+} from './morseLessonListening'
+import { introducedGlyphs } from './morseLesson'
 import {
   LESSON_RETRIEVAL_TARGET,
   lessonSittingComplete,
@@ -71,6 +77,8 @@ interface Trace {
   printed: Map<MorseLetter, number>
   /** Listening retrievals per glyph. */
   heard: Map<MorseLetter, number>
+  /** Correct-answer positions for full three-choice listening prompts. */
+  listeningPositions: number[]
   /** Glyphs with a correct printed retrieval in a sitting after introduction. */
   laterCorrect: Set<MorseLetter>
 }
@@ -91,6 +99,7 @@ function runProgramme(options: Options = {}): Trace {
   const novelPerSitting: number[] = []
   const printed = new Map<MorseLetter, number>()
   const heard = new Map<MorseLetter, number>()
+  const listeningPositions: number[] = []
   const laterCorrect = new Set<MorseLetter>()
   let sittings = 0
 
@@ -137,6 +146,14 @@ function runProgramme(options: Options = {}): Trace {
         // moves only the listening counters.
         const correct = !alwaysMiss.has(listeningEntry.glyph)
         heard.set(listeningEntry.glyph, (heard.get(listeningEntry.glyph) ?? 0) + 1)
+        const options = lessonListeningOptions(
+          run,
+          listeningEntry,
+          introducedGlyphs(topic),
+          sitting.retrievals,
+          morseReviewOf(topic),
+        )
+        if (options.length === 3) listeningPositions.push(options.indexOf(listeningEntry.glyph))
         topic = withMorseReview(
           topic,
           recordListeningRetrieval(morseReviewOf(topic), listeningEntry.itemId, correct),
@@ -174,7 +191,7 @@ function runProgramme(options: Options = {}): Trace {
     if (!position || position.finished) break
   }
 
-  return { topic, sittings, novelPerSitting, printed, heard, laterCorrect }
+  return { topic, sittings, novelPerSitting, printed, heard, listeningPositions, laterCorrect }
 }
 
 describe('the novel-item budget holds across a whole programme', () => {
@@ -234,11 +251,13 @@ describe('cumulative coverage', () => {
     const counts = ALL_MORSE_LETTERS.map((glyph) => trace.printed.get(glyph) ?? 0)
     const most = Math.max(...counts)
     const fewest = Math.min(...counts)
-    // The baseline's spread was 5 against 1 on packet appearances alone. The
-    // point is that no character is left with nothing while another is drilled
-    // repeatedly, not that every count is identical.
+    // Static packet returns gave E/I five appearances while late Q had one.
+    // A perfect learner supplies no item-specific reason for that skew.
     expect(fewest).toBeGreaterThan(0)
-    expect(most / fewest).toBeLessThan(10)
+    // The opening sittings honestly have only E/I available, so whole-programme
+    // totals need not be equal. The separate equal-need roster simulation
+    // proves that acquisition order stops deciding once broad review exists.
+    expect(most - fewest).toBeLessThanOrEqual(7)
   })
 })
 
@@ -257,6 +276,13 @@ describe('listening coverage', () => {
     // The baseline put 51 listening questions on a repeating subset. Balance is
     // a bounded spread, not equality.
     expect(Math.max(...counts) - Math.min(...counts)).toBeLessThan(5)
+  })
+
+  it('balances three-choice answer positions independently of the listening cadence', () => {
+    const trace = runProgramme({ audio: true })
+    const positions = [0, 1, 2].map((at) => trace.listeningPositions.filter((position) => position === at).length)
+    expect(Math.min(...positions)).toBeGreaterThan(0)
+    expect(Math.max(...positions) - Math.min(...positions)).toBeLessThanOrEqual(1)
   })
 
   it('keeps the visual path whole when there is no audio at all', () => {

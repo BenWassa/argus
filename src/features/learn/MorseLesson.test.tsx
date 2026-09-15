@@ -153,6 +153,17 @@ describe('the guided run mounts one task and never a menu', () => {
   })
 })
 
+describe('cumulative continuation presentation', () => {
+  it('labels a review-only continuation without creating another mode', () => {
+    const topic = settledThroughLesson(seededTopic(MORSE_ID), 1)
+    const run = startLesson(topic, { allowNovel: false }) as LessonRun
+    const html = render(topic, run)
+    expect(html).toContain('lesson-review-label')
+    expect(html).toContain('>Review<')
+    expect(html).not.toContain('Review mode')
+  })
+})
+
 describe('printed letter → Morse uses one production mechanism', () => {
   const topic = seededTopic(MORSE_ID)
 
