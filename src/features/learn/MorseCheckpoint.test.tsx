@@ -28,14 +28,11 @@ describe('Morse word checkpoint surface', () => {
     const code = source('./MorseCheckpoint.tsx')
     expect(code).toContain('setFeedback({ correct, target })')
     expect(code).toContain('answered(correct)')
-    // The dwell is owned by the shared #87 lifecycle, not by a private timer
-    // with a private duration that could drift from Learn's.
     expect(code).toContain('useKeyedResponse')
     expect(code).not.toContain('setTimeout(')
     expect(code).not.toContain('MORSE_CHECKPOINT_FEEDBACK_MS')
     expect(code).toContain('setIndex((current) => current + 1)')
     expect(code).toContain("feedback.correct ? 'Correct' : 'Miss'")
-    // The next letter is not answerable while the previous result stands.
     expect(code).toContain('inert={!armed}')
     expect(code).toContain('locked={!armed}')
     expect(code).not.toContain('>Continue<')
@@ -79,13 +76,18 @@ describe('Morse word checkpoint surface', () => {
 
   it('offers a #88 continuation back into the interrupted lesson only when one is handed in', () => {
     const code = source('./MorseCheckpoint.tsx')
-    // The manual path-triggered flow (#78, unchanged) still passes only
-    // `onExit` and must keep its single "Back to lessons" button.
     expect(code).toContain('onContinue?: () => void')
     expect(code).toContain('onContinue ? (')
     expect(code).toContain('{continueLabel ?? \'Keep going\'}')
     expect(code).toMatch(/<button type="button" disabled=\{!armed\} onClick=\{onExit\}>Back to lessons<\/button>/)
-    // Never the bare word the between-character advance test above forbids.
     expect(code).not.toContain('>Continue<')
+  })
+
+  it('extends the #88 automatic handoff to all four cumulative milestones', () => {
+    const lesson = source('./MorseLesson.tsx')
+    expect(lesson).toContain('const CHECKPOINT_LESSON_NUMBERS = new Set([4, 7, 10, 13])')
+    expect(lesson).toContain('checkpointNewlyUnlocked(pathBeforeAnswer, pathNow, completedLessonNumber)')
+    expect(lesson).toContain('setCheckpointInvite({ checkpoint: invite, resume: next })')
+    expect(lesson).toContain('Skip for now')
   })
 })
