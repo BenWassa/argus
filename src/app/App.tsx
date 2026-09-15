@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { AppShell } from '../components/layout/AppShell'
 import { shouldShowSplash, SplashScreen } from '../components/SplashScreen'
-import { LibraryProvider, useLibrary } from '../lib/store'
+import { AuthEntry } from '../components/AuthEntry'
+import { AuthenticatedRoot } from '../components/AuthenticatedRoot'
+import { useAuthSession } from '../lib/auth'
+import { useLibrary } from '../lib/store'
 import { Today } from '../features/today/Today'
 import { Library } from '../features/library/Library'
 import { Data } from '../features/data/Data'
@@ -25,6 +28,7 @@ import type { RunTarget } from '../lib/navigation'
 const ROOT_ROUTE: ParentRoute = { kind: 'section', view: 'today' }
 
 export function App() {
+  const auth = useAuthSession()
   const [showSplash, setShowSplash] = useState(shouldShowSplash)
 
   function finishSplash() {
@@ -32,13 +36,23 @@ export function App() {
     window.requestAnimationFrame(() => document.getElementById('main')?.focus())
   }
 
+  // The first-visit brand treatment remains intact, but learner routes are not
+  // mounted behind it. Auth restoration can run while the intro plays.
+  if (showSplash) return <SplashScreen onComplete={finishSplash} />
+
+  if (auth.status === 'loading') return <AuthEntry state="loading" />
+  if (auth.status === 'signed-out') {
+    return <AuthEntry state="signed-out" onSignIn={() => void auth.signIn()} />
+  }
+  if (auth.status === 'error') {
+    return <AuthEntry state="error" message={auth.error} onRetry={auth.retry} />
+  }
+
+  const accountLabel = auth.user.displayName ?? auth.user.email ?? 'Google account'
   return (
-    <LibraryProvider>
-      <div className="app-runtime" aria-hidden={showSplash || undefined}>
-        <Routes />
-      </div>
-      {showSplash && <SplashScreen onComplete={finishSplash} />}
-    </LibraryProvider>
+    <AuthenticatedRoot user={auth.user} onSignOut={() => void auth.signOut()}>
+      <Routes accountLabel={accountLabel} onSignOut={() => void auth.signOut()} />
+    </AuthenticatedRoot>
   )
 }
 
@@ -49,29 +63,12 @@ function safeParent(route: ParentRoute, topics: Topic[]): ParentRoute {
     : { kind: 'section', view: 'library' }
 }
 
-/**
- * True for a run whose position is durable rather than held in memory.
- *
- * A canonical Morse lesson is the only one. Its retrieval count, correct count,
- * letters to revisit and listening declination live in `Topic.lessonSitting`, so
- * restoring that entry resumes exactly where the learner was rather than
- * fabricating a fresh task. That is what lets the alphabet reference return to
- * the lesson it was opened from instead of abandoning it.
- *
- * A Test run is never resumable: restoring it would start a new scored attempt.
- * A replay or word checkpoint deliberately persists nothing, so there is no
- * position to return to and restoring one would silently restart it.
- */
+/** True for a run whose position is durable rather than held in memory. */
 function resumableRun(route: Extract<AppRoute, { kind: 'run' }>): boolean {
   return route.mode === 'learn' && (route.target?.kind ?? 'lesson') === 'lesson'
 }
 
-/**
- * Validate identifiers against the live library. A run that holds its state in
- * memory is deliberately not reconstructed: a reload or Forward traversal falls
- * back to the route that launched it rather than silently starting a fresh
- * scored attempt. A run backed by durable state resumes instead.
- */
+/** Validate identifiers against the live reconciled library. */
 function restoreRoute(route: AppRoute, topics: Topic[], restoreRun: boolean): AppRoute {
   if (route.kind === 'section') return route
 
@@ -110,14 +107,16 @@ function focusAfterTraversal(previous: AppRoute, next: AppRoute) {
   if (sameRoute(previous, next)) return
   if (next.kind !== 'section') return
 
-  // Topic -> Library has a stronger target: Library restores the row that
-  // launched the Topic, with #main as its own fallback when that row vanished.
   if (previous.kind === 'topic' && next.view === 'library') return
-
   window.requestAnimationFrame(() => document.getElementById('main')?.focus())
 }
 
-function Routes() {
+interface RoutesProps {
+  accountLabel: string
+  onSignOut: () => void
+}
+
+function Routes({ accountLabel, onSignOut }: RoutesProps) {
   const { topics } = useLibrary()
   const [initialHistory] = useState(readNavigationState)
   const [route, setRoute] = useState<AppRoute>(() =>
@@ -133,21 +132,12 @@ function Routes() {
   const blockedBackBounce = useRef(false)
 
   useEffect(() => {
-    // Seed/normalise the existing document entry. Never push a synthetic root:
-    // Today must remain the final Argus boundary before browser/platform exit.
     replaceNavigationState(routeRef.current, historyIndex.current)
 
     function onPopState(event: PopStateEvent) {
       const state = readNavigationState(event.state)
-      if (!state) {
-        // This is not an Argus-owned entry. Do not trap it or repush Today; the
-        // browser/OS owns traversal beyond the Argus root.
-        return
-      }
+      if (!state) return
 
-      // A guarded Back has already moved the browser cursor to the prior entry.
-      // `history.forward()` returns it to the route that never actually left;
-      // this popstate is only that cursor correction, not a route restoration.
       if (blockedBackBounce.current && state.index === historyIndex.current) {
         blockedBackBounce.current = false
         return
@@ -157,16 +147,10 @@ function Routes() {
 
       if (direction < 0 && consumeBackBlocker()) {
         blockedBackBounce.current = true
-        // The browser cursor already moved when popstate fired. Bounce to the
-        // still-current Argus entry without applying the target route; the
-        // blocker has reused the surface's existing close/confirmation policy.
         window.history.forward()
         return
       }
 
-      // A completed/exited run has no persistent in-progress state to restore.
-      // Forward into its old entry is therefore declined rather than replaying
-      // Learn/Test side effects or creating a fresh scored attempt.
       if (direction > 0 && state.route.kind === 'run') {
         window.history.back()
         return
@@ -187,9 +171,6 @@ function Routes() {
     return () => window.removeEventListener('popstate', onPopState)
   }, [])
 
-  // Topic deletion is itself a meaningful return to Library. Use the existing
-  // previous Library entry instead of replacing the Topic entry with a second
-  // consecutive Library stop that would require an extra system Back.
   useEffect(() => {
     const current = routeRef.current
     if (current.kind === 'topic' && !topics.some((topic) => topic.id === current.topicId)) {
@@ -197,8 +178,6 @@ function Routes() {
       return
     }
 
-    // Other live-library changes can invalidate a run/reference origin. Replace
-    // those in place so stale history degrades safely without a phantom stop.
     const next = liveRoute(current, topics)
     if (sameRoute(next, current)) return
     replaceNavigationState(next, historyIndex.current)
@@ -206,8 +185,6 @@ function Routes() {
     setRoute(next)
   }, [topics])
 
-  // Today -> Library authoring is intentionally one-shot UI state. History
-  // Forward can restore Library, but must not replay opening the form.
   useEffect(() => {
     if (!authorOnEntry) return
     if (route.kind === 'section' && route.view === 'library') setAuthorOnEntry(false)
@@ -234,16 +211,6 @@ function Routes() {
     navigate({ kind: 'run', mode, topicIds, origin, target }, replace)
   }
 
-  /**
-   * The alphabet, and then back to whatever asked for it.
-   *
-   * This used to rewrite history: it replaced the running Learn entry with a
-   * Topic entry and pushed the reference above that, because a Back into a run
-   * entry always fell through to the run's origin and would have abandoned the
-   * lesson. A canonical lesson is now restorable from its durable sitting, so
-   * the reference is simply pushed and Back lands on the surface it was opened
-   * from, lesson included. The reference itself still writes nothing.
-   */
   function openReference(topicId: string) {
     const current = routeRef.current
     const origin: ParentRoute =
@@ -256,9 +223,6 @@ function Routes() {
     setAuthorOnEntry(false)
 
     if (current.kind === 'section' && current.view === next) return
-    // Library is already the active section while a Topic page or the Data
-    // utility is open. Its nav button therefore behaves like that page's visible
-    // Back control rather than pushing a duplicate Library stop.
     if (next === 'library') {
       if (current.kind === 'topic') {
         goBack()
@@ -274,10 +238,6 @@ function Routes() {
   }
 
   if (route.kind === 'run') {
-    // Practice is the one run that takes a whole Topic rather than an id, so it
-    // gets its own branch. `restoreRoute`/`liveRoute` already drop a run naming
-    // a topic the library no longer holds, which makes the missing case belt
-    // and braces — but a non-null assertion would be the wrong way to say so.
     if (route.mode === 'learn' && route.target?.kind === 'practice') {
       const practiceTopic = topics.find((candidate) => candidate.id === route.topicIds[0])
       if (!practiceTopic) return null
@@ -314,9 +274,6 @@ function Routes() {
               key={`${route.mode}-${route.topicIds.join()}`}
               topicIds={route.topicIds}
               onExit={goBack}
-              // Replaces the finished check in history rather than stacking on
-              // top of it: Back from practice should reach whatever launched
-              // the check, not a completed run that would restart on entry.
               onPractice={(topicId, itemIds) =>
                 start('learn', [topicId], { kind: 'practice', itemIds }, true)
               }
@@ -339,8 +296,6 @@ function Routes() {
 
   const view: View = route.kind === 'topic' ? 'library' : route.view
   const topicId = route.kind === 'topic' ? route.topicId : null
-  // Topic and Data are both children of Library, so both mark Library current.
-  // The bar names where you are in the app, not which component is mounted.
   const navView = view === 'data' ? 'library' : view
 
   return (
@@ -366,7 +321,7 @@ function Routes() {
           onOpenData={() => navigate({ kind: 'section', view: 'data' })}
         />
       )}
-      {view === 'data' && <Data onBack={goBack} />}
+      {view === 'data' && <Data onBack={goBack} accountLabel={accountLabel} onSignOut={onSignOut} />}
     </AppShell>
   )
 }
