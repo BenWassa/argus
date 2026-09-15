@@ -79,10 +79,11 @@ builds on top of them until you've looked.
    prior behavior). The alternative was stamping it only when the learner
    taps a "test me" action at the foot of the reference. Currently shipped as
    the former.
-3. **§15.5 — Is repair scored or formative?** This gates batch 5 (targeted
-   repair), which has not shipped. Recommendation on the table: formative —
-   repair practises, the next check proves, and the evidence contract stays
-   untouched.
+3. ~~**§15.5 — Is repair scored or formative?**~~ **Decided 2026-09-14:
+   formative.** Repair practises, the next check proves, and the evidence
+   contract stays untouched. Batch 5 is unblocked and may proceed on that
+   basis. A repair run must not write formal `itemEvidence`, must not move
+   the retention clock, and must not qualify a topic for completion.
 
 Two smaller ones, lower stakes, already shipped as recommended and listed
 here only for completeness: §15.2 (multi-topic Learn dropped, batch Test
@@ -93,7 +94,7 @@ live.
 
 | Batch | What | Depends on | Gate |
 |---:|---|---|---|
-| 5 | Targeted repair (a bounded formative run over what a check just missed) | §15.5 decision | owner phone review |
+| 5 | Targeted repair (a bounded formative run over what a check just missed) | §15.5 — **decided: formative** | owner phone review |
 | 6 | #90 lesson-scheduling policy (items 2, 3, 4, 5, 9) — the only additive migration in the whole programme | none (independent of 1–5 once batch 3 landed) | whole-programme simulation tests; owner review of spacing copy |
 
 Nothing else is outstanding from this programme. #42's real-device acceptance
@@ -111,4 +112,4 @@ existing parked status on #79.
 - [x] Migration strategy — none for batches 0–4; batch 6 carries the one additive migration, not yet written.
 - [x] #90 reconciliation — table above.
 - [x] Execution plan — table above, batches 5–6 only.
-- [ ] **Owner review of §15.1, §15.3, §15.5** — the one item this package cannot close by itself.
+- [ ] **Owner review of §15.1 and §15.3** — the one item this package cannot close by itself. §15.5 was decided on 2026-09-14 (formative); §15.1 and §15.3 still want a deliberate phone look.

@@ -635,8 +635,11 @@ the code or the documents.
    (unavailable until tomorrow) or soft (continue, but review-only)?
    *Recommendation: soft — hard spacing punishes the five-minute-window learner
    who happens to have twenty minutes today.*
-5. **Is repair scored or formative?** *Recommendation: formative — repair
-   practises, the next check proves. Keeps the evidence contract untouched.*
+5. **Is repair scored or formative?** **Decided 2026-09-14: formative.** Repair
+   practises, the next check proves; the evidence contract stays untouched. A
+   repair run writes no formal `itemEvidence`, does not move the retention
+   clock, and cannot qualify a topic for completion. Batch 5 proceeds on this
+   basis.
 6. **Where the completion record lives** in Library: a permanent final section, or
    a `Finished` filter? *Recommendation: permanent final section — a filter hides
    the artifact behind an interaction.*

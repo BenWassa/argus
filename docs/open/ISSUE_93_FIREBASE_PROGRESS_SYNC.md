@@ -22,7 +22,7 @@ The current local loader also falls back to a fresh library if no valid local re
 
 ### 1. Authentication is a product-level entry boundary
 
-- Argus presents Google sign-in before the learner can enter Today, Library, Progress, Learn or Test.
+- Argus presents Google sign-in before the learner can enter Today, Library, a Topic, a lesson or a Test. (Standalone Progress and the generic Learn screen no longer exist as of v0.2.0; the gate is every learning surface, whatever it is named.)
 - The sign-in surface is part of the opening/splash experience, not buried in Library.
 - Preserve the existing visual splash/brand treatment at the top.
 - Place the Argus name and a clear Google sign-in action directly below it.
@@ -59,7 +59,7 @@ Transient UI/audio/animation/navigation state must not be synchronized merely be
 
 ### 4. Existing progress architecture remains authoritative
 
-This work must not change the semantic ownership established by `docs/PROGRESS_ARCHITECTURE.md`.
+This work must not change the semantic ownership established by `docs/open/PROGRESS_ARCHITECTURE.md`.
 
 Cloud sync persists the durable library; it does not redefine acquisition, formal evidence, retention, completion, sitting state, journey derivation or scheduling.
 
@@ -435,7 +435,7 @@ Issue #93 is complete when:
 When implementation is complete:
 
 - update this document with final implementation decisions that differ from the preferred design above;
-- reconcile `docs/PROGRESS_ARCHITECTURE.md`, `docs/CONTENT_INBOX.md`, README/data-storage documentation and any account/privacy copy;
+- reconcile `docs/open/PROGRESS_ARCHITECTURE.md`, `docs/open/CONTENT_INBOX.md`, README/data-storage documentation and any account/privacy copy;
 - move this file from `docs/open/` to `docs/closed/`;
 - update issue #93 with the closing evidence/PRs;
 - remove obsolete inbox-only auth wording and stale local-only progress claims;
