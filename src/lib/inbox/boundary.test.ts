@@ -10,11 +10,11 @@ import { parseLibrary } from '../storage'
 import { TRACKS } from '../types'
 
 /**
- * The architectural boundaries of #39, tested rather than asserted in prose.
+ * The architectural boundaries of #39 after #93.
  *
- * A pending request is not a Topic and must never reach Learn, Test, the
- * scheduler, progress, completion, history or cue evidence; the inbox is remote
- * and the library is local; and nothing privileged may reach the browser.
+ * A pending request is not learner state and must never reach Learn, Test, the
+ * scheduler, history or evidence. The inbox may share only neutral Firebase
+ * configuration/transport with application auth and progress persistence.
  */
 
 const HERE = dirname(fileURLToPath(import.meta.url))
@@ -42,23 +42,22 @@ const librarySources = sourceFiles(SRC).filter(
   (path) => !path.startsWith(HERE) && !/\.test\.tsx?$/.test(path),
 )
 
+const SHARED_FIREBASE_IMPORTS = new Set(['../firebaseClient', '../firebaseConfig'])
+
 describe('the inbox does not touch the learning model', () => {
-  it('imports nothing from the library at all', () => {
+  it('imports only inbox modules plus the neutral shared Firebase boundary', () => {
     for (const path of inboxSources) {
       for (const specifier of importsOf(path)) {
         const local = specifier.startsWith('.')
         expect(
-          !local || specifier.startsWith('./'),
-          `${relative(SRC, path)} imports ${specifier} from outside the inbox`,
+          !local || specifier.startsWith('./') || SHARED_FIREBASE_IMPORTS.has(specifier),
+          `${relative(SRC, path)} imports ${specifier} outside the allowed inbox/Firebase boundary`,
         ).toBe(true)
       }
     }
   })
 
   it('never reaches a learning-model or storage entry point', () => {
-    // The import rule above already makes the library's types unreachable.
-    // These are the runtime entry points a stray global or copied line could
-    // still bring in: durable learner state and the scheduler.
     const forbidden = [
       'resolveAttempt',
       'resolveStudy',
@@ -78,8 +77,12 @@ describe('the inbox does not touch the learning model', () => {
     }
   })
 
-  it('is not reachable from the library, storage or scheduler', () => {
-    const libModules = librarySources.filter((path) => path.includes(`${join('src', 'lib')}`) || path.includes('/lib/'))
+  it('is not reachable from learner library, storage or scheduler modules', () => {
+    const libModules = librarySources.filter((path) => {
+      const normalized = path.replaceAll('\\', '/')
+      if (!normalized.includes('/src/lib/')) return false
+      return !normalized.endsWith('/firebaseClient.ts') && !normalized.endsWith('/firebaseConfig.ts')
+    })
     for (const path of libModules) {
       for (const specifier of importsOf(path)) {
         expect(specifier.includes('inbox'), `${relative(SRC, path)} imports ${specifier}`).toBe(false)
@@ -101,13 +104,12 @@ describe('a pending request can never become learning state', () => {
   }
 
   it('is rejected by the library parser', () => {
-    // The import boundary is where a foreign record would have to get in.
     const parsed = parseLibrary({ version: 5, topics: [{ id: 'req-1', ...pendingRecord }] })
     expect(parsed.ok).toBe(false)
     if (!parsed.ok) expect(parsed.error).toMatch(/title|scope/i)
   })
 
-  it('has no field the scheduler or the ladder can read', () => {
+  it('has no field the scheduler or ladder can read', () => {
     const request = parseContentRequest('req-1', pendingRecord) as ContentRequest
     const asTopic = request as unknown as Record<string, unknown>
 
@@ -124,7 +126,6 @@ describe('a pending request can never become learning state', () => {
     ]) {
       expect(asTopic[field]).toBeUndefined()
     }
-    // `status` exists on both, and means something entirely different here.
     expect(request.status).toBe('pending')
     expect(['unstarted', 'learning', 'drilled', 'completed', 'decayed']).not.toContain(request.status)
   })
@@ -161,8 +162,6 @@ describe('a pending request can never become learning state', () => {
       resolved: resolveAttempt(topics[0], 1, 1).to,
     }
 
-    // Every scheduling entry point takes topics and only topics. There is no
-    // overload, argument or code path through which a request could be offered.
     expect(before.due).toEqual(['nato-phonetic'])
     expect(before.shelves).toEqual(['due:1'])
     expect(before.resolved).toBe('learning')
@@ -243,15 +242,12 @@ describe('nothing privileged reaches the browser', () => {
       /GOOGLE_APPLICATION_CREDENTIALS/,
       /gh[pousr]_[A-Za-z0-9]{16,}/,
     ]
-    // Tests never reach the browser; this is about what the bundle can carry.
     for (const path of sourceFiles(SRC).filter((file) => !/\.test\.tsx?$/.test(file))) {
       const source = readFileSync(path, 'utf8')
       for (const pattern of forbidden) {
         expect(pattern.test(source), `${relative(SRC, path)} matches ${pattern}`).toBe(false)
       }
-      expect(source.includes('scripts/inbox'), `${relative(SRC, path)} imports the ingestion tool`).toBe(
-        false,
-      )
+      expect(source.includes('scripts/inbox'), `${relative(SRC, path)} imports the ingestion tool`).toBe(false)
     }
   })
 })
