@@ -59,7 +59,7 @@ export function currentSitting(review: MorseReviewProgress): number {
 }
 
 export function newReviewItem(sitting: number): MorseReviewItem {
-  return { introducedIn: sitting, lastSeenIn: sitting, laterCorrect: 0, heard: 0, heardCorrect: 0 }
+  return { introducedIn: sitting, lastSeenIn: sitting, laterCorrect: 0, printed: 0, heard: 0, heardCorrect: 0 }
 }
 
 /**
@@ -110,6 +110,7 @@ export function recordPrintedRetrieval(
     ...existing,
     lastSeenIn: Math.max(existing.lastSeenIn, sitting),
     laterCorrect: existing.laterCorrect + (later ? 1 : 0),
+    printed: existing.printed + 1,
   }
   return { ...review, items: { ...review.items, [itemId]: next } }
 }

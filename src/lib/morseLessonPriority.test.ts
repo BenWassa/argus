@@ -173,4 +173,18 @@ describe('determinism', () => {
 
     expect(after).not.toBe(before)
   })
+
+  it('gives a less-exposed later character an equal-need turn before an early one', () => {
+    const review: MorseReviewProgress = {
+      sittings: 2,
+      items: {
+        early: { introducedIn: 1, lastSeenIn: 2, laterCorrect: 1, printed: 6, heard: 1, heardCorrect: 1 },
+        late: { introducedIn: 1, lastSeenIn: 2, laterCorrect: 1, printed: 0, heard: 1, heardCorrect: 1 },
+      },
+    }
+    const order = [candidate('early', 'settled', 0), candidate('late', 'settled', 1)].sort(
+      byRetrievalPriority(review),
+    )
+    expect(order[0].itemId).toBe('late')
+  })
 })

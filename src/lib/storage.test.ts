@@ -663,7 +663,7 @@ describe('formative Morse review history is durable and portable (#90)', () => {
     return result.error
   }
 
-  const ITEM = { introducedIn: 1, lastSeenIn: 2, laterCorrect: 1, heard: 2, heardCorrect: 1 }
+  const ITEM = { introducedIn: 1, lastSeenIn: 2, laterCorrect: 1, printed: 2, heard: 2, heardCorrect: 1 }
 
   it('round-trips the history losslessly', () => {
     const review = { sittings: 2, items: { 'item-1': ITEM } }
@@ -673,6 +673,13 @@ describe('formative Morse review history is durable and portable (#90)', () => {
     // Export is the stored record, so re-importing it has to be a fixed point.
     const again = parseLibrary(JSON.parse(JSON.stringify({ version: 5, topics: [topic] })))
     expect(again.ok && again.library.topics[0].morseReview).toEqual(review)
+  })
+
+  it('normalises pre-#96 history without a printed counter conservatively', () => {
+    const legacy = { ...ITEM }
+    delete (legacy as Partial<typeof ITEM>).printed
+    expect(parsed({ sittings: 2, items: { 'item-1': legacy } }).morseReview)
+      .toEqual({ sittings: 2, items: { 'item-1': { ...legacy, printed: 0 } } })
   })
 
   /**
@@ -708,6 +715,8 @@ describe('formative Morse review history is durable and portable (#90)', () => {
     // Introduced in sitting 1 with 2 completed sittings gives at most 2 chances.
     expect(rejection({ sittings: 2, items: { 'item-1': { ...ITEM, laterCorrect: 5 } } }))
       .toContain('more later-sitting successes')
+    expect(rejection({ sittings: 2, items: { 'item-1': { ...ITEM, printed: 0 } } }))
+      .toContain('more later-sitting successes than printed retrievals')
     expect(rejection({ sittings: 2, items: { 'item-1': { ...ITEM, heard: 1, heardCorrect: 2 } } }))
       .toContain('more correct listening answers')
     expect(rejection({ sittings: 2, items: { 'item-1': { ...ITEM, heard: 1.5 } } }))
