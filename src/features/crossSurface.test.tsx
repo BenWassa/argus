@@ -497,7 +497,6 @@ describe('Library absorbed Progress without losing what it said', () => {
     ]
     install(topics)
     renderLibrary()
-
     const headings = [...document.querySelectorAll('.lib-shelf-head')].map((h) =>
       h.textContent?.replace(/\d+$/, '').trim(),
     )
@@ -629,9 +628,9 @@ describe('opening Morse lands on the curriculum', () => {
   it('makes the path the body of the page, with the alphabet a deliberate step away', () => {
     renderTopicPage(blank(MORSE_ID))
 
-    // Thirteen lessons, two word checkpoints and the Test that closes them.
+    // Thirteen lessons, four word checkpoints and the Test that closes them.
     expect(document.querySelectorAll('.morse-path-lesson')).toHaveLength(13)
-    expect(document.querySelectorAll('.morse-path-checkpoint')).toHaveLength(2)
+    expect(document.querySelectorAll('.morse-path-checkpoint')).toHaveLength(4)
     expect(document.querySelectorAll('.morse-path-check')).toHaveLength(1)
 
     // The reference used to be twenty-six cards sitting on this page, which was

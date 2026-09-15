@@ -1,5 +1,7 @@
 # Argus progress architecture
 
+> **#90/#92 closeout addendum — 2026-09-15.** This block supersedes stale implementation-status statements later in the historical #62/#92 record. Batch 6 adds one optional formative scheduling field, `Topic.morseReview`: a completed-sitting ordinal plus per-item introduction sitting, latest printed sitting, later-sitting correct count, listening count and listening-correct count. It is **not** Test evidence or retention state. Printed and listening history remain separate; listening cannot satisfy later-sitting printed consolidation or reset printed staleness. The field is additive inside v5, may be absent on legacy records, round-trips through export/import, and item reconciliation prunes deleted-item references without inventing history. New Morse learners now require later-sitting printed consolidation before readiness; an existing `acquisitionReadyAt` and the legacy no-review-history compatibility path prevent regression. #90 item 8 is also already implemented: a clean non-qualifying Test uses `advancementEligible: false`, so the scheduler records the run without moving/resetting retention status or clocks. #92 removed standalone Progress as a destination; current cross-surface truth is Today + Library + Topic. Historical sections below are retained for architecture provenance, including their now-superseded “no new durable field” / “items 2–5 and 9 outstanding” wording.
+
 Parent programme: #62  
 Baseline assessed: `fd253386118aec7044e99d9c540287a518078121`
 

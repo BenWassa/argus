@@ -56,10 +56,10 @@ function renderPath(overrides: Partial<Parameters<typeof MorsePath>[0]> = {}) {
 afterEach(cleanup)
 
 describe('the path projects the curriculum and owns none of it', () => {
-  it('renders thirteen lessons, two checkpoints and the Test that closes them', () => {
+  it('renders thirteen lessons, four checkpoints and the Test that closes them', () => {
     renderPath()
     expect(document.querySelectorAll('.morse-path-lesson')).toHaveLength(13)
-    expect(document.querySelectorAll('.morse-path-checkpoint')).toHaveLength(2)
+    expect(document.querySelectorAll('.morse-path-checkpoint')).toHaveLength(4)
     expect(document.querySelectorAll('.morse-path-check')).toHaveLength(1)
   })
 
