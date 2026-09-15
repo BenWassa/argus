@@ -1,5 +1,13 @@
 # Argus learning-experience overhaul — ratification package (#92)
 
+> **Closeout addendum — 2026-09-15.** This block supersedes stale implementation-status statements later in this document; the original synthesis is retained below for decision history. Batch 6 has now substantially landed on `main`, and the #90/#92 closeout completes its remaining checkpoint arc. Current implementation/tests are authoritative.
+>
+> **#90 current matrix:** (1) state boundaries preserved; (2) item-aware review shipped; (3) at most two novel characters per 10-retrieval sitting with remaining budget cumulative review shipped; (4) later-sitting printed success before new-learner readiness shipped with legacy/previously-ready compatibility; (5) need-balanced listening shipped and formative-only; (6–7) Learn→Test independent handoff/bidirectional distribution shipped in batch 4; (8) explicit non-qualifying scheduler handling is already shipped via `advancementEligible: false` and does not reset retention clocks; (9) checkpoints now span Lessons **4, 7, 10 and 13**, include late-acquired material, one bounded local retry after intervening targets where practical, and a local-only summary.
+>
+> `Topic.morseReview` is the one additive batch-6 review field. It round-trips through the v5 storage/export boundary; absent review state remains valid legacy data. Whole-programme simulations cover visual-only and audio-enabled learners, early/late repeated misses, listening suppression, bounded completion, no late-letter starvation and balanced listening coverage.
+>
+> **Closeability:** once the closeout PR is green and merged, #90 has no remaining deterministic engineering requirement. #42 remains the separate real-Pixel acceptance track. #92 should remain open only for these owner decisions: **(1)** Morse alphabet link vs embedded 26-card reference; **(2)** ordinary-topic exposure semantics; **(3)** targeted-practice surface/naming; **(4)** spacing copy / same-day continuation presentation. Do not treat any other historical checklist item below as a new #92 gate.
+
 > **Authority status — the #92 synthesis pass.** This is the "one coherent
 > package" #92's definition of done asks for. It does not repeat research
 > already written; it states what is now true, reconciles the two proposal
