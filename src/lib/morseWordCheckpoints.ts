@@ -113,10 +113,13 @@ export function morseWordCheckpoints(): MorseWordCheckpoint[] {
 }
 
 /**
- * A milestone is available once its lesson is complete now, or once any later
- * lesson has been reached. The latter is durable proof the milestone was
- * completed before a returning-item repair moved the canonical current lesson
- * backwards.
+ * A milestone is available once its lesson is complete now, or once the lesson
+ * path proves it had already been reached before a returning-item repair moved
+ * the canonical current lesson backwards.
+ *
+ * `unlocked` matters for the final Lesson-13 checkpoint: there is no later
+ * lesson whose state can carry that proof, but `morseLessonPath()` preserves a
+ * reached final packet as `unlocked` while an older packet is being repaired.
  */
 export function checkpointUnlocked(
   path: readonly MorseLessonPathItem[],
@@ -125,7 +128,7 @@ export function checkpointUnlocked(
   const milestoneIndex = afterLesson - 1
   const milestone = path[milestoneIndex]
   if (!milestone) return false
-  if (milestone.state === 'completed') return true
+  if (milestone.state === 'completed' || milestone.state === 'unlocked') return true
   return path.slice(afterLesson).some((lesson) => lesson.state !== 'locked')
 }
 
