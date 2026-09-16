@@ -28,7 +28,7 @@ describe('SignInScreen', () => {
   })
 
   it('prevents duplicate submission while Google sign-in is active', async () => {
-    let finish: (() => void) | null = null
+    let finish!: () => void
     const signIn = () =>
       new Promise<void>((resolve) => {
         finish = resolve
@@ -41,7 +41,7 @@ describe('SignInScreen', () => {
     expect(busy.disabled).toBe(true)
     expect(busy.getAttribute('aria-busy')).toBe('true')
 
-    finish?.()
+    finish()
     await waitFor(() =>
       expect((screen.getByRole('button', { name: /continue with google/i }) as HTMLButtonElement).disabled).toBe(false),
     )
