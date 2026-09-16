@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { clearLibrary, emptyLibrary, loadLibraryWithReport, reconcileLoadedLibrary, saveLibrary } from './storage'
 import { NO_RECONCILIATION, type CatalogReconciliation } from './catalog'
 import { clearAllLessonSittings } from './morseLessonSittingStorage'
+import { syncConfig } from './sync/config'
 import type { CurrentLibrary, Topic } from './types'
 
 interface LibraryStore {
@@ -39,14 +40,22 @@ interface LibraryStore {
 }
 
 const Ctx = createContext<LibraryStore | null>(null)
+const SYNC_CONFIGURED = syncConfig().configured
 
 export function LibraryProvider({ children }: { children: ReactNode }) {
-  const [loaded] = useState(loadLibraryWithReport)
+  const [loaded] = useState(() =>
+    SYNC_CONFIGURED
+      ? { library: emptyLibrary(), report: NO_RECONCILIATION }
+      : loadLibraryWithReport(),
+  )
   const [library, setLibrary] = useState<CurrentLibrary>(loaded.library)
   const [catalogReport, setCatalogReport] = useState<CatalogReconciliation>(loaded.report)
 
   useEffect(() => {
-    saveLibrary(library)
+    // Configured builds persist through the authenticated per-UID cache in the
+    // sync layer. Writing the shared legacy key here would let account B replace
+    // account A's last-resort migration source before identity was known.
+    if (!SYNC_CONFIGURED) saveLibrary(library)
   }, [library])
 
   const upsertTopic = useCallback((topic: Topic) => {
@@ -86,7 +95,10 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const resetLibrary = useCallback(() => {
-    clearLibrary()
+    // In a configured build the UID cache and cloud mirror are updated by the
+    // sync bridge from this explicit empty library. The legacy global key is a
+    // migration source only and must never become cross-account live storage.
+    if (!SYNC_CONFIGURED) clearLibrary()
     clearAllLessonSittings()
     setLibrary(emptyLibrary())
     setCatalogReport(NO_RECONCILIATION)
