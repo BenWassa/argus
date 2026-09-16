@@ -4,30 +4,14 @@ rules_version = '2';
 //
 // Argus keeps two things in the cloud, both belonging to one owner:
 //
-//   users/{uid}/inbox   — captured content requests (intent, not progress)
-//   users/{uid}/library — the synced learning record itself
+//   users/{uid}/inbox       — captured content requests (intent, not progress)
+//   users/{uid}/library     — one exact v5 JSON topic document per topic
+//   users/{uid}/libraryMeta — library-level catalog-delivery state
 //
-// The learning record used to be local-only. It is now synced so one owner can
-// carry a single record across their own devices. That does not loosen the
-// evidence contract: these rules still refuse anything but the owner, and the
-// v5 parse boundary in `src/lib/storage.ts` remains the arbiter of shape.
-//
-// The owner placeholder below is rendered by `npm run inbox:rules`, which reads
-// ARGUS_OWNER_EMAIL. The resulting `firestore.rules` is generated and untracked.
-// The address is an identity, not a credential.
-//
-// Identity is the owner's verified Google address rather than a pinned UID. A
-// UID only exists after a first sign-in, so pinning one made the rules
-// undeployable until somebody had already signed in against rules that did not
-// yet name them. An address is known before the fact and survives the account
-// being re-created, and `request.auth.uid` still keys every path.
-//
-// It is a *list* because one Google account can present more than one address.
-// An account originally created on googlemail.com answers to both that and the
-// gmail.com form, and which one reaches the token is not something this project
-// gets to decide. Matching a single spelling would deny the real owner on the
-// day Google handed over the other one, and the failure would look exactly like
-// a bug in sync rather than a rule refusing them.
+// The v5 parse boundary in `src/lib/storage.ts` remains the arbiter of learner
+// record meaning. Rules enforce identity, bounded payloads, server timestamps
+// and monotonic revisions; the client performs conservative semantic conflict
+// detection and Firestore transactions provide compare-and-set writes.
 
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -36,12 +20,6 @@ service cloud.firestore {
       return [__ARGUS_OWNER_EMAILS__];
     }
 
-    // One person, named explicitly, and only through a provider that proved the
-    // address. Being signed in is not enough, and owning the path is not enough:
-    // there is no public or anonymous write path into this project, and no
-    // second account can create one by signing up. Every address in the list
-    // belongs to the same person; it is one identity spelled more than one way,
-    // not several people.
     function owner() {
       return request.auth != null
         && request.auth.token.email_verified == true
@@ -67,9 +45,6 @@ service cloud.firestore {
         && data.text.trim() == data.text;
     }
 
-    // A pending request is intent and nothing else: one piece of text, an
-    // optional track hint, and a creation time the client cannot choose. No
-    // scope, no items, no status ladder, no progress, no evidence.
     function validPending(data) {
       return data.keys().hasOnly(['text', 'status', 'trackHint', 'createdAt'])
         && data.keys().hasAll(['text', 'status', 'createdAt'])
@@ -79,11 +54,6 @@ service cloud.firestore {
         && data.createdAt == request.time;
     }
 
-    // The only legitimate transition: pending becomes added, once, carrying the
-    // shipped topic ids it produced and a server-set time. The captured text,
-    // its track hint and its creation time are immutable, so a request's
-    // provenance cannot be rewritten after the fact. Rules cannot know whether
-    // a topic id is real; ingestion checks that against the shipped catalog.
     function validAddition(before, after) {
       return after.keys().hasOnly(['text', 'status', 'trackHint', 'createdAt', 'topicIds', 'addedAt'])
         && after.keys().hasAll(['text', 'status', 'createdAt', 'topicIds', 'addedAt'])
@@ -102,20 +72,11 @@ service cloud.firestore {
       allow read: if soleUser(userId);
       allow create: if soleUser(userId) && validPending(request.resource.data);
       allow update: if soleUser(userId) && validAddition(resource.data, request.resource.data);
-      // A request can be dropped while it is still only intent. Once it has
-      // shipped topics attached, the record is ingestion provenance and stays.
       allow delete: if soleUser(userId) && resource.data.status == 'pending';
     }
 
     // -------------------------------------------------------------- library
 
-    // A synced record is carried as the exact JSON the v5 boundary already
-    // validates, not as a second Firestore-shaped schema. Rules cannot check a
-    // learning record's meaning — whether a gap is satisfied, whether evidence
-    // counts — and pretending otherwise would put a second, weaker definition
-    // of the contract somewhere it can drift from the first. So these rules
-    // guard exactly what rules can guard: who is writing, that the payload is
-    // bounded text, and that the device did not choose its own clock.
     function validSynced(data, keys) {
       return data.keys().hasOnly(keys)
         && data.keys().hasAll(keys)
@@ -123,24 +84,34 @@ service cloud.firestore {
         && data.json.size() > 0
         && data.json.size() <= 900000
         && data.revision is int
-        && data.revision >= 0
+        && data.revision >= 1
         && data.updatedAt == request.time;
     }
 
-    // One document per topic, so two of the owner's devices editing different
-    // topics do not overwrite each other — the whole reason this is not a
-    // single blob.
+    function validTopicIdentity(data, topicId) {
+      return data.topicId is string && data.topicId == topicId;
+    }
+
     match /users/{userId}/library/{topicId} {
       allow read: if soleUser(userId);
-      allow create, update: if soleUser(userId)
+      allow create: if soleUser(userId)
         && validSynced(request.resource.data, ['json', 'revision', 'updatedAt', 'topicId'])
-        && request.resource.data.topicId == topicId;
-      // A topic deleted on one device is deleted on the others.
+        && validTopicIdentity(request.resource.data, topicId)
+        && request.resource.data.revision == 1;
+      allow update: if soleUser(userId)
+        && validSynced(request.resource.data, ['json', 'revision', 'updatedAt', 'topicId'])
+        && validTopicIdentity(request.resource.data, topicId)
+        && request.resource.data.revision == resource.data.revision + 1;
+      // Deletion is allowed only to the owner. The client performs it inside a
+      // transaction after reading the exact expected revision, so a concurrent
+      // edit makes the transaction retry/fail rather than being erased.
       allow delete: if soleUser(userId);
     }
 
-    // Library-level state that is not any one topic: the record version and
-    // which catalog topics have been delivered.
+    // Catalog-delivery metadata is a small monotonic set-union record. Its
+    // current client writes revision 1 as a format marker; unlike topic records,
+    // no learner evidence/history lives here and no conflict winner is inferred
+    // from this number.
     match /users/{userId}/libraryMeta/{docId} {
       allow read: if soleUser(userId);
       allow create, update: if soleUser(userId)
@@ -148,7 +119,6 @@ service cloud.firestore {
       allow delete: if soleUser(userId);
     }
 
-    // Nothing else in this project belongs to Argus.
     match /{document=**} {
       allow read, write: if false;
     }
