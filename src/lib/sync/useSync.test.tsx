@@ -242,10 +242,14 @@ describe('local-first writes and retry', () => {
     const topic = realTopic()
     writeLocalLibrary(OWNER.uid, oneTopicLibrary(topic))
     let attempts = 0
+    let failNext = false
     const backend = fakeBackend({
-      pushTopic: async (_uid, _topicId, _json, _revision) => {
+      pushTopic: async () => {
         attempts += 1
-        if (attempts === 1) throw new Error('network unavailable')
+        if (failNext) {
+          failNext = false
+          throw new Error('network unavailable')
+        }
       },
     })
     const store = fakeStore()
@@ -255,6 +259,8 @@ describe('local-first writes and retry', () => {
     emitCloud(backend, [{ topicId: topic.id, json: topicJson(topic), revision: 1, updatedAtMs: 1 }], JSON.stringify({ version: 5, catalogDelivered: [] }))
     await act(async () => { await vi.runAllTimersAsync() })
     expect(result.current.state.kind).toBe('synced')
+    const baselineAttempts = attempts
+    failNext = true
 
     const changed = { ...store.library.topics.find((candidate) => candidate.id === topic.id)!, status: 'learning' as const }
     store.library = {
@@ -264,12 +270,12 @@ describe('local-first writes and retry', () => {
     rerender()
 
     await act(async () => { await vi.advanceTimersByTimeAsync(700) })
-    expect(attempts).toBe(1)
+    expect(attempts).toBe(baselineAttempts + 1)
     expect(result.current.state.kind).toBe('error')
     expect(localStorage.getItem(`argus.library.sync.pending.v1.${OWNER.uid}`)).toBe('1')
 
     await act(async () => { await vi.advanceTimersByTimeAsync(2_100) })
-    expect(attempts).toBeGreaterThanOrEqual(2)
+    expect(attempts).toBeGreaterThanOrEqual(baselineAttempts + 2)
     expect(result.current.state.kind).toBe('synced')
   })
 
