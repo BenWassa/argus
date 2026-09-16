@@ -55,14 +55,36 @@ export function renderRules(template, owner) {
   return rendered
 }
 
-export function renderRulesFile(owner, outputPath = OUTPUT_PATH) {
+export function renderRulesFile(owner, outputPath = OUTPUT_PATH, { emulator = false } = {}) {
   const rendered = renderRules(readFileSync(TEMPLATE_PATH, 'utf8'), owner)
-  writeFileSync(outputPath, rendered)
-  return rendered
+  const marked = emulator ? `${EMULATOR_BANNER}\n${rendered}` : rendered
+  writeFileSync(outputPath, marked)
+  return marked
 }
 
 /** The owner the emulator suite renders against when no real one is configured. */
 export const EMULATOR_OWNER = 'owner@argus-emulator.test'
+
+/**
+ * `npm run test:rules` leaves a rendered ruleset behind at the same path
+ * `firebase deploy` reads, naming an owner who does not exist. Deploying that
+ * would lock the real owner out of their own project, and nothing about the
+ * file's contents would look wrong at a glance.
+ *
+ * So an emulator render says so in its first line, and `assertDeployable`
+ * refuses it. The deploy scripts re-render from ARGUS_OWNER_EMAIL first anyway;
+ * this is the guard for when someone runs `firebase deploy` by hand.
+ */
+export const EMULATOR_BANNER = '// EMULATOR ONLY — rendered by test:rules. DO NOT DEPLOY.'
+
+export function assertDeployable(rules) {
+  if (rules.startsWith(EMULATOR_BANNER)) {
+    throw new Error(
+      'firestore.rules was rendered for the emulator and names an owner who does not exist. Re-render it with ARGUS_OWNER_EMAIL before deploying.',
+    )
+  }
+  return rules
+}
 
 const invokedDirectly = process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]
 if (invokedDirectly) {
@@ -71,7 +93,17 @@ if (invokedDirectly) {
   // its own ruleset anyway; this only satisfies the emulator's own startup.
   const emulator = process.argv.includes('--emulator')
   try {
-    renderRulesFile(process.env.ARGUS_OWNER_EMAIL || (emulator ? EMULATOR_OWNER : undefined))
+    if (process.argv.includes('--check')) {
+      assertDeployable(readFileSync(OUTPUT_PATH, 'utf8'))
+      console.log(`${OUTPUT_PATH} is deployable`)
+      process.exit(0)
+    }
+    // A real owner always wins, so `--emulator` in CI with the variable set
+    // still renders something deployable rather than something marked.
+    const owner = process.env.ARGUS_OWNER_EMAIL
+    renderRulesFile(owner || (emulator ? EMULATOR_OWNER : undefined), OUTPUT_PATH, {
+      emulator: emulator && !owner,
+    })
     console.log(`Wrote ${OUTPUT_PATH}`)
   } catch (error) {
     console.error(error instanceof Error ? error.message : error)
