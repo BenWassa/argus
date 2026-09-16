@@ -290,8 +290,19 @@ export function useSync(store: SyncableStore, injected?: SyncBackend) {
     bootstrapInFlight.current = true
 
     const run = async () => {
-      const remote = remoteLibrary(records, meta)
       const local = candidate.current
+      let remote: CurrentLibrary | null
+      try {
+        remote = remoteLibrary(records, meta)
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Cloud learner data is invalid.'
+        if (!openValidatedCacheOffline(user, message)) {
+          setState({ kind: 'error', user: null, message, ready: false })
+        }
+        bootstrapInFlight.current = false
+        return
+      }
+
       const base = local.kind === 'valid'
         ? local.library
         : remote ?? freshLibrary()
@@ -338,7 +349,7 @@ export function useSync(store: SyncableStore, injected?: SyncBackend) {
     }
 
     void run()
-  }, [backend, meta, records, user])
+  }, [backend, meta, openValidatedCacheOffline, records, user])
 
   const runSync = useCallback(async () => {
     const currentUser = userRef.current
