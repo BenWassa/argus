@@ -110,10 +110,8 @@ describe('a build with an account to sign in to', () => {
     })
     act(() => backend.emitUser(OWNER))
     finishEmptyBootstrap(backend)
-    await waitFor(() =>
-      expect(screen.queryByRole('button', { name: /continue with google/i })).toBeNull(),
-    )
-    expect(screen.getByRole('navigation', { name: 'Sections' })).toBeTruthy()
+    await waitFor(() => expect(screen.getByRole('navigation', { name: 'Sections' })).toBeTruthy())
+    expect(screen.queryByRole('button', { name: /continue with google/i })).toBeNull()
   })
 
   it('holds the door while a returning session is being checked', () => {
