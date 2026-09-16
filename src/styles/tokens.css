@@ -8,9 +8,9 @@
      layering, and every step is genuinely used. Neutrals tint toward green. */
   --bg: #0d100e;
   --surface: #131714;
-  --surface-2: #191e1a;
-  --surface-3: #212721;
-  --surface-4: #2a312b;
+  --surface-2: #1d221e;
+  --surface-3: #29302a;
+  --surface-4: #39413a;
   --field: #0f1310;
 
   /* Text */
@@ -74,6 +74,9 @@
   --t-page: 2.15rem;
   --t-section: 1.45rem;
   --t-component: 1.05rem;
+  /* Serif standfirst/overview copy: DESIGN.md's "slightly larger reading
+     size" exception to body voice, named so it stops drifting per-file. */
+  --t-lede: 1.15rem;
   --t-body: 0.98rem;
   --t-small: 0.85rem;
   --t-label: 0.72rem;
@@ -89,7 +92,7 @@
 
   /* Elevation. Depth reads as material and light, not as drop-shadowed cards.
      --edge is the top highlight that makes a raised surface look raised. */
-  --edge: inset 0 1px 0 rgb(255 255 255 / 5%);
+  --edge: inset 0 1px 0 rgb(255 255 255 / 8%);
   --shadow-sm: 0 1px 2px rgb(0 0 0 / 32%);
   --shadow-key: 0 12px 30px rgb(0 0 0 / 40%);
   --shadow: 0 18px 48px rgb(0 0 0 / 34%);

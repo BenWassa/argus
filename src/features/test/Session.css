@@ -515,6 +515,7 @@ button.flip-card:active {
   border: 1px solid var(--line-strong);
   border-radius: var(--r-md);
   background: var(--surface-3);
+  box-shadow: var(--edge);
   color: var(--ink);
   font-family: var(--font-mono);
   font-size: 1.3rem;
@@ -646,6 +647,7 @@ button.flip-card:active {
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
   background: var(--surface-2);
+  box-shadow: var(--edge);
 }
 
 .practice-offer p {

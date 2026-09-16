@@ -703,7 +703,7 @@ main:focus {
   border-radius: var(--r-lg);
   background:
     radial-gradient(110% 90% at 50% -10%, rgb(214 181 116 / 13%), transparent 62%),
-    linear-gradient(180deg, var(--surface-2), var(--surface));
+    linear-gradient(180deg, var(--surface-4), var(--surface-2));
   box-shadow: var(--edge), var(--shadow-lift);
 }
 

@@ -130,6 +130,7 @@
   border: 1px solid var(--line-strong);
   border-radius: var(--r-md);
   background: var(--surface-2);
+  box-shadow: var(--edge);
 }
 
 .lesson-listening-stimulus {
@@ -153,6 +154,7 @@
   border: 1px solid var(--line-strong);
   border-radius: var(--r-md);
   background: var(--surface-3);
+  box-shadow: var(--edge);
   color: var(--ink);
   font-family: var(--font-mono);
   font-size: 1.3rem;
@@ -271,6 +273,7 @@
   border: 1px solid var(--line-strong);
   border-radius: var(--r-lg);
   background: var(--surface-2);
+  box-shadow: var(--edge);
   animation: morse-target-in var(--t-base) var(--ease) both;
 }
 

@@ -94,6 +94,7 @@
   text-transform: uppercase;
   color: var(--subtle);
   background: var(--bg);
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 30%, var(--line));
 }
 
 .lib-shelf-count {

@@ -38,6 +38,8 @@
 
 .horizon-head {
   margin-top: var(--s-2xl);
+  padding-bottom: var(--s-sm);
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 30%, var(--line));
 }
 
 .horizon-head + .today-sub + .index.docket {
