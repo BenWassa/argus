@@ -41,9 +41,13 @@ The production site is **https://argus-b7a5a.web.app**, on Firebase Hosting. Git
 
 ## Sync
 
-Signing in with Google keeps the library in step across the owner's own devices. Once signed in, the copy in the browser is what Argus reads and writes and every surface works offline exactly as before, and signing out changes nothing locally. Where the same topic changed on two devices, neither copy is overwritten — the conflict is reported on the Data screen.
+A Firebase-configured build requires Google sign-in before learning surfaces mount. After Firebase identifies a UID, Argus still keeps the entry gate closed until that account's UID-bound local cache and cloud library have been reconciled. Missing local state restores from cloud; corrupt local bytes are quarantined before cloud recovery; an existing validated local-only library seeds an empty cloud account; a genuinely empty local/cloud pair creates the shipped fresh library only after cloud absence is known.
 
-The production build asks who you are before showing anything, so sign-in is not optional there. A build with no Firebase configuration — what the browser test suite runs against — has nothing to gate and stays entirely local. See `PRODUCT.md` and `docs/open/ISSUE_93_FIREBASE_PROGRESS_SYNC.md`.
+Once that bootstrap completes, the browser copy is immediate authority for interaction and works offline. Every durable change is written to the UID cache first, cloud writes are coalesced, and failed writes remain pending and retry on backoff/reconnect. Signing out does not destroy that UID's local cache or cloud copy, but the active in-memory learner library is cleared so a different account can never see or inherit it.
+
+The cloud record is still the exact parser-accepted v5 topic JSON, including Morse `lessonSitting`; there is no second Firebase progress model. Concurrent writes use per-topic revisions plus Firestore transactions, and the conservative conflict policy remains: incompatible concurrent edits, edit/delete races, and evidence-reducing remote copies are reported rather than resolved by timestamp last-write-wins.
+
+See `PRODUCT.md`, `docs/closed/ISSUE_93_FIREBASE_PROGRESS_SYNC.md`, and `docs/open/PROGRESS_ARCHITECTURE.md`.
 
 ## Durable product and programme documentation
 
@@ -54,6 +58,7 @@ The production build asks who you are before showing anything, so sign-in is not
 - `docs/closed/LIBRARY_AUDIT.md` — reconciled shipped-library boundary/content audit.
 - `docs/closed/SEEDED_CONTENT_PROVENANCE.md` — authoritative source record for the original seeded topics.
 - `docs/open/CONTENT_INBOX.md` — content-inbox and curated-ingestion architecture, and the Firebase setup it needs.
+- `docs/closed/ISSUE_93_FIREBASE_PROGRESS_SYNC.md` — Firebase learner-progress recovery/synchronization closeout and Pixel acceptance checklist.
 - `docs/open/REDESIGN_INPUT_AUDIT.md` — current factual screen, state, issue-reconciliation, acceptance, and redesign-risk input package.
 - `docs/open/TARGETED_PRACTICE.md` — the formative practice run: its evidence boundary, how it selects what to practise, and why it is not called repair.
 - `docs/closed/PROGRAMME.md` — Learn/Test + content-quality programme closeout.
