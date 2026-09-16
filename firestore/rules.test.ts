@@ -28,7 +28,9 @@ import { renderRules } from '../scripts/renderRules.mjs'
  */
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
-const OWNER_EMAIL = 'owner@argus-emulator.test'
+const OWNER_EMAIL = 'owner@googlemail.com'
+/** The same account, spelled the way Google may also present it. */
+const OWNER_TWIN = 'owner@gmail.com'
 const AUTHORIZED_UID = 'argus-authorized-uid-000001'
 const OTHER_UID = 'some-other-google-account-99'
 const OTHER_EMAIL = 'someone.else@example.test'
@@ -139,6 +141,17 @@ describe('who may use the inbox', () => {
       .firestore()
     await assertFails(getDocs(collection(db, inbox(AUTHORIZED_UID))))
     await assertFails(setDoc(doc(db, `${library(AUTHORIZED_UID)}/nato`), syncedTopic('nato')))
+  })
+
+  it('accepts the same account under its other Google spelling', async () => {
+    // One account created on googlemail.com answers to gmail.com too, and which
+    // one reaches the token is not ours to choose. Refusing the other spelling
+    // would deny the real owner and look like sync being broken.
+    const db = env
+      .authenticatedContext(AUTHORIZED_UID, { email: OWNER_TWIN, email_verified: true })
+      .firestore()
+    await assertSucceeds(getDocs(collection(db, inbox(AUTHORIZED_UID))))
+    await assertSucceeds(setDoc(doc(db, `${library(AUTHORIZED_UID)}/nato`), syncedTopic('nato')))
   })
 
   it('denies a signed-in account with no address claim at all', async () => {

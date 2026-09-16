@@ -19,7 +19,7 @@ import { fileURLToPath } from 'node:url'
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 export const TEMPLATE_PATH = join(root, 'firestore.rules.template')
 export const OUTPUT_PATH = join(root, 'firestore.rules')
-export const OWNER_PLACEHOLDER = '__ARGUS_OWNER_EMAIL__'
+export const OWNER_PLACEHOLDER = '__ARGUS_OWNER_EMAILS__'
 
 /**
  * Deliberately a shape check and not an attempt to validate an address.
@@ -28,6 +28,37 @@ export const OWNER_PLACEHOLDER = '__ARGUS_OWNER_EMAIL__'
  * what matters is that it is lowercase, has no quote that could escape the
  * generated rules literal, and looks like an address at all.
  */
+/**
+ * Every address that reaches the token for the same Google account.
+ *
+ * An account created on googlemail.com answers to the gmail.com form as well,
+ * and which one Google puts in the token is not ours to decide. Deriving the
+ * twin here means the rules cannot be wrong on the day the other spelling turns
+ * up — a failure that would present as sync being broken rather than as the
+ * owner being refused. Anything else is left alone; a comma-separated list is
+ * accepted for accounts this rule cannot guess.
+ */
+export function ownerSpellings(value) {
+  const listed = String(value ?? '')
+    .split(',')
+    .map((entry) => entry.trim())
+    .filter(Boolean)
+  const all = new Set()
+  for (const entry of listed) {
+    const owner = assertUsableOwner(entry)
+    all.add(owner)
+    const [name, domain] = owner.split('@')
+    if (domain === 'googlemail.com') all.add(`${name}@gmail.com`)
+    if (domain === 'gmail.com') all.add(`${name}@googlemail.com`)
+  }
+  if (all.size === 0) {
+    throw new Error(
+      'ARGUS_OWNER_EMAIL is not set. It is the Google address allowed to use this project.',
+    )
+  }
+  return [...all].sort()
+}
+
 export function assertUsableOwner(email) {
   if (typeof email !== 'string' || !email.trim()) {
     throw new Error(
@@ -48,7 +79,10 @@ export function assertUsableOwner(email) {
 }
 
 export function renderRules(template, owner) {
-  const rendered = template.replaceAll(OWNER_PLACEHOLDER, assertUsableOwner(owner))
+  const list = ownerSpellings(owner)
+    .map((address) => `'${address}'`)
+    .join(', ')
+  const rendered = template.replaceAll(OWNER_PLACEHOLDER, list)
   if (rendered.includes(OWNER_PLACEHOLDER)) {
     throw new Error('The rules template still contains an unrendered placeholder.')
   }

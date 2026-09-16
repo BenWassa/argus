@@ -21,22 +21,31 @@ rules_version = '2';
 // undeployable until somebody had already signed in against rules that did not
 // yet name them. An address is known before the fact and survives the account
 // being re-created, and `request.auth.uid` still keys every path.
+//
+// It is a *list* because one Google account can present more than one address.
+// An account originally created on googlemail.com answers to both that and the
+// gmail.com form, and which one reaches the token is not something this project
+// gets to decide. Matching a single spelling would deny the real owner on the
+// day Google handed over the other one, and the failure would look exactly like
+// a bug in sync rather than a rule refusing them.
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function ownerEmail() {
-      return '__ARGUS_OWNER_EMAIL__';
+    function ownerEmails() {
+      return [__ARGUS_OWNER_EMAILS__];
     }
 
     // One person, named explicitly, and only through a provider that proved the
     // address. Being signed in is not enough, and owning the path is not enough:
     // there is no public or anonymous write path into this project, and no
-    // second account can create one by signing up.
+    // second account can create one by signing up. Every address in the list
+    // belongs to the same person; it is one identity spelled more than one way,
+    // not several people.
     function owner() {
       return request.auth != null
         && request.auth.token.email_verified == true
-        && request.auth.token.email.lower() == ownerEmail();
+        && request.auth.token.email.lower() in ownerEmails();
     }
 
     function soleUser(userId) {
