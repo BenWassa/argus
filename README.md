@@ -28,7 +28,9 @@ Other commands:
 - `npm run typecheck` — run TypeScript without building
 - `npm run test:browser` — run the Playwright suite against the built app at phone, short-landscape and desktop sizes (needs `npx playwright install chromium` once)
 - `npm run test:rules` — run the Firestore Security Rules suite against a local emulator (needs Java)
-- `npm run inbox:rules` — render `firestore.rules` from its template for the configured UID
+- `npm run inbox:rules` — render `firestore.rules` from its template for the configured owner (`ARGUS_OWNER_EMAIL`)
+- `npm run rules:deploy` — re-render the rules and deploy them; `npm run rules:check` refuses a ruleset left behind by the emulator suite
+- `npm run build:firebase` / `npm run deploy:hosting` — build for the Firebase root path and deploy to Firebase Hosting
 - `npm run inbox -- list` / `npm run inbox -- mark-added ...` — maintainer content-inbox ingestion
 
 ### Content inbox
@@ -36,6 +38,12 @@ Other commands:
 Argus can capture "want to learn" notes into a small Firestore inbox, kept entirely outside the local learning library. It is optional: with no Firebase configuration the capture surface reports itself unavailable and the rest of Argus is unaffected. Copy `.env.example` to `.env.local` to configure it. Everything it reads is public web configuration; no privileged credential belongs in the client. See `docs/open/CONTENT_INBOX.md`.
 
 The production site is deployed to **https://benwassa.github.io/argus/** by GitHub Actions whenever `main` is updated.
+
+Argus is also hosted on Firebase at **https://argus-b7a5a.web.app**, which is where signing in and library sync work. The two differ only in where they are served from: Pages uses Vite's default `/argus/` base and Firebase serves from the root, so a Firebase deploy must go through `npm run deploy:hosting` (which sets `ARGUS_BASE=/`). A bundle built for the subpath cannot boot at the root.
+
+## Sync
+
+Signing in with Google keeps the library in step across the owner's own devices. It is optional and local-first: the copy in the browser is what Argus reads and writes, every surface works signed out and offline, and signing out changes nothing locally. Where the same topic changed on two devices, neither copy is overwritten — the conflict is reported on the Data screen. See `PRODUCT.md` and `docs/open/ISSUE_93_FIREBASE_PROGRESS_SYNC.md`.
 
 ## Durable product and programme documentation
 
@@ -70,6 +78,6 @@ The production site is deployed to **https://benwassa.github.io/argus/** by GitH
 
 ## Deployment
 
-The Pages workflow installs dependencies, runs the production build, and deploys `dist/`. Vite's base path is configured for the `/argus/` GitHub Pages project URL.
+The Pages workflow installs dependencies, runs the production build, and deploys `dist/`. Vite's base path defaults to the `/argus/` GitHub Pages project URL; `ARGUS_BASE` overrides it for a root-served host such as Firebase Hosting.
 
 GitHub Pages must use **GitHub Actions** as its build and deployment source in the repository settings.

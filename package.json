@@ -15,7 +15,9 @@
     "test:rules": "node scripts/renderRules.mjs --emulator && npx --yes firebase-tools@14 emulators:exec --only firestore --project argus-rules-test \"vitest run --config vitest.rules.config.ts\"",
     "test:browser": "playwright test",
     "rules:deploy": "node scripts/renderRules.mjs && npx -y firebase-tools@latest deploy --only firestore:rules",
-    "rules:check": "node scripts/renderRules.mjs --check"
+    "rules:check": "node scripts/renderRules.mjs --check",
+    "build:firebase": "ARGUS_BASE=/ npm run build",
+    "deploy:hosting": "npm run build:firebase && npx -y firebase-tools@latest deploy --only hosting"
   },
   "dependencies": {
     "firebase": "^12.18.0",
