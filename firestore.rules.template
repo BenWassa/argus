@@ -1,30 +1,49 @@
 rules_version = '2';
 
-// Argus content inbox — Firestore Security Rules.
+// Argus — Firestore Security Rules.
 //
-// The inbox is the only thing Argus keeps in the cloud. The learning library,
-// scheduler state, attempt history and cue evidence are local-first and never
-// reach this database, so nothing here can affect what the learner has proved.
+// Argus keeps two things in the cloud, both belonging to one owner:
 //
-// The UID placeholder below is rendered by `npm run inbox:rules`, which reads
-// ARGUS_INBOX_UID. The resulting `firestore.rules` is generated and untracked.
-// The UID is an identity, not a credential.
+//   users/{uid}/inbox   — captured content requests (intent, not progress)
+//   users/{uid}/library — the synced learning record itself
+//
+// The learning record used to be local-only. It is now synced so one owner can
+// carry a single record across their own devices. That does not loosen the
+// evidence contract: these rules still refuse anything but the owner, and the
+// v5 parse boundary in `src/lib/storage.ts` remains the arbiter of shape.
+//
+// The owner placeholder below is rendered by `npm run inbox:rules`, which reads
+// ARGUS_OWNER_EMAIL. The resulting `firestore.rules` is generated and untracked.
+// The address is an identity, not a credential.
+//
+// Identity is the owner's verified Google address rather than a pinned UID. A
+// UID only exists after a first sign-in, so pinning one made the rules
+// undeployable until somebody had already signed in against rules that did not
+// yet name them. An address is known before the fact and survives the account
+// being re-created, and `request.auth.uid` still keys every path.
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function authorizedUid() {
-      return '__ARGUS_AUTHORIZED_UID__';
+    function ownerEmail() {
+      return '__ARGUS_OWNER_EMAIL__';
     }
 
-    // One user, named explicitly. Being signed in is not enough, and owning the
-    // path is not enough: there is no public or anonymous write path into the
-    // inbox, and no second account can create one by signing up.
-    function soleUser(userId) {
+    // One person, named explicitly, and only through a provider that proved the
+    // address. Being signed in is not enough, and owning the path is not enough:
+    // there is no public or anonymous write path into this project, and no
+    // second account can create one by signing up.
+    function owner() {
       return request.auth != null
-        && request.auth.uid == authorizedUid()
-        && userId == authorizedUid();
+        && request.auth.token.email_verified == true
+        && request.auth.token.email.lower() == ownerEmail();
     }
+
+    function soleUser(userId) {
+      return owner() && userId == request.auth.uid;
+    }
+
+    // ---------------------------------------------------------------- inbox
 
     function validTrackHint(data) {
       return !('trackHint' in data.keys())
@@ -77,6 +96,47 @@ service cloud.firestore {
       // A request can be dropped while it is still only intent. Once it has
       // shipped topics attached, the record is ingestion provenance and stays.
       allow delete: if soleUser(userId) && resource.data.status == 'pending';
+    }
+
+    // -------------------------------------------------------------- library
+
+    // A synced record is carried as the exact JSON the v5 boundary already
+    // validates, not as a second Firestore-shaped schema. Rules cannot check a
+    // learning record's meaning — whether a gap is satisfied, whether evidence
+    // counts — and pretending otherwise would put a second, weaker definition
+    // of the contract somewhere it can drift from the first. So these rules
+    // guard exactly what rules can guard: who is writing, that the payload is
+    // bounded text, and that the device did not choose its own clock.
+    function validSynced(data, keys) {
+      return data.keys().hasOnly(keys)
+        && data.keys().hasAll(keys)
+        && data.json is string
+        && data.json.size() > 0
+        && data.json.size() <= 900000
+        && data.revision is int
+        && data.revision >= 0
+        && data.updatedAt == request.time;
+    }
+
+    // One document per topic, so two of the owner's devices editing different
+    // topics do not overwrite each other — the whole reason this is not a
+    // single blob.
+    match /users/{userId}/library/{topicId} {
+      allow read: if soleUser(userId);
+      allow create, update: if soleUser(userId)
+        && validSynced(request.resource.data, ['json', 'revision', 'updatedAt', 'topicId'])
+        && request.resource.data.topicId == topicId;
+      // A topic deleted on one device is deleted on the others.
+      allow delete: if soleUser(userId);
+    }
+
+    // Library-level state that is not any one topic: the record version and
+    // which catalog topics have been delivered.
+    match /users/{userId}/libraryMeta/{docId} {
+      allow read: if soleUser(userId);
+      allow create, update: if soleUser(userId)
+        && validSynced(request.resource.data, ['json', 'revision', 'updatedAt']);
+      allow delete: if soleUser(userId);
     }
 
     // Nothing else in this project belongs to Argus.

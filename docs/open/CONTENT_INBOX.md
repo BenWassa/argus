@@ -1,3 +1,22 @@
+> **Superseded in two places — 2026-09-15.** This paper remains the record of
+> the content inbox's design, but two of its premises have since changed and are
+> stated correctly here rather than corrected throughout the text below.
+>
+> **1. Firestore no longer stores only the inbox.** Principles 1 and 2 below say
+> the library stays local-first and unsynchronized. The library is now synced as
+> well, under `users/{uid}/library`, on the owner's decision. It remains
+> local-first in the sense that matters — the browser's copy is what Argus reads
+> and writes, offline and without an account — and the v5 parse boundary still
+> governs what a topic may be. See `PRODUCT.md`'s *Sync* section.
+>
+> **2. The rules identify the owner by verified address, not by a pinned UID.**
+> Every `AUTHORIZED_UID` / `VITE_ARGUS_INBOX_UID` statement about *Security
+> Rules* below is superseded by `ARGUS_OWNER_EMAIL`. A UID exists only after a
+> first sign-in, which made the rules undeployable until somebody had already
+> authenticated against rules that did not yet name them; an address is known
+> beforehand. Paths are still keyed by `request.auth.uid`, and the inbox client
+> still reads `VITE_ARGUS_INBOX_UID` to build its collection path.
+
 # Content Inbox and Curated Ingestion
 
 Status: implemented for issue #39. This document is the product/architecture
@@ -178,16 +197,18 @@ V1 does not need a large workflow-status vocabulary. Research/review state belon
 
 The app is single-user, but the public web client must not have an open write path.
 
-V1 uses Firebase Authentication with Google sign-in. Firestore Security Rules must restrict reads and writes to the sole authorized Firebase UID.
+V1 uses Firebase Authentication with Google sign-in. Firestore Security Rules must restrict reads and writes to the sole owner.
 
-Conceptually:
+Conceptually — and as shipped, since the banner at the head of this document:
 
 ```text
 allow read, write: if request.auth != null
-                   && request.auth.uid == AUTHORIZED_UID;
+                   && request.auth.token.email_verified == true
+                   && request.auth.token.email.lower() == OWNER_EMAIL
+                   && userId == request.auth.uid;
 ```
 
-The exact UID is configuration/identity, not a privileged credential. No service-account key, GitHub token, Firebase Admin credential or other secret may be shipped in the browser bundle.
+`email_verified` is load-bearing: without it a provider that never checked could assert any address at all. The exact address is configuration/identity, not a privileged credential. No service-account key, GitHub token, Firebase Admin credential or other secret may be shipped in the browser bundle.
 
 Rules should also constrain the permitted document shape and status transitions where practical. Client validation is for usability; Security Rules remain the trust boundary for browser writes.
 
@@ -513,14 +534,16 @@ It talks to Firestore over the REST API with a token it mints from a service-acc
 
 The repository carries the whole integration and its emulator validation. The following cannot be performed from the repository and must be done once in the Firebase and GitHub consoles. Until they are, the app builds and runs with the inbox reporting itself unavailable, and every other Argus surface is unaffected.
 
+Steps 1, 2 and 5 were carried out on 2026-09-15 against project `argus-b7a5a`, from the CLI rather than the console: the web app is registered, Cloud Firestore and the Google provider are enabled, `localhost` and the two hosting domains are authorized, and the rules are deployed. What is listed here is the general procedure.
+
 1. Create the Firebase project and enable Cloud Firestore.
-2. Enable the Google sign-in provider in Firebase Authentication, and add the deployed origin (`benwassa.github.io`) to the authorized domains.
-3. Sign in once as the intended Google account and read its UID from Authentication → Users. That UID is `VITE_ARGUS_INBOX_UID` and `ARGUS_INBOX_UID`.
-4. Provide the web app configuration and that UID to the production build as `VITE_*` variables (see `.env.example`); the Pages workflow needs them at build time.
-5. Deploy the rules: `ARGUS_INBOX_UID=<uid> npm run inbox:rules && npx firebase deploy --only firestore:rules`.
+2. Enable the Google sign-in provider in Firebase Authentication, and authorize the deployed origin. Both can be done from the repository: put an `auth` block in `firebase.json` and run `firebase deploy --only auth`, which provisions the OAuth client too.
+3. Provide the web app configuration to the production build as `VITE_*` variables (see `.env.example`). Sync needs only these four.
+4. For the **inbox** only, sign in once as the intended Google account and read its UID from Authentication → Users. That UID is `VITE_ARGUS_INBOX_UID` and `ARGUS_INBOX_UID`. The rules no longer need it; the inbox client builds its collection path from it before anybody has signed in.
+5. Deploy the rules: `ARGUS_OWNER_EMAIL=<address> npm run inbox:rules && npx firebase deploy --only firestore:rules`.
 6. For ingestion only, create a service account with Firestore access and keep its key file outside this repository, pointed at by `GOOGLE_APPLICATION_CREDENTIALS`.
 
-No real project id, web API key or UID is invented anywhere in the repository.
+No real project id, web API key, UID or owner address is invented anywhere in the repository.
 
 ## Acceptance principles
 

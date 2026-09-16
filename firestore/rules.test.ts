@@ -28,13 +28,40 @@ import { renderRules } from '../scripts/renderRules.mjs'
  */
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
+const OWNER_EMAIL = 'owner@argus-emulator.test'
 const AUTHORIZED_UID = 'argus-authorized-uid-000001'
 const OTHER_UID = 'some-other-google-account-99'
+const OTHER_EMAIL = 'someone.else@example.test'
 
 let env: RulesTestEnvironment
 
+/**
+ * The owner is their verified address, not their UID, so a test identity has to
+ * carry the token claims a real Google sign-in would. A UID alone proves
+ * nothing now, which is the point of the model and is asserted below.
+ */
+function ownerDb(uid: string = AUTHORIZED_UID) {
+  return env
+    .authenticatedContext(uid, { email: OWNER_EMAIL, email_verified: true })
+    .firestore()
+}
+
 function inbox(uid: string) {
   return `users/${uid}/inbox`
+}
+
+function library(uid: string) {
+  return `users/${uid}/library`
+}
+
+/** A synced topic as the client writes it: the v5 JSON, carried verbatim. */
+function syncedTopic(topicId: string, revision = 1) {
+  return {
+    topicId,
+    json: JSON.stringify({ id: topicId, title: 'NATO phonetic', status: 'learning' }),
+    revision,
+    updatedAt: serverTimestamp(),
+  }
 }
 
 const validPending = {
@@ -48,7 +75,7 @@ beforeAll(async () => {
   env = await initializeTestEnvironment({
     projectId: 'argus-rules-test',
     firestore: {
-      rules: renderRules(readFileSync(join(ROOT, 'firestore.rules.template'), 'utf8'), AUTHORIZED_UID),
+      rules: renderRules(readFileSync(join(ROOT, 'firestore.rules.template'), 'utf8'), OWNER_EMAIL),
       host: '127.0.0.1',
       port: 8080,
     },
@@ -72,7 +99,7 @@ async function seed(path: string, data: Record<string, unknown>) {
 
 describe('who may use the inbox', () => {
   it('lets the sole authorized user read and capture', async () => {
-    const db = env.authenticatedContext(AUTHORIZED_UID).firestore()
+    const db = ownerDb()
     await assertSucceeds(addDoc(collection(db, inbox(AUTHORIZED_UID)), validPending))
     await assertSucceeds(getDocs(collection(db, inbox(AUTHORIZED_UID))))
   })
@@ -86,24 +113,129 @@ describe('who may use the inbox', () => {
   it('denies any other signed-in account, in its own subtree as well', async () => {
     // Signing in with a Google account is not authorization. Without this, any
     // Google user in the world would have a write path into the project.
-    const db = env.authenticatedContext(OTHER_UID).firestore()
+    const db = env
+      .authenticatedContext(OTHER_UID, { email: OTHER_EMAIL, email_verified: true })
+      .firestore()
     await assertFails(getDocs(collection(db, inbox(AUTHORIZED_UID))))
     await assertFails(addDoc(collection(db, inbox(AUTHORIZED_UID)), validPending))
     await assertFails(addDoc(collection(db, inbox(OTHER_UID)), validPending))
     await assertFails(getDocs(collection(db, inbox(OTHER_UID))))
   })
 
-  it('denies the authorized user everything outside the inbox', async () => {
-    const db = env.authenticatedContext(AUTHORIZED_UID).firestore()
-    await assertFails(setDoc(doc(db, `users/${AUTHORIZED_UID}/library/nato-phonetic`), { title: 'NATO' }))
+  it('denies the owner everything outside their own two collections', async () => {
+    const db = ownerDb()
+    // A topic-shaped document is not a synced record: the library collection
+    // takes the v5 JSON envelope and nothing else.
+    await assertFails(setDoc(doc(db, `${library(AUTHORIZED_UID)}/nato-phonetic`), { title: 'NATO' }))
     await assertFails(setDoc(doc(db, 'topics/nato-phonetic'), { title: 'NATO' }))
     await assertFails(getDoc(doc(db, `users/${OTHER_UID}/inbox/anything`)))
+  })
+
+  it('denies an account holding the right address without having verified it', async () => {
+    // `email_verified` is the whole reason an address is usable as an identity.
+    // Without it a provider that never checked could assert any address at all.
+    const db = env
+      .authenticatedContext(AUTHORIZED_UID, { email: OWNER_EMAIL, email_verified: false })
+      .firestore()
+    await assertFails(getDocs(collection(db, inbox(AUTHORIZED_UID))))
+    await assertFails(setDoc(doc(db, `${library(AUTHORIZED_UID)}/nato`), syncedTopic('nato')))
+  })
+
+  it('denies a signed-in account with no address claim at all', async () => {
+    const db = env.authenticatedContext(AUTHORIZED_UID).firestore()
+    await assertFails(getDocs(collection(db, inbox(AUTHORIZED_UID))))
+    await assertFails(setDoc(doc(db, `${library(AUTHORIZED_UID)}/nato`), syncedTopic('nato')))
+  })
+
+  it('denies the owner writing into somebody else\'s subtree', async () => {
+    // Being the owner authorizes the owner's own path, not the path itself.
+    const db = ownerDb()
+    await assertFails(setDoc(doc(db, `${library(OTHER_UID)}/nato`), syncedTopic('nato')))
+    await assertFails(getDocs(collection(db, library(OTHER_UID))))
+  })
+})
+
+describe('the synced learning record', () => {
+  it('lets the owner write, read back and delete a topic', async () => {
+    const db = ownerDb()
+    const path = `${library(AUTHORIZED_UID)}/nato-phonetic`
+    await assertSucceeds(setDoc(doc(db, path), syncedTopic('nato-phonetic')))
+    await assertSucceeds(getDoc(doc(db, path)))
+    await assertSucceeds(getDocs(collection(db, library(AUTHORIZED_UID))))
+    await assertSucceeds(deleteDoc(doc(db, path)))
+  })
+
+  it('carries library-level state in its own document', async () => {
+    const db = ownerDb()
+    await assertSucceeds(
+      setDoc(doc(db, `users/${AUTHORIZED_UID}/libraryMeta/library`), {
+        json: JSON.stringify({ version: 5, catalogDelivered: ['nato-phonetic'] }),
+        revision: 3,
+        updatedAt: serverTimestamp(),
+      }),
+    )
+  })
+
+  it('rejects a device that chooses its own clock', async () => {
+    // Two of the owner's devices resolve a conflict by which write landed
+    // later, so the later time may not be something a device can simply claim.
+    const db = ownerDb()
+    await assertFails(
+      setDoc(doc(db, `${library(AUTHORIZED_UID)}/nato-phonetic`), {
+        ...syncedTopic('nato-phonetic'),
+        updatedAt: new Date('2030-01-01T00:00:00Z'),
+      }),
+    )
+  })
+
+  it('rejects a document whose id and payload disagree', async () => {
+    const db = ownerDb()
+    await assertFails(
+      setDoc(doc(db, `${library(AUTHORIZED_UID)}/nato-phonetic`), syncedTopic('something-else')),
+    )
+  })
+
+  it('rejects a record that is empty, oversized or not text', async () => {
+    const db = ownerDb()
+    const path = `${library(AUTHORIZED_UID)}/nato-phonetic`
+    for (const json of ['', 'x'.repeat(900_001)]) {
+      await assertFails(setDoc(doc(db, path), { ...syncedTopic('nato-phonetic'), json }))
+    }
+    await assertFails(
+      setDoc(doc(db, path), { ...syncedTopic('nato-phonetic'), json: { id: 'nato-phonetic' } }),
+    )
+  })
+
+  it('rejects a missing or negative revision, and any field beyond the envelope', async () => {
+    const db = ownerDb()
+    const path = `${library(AUTHORIZED_UID)}/nato-phonetic`
+    const { revision: _dropped, ...withoutRevision } = syncedTopic('nato-phonetic')
+    await assertFails(setDoc(doc(db, path), withoutRevision))
+    await assertFails(setDoc(doc(db, path), { ...syncedTopic('nato-phonetic'), revision: -1 }))
+    await assertFails(
+      setDoc(doc(db, path), { ...syncedTopic('nato-phonetic'), status: 'completed' }),
+    )
+  })
+
+  it('denies every other signed-in account, in the owner\'s subtree and their own', async () => {
+    const db = env
+      .authenticatedContext(OTHER_UID, { email: OTHER_EMAIL, email_verified: true })
+      .firestore()
+    await assertFails(getDocs(collection(db, library(AUTHORIZED_UID))))
+    await assertFails(setDoc(doc(db, `${library(AUTHORIZED_UID)}/nato`), syncedTopic('nato')))
+    await assertFails(setDoc(doc(db, `${library(OTHER_UID)}/nato`), syncedTopic('nato')))
+  })
+
+  it('denies an unauthenticated client', async () => {
+    const db = env.unauthenticatedContext().firestore()
+    await assertFails(getDocs(collection(db, library(AUTHORIZED_UID))))
+    await assertFails(setDoc(doc(db, `${library(AUTHORIZED_UID)}/nato`), syncedTopic('nato')))
   })
 })
 
 describe('what a captured request may contain', () => {
   it('accepts a track hint and a URL plus note', async () => {
-    const db = env.authenticatedContext(AUTHORIZED_UID).firestore()
+    const db = ownerDb()
     await assertSucceeds(
       addDoc(collection(db, inbox(AUTHORIZED_UID)), {
         text: 'https://example.com/article — the section on knots',
@@ -122,7 +254,7 @@ describe('what a captured request may contain', () => {
   })
 
   it('rejects empty, untrimmed and oversized text', async () => {
-    const db = env.authenticatedContext(AUTHORIZED_UID).firestore()
+    const db = ownerDb()
     for (const text of ['', '   ', '  leading space', 'x'.repeat(2001)]) {
       await assertFails(
         addDoc(collection(db, inbox(AUTHORIZED_UID)), { ...validPending, text }),
@@ -131,7 +263,7 @@ describe('what a captured request may contain', () => {
   })
 
   it('rejects a client-chosen creation time', async () => {
-    const db = env.authenticatedContext(AUTHORIZED_UID).firestore()
+    const db = ownerDb()
     await assertFails(
       addDoc(collection(db, inbox(AUTHORIZED_UID)), {
         ...validPending,
@@ -141,7 +273,7 @@ describe('what a captured request may contain', () => {
   })
 
   it('rejects a track hint that is not an Argus track', async () => {
-    const db = env.authenticatedContext(AUTHORIZED_UID).firestore()
+    const db = ownerDb()
     await assertFails(
       addDoc(collection(db, inbox(AUTHORIZED_UID)), { ...validPending, trackHint: 'urgent' }),
     )
@@ -151,7 +283,7 @@ describe('what a captured request may contain', () => {
     // The whole architecture depends on this: a request has no scope, no items,
     // no status ladder and no evidence, and the rules will not store one that
     // pretends otherwise.
-    const db = env.authenticatedContext(AUTHORIZED_UID).firestore()
+    const db = ownerDb()
     for (const extra of [
       { scope: 'Everything about knots.' },
       { items: [{ prompt: 'A', answer: 'B' }] },
@@ -166,7 +298,7 @@ describe('what a captured request may contain', () => {
   })
 
   it('rejects a request created straight into added', async () => {
-    const db = env.authenticatedContext(AUTHORIZED_UID).firestore()
+    const db = ownerDb()
     await assertFails(
       addDoc(collection(db, inbox(AUTHORIZED_UID)), {
         text: 'Already done, honest',
@@ -190,7 +322,7 @@ describe('the pending to added transition', () => {
 
   it('accepts a request that has actually shipped topics', async () => {
     await seed(path, pending)
-    const db = env.authenticatedContext(AUTHORIZED_UID).firestore()
+    const db = ownerDb()
     await assertSucceeds(
       updateDoc(doc(db, path), {
         status: 'added',
@@ -202,7 +334,7 @@ describe('the pending to added transition', () => {
 
   it('rejects an addition with no topics behind it', async () => {
     await seed(path, pending)
-    const db = env.authenticatedContext(AUTHORIZED_UID).firestore()
+    const db = ownerDb()
     await assertFails(
       updateDoc(doc(db, path), { status: 'added', topicIds: [], addedAt: serverTimestamp() }),
     )
@@ -211,7 +343,7 @@ describe('the pending to added transition', () => {
 
   it('rejects rewriting what was captured', async () => {
     await seed(path, pending)
-    const db = env.authenticatedContext(AUTHORIZED_UID).firestore()
+    const db = ownerDb()
     await assertFails(
       updateDoc(doc(db, path), {
         text: 'Something else entirely',
@@ -240,7 +372,7 @@ describe('the pending to added transition', () => {
 
   it('rejects a backdated addition time', async () => {
     await seed(path, pending)
-    const db = env.authenticatedContext(AUTHORIZED_UID).firestore()
+    const db = ownerDb()
     await assertFails(
       updateDoc(doc(db, path), {
         status: 'added',
@@ -252,7 +384,7 @@ describe('the pending to added transition', () => {
 
   it('rejects attaching topics without leaving pending', async () => {
     await seed(path, pending)
-    const db = env.authenticatedContext(AUTHORIZED_UID).firestore()
+    const db = ownerDb()
     await assertFails(updateDoc(doc(db, path), { topicIds: ['maritime-signal-flags'] }))
   })
 
@@ -263,7 +395,7 @@ describe('the pending to added transition', () => {
       topicIds: ['maritime-signal-flags'],
       addedAt: new Date('2026-02-01T00:00:00Z'),
     })
-    const db = env.authenticatedContext(AUTHORIZED_UID).firestore()
+    const db = ownerDb()
     await assertFails(
       updateDoc(doc(db, path), { topicIds: ['something-else'], addedAt: serverTimestamp() }),
     )
@@ -275,7 +407,7 @@ describe('removing a request', () => {
 
   it('lets the authorized user drop a pending request', async () => {
     await seed(path, { text: 'Never mind', status: 'pending', createdAt: new Date() })
-    const db = env.authenticatedContext(AUTHORIZED_UID).firestore()
+    const db = ownerDb()
     await assertSucceeds(deleteDoc(doc(db, path)))
   })
 
@@ -287,7 +419,7 @@ describe('removing a request', () => {
       topicIds: ['maritime-signal-flags'],
       addedAt: new Date(),
     })
-    const db = env.authenticatedContext(AUTHORIZED_UID).firestore()
+    const db = ownerDb()
     await assertFails(deleteDoc(doc(db, path)))
   })
 
