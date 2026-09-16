@@ -1,4 +1,4 @@
-name: Argus CI and Deploy
+name: Argus CI
 
 on:
   pull_request:
@@ -35,9 +35,12 @@ jobs:
       - name: Test
         run: npm run test
 
-      # Build exactly once per workflow run. On main this is the artifact that
-      # will be deployed; on pull requests repository variables may be absent,
-      # in which case the app intentionally builds with the inbox unavailable.
+      # A build sanity check, not a deploy artifact. Firebase Hosting is the
+      # sole deployment target and is deployed manually from the CLI
+      # (`npm run deploy:hosting`) rather than from CI; GitHub Pages is
+      # retired. Repository variables may be absent on a pull request, in
+      # which case the app intentionally builds with sync and the inbox both
+      # unavailable — the supported local-only configuration.
       - name: Type-check and build
         run: npm run build
         env:
@@ -47,19 +50,11 @@ jobs:
           VITE_FIREBASE_APP_ID: ${{ vars.VITE_FIREBASE_APP_ID }}
           VITE_ARGUS_INBOX_UID: ${{ vars.VITE_ARGUS_INBOX_UID }}
 
-      - name: Configure Pages
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-        uses: actions/configure-pages@v5
-
-      - name: Upload Pages artifact
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-        uses: actions/upload-pages-artifact@v4
-        with:
-          path: dist
-
   # Answer confidentiality and the grading gesture are properties of a real
   # browser at a real size, so they are gated against the built app rather than
-  # against JSDOM alone.
+  # against JSDOM alone. Built without Firebase configuration: this suite
+  # cannot sign in to real Google, and the entry boundary only exists for a
+  # configured build, so it runs the local-only configuration instead.
   browser:
     runs-on: ubuntu-latest
     steps:
@@ -89,9 +84,9 @@ jobs:
           path: playwright-report
           retention-days: 7
 
-  # Security Rules are the trust boundary for everything the browser does to the
-  # content inbox, so they remain a separate explicit gate against the real
-  # Firestore emulator.
+  # Security Rules are the trust boundary for everything the browser does to
+  # sync and the content inbox, so they remain a separate explicit gate against
+  # the real Firestore emulator.
   rules:
     runs-on: ubuntu-latest
     steps:
@@ -115,20 +110,3 @@ jobs:
 
       - name: Firestore Security Rules
         run: npm run test:rules
-
-  deploy:
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-    needs:
-      - web
-      - rules
-    runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
