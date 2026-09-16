@@ -23,7 +23,6 @@ The visual/interaction reference is the current HAUS sign-in composition: a cent
 - One responsive card contains the Argus splash media and auth content.
 - `splashv1.mp4` autoplays muted/inline under normal motion, with `splash-poster.jpg` as fallback and a held final frame on completion.
 - Google CTA includes the Google mark, duplicate-submit protection, focus treatment, and clear error handling.
-- Auth gate tests prove learning surfaces do not mount before identity is known.
-- Browser fixtures no longer seed obsolete splash state.
+- Auth gate tests prove learning surfaces do not mount before identity is known and no longer depend on the obsolete splash lifecycle.
 - Validate mobile/Pixel sizing, safe areas, keyboard/focus, reduced motion, media failure, and desktop layout.
 - Full repository check passes before merge.
