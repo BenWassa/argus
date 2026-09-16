@@ -16,7 +16,7 @@ export default defineConfig({
   workers: process.env.CI ? 2 : undefined,
   reporter: process.env.CI ? [['github'], ['list'], ['html', { open: 'never' }]] : [['list']],
   use: {
-    baseURL: 'http://127.0.0.1:4173/argus/',
+    baseURL: 'http://127.0.0.1:4173/',
     trace: 'on-first-retry',
     // CI installs the browser Playwright asks for. Sandboxes that already ship
     // a Chromium can point at it instead of downloading a second one.
@@ -44,8 +44,15 @@ export default defineConfig({
   ],
   webServer: {
     // The production bundle, not the dev server: this is the artifact that ships.
-    command: 'npm run build && npx vite preview --port 4173 --host 127.0.0.1',
-    url: 'http://127.0.0.1:4173/argus/',
+    //
+    // Built without Firebase configuration. These tests cannot sign in to
+    // Google, and the entry boundary (#93 §1) is only raised for a build that
+    // has an account to sign in to — so this is the same app, exercised in the
+    // local-only configuration the repository has always supported, rather than
+    // the gate being disabled by a test-only flag. The gate itself is covered
+    // in `src/app/gate.test.tsx`.
+    command: 'npm run build:e2e && npx vite preview --port 4173 --host 127.0.0.1',
+    url: 'http://127.0.0.1:4173/',
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,
   },

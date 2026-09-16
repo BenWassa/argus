@@ -16,8 +16,8 @@
     "test:browser": "playwright test",
     "rules:deploy": "node scripts/renderRules.mjs && npx -y firebase-tools@latest deploy --only firestore:rules",
     "rules:check": "node scripts/renderRules.mjs --check",
-    "build:firebase": "ARGUS_BASE=/ npm run build",
-    "deploy:hosting": "npm run build:firebase && npx -y firebase-tools@latest deploy --only hosting"
+    "deploy:hosting": "npm run build && npx -y firebase-tools@latest deploy --only hosting",
+    "build:e2e": "VITE_FIREBASE_API_KEY= VITE_FIREBASE_AUTH_DOMAIN= VITE_FIREBASE_PROJECT_ID= VITE_FIREBASE_APP_ID= VITE_FIREBASE_STORAGE_BUCKET= VITE_FIREBASE_MESSAGING_SENDER_ID= VITE_ARGUS_INBOX_UID= npm run build"
   },
   "dependencies": {
     "firebase": "^12.18.0",
