@@ -1,72 +1,298 @@
-/* The entry boundary. Shares the splash's imagery so the app opens on one
-   continuous idea rather than a video followed by an unrelated form. */
+/* #102: one HAUS-style opening shell, translated into Argus materials. */
 
 .signin {
   position: relative;
+  z-index: 1;
   display: grid;
   place-items: center;
-  min-height: 100svh;
-  padding: 2rem 1.25rem calc(2rem + env(safe-area-inset-bottom));
+  min-height: 100dvh;
+  padding:
+    max(var(--s-lg), env(safe-area-inset-top))
+    max(var(--s-lg), env(safe-area-inset-right))
+    max(var(--s-lg), env(safe-area-inset-bottom))
+    max(var(--s-lg), env(safe-area-inset-left));
   overflow: hidden;
   text-align: center;
+  background:
+    radial-gradient(circle at 50% 6%, rgb(214 181 116 / 9%), transparent 34%),
+    linear-gradient(180deg, var(--surface) 0%, var(--bg) 46%, var(--field) 100%);
 }
 
-.signin-atmosphere {
+.signin-shell {
+  --signin-separator-height: 18px;
+  position: relative;
+  width: min(29rem, 100%);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: calc(var(--r-xl) + 6px);
+  color: var(--ink);
+  background: var(--surface);
+  box-shadow: var(--edge), var(--shadow-lift);
+  animation: signin-enter 520ms var(--ease) both;
+}
+
+.signin-media {
+  position: relative;
+  isolation: isolate;
+  height: clamp(17rem, 43svh, 20rem);
+  overflow: hidden;
+  background: var(--surface-2);
+}
+
+.signin-media-backdrop {
+  position: absolute;
+  inset: -12%;
+  z-index: 0;
+  width: 124%;
+  height: 124%;
+  object-fit: cover;
+  opacity: 0.68;
+  filter: blur(28px) saturate(0.72) brightness(0.46);
+  transform: scale(1.04);
+}
+
+.signin-poster,
+.signin-video {
   position: absolute;
   inset: 0;
+  z-index: 1;
+  display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  /* Far enough back that text over it stays legible at any crop. */
-  opacity: 0.22;
-  filter: saturate(0.6) blur(2px);
+  object-fit: contain;
+}
+
+.signin-poster {
+  opacity: 1;
+  transition: opacity var(--t-base) var(--ease);
+}
+
+.signin-poster.is-covered {
+  opacity: 0;
+}
+
+.signin-video {
+  opacity: 0;
+  transition: opacity var(--t-base) var(--ease);
+}
+
+.signin-video.is-ready {
+  opacity: 1;
+}
+
+.signin-media-separator {
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  z-index: 2;
+  height: var(--signin-separator-height);
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+  box-shadow: 0 -14px 28px rgb(0 0 0 / 18%);
   pointer-events: none;
 }
 
-.signin-stage {
+.signin-content {
   position: relative;
   display: flex;
+  min-height: 17.25rem;
   flex-direction: column;
   align-items: center;
-  gap: 0.75rem;
-  width: min(26rem, 100%);
+  justify-content: center;
+  padding: 1.9rem 1.5rem 1.65rem;
+}
+
+.signin-heading {
+  display: grid;
+  justify-items: center;
+  gap: var(--s-xs);
+  margin-bottom: var(--s-xl);
 }
 
 .signin-mark {
   margin: 0;
-  font-size: clamp(2.25rem, 12vw, 3rem);
-  letter-spacing: 0.22em;
+  font-size: clamp(2.25rem, 11vw, 3rem);
+  line-height: 1;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
 }
 
 .signin-lede {
-  margin: 0 0 1.25rem;
-  max-width: 24ch;
-  opacity: 0.75;
+  max-width: 27ch;
+  color: var(--muted);
+  font-size: var(--t-small);
 }
 
-.signin-action {
-  width: 100%;
-  max-width: 20rem;
-  min-height: 3rem;
-  font-size: 1rem;
+button.signin-action {
+  display: inline-flex;
+  width: min(21rem, 100%);
+  min-height: 58px;
+  align-items: center;
+  justify-content: center;
+  gap: 11px;
+  padding: 14px 20px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-xl);
+  color: var(--ink);
+  background: var(--surface-2);
+  box-shadow: var(--edge), var(--shadow-sm);
 }
 
-.signin-note,
-.signin-status {
-  margin: 0;
-  max-width: 30ch;
-  opacity: 0.7;
+button.signin-action:hover {
+  border-color: var(--line-hover);
+  background: var(--surface-3);
+  box-shadow: var(--edge), 0 10px 24px rgb(0 0 0 / 24%);
+  transform: translateY(-1px);
 }
 
-.signin-status.error {
-  margin-top: 0.5rem;
-  max-width: 34ch;
-  opacity: 1;
+button.signin-action:active {
+  background: var(--surface-4);
+  transform: translateY(1px);
+}
+
+button.signin-action:disabled {
+  opacity: 0.72;
+  cursor: wait;
+}
+
+.signin-google-mark,
+.signin-spinner {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+}
+
+.signin-spinner {
+  display: inline-block;
+  border: 2px solid var(--line-strong);
+  border-top-color: var(--accent-2);
+  border-radius: 50%;
+  animation: signin-spin 720ms linear infinite;
+}
+
+.signin-restoring {
+  display: inline-flex;
+  min-height: 58px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--muted);
+  font-size: var(--t-small);
+}
+
+.signin-note {
+  margin-top: 11px;
+  max-width: 33ch;
+  color: var(--subtle);
+  font-size: var(--t-label);
+  line-height: 1.45;
+}
+
+.signin-error {
+  width: min(21rem, 100%);
+  margin-top: var(--s-md);
+  padding: 9px 11px;
+  border: 1px solid color-mix(in srgb, var(--danger) 36%, var(--line));
+  border-radius: var(--r-md);
+  color: var(--danger-2);
+  background: color-mix(in srgb, var(--danger) 8%, var(--surface-2));
+  font-size: var(--t-small);
+  line-height: 1.4;
+  animation: signin-error-in var(--t-base) var(--ease) both;
+}
+
+@keyframes signin-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes signin-error-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes signin-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-height: 690px) {
+  .signin {
+    align-items: start;
+    overflow-y: auto;
+  }
+
+  .signin-media {
+    height: 15.5rem;
+  }
+
+  .signin-content {
+    min-height: 15.25rem;
+    padding-top: 1.55rem;
+    padding-bottom: 1.45rem;
+  }
+
+  .signin-heading {
+    margin-bottom: var(--s-lg);
+  }
+}
+
+@media (min-width: 640px) {
+  .signin-content {
+    padding-right: 2rem;
+    padding-left: 2rem;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 600px) {
+  .signin-shell {
+    display: grid;
+    width: min(52rem, 100%);
+    grid-template-columns: minmax(16rem, 0.9fr) minmax(20rem, 1.1fr);
+  }
+
+  .signin-media {
+    height: 100%;
+    min-height: 22rem;
+  }
+
+  .signin-media-separator {
+    top: 0;
+    right: -1px;
+    bottom: 0;
+    left: auto;
+    width: var(--signin-separator-height);
+    height: auto;
+    border-top: 0;
+    border-left: 1px solid var(--line);
+    box-shadow: -14px 0 28px rgb(0 0 0 / 18%);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .signin-atmosphere {
-    filter: saturate(0.6);
+  .signin-shell,
+  .signin-error,
+  .signin-spinner {
+    animation: none;
+  }
+
+  .signin-poster,
+  .signin-video,
+  button.signin-action {
+    transition: none;
   }
 }
