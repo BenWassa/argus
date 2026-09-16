@@ -3,7 +3,7 @@ import { syncConfig } from './config'
 import { firebaseSyncBackend } from './firebaseSync'
 import { unconfiguredSyncBackend, type SyncBackend, type SyncUser } from './backend'
 import { loadLedger, saveLedger } from './ledger'
-import { nextLedger, planSync, topicJson, type Ledger, type RemoteRecord } from './plan'
+import { nextLedger, planSync, topicJson, type Ledger, type RemoteRecord, type SyncAction } from './plan'
 import { parseLibrary } from '../storage'
 import type { Topic } from '../types'
 
@@ -96,28 +96,40 @@ export function useSync(store: SyncableStore, backend: SyncBackend = defaultBack
 
     applying.current = true
     const run = async () => {
+      // What the ledger records is what actually happened, which is not always
+      // what was planned: a record that would not parse is not adopted, and an
+      // adopted one is recorded as the library will serialize it rather than as
+      // it arrived. Storing the arriving text instead would leave the ledger
+      // disagreeing with the local copy the moment the parser normalized
+      // anything, and every later pass would push a needless revision.
+      const applied: SyncAction[] = []
       for (const action of plan.actions) {
         switch (action.kind) {
           case 'push':
             await backend.pushTopic(user.uid, action.topicId, action.json, action.revision)
+            applied.push(action)
             break
           case 'deleteRemote':
             await backend.deleteTopic(user.uid, action.topicId)
+            applied.push(action)
             break
           case 'adopt': {
             // A record this device cannot parse is left alone rather than
             // dropped: refusing it keeps the local copy, and the ledger is not
             // advanced, so a later build that understands it can still take it.
             const topic = parseSyncedTopic(action.json)
-            if (topic) store.upsertTopic(topic)
+            if (!topic) break
+            store.upsertTopic(topic)
+            applied.push({ ...action, json: topicJson(topic) })
             break
           }
           case 'dropLocal':
             store.removeTopic(action.topicId)
+            applied.push(action)
             break
         }
       }
-      ledger.current = nextLedger(ledger.current, plan.actions, Date.now())
+      ledger.current = nextLedger(ledger.current, applied, Date.now())
       saveLedger(user.uid, ledger.current)
       setState({ kind: 'synced', user, at: new Date(), conflicts: plan.conflicts })
     }

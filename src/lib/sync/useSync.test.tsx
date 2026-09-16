@@ -179,6 +179,42 @@ describe('carrying out a plan', () => {
   })
 })
 
+describe('what the ledger records', () => {
+  it('settles after adopting, rather than pushing the record straight back', async () => {
+    // The ledger has to hold what the library will serialize, not the text that
+    // arrived. If the parser normalizes anything at all, recording the arriving
+    // text would make the very next pass see a local change and push it back.
+    const topic = realTopic()
+    const store = fakeStore([])
+    const backend = fakeBackend()
+    const { result, rerender } = renderHook(({ s }) => useSync(s, backend), {
+      initialProps: { s: store },
+    })
+
+    act(() => backend.emitUser(OWNER))
+    act(() =>
+      backend.emitRecords([
+        // Deliberately not byte-identical to what the parser will produce: the
+        // same topic, re-serialized with its keys in a different order.
+        {
+          topicId: topic.id,
+          json: JSON.stringify(Object.fromEntries(Object.entries(topic).reverse())),
+          revision: 2,
+          updatedAtMs: 1_000,
+        },
+      ]),
+    )
+
+    await waitFor(() => expect(store.upserted).toHaveLength(1))
+
+    // The library now holds the adopted topic; replan against the same remote.
+    const settled = fakeStore(store.upserted.slice())
+    rerender({ s: settled })
+    await waitFor(() => expect(result.current.state.kind).toBe('synced'))
+    expect(backend.pushed).toEqual([])
+  })
+})
+
 describe('parsing a record that arrived from another device', () => {
   it('accepts a real topic', () => {
     const topic = realTopic()
