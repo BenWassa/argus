@@ -34,7 +34,7 @@
 .signin-media {
   position: relative;
   isolation: isolate;
-  height: clamp(17rem, 43svh, 20rem);
+  aspect-ratio: 16 / 9;
   overflow: hidden;
   background: var(--surface-2);
 }
@@ -119,7 +119,7 @@
 }
 
 .signin-lede {
-  max-width: 27ch;
+  width: 100%;
   color: var(--muted);
   font-size: var(--t-small);
 }
@@ -237,7 +237,7 @@ button.signin-action:disabled {
   }
 
   .signin-media {
-    height: 15.5rem;
+    height: auto;
   }
 
   .signin-content {
