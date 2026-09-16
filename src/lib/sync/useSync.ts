@@ -3,6 +3,7 @@ import { syncConfig } from './config'
 import { firebaseSyncBackend } from './firebaseSync'
 import { unconfiguredSyncBackend, type SyncBackend, type SyncUser } from './backend'
 import { loadLedger, saveLedger } from './ledger'
+import { forgetSignedIn, hasSignedIn, rememberSignedIn } from './session'
 import { nextLedger, planSync, topicJson, type Ledger, type RemoteRecord, type SyncAction } from './plan'
 import { parseLibrary } from '../storage'
 import type { Topic } from '../types'
@@ -66,16 +67,23 @@ export function useSync(store: SyncableStore, backend: SyncBackend = defaultBack
   )
   const ledger = useRef<Ledger>({})
   const applying = useRef(false)
+  /**
+   * Firebase is not loaded, and Google is not contacted, until there is a
+   * reason. A device that has never signed in has no reason on load, and the
+   * button below supplies one the moment it is pressed.
+   */
+  const [watching, setWatching] = useState(() => backend.configured && hasSignedIn())
 
   useEffect(() => {
-    if (!backend.configured) return
+    if (!backend.configured || !watching) return
     return backend.observeUser((next) => {
+      if (next) rememberSignedIn()
       setUser(next)
       setRecords(null)
       ledger.current = next ? loadLedger(next.uid) : {}
       setState(next ? { kind: 'syncing', user: next } : { kind: 'signedOut' })
     })
-  }, [backend])
+  }, [backend, watching])
 
   useEffect(() => {
     if (!user) return
@@ -149,7 +157,9 @@ export function useSync(store: SyncableStore, backend: SyncBackend = defaultBack
 
   const signIn = useCallback(async () => {
     try {
+      setWatching(true)
       await backend.signIn()
+      rememberSignedIn()
     } catch (error: unknown) {
       setState({
         kind: 'error',
@@ -163,6 +173,7 @@ export function useSync(store: SyncableStore, backend: SyncBackend = defaultBack
     // The local library is untouched by signing out. It was never the copy that
     // depended on an account.
     await backend.signOut()
+    forgetSignedIn()
   }, [backend])
 
   return useMemo(() => ({ state, signIn, signOut }), [state, signIn, signOut])

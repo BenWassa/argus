@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, renderHook, waitFor as rawWaitFor } from '@testing-library/react'
 import { parseSyncedTopic, useSync, type SyncableStore } from './useSync'
+import { rememberSignedIn } from './session'
 import { unconfiguredSyncBackend, type SyncBackend, type SyncUser } from './backend'
 import { topicJson, type RemoteRecord } from './plan'
 import { seedLibrary } from '../seed'
@@ -19,6 +20,12 @@ import type { Topic } from '../types'
  * remote into the store, and never lets a record the v5 boundary would refuse
  * through the door.
  */
+
+beforeEach(() => {
+  // These cover what happens once a device is signed in, so they start from a
+  // device that has been. The deferral itself is covered separately below.
+  rememberSignedIn()
+})
 
 afterEach(() => {
   cleanup()
@@ -225,5 +232,54 @@ describe('parsing a record that arrived from another device', () => {
     expect(parseSyncedTopic('{ not json')).toBeNull()
     expect(parseSyncedTopic('"a string"')).toBeNull()
     expect(parseSyncedTopic('{"id":"x","status":"invented"}')).toBeNull()
+  })
+})
+
+
+describe('a device that has never signed in', () => {
+  it('does not load Firebase or contact Google on boot', () => {
+    // The cost of the Auth SDK and its round trip is paid by everybody, on
+    // every load, if this observer is armed unconditionally — and answers "no"
+    // every time for a device that has never signed in.
+    localStorage.clear()
+    let observed = false
+    const backend = fakeBackend({
+      observeUser: () => {
+        observed = true
+        return () => {}
+      },
+    })
+    const { result } = renderHook(() => useSync(fakeStore([]), backend))
+    expect(observed).toBe(false)
+    expect(result.current.state.kind).toBe('signedOut')
+  })
+
+  it('arms the observer as soon as sign-in is asked for', async () => {
+    localStorage.clear()
+    let observed = false
+    const backend = fakeBackend({
+      observeUser: () => {
+        observed = true
+        return () => {}
+      },
+    })
+    const { result } = renderHook(() => useSync(fakeStore([]), backend))
+    await act(async () => {
+      await result.current.signIn()
+    })
+    expect(observed).toBe(true)
+  })
+
+  it('watches from boot once a device has signed in before', () => {
+    rememberSignedIn()
+    let observed = false
+    const backend = fakeBackend({
+      observeUser: () => {
+        observed = true
+        return () => {}
+      },
+    })
+    renderHook(() => useSync(fakeStore([]), backend))
+    expect(observed).toBe(true)
   })
 })
