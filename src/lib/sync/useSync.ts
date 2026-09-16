@@ -23,11 +23,9 @@ import type { CurrentLibrary, Topic } from '../types'
 
 export type SyncState =
   | { kind: 'unconfigured' }
-  /** Firebase is still determining whether a remembered session is valid. */
+  /** Firebase is restoring auth or reconciling the authenticated UID before entry. */
   | { kind: 'restoring' }
   | { kind: 'signedOut' }
-  /** Identity is known but the UID-bound local/cloud recovery matrix is not. */
-  | { kind: 'bootstrapping'; user: SyncUser }
   | { kind: 'syncing'; user: SyncUser }
   | { kind: 'synced'; user: SyncUser; at: Date; conflicts: string[] }
   | { kind: 'error'; user: SyncUser | null; message: string; ready: boolean }
@@ -252,7 +250,9 @@ export function useSync(store: SyncableStore, injected?: SyncBackend) {
         : emptyLibrary()
       lastLocalJson.current = JSON.stringify(hiddenLocal)
       storeRef.current.replaceLibrary(hiddenLocal)
-      setState({ kind: 'bootstrapping', user: next })
+      // Reuse the existing closed-door state so returning users see the normal
+      // restoring treatment until both local identity and cloud recovery resolve.
+      setState({ kind: 'restoring' })
     })
   }, [backend, watching])
 
@@ -264,7 +264,10 @@ export function useSync(store: SyncableStore, injected?: SyncBackend) {
         return
       }
       if (!openValidatedCacheOffline(user, message)) {
-        setState({ kind: 'error', user, message: `${message} First setup needs one successful cloud check.`, ready: false })
+        // `user: null` intentionally keeps the existing app gate closed. First
+        // binding cannot enter on an unverified legacy/fresh copy when cloud is
+        // unreachable, because a recoverable remote library may still exist.
+        setState({ kind: 'error', user: null, message: `${message} First setup needs one successful cloud check.`, ready: false })
       }
     }
     const stopLibrary = backend.observeLibrary(user.uid, setRecords, fail)
@@ -396,18 +399,11 @@ export function useSync(store: SyncableStore, injected?: SyncBackend) {
 
   useEffect(() => {
     if (!user || bootstrappedUid.current !== user.uid || records === null || meta === undefined) return
-    if (!hasPending(user.uid) && state.kind === 'synced') {
-      // A changed remote snapshot still needs a reconciliation pass even when
-      // this device has no local pending write.
-      if (coalesceTimer.current !== null) window.clearTimeout(coalesceTimer.current)
-      coalesceTimer.current = window.setTimeout(() => void runSync(), 50)
-      return
-    }
-    if (hasPending(user.uid)) {
-      if (coalesceTimer.current !== null) window.clearTimeout(coalesceTimer.current)
-      coalesceTimer.current = window.setTimeout(() => void runSync(), 50)
-    }
-  }, [meta, records, runSync, state.kind, user])
+    // Every remote snapshot is a reconciliation trigger. This catches work from
+    // another device, and also drains a durable pending marker after reconnect.
+    if (coalesceTimer.current !== null) window.clearTimeout(coalesceTimer.current)
+    coalesceTimer.current = window.setTimeout(() => void runSync(), hasPending(user.uid) ? 0 : 50)
+  }, [meta, records, runSync, user])
 
   useEffect(() => {
     const reconnect = () => void runSync()
