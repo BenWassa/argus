@@ -1,19 +1,22 @@
 # Argus learning-experience design decision
 
-> **Status — batches 0 to 4 shipped and merged to `main`; 5 and 6 are not.**
+> **Status — batches 0 to 6 shipped and merged to `main`. All nine §15
+> decisions have been made, three of them explicitly by the owner.**
 > The paper below was written first, as an independent proposal, and is now the
 > authoritative record of Argus's shipped information architecture: `PRODUCT.md`
 > and `DESIGN.md` have themselves been updated to match it, and it formally
 > supersedes `docs/closed/SCREEN_INVENTORY_REVIEW.md`'s Home/Lessons/badge/milestone
 > proposal (see that document's own superseded banner). The implementation record
 > at the end says exactly what shipped, what changed during implementation, and
-> what was deliberately left. **This is action taken, not a rubber stamp**: the
-> nine decisions in §15 were resolved by taking this paper's own recommendation
-> in each case, and none of them has had an explicit owner sign-off — see
-> `docs/open/ARGUS_OVERHAUL_RATIFICATION.md` for the short list still needing one,
-> chiefly §15.1, §15.3 and §15.5. Batches 5 and 6 remain unimplemented and
-> unratified; do not build them from this document alone until that ratification
-> package is resolved.
+> what was deliberately left. §15.1, §15.3 and §15.5 were the three the owner
+> reviewed directly, on 2026-09-15, recorded in
+> `docs/open/ARGUS_OVERHAUL_RATIFICATION.md`: §15.3 (Morse reference cards) and
+> §15.5 (practice is formative) confirmed as shipped; §15.1 (exposure) changed —
+> the write now happens on the deliberate `Test` tap, not on opening the page.
+> The other six were taken as this paper's own recommendation and have not had
+> a separate owner look. One item remains outstanding: **owner phone review of
+> batch 5's `practice` surface**, including the `practice`-not-`repair` naming
+> call recorded in the ratification package.
 >
 > **Original authority note — independent design proposal for #92.**
 > This paper is a first-principles frontend/product architecture proposal written
@@ -623,9 +626,11 @@ being a curriculum topic, without any of its content leaking backwards.
 Each of these changes the work materially and none of them can be resolved from
 the code or the documents.
 
-1. **Exposure for an ordinary topic.** With no Learn route, does opening the
-   topic page stamp `unstarted → learning` (closest to today), or does the action
-   at the foot of the reference stamp it? *Recommendation: opening the page.*
+1. ~~**Exposure for an ordinary topic.**~~ **Decided 2026-09-15: the deliberate
+   action, not opening the page.** Implemented as the tap on the page's
+   primary `Test` action rather than a relocated foot-of-reference button —
+   the display projection was never in question, only the write timing. See
+   `docs/open/ARGUS_OVERHAUL_RATIFICATION.md`.
 2. **Multi-topic reading.** Drop batch Learn entirely, or keep a "read these
    three" stacked sheet? *Recommendation: drop it; keep batch Test.*
 3. **The Morse topic page's 26 reference cards (#76).** Owner-validated on Pixel.
@@ -774,10 +779,12 @@ bodies. The header is title, scope, one line of state and exactly one prominent
 action. For an ordinary topic the body is the reference itself, in the editorial
 treatment the reading route used, which is why that route is gone rather than
 hidden: `Learn.tsx` is deleted and `Learn.css` became `Reading.css`. The
-`<dl>` of five internal dimensions and the `Show all N items` fold are gone. Both
-open questions were resolved as recommended: opening the page is the exposure
-event (§15.1), and multi-topic reading was dropped while batch Test stayed
-(§15.2).
+`<dl>` of five internal dimensions and the `Show all N items` fold are gone.
+Multi-topic reading was dropped while batch Test stayed (§15.2). §15.1
+originally shipped as recommended — opening the page was the exposure event —
+but was revisited and changed on 2026-09-15: the write now happens on the
+deliberate `Test` tap, not on render. See `TopicPage.tsx`'s `startCheck` and
+`docs/open/ARGUS_OVERHAUL_RATIFICATION.md`.
 
 **Batch 3 — Morse course home.** `MorseProgramme.tsx` is deleted and its path is
 `MorsePath.tsx`, the body of the Morse topic page. Opening Morse lands on the
@@ -855,11 +862,14 @@ reads state that already exists and writes none of it.
 ## Still needing the owner
 
 The nine decisions in §15 were resolved by taking this paper's recommendation in
-each case, and every one is reversible. Two are worth a deliberate look on the
-phone before anything builds on them: **§15.3**, the Morse reference cards, which
-reverses part of a previously accepted decision; and **§15.1**, whether opening
-an ordinary topic should count as having read it. #42's real-device acceptance
-gate is untouched and still open.
+each case, and every one is reversible. **Resolved 2026-09-15, by the owner
+directly:** §15.3, the Morse reference cards, is confirmed as shipped (the
+quiet `Morse alphabet` link stays); §15.1 was changed — see above — from
+opening the page to the deliberate `Test` tap; §15.5 (targeted practice) was
+confirmed formative, matching what had already shipped. #42's real-device
+acceptance gate is untouched and still open. Batch 5's phone review (the
+`practice` surface and its `practice`-not-`repair` naming) remains
+outstanding.
 
 Batch 5 adds a third: the **practice** naming above, and the fact that its
 topic-page offer reaches only topics that keep per-item evidence. Both are set

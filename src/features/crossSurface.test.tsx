@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { cleanup, render, screen, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { LibraryProvider } from '../lib/store'
 import { SHIPPED_CATALOG_TOPIC_IDS } from '../lib/catalog'
 import { journeyFor } from '../lib/journey'
@@ -604,6 +604,36 @@ describe('ordinary topics keep the behaviour they had', () => {
     expect(libraryVerb(exposed)).toBe('Test')
     cleanup()
     expect(topicPrimary(exposed)).toBe('Test')
+  })
+
+  it('does not record exposure merely by rendering the page — only the tap that asks to be tested does (#92 §15.1)', () => {
+    const fresh = blank('primary-survey')
+    install([fresh])
+
+    // Opening the page projects what pressing `Test` would mean, but must not
+    // itself write it: a topic opened and abandoned without reading stays
+    // exactly as it was.
+    renderTopicPage(fresh)
+    const stored = () => {
+      const raw = localStorage.getItem(STORE_KEY)
+      if (!raw) throw new Error('Library was not persisted')
+      const parsed = JSON.parse(raw) as { topics: Topic[] }
+      const topic = parsed.topics.find((candidate) => candidate.id === fresh.id)
+      if (!topic) throw new Error('Topic missing from persisted library')
+      return topic
+    }
+    expect(stored().status).toBe('unstarted')
+    expect(stored().learningAt).toBeNull()
+
+    // The tap that actually asks to be tested is the deliberate act, and it
+    // writes exactly once, at the moment it happens. Queried by class, like
+    // `topicPrimary()` above: the button's accessible name is verb plus note
+    // concatenated, not the bare verb `getByRole` would need to match on.
+    const primary = document.querySelector('.topic-primary')
+    if (!primary) throw new Error('No primary action rendered')
+    fireEvent.click(primary)
+    expect(stored().status).toBe('learning')
+    expect(stored().learningAt).not.toBeNull()
   })
 
   it('treats a topic with no items as authoring rather than learner progress', () => {

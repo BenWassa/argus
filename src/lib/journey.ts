@@ -350,8 +350,8 @@ export function journeyFor(topic: Topic, now: Date = new Date()): TopicJourney {
   //
   // Neither is an ordinary topic that has only been read. `learning` is entered
   // by exposure, so the scheduler's own `Drilled today` describes a drill that
-  // never happened, and that wording became much more visible once opening the
-  // topic page is the exposure event rather than a separate reading route.
+  // never happened, and that wording became much more visible once the topic
+  // page itself carries the reference rather than a separate reading route.
   const progressiveLearning = acquisition.progressive && topic.status === 'learning'
   const readNotDrilled =
     !acquisition.progressive && topic.status === 'learning' && topic.history.length === 0

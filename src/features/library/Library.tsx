@@ -136,10 +136,11 @@ export function Library({
   /**
    * Land back on the row you left from.
    *
-   * The row can move while you are away, and now usually does: opening an
-   * ordinary topic is its exposure event, so by the time you come back it has
-   * left `Due now` for `Waiting` and been re-rendered under a different shelf.
-   * A single-frame restore raced that write and sometimes focused nothing.
+   * The row can move while you are away: testing an ordinary topic (#92
+   * §15.1's deliberate tap, not merely opening the page) is its exposure
+   * event, so by the time you come back it may have left `Due now` for
+   * `Waiting` and been re-rendered under a different shelf. A single-frame
+   * restore raced that write and sometimes focused nothing.
    *
    * So this re-runs as the list settles and gives up only once it has, rather
    * than after a fixed number of frames. `#main` is the floor, because a filter
