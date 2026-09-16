@@ -22,9 +22,6 @@
  * fall back to explicit conflict detection instead of a field-level merge. That
  * is what this is: where two devices both changed a topic, neither copy is
  * overwritten and the topic is reported as conflicted for a person to settle.
- * Choosing a winner by timestamp would be easy, and would be the one failure
- * mode — a fortnight of evidence erased by a stale device reconnecting — that
- * this whole layer exists to avoid.
  */
 
 import type { Topic } from '../types'
@@ -53,18 +50,14 @@ export type SyncAction =
   | { kind: 'push'; topicId: string; json: string; revision: number }
   /** Take the remote copy; another device has moved ahead of this one. */
   | { kind: 'adopt'; topicId: string; json: string; revision: number }
-  /** This device deleted a topic that the server still holds. */
-  | { kind: 'deleteRemote'; topicId: string }
-  /** Another device deleted a topic this one still holds. */
+  /** This device deleted a topic whose observed server revision is unchanged. */
+  | { kind: 'deleteRemote'; topicId: string; revision: number }
+  /** Another device deleted a topic this one has not changed since agreement. */
   | { kind: 'dropLocal'; topicId: string }
 
 export interface SyncPlan {
   actions: SyncAction[]
-  /**
-   * Topics changed on both devices since this one last agreed with the server.
-   * They are left exactly as they are on both sides — no action is emitted for
-   * them at all — and reported so the person can settle it themselves.
-   */
+  /** Topics changed incompatibly since this device last agreed with the server. */
   conflicts: string[]
 }
 
@@ -72,18 +65,6 @@ export function topicJson(topic: Topic): string {
   return JSON.stringify(topic)
 }
 
-/**
- * Would taking this remote copy lose evidence the local one holds?
- *
- * A learner's history only ever grows: an attempt that happened does not
- * un-happen, and neither does the evidence it produced. So a remote copy with
- * fewer attempts than the local one is not a later edit, it is an older or
- * damaged copy arriving late — exactly the case #93 names as unacceptable to
- * apply. It is refused and reported rather than adopted.
- *
- * This reads only the two fields whose growth is monotonic. It is not a merge
- * and does not try to judge the rest of the record.
- */
 interface Weight {
   history: number
   evidence: number
@@ -123,15 +104,8 @@ export function wouldLoseEvidence(remoteJson: string, local: Topic): boolean {
 
 /**
  * What to do about a topic on both sides that this device has never synced.
- *
- * This is the first run on a new device, and treating it as a conflict outright
- * would be useless: the ordinary case is a local library of untouched seed
- * topics meeting a real record, and every topic would be reported at once.
- *
- * So the two copies are compared by how much they actually hold. Where one
- * covers the other — same attempts and item evidence, or more — taking the
- * fuller copy loses nothing and is safe. Where neither covers the other, each
- * holds something the other does not, and that is a real conflict.
+ * The fuller evidence/history copy may be adopted automatically; incompatible
+ * first meetings remain explicit conflicts rather than timestamp guesses.
  */
 function firstMeeting(localJson: string, local: Topic, record: RemoteRecord): SyncAction | null {
   if (localJson === record.json) return null
@@ -167,16 +141,30 @@ export function planSync(
     const known = ledger[id]
 
     if (local && !record) {
-      // Known to the ledger means the server had it and no longer does, which
-      // is another device's deletion arriving. Otherwise it is new here.
-      if (known) actions.push({ kind: 'dropLocal', topicId: id })
-      else actions.push({ kind: 'push', topicId: id, json: topicJson(local), revision: 1 })
+      if (!known) {
+        actions.push({ kind: 'push', topicId: id, json: topicJson(local), revision: 1 })
+        continue
+      }
+      // The server deleted it after our last agreement. That deletion is safe
+      // to adopt only when this device has not edited the same topic meanwhile.
+      if (known.json === topicJson(local)) actions.push({ kind: 'dropLocal', topicId: id })
+      else conflicts.push(id)
       continue
     }
 
     if (!local && record) {
-      if (known) actions.push({ kind: 'deleteRemote', topicId: id })
-      else actions.push({ kind: 'adopt', topicId: id, json: record.json, revision: record.revision })
+      if (!known) {
+        actions.push({ kind: 'adopt', topicId: id, json: record.json, revision: record.revision })
+        continue
+      }
+      // This device deleted the topic. Delete the remote copy only if it is
+      // still the exact revision we last agreed with; a concurrent remote edit
+      // is a conflict, never collateral damage from the local deletion.
+      if (record.revision === known.revision) {
+        actions.push({ kind: 'deleteRemote', topicId: id, revision: record.revision })
+      } else {
+        conflicts.push(id)
+      }
       continue
     }
 
@@ -185,8 +173,6 @@ export function planSync(
     const json = topicJson(local)
 
     if (!known) {
-      // Never synced here. Decided by what each copy holds, not by a ledger
-      // that does not exist yet.
       const action = firstMeeting(json, local, record)
       if (action) actions.push(action)
       else if (json !== record.json) conflicts.push(id)
@@ -205,16 +191,11 @@ export function planSync(
     }
 
     if (!localChanged && remoteChanged) {
-      // Even an uncontested remote edit is refused if applying it would drop
-      // attempts or evidence this device already holds.
       if (wouldLoseEvidence(record.json, local)) conflicts.push(id)
       else actions.push({ kind: 'adopt', topicId: id, json: record.json, revision: record.revision })
       continue
     }
 
-    // Both moved since this device last agreed with the server. Either copy
-    // might hold work the other does not, and nothing here can tell which, so
-    // neither is touched and the person is told which topic it was.
     conflicts.push(id)
   }
 
@@ -231,8 +212,6 @@ export function nextLedger(ledger: Ledger, actions: SyncAction[], now: number): 
         next[action.topicId] = {
           revision: action.revision,
           json: action.json,
-          // An adopted copy was not edited here, but it is now what this device
-          // holds, so it is the baseline the next comparison is made against.
           changedAtMs: now,
         }
         break
