@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import { act, cleanup, render, screen, waitFor } from '@testing-library/react'
 import { LibraryProvider } from '../lib/store'
 import { SyncProvider } from '../lib/sync/SyncProvider'
@@ -41,12 +41,6 @@ function fakeBackend(overrides: Partial<SyncBackend> = {}): SyncBackend & {
 
 const OWNER: SyncUser = { uid: 'owner', email: 'owner@example.test', displayName: 'Owner' }
 
-beforeEach(() => {
-  // The splash is a separate first-visit concern; mark it seen so these tests
-  // are about the gate and nothing else.
-  localStorage.setItem('argus-splash-seen', 'true')
-})
-
 afterEach(() => {
   cleanup()
   localStorage.clear()
@@ -56,7 +50,7 @@ function renderApp(backend: SyncBackend) {
   return render(
     <LibraryProvider>
       <SyncProvider backend={backend}>
-        <Gate showSplash={false} />
+        <Gate />
       </SyncProvider>
     </LibraryProvider>,
   )
@@ -66,6 +60,7 @@ describe('a build with an account to sign in to', () => {
   it('asks who you are before showing anything of the library', () => {
     renderApp(fakeBackend())
     expect(screen.getByRole('button', { name: /continue with google/i })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'Argus' })).toBeTruthy()
     // The surfaces behind the gate must not have mounted at all.
     expect(screen.queryByRole('navigation', { name: 'Sections' })).toBeNull()
     expect(screen.queryByRole('heading', { name: 'Today' })).toBeNull()
@@ -108,7 +103,7 @@ describe('a build with an account to sign in to', () => {
     await act(async () => {
       button.click()
     })
-    await waitFor(() => expect(screen.getByText(/popup-blocked/)).toBeTruthy())
+    await waitFor(() => expect(screen.getByRole('alert').textContent).toContain('popup-blocked'))
     expect(screen.queryByRole('navigation', { name: 'Sections' })).toBeNull()
   })
 
