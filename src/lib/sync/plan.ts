@@ -84,20 +84,69 @@ export function topicJson(topic: Topic): string {
  * This reads only the two fields whose growth is monotonic. It is not a merge
  * and does not try to judge the rest of the record.
  */
-export function wouldLoseEvidence(remoteJson: string, local: Topic): boolean {
-  try {
-    const parsed: unknown = JSON.parse(remoteJson)
-    if (!parsed || typeof parsed !== 'object') return true
-    const remote = parsed as { history?: unknown; itemEvidence?: unknown }
-    const remoteHistory = Array.isArray(remote.history) ? remote.history.length : 0
-    const localHistory = Array.isArray(local.history) ? local.history.length : 0
-    if (remoteHistory < localHistory) return true
-    const size = (value: unknown) =>
-      value && typeof value === 'object' ? Object.keys(value as object).length : 0
-    return size(remote.itemEvidence) < size((local as { itemEvidence?: unknown }).itemEvidence)
-  } catch {
-    return true
+interface Weight {
+  history: number
+  evidence: number
+}
+
+function size(value: unknown): number {
+  return value && typeof value === 'object' ? Object.keys(value as object).length : 0
+}
+
+function weigh(value: { history?: unknown; itemEvidence?: unknown }): Weight {
+  return {
+    history: Array.isArray(value.history) ? value.history.length : 0,
+    evidence: size(value.itemEvidence),
   }
+}
+
+function weighJson(json: string): Weight | null {
+  try {
+    const parsed: unknown = JSON.parse(json)
+    if (!parsed || typeof parsed !== 'object') return null
+    return weigh(parsed as { history?: unknown; itemEvidence?: unknown })
+  } catch {
+    return null
+  }
+}
+
+/** True when `a` holds at least as much of both kinds of evidence as `b`. */
+function covers(a: Weight, b: Weight): boolean {
+  return a.history >= b.history && a.evidence >= b.evidence
+}
+
+export function wouldLoseEvidence(remoteJson: string, local: Topic): boolean {
+  const remote = weighJson(remoteJson)
+  if (!remote) return true
+  return !covers(remote, weigh(local as { history?: unknown; itemEvidence?: unknown }))
+}
+
+/**
+ * What to do about a topic on both sides that this device has never synced.
+ *
+ * This is the first run on a new device, and treating it as a conflict outright
+ * would be useless: the ordinary case is a local library of untouched seed
+ * topics meeting a real record, and every topic would be reported at once.
+ *
+ * So the two copies are compared by how much they actually hold. Where one
+ * covers the other — same attempts and item evidence, or more — taking the
+ * fuller copy loses nothing and is safe. Where neither covers the other, each
+ * holds something the other does not, and that is a real conflict.
+ */
+function firstMeeting(localJson: string, local: Topic, record: RemoteRecord): SyncAction | null {
+  if (localJson === record.json) return null
+  const remote = weighJson(record.json)
+  if (!remote) return { kind: 'push', topicId: local.id, json: localJson, revision: record.revision + 1 }
+  const mine = weigh(local as { history?: unknown; itemEvidence?: unknown })
+  const remoteCovers = covers(remote, mine)
+  const localCovers = covers(mine, remote)
+  if (remoteCovers && !localCovers) {
+    return { kind: 'adopt', topicId: local.id, json: record.json, revision: record.revision }
+  }
+  if (localCovers && !remoteCovers) {
+    return { kind: 'push', topicId: local.id, json: localJson, revision: record.revision + 1 }
+  }
+  return null
 }
 
 export function planSync(
@@ -134,8 +183,19 @@ export function planSync(
     if (!local || !record) continue
 
     const json = topicJson(local)
-    const localChanged = !known || known.json !== json
-    const remoteChanged = !known || record.revision > known.revision
+
+    if (!known) {
+      // Never synced here. Decided by what each copy holds, not by a ledger
+      // that does not exist yet.
+      const action = firstMeeting(json, local, record)
+      if (action) actions.push(action)
+      else if (json !== record.json) conflicts.push(id)
+      else actions.push({ kind: 'adopt', topicId: id, json: record.json, revision: record.revision })
+      continue
+    }
+
+    const localChanged = known.json !== json
+    const remoteChanged = record.revision > known.revision
 
     if (!localChanged && !remoteChanged) continue
 

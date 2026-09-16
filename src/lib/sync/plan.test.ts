@@ -194,3 +194,54 @@ describe('the ledger after a plan is applied', () => {
     expect(again.actions).toEqual([])
   })
 })
+
+
+describe('the first sync on a new device', () => {
+  // No ledger exists yet, so there is nothing to say who moved. Reporting every
+  // topic as conflicted would be correct and useless: the ordinary case is a
+  // local library of untouched seed topics meeting the real record.
+  const untouched = topic('knots')
+  const earned = topic('knots', {
+    history: [{ at: '2026-01-01T00:00:00.000Z' }, { at: '2026-02-01T00:00:00.000Z' }],
+  } as Partial<Topic>)
+
+  it('takes the fuller copy when it covers what this device holds', () => {
+    const plan = planSync([untouched], [remote('knots', earned, 4)], {})
+    expect(plan.conflicts).toEqual([])
+    expect(plan.actions).toEqual([
+      { kind: 'adopt', topicId: 'knots', json: topicJson(earned), revision: 4 },
+    ])
+  })
+
+  it('sends this device up when it is the one holding the record', () => {
+    const plan = planSync([earned], [remote('knots', untouched, 4)], {})
+    expect(plan.conflicts).toEqual([])
+    expect(plan.actions).toEqual([
+      { kind: 'push', topicId: 'knots', json: topicJson(earned), revision: 5 },
+    ])
+  })
+
+  it('does nothing at all when the two copies already agree', () => {
+    const plan = planSync([untouched], [remote('knots', untouched, 4)], {})
+    expect(plan.conflicts).toEqual([])
+    expect(plan.actions).toEqual([
+      { kind: 'adopt', topicId: 'knots', json: topicJson(untouched), revision: 4 },
+    ])
+  })
+
+  it('reports a conflict when each copy holds something the other does not', () => {
+    // Equal attempts, but this device has item evidence the other lacks and the
+    // other has an attempt this one lacks. Neither covers the other.
+    const mine = topic('knots', {
+      history: [{ at: '2026-01-01T00:00:00.000Z' }],
+      itemEvidence: { a: 1, b: 2 },
+    } as unknown as Partial<Topic>)
+    const theirs = topic('knots', {
+      history: [{ at: '2026-01-01T00:00:00.000Z' }, { at: '2026-02-01T00:00:00.000Z' }],
+      itemEvidence: { a: 1 },
+    } as unknown as Partial<Topic>)
+    const plan = planSync([mine], [remote('knots', theirs, 4)], {})
+    expect(plan.actions).toEqual([])
+    expect(plan.conflicts).toEqual(['knots'])
+  })
+})
