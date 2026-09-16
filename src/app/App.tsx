@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { AppShell } from '../components/layout/AppShell'
-import { LibraryProvider, useLibrary } from '../lib/store'
+import { LibraryProvider, useLibrary } from '../lib/LibraryProvider'
 import { SyncProvider, useSyncState } from '../lib/sync/SyncProvider'
 import { SignInScreen } from '../features/auth/SignInScreen'
 import { Today } from '../features/today/Today'
-import { Library } from '../features/library/Library'
-import { Data } from '../features/data/Data'
-import { Session } from '../features/test/Session'
+import { LibraryPage } from '../features/library/LibraryPage'
+import { DataManagementPage } from '../features/data-management/DataManagementPage'
+import { TestSession } from '../features/test/TestSession'
 import { LessonRun } from '../features/learn/LessonRun'
 import { PracticeRun } from '../features/practice/PracticeRun'
 import { MorseReference } from '../features/learn/MorseReference'
@@ -345,7 +345,7 @@ function Routes() {
               onReference={() => openReference(route.topicIds[0])}
             />
           ) : (
-            <Session
+            <TestSession
               key={`${route.mode}-${route.topicIds.join()}`}
               topicIds={route.topicIds}
               onExit={goBack}
@@ -391,7 +391,7 @@ function Routes() {
         />
       )}
       {view === 'library' && (
-        <Library
+        <LibraryPage
           onStart={start}
           onReference={openReference}
           openFormOnMount={authorOnEntry}
@@ -401,7 +401,7 @@ function Routes() {
           onOpenData={() => navigate({ kind: 'section', view: 'data' })}
         />
       )}
-      {view === 'data' && <Data onBack={goBack} />}
+      {view === 'data' && <DataManagementPage onBack={goBack} />}
     </AppShell>
   )
 }

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { LibraryProvider } from '../lib/store'
+import { LibraryProvider } from '../lib/LibraryProvider'
 import { SHIPPED_CATALOG_TOPIC_IDS } from '../lib/catalog'
 import { journeyFor } from '../lib/journey'
 import {
@@ -20,7 +20,7 @@ import { seedLibrary } from '../lib/seed'
 import { parseLibrary } from '../lib/storage'
 import type { Topic } from '../lib/types'
 import { Today } from './today/Today'
-import { Library } from './library/Library'
+import { LibraryPage } from './library/LibraryPage'
 import { TopicPage } from './library/TopicPage'
 
 /**
@@ -117,7 +117,7 @@ function renderToday() {
 function renderLibrary() {
   return render(
     <LibraryProvider>
-      <Library
+      <LibraryPage
         onStart={() => undefined}
         onReference={() => undefined}
         onOpenTopic={() => undefined}

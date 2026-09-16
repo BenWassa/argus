@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from 'vitest'
 import { act, cleanup, render, screen, waitFor } from '@testing-library/react'
-import { LibraryProvider } from '../lib/store'
+import { LibraryProvider } from '../lib/LibraryProvider'
 import { SyncProvider } from '../lib/sync/SyncProvider'
 import { Gate } from './App'
 import { rememberSignedIn } from '../lib/sync/session'

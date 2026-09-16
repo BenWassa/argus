@@ -12,7 +12,7 @@ At the top level, `src/app/App.tsx` holds:
 - `run` for full-surface Learn/Test sessions;
 - `authorOnEntry` for the Today → Library authoring hand-off.
 
-`src/features/library/Library.tsx` separately holds `openId` for a topic page and local state for dialogs/sheets.
+`src/features/library/LibraryPage.tsx` separately holds `openId` for a topic page and local state for dialogs/sheets.
 
 That means an interaction such as:
 

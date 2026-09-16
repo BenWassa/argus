@@ -20,7 +20,7 @@ import {
 } from '../../lib/morseLesson'
 import { lessonListeningOptions } from '../../lib/morseLessonListening'
 import { MORSE_FEEDBACK_CORRECT_MS, MORSE_TRANSITION_MS, morseElementDurationMs } from '../../lib/morseResponse'
-import { LibraryProvider } from '../../lib/store'
+import { LibraryProvider } from '../../lib/LibraryProvider'
 import { parseLibrary, saveLibrary } from '../../lib/storage'
 import { seedLibrary } from '../../lib/seed'
 import type { ItemLessonStore, Topic } from '../../lib/types'

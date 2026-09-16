@@ -202,7 +202,7 @@ An inaudible or clipped tone, real touch leaking across a lock, double grading, 
 ## Likely redesign-sensitive files
 
 - Routing/shell: `src/app/App.tsx`, `src/components/layout/AppShell.tsx`, `src/lib/navigation.ts`, `src/styles/global.css`.
-- Destinations: `src/features/today/*`, `src/features/library/Library*`, `TopicPage*`, `CompletionRecord.tsx`, `src/features/data/Data.tsx`.
+- Destinations: `src/features/today/*`, `src/features/library/LibraryPage*`, `TopicPage*`, `CompletionRecord.tsx`, `src/features/data-management/DataManagementPage.tsx`.
 - Learning: `LessonRun.tsx`, `MorsePath*`, `MorseLesson*`, `MorseReplay*`, `MorseCheckpoint*`, `MorseReference*`, `Reading.css`, and `LearnSupport.tsx`.
 - Assessment/input: `src/features/test/*` and `src/features/morse/*`.
 - Authoring/transients/splash: TopicForm, CaptureSheet, WantToLearn, Dialog, Confirm, StatusTag, and SplashScreen.

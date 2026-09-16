@@ -1,10 +1,10 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { act, cleanup, render, screen, waitFor } from '@testing-library/react'
-import { LibraryProvider } from '../../lib/store'
+import { LibraryProvider } from '../../lib/LibraryProvider'
 import { seedLibrary } from '../../lib/seed'
 import type { Topic } from '../../lib/types'
-import { Session } from './Session'
+import { TestSession } from './TestSession'
 
 const STORE_KEY = 'argus.library.v5'
 
@@ -21,7 +21,7 @@ const ALL_ANSWERS = NATO.items.map((item) => item.answer)
 function open(topicIds: string[]) {
   return render(
     <LibraryProvider>
-      <Session topicIds={topicIds} onExit={() => undefined} />
+      <TestSession topicIds={topicIds} onExit={() => undefined} />
     </LibraryProvider>,
   )
 }

@@ -1,15 +1,15 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { LibraryProvider } from '../../lib/store'
+import { LibraryProvider } from '../../lib/LibraryProvider'
 import { seedLibrary } from '../../lib/seed'
 import type { Topic } from '../../lib/types'
-import { Session } from './Session'
+import { TestSession } from './TestSession'
 
 /**
  * The check's offer to practise what it just missed (#92 batch 5).
  *
- * Split into its own file the way `Session.reducedMotion.test.tsx` is: this is
+ * Split into its own file the way `TestSession.reducedMotion.test.tsx` is: this is
  * one narrow concern on a large surface, and the assertions read better away
  * from the confidentiality and swipe-grading suites.
  *
@@ -83,7 +83,7 @@ describe('offering practice after a check', () => {
     const onPractice = vi.fn()
     render(
       <LibraryProvider>
-        <Session topicIds={['nato-phonetic']} onExit={() => undefined} onPractice={onPractice} />
+        <TestSession topicIds={['nato-phonetic']} onExit={() => undefined} onPractice={onPractice} />
       </LibraryProvider>,
     )
 
@@ -103,7 +103,7 @@ describe('offering practice after a check', () => {
     const onPractice = vi.fn()
     render(
       <LibraryProvider>
-        <Session topicIds={[SMALL.id]} onExit={() => undefined} onPractice={onPractice} />
+        <TestSession topicIds={[SMALL.id]} onExit={() => undefined} onPractice={onPractice} />
       </LibraryProvider>,
     )
 
@@ -116,7 +116,7 @@ describe('offering practice after a check', () => {
   it('counts one missed item as one, and leaks no answer doing it', async () => {
     render(
       <LibraryProvider>
-        <Session topicIds={['nato-phonetic']} onExit={() => undefined} onPractice={vi.fn()} />
+        <TestSession topicIds={['nato-phonetic']} onExit={() => undefined} onPractice={vi.fn()} />
       </LibraryProvider>,
     )
 
@@ -135,7 +135,7 @@ describe('offering practice after a check', () => {
   it('renders no offer when the host provides no practice route', async () => {
     render(
       <LibraryProvider>
-        <Session topicIds={[SMALL.id]} onExit={() => undefined} />
+        <TestSession topicIds={[SMALL.id]} onExit={() => undefined} />
       </LibraryProvider>,
     )
 

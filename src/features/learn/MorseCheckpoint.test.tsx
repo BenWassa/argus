@@ -51,7 +51,7 @@ describe('Morse word checkpoint surface', () => {
 
   it('is structurally ephemeral and has no durable learner-state write path', () => {
     const code = source('./MorseCheckpoint.tsx')
-    expect(code).not.toContain("from '../../lib/store'")
+    expect(code).not.toContain("from '../../lib/LibraryProvider'")
     expect(code).not.toContain("from '../../lib/scheduling'")
     expect(code).not.toContain('updateTopic')
     expect(code).not.toContain('lessonProgress')

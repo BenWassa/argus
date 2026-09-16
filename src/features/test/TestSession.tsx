@@ -8,7 +8,7 @@ import {
   useTransform,
   type PanInfo,
 } from 'motion/react'
-import { useLibrary } from '../../lib/store'
+import { useLibrary } from '../../lib/LibraryProvider'
 import { applyResolution, resolveAttempt, type Resolution } from '../../lib/scheduling'
 import { journeyFor } from '../../lib/journey'
 import { statusLabel } from '../../components/ui/StatusTag'
@@ -39,7 +39,7 @@ import {
   swipeIntent,
   type SwipeGrade,
 } from './swipeGrade'
-import './Session.css'
+import './TestSession.css'
 
 /** Alternatives on a choice rung: the answer plus three distractors. */
 const CHOICE_OPTIONS = 4
@@ -58,7 +58,7 @@ interface Card {
   character?: AcquisitionCharacter
 }
 
-interface SessionProps {
+interface TestSessionProps {
   topicIds: string[]
   onExit: () => void
   /**
@@ -123,7 +123,7 @@ interface BankedAttempt {
   nonQualifying: boolean
 }
 
-export function Session({ topicIds, onExit, onPractice }: SessionProps) {
+export function TestSession({ topicIds, onExit, onPractice }: TestSessionProps) {
   const { topics, updateTopic } = useLibrary()
 
   // Snapshot the topics and deck at session start. A bankable attempt always

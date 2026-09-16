@@ -1,5 +1,5 @@
 import { createContext, useContext, type ReactNode } from 'react'
-import { useLibrary } from '../store'
+import { useLibrary } from '../LibraryProvider'
 import { useSync, type SyncState } from './useSync'
 import type { SyncBackend } from './backend'
 

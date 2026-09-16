@@ -18,7 +18,7 @@ describe('Morse lesson replay', () => {
     const code = source('./MorseReplay.tsx')
     const imports = [...code.matchAll(/from '([^']+)'/g)].map((match) => match[1])
     for (const forbidden of [
-      '../../lib/store',
+      '../../lib/LibraryProvider',
       '../../lib/scheduling',
       '../../lib/cueLadder',
       '../../lib/journey',

@@ -1,4 +1,4 @@
-import { useLibrary } from '../../lib/store'
+import { useLibrary } from '../../lib/LibraryProvider'
 import {
   dueEntries,
   journeysFor,

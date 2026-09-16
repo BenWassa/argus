@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { useLibrary } from '../../lib/store'
+import { useLibrary } from '../../lib/LibraryProvider'
 import { useSyncState } from '../../lib/sync/SyncProvider'
 import type { SyncState } from '../../lib/sync/useSync'
 import { exportFilename, parseLibrary } from '../../lib/storage'
@@ -18,7 +18,7 @@ import { Confirm } from '../../components/ui/Confirm'
  * device remains the one the app reads and writes, so everything below sync on
  * this page keeps working exactly as it did when there was no account at all.
  */
-export function Data({ onBack }: { onBack: () => void }) {
+export function DataManagementPage({ onBack }: { onBack: () => void }) {
   const { topics, library, catalogReport, replaceLibrary, resetLibrary } = useLibrary()
   const sync = useSyncState()
   const fileInput = useRef<HTMLInputElement>(null)

@@ -1,5 +1,5 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
-import { useLibrary } from '../../lib/store'
+import { useLibrary } from '../../lib/LibraryProvider'
 import {
   journeyShelves,
   journeysFor,
@@ -19,7 +19,7 @@ import { useInbox } from '../../lib/inbox/useInbox'
 import { describeInboxError } from '../../lib/inbox/backend'
 import type { ContentRequest } from '../../lib/inbox/model'
 import { TRACKS, type Mode, type Topic, type Track } from '../../lib/types'
-import './Library.css'
+import './LibraryPage.css'
 
 interface LibraryProps {
   onStart: (mode: Mode, topicIds: string[], target?: RunTarget) => void
@@ -54,7 +54,7 @@ const EXAMPLE: Draft = {
   items: 'North | 0\nEast | 90\nSouth | 180\nWest | 270',
 }
 
-export function Library({
+export function LibraryPage({
   onStart,
   onReference,
   onOpenTopic,
