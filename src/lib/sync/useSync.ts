@@ -117,7 +117,7 @@ async function executePlan(
         applied.push(action)
         break
       case 'deleteRemote':
-        await backend.deleteTopic(uid, action.topicId)
+        await backend.deleteTopic(uid, action.topicId, action.revision)
         applied.push(action)
         break
       case 'adopt': {
@@ -188,6 +188,7 @@ export function useSync(store: SyncableStore, injected?: SyncBackend) {
   const coalesceTimer = useRef<number | null>(null)
   const retryTimer = useRef<number | null>(null)
   const retryAttempt = useRef(0)
+  const runSyncRef = useRef<() => void>(() => {})
   const lastLocalJson = useRef(JSON.stringify(store.library))
   const storeRef = useRef(store)
   const userRef = useRef(user)
@@ -267,7 +268,12 @@ export function useSync(store: SyncableStore, injected?: SyncBackend) {
         // `user: null` intentionally keeps the existing app gate closed. First
         // binding cannot enter on an unverified legacy/fresh copy when cloud is
         // unreachable, because a recoverable remote library may still exist.
-        setState({ kind: 'error', user: null, message: `${message} First setup needs one successful cloud check.`, ready: false })
+        setState({
+          kind: 'error',
+          user: null,
+          message: `${message} First setup needs one successful cloud check.`,
+          ready: false,
+        })
       }
     }
     const stopLibrary = backend.observeLibrary(user.uid, setRecords, fail)
@@ -289,9 +295,16 @@ export function useSync(store: SyncableStore, injected?: SyncBackend) {
       const base = local.kind === 'valid'
         ? local.library
         : remote ?? freshLibrary()
+      // A missing/invalid cache or a totally absent cloud namespace has no safe
+      // shared ancestor. Ignore any stale ledger so it can never turn recovery
+      // into a mass deletion. First meeting remains conservative per topic.
+      const bootstrapLedger =
+        local.kind === 'valid' && local.source === 'uid' && remote !== null
+          ? ledger.current
+          : {}
 
       try {
-        const executed = await executePlan(user.uid, base, records, meta, ledger.current, backend)
+        const executed = await executePlan(user.uid, base, records, meta, bootstrapLedger, backend)
         ledger.current = executed.ledger
         saveLedger(user.uid, ledger.current)
         writeLocalLibrary(user.uid, executed.library)
@@ -303,9 +316,8 @@ export function useSync(store: SyncableStore, injected?: SyncBackend) {
         retryAttempt.current = 0
         setState({ kind: 'synced', user, at: new Date(), conflicts: executed.conflicts })
       } catch (error) {
-        // We already completed the authoritative cloud read. Opening the chosen
-        // local/base copy is therefore safe; any failed cloud mutation is a
-        // durable pending write, not a reason to roll back learning.
+        // The authoritative cloud read completed. Keep the chosen copy local and
+        // durable, then retry the cloud mutation without rolling learning back.
         writeLocalLibrary(user.uid, base)
         markPending(user.uid)
         lastLocalJson.current = JSON.stringify(base)
@@ -317,6 +329,9 @@ export function useSync(store: SyncableStore, injected?: SyncBackend) {
           message: error instanceof Error ? error.message : 'Sync failed.',
           ready: true,
         })
+        retryAttempt.current = 1
+        if (retryTimer.current !== null) window.clearTimeout(retryTimer.current)
+        retryTimer.current = window.setTimeout(() => runSyncRef.current(), 1_000)
       } finally {
         bootstrapInFlight.current = false
       }
@@ -347,12 +362,19 @@ export function useSync(store: SyncableStore, injected?: SyncBackend) {
 
     try {
       const started = storeRef.current.library
+      // If the entire cloud namespace disappeared, do not interpret an old
+      // ledger as a deliberate deletion of every local topic. Re-seed the
+      // validated device record instead. Ordinary per-topic deletions still use
+      // the ledger and remain conflict-aware in `planSync`.
+      const planningLedger = currentRecords.length === 0 && currentMeta === null
+        ? {}
+        : ledger.current
       const executed = await executePlan(
         currentUser.uid,
         started,
         currentRecords,
         currentMeta,
-        ledger.current,
+        planningLedger,
         backend,
       )
       ledger.current = executed.ledger
@@ -372,15 +394,16 @@ export function useSync(store: SyncableStore, injected?: SyncBackend) {
       const delay = Math.min(30_000, 1_000 * 2 ** Math.min(retryAttempt.current, 5))
       retryAttempt.current += 1
       if (retryTimer.current !== null) window.clearTimeout(retryTimer.current)
-      retryTimer.current = window.setTimeout(() => void runSync(), delay)
+      retryTimer.current = window.setTimeout(() => runSyncRef.current(), delay)
     } finally {
       inFlight.current = false
       if (rerun.current) {
         rerun.current = false
-        window.setTimeout(() => void runSync(), 0)
+        window.setTimeout(() => runSyncRef.current(), 0)
       }
     }
   }, [backend])
+  runSyncRef.current = () => void runSync()
 
   useEffect(() => {
     if (!user || bootstrappedUid.current !== user.uid) return
@@ -391,25 +414,28 @@ export function useSync(store: SyncableStore, injected?: SyncBackend) {
     markPending(user.uid)
     setState({ kind: 'syncing', user })
     if (coalesceTimer.current !== null) window.clearTimeout(coalesceTimer.current)
-    coalesceTimer.current = window.setTimeout(() => void runSync(), 650)
+    coalesceTimer.current = window.setTimeout(() => runSyncRef.current(), 650)
     return () => {
       if (coalesceTimer.current !== null) window.clearTimeout(coalesceTimer.current)
     }
-  }, [runSync, store.library, user])
+  }, [store.library, user])
 
   useEffect(() => {
     if (!user || bootstrappedUid.current !== user.uid || records === null || meta === undefined) return
     // Every remote snapshot is a reconciliation trigger. This catches work from
     // another device, and also drains a durable pending marker after reconnect.
     if (coalesceTimer.current !== null) window.clearTimeout(coalesceTimer.current)
-    coalesceTimer.current = window.setTimeout(() => void runSync(), hasPending(user.uid) ? 0 : 50)
-  }, [meta, records, runSync, user])
+    coalesceTimer.current = window.setTimeout(
+      () => runSyncRef.current(),
+      hasPending(user.uid) ? 0 : 50,
+    )
+  }, [meta, records, user])
 
   useEffect(() => {
-    const reconnect = () => void runSync()
+    const reconnect = () => runSyncRef.current()
     window.addEventListener('online', reconnect)
     return () => window.removeEventListener('online', reconnect)
-  }, [runSync])
+  }, [])
 
   useEffect(() => () => {
     if (coalesceTimer.current !== null) window.clearTimeout(coalesceTimer.current)
