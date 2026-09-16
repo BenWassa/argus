@@ -66,7 +66,7 @@ import type { Mode, Status, Topic } from './types'
  */
 
 /** What the learner should do with this topic now. */
-export type TopicAction = 'author' | 'learn' | 'test'
+export type TopicAction = 'author' | 'enroll' | 'learn' | 'test'
 
 export interface AcquisitionView {
   /** True for a topic with a multi-sitting acquisition programme. Morse today. */
@@ -130,12 +130,11 @@ export interface TopicJourney {
   sitting: SittingView | null
   action: TopicAction
   /**
-   * The verb on a row or button: `Read`, `Continue`, `Test`, `Add items`.
+   * The verb on a row or button: `Start`, `Continue`, `Test`, `Add items`.
    *
-   * `Learn` is gone from it. It named an internal mode rather than an action,
-   * and it named two different things: opening an ordinary topic's reference,
-   * and continuing a guided lesson that runs over weeks. Those are not the same
-   * verb and the learner was the one paying for the ambiguity.
+   * Browsing is deliberately absent: opening an ordinary topic is reference
+   * access, not learner progress. `enroll` names the explicit boundary where an
+   * ordinary topic becomes active learning; progressive curricula keep `learn`.
    */
   actionLabel: string
   /** The fuller name of the same action, for the Topic page's primary control. */
@@ -210,7 +209,8 @@ function sittingView(topic: Topic, acquisition: AcquisitionView): SittingView | 
 /**
  * The timestamp the qualifying `learning → drilled` gap is measured from.
  *
- * For an ordinary topic that is first exposure, exactly as it has always been.
+ * For an ordinary topic this is deliberate enrollment (`Start learning`), not
+ * a reference-page visit. Browsing has no retention anchor.
  *
  * For a progressive topic it is the moment acquisition became ready, which is
  * the whole point of #62's clock policy: a programme that runs for six weeks
@@ -320,13 +320,13 @@ export function journeyFor(topic: Topic, now: Date = new Date()): TopicJourney {
   }
 
   if (topic.status === 'unstarted') {
-    // Ordinary first exposure. Unchanged: read it, then it comes back to be
-    // proved. This is the branch `modeFor` used to be the whole of.
+    // A fresh ordinary topic is available to browse, but browsing is not
+    // enrollment. The explicit action is what creates active-learning state.
     //
     // A progressive topic can reach here only when acquisition is already ready
     // while the scheduler still says `unstarted`, which no production sequence
     // produces but an import or a fixture can. It is still a curriculum, so it
-    // still asks for its lesson rather than for a reading it does not have.
+    // still asks for its lesson.
     return {
       topicId: topic.id,
       phase: 'acquiring',
@@ -334,11 +334,11 @@ export function journeyFor(topic: Topic, now: Date = new Date()): TopicJourney {
       evidence,
       retention,
       sitting,
-      action: 'learn',
-      actionLabel: acquisition.progressive ? 'Start lesson' : 'Read',
-      primaryLabel: acquisition.progressive ? `Start lesson ${acquisition.packet}` : 'Read',
+      action: acquisition.progressive ? 'learn' : 'enroll',
+      actionLabel: acquisition.progressive ? 'Start lesson' : 'Start',
+      primaryLabel: acquisition.progressive ? `Start lesson ${acquisition.packet}` : 'Start learning',
       statusLabel: retention.label,
-      detail: null,
+      detail: acquisition.progressive ? null : 'Reference browsing does not start progress.',
       due: true,
       waitDays: 0,
       advancementEligible: true,
@@ -348,21 +348,20 @@ export function journeyFor(topic: Topic, now: Date = new Date()): TopicJourney {
   // A progressive topic waiting out its anchored learning gap is not "drilled
   // today" — nothing drilled it. Say what is actually true of it.
   //
-  // Neither is an ordinary topic that has only been read. `learning` is entered
-  // by exposure, so the scheduler's own `Drilled today` describes a drill that
-  // never happened, and that wording became much more visible once the topic
-  // page itself carries the reference rather than a separate reading route.
+  // The same is true for an ordinary topic that has been deliberately enrolled
+  // but has no scored history yet. Enrollment starts the existing learning gap;
+  // it is not itself a drill and it is never inferred from reference browsing.
   const progressiveLearning = acquisition.progressive && topic.status === 'learning'
-  const readNotDrilled =
+  const enrolledNotDrilled =
     !acquisition.progressive && topic.status === 'learning' && topic.history.length === 0
   const statusLabel = progressiveLearning
     ? scheduled.due
       ? 'Ready to test'
       : `Test in ${days(scheduled.waitDays)}`
-    : readNotDrilled
+    : enrolledNotDrilled
       ? scheduled.due
-        ? 'Read, ready to test'
-        : 'Read today'
+        ? 'Ready to test'
+        : 'Learning started'
       : scheduled.label
 
   const phase: JourneyPhase =
@@ -389,33 +388,29 @@ export function journeyFor(topic: Topic, now: Date = new Date()): TopicJourney {
   }
 }
 
-/** The mode the journey's recommended action launches. Authoring launches none. */
+/** The run mode for actions that actually launch a run. */
 export function modeForAction(action: TopicAction): Mode | null {
-  return action === 'author' ? null : action
+  return action === 'learn' || action === 'test' ? action : null
 }
 
 /**
- * What pressing the recommended action actually opens.
+ * What pressing the recommended action does.
  *
- * `action` says *what the learner should do*; this says *where that happens*,
- * and the two are no longer the same thing for reading. An ordinary topic's
- * reference is the topic page itself, so `learn` there means "open it and read
- * it" rather than "launch a full-screen reading route that repeats the page you
- * just left". A progressive topic's `learn` is a real bounded task with its own
- * response mechanism and durable sitting, so it stays a run.
- *
- * Every surface asks this rather than branching on `progressive` itself, so
- * Today, Library and Topic cannot start the same topic three different ways.
+ * Browsing is not represented here: opening a topic's left/navigation surface
+ * is always read-only. A fresh ordinary topic instead exposes an explicit
+ * enrollment action; its caller records `resolveStudy` and may then open the
+ * reference. Curriculum Learn and Test remain real runs.
  */
 export type TopicLaunch =
-  | { kind: 'open' }
+  | { kind: 'enroll' }
   | { kind: 'run'; mode: Mode }
   | { kind: 'author' }
 
 export function launchFor(journey: TopicJourney): TopicLaunch {
   if (journey.action === 'author') return { kind: 'author' }
+  if (journey.action === 'enroll') return { kind: 'enroll' }
   if (journey.action === 'test') return { kind: 'run', mode: 'test' }
-  return journey.acquisition.progressive ? { kind: 'run', mode: 'learn' } : { kind: 'open' }
+  return { kind: 'run', mode: 'learn' }
 }
 
 export interface JourneyEntry {

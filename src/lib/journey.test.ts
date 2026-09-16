@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   dueEntries,
   journeyFor,
+  launchFor,
   journeyShelves,
   journeysFor,
   retentionAnchor,
@@ -289,31 +290,37 @@ describe('an ineligible Test is recorded and moves nothing', () => {
   })
 })
 
-describe('ordinary topics keep exactly the behaviour they had', () => {
-  it('routes an unstarted ordinary topic to its reference, then to Test', () => {
+describe('ordinary topics separate browsing from deliberate enrollment', () => {
+  it('keeps a fresh ordinary topic unenrolled until Start, then preserves Test scheduling', () => {
     const bearings = { ...seeded('cardinal-bearings'), status: 'unstarted' as const, completedAt: null, history: [] }
 
     const fresh = journeyFor(bearings, NOW)
     expect(fresh.acquisition.progressive).toBe(false)
-    expect(fresh.action).toBe('learn')
-    expect(fresh.actionLabel).toBe('Read')
-    expect(fresh.primaryLabel).toBe('Read')
+    expect(fresh.action).toBe('enroll')
+    expect(fresh.actionLabel).toBe('Start')
+    expect(fresh.primaryLabel).toBe('Start learning')
     expect(fresh.statusLabel).toBe('Not started')
+    expect(fresh.detail).toBe('Reference browsing does not start progress.')
     expect(fresh.due).toBe(true)
-    // An ordinary Learn is one exposure, so it is advancement-eligible at once.
     expect(fresh.advancementEligible).toBe(true)
+    expect(launchFor(fresh)).toEqual({ kind: 'enroll' })
 
-    const exposed = resolveStudy(bearings, NOW)
-    const sameDay = journeyFor(exposed, NOW)
+    // Explicit enrollment changes only the scheduler-owned learning state. It
+    // invents no attempt, score or formal evidence.
+    const enrolled = resolveStudy(bearings, NOW)
+    expect(enrolled.status).toBe('learning')
+    expect(enrolled.learningAt).toBe(NOW.toISOString())
+    expect(enrolled.history).toEqual([])
+    expect(enrolled.itemEvidence).toEqual(bearings.itemEvidence)
+
+    const sameDay = journeyFor(enrolled, NOW)
     expect(sameDay.action).toBe('test')
-    // Read, not drilled. The scheduler's own `Drilled today` describes a drill
-    // that never happened, and exposure is what put the topic on this rung.
-    expect(sameDay.statusLabel).toBe('Read today')
+    expect(sameDay.statusLabel).toBe('Learning started')
     expect(sameDay.due).toBe(false)
 
-    const nextDay = journeyFor(exposed, new Date(NOW.getTime() + DAY))
+    const nextDay = journeyFor(enrolled, new Date(NOW.getTime() + DAY))
     expect(nextDay.due).toBe(true)
-    expect(nextDay.statusLabel).toBe('Read, ready to test')
+    expect(nextDay.statusLabel).toBe('Ready to test')
     expect(nextDay.advancementEligible).toBe(true)
   })
 

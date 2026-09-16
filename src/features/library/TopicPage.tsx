@@ -77,24 +77,11 @@ export function TopicPage({
   const course = Boolean(path && checkpoints)
 
   /**
-   * Reading is the exposure event for an ordinary topic, because the
-   * reference is on this page. But reading is not proven by rendering a
-   * component — only by the learner doing something once they have actually
-   * read it. Opening the page used to stamp this on mount; #92 §15.1 moved
-   * the write to the deliberate tap that asks to be tested (`startCheck`
-   * below), so a topic opened and abandoned without reading stays
-   * `unstarted`, exactly as it should.
-   *
-   * A curriculum topic is exempt: its exposure is a lesson, and `MorseLesson`
-   * owns that write. Reading the path is not learning the alphabet.
-   *
-   * The displayed journey still projects the resolved topic rather than the
-   * stored one, so the page states plainly what pressing `Test` is about to
-   * do — that projection was never the part in question, only when the write
-   * behind it actually happens.
+   * The topic body is reference material. Rendering or revisiting it is read-only
+   * browsing and must not create learner state. The journey therefore reads the
+   * stored topic exactly as it stands.
    */
-  const exposed = !course && runnable ? resolveStudy(topic) : topic
-  const journey = journeyFor(exposed)
+  const journey = journeyFor(topic)
 
   useEffect(() => {
     heading.current?.focus()
@@ -109,18 +96,11 @@ export function TopicPage({
   // ordinary topic's offer lives on its check's end screen instead.
   const practiceCount = hasPractice(topic) ? practiceItemCount(topic) : 0
 
-  /**
-   * The tap that actually asks to be tested is the exposure event for an
-   * ordinary topic (#92 §15.1) — the one place this page can be sure the
-   * learner did something with the reference rather than merely rendering
-   * it. Guarded on the *raw* stored status, never the resolved projection:
-   * once a topic is truly `unstarted` no more, this is a no-op, same as
-   * `resolveStudy` itself.
-   */
+  function startLearning() {
+    updateTopic(topic.id, (current) => resolveStudy(current))
+  }
+
   function startCheck() {
-    if (!course && topic.status === 'unstarted') {
-      updateTopic(topic.id, (current) => resolveStudy(current))
-    }
     onStart('test', [topic.id])
   }
 
@@ -160,6 +140,7 @@ export function TopicPage({
           <PrimaryAction
             journey={journey}
             course={course}
+            onEnroll={startLearning}
             onLesson={() => onStart('learn', [topic.id], { kind: 'lesson' })}
             onCheck={startCheck}
           />
@@ -197,9 +178,11 @@ export function TopicPage({
           )}
           {!course && (
             <p className="topic-consequence">
-              {journey.advancementEligible
-                ? 'Scored, every item once. The ladder moves only when the required gap is satisfied.'
-                : 'Scored and recorded, but the ladder does not move until acquisition is finished.'}
+              {journey.action === 'enroll'
+                ? 'Browse freely. Starting learning records enrollment, not a score or evidence.'
+                : journey.advancementEligible
+                  ? 'Scored, every item once. The ladder moves only when the required gap is satisfied.'
+                  : 'Scored and recorded, but the ladder does not move until acquisition is finished.'}
             </p>
           )}
         </div>
@@ -315,14 +298,27 @@ export function TopicPage({
 function PrimaryAction({
   journey,
   course,
+  onEnroll,
   onLesson,
   onCheck,
 }: {
   journey: ReturnType<typeof journeyFor>
   course: boolean
+  onEnroll: () => void
   onLesson: () => void
   onCheck: () => void
 }) {
+  if (journey.action === 'enroll') {
+    return (
+      <button className="topic-primary" type="button" onClick={onEnroll}>
+        <span className="topic-primary-verb">{journey.primaryLabel}</span>
+        <span className="topic-primary-note">
+          Make this an active topic. Browsing the reference alone changes nothing.
+        </span>
+      </button>
+    )
+  }
+
   if (journey.action === 'learn' && course) {
     const { acquisition, sitting } = journey
     return (

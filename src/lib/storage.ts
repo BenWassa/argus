@@ -803,12 +803,17 @@ function parseMorseReview(
     const introducedIn = nonNegativeInteger(raw.introducedIn)
     const lastSeenIn = nonNegativeInteger(raw.lastSeenIn)
     const laterCorrect = nonNegativeInteger(raw.laterCorrect)
+    // `printed` was added after the initial #90 review record. Its legacy
+    // default is zero: it grants no success and simply lets future equal-need
+    // selection accumulate fair exposure history.
+    const printed = raw.printed === undefined ? 0 : nonNegativeInteger(raw.printed)
     const heard = nonNegativeInteger(raw.heard)
     const heardCorrect = nonNegativeInteger(raw.heardCorrect)
     if (
       introducedIn === null ||
       lastSeenIn === null ||
       laterCorrect === null ||
+      printed === null ||
       heard === null ||
       heardCorrect === null
     ) {
@@ -835,6 +840,12 @@ function parseMorseReview(
         error: `${where} morseReview for "${itemId}" records more later-sitting successes than it had sittings to earn them in.`,
       }
     }
+    if (raw.printed !== undefined && printed < laterCorrect) {
+      return {
+        ok: false,
+        error: `${where} morseReview for "${itemId}" has more later-sitting successes than printed retrievals.`,
+      }
+    }
     if (heardCorrect > heard) {
       return {
         ok: false,
@@ -842,7 +853,7 @@ function parseMorseReview(
       }
     }
 
-    parsed[itemId] = { introducedIn, lastSeenIn, laterCorrect, heard, heardCorrect }
+    parsed[itemId] = { introducedIn, lastSeenIn, laterCorrect, printed, heard, heardCorrect }
   }
 
   const review: MorseReviewProgress = { sittings, items: parsed }

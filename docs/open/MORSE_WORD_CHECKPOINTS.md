@@ -1,5 +1,7 @@
 # Morse Learn — early word-application checkpoints
 
+> **#90 closeout addendum — 2026-09-15.** The original #78 record below is retained for history, but its "exactly two" / "later-half non-goal" statements are superseded. The same formative checkpoint architecture now spans **Lessons 4, 7, 10 and 13**. Lesson 10 uses warm-ups `V F B P` with `FLOW`, `PLANT`; Lesson 13 uses `X C J Q` with `BOX`, `COZY`, `JAZZ`, `QUIZ`. All content is mechanically checked against `lessonPackets()` at its milestone, and the final checkpoint exercises every late-acquired `X C Z J Y Q` somewhere in its material. A first miss is reinserted once after up to two intervening targets where practical; a second miss is not requeued. Completion shows only local correct/attempt/revisited counts. All four milestones use the existing #88 first-unlock invitation, remain skippable/non-gating and path-accessible, and checkpoint/replay answers still write no lesson support, sitting, `morseReview`, `DirectionEvidence`, retention timestamp or completion state.
+
 Issue: #78  
 Parent: #21  
 Status: **implemented by #78; integrated into the forward journey by #87/#88**

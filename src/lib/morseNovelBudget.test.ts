@@ -10,6 +10,8 @@ import {
 import { parseLibrary } from './storage'
 import { seedLibrary } from './seed'
 import { DEFAULT_PACKET_PLAN } from './morseOrder'
+import { isConfusable } from './confusion'
+import { morsePattern } from './morse'
 import type { ItemLessonStore, Topic } from './types'
 
 /**
@@ -125,6 +127,37 @@ describe('the review roster is chosen by need, not by packet position', () => {
     const once = startLesson(topic, { allowNovel: false })?.entries.map((entry) => entry.glyph)
     const twice = startLesson(topic, { allowNovel: false })?.entries.map((entry) => entry.glyph)
     expect(once).toEqual(twice)
+  })
+
+  it('uses normal lesson returns to spread equal-need material before repeating early letters', () => {
+    // Settle four packets so packet five has a broad established pool. Its
+    // historical static returns are already settled, leaving the three return
+    // slots for actual need rather than acquisition-order recurrence.
+    let topic = settleThroughPacket(morseTopic(), 4)
+    const established = [...new Set(lessonPackets().slice(0, 4).flatMap((packet) => packet.characters))]
+    let review = newMorseReview()
+    for (const glyph of established) review = recordIntroduced(review, itemIdFor(topic, glyph))
+    topic = withMorseReview(topic, review)
+
+    const frequency = new Map<string, number>()
+    for (let round = 0; round < 6; round += 1) {
+      const run = startLesson(topic)
+      const returns = run?.entries.filter((entry) => !entry.novel) ?? []
+      expect(returns).toHaveLength(DEFAULT_PACKET_PLAN.visible - DEFAULT_PACKET_PLAN.novel)
+      for (const entry of returns) {
+        frequency.set(entry.glyph, (frequency.get(entry.glyph) ?? 0) + 1)
+        review = recordPrintedRetrieval(review, entry.itemId, true)
+      }
+      topic = withMorseReview(topic, review)
+    }
+
+    const novel = lessonPackets()[4].novel
+    const eligible = established.filter(
+      (glyph) => !novel.some((newGlyph) => isConfusable(morsePattern(glyph), morsePattern(newGlyph))),
+    )
+    const counts = eligible.map((glyph) => frequency.get(glyph) ?? 0)
+    expect(Math.max(...counts) - Math.min(...counts)).toBeLessThanOrEqual(1)
+    expect(frequency.get('E')).toBeLessThanOrEqual(Math.ceil(18 / eligible.length))
   })
 
   it('reaches late characters once they have been met', () => {

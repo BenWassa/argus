@@ -1,5 +1,7 @@
 # Argus programme — progressive Morse-code learning
 
+> **#90/#92/#96 closeout addendum — 2026-09-15.** The historical programme record below is retained, but status statements that stop at #88/#78 are superseded. `Topic.morseReview` supports item-aware cumulative review, including a formative printed-exposure tie-break; a 10-retrieval sitting introduces at most two new characters and otherwise continues as visibly labelled **Review**. Ordinary return slots are need-selected instead of statically favoring early packet members, while unsettled packet obligations remain intact. Later-sitting printed consolidation, legacy/previously-ready safety and need-balanced formative listening remain unchanged. Listening answer placement now rotates independently of the fixed cadence; distractors remain introduced-only. The checkpoint arc is Lessons **4 / 7 / 10 / 13** with #88 first-unlock handoff. #90 item 8 remains complete through `advancementEligible: false`. Whole-programme simulations cover visual-only/audio learners, repeated early/late misses, listening suppression, bounded completion, late-letter coverage, equal-need review distribution and answer-position balance. Exact same-day spacing copy remains an owner presentation decision under #92; it is not missing scheduler work. #29 stays deferred, #79 stays parked, and #42 remains the separate Pixel acceptance gate.
+
 Parent issue: #21  
 Research baseline: `docs/closed/MORSE_CODE_LEARNING_PRD.md` (PR #22; amended by #42)
 Execution-plan origin: PR #30  

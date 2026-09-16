@@ -175,6 +175,8 @@ export interface MorseReviewItem {
   lastSeenIn: number
   /** Correct printed retrievals earned in a sitting later than `introducedIn`. */
   laterCorrect: number
+  /** Every printed retrieval. Used only to break equal review need fairly. */
+  printed: number
   /** Listening retrievals offered. Formative support, never a claim. */
   heard: number
   /** Listening retrievals answered correctly. */

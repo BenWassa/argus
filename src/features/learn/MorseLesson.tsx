@@ -62,8 +62,8 @@ import { MorsePlayButton } from './MorsePlayButton'
 import { useMorseAudio } from './useMorseAudio'
 import './MorseLesson.css'
 
-/** The two #78 word-checkpoint milestones, mechanically tied to lessonPackets() via morseWordCheckpoints. */
-const CHECKPOINT_LESSON_NUMBERS = new Set([4, 7])
+/** The #78/#90 word-checkpoint milestones, tied to the checkpoint curriculum. */
+const CHECKPOINT_LESSON_NUMBERS = new Set([4, 7, 10, 13])
 
 interface CheckpointHandoff {
   checkpoint: MorseWordCheckpointPathItem
@@ -259,7 +259,7 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
       : null
   const listening = listeningEntry !== null
   const audioOptions = listeningEntry
-    ? lessonListeningOptions(run, listeningEntry, introducedGlyphs(live))
+    ? lessonListeningOptions(run, listeningEntry, introducedGlyphs(live), sitting.retrievals, morseReviewOf(live))
     : []
 
   useEffect(() => {
@@ -336,8 +336,9 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
   }
 
   /**
-   * Which #78 checkpoint, if any, this exact packet settlement just unlocked
-   * for the first time (#88).
+   * Which checkpoint, if any, this exact lesson settlement just unlocked for
+   * the first time (#88). The milestone list now includes #90's later cumulative
+   * applications after Lessons 10 and 13 as well as the original #78 pair.
    *
    * `pathBeforeAnswer` is a snapshot taken in `answerVisual` before that
    * answer's progress was persisted — the one moment this comparison needs
@@ -606,6 +607,7 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
         <span className="lesson-progress-fill" style={{ inlineSize: `${(sitting.retrievals / LESSON_RETRIEVAL_TARGET) * 100}%` }} />
       </div>
       <p className="lesson-foot">Lesson progress: {packetProgress.done} of {packetProgress.total} settled.</p>
+      {run.reviewOnly && <p className="lesson-review-label">Review</p>}
 
       {(feedback?.correct || shownListeningFeedback?.correct) && (
         <div className="lesson-feedback is-correct" role="status" aria-live="polite">

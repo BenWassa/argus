@@ -109,6 +109,17 @@
   color: var(--accent);
 }
 
+/* A quiet state marker: review remains the same Learn run, never a new mode. */
+.lesson-review-label {
+  justify-self: start;
+  margin: calc(var(--s-sm) * -1) 0 0;
+  color: var(--subtle);
+  font-size: var(--t-small);
+  font-weight: var(--w-label);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
 .lesson-support,
 .lesson-listening-stimulus {
   display: flex;

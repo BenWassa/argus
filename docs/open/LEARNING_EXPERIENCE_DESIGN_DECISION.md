@@ -1,5 +1,9 @@
 # Argus learning-experience design decision
 
+> **#97 owner decision — 2026-09-15.** **Browse/reference ≠ enrolled learning.** This decision supersedes §4/§15.1 and every implementation-record statement below that treats opening an ordinary Topic page as exposure. The ordinary Topic body remains freely browsable, but mounting, revisiting or restoring that page writes no `status`, `learningAt`, history, scheduler or evidence state. A fresh ordinary topic instead exposes a deliberate **Start learning** action; that action may perform the existing `unstarted → learning` / learning-gap transition but creates no score or formal evidence. A first Test remains a deliberate check and keeps its existing scheduler/evidence semantics. Existing legitimate `learning`, `drilled`, `completed` or `decayed` state is preserved; there is no backwards migration. Morse and the settled navigation architecture are unchanged.
+
+> **#90/#92 closeout addendum — 2026-09-15.** The proposal/history below is retained, but its implementation-status and unresolved-decision lists are superseded where this block conflicts. Batches **0–5 are shipped**, batch 6’s review/scheduling/listening work was already on starting `main`, and this closeout completes its remaining #90 checkpoint arc. Batch 6’s one additive field is `Topic.morseReview`, validated/portable inside v5 with absence as the legacy-safe default. #90 item 8 is not partial: clean non-qualifying Test work already uses `advancementEligible: false`, recording the run without moving/resetting retention status or clocks. The path’s cumulative formative checkpoints are now **4 / 7 / 10 / 13**, with late-acquired material, one bounded local retry and #88 first-unlock handoff at all four. The already-ratified **Today + Library** information architecture is unchanged; rejected Home/Lessons, badges, First Messages and standalone Progress remain rejected. After the closeout engineering is green, #92 should remain open only for exactly four owner judgments: **(1)** Morse alphabet link vs embedded 26-card reference; **(2)** ordinary-topic exposure semantics; **(3)** targeted-practice surface/naming; **(4)** spacing copy / same-day continuation presentation. #42 remains a separate real-Pixel acceptance track, not another #92 gate. #29 and #79 remain outside this programme.
+
 > **Status — batches 0 to 6 shipped and merged to `main`. All nine §15
 > decisions have been made, three of them explicitly by the owner.**
 > The paper below was written first, as an independent proposal, and is now the
@@ -11,8 +15,10 @@
 > what was deliberately left. §15.1, §15.3 and §15.5 were the three the owner
 > reviewed directly, on 2026-09-15, recorded in
 > `docs/open/ARGUS_OVERHAUL_RATIFICATION.md`: §15.3 (Morse reference cards) and
-> §15.5 (practice is formative) confirmed as shipped; §15.1 (exposure) changed —
-> the write now happens on the deliberate `Test` tap, not on opening the page.
+> §15.5 (practice is formative) confirmed as shipped; §15.1 (exposure) changed
+> by the #97 decision above — browsing the reference writes nothing, and a
+> fresh ordinary topic carries a deliberate `Start learning` action that owns
+> the `unstarted → learning` write.
 > The other six were taken as this paper's own recommendation and have not had
 > a separate owner look. One item remains outstanding: **owner phone review of
 > batch 5's `practice` surface**, including the `practice`-not-`repair` naming
@@ -782,9 +788,11 @@ hidden: `Learn.tsx` is deleted and `Learn.css` became `Reading.css`. The
 `<dl>` of five internal dimensions and the `Show all N items` fold are gone.
 Multi-topic reading was dropped while batch Test stayed (§15.2). §15.1
 originally shipped as recommended — opening the page was the exposure event —
-but was revisited and changed on 2026-09-15: the write now happens on the
-deliberate `Test` tap, not on render. See `TopicPage.tsx`'s `startCheck` and
-`docs/open/ARGUS_OVERHAUL_RATIFICATION.md`.
+but was revisited and changed on 2026-09-15 by the #97 decision at the head of
+this document: browsing writes nothing at all, and a fresh ordinary topic
+carries a deliberate `Start learning` action that owns the transition. Test is
+left as it was, a check. See `TopicPage.tsx`'s `startLearning` and the `enroll`
+branch of `journeyFor`.
 
 **Batch 3 — Morse course home.** `MorseProgramme.tsx` is deleted and its path is
 `MorsePath.tsx`, the body of the Morse topic page. Opening Morse lands on the
@@ -864,8 +872,9 @@ reads state that already exists and writes none of it.
 The nine decisions in §15 were resolved by taking this paper's recommendation in
 each case, and every one is reversible. **Resolved 2026-09-15, by the owner
 directly:** §15.3, the Morse reference cards, is confirmed as shipped (the
-quiet `Morse alphabet` link stays); §15.1 was changed — see above — from
-opening the page to the deliberate `Test` tap; §15.5 (targeted practice) was
+quiet `Morse alphabet` link stays); §15.1 was changed — see the #97 decision
+above — from opening the page to a deliberate `Start learning` action, with
+browsing left write-free; §15.5 (targeted practice) was
 confirmed formative, matching what had already shipped. #42's real-device
 acceptance gate is untouched and still open. Batch 5's phone review (the
 `practice` surface and its `practice`-not-`repair` naming) remains

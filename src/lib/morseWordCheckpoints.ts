@@ -3,18 +3,18 @@ import { morseLessonPath, type MorseLessonPathItem } from './morseLessonPath'
 import type { MorseLetter } from './morse'
 import type { Topic } from './types'
 
-export type MorseWordCheckpointId = 'after-4' | 'after-7'
+export type MorseWordCheckpointId = 'after-4' | 'after-7' | 'after-10' | 'after-13'
 
 interface CuratedCheckpoint {
   id: MorseWordCheckpointId
-  afterLesson: 4 | 7
+  afterLesson: 4 | 7 | 10 | 13
   warmups: readonly MorseLetter[]
   words: readonly string[]
 }
 
 export interface MorseWordCheckpoint {
   id: MorseWordCheckpointId
-  afterLesson: 4 | 7
+  afterLesson: 4 | 7 | 10 | 13
   warmups: MorseLetter[]
   words: string[]
   eligibleLetters: MorseLetter[]
@@ -44,6 +44,18 @@ const CURATED_CHECKPOINTS: readonly CuratedCheckpoint[] = [
     afterLesson: 7,
     warmups: ['R', 'D', 'K', 'H'],
     words: ['TRAIN', 'GARDEN'],
+  },
+  {
+    id: 'after-10',
+    afterLesson: 10,
+    warmups: ['V', 'F', 'B', 'P'],
+    words: ['FLOW', 'PLANT'],
+  },
+  {
+    id: 'after-13',
+    afterLesson: 13,
+    warmups: ['X', 'C', 'J', 'Q'],
+    words: ['BOX', 'COZY', 'JAZZ', 'QUIZ'],
   },
 ]
 
@@ -101,10 +113,13 @@ export function morseWordCheckpoints(): MorseWordCheckpoint[] {
 }
 
 /**
- * A milestone is available once its lesson is complete now, or once any later
- * lesson has been reached. The latter is durable proof the milestone was
- * completed before a returning-item repair moved the canonical current lesson
- * backwards.
+ * A milestone is available once its lesson is complete now, or once the lesson
+ * path proves it had already been reached before a returning-item repair moved
+ * the canonical current lesson backwards.
+ *
+ * `unlocked` matters for the final Lesson-13 checkpoint: there is no later
+ * lesson whose state can carry that proof, but `morseLessonPath()` preserves a
+ * reached final packet as `unlocked` while an older packet is being repaired.
  */
 export function checkpointUnlocked(
   path: readonly MorseLessonPathItem[],
@@ -113,7 +128,7 @@ export function checkpointUnlocked(
   const milestoneIndex = afterLesson - 1
   const milestone = path[milestoneIndex]
   if (!milestone) return false
-  if (milestone.state === 'completed') return true
+  if (milestone.state === 'completed' || milestone.state === 'unlocked') return true
   return path.slice(afterLesson).some((lesson) => lesson.state !== 'locked')
 }
 
@@ -168,4 +183,28 @@ export function checkpointTargets(checkpoint: MorseWordCheckpoint): MorseCheckpo
   })
 
   return targets
+}
+
+/** Stable identity for a target inside one finite checkpoint run. */
+export function checkpointTargetKey(target: MorseCheckpointTarget): string {
+  return [target.kind, target.letter, target.wordIndex ?? '-', target.characterIndex ?? '-'].join(':')
+}
+
+/**
+ * Reinsert one missed target after up to two untouched targets.
+ *
+ * The caller is responsible for allowing at most one retry per target, keeping
+ * the checkpoint finite while still giving a miss a spaced second look where
+ * the remaining run makes that possible.
+ */
+export function withCheckpointRetry(
+  targets: readonly MorseCheckpointTarget[],
+  currentIndex: number,
+  target: MorseCheckpointTarget,
+): MorseCheckpointTarget[] {
+  const next = [...targets]
+  const remaining = Math.max(0, next.length - currentIndex - 1)
+  const intervening = Math.min(2, remaining)
+  next.splice(currentIndex + 1 + intervening, 0, target)
+  return next
 }
