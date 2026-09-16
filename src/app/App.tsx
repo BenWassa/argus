@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { AppShell } from '../components/layout/AppShell'
 import { shouldShowSplash, SplashScreen } from '../components/SplashScreen'
 import { LibraryProvider, useLibrary } from '../lib/store'
+import { SyncProvider } from '../lib/sync/SyncProvider'
 import { Today } from '../features/today/Today'
 import { Library } from '../features/library/Library'
 import { Data } from '../features/data/Data'
@@ -34,10 +35,12 @@ export function App() {
 
   return (
     <LibraryProvider>
-      <div className="app-runtime" aria-hidden={showSplash || undefined}>
-        <Routes />
-      </div>
-      {showSplash && <SplashScreen onComplete={finishSplash} />}
+      <SyncProvider>
+        <div className="app-runtime" aria-hidden={showSplash || undefined}>
+          <Routes />
+        </div>
+        {showSplash && <SplashScreen onComplete={finishSplash} />}
+      </SyncProvider>
     </LibraryProvider>
   )
 }

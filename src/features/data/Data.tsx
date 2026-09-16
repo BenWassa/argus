@@ -1,18 +1,26 @@
 import { useRef, useState } from 'react'
 import { useLibrary } from '../../lib/store'
+import { useSyncState } from '../../lib/sync/SyncProvider'
+import type { SyncState } from '../../lib/sync/useSync'
 import { exportFilename, parseLibrary } from '../../lib/storage'
 import { collisions } from '../../lib/catalog'
 import { Confirm } from '../../components/ui/Confirm'
 
 /**
- * Export, import and reset. A Library utility with its own route rather than a
- * permanent navigation slot: it is used a handful of times a year, and
+ * Export, import, sync and reset. A Library utility with its own route rather
+ * than a permanent navigation slot: it is used a handful of times a year, and
  * `PRODUCT.md` asks for it to be first-class and easy to find, not for it to
  * hold a quarter of the bottom bar. Reached from the foot of Library, and its
  * own Back control returns there the way Topic does.
+ *
+ * Sync belongs here rather than in the bottom bar or a header for the same
+ * reason: it is set up once and then has nothing to say. The record on this
+ * device remains the one the app reads and writes, so everything below sync on
+ * this page keeps working exactly as it did when there was no account at all.
  */
 export function Data({ onBack }: { onBack: () => void }) {
   const { topics, library, catalogReport, replaceLibrary, resetLibrary } = useLibrary()
+  const sync = useSyncState()
   const fileInput = useRef<HTMLInputElement>(null)
   const [message, setMessage] = useState<{ tone: 'ok' | 'error'; text: string } | null>(null)
   const [confirmReset, setConfirmReset] = useState(false)
@@ -63,8 +71,8 @@ export function Data({ onBack }: { onBack: () => void }) {
 
       <h1>Data</h1>
       <p className="lede-text">
-        Everything lives in this browser. Export writes the whole library to a JSON file you own;
-        import replaces what is here with the contents of that file.
+        This browser holds the library Argus reads and writes. Export writes the whole record to a
+        JSON file you own; import replaces what is here with the contents of that file.
       </p>
 
       <div className="actions start">
@@ -97,6 +105,8 @@ export function Data({ onBack }: { onBack: () => void }) {
       </p>
 
       <CatalogNotice added={catalogReport.added} withheld={collisions(catalogReport)} />
+
+      <Sync state={sync.state} onSignIn={sync.signIn} onSignOut={sync.signOut} />
 
       <h2>Reset</h2>
       <p className="lede-text">
@@ -182,4 +192,91 @@ function CatalogNotice({ added, withheld }: CatalogNoticeProps) {
       )}
     </section>
   )
+}
+
+/**
+ * Sync, stated plainly.
+ *
+ * The one thing a person needs to be told here is what signing in does and does
+ * not do, because a learning record is exactly the kind of thing people expect
+ * an account to take custody of. It does not: the copy on this device stays the
+ * one Argus reads, and signing out leaves it untouched.
+ */
+function Sync({
+  state,
+  onSignIn,
+  onSignOut,
+}: {
+  state: SyncState
+  onSignIn: () => Promise<void>
+  onSignOut: () => Promise<void>
+}) {
+  if (state.kind === 'unconfigured') {
+    // A build with no Firebase configuration is a supported configuration, not
+    // a broken one, so this says so rather than offering a button that cannot
+    // work.
+    return (
+      <>
+        <h2>Sync</h2>
+        <p className="lede-text">
+          This build has no Firebase configuration, so there is nothing to sign in to. Export and
+          import carry the library between devices instead.
+        </p>
+      </>
+    )
+  }
+
+  return (
+    <>
+      <h2>Sync</h2>
+      <p className="lede-text">
+        Signing in with Google keeps this library on your own devices in step. The copy in this
+        browser stays the one Argus reads and writes, so Argus works the same offline, and signing
+        out leaves everything here exactly as it is. If the same topic changes on two devices,
+        neither copy is overwritten and it is named below for you to settle.
+      </p>
+
+      <div className="actions start">
+        {state.kind === 'signedOut' ? (
+          <button type="button" onClick={() => void onSignIn()}>
+            Sign in with Google
+          </button>
+        ) : (
+          <button className="ghost" type="button" onClick={() => void onSignOut()}>
+            Sign out
+          </button>
+        )}
+      </div>
+
+      <p className={state.kind === 'error' ? 'error' : 'note'} role="status" aria-live="polite">
+        {syncMessage(state)}
+      </p>
+    </>
+  )
+}
+
+function syncMessage(state: SyncState): string {
+  switch (state.kind) {
+    case 'unconfigured':
+      return ''
+    case 'signedOut':
+      return 'Not signed in. This library is on this device only.'
+    case 'syncing':
+      return `Signed in as ${state.user.email ?? state.user.uid}. Checking for changes…`
+    case 'synced': {
+      const who = state.user.email ?? state.user.uid
+      if (state.conflicts.length === 0) return `Signed in as ${who}. Everything is in step.`
+      // Naming them matters, because nothing has been decided: both copies are
+      // intact and the person is the only one who can say which is right. The
+      // wording has to avoid implying it has been handled.
+      const named = state.conflicts.join(', ')
+      return `Signed in as ${who}. ${
+        state.conflicts.length === 1
+          ? 'One topic was changed on two devices and is waiting for you'
+          : `${state.conflicts.length} topics were changed on two devices and are waiting for you`
+      }: ${named}. Nothing was overwritten on either device. Export from the one you want to keep, then import it on the other.`
+    }
+    case 'error':
+      return `${state.message} The library on this device is unaffected.`
+  }
 }

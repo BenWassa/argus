@@ -72,7 +72,19 @@ The content model is typed data, not arbitrary HTML and not a bespoke CMS. Rich 
 
 Argus also carries a small **content inbox**, kept strictly outside the learning library. Tapping `+ Want to learn` in Library records one line of intent — an idea, a link, or a link and a note — in Firestore, and nothing more. A request has no scope, no scored items, no status ladder, no scheduler state and no evidence, so it can never be mistaken for a topic or affect what has been proved.
 
-The library, its history and its cue evidence remain local-first and are never synchronized. Firestore stores only these requests, and the inbox being signed out or unreachable leaves every learning surface untouched.
+A request has no bearing on the learning record, and the inbox being signed out or unreachable leaves every learning surface untouched.
+
+## Sync
+
+The library is **local-first and synced**, in that order. The copy in the browser is the one Argus reads and writes: every surface works with no network and no account, exactly as it did before there was one. Signing in with Google lays a mirror over that copy so one owner's devices hold the same record, and signing out leaves the local copy untouched.
+
+Sync is deliberately narrow. It carries the record as the exact JSON the v5 storage boundary already validates, rather than as a second Firestore-shaped schema that could drift from it, and an arriving record goes through that same boundary before it reaches the library — so sync cannot widen what a topic is allowed to be, and cannot affect what has been proved. One document per topic means two devices working on different topics do not overwrite each other.
+
+Where a topic genuinely changed on two devices at once, **neither copy is overwritten**. Sync detects the conflict, leaves both devices exactly as they are, and names the topic on the Data screen for the owner to settle by export and import. A remote copy is likewise refused, not applied, if taking it would drop attempts or item evidence the local copy already holds — a learner's history only grows, so a shorter one is an older copy arriving late rather than a later edit.
+
+This is deliberate, and it is the policy `docs/open/ISSUE_93_FIREBASE_PROGRESS_SYNC.md` requires: silent last-write-wins is not acceptable for a record whose whole value is that it was actually earned. Explicit detection is the documented first-release position; field-level merge is the later option it leaves open.
+
+Access is owner-only. Security Rules identify the owner by their verified Google address and key every path by their UID, so being signed in to Google is not authorization — no second account has a read or write path into the project. See `docs/open/CONTENT_INBOX.md` and `firestore.rules.template`.
 
 Turning a request into curriculum is editorial work that happens in the repository: research the subject, decide whether it carries one honest completion boundary, author deliberate ids, and open an ordinary reviewed pull request. A request is marked `added` only once the topics it became have actually shipped. Newly shipped catalog topics then reach an existing library as fresh unstarted topics, appended without touching anything already there. See `docs/open/CONTENT_INBOX.md`.
 

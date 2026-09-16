@@ -1,8 +1,46 @@
 # Issue #93 — Firebase-authenticated learner progress sync
 
-Status: scoped, not implemented
+Status: **partly implemented — 2026-09-15.** The sync layer is built and tested; the sign-in entry boundary and the recovery rules are not.
 
 This document is the durable implementation scope for GitHub issue #93.
+
+> **What has landed.** `src/lib/sync/` carries the library to
+> `users/{uid}/library/{topicId}` for a signed-in owner, and back. It honours
+> the sections below on *local-first remains the interaction model*, *one
+> learner-library schema* (the record travels as the exact v5 JSON and arrives
+> back through the same parser, so no parallel schema exists), *existing
+> progress architecture remains authoritative*, and *the inbox shares
+> authentication* (auth is now app-level, in `SyncProvider`). Security Rules
+> identify the owner by verified address and are covered by the emulator suite.
+>
+> **Conflict policy, as built.** This takes the explicit-detection fallback the
+> *Conflict policy* section permits, not a field-level merge: where both sides
+> changed a topic, neither copy is written and the topic is reported for the
+> owner to settle. A remote copy is also refused if applying it would shorten
+> history or drop item evidence. Nothing silently discards progress.
+> `src/lib/sync/plan.ts` is the whole policy and `plan.test.ts` pins it.
+>
+> **Deliberately decomposed per topic.** The *Cloud data model* section suggests
+> one `library/current` document first. This ships one document per topic
+> instead, because it is what makes the non-destructive policy useful: with a
+> single document every concurrent edit is a whole-library conflict, whereas per
+> topic two devices working on different topics never collide at all.
+>
+> **What has not landed, and is still open:**
+>
+> 1. **The sign-in entry boundary** (*Authentication is a product-level entry
+>    boundary*, and the *Sign-in / splash UX* section). Sync is currently opt-in
+>    from `Data`, and Argus remains fully usable signed out. Gating every
+>    learning surface behind Google sign-in is a real product change — it makes
+>    an account mandatory for a local-first app — and it was left for an
+>    explicit owner decision rather than taken on the strength of this document.
+> 2. **Local invalid/missing data recovery** and **first migration for existing
+>    users**. Today an empty local library does not attempt authenticated
+>    recovery before seeding a fresh one, which is the specific data-loss hole
+>    this issue opens with.
+> 3. **Coalescing and retry** of cloud writes. Writes are made as plans are
+>    carried out, and a failure is surfaced rather than retried.
+> 4. `lessonSitting` state is local-only and still excluded.
 
 ## Goal
 
