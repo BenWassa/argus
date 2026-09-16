@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
 import { AppShell } from '../components/layout/AppShell'
-import { shouldShowSplash, SplashScreen } from '../components/SplashScreen'
 import { LibraryProvider, useLibrary } from '../lib/store'
 import { SyncProvider, useSyncState } from '../lib/sync/SyncProvider'
 import { SignInScreen } from '../features/auth/SignInScreen'
@@ -27,18 +26,10 @@ import type { RunTarget } from '../lib/navigation'
 const ROOT_ROUTE: ParentRoute = { kind: 'section', view: 'today' }
 
 export function App() {
-  const [showSplash, setShowSplash] = useState(shouldShowSplash)
-
-  function finishSplash() {
-    setShowSplash(false)
-    window.requestAnimationFrame(() => document.getElementById('main')?.focus())
-  }
-
   return (
     <LibraryProvider>
       <SyncProvider>
-        <Gate showSplash={showSplash} />
-        {showSplash && <SplashScreen onComplete={finishSplash} />}
+        <Gate />
       </SyncProvider>
     </LibraryProvider>
   )
@@ -58,7 +49,7 @@ export function App() {
  * supported, where there is nothing to sign in to and Argus is a local-only
  * app. It is also what the browser suite runs against.
  */
-export function Gate({ showSplash }: { showSplash: boolean }) {
+export function Gate() {
   const { state, signIn } = useSyncState()
 
   // Who is in, stated positively. A sign-in that failed reports an error with
@@ -72,14 +63,14 @@ export function Gate({ showSplash }: { showSplash: boolean }) {
   const open = state.kind === 'unconfigured' || signedIn
 
   return (
-    <div className="app-runtime" aria-hidden={showSplash || undefined}>
+    <div className="app-runtime">
       {open ? (
         <Routes />
       ) : (
         <SignInScreen
           restoring={state.kind === 'restoring'}
           error={state.kind === 'error' ? state.message : null}
-          onSignIn={() => void signIn()}
+          onSignIn={signIn}
         />
       )}
     </div>
