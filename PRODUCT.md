@@ -76,7 +76,9 @@ A request has no bearing on the learning record, and the inbox being signed out 
 
 ## Sync
 
-The library is **local-first and synced**, in that order. The copy in the browser is the one Argus reads and writes: every surface works with no network and no account, exactly as it did before there was one. Signing in with Google lays a mirror over that copy so one owner's devices hold the same record, and signing out leaves the local copy untouched.
+The library is **local-first and synced**, in that order. The copy in the browser is the one Argus reads and writes, and once signed in every surface works exactly the same with no network, offline or on a flight, the way it did before there was an account. Signing in with Google lays a mirror over that copy so one owner's devices hold the same record, and signing out leaves the local copy untouched.
+
+A build with Firebase configured asks who you are before anything else: `Today`, `Library` and every learning surface stay unmounted behind a sign-in screen until the owner is signed in, because the learning record is now an account's record rather than a browser's (#93 §1). A returning owner sees a brief "Checking your session…" rather than the button, never the library, while that resolves. A build with no Firebase configuration — the one the browser test suite runs, and what the repository has always supported — has nothing to gate and opens straight to Today, entirely local and entirely optional.
 
 Sync is deliberately narrow. It carries the record as the exact JSON the v5 storage boundary already validates, rather than as a second Firestore-shaped schema that could drift from it, and an arriving record goes through that same boundary before it reaches the library — so sync cannot widen what a topic is allowed to be, and cannot affect what has been proved. One document per topic means two devices working on different topics do not overwrite each other.
 
@@ -84,7 +86,7 @@ Where a topic genuinely changed on two devices at once, **neither copy is overwr
 
 This is deliberate, and it is the policy `docs/open/ISSUE_93_FIREBASE_PROGRESS_SYNC.md` requires: silent last-write-wins is not acceptable for a record whose whole value is that it was actually earned. Explicit detection is the documented first-release position; field-level merge is the later option it leaves open.
 
-Access is owner-only. Security Rules identify the owner by their verified Google address and key every path by their UID, so being signed in to Google is not authorization — no second account has a read or write path into the project. See `docs/open/CONTENT_INBOX.md` and `firestore.rules.template`.
+Access is owner-only. Security Rules identify the owner by their verified Google address — every spelling one account may present, such as the `gmail.com`/`googlemail.com` pair, so a provider detail can never lock the real owner out — and key every path by their UID, so being signed in to Google is not authorization. No second account has a read or write path into the project. See `docs/open/CONTENT_INBOX.md` and `firestore.rules.template`.
 
 Turning a request into curriculum is editorial work that happens in the repository: research the subject, decide whether it carries one honest completion boundary, author deliberate ids, and open an ordinary reviewed pull request. A request is marked `added` only once the topics it became have actually shipped. Newly shipped catalog topics then reach an existing library as fresh unstarted topics, appended without touching anything already there. See `docs/open/CONTENT_INBOX.md`.
 

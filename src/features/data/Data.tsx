@@ -237,7 +237,7 @@ function Sync({
       </p>
 
       <div className="actions start">
-        {state.kind === 'signedOut' ? (
+        {state.kind === 'signedOut' || state.kind === 'restoring' ? (
           <button type="button" onClick={() => void onSignIn()}>
             Sign in with Google
           </button>
@@ -259,6 +259,8 @@ function syncMessage(state: SyncState): string {
   switch (state.kind) {
     case 'unconfigured':
       return ''
+    case 'restoring':
+      return 'Checking your session…'
     case 'signedOut':
       return 'Not signed in. This library is on this device only.'
     case 'syncing':

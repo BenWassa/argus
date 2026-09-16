@@ -10,6 +10,13 @@ import type { Topic } from '../types'
 
 export type SyncState =
   | { kind: 'unconfigured' }
+  /**
+   * A device that has signed in before, while Firebase works out whether that
+   * session is still good. It is distinct from `signedOut` because the gate
+   * must not show a sign-in screen to somebody who is already signed in, and
+   * must not show the library to somebody who turns out not to be.
+   */
+  | { kind: 'restoring' }
   | { kind: 'signedOut' }
   | { kind: 'syncing'; user: SyncUser }
   | { kind: 'synced'; user: SyncUser; at: Date; conflicts: string[] }
@@ -59,12 +66,14 @@ function defaultBackend(): SyncBackend {
  * with no network and no account. Sync is a mirror laid over that, and the one
  * decision it makes — which copy wins — is `planSync`, tested on its own.
  */
-export function useSync(store: SyncableStore, backend: SyncBackend = defaultBackend()) {
+export function useSync(store: SyncableStore, injected?: SyncBackend) {
+  const backend = injected ?? defaultBackend()
   const [user, setUser] = useState<SyncUser | null>(null)
   const [records, setRecords] = useState<RemoteRecord[] | null>(null)
-  const [state, setState] = useState<SyncState>(
-    backend.configured ? { kind: 'signedOut' } : { kind: 'unconfigured' },
-  )
+  const [state, setState] = useState<SyncState>(() => {
+    if (!backend.configured) return { kind: 'unconfigured' }
+    return hasSignedIn() ? { kind: 'restoring' } : { kind: 'signedOut' }
+  })
   const ledger = useRef<Ledger>({})
   const applying = useRef(false)
   /**

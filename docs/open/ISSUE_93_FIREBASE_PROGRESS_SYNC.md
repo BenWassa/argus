@@ -1,6 +1,6 @@
 # Issue #93 — Firebase-authenticated learner progress sync
 
-Status: **partly implemented — 2026-09-15.** The sync layer is built and tested; the sign-in entry boundary and the recovery rules are not.
+Status: **mostly implemented — 2026-09-16.** The sync layer, Security Rules and the sign-in entry boundary are built and tested; the local-data recovery rules are not.
 
 This document is the durable implementation scope for GitHub issue #93.
 
@@ -26,21 +26,36 @@ This document is the durable implementation scope for GitHub issue #93.
 > single document every concurrent edit is a whole-library conflict, whereas per
 > topic two devices working on different topics never collide at all.
 >
+> **The sign-in entry boundary, as built (2026-09-16).** `src/app/App.tsx`'s
+> `Gate` renders `SignInScreen` in place of `Routes` for any configured build
+> where the owner is not signed in, so `Today`, `Library` and every learning
+> surface never mount — not a route guard hiding them after the fact. A device
+> that has signed in before shows a `restoring` state rather than a sign-in
+> button, so a returning owner is never asked twice, and never sees the library
+> before Firebase has actually confirmed the session. `src/app/gate.test.tsx`
+> covers all four states (signed out, restoring, open, and a failed sign-in
+> that must not open the door) because the browser suite deliberately runs the
+> *unconfigured* build (`npm run build:e2e`) and cannot exercise this: it
+> cannot sign in to real Google, and the gate does not exist for a build with
+> nothing to sign in to. A build with no Firebase configuration remains
+> ungated, exactly as `Owner decisions` below records.
+>
 > **What has not landed, and is still open:**
 >
-> 1. **The sign-in entry boundary** (*Authentication is a product-level entry
->    boundary*, and the *Sign-in / splash UX* section). Sync is currently opt-in
->    from `Data`, and Argus remains fully usable signed out. Gating every
->    learning surface behind Google sign-in is a real product change — it makes
->    an account mandatory for a local-first app — and it was left for an
->    explicit owner decision rather than taken on the strength of this document.
-> 2. **Local invalid/missing data recovery** and **first migration for existing
+> 1. **Local invalid/missing data recovery** and **first migration for existing
 >    users**. Today an empty local library does not attempt authenticated
 >    recovery before seeding a fresh one, which is the specific data-loss hole
 >    this issue opens with.
-> 3. **Coalescing and retry** of cloud writes. Writes are made as plans are
+> 2. **Coalescing and retry** of cloud writes. Writes are made as plans are
 >    carried out, and a failure is surfaced rather than retried.
-> 4. `lessonSitting` state is local-only and still excluded.
+> 3. `lessonSitting` state is local-only and still excluded.
+>
+> **Owner decision — 2026-09-16.** Gating every learning surface behind Google
+> sign-in makes an account mandatory for what was a local-first app. This
+> document flagged that as an explicit decision for the owner rather than
+> something to take on its own strength; the owner asked for exactly this
+> ("login page before anything — that's the idea I had of using the splash
+> page"), so it is no longer an open question.
 
 ## Goal
 
