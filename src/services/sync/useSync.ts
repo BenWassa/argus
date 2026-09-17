@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { syncConfig } from './config'
-import { firebaseSyncBackend } from './firebaseSync'
-import { unconfiguredSyncBackend, type SyncBackend, type SyncUser } from './backend'
-import { loadLedger, saveLedger } from './ledger'
-import { forgetSignedIn, hasSignedIn, rememberSignedIn } from './session'
-import { nextLedger, planSync, topicJson, type Ledger, type RemoteRecord, type SyncAction } from './plan'
-import { parseLibrary } from '../storage'
-import type { Topic } from '../types'
+import { syncConfig } from './syncConfig'
+import { firebaseSyncBackend } from './firebaseSyncBackend'
+import { unconfiguredSyncBackend, type SyncBackend, type SyncUser } from './syncBackend'
+import { loadLedger, saveLedger } from './syncLedger'
+import { forgetSignedIn, hasSignedIn, rememberSignedIn } from './syncSession'
+import { nextLedger, planSync, topicJson, type Ledger, type RemoteRecord, type SyncAction } from './syncPlanner'
+import { parseLibrary } from '../../lib/storage'
+import type { Topic } from '../../lib/types'
 
 export type SyncState =
   | { kind: 'unconfigured' }

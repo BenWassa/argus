@@ -1,6 +1,6 @@
-import { inboxCollectionPath, type InboxConfig } from './config'
-import { parseContentRequest, pendingRequestFields, type CaptureDraft, type ContentRequest } from './model'
-import type { InboxBackend, InboxUser, Unsubscribe } from './backend'
+import { inboxCollectionPath, type InboxConfig } from './inboxConfig'
+import { parseContentRequest, pendingRequestFields, type CaptureDraft, type ContentRequest } from './inboxModel'
+import type { InboxBackend, InboxUser, Unsubscribe } from './inboxBackend'
 
 /**
  * The Firebase boundary. Everything the SDK touches lives in this one file, and

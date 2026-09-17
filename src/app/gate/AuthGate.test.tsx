@@ -1,11 +1,11 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from 'vitest'
 import { act, cleanup, render, screen, waitFor } from '@testing-library/react'
-import { LibraryProvider } from '../../lib/LibraryProvider'
-import { SyncProvider } from '../../lib/sync/SyncProvider'
+import { LibraryProvider } from '../../services/library/LibraryProvider'
+import { SyncProvider } from '../../services/sync/SyncProvider'
 import { AuthGate } from './AuthGate'
-import { rememberSignedIn } from '../../lib/sync/session'
-import type { SyncBackend, SyncUser } from '../../lib/sync/backend'
+import { rememberSignedIn } from '../../services/sync/syncSession'
+import type { SyncBackend, SyncUser } from '../../services/sync/syncBackend'
 
 /**
  * The entry boundary (#93 §1), which the browser suite deliberately does not

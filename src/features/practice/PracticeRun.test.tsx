@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { LibraryProvider } from '../../lib/LibraryProvider'
+import { LibraryProvider } from '../../services/library/LibraryProvider'
 import { seedLibrary } from '../../lib/seed'
 import type { Topic } from '../../lib/types'
 import { PracticeRun } from './PracticeRun'
@@ -82,7 +82,7 @@ describe('practice writes nothing', () => {
     // The same guarantee `MorseReplay` gives. If a future edit needs one of
     // these, it is no longer a formative run and this test should be the thing
     // that says so.
-    expect(imports).not.toContain('../../lib/LibraryProvider')
+    expect(imports).not.toContain('../../services/library/LibraryProvider')
     expect(imports).not.toContain('../../lib/scheduling')
     expect(imports).not.toContain('../../lib/cueLadder')
     expect(source).not.toContain('updateTopic')

@@ -2,11 +2,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, renderHook, waitFor as rawWaitFor } from '@testing-library/react'
 import { parseSyncedTopic, useSync, type SyncableStore } from './useSync'
-import { rememberSignedIn } from './session'
-import { unconfiguredSyncBackend, type SyncBackend, type SyncUser } from './backend'
-import { topicJson, type RemoteRecord } from './plan'
-import { seedLibrary } from '../seed'
-import type { Topic } from '../types'
+import { rememberSignedIn } from './syncSession'
+import { unconfiguredSyncBackend, type SyncBackend, type SyncUser } from './syncBackend'
+import { topicJson, type RemoteRecord } from './syncPlanner'
+import { seedLibrary } from '../../lib/seed'
+import type { Topic } from '../../lib/types'
 
 /**
  * Applying a plan is genuinely asynchronous — a push is awaited before the

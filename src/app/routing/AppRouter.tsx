@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { AppShell } from '../../components/layout/AppShell'
-import { useLibrary } from '../../lib/LibraryProvider'
+import { useLibrary } from '../../services/library/LibraryProvider'
 import { Today } from '../../features/today/Today'
 import { LibraryPage } from '../../features/library/LibraryPage'
 import { DataManagementPage } from '../../features/data-management/DataManagementPage'

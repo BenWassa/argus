@@ -8,7 +8,7 @@ import {
   submitFailed,
   submitSucceeded,
   typeText,
-} from './capture'
+} from './inboxCapture'
 
 const typed = typeText(EMPTY_CAPTURE, 'https://example.com/article — the knots section')
 

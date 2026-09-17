@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { LibraryProvider } from '../lib/LibraryProvider'
+import { LibraryProvider } from '../services/library/LibraryProvider'
 import { SHIPPED_CATALOG_TOPIC_IDS } from '../lib/catalog'
 import { journeyFor } from '../lib/journey'
 import {

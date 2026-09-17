@@ -10,7 +10,7 @@ import {
   validateCapture,
   validateTopicIds,
   type ContentRequest,
-} from './model'
+} from './inboxModel'
 
 const SHIPPED = ['nato-phonetic', 'ooda-loop']
 

@@ -1,13 +1,13 @@
 import { readFileSync, readdirSync, statSync } from 'node:fs'
-import { dirname, join, relative } from 'node:path'
+import { dirname, join, relative, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { TRACK_HINTS, parseContentRequest, type ContentRequest } from './model'
-import { REQUIRED_INBOX_ENV, forbiddenInboxEnvKeys, inboxCollectionPath, readInboxConfig } from './config'
-import { INBOX_UNCONFIGURED, describeInboxError, unavailableBackend } from './backend'
-import { dueTopics, isDue, resolveAttempt, shelves } from '../scheduling'
-import { parseLibrary } from '../storage'
-import { TRACKS } from '../types'
+import { TRACK_HINTS, parseContentRequest, type ContentRequest } from './inboxModel'
+import { REQUIRED_INBOX_ENV, forbiddenInboxEnvKeys, inboxCollectionPath, readInboxConfig } from './inboxConfig'
+import { INBOX_UNCONFIGURED, describeInboxError, unavailableBackend } from './inboxBackend'
+import { dueTopics, isDue, resolveAttempt, shelves } from '../../lib/scheduling'
+import { parseLibrary } from '../../lib/storage'
+import { TRACKS } from '../../lib/types'
 
 /**
  * The architectural boundaries of #39, tested rather than asserted in prose.
@@ -79,8 +79,16 @@ describe('the inbox does not touch the learning model', () => {
   })
 
   it('is not reachable from the library, storage or scheduler', () => {
-    const libModules = librarySources.filter((path) => path.includes(`${join('src', 'lib')}`) || path.includes('/lib/'))
-    for (const path of libModules) {
+    // Named by layer rather than by folder: the learning model is whatever
+    // lives in the domain, the persistence layer or what is left of `lib`, and
+    // this rule has to keep meaning as those folders change shape. A filter
+    // that matches nothing is a rule that passes without checking anything.
+    const LEARNING_MODEL = ['lib', 'domain', 'infrastructure']
+    const modelModules = librarySources.filter((path) =>
+      LEARNING_MODEL.some((layer) => path.includes(`${join('src', layer)}${sep}`)),
+    )
+    expect(modelModules.length).toBeGreaterThan(0)
+    for (const path of modelModules) {
       for (const specifier of importsOf(path)) {
         expect(specifier.includes('inbox'), `${relative(SRC, path)} imports ${specifier}`).toBe(false)
       }

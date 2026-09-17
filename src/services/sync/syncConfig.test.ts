@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { REQUIRED_SYNC_ENV, forbiddenSyncEnvKeys, libraryCollectionPath, libraryMetaPath, readSyncConfig } from './config'
-import { REQUIRED_INBOX_ENV, forbiddenInboxEnvKeys } from '../inbox/config'
+import { REQUIRED_SYNC_ENV, forbiddenSyncEnvKeys, libraryCollectionPath, libraryMetaPath, readSyncConfig } from './syncConfig'
+import { REQUIRED_INBOX_ENV, forbiddenInboxEnvKeys } from '../inbox/inboxConfig'
 
 /**
  * Sync restates the inbox's Firebase configuration rules rather than importing

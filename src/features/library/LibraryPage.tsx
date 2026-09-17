@@ -1,5 +1,5 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
-import { useLibrary } from '../../lib/LibraryProvider'
+import { useLibrary } from '../../services/library/LibraryProvider'
 import {
   journeyShelves,
   journeysFor,
@@ -15,9 +15,9 @@ import { TopicPage } from './TopicPage'
 import { CompletionRecord } from './CompletionRecord'
 import { CaptureSheet } from './CaptureSheet'
 import { WantToLearn } from './WantToLearn'
-import { useInbox } from '../../lib/inbox/useInbox'
-import { describeInboxError } from '../../lib/inbox/backend'
-import type { ContentRequest } from '../../lib/inbox/model'
+import { useInbox } from '../../services/inbox/useInbox'
+import { describeInboxError } from '../../services/inbox/inboxBackend'
+import type { ContentRequest } from '../../services/inbox/inboxModel'
 import { TRACKS, type Mode, type Topic, type Track } from '../../lib/types'
 import './LibraryPage.css'
 

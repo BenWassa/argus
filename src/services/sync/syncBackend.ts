@@ -1,4 +1,4 @@
-import type { RemoteRecord } from './plan'
+import type { RemoteRecord } from './syncPlanner'
 
 export interface SyncUser {
   uid: string

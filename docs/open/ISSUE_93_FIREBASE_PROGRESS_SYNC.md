@@ -4,7 +4,7 @@ Status: **mostly implemented — 2026-09-16.** The sync layer, Security Rules an
 
 This document is the durable implementation scope for GitHub issue #93.
 
-> **What has landed.** `src/lib/sync/` carries the library to
+> **What has landed.** `src/services/sync/` carries the library to
 > `users/{uid}/library/{topicId}` for a signed-in owner, and back. It honours
 > the sections below on *local-first remains the interaction model*, *one
 > learner-library schema* (the record travels as the exact v5 JSON and arrives
@@ -18,7 +18,7 @@ This document is the durable implementation scope for GitHub issue #93.
 > changed a topic, neither copy is written and the topic is reported for the
 > owner to settle. A remote copy is also refused if applying it would shorten
 > history or drop item evidence. Nothing silently discards progress.
-> `src/lib/sync/plan.ts` is the whole policy and `plan.test.ts` pins it.
+> `src/services/sync/syncPlanner.ts` is the whole policy and `plan.test.ts` pins it.
 >
 > **Deliberately decomposed per topic.** The *Cloud data model* section suggests
 > one `library/current` document first. This ships one document per topic

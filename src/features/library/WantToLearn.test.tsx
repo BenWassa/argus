@@ -2,7 +2,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { WantToLearn } from './WantToLearn'
 import { CaptureSheet } from './CaptureSheet'
-import type { ContentRequest } from '../../lib/inbox/model'
+import type { ContentRequest } from '../../services/inbox/inboxModel'
 
 const requests: ContentRequest[] = [
   {

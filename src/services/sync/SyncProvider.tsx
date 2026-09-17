@@ -1,7 +1,7 @@
 import { createContext, useContext, type ReactNode } from 'react'
-import { useLibrary } from '../LibraryProvider'
+import { useLibrary } from '../library/LibraryProvider'
 import { useSync, type SyncState } from './useSync'
-import type { SyncBackend } from './backend'
+import type { SyncBackend } from './syncBackend'
 
 /**
  * Sync runs for as long as the app does, not for as long as its settings screen

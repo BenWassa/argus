@@ -1,5 +1,5 @@
-import type { ContentRequest } from '../../lib/inbox/model'
-import type { InboxStatus } from '../../lib/inbox/useInbox'
+import type { ContentRequest } from '../../services/inbox/inboxModel'
+import type { InboxStatus } from '../../services/inbox/useInbox'
 
 interface WantToLearnProps {
   status: InboxStatus

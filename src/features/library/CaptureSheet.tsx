@@ -9,9 +9,9 @@ import {
   submitSucceeded,
   typeText,
   type CaptureState,
-} from '../../lib/inbox/capture'
-import { describeInboxError } from '../../lib/inbox/backend'
-import { CAPTURE_TEXT_MAX, TRACK_HINTS, type CaptureDraft, type TrackHint } from '../../lib/inbox/model'
+} from '../../services/inbox/inboxCapture'
+import { describeInboxError } from '../../services/inbox/inboxBackend'
+import { CAPTURE_TEXT_MAX, TRACK_HINTS, type CaptureDraft, type TrackHint } from '../../services/inbox/inboxModel'
 
 interface CaptureSheetProps {
   onSubmit: (draft: CaptureDraft) => Promise<void>

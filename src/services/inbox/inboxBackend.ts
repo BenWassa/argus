@@ -1,4 +1,4 @@
-import type { CaptureDraft, ContentRequest } from './model'
+import type { CaptureDraft, ContentRequest } from './inboxModel'
 
 export interface InboxUser {
   uid: string

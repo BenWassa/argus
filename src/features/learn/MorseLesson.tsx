@@ -51,7 +51,7 @@ import {
   withMorseReview,
 } from '../../lib/morseReview'
 import type { MorseLetter } from '../../lib/morse'
-import { useLibrary } from '../../lib/LibraryProvider'
+import { useLibrary } from '../../services/library/LibraryProvider'
 import type { Topic } from '../../lib/types'
 import { MorseKeyInput } from '../morse/MorseKeyInput'
 import { useKeyedResponse } from '../morse/useKeyedResponse'

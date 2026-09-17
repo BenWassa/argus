@@ -8,7 +8,7 @@ import {
   useTransform,
   type PanInfo,
 } from 'motion/react'
-import { useLibrary } from '../../lib/LibraryProvider'
+import { useLibrary } from '../../services/library/LibraryProvider'
 import { applyResolution, resolveAttempt, type Resolution } from '../../lib/scheduling'
 import { journeyFor } from '../../lib/journey'
 import { statusLabel } from '../../components/ui/StatusTag'

@@ -70,7 +70,7 @@ The production build asks who you are before showing anything, so sign-in is not
 - `src/components/` — shared UI and layout components
 - `src/features/` — domain features
 - `src/lib/` — library types, storage/migration, scheduler, shipped-catalog reconciliation, Morse support and seeded data
-- `src/lib/inbox/` — the content-inbox boundary; imports nothing from the learning library
+- `src/services/inbox/` — the content-inbox boundary; imports nothing from the learning library
 - `scripts/` — maintainer tooling: rules rendering and content-inbox ingestion
 - `firestore/` — Firestore Security Rules tests, run against the emulator
 - `src/styles/` — global tokens and baseline styles

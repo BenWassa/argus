@@ -1,4 +1,4 @@
-import { useSyncState } from '../../lib/sync/SyncProvider'
+import { useSyncState } from '../../services/sync/SyncProvider'
 import { SignInScreen } from '../../features/auth/SignInScreen'
 import { AppRouter } from '../routing/AppRouter'
 

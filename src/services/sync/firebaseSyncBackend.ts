@@ -1,6 +1,6 @@
-import { libraryCollectionPath, libraryMetaPath, type FirebaseWebConfig } from './config'
-import type { RemoteRecord } from './plan'
-import type { SyncBackend, SyncUser, Unsubscribe } from './backend'
+import { libraryCollectionPath, libraryMetaPath, type FirebaseWebConfig } from './syncConfig'
+import type { RemoteRecord } from './syncPlanner'
+import type { SyncBackend, SyncUser, Unsubscribe } from './syncBackend'
 
 /**
  * The Firebase boundary for sync. Everything the SDK touches lives in this one

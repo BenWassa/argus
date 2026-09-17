@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { journeyFor } from '../../lib/journey'
 import { resolveStudy } from '../../lib/scheduling'
-import { useLibrary } from '../../lib/LibraryProvider'
+import { useLibrary } from '../../services/library/LibraryProvider'
 import { morseLessonPath } from '../../lib/morseLessonPath'
 import { morseWordCheckpointPath } from '../../lib/morseWordCheckpoints'
 import { statusLabel } from '../../components/ui/StatusTag'

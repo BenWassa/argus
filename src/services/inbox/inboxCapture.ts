@@ -1,4 +1,4 @@
-import { validateCapture, type CaptureDraft, type TrackHint } from './model'
+import { validateCapture, type CaptureDraft, type TrackHint } from './inboxModel'
 
 /**
  * The capture sheet as a pure state machine.

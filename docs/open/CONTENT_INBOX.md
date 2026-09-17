@@ -479,18 +479,18 @@ All four pieces above are shipped. This section records the decisions the design
 
 | Concern | Location |
 | --- | --- |
-| inbox record, validation, queue ordering | `src/lib/inbox/model.ts` |
-| capture state machine | `src/lib/inbox/capture.ts` |
-| client configuration contract | `src/lib/inbox/config.ts`, `.env.example` |
-| backend boundary and unavailable fallback | `src/lib/inbox/backend.ts` |
-| Firebase Auth/Firestore implementation | `src/lib/inbox/firebaseBackend.ts` |
+| inbox record, validation, queue ordering | `src/services/inbox/inboxModel.ts` |
+| capture state machine | `src/services/inbox/inboxCapture.ts` |
+| client configuration contract | `src/services/inbox/inboxConfig.ts`, `.env.example` |
+| backend boundary and unavailable fallback | `src/services/inbox/inboxBackend.ts` |
+| Firebase Auth/Firestore implementation | `src/services/inbox/firebaseInboxBackend.ts` |
 | capture sheet and Want to learn queue | `src/features/library/CaptureSheet.tsx`, `WantToLearn.tsx` |
 | Security Rules | `firestore.rules.template`, rendered by `npm run inbox:rules` |
 | rules tests (Firestore emulator) | `firestore/rules.test.ts`, `npm run test:rules` |
 | maintainer ingestion tool | `scripts/inbox/`, `npm run inbox` |
 | shipped catalog manifest | `src/lib/shippedCatalog.json` |
 | catalog reconciliation | `src/lib/catalog.ts` |
-| architectural boundary tests | `src/lib/inbox/boundary.test.ts` |
+| architectural boundary tests | `src/services/inbox/boundary.test.ts` |
 
 The Firebase SDK is loaded through a dynamic import, so a build without inbox configuration never fetches or runs it.
 
@@ -507,7 +507,7 @@ Security Rules cannot know whether a topic id refers to real shipped curriculum;
 
 ### Capture failure behaviour
 
-`src/lib/inbox/capture.ts` is a pure state machine whose central invariant is that no failure path discards typed text: validation failure, permission denial and lost connectivity all return to `editing` holding the same text and track hint, ready to send again. Success is only reported once the write is acknowledged; there is no optimistic local write that could imply the request was queued when it was not.
+`src/services/inbox/inboxCapture.ts` is a pure state machine whose central invariant is that no failure path discards typed text: validation failure, permission denial and lost connectivity all return to `editing` holding the same text and track hint, ready to send again. Success is only reported once the write is acknowledged; there is no optimistic local write that could imply the request was queued when it was not.
 
 ### Catalog reconciliation mechanism
 

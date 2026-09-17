@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { inboxConfig } from './config'
-import { describeInboxError, unavailableBackend, type InboxBackend, type InboxUser } from './backend'
-import { pendingQueue, type CaptureDraft, type ContentRequest } from './model'
-import { firebaseInboxBackend } from './firebaseBackend'
+import { inboxConfig } from './inboxConfig'
+import { describeInboxError, unavailableBackend, type InboxBackend, type InboxUser } from './inboxBackend'
+import { pendingQueue, type CaptureDraft, type ContentRequest } from './inboxModel'
+import { firebaseInboxBackend } from './firebaseInboxBackend'
 
 export type InboxStatus =
   /** No Firebase configuration in this build. Argus is unaffected. */

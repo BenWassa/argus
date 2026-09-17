@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
-import { LibraryProvider } from '../lib/LibraryProvider'
-import { SyncProvider } from '../lib/sync/SyncProvider'
+import { LibraryProvider } from '../services/library/LibraryProvider'
+import { SyncProvider } from '../services/sync/SyncProvider'
 
 /**
  * The provider stack, in the one order that works: the library is local and

@@ -1,4 +1,4 @@
-import type { Ledger } from './plan'
+import type { Ledger } from './syncPlanner'
 
 /**
  * What this device last agreed with the server about, kept beside the library

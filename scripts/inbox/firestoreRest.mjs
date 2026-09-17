@@ -4,7 +4,7 @@
 // a Google service-account key from a file named by GOOGLE_APPLICATION_CREDENTIALS
 // and mints a short-lived access token itself, so the repository has no Firebase
 // Admin dependency and no privileged credential of any kind. Nothing in this
-// file is imported by the app; `src/lib/inbox/boundary.test.ts` holds that line.
+// file is imported by the app; `src/services/inbox/boundary.test.ts` holds that line.
 
 import { readFile } from 'node:fs/promises'
 import { createSign } from 'node:crypto'
