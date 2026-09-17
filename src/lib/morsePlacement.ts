@@ -187,7 +187,13 @@ export function answerMorsePlacement(run: MorsePlacementRun, response: string): 
   let retries = run.retries
   let status: MorsePlacementLetterState['status']
 
-  if (correct) {
+  // Once the bounded confirmation has failed twice, later appearances (for
+  // example inside a word) cannot erase that demonstrated weakness. Otherwise
+  // a learner could miss a mapping twice in isolation and accidentally restore
+  // it to pass by getting the same letter once in a later word.
+  if (before.status === 'fail') {
+    status = 'fail'
+  } else if (correct) {
     status = 'pass'
   } else if (before.status === 'uncertain') {
     status = 'fail'
