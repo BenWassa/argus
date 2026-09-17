@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
-import { canonicalPattern } from '../../lib/acquisition'
+import { canonicalPattern } from '../../domain/morse/testing/acquisitionProfile'
 import {
   advanceLesson,
   answerLesson,
   currentStep,
   type LessonRun,
-} from '../../lib/morseLesson'
+} from '../../domain/morse/curriculum/lesson'
 import { VisualCheckStep } from './MorseLesson'
 import { useKeyedResponse } from '../morse/useKeyedResponse'
 import './MorseReplay.css'

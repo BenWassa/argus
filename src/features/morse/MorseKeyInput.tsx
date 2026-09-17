@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { canonicalPattern, patternReading } from '../../lib/acquisition'
-import { DEFAULT_MORSE_AUDIO, MORSE_AUDIO_EDGE_RAMP_MS } from '../../lib/morseAudio'
-import { morseElementDurationMs } from '../../lib/morseResponse'
+import { canonicalPattern, patternReading } from '../../domain/morse/testing/acquisitionProfile'
+import { DEFAULT_MORSE_AUDIO, MORSE_AUDIO_EDGE_RAMP_MS } from '../../domain/morse/audio'
+import { morseElementDurationMs } from '../../domain/morse/response'
 import './MorseKeyInput.css'
 
 /** Hold long enough to mean a dah, but short enough to stay comfortable one-handed. */

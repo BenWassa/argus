@@ -1,4 +1,4 @@
-import { canonicalNotation, spokenRhythm } from '../../lib/morseMnemonics'
+import { canonicalNotation, spokenRhythm } from '../../domain/morse/mnemonics'
 import type { MorseCharacterLearnItem } from '../../lib/types'
 import { MorseMnemonic } from './MorseMnemonic'
 import { MorseBeatGrammarNote, MorsePhrase } from './MorsePhrase'

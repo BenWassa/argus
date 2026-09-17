@@ -1,10 +1,10 @@
 import { hasCompleteDirectionalCoverage, itemKind } from './items'
-import { morseAcquisitionPosition } from './morseLesson'
+import { morseAcquisitionPosition } from '../domain/morse/curriculum/lesson'
 import {
   LESSON_RETRIEVAL_TARGET,
   lessonSittingIsFresh,
   lessonSittingOf,
-} from './morseLessonSitting'
+} from '../domain/morse/curriculum/lessonSitting'
 import { DUE_RANK, dueState, gapProgress } from './scheduling'
 import type { Mode, Status, Topic } from './types'
 

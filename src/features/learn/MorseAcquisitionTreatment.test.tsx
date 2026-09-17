@@ -1,11 +1,11 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import { MORSE_LETTERS, type MorseLetter } from '../../lib/morse'
-import { patternReading } from '../../lib/acquisition'
+import { MORSE_LETTERS, type MorseLetter } from '../../domain/morse/code'
+import { patternReading } from '../../domain/morse/testing/acquisitionProfile'
 import {
   verbalMnemonic,
   verbalMnemonicTextEquivalent,
-} from '../../lib/morseVerbalMnemonics'
+} from '../../domain/morse/verbalMnemonics'
 import type { MorseCharacterLearnItem } from '../../lib/types'
 import { MorseCharacterPacket } from './MorseCharacterPacket'
 import { MorseBeatGrammarNote, MorsePhrase, beatMarkGlyph } from './MorsePhrase'

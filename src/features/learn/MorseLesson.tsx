@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { canonicalPattern } from '../../lib/acquisition'
-import { canonicalNotation, mnemonicTextEquivalent, spokenRhythm } from '../../lib/morseMnemonics'
+import { canonicalPattern } from '../../domain/morse/testing/acquisitionProfile'
+import { canonicalNotation, mnemonicTextEquivalent, spokenRhythm } from '../../domain/morse/mnemonics'
 import {
   advanceLesson,
   answerLesson,
@@ -14,8 +14,8 @@ import {
   type LessonCheckFormat,
   type LessonEntry,
   type LessonRun,
-} from '../../lib/morseLesson'
-import { morseLessonPath, type MorseLessonPathItem } from '../../lib/morseLessonPath'
+} from '../../domain/morse/curriculum/lesson'
+import { morseLessonPath, type MorseLessonPathItem } from '../../domain/morse/curriculum/lessonPath'
 import {
   answerListeningQuestion,
   lessonListeningOptions,
@@ -24,7 +24,7 @@ import {
   chooseListeningTarget,
   suppressListening,
   type ListeningFeedback,
-} from '../../lib/morseLessonListening'
+} from '../../domain/morse/curriculum/listening'
 import {
   LESSON_RETRIEVAL_TARGET,
   lessonSittingComplete,
@@ -35,12 +35,12 @@ import {
   withLessonSitting,
   withoutLessonSitting,
   type LessonSitting,
-} from '../../lib/morseLessonSitting'
+} from '../../domain/morse/curriculum/lessonSitting'
 import {
   checkpointNewlyUnlocked,
   morseWordCheckpointPath,
   type MorseWordCheckpointPathItem,
-} from '../../lib/morseWordCheckpoints'
+} from '../../domain/morse/curriculum/checkpoints'
 import { withAcquisitionReadiness } from '../../lib/journey'
 import {
   completeSitting,
@@ -49,8 +49,8 @@ import {
   recordListeningRetrieval,
   recordPrintedRetrieval,
   withMorseReview,
-} from '../../lib/morseReview'
-import type { MorseLetter } from '../../lib/morse'
+} from '../../domain/morse/curriculum/review'
+import type { MorseLetter } from '../../domain/morse/code'
 import { useLibrary } from '../../services/library/LibraryProvider'
 import type { Topic } from '../../lib/types'
 import { MorseKeyInput } from '../morse/MorseKeyInput'

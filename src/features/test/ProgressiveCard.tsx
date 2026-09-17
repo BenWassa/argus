@@ -6,13 +6,13 @@ import {
   patternReading,
   promptFor,
   type AcquisitionCharacter,
-} from '../../lib/acquisition'
-import { DEFAULT_MORSE_TIMING } from '../../lib/morse'
+} from '../../domain/morse/testing/acquisitionProfile'
+import { DEFAULT_MORSE_TIMING } from '../../domain/morse/code'
 import {
   MORSE_AUDIO_START_DELAY_MS,
   MorseAudioPlayer,
   MorsePlaybackCancelledError,
-} from '../../lib/morseAudio'
+} from '../../domain/morse/audio'
 import type { CueRung } from '../../lib/cueLadder'
 import { MorseMnemonic } from '../learn/MorseMnemonic'
 import { MorseKeyInput } from '../morse/MorseKeyInput'

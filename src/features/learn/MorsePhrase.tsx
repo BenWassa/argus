@@ -2,7 +2,7 @@ import {
   verbalMnemonic,
   verbalMnemonicTextEquivalent,
   type MorseVerbalBeat,
-} from '../../lib/morseVerbalMnemonics'
+} from '../../domain/morse/verbalMnemonics'
 
 /**
  * The rhythmic verbal mnemonic, rendered as one cohesive phrase whose timing is

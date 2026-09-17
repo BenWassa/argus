@@ -1,9 +1,9 @@
 # Argus rhythmic verbal Morse mnemonics
 
 **Status:** implemented under #42; visible grammar corrected by #48  
-**Code:** `src/lib/morseVerbalMnemonics.ts` (the authored set),
+**Code:** `src/domain/morse/verbalMnemonics.ts` (the authored set),
 `src/features/learn/MorsePhrase.tsx` (the one rendering of it)  
-**Mechanical verification:** `src/lib/morseVerbalMnemonics.test.ts`,
+**Mechanical verification:** `src/domain/morse/verbalMnemonics.test.ts`,
 `src/features/learn/MorseAcquisitionTreatment.test.tsx`
 
 ## Purpose

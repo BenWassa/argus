@@ -6,7 +6,7 @@ import {
   morseAcquisitionProfile,
   promptFor,
   type AcquisitionCharacter,
-} from '../../lib/acquisition'
+} from '../../domain/morse/testing/acquisitionProfile'
 import {
   CUE_RUNGS,
   FREE_RECEPTION_RUNG,
@@ -15,8 +15,8 @@ import {
   recordAnswer,
   rungFor,
 } from '../../lib/cueLadder'
-import { MORSE_LETTERS, type MorseLetter } from '../../lib/morse'
-import { verbalMnemonic } from '../../lib/morseVerbalMnemonics'
+import { MORSE_LETTERS, type MorseLetter } from '../../domain/morse/code'
+import { verbalMnemonic } from '../../domain/morse/verbalMnemonics'
 import { parseLibrary } from '../../lib/storage'
 import { seedLibrary } from '../../lib/seed'
 import type { IdentifiedItem, ItemCueEvidence, Topic } from '../../lib/types'

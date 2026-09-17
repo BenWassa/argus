@@ -17,7 +17,7 @@ import {
   morseAcquisitionProfile,
   type AcquisitionCharacter,
   type AcquisitionProfile,
-} from '../../lib/acquisition'
+} from '../../domain/morse/testing/acquisitionProfile'
 import {
   isAssistedRung,
   mergeItemEvidence,

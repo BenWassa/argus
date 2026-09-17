@@ -5,9 +5,9 @@ import {
   reconcileAuthoredItems,
   type ItemDraft,
 } from '../../lib/items'
-import { pruneLessonProgress } from '../../lib/morseLesson'
-import { pruneLessonSitting } from '../../lib/morseLessonSitting'
-import { pruneMorseReview } from '../../lib/morseReview'
+import { pruneLessonProgress } from '../../domain/morse/curriculum/lesson'
+import { pruneLessonSitting } from '../../domain/morse/curriculum/lessonSitting'
+import { pruneMorseReview } from '../../domain/morse/curriculum/review'
 import { TRACKS, type Item, type LearnContent, type Topic, type Track } from '../../lib/types'
 
 /** Starting values for a new topic. Used to hand the user a worked example

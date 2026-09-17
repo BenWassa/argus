@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { act, cleanup, fireEvent, render as renderDom, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { MORSE_LETTERS } from '../../lib/morse'
+import { MORSE_LETTERS } from '../../domain/morse/code'
 import {
   advanceLesson,
   answerLesson,
@@ -17,9 +17,9 @@ import {
   withLessonProgress,
   type LessonEntry,
   type LessonRun,
-} from '../../lib/morseLesson'
-import { lessonListeningOptions } from '../../lib/morseLessonListening'
-import { MORSE_FEEDBACK_CORRECT_MS, MORSE_TRANSITION_MS, morseElementDurationMs } from '../../lib/morseResponse'
+} from '../../domain/morse/curriculum/lesson'
+import { lessonListeningOptions } from '../../domain/morse/curriculum/listening'
+import { MORSE_FEEDBACK_CORRECT_MS, MORSE_TRANSITION_MS, morseElementDurationMs } from '../../domain/morse/response'
 import { LibraryProvider } from '../../services/library/LibraryProvider'
 import { parseLibrary, saveLibrary } from '../../lib/storage'
 import { seedLibrary } from '../../lib/seed'
@@ -462,7 +462,7 @@ describe('Learn cannot reach formal retention state', () => {
    * it for one.
    */
   it('keeps the review history formative by construction', () => {
-    const code = source('../../lib/morseReview.ts')
+    const code = source('../../domain/morse/curriculum/review.ts')
     const imports = [...code.matchAll(/from '([^']+)'/g)].map((match) => match[1])
     for (const forbidden of ['./scheduling', './cueLadder', './journey', './store']) {
       expect(imports).not.toContain(forbidden)

@@ -5,7 +5,7 @@ canonical visual representation of Morse timing, but it is now explicitly a
 **secondary visual scaffold** under the rhythmic verbal mnemonic described in
 `docs/open/MORSE_VERBAL_MNEMONICS.md`.
 
-Code: `src/lib/morseMnemonics.ts` (geometry), `src/features/learn/MorseMnemonic.tsx`
+Code: `src/domain/morse/mnemonics.ts` (geometry), `src/features/learn/MorseMnemonic.tsx`
 (drawing), `src/features/learn/MorseCharacterPacket.tsx` (the packet surface).
 
 ## Role after #42
@@ -67,8 +67,8 @@ the SVG's job is simply to make that phrase's short/long rhythm visible.
    translates, scales or rotates. Reduced-motion users therefore lose no
    sequence information.
 
-`src/lib/morseMnemonics.test.ts` asserts the geometry rules mechanically for
-every character. `src/lib/morseVerbalMnemonics.test.ts` adds the #42 cross-channel
+`src/domain/morse/mnemonics.test.ts` asserts the geometry rules mechanically for
+every character. `src/domain/morse/verbalMnemonics.test.ts` adds the #42 cross-channel
 invariant: verbal short/held units, SVG element units and synthesized-audio
 signal units must be identical for all 26 letters.
 

@@ -4,7 +4,7 @@ Workstream 3 (#26). Implements **P1 (ratified)** and **P2 (default)** from
 `docs/open/MORSE_PROGRAMME_PLAN.md` and records the comparison requested by the Morse
 research PRD.
 
-Code: `src/lib/morseOrder.ts`. Tests: `src/lib/morseOrder.test.ts`.
+Code: `src/domain/morse/curriculum/packetOrder.ts`. Tests: `src/domain/morse/curriculum/packetOrder.test.ts`.
 
 **This order is not official and is not claimed to be optimal.** It is a
 defensible sequence for the boundary Argus ships before #28 — *printed* letter →

@@ -1,5 +1,5 @@
 import { useId } from 'react'
-import { buildMnemonic, canonicalNotation, spokenRhythm } from '../../lib/morseMnemonics'
+import { buildMnemonic, canonicalNotation, spokenRhythm } from '../../domain/morse/mnemonics'
 
 interface MorseMnemonicProps {
   glyph: string

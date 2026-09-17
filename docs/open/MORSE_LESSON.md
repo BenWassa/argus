@@ -10,15 +10,15 @@ application only and do not open that boundary.
 
 Primary code:
 
-- `src/lib/morseLesson.ts` — durable printed-acquisition and packet policy;
-- `src/lib/morseLessonSitting.ts` — finite-sitting policy over the durable
+- `src/domain/morse/curriculum/lesson.ts` — durable printed-acquisition and packet policy;
+- `src/domain/morse/curriculum/lessonSitting.ts` — finite-sitting policy over the durable
   `Topic.lessonSitting` field (#66);
-- `src/lib/morseLessonSittingStorage.ts` — one-way migration door for the retired
+- `src/domain/morse/curriculum/lessonSittingStorage.ts` — one-way migration door for the retired
   `argus.morse-learn-sittings.v1` sidecar; it can read and delete, never write;
-- `src/lib/morseLessonListening.ts` — within-lesson listening-question policy;
-- `src/lib/morseLessonPath.ts` — the canonical 13-lesson path and ephemeral
+- `src/domain/morse/curriculum/listening.ts` — within-lesson listening-question policy;
+- `src/domain/morse/curriculum/lessonPath.ts` — the canonical 13-lesson path and ephemeral
   completed-lesson replay projection (#75);
-- `src/lib/morseWordCheckpoints.ts` — mechanically eligible, deterministic
+- `src/domain/morse/curriculum/checkpoints.ts` — mechanically eligible, deterministic
   interstitial word-checkpoint projection (#78);
 - `src/lib/journey.ts` — the shared learner-journey derivation, and the
   acquisition-readiness anchor Learn stamps (#67);
@@ -27,7 +27,7 @@ Primary code:
 - `src/features/learn/MorseReplay.tsx` — local-only lesson replay;
 - `src/features/learn/MorseCheckpoint.tsx` — local-only word checkpoint runner;
 - `src/features/morse/MorseKeyInput.tsx` — shared letter → Morse response control;
-- `src/lib/morseResponse.ts` / `src/features/morse/useKeyedResponse.ts` — shared
+- `src/domain/morse/response.ts` / `src/features/morse/useKeyedResponse.ts` — shared
   keyed feedback/transition timing and interaction gate (#87);
 - `src/features/learn/MorseReference.tsx` — shared A–Z lookup cards used by the
   standalone reference and the always-visible Topic-page alphabet (#76).

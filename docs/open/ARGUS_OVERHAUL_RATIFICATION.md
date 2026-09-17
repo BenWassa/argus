@@ -31,8 +31,8 @@ against shipped source, not inferred from any document's own account:
   `'data'` for the route but it is not a nav tab.
 - `docs/open/TARGETED_PRACTICE.md` and `src/lib/practice.ts` exist — batch 5,
   shipped as *practice*, formative by construction.
-- `src/lib/morseLessonPriority.ts`, `MorseReviewProgress`, and
-  `src/lib/morseListeningBalance.test.ts` / `morseProgrammeSimulation.test.ts`
+- `src/domain/morse/curriculum/lessonPriority.ts`, `MorseReviewProgress`, and
+  `src/domain/morse/listeningBalance.test.ts` / `morseProgrammeSimulation.test.ts`
   exist — batch 6, #90 items 2, 3, 4, 5 and 9, with whole-programme simulation
   coverage.
 - `PRODUCT.md` and `DESIGN.md` have themselves been rewritten to describe this

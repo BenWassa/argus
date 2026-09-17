@@ -422,7 +422,7 @@ The fix stays inside the evidence layer:
 
 Nothing else moved: 26 logical units, typed bidirectional semantics, `CUE_FADE_STREAK`, fade/restore rules, `scheduling.ts`, the completion claim itself, ordinary-topic behaviour and the Learn/Test evidence boundary are all unchanged. `unassistedCorrect` is additive within v5 and absent means zero, so an upgraded library withholds the claim until it is re-earned rather than assuming independence that was never recorded; no existing status, history or `completedAt` is altered.
 
-Cover: `src/lib/morseCompletionEvidence.test.ts`, including an end-to-end simulation showing completion remains reachable through honest practice and unreachable for a learner still carried by cues.
+Cover: `src/domain/morse/completionEvidence.test.ts`, including an end-to-end simulation showing completion remains reachable through honest practice and unreachable for a learner still carried by cues.
 
 ## Fresh-user progress integrity
 
@@ -691,7 +691,7 @@ The ten-answer Morse sitting is shown as `X / 10 retrievals`. `XP` is gone from 
 - `src/lib/journey.test.ts` — the derivation itself: routing, readiness, the anchored clock, the gate, ordinary-topic regression, evidence separation, ranking and shelves.
 - `src/features/crossSurface.test.tsx` — the consistency contract. Nine learner states are each asserted across all four surfaces, comparing rendered verbs, schedule lines, shelf placement and Progress section against the shared derivation rather than against hard-coded strings, so a label change cannot quietly let the surfaces disagree again.
 - `src/lib/storage.test.ts`, `src/lib/storageLoad.test.ts` — sitting validation, export/import round-trip, old-v5 compatibility, sidecar adoption and isolation, fresh-install integrity, existing-learner preservation.
-- `src/lib/morseCompletionEvidence.test.ts` — unchanged; the #68 completion contract is untouched by this programme.
+- `src/domain/morse/completionEvidence.test.ts` — unchanged; the #68 completion contract is untouched by this programme.
 
 ## Non-goals
 

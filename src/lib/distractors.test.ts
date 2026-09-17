@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { MORSE_LETTERS, type MorseLetter } from './morse'
+import { MORSE_LETTERS, type MorseLetter } from '../domain/morse/code'
 import {
   confusionScore,
   differsOnlyInFinalElement,

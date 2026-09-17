@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
-import { canonicalPattern } from '../../lib/acquisition'
-import { MORSE_LETTERS } from '../../lib/morse'
+import { canonicalPattern } from '../../domain/morse/testing/acquisitionProfile'
+import { MORSE_LETTERS } from '../../domain/morse/code'
 import {
   checkpointTargetKey,
   checkpointTargets,
   withCheckpointRetry,
   type MorseCheckpointTarget,
   type MorseWordCheckpoint,
-} from '../../lib/morseWordCheckpoints'
+} from '../../domain/morse/curriculum/checkpoints'
 import { MorseKeyInput } from '../morse/MorseKeyInput'
 import { useKeyedResponse } from '../morse/useKeyedResponse'
 import './MorseCheckpoint.css'

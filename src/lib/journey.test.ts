@@ -18,7 +18,7 @@ import {
   startLesson,
   withLessonProgress,
   type LessonRun,
-} from './morseLesson'
+} from '../domain/morse/curriculum/lesson'
 import { COMPLETION_GAP_DAYS, resolveAttempt, resolveStudy } from './scheduling'
 import { parseLibrary } from './storage'
 import { seedLibrary } from './seed'

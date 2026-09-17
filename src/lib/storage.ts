@@ -30,9 +30,9 @@ import {
   lessonSittingIsFresh,
   withLessonSitting,
   type LessonSitting,
-} from './morseLessonSitting'
-import { clearAllLessonSittings, readLessonSittingSidecar } from './morseLessonSittingStorage'
-import { morseReviewIsFresh } from './morseReview'
+} from '../domain/morse/curriculum/lessonSitting'
+import { clearAllLessonSittings, readLessonSittingSidecar } from '../domain/morse/curriculum/lessonSittingStorage'
+import { morseReviewIsFresh } from '../domain/morse/curriculum/review'
 import { seedLibrary } from './seed'
 import {
   NO_RECONCILIATION,

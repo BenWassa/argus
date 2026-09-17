@@ -2,9 +2,9 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import { MORSE_LETTERS, type MorseLetter } from '../../lib/morse'
-import { canonicalNotation, spokenRhythm } from '../../lib/morseMnemonics'
-import { verbalMnemonic } from '../../lib/morseVerbalMnemonics'
+import { MORSE_LETTERS, type MorseLetter } from '../../domain/morse/code'
+import { canonicalNotation, spokenRhythm } from '../../domain/morse/mnemonics'
+import { verbalMnemonic } from '../../domain/morse/verbalMnemonics'
 import { MorseReference, MorseReferenceCards } from './MorseReference'
 
 const letters = Object.keys(MORSE_LETTERS) as MorseLetter[]

@@ -22,7 +22,7 @@ describe('Morse lesson replay', () => {
       '../../lib/scheduling',
       '../../lib/cueLadder',
       '../../lib/journey',
-      '../../lib/morseLessonSitting',
+      '../../domain/morse/curriculum/lessonSitting',
     ]) expect(imports).not.toContain(forbidden)
     expect(code).not.toContain('updateTopic')
     expect(code).not.toContain('upsertTopic')

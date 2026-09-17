@@ -11,7 +11,7 @@ cue/evidence ladder documented here. Learn cannot write `ItemCueEvidence`.
 Primary code:
 
 - `src/lib/cueLadder.ts` — rungs, fading and cue evidence;
-- `src/lib/acquisition.ts` — Morse profile, cue payload and objective grading;
+- `src/domain/morse/testing/acquisitionProfile.ts` — Morse profile, cue payload and objective grading;
 - `src/features/test/ProgressiveCard.tsx` — graded Test surface;
 - `src/features/morse/MorseKeyInput.tsx` — shared letter → Morse production
   control used by Learn and Test.
@@ -249,7 +249,7 @@ touches no scheduler state: status, history, timestamps and existing
 `completedAt` records all stand. An import claiming more independent answers than
 correct ones is rejected at the storage boundary.
 
-Regression cover lives in `src/lib/morseCompletionEvidence.test.ts`, including an
+Regression cover lives in `src/domain/morse/completionEvidence.test.ts`, including an
 end-to-end simulation proving that completion remains reachable through ordinary
 honest practice and unreachable for a learner still being carried by the cues.
 

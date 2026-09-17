@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { catalogDefinition, collisions } from './catalog'
 import { clearLibrary, emptyLibrary, loadLibraryWithReport, saveLibrary } from './storage'
-import { LEGACY_LESSON_SITTING_KEY } from './morseLessonSittingStorage'
+import { LEGACY_LESSON_SITTING_KEY } from '../domain/morse/curriculum/lessonSittingStorage'
 import { SHIPPED_CATALOG_TOPIC_IDS } from './catalog'
 import type { CurrentLibrary, Topic } from './types'
 

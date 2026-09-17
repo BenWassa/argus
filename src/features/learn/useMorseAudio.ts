@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { LEARN_ACQUISITION_MORSE_TIMING } from '../../lib/morse'
+import { LEARN_ACQUISITION_MORSE_TIMING } from '../../domain/morse/code'
 import {
   MORSE_AUDIO_START_DELAY_MS,
   MorseAudioPlayer,
   MorsePlaybackCancelledError,
-} from '../../lib/morseAudio'
+} from '../../domain/morse/audio'
 
 export interface Sounding {
   glyph: string
