@@ -1,4 +1,4 @@
-import type { CurrentLibrary } from './librarySchema'
+import type { CurrentLibrary } from '../../domain/library/library'
 import { withLessonSitting } from '../../domain/morse/curriculum/lessonSitting'
 import { readLessonSittingSidecar } from '../../domain/morse/curriculum/lessonSittingStorage'
 import { seedLibrary } from '../../domain/library/catalogSeed'

@@ -1,5 +1,5 @@
 import { useId, useState } from 'react'
-import { Dialog } from '../../components/ui/Dialog'
+import { Dialog } from '../../shared/ui/Dialog'
 import {
   EMPTY_CAPTURE,
   beginSubmit,

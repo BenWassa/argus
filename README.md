@@ -67,16 +67,22 @@ The production build asks who you are before showing anything, so sign-in is not
 ## Application structure
 
 - `src/app/` — application composition: providers, routing and the sign-in gate
-- `src/domain/` — the learning model and the rules over it, with no browser or
-  React in it: `library/` (topics, items, shipped catalog), `study/`
-  (scheduling, the journey, the cue ladder, practice) and `morse/` (the code,
-  its curriculum and its acquisition profile)
+- `src/domain/` — the learning model and the rules over it, with no React in
+  it: `library/` (topics, items, shipped catalog), `study/` (scheduling, the
+  journey, the cue ladder, practice) and `morse/` (the code, its curriculum and
+  its acquisition profile). Two modules here do touch the browser —
+  `morse/audio.ts` for Web Audio and `morse/curriculum/lessonSittingStorage.ts`
+  for the retired sitting sidecar — and are the exceptions, not the rule
 - `src/features/` — the surfaces a learner sees, one folder per feature
 - `src/services/` — application services: `sync/`, `inbox/` and the library
   provider. `inbox/` is a boundary that imports nothing from the learning library
 - `src/infrastructure/` — `persistence/`: parsing, migration and the local
   library repository
-- `src/components/` — shared UI and layout components
+- `src/shared/` — UI and layout used across features
+- Layer boundaries are enforced by `src/architecture.test.ts`, which is what keeps
+  the folders above meaning something: dependencies run domain -> infrastructure
+  -> services -> features -> app, the domain holds no React, and no feature
+  reaches inside another
 - `src/styles/` — global tokens and baseline styles
 - `scripts/` — maintainer tooling: rules rendering and content-inbox ingestion
 - `firestore/` — Firestore Security Rules tests, run against the emulator

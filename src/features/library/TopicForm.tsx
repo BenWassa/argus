@@ -1,5 +1,5 @@
 import { useEffect, useId, useMemo, useState } from 'react'
-import { Dialog } from '../../components/ui/Dialog'
+import { Dialog } from '../../shared/ui/Dialog'
 import {
   pruneItemEvidence,
   reconcileAuthoredItems,

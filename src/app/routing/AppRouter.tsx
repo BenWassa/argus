@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { AppShell } from '../../components/layout/AppShell'
+import { AppShell } from '../../shared/layout/AppShell'
 import { useLibrary } from '../../services/library/LibraryProvider'
 import { Today } from '../../features/today/Today'
 import { LibraryPage } from '../../features/library/LibraryPage'
@@ -25,7 +25,8 @@ import {
   readNavigationState,
   replaceNavigationState,
 } from './history'
-import type { Mode, View } from './routes'
+import type { View } from './routes'
+import type { Mode } from '../../domain/study/mode'
 
 function focusAfterTraversal(previous: AppRoute, next: AppRoute) {
   if (sameRoute(previous, next)) return

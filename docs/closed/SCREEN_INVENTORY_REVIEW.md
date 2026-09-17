@@ -188,7 +188,7 @@ The implementation uses `sessionStorage`, which ordinarily survives a refresh of
 ---
 
 Reviewed: 2026-09-11  
-Scope: implemented React UI in `src/app`, `src/features`, and `src/components`; this is a product-architecture review, not a visual-polish review.
+Scope: implemented React UI in `src/app`, `src/features`, and `src/shared`; this is a product-architecture review, not a visual-polish review.
 
 ## Executive finding
 

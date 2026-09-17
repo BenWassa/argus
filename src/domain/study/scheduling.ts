@@ -1,4 +1,4 @@
-import type { Mode } from '../../app/routing/routes'
+import type { Mode } from './mode'
 import type { Status, Topic } from '../library/topic'
 
 /** A topic reaches `drilled` only on a clean session. No partial credit. */

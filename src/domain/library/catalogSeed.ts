@@ -1,5 +1,5 @@
 import type { Topic } from './topic'
-import type { Library } from '../../infrastructure/persistence/librarySchema'
+import type { Library } from './library'
 
 const NATO = [
   'Alfa', 'Bravo', 'Charlie', 'Delta', 'Echo', 'Foxtrot', 'Golf', 'Hotel',

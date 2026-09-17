@@ -1,4 +1,4 @@
-import type { CurrentLibrary } from './librarySchema'
+import type { CurrentLibrary } from '../../domain/library/library'
 import { clearAllLessonSittings } from '../../domain/morse/curriculum/lessonSittingStorage'
 import { NO_RECONCILIATION, type CatalogReconciliation } from '../../domain/library/catalog'
 import { parseLibrary } from './libraryParser'

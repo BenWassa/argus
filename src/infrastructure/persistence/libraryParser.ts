@@ -29,7 +29,7 @@ import {
   type ItemCueEvidence,
   type ItemEvidenceStore,
 } from '../../domain/study/evidence'
-import type { CurrentLibrary } from './librarySchema'
+import type { CurrentLibrary } from '../../domain/library/library'
 import { migratedItemId } from '../../domain/library/items'
 import {
   LESSON_RETRIEVAL_TARGET,

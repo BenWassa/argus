@@ -1,11 +1,13 @@
-import type { Topic } from '../../domain/library/topic'
+import type { Topic } from './topic'
 
 /**
- * The persisted shape of a library, and the versions storage still accepts.
+ * A library: the topics this learner owns, and the record versions Argus
+ * still recognises as one.
  *
- * This is a storage concern rather than a domain one: the version number exists
- * because records written by older builds are still on disk, and `parseLibrary`
- * is the boundary that migrates them forward.
+ * The version tag looks like a storage detail, and the migration that reads
+ * it is one — but the domain cannot express "reconcile the shipped catalog
+ * into a library" without naming the thing being reconciled, so the type
+ * belongs here and `infrastructure/persistence` imports it, not the reverse.
  */
 /** Import compatibility shape. Older exports migrate forward at the v5 boundary. */
 export interface LegacyLibraryV4 {

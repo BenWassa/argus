@@ -6,7 +6,7 @@ import {
   lessonSittingOf,
 } from '../morse/curriculum/lessonSitting'
 import { DUE_RANK, dueState, gapProgress } from './scheduling'
-import type { Mode } from '../../app/routing/routes'
+import type { Mode } from './mode'
 import type { Status, Topic } from '../library/topic'
 
 /**

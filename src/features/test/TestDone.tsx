@@ -1,4 +1,4 @@
-import { statusLabel } from '../../components/ui/StatusTag'
+import { statusLabel } from '../../shared/ui/StatusTag'
 import { targetsForItems } from '../../domain/study/practiceTargets'
 import type { BankedAttempt } from './bankedAttempt'
 

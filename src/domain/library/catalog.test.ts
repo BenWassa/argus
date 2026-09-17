@@ -11,7 +11,7 @@ import {
 import { parseLibrary } from '../../infrastructure/persistence/libraryParser'
 import { seedLibrary } from './catalogSeed'
 import type { Topic } from './topic'
-import type { CurrentLibrary } from '../../infrastructure/persistence/librarySchema'
+import type { CurrentLibrary } from './library'
 
 const NOW = new Date('2026-09-05T10:00:00.000Z')
 

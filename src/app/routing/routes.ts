@@ -1,4 +1,5 @@
 import type { Topic } from '../../domain/library/topic'
+import type { Mode } from '../../domain/study/mode'
 
 /**
  * The route model: what a destination is, whether an unknown value is one, and
@@ -20,10 +21,6 @@ import type { Topic } from '../../domain/library/topic'
  * already shelves, and its permanent completion record now closes Library.
  */
 export type View = 'today' | 'library' | 'data'
-
-/** Learn is ungraded exposure; Test is the single scored recall interaction. */
-export const MODES = ['learn', 'test'] as const
-export type Mode = (typeof MODES)[number]
 
 export type ParentRoute =
   | { kind: 'section'; view: View }

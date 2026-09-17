@@ -86,7 +86,7 @@ Stated as defects, each with its evidence in the shipped code.
 
 **2.1 Navigation is allocated by noun, not by frequency.** Four permanent
 thumb-level destinations — Today, Library, Progress, Data
-(`src/components/layout/AppShell.tsx`). Two of the four serve jobs performed
+(`src/shared/layout/AppShell.tsx`). Two of the four serve jobs performed
 monthly or never. Half the primary navigation is spent on under 5% of sessions.
 
 **2.2 Progress is a third projection of one derivation.** `Progress.tsx` calls

@@ -19,7 +19,7 @@ import {
 import { NO_RECONCILIATION, type CatalogReconciliation } from '../../domain/library/catalog'
 import { clearAllLessonSittings } from '../../domain/morse/curriculum/lessonSittingStorage'
 import type { Topic } from '../../domain/library/topic'
-import type { CurrentLibrary } from '../../infrastructure/persistence/librarySchema'
+import type { CurrentLibrary } from '../../domain/library/library'
 
 interface LibraryStore {
   topics: Topic[]

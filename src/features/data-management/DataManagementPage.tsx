@@ -5,7 +5,7 @@ import type { SyncState } from '../../services/sync/useSync'
 import { parseLibrary } from '../../infrastructure/persistence/libraryParser'
 import { exportFilename } from '../../infrastructure/persistence/localLibraryRepository'
 import { collisions } from '../../domain/library/catalog'
-import { Confirm } from '../../components/ui/Confirm'
+import { Confirm } from '../../shared/ui/Confirm'
 
 /**
  * Export, import, sync and reset. A Library utility with its own route rather

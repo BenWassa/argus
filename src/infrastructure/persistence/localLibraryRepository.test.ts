@@ -9,7 +9,7 @@ import {
 import { LEGACY_LESSON_SITTING_KEY } from '../../domain/morse/curriculum/lessonSittingStorage'
 import { SHIPPED_CATALOG_TOPIC_IDS } from '../../domain/library/catalog'
 import type { Topic } from '../../domain/library/topic'
-import type { CurrentLibrary } from './librarySchema'
+import type { CurrentLibrary } from '../../domain/library/library'
 
 const KEY = 'argus.library.v5'
 const NOW = new Date('2026-09-05T10:00:00.000Z')
