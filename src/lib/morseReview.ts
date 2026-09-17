@@ -32,6 +32,36 @@ export const LISTENING_COVERAGE_TARGET = 1
  */
 export const LISTENING_IMBALANCE_ALLOWANCE = 1
 
+/**
+ * Runtime-only compatibility marker for an item that is already `settled` but
+ * has no ordinary review history.
+ *
+ * That shape exists for two legitimate reasons: a record that predates #90,
+ * and a #105 placement result that independently established the mapping before
+ * normal Learn. Both must remain exempt from the later-sitting requirement;
+ * otherwise merely reviewing a placed-out letter would manufacture new debt.
+ *
+ * Zero is never a real sitting ordinal. These markers are derived from
+ * `lessonProgress` on read and stripped again before persistence, so storage,
+ * export and Firebase never contain invented sitting history.
+ */
+const INDEPENDENTLY_ESTABLISHED = 0
+
+function independentlyEstablishedItem(currentSittingOrdinal: number): MorseReviewItem {
+  return {
+    introducedIn: INDEPENDENTLY_ESTABLISHED,
+    lastSeenIn: currentSittingOrdinal,
+    laterCorrect: 0,
+    printed: 0,
+    heard: 0,
+    heardCorrect: 0,
+  }
+}
+
+function isIndependentlyEstablished(item: MorseReviewItem | undefined): boolean {
+  return item?.introducedIn === INDEPENDENTLY_ESTABLISHED
+}
+
 export function newMorseReview(): MorseReviewProgress {
   return { sittings: 0, items: {} }
 }
@@ -46,11 +76,27 @@ export function newMorseReview(): MorseReviewProgress {
  * not — nothing was recording it. What stops that from dragging an already
  * finished learner backwards is `acquisitionReadyAt`, which is permanent and
  * is checked before any of this.
+ *
+ * #105 extends the same compatibility rule to placement: a `settled` item with
+ * no review row was independently established outside ordinary lesson history.
+ * It receives a derived runtime marker so review priority/readiness can honour
+ * that fact without persisting fake `introducedIn` or `laterCorrect` values.
  */
-export function morseReviewOf(topic: Pick<Topic, 'morseReview'>): MorseReviewProgress {
+export function morseReviewOf(
+  topic: Pick<Topic, 'morseReview' | 'lessonProgress'>,
+): MorseReviewProgress {
   const stored = topic.morseReview
-  if (!stored) return newMorseReview()
-  return { sittings: stored.sittings, items: { ...stored.items } }
+  const review: MorseReviewProgress = stored
+    ? { sittings: stored.sittings, items: { ...stored.items } }
+    : newMorseReview()
+  const ordinal = review.sittings + 1
+
+  for (const [itemId, support] of Object.entries(topic.lessonProgress ?? {})) {
+    if (support === 'settled' && review.items[itemId] === undefined) {
+      review.items[itemId] = independentlyEstablishedItem(ordinal)
+    }
+  }
+  return review
 }
 
 /** The ordinal of the sitting currently in progress. Completed sittings plus one. */
@@ -97,6 +143,11 @@ export function recordIntroduced(
  * one that introduced the character — the whole point of the counter. An item
  * with no record yet is treated as introduced now, so a retrieval can never
  * arrive for an item this module has never heard of.
+ *
+ * A derived independently-established marker behaves like prior knowledge for
+ * the duration of the update. `withMorseReview` strips it again before storage;
+ * if a later miss restores lesson support, the next retrieval starts an honest
+ * ordinary review record from that weaker state instead of fabricating history.
  */
 export function recordPrintedRetrieval(
   review: MorseReviewProgress,
@@ -145,12 +196,18 @@ export function completeSitting(review: MorseReviewProgress): MorseReviewProgres
 
 /** Whether this item has survived the gap between sittings often enough. */
 export function hasLaterSittingSuccess(review: MorseReviewProgress, itemId: string): boolean {
-  return (review.items[itemId]?.laterCorrect ?? 0) >= LATER_SITTING_SUCCESSES
+  const item = review.items[itemId]
+  return isIndependentlyEstablished(item) || (item?.laterCorrect ?? 0) >= LATER_SITTING_SUCCESSES
 }
 
 /** Whether this item has been met in sound often enough. */
 export function hasListeningCoverage(review: MorseReviewProgress, itemId: string): boolean {
-  return (review.items[itemId]?.heard ?? 0) >= LISTENING_COVERAGE_TARGET
+  const item = review.items[itemId]
+  // Placement/legacy compatibility deliberately skips optional formative
+  // listening for material Learn itself did not teach. This is runtime routing,
+  // not auditory evidence: the marker is never persisted and #29 remains the
+  // only place an auditory competency can be claimed.
+  return isIndependentlyEstablished(item) || (item?.heard ?? 0) >= LISTENING_COVERAGE_TARGET
 }
 
 /**
@@ -158,12 +215,21 @@ export function hasListeningCoverage(review: MorseReviewProgress, itemId: string
  *
  * The staleness term of the priority function. An item with no record is
  * maximally stale: it has never been seen, which is the strongest reason to
- * ask it.
+ * ask it. Independently established material is intentionally current for
+ * Learn priority; formal Test will still assess it normally.
  */
 export function sittingsSinceSeen(review: MorseReviewProgress, itemId: string): number {
   const item = review.items[itemId]
   if (!item) return Number.MAX_SAFE_INTEGER
+  if (isIndependentlyEstablished(item)) return 0
   return Math.max(0, currentSitting(review) - item.lastSeenIn)
+}
+
+function persistableReview(review: MorseReviewProgress): MorseReviewProgress {
+  const items = Object.fromEntries(
+    Object.entries(review.items).filter(([, item]) => !isIndependentlyEstablished(item)),
+  )
+  return { sittings: review.sittings, items }
 }
 
 /**
@@ -172,10 +238,13 @@ export function sittingsSinceSeen(review: MorseReviewProgress, itemId: string): 
  * Every other field is copied through verbatim so a review write composes with
  * concurrent support, sitting and scheduler writes rather than reinstating a
  * stale snapshot of them — the same discipline `withLessonSitting` keeps.
+ * Runtime-only #105/legacy compatibility markers are removed first, so no fake
+ * ordinary sitting history can enter storage, export or Firebase sync.
  */
 export function withMorseReview(topic: Topic, review: MorseReviewProgress): Topic {
-  if (morseReviewIsFresh(review)) return withoutMorseReview(topic)
-  return { ...topic, morseReview: { sittings: review.sittings, items: { ...review.items } } }
+  const persistable = persistableReview(review)
+  if (morseReviewIsFresh(persistable)) return withoutMorseReview(topic)
+  return { ...topic, morseReview: { sittings: persistable.sittings, items: { ...persistable.items } } }
 }
 
 export function withoutMorseReview(topic: Topic): Topic {
