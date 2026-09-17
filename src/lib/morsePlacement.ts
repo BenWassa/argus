@@ -75,13 +75,11 @@ function wordTargets(word: string, lesson: number): MorsePlacementTarget[] {
 }
 
 function someTargets(lessons: readonly MorsePlacementLesson[]): MorsePlacementTarget[] {
-  const checkpointByLesson = new Map(
-    morseWordCheckpoints().map((checkpoint) => [checkpoint.afterLesson, checkpoint]),
-  )
+  const checkpoints = morseWordCheckpoints()
   const targets: MorsePlacementTarget[] = []
   for (const lesson of lessons) {
     for (const letter of lesson.letters) targets.push(letterTarget(letter, lesson.number))
-    const checkpoint = checkpointByLesson.get(lesson.number)
+    const checkpoint = checkpoints.find((candidate) => candidate.afterLesson === lesson.number)
     const word = checkpoint?.words[0]
     if (word) targets.push(...wordTargets(word, lesson.number))
   }
