@@ -32,7 +32,7 @@ describe('Morse placement response boundary', () => {
 
     expect(screen.getByRole('dialog', { name: 'Morse placement check' })).toBeTruthy()
     expect(screen.getByRole('button', { name: /Morse key/i })).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Check pattern' })).toBeDisabled()
+    expect((screen.getByRole('button', { name: 'Check pattern' }) as HTMLButtonElement).disabled).toBe(true)
     expect(screen.getByText('Key the full pattern, then check it. Up to four signals.')).toBeTruthy()
     expect(screen.queryByText(/Expected pattern length/i)).toBeNull()
   })
