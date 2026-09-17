@@ -1,18 +1,40 @@
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 import { expect, test, type Page } from '@playwright/test'
-import { catalogDefinition, freshCatalogTopic, SHIPPED_CATALOG_TOPIC_IDS } from '../src/lib/catalog'
 import { MORSE_LETTERS, type MorseLetter } from '../src/lib/morse'
+import { seedLibrary } from '../src/lib/seed'
+import type { Topic } from '../src/lib/types'
 
 const STORE_KEY = 'argus.library.v5'
 const SPLASH_KEY = 'argus-splash-seen'
 const MORSE_ID = 'international-morse-letters-printed'
 
-const definition = catalogDefinition(MORSE_ID)
-if (!definition) throw new Error('Shipped Morse topic missing')
-const morse = freshCatalogTopic(definition, new Date('2026-09-17T22:00:00.000Z'))
+const shippedCatalog = JSON.parse(
+  readFileSync(fileURLToPath(new URL('../src/lib/shippedCatalog.json', import.meta.url)), 'utf8'),
+) as { topicIds: string[] }
+
+const seeded = seedLibrary()
+const source = seeded.topics.find((topic) => topic.id === MORSE_ID)
+if (!source) throw new Error('Seeded Morse topic missing')
+const morse: Topic = {
+  ...source,
+  status: 'unstarted',
+  drilledAt: null,
+  learningAt: null,
+  completedAt: null,
+  lastTestedAt: null,
+  spotCheckedAt: null,
+  history: [],
+  itemEvidence: {},
+  lessonProgress: {},
+  lessonSitting: undefined,
+  morseReview: undefined,
+  acquisitionReadyAt: undefined,
+}
 const LIBRARY = JSON.stringify({
   version: 5,
   topics: [morse],
-  catalogDelivered: [...SHIPPED_CATALOG_TOPIC_IDS].sort(),
+  catalogDelivered: [...shippedCatalog.topicIds].sort(),
 })
 
 async function openFreshMorse(page: Page) {
