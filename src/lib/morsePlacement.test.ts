@@ -66,7 +66,7 @@ describe('Morse placement policy', () => {
     let run = startMorsePlacement(topic, 'some')!
     const first = currentMorsePlacementTarget(run)!
 
-    run = answerMorsePlacement(run, first.pattern === undefined ? '----' : '----')
+    run = answerMorsePlacement(run, '----')
     expect(run.states[first.letter]?.status).toBe('uncertain')
     expect(run.targets[3]).toMatchObject({ letter: first.letter, retry: true })
 
@@ -147,7 +147,12 @@ describe('Morse placement application', () => {
   it('marks only the contiguous prerequisite prefix settled and creates no Test evidence', () => {
     const topic = freshMorse()
     const run = perfect(topic, 'some')
-    const result = { ...run.result!, throughLesson: 2, nextLesson: 3, verifiedLetters: run.lessons.slice(0, 2).flatMap((lesson) => lesson.letters) }
+    const result = {
+      ...run.result!,
+      throughLesson: 2,
+      nextLesson: 3,
+      verifiedLetters: run.lessons.slice(0, 2).flatMap((lesson) => lesson.letters),
+    }
     const applied = applyMorsePlacement(topic, result, NOW)
 
     expect(applied.status).toBe('learning')
