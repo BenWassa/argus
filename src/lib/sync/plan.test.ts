@@ -2,15 +2,6 @@ import { describe, expect, it } from 'vitest'
 import { nextLedger, planSync, topicJson, wouldLoseEvidence, type Ledger, type RemoteRecord } from './plan'
 import type { Topic } from '../types'
 
-/**
- * Sync is the only place two devices can disagree about the learner's record,
- * so every branch of that disagreement is pinned here rather than discovered on
- * a phone. The cases that matter are the asymmetric ones: a topic missing on one
- * side is an arrival or a deletion depending only on what this device already
- * agreed with the server, and getting that backwards either resurrects deleted
- * topics forever or silently deletes live ones.
- */
-
 function topic(id: string, overrides: Partial<Topic> = {}): Topic {
   return { id, title: id, status: 'unstarted', history: [], ...overrides } as Topic
 }
@@ -40,18 +31,34 @@ describe('a topic that exists on only one side', () => {
     ])
   })
 
-  it('drops a local topic the server has deleted, rather than re-uploading it', () => {
-    // Without the ledger this is indistinguishable from a local creation, and
-    // a deleted topic would come back on every device that still held it.
+  it('drops an unchanged local topic the server has deleted', () => {
     const gone = topic('knots')
-    const { actions } = planSync([gone], [], ledgerFor('knots', gone, 3))
+    const { actions, conflicts } = planSync([gone], [], ledgerFor('knots', gone, 3))
     expect(actions).toEqual([{ kind: 'dropLocal', topicId: 'knots' }])
+    expect(conflicts).toEqual([])
   })
 
-  it('deletes remotely a topic this device has deleted, rather than re-adopting it', () => {
+  it('does not drop a locally edited topic when another device deleted the old copy', () => {
+    const before = topic('knots')
+    const mine = topic('knots', { status: 'learning' })
+    const plan = planSync([mine], [], ledgerFor('knots', before, 3))
+    expect(plan.actions).toEqual([])
+    expect(plan.conflicts).toEqual(['knots'])
+  })
+
+  it('deletes remotely only the exact revision this device had deleted', () => {
     const gone = topic('knots')
-    const { actions } = planSync([], [remote('knots', gone, 3)], ledgerFor('knots', gone, 3))
-    expect(actions).toEqual([{ kind: 'deleteRemote', topicId: 'knots' }])
+    const { actions, conflicts } = planSync([], [remote('knots', gone, 3)], ledgerFor('knots', gone, 3))
+    expect(actions).toEqual([{ kind: 'deleteRemote', topicId: 'knots', revision: 3 }])
+    expect(conflicts).toEqual([])
+  })
+
+  it('does not delete a topic another device edited after this device deleted its old copy', () => {
+    const before = topic('knots')
+    const theirs = topic('knots', { status: 'drilled' })
+    const plan = planSync([], [remote('knots', theirs, 4)], ledgerFor('knots', before, 3))
+    expect(plan.actions).toEqual([])
+    expect(plan.conflicts).toEqual(['knots'])
   })
 })
 
@@ -90,8 +97,6 @@ describe('a topic both sides changed', () => {
   const theirs = topic('knots', { status: 'drilled' })
 
   it('touches neither copy and reports the conflict instead', () => {
-    // #93 rules out destructive last-write-wins. Whichever edit happened later,
-    // the other may still hold work, so nothing is overwritten either way.
     const plan = planSync(
       [mine],
       [remote('knots', theirs, 3, 9_000)],
@@ -112,8 +117,6 @@ describe('a topic both sides changed', () => {
   })
 
   it('leaves the conflicted topic out of the ledger, so it stays reported', () => {
-    // A conflict that quietly settled itself on the next pass would be worse
-    // than one that persists: the person would never get the chance to look.
     const ledger = ledgerFor('knots', before, 2, 1_000)
     const plan = planSync([mine], [remote('knots', theirs, 3, 9_000)], ledger)
     const settled = nextLedger(ledger, plan.actions, 5_000)
@@ -128,8 +131,6 @@ describe('a remote copy that would lose evidence', () => {
   } as Partial<Topic>)
 
   it('is refused even when this device has not touched the topic', () => {
-    // An older or damaged copy arriving late is not a later edit. Attempts do
-    // not un-happen, so a shorter history is evidence of the wrong direction.
     const thinner = topic('knots', { history: [] } as Partial<Topic>)
     const plan = planSync(
       [drilled],
@@ -195,11 +196,7 @@ describe('the ledger after a plan is applied', () => {
   })
 })
 
-
 describe('the first sync on a new device', () => {
-  // No ledger exists yet, so there is nothing to say who moved. Reporting every
-  // topic as conflicted would be correct and useless: the ordinary case is a
-  // local library of untouched seed topics meeting the real record.
   const untouched = topic('knots')
   const earned = topic('knots', {
     history: [{ at: '2026-01-01T00:00:00.000Z' }, { at: '2026-02-01T00:00:00.000Z' }],
@@ -221,7 +218,7 @@ describe('the first sync on a new device', () => {
     ])
   })
 
-  it('does nothing at all when the two copies already agree', () => {
+  it('adopts an identical copy to establish the ledger baseline', () => {
     const plan = planSync([untouched], [remote('knots', untouched, 4)], {})
     expect(plan.conflicts).toEqual([])
     expect(plan.actions).toEqual([
@@ -230,8 +227,6 @@ describe('the first sync on a new device', () => {
   })
 
   it('reports a conflict when each copy holds something the other does not', () => {
-    // Equal attempts, but this device has item evidence the other lacks and the
-    // other has an attempt this one lacks. Neither covers the other.
     const mine = topic('knots', {
       history: [{ at: '2026-01-01T00:00:00.000Z' }],
       itemEvidence: { a: 1, b: 2 },

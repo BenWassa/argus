@@ -23,8 +23,10 @@ export interface SyncBackend {
     onRecords: (records: RemoteRecord[]) => void,
     onError: (error: string) => void,
   ): Unsubscribe
+  /** `revision` is the next revision; the backend must compare-and-set it. */
   pushTopic(uid: string, topicId: string, json: string, revision: number): Promise<void>
-  deleteTopic(uid: string, topicId: string): Promise<void>
+  /** Delete only the exact revision the planner observed. */
+  deleteTopic(uid: string, topicId: string, expectedRevision: number): Promise<void>
   /** Library-level state that belongs to no single topic. */
   observeMeta(
     uid: string,

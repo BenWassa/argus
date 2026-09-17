@@ -5,35 +5,44 @@ import { unconfiguredSyncBackend, type SyncBackend, type SyncUser } from './back
 import { loadLedger, saveLedger } from './ledger'
 import { forgetSignedIn, hasSignedIn, rememberSignedIn } from './session'
 import { nextLedger, planSync, topicJson, type Ledger, type RemoteRecord, type SyncAction } from './plan'
-import { parseLibrary } from '../storage'
-import type { Topic } from '../types'
+import {
+  bindLegacyLibrary,
+  clearPending,
+  freshLibrary,
+  hasPending,
+  libraryMetaJson,
+  markPending,
+  parseLibraryMeta,
+  preserveRecovery,
+  readLocalLibrary,
+  writeLocalLibrary,
+  type LocalLibraryCandidate,
+} from './local'
+import { emptyLibrary, parseLibrary, reconcileLoadedLibrary } from '../storage'
+import type { CurrentLibrary, Topic } from '../types'
 
 export type SyncState =
   | { kind: 'unconfigured' }
-  /**
-   * A device that has signed in before, while Firebase works out whether that
-   * session is still good. It is distinct from `signedOut` because the gate
-   * must not show a sign-in screen to somebody who is already signed in, and
-   * must not show the library to somebody who turns out not to be.
-   */
+  /** Firebase is restoring auth or reconciling the authenticated UID before entry. */
   | { kind: 'restoring' }
   | { kind: 'signedOut' }
   | { kind: 'syncing'; user: SyncUser }
   | { kind: 'synced'; user: SyncUser; at: Date; conflicts: string[] }
-  | { kind: 'error'; user: SyncUser | null; message: string }
+  | { kind: 'error'; user: SyncUser | null; message: string; ready: boolean }
 
 /** What the hook needs from the library store, so it can be driven by a fake. */
 export interface SyncableStore {
   topics: Topic[]
+  library: CurrentLibrary
   upsertTopic: (topic: Topic) => void
   removeTopic: (id: string) => void
+  replaceLibrary: (library: CurrentLibrary) => void
 }
 
 /**
  * A topic arriving from another device goes through the same v5 parse boundary
  * a stored or imported one does. Nothing reaches the library that could not
- * have been loaded from disk, so sync cannot widen what a topic is allowed to
- * be — which is the whole reason the record travels as its own JSON.
+ * have been loaded from disk.
  */
 export function parseSyncedTopic(json: string): Topic | null {
   try {
@@ -58,30 +67,152 @@ function defaultBackend(): SyncBackend {
   return shared
 }
 
+function sameLibrary(a: CurrentLibrary, b: CurrentLibrary): boolean {
+  return JSON.stringify(a) === JSON.stringify(b)
+}
+
+function remoteLibrary(records: RemoteRecord[], meta: string | null): CurrentLibrary | null {
+  if (records.length === 0 && meta === null) return null
+  const topics: Topic[] = []
+  for (const record of records) {
+    const topic = parseSyncedTopic(record.json)
+    if (!topic || topic.id !== record.topicId) {
+      throw new Error(`Cloud topic ${record.topicId} is not a valid Argus learner record.`)
+    }
+    topics.push(topic)
+  }
+  const candidate: CurrentLibrary = {
+    version: 5,
+    topics,
+    ...(meta === null ? {} : { catalogDelivered: parseLibraryMeta(meta) }),
+  }
+  const parsed = parseLibrary(candidate)
+  if (!parsed.ok) throw new Error(parsed.error)
+  return reconcileLoadedLibrary(parsed.library).library
+}
+
+interface ExecutedPlan {
+  library: CurrentLibrary
+  ledger: Ledger
+  conflicts: string[]
+}
+
+async function executePlan(
+  uid: string,
+  library: CurrentLibrary,
+  records: RemoteRecord[],
+  remoteMeta: string | null,
+  ledger: Ledger,
+  backend: SyncBackend,
+): Promise<ExecutedPlan> {
+  const plan = planSync(library.topics, records, ledger)
+  const order = library.topics.map((topic) => topic.id)
+  const topics = new Map(library.topics.map((topic) => [topic.id, topic]))
+  const applied: SyncAction[] = []
+
+  for (const action of plan.actions) {
+    switch (action.kind) {
+      case 'push':
+        await backend.pushTopic(uid, action.topicId, action.json, action.revision)
+        applied.push(action)
+        break
+      case 'deleteRemote':
+        await backend.deleteTopic(uid, action.topicId, action.revision)
+        applied.push(action)
+        break
+      case 'adopt': {
+        const topic = parseSyncedTopic(action.json)
+        if (!topic || topic.id !== action.topicId) break
+        topics.set(topic.id, topic)
+        if (!order.includes(topic.id)) order.push(topic.id)
+        applied.push({ ...action, json: topicJson(topic) })
+        break
+      }
+      case 'dropLocal':
+        topics.delete(action.topicId)
+        applied.push(action)
+        break
+    }
+  }
+
+  const delivered = [
+    ...new Set([...(library.catalogDelivered ?? []), ...parseLibraryMeta(remoteMeta)]),
+  ].sort()
+  const next: CurrentLibrary = {
+    version: 5,
+    topics: order.flatMap((id) => {
+      const topic = topics.get(id)
+      return topic ? [topic] : []
+    }),
+    catalogDelivered: delivered,
+  }
+
+  // Library-level delivery metadata is monotonic set-union state. It can be
+  // composed safely without timestamp winner selection.
+  const canonicalMeta = libraryMetaJson(next)
+  const remoteCanonical = JSON.stringify({
+    version: 5,
+    catalogDelivered: parseLibraryMeta(remoteMeta),
+  })
+  if (canonicalMeta !== remoteCanonical) await backend.pushMeta(uid, canonicalMeta, 1)
+
+  return {
+    library: next,
+    ledger: nextLedger(ledger, applied, Date.now()),
+    conflicts: plan.conflicts,
+  }
+}
+
 /**
  * Mirror the local library to Firestore, and take what other devices have done.
  *
- * Local storage stays the authority for what is on screen: every read and every
- * write the app already makes is untouched, so Argus works exactly as before
- * with no network and no account. Sync is a mirror laid over that, and the one
- * decision it makes — which copy wins — is `planSync`, tested on its own.
+ * The gate does not open until the authenticated UID has been reconciled once.
+ * After that, mutations remain local-first: the UID cache is written immediately
+ * and cloud work is coalesced/retried in the background.
  */
 export function useSync(store: SyncableStore, injected?: SyncBackend) {
   const backend = injected ?? defaultBackend()
   const [user, setUser] = useState<SyncUser | null>(null)
   const [records, setRecords] = useState<RemoteRecord[] | null>(null)
+  const [meta, setMeta] = useState<string | null | undefined>(undefined)
   const [state, setState] = useState<SyncState>(() => {
     if (!backend.configured) return { kind: 'unconfigured' }
     return hasSignedIn() ? { kind: 'restoring' } : { kind: 'signedOut' }
   })
   const ledger = useRef<Ledger>({})
-  const applying = useRef(false)
-  /**
-   * Firebase is not loaded, and Google is not contacted, until there is a
-   * reason. A device that has never signed in has no reason on load, and the
-   * button below supplies one the moment it is pressed.
-   */
+  const candidate = useRef<LocalLibraryCandidate>({ kind: 'missing' })
+  const bootstrappedUid = useRef<string | null>(null)
+  const bootstrapInFlight = useRef(false)
+  const inFlight = useRef(false)
+  const rerun = useRef(false)
+  const coalesceTimer = useRef<number | null>(null)
+  const retryTimer = useRef<number | null>(null)
+  const retryAttempt = useRef(0)
+  const runSyncRef = useRef<() => void>(() => {})
+  const lastLocalJson = useRef(JSON.stringify(store.library))
+  const storeRef = useRef(store)
+  const userRef = useRef(user)
+  const recordsRef = useRef(records)
+  const metaRef = useRef(meta)
+  storeRef.current = store
+  userRef.current = user
+  recordsRef.current = records
+  metaRef.current = meta
+
+  /** Firebase is not loaded until there is a reason. */
   const [watching, setWatching] = useState(() => backend.configured && hasSignedIn())
+
+  const openValidatedCacheOffline = useCallback((next: SyncUser, message: string): boolean => {
+    const local = candidate.current
+    if (local.kind !== 'valid' || local.source !== 'uid') return false
+    ledger.current = loadLedger(next.uid)
+    writeLocalLibrary(next.uid, local.library)
+    lastLocalJson.current = JSON.stringify(local.library)
+    bootstrappedUid.current = next.uid
+    storeRef.current.replaceLibrary(local.library)
+    setState({ kind: 'error', user: next, message, ready: true })
+    return true
+  }, [])
 
   useEffect(() => {
     if (!backend.configured || !watching) return
@@ -89,80 +220,238 @@ export function useSync(store: SyncableStore, injected?: SyncBackend) {
       if (next) rememberSignedIn()
       setUser(next)
       setRecords(null)
-      ledger.current = next ? loadLedger(next.uid) : {}
-      setState(next ? { kind: 'syncing', user: next } : { kind: 'signedOut' })
+      setMeta(undefined)
+      bootstrapInFlight.current = false
+      bootstrappedUid.current = null
+      retryAttempt.current = 0
+      if (coalesceTimer.current !== null) window.clearTimeout(coalesceTimer.current)
+      if (retryTimer.current !== null) window.clearTimeout(retryTimer.current)
+
+      if (!next) {
+        ledger.current = {}
+        candidate.current = { kind: 'missing' }
+        lastLocalJson.current = JSON.stringify(emptyLibrary())
+        storeRef.current.replaceLibrary(emptyLibrary())
+        setState({ kind: 'signedOut' })
+        return
+      }
+
+      ledger.current = loadLedger(next.uid)
+      candidate.current = readLocalLibrary(next.uid)
+      if (candidate.current.kind === 'invalid') {
+        preserveRecovery(
+          next.uid,
+          `invalid-${candidate.current.source}-library`,
+          candidate.current.raw,
+        )
+      }
+
+      const hiddenLocal = candidate.current.kind === 'valid'
+        ? candidate.current.library
+        : emptyLibrary()
+      lastLocalJson.current = JSON.stringify(hiddenLocal)
+      storeRef.current.replaceLibrary(hiddenLocal)
+      // Reuse the existing closed-door state so returning users see the normal
+      // restoring treatment until both local identity and cloud recovery resolve.
+      setState({ kind: 'restoring' })
     })
   }, [backend, watching])
 
   useEffect(() => {
     if (!user) return
-    return backend.observeLibrary(
-      user.uid,
-      setRecords,
-      (message) => setState({ kind: 'error', user, message }),
-    )
-  }, [backend, user])
+    const fail = (message: string) => {
+      if (bootstrappedUid.current === user.uid) {
+        setState({ kind: 'error', user, message, ready: true })
+        return
+      }
+      if (!openValidatedCacheOffline(user, message)) {
+        // `user: null` intentionally keeps the existing app gate closed. First
+        // binding cannot enter on an unverified legacy/fresh copy when cloud is
+        // unreachable, because a recoverable remote library may still exist.
+        setState({
+          kind: 'error',
+          user: null,
+          message: `${message} First setup needs one successful cloud check.`,
+          ready: false,
+        })
+      }
+    }
+    const stopLibrary = backend.observeLibrary(user.uid, setRecords, fail)
+    const stopMeta = backend.observeMeta(user.uid, setMeta, fail)
+    return () => {
+      stopLibrary()
+      stopMeta()
+    }
+  }, [backend, openValidatedCacheOffline, user])
 
   useEffect(() => {
-    if (!user || records === null || applying.current) return
-    const plan = planSync(store.topics, records, ledger.current)
-    if (plan.actions.length === 0) {
-      setState({ kind: 'synced', user, at: new Date(), conflicts: plan.conflicts })
-      return
-    }
+    if (!user || records === null || meta === undefined) return
+    if (bootstrappedUid.current === user.uid || bootstrapInFlight.current) return
+    bootstrapInFlight.current = true
 
-    applying.current = true
     const run = async () => {
-      // What the ledger records is what actually happened, which is not always
-      // what was planned: a record that would not parse is not adopted, and an
-      // adopted one is recorded as the library will serialize it rather than as
-      // it arrived. Storing the arriving text instead would leave the ledger
-      // disagreeing with the local copy the moment the parser normalized
-      // anything, and every later pass would push a needless revision.
-      const applied: SyncAction[] = []
-      for (const action of plan.actions) {
-        switch (action.kind) {
-          case 'push':
-            await backend.pushTopic(user.uid, action.topicId, action.json, action.revision)
-            applied.push(action)
-            break
-          case 'deleteRemote':
-            await backend.deleteTopic(user.uid, action.topicId)
-            applied.push(action)
-            break
-          case 'adopt': {
-            // A record this device cannot parse is left alone rather than
-            // dropped: refusing it keeps the local copy, and the ledger is not
-            // advanced, so a later build that understands it can still take it.
-            const topic = parseSyncedTopic(action.json)
-            if (!topic) break
-            store.upsertTopic(topic)
-            applied.push({ ...action, json: topicJson(topic) })
-            break
-          }
-          case 'dropLocal':
-            store.removeTopic(action.topicId)
-            applied.push(action)
-            break
+      const local = candidate.current
+      let remote: CurrentLibrary | null
+      try {
+        remote = remoteLibrary(records, meta)
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Cloud learner data is invalid.'
+        if (!openValidatedCacheOffline(user, message)) {
+          setState({ kind: 'error', user: null, message, ready: false })
         }
+        bootstrapInFlight.current = false
+        return
       }
-      ledger.current = nextLedger(ledger.current, applied, Date.now())
-      saveLedger(user.uid, ledger.current)
-      setState({ kind: 'synced', user, at: new Date(), conflicts: plan.conflicts })
-    }
 
-    void run()
-      .catch((error: unknown) => {
+      const base = local.kind === 'valid'
+        ? local.library
+        : remote ?? freshLibrary()
+      // A missing/invalid cache or a totally absent cloud namespace has no safe
+      // shared ancestor. Ignore any stale ledger so it can never turn recovery
+      // into a mass deletion. First meeting remains conservative per topic.
+      const bootstrapLedger =
+        local.kind === 'valid' && local.source === 'uid' && remote !== null
+          ? ledger.current
+          : {}
+
+      try {
+        const executed = await executePlan(user.uid, base, records, meta, bootstrapLedger, backend)
+        ledger.current = executed.ledger
+        saveLedger(user.uid, ledger.current)
+        writeLocalLibrary(user.uid, executed.library)
+        if (local.kind === 'valid' && local.source === 'legacy') bindLegacyLibrary(user.uid)
+        lastLocalJson.current = JSON.stringify(executed.library)
+        storeRef.current.replaceLibrary(executed.library)
+        bootstrappedUid.current = user.uid
+        clearPending(user.uid)
+        retryAttempt.current = 0
+        setState({ kind: 'synced', user, at: new Date(), conflicts: executed.conflicts })
+      } catch (error) {
+        // The authoritative cloud read completed. Keep the chosen copy local and
+        // durable, then retry the cloud mutation without rolling learning back.
+        writeLocalLibrary(user.uid, base)
+        markPending(user.uid)
+        lastLocalJson.current = JSON.stringify(base)
+        storeRef.current.replaceLibrary(base)
+        bootstrappedUid.current = user.uid
         setState({
           kind: 'error',
           user,
           message: error instanceof Error ? error.message : 'Sync failed.',
+          ready: true,
         })
-      })
-      .finally(() => {
-        applying.current = false
-      })
-  }, [backend, user, records, store])
+        retryAttempt.current = 1
+        if (retryTimer.current !== null) window.clearTimeout(retryTimer.current)
+        retryTimer.current = window.setTimeout(() => runSyncRef.current(), 1_000)
+      } finally {
+        bootstrapInFlight.current = false
+      }
+    }
+
+    void run()
+  }, [backend, meta, openValidatedCacheOffline, records, user])
+
+  const runSync = useCallback(async () => {
+    const currentUser = userRef.current
+    const currentRecords = recordsRef.current
+    const currentMeta = metaRef.current
+    if (
+      !currentUser ||
+      bootstrappedUid.current !== currentUser.uid ||
+      currentRecords === null ||
+      currentMeta === undefined
+    ) return
+
+    if (inFlight.current) {
+      rerun.current = true
+      return
+    }
+
+    inFlight.current = true
+    rerun.current = false
+    setState({ kind: 'syncing', user: currentUser })
+
+    try {
+      const started = storeRef.current.library
+      // If the entire cloud namespace disappeared, do not interpret an old
+      // ledger as a deliberate deletion of every local topic. Re-seed the
+      // validated device record instead. Ordinary per-topic deletions still use
+      // the ledger and remain conflict-aware in `planSync`.
+      const planningLedger = currentRecords.length === 0 && currentMeta === null
+        ? {}
+        : ledger.current
+      const executed = await executePlan(
+        currentUser.uid,
+        started,
+        currentRecords,
+        currentMeta,
+        planningLedger,
+        backend,
+      )
+      ledger.current = executed.ledger
+      saveLedger(currentUser.uid, ledger.current)
+      writeLocalLibrary(currentUser.uid, executed.library)
+      lastLocalJson.current = JSON.stringify(executed.library)
+      if (!sameLibrary(executed.library, storeRef.current.library)) {
+        storeRef.current.replaceLibrary(executed.library)
+      }
+      clearPending(currentUser.uid)
+      retryAttempt.current = 0
+      setState({ kind: 'synced', user: currentUser, at: new Date(), conflicts: executed.conflicts })
+    } catch (error) {
+      markPending(currentUser.uid)
+      const message = error instanceof Error ? error.message : 'Sync failed.'
+      setState({ kind: 'error', user: currentUser, message, ready: true })
+      const delay = Math.min(30_000, 1_000 * 2 ** Math.min(retryAttempt.current, 5))
+      retryAttempt.current += 1
+      if (retryTimer.current !== null) window.clearTimeout(retryTimer.current)
+      retryTimer.current = window.setTimeout(() => runSyncRef.current(), delay)
+    } finally {
+      inFlight.current = false
+      if (rerun.current) {
+        rerun.current = false
+        window.setTimeout(() => runSyncRef.current(), 0)
+      }
+    }
+  }, [backend])
+  runSyncRef.current = () => void runSync()
+
+  useEffect(() => {
+    if (!user || bootstrappedUid.current !== user.uid) return
+    const json = JSON.stringify(store.library)
+    if (json === lastLocalJson.current) return
+    lastLocalJson.current = json
+    writeLocalLibrary(user.uid, store.library)
+    markPending(user.uid)
+    setState({ kind: 'syncing', user })
+    if (coalesceTimer.current !== null) window.clearTimeout(coalesceTimer.current)
+    coalesceTimer.current = window.setTimeout(() => runSyncRef.current(), 650)
+    return () => {
+      if (coalesceTimer.current !== null) window.clearTimeout(coalesceTimer.current)
+    }
+  }, [store.library, user])
+
+  useEffect(() => {
+    if (!user || bootstrappedUid.current !== user.uid || records === null || meta === undefined) return
+    // Every remote snapshot is a reconciliation trigger. This catches work from
+    // another device, and also drains a durable pending marker after reconnect.
+    if (coalesceTimer.current !== null) window.clearTimeout(coalesceTimer.current)
+    coalesceTimer.current = window.setTimeout(
+      () => runSyncRef.current(),
+      hasPending(user.uid) ? 0 : 50,
+    )
+  }, [meta, records, user])
+
+  useEffect(() => {
+    const reconnect = () => runSyncRef.current()
+    window.addEventListener('online', reconnect)
+    return () => window.removeEventListener('online', reconnect)
+  }, [])
+
+  useEffect(() => () => {
+    if (coalesceTimer.current !== null) window.clearTimeout(coalesceTimer.current)
+    if (retryTimer.current !== null) window.clearTimeout(retryTimer.current)
+  }, [])
 
   const signIn = useCallback(async () => {
     try {
@@ -174,13 +463,15 @@ export function useSync(store: SyncableStore, injected?: SyncBackend) {
         kind: 'error',
         user: null,
         message: error instanceof Error ? error.message : 'Could not sign in.',
+        ready: false,
       })
     }
   }, [backend])
 
   const signOut = useCallback(async () => {
-    // The local library is untouched by signing out. It was never the copy that
-    // depended on an account.
+    // Signing out removes nothing from the UID-scoped cache or cloud. The auth
+    // observer clears only the in-memory library so another account can never
+    // see this account's record during its own bootstrap.
     await backend.signOut()
     forgetSignedIn()
   }, [backend])

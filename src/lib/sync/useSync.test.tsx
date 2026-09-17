@@ -5,65 +5,98 @@ import { parseSyncedTopic, useSync, type SyncableStore } from './useSync'
 import { rememberSignedIn } from './session'
 import { unconfiguredSyncBackend, type SyncBackend, type SyncUser } from './backend'
 import { topicJson, type RemoteRecord } from './plan'
+import { recoveryEntryCount, writeLocalLibrary } from './local'
+import { parseLibrary } from '../storage'
 import { seedLibrary } from '../seed'
-import type { Topic } from '../types'
-
-/**
- * Applying a plan is genuinely asynchronous — a push is awaited before the
- * ledger advances — so these wait on the outcome rather than assuming a single
- * microtask settles it. The default one-second budget is too tight to be
- * reliable when the whole suite is running at once, and a timing-sensitive test
- * that only fails under load is worse than no test.
- *
- * The wiring, not the policy. `plan.test.ts` owns which copy wins; this covers
- * that the hook actually carries a plan out — pushes what is local, puts what is
- * remote into the store, and never lets a record the v5 boundary would refuse
- * through the door.
- */
+import type { CurrentLibrary, Topic } from '../types'
 
 beforeEach(() => {
-  // These cover what happens once a device is signed in, so they start from a
-  // device that has been. The deferral itself is covered separately below.
+  localStorage.clear()
   rememberSignedIn()
 })
 
 afterEach(() => {
   cleanup()
+  vi.useRealTimers()
   localStorage.clear()
 })
 
-function realTopic(): Topic {
-  return seedLibrary().topics[0]
+function waitFor(assertion: () => void) {
+  return rawWaitFor(assertion, { timeout: 5_000 })
 }
 
-function fakeStore(topics: Topic[]): SyncableStore & { upserted: Topic[]; removed: string[] } {
-  const upserted: Topic[] = []
-  const removed: string[] = []
-  return {
-    topics,
-    upserted,
-    removed,
-    upsertTopic: (topic) => upserted.push(topic),
-    removeTopic: (id) => removed.push(id),
+function realTopic(id?: string): Topic {
+  const topics = parseLibrary(seedLibrary())
+  if (!topics.ok) throw new Error(topics.error)
+  if (id) {
+    const found = topics.library.topics.find((topic) => topic.id === id)
+    if (!found) throw new Error(`Missing fixture topic ${id}`)
+    return found
   }
+  return topics.library.topics[0]
 }
 
-function fakeBackend(overrides: Partial<SyncBackend> = {}): SyncBackend & {
-  pushed: { topicId: string; json: string; revision: number }[]
-  deleted: string[]
+function oneTopicLibrary(topic: Topic): CurrentLibrary {
+  return { version: 5, topics: [topic], catalogDelivered: [] }
+}
+
+interface MutableStore extends SyncableStore {
+  replaced: CurrentLibrary[]
+}
+
+function fakeStore(initial: CurrentLibrary = { version: 5, topics: [], catalogDelivered: [] }): MutableStore {
+  const replaced: CurrentLibrary[] = []
+  const store = {
+    library: initial,
+    get topics() {
+      return store.library.topics
+    },
+    replaced,
+    upsertTopic(topic: Topic) {
+      const at = store.library.topics.findIndex((candidate) => candidate.id === topic.id)
+      store.library = {
+        ...store.library,
+        topics: at === -1
+          ? [...store.library.topics, topic]
+          : store.library.topics.map((candidate, index) => (index === at ? topic : candidate)),
+      }
+    },
+    removeTopic(id: string) {
+      store.library = { ...store.library, topics: store.library.topics.filter((topic) => topic.id !== id) }
+    },
+    replaceLibrary(library: CurrentLibrary) {
+      store.library = library
+      replaced.push(library)
+    },
+  }
+  return store
+}
+
+interface FakeBackend extends SyncBackend {
+  pushed: { uid: string; topicId: string; json: string; revision: number }[]
+  deleted: { uid: string; topicId: string; revision: number }[]
+  metaWrites: { uid: string; json: string; revision: number }[]
   emitUser: (user: SyncUser | null) => void
   emitRecords: (records: RemoteRecord[]) => void
-} {
-  const pushed: { topicId: string; json: string; revision: number }[] = []
-  const deleted: string[] = []
+  emitMeta: (json: string | null) => void
+}
+
+function fakeBackend(overrides: Partial<SyncBackend> = {}): FakeBackend {
+  const pushed: FakeBackend['pushed'] = []
+  const deleted: FakeBackend['deleted'] = []
+  const metaWrites: FakeBackend['metaWrites'] = []
   let userListener: (user: SyncUser | null) => void = () => {}
   let recordListener: (records: RemoteRecord[]) => void = () => {}
-  return {
+  let metaListener: (json: string | null) => void = () => {}
+
+  const backend: FakeBackend = {
     configured: true,
     pushed,
     deleted,
+    metaWrites,
     emitUser: (user) => userListener(user),
     emitRecords: (records) => recordListener(records),
+    emitMeta: (json) => metaListener(json),
     observeUser: (listener) => {
       userListener = listener
       return () => {}
@@ -74,212 +107,263 @@ function fakeBackend(overrides: Partial<SyncBackend> = {}): SyncBackend & {
       recordListener = onRecords
       return () => {}
     },
-    pushTopic: async (_uid, topicId, json, revision) => {
-      pushed.push({ topicId, json, revision })
+    pushTopic: async (uid, topicId, json, revision) => {
+      pushed.push({ uid, topicId, json, revision })
     },
-    deleteTopic: async (_uid, topicId) => {
-      deleted.push(topicId)
+    deleteTopic: async (uid, topicId, revision) => {
+      deleted.push({ uid, topicId, revision })
     },
-    observeMeta: () => () => {},
-    pushMeta: async () => {},
+    observeMeta: (_uid, onMeta) => {
+      metaListener = onMeta
+      return () => {}
+    },
+    pushMeta: async (uid, json, revision) => {
+      metaWrites.push({ uid, json, revision })
+    },
     ...overrides,
   }
+  return backend
 }
 
 const OWNER: SyncUser = { uid: 'owner-uid', email: 'owner@example.test', displayName: 'Owner' }
+const OTHER: SyncUser = { uid: 'other-uid', email: 'other@example.test', displayName: 'Other' }
 
-function waitFor(assertion: () => void) {
-  return rawWaitFor(assertion, { timeout: 5_000 })
+function emitCloud(backend: FakeBackend, records: RemoteRecord[], meta: string | null = null) {
+  act(() => {
+    backend.emitRecords(records)
+    backend.emitMeta(meta)
+  })
 }
 
-describe('a build with no Firebase configuration', () => {
-  it('reports sync unavailable rather than offering something that cannot work', () => {
-    const { result } = renderHook(() => useSync(fakeStore([]), unconfiguredSyncBackend()))
-    expect(result.current.state.kind).toBe('unconfigured')
-  })
-})
-
-describe('carrying out a plan', () => {
-  it('pushes what this device holds and the server does not', async () => {
+describe('configured entry recovery', () => {
+  it('restores valid cloud state when the local account cache is missing', async () => {
     const topic = realTopic()
-    const backend = fakeBackend()
-    renderHook(() => useSync(fakeStore([topic]), backend))
-
-    act(() => backend.emitUser(OWNER))
-    act(() => backend.emitRecords([]))
-
-    await waitFor(() => expect(backend.pushed).toHaveLength(1))
-    expect(backend.pushed[0]).toMatchObject({ topicId: topic.id, revision: 1 })
-    expect(JSON.parse(backend.pushed[0].json).id).toBe(topic.id)
-  })
-
-  it('puts a topic from another device into the local store', async () => {
-    const topic = realTopic()
-    const store = fakeStore([])
-    const backend = fakeBackend()
-    renderHook(() => useSync(store, backend))
-
-    act(() => backend.emitUser(OWNER))
-    act(() =>
-      backend.emitRecords([
-        { topicId: topic.id, json: topicJson(topic), revision: 4, updatedAtMs: 1_000 },
-      ]),
-    )
-
-    await waitFor(() => expect(store.upserted).toHaveLength(1))
-    expect(store.upserted[0].id).toBe(topic.id)
-    expect(backend.pushed).toHaveLength(0)
-  })
-
-  it('refuses a remote record the v5 boundary would not accept, and keeps the local copy', async () => {
-    // The evidence contract is defined by the parse boundary, so a device that
-    // cannot parse a record must not adopt it — and must not delete its own.
-    const store = fakeStore([])
+    const store = fakeStore()
     const backend = fakeBackend()
     const { result } = renderHook(() => useSync(store, backend))
 
     act(() => backend.emitUser(OWNER))
-    act(() =>
-      backend.emitRecords([
-        { topicId: 'bogus', json: '{"id":"bogus","status":"not-a-status"}', revision: 1, updatedAtMs: 1 },
-      ]),
-    )
+    expect(result.current.state.kind).toBe('restoring')
+    emitCloud(backend, [{ topicId: topic.id, json: topicJson(topic), revision: 4, updatedAtMs: 1 }])
 
-    // Waiting for the pass to finish is the point: asserting "nothing was
-    // adopted" before it has run would pass without proving anything.
     await waitFor(() => expect(result.current.state.kind).toBe('synced'))
-    expect(store.upserted).toEqual([])
-    expect(store.removed).toEqual([])
+    expect(store.library.topics.some((candidate) => candidate.id === topic.id)).toBe(true)
   })
 
-  it('reports an error without disturbing the local library', async () => {
+  it('quarantines corrupt local bytes and restores the valid cloud copy', async () => {
     const topic = realTopic()
-    const store = fakeStore([topic])
+    localStorage.setItem('argus.library.sync.v1.owner-uid', '{ definitely-not-json')
+    const store = fakeStore()
+    const backend = fakeBackend()
+    const { result } = renderHook(() => useSync(store, backend))
+
+    act(() => backend.emitUser(OWNER))
+    emitCloud(backend, [{ topicId: topic.id, json: topicJson(topic), revision: 2, updatedAtMs: 1 }])
+
+    await waitFor(() => expect(result.current.state.kind).toBe('synced'))
+    expect(recoveryEntryCount(OWNER.uid)).toBe(1)
+    expect(store.library.topics.some((candidate) => candidate.id === topic.id)).toBe(true)
+  })
+
+  it('seeds an empty cloud namespace from an existing validated legacy learner library', async () => {
+    const topic = realTopic()
+    localStorage.setItem('argus.library.v5', JSON.stringify(oneTopicLibrary(topic)))
+    const store = fakeStore()
+    const backend = fakeBackend()
+    const { result } = renderHook(() => useSync(store, backend))
+
+    act(() => backend.emitUser(OWNER))
+    emitCloud(backend, [])
+
+    await waitFor(() => expect(result.current.state.kind).toBe('synced'))
+    expect(backend.pushed.some((write) => write.topicId === topic.id)).toBe(true)
+    expect(store.library.topics.some((candidate) => candidate.id === topic.id)).toBe(true)
+  })
+
+  it('creates fresh state only after both local and cloud are confirmed absent', async () => {
+    const store = fakeStore()
+    const backend = fakeBackend()
+    const { result } = renderHook(() => useSync(store, backend))
+
+    act(() => backend.emitUser(OWNER))
+    expect(store.library.topics).toHaveLength(0)
+    expect(result.current.state.kind).toBe('restoring')
+
+    emitCloud(backend, [])
+    await waitFor(() => expect(result.current.state.kind).toBe('synced'))
+    expect(store.library.topics.length).toBeGreaterThan(0)
+    expect(backend.pushed.length).toBeGreaterThan(0)
+  })
+
+  it('does not enter on a legacy/fresh copy when first cloud verification fails', async () => {
+    let failLibrary: (message: string) => void = () => {}
     const backend = fakeBackend({
-      pushTopic: async () => {
-        throw new Error('permission-denied')
+      observeLibrary: (_uid, _records, onError) => {
+        failLibrary = onError
+        return () => {}
       },
     })
+    const store = fakeStore()
     const { result } = renderHook(() => useSync(store, backend))
 
     act(() => backend.emitUser(OWNER))
-    act(() => backend.emitRecords([]))
+    act(() => failLibrary('network unavailable'))
 
     await waitFor(() => expect(result.current.state.kind).toBe('error'))
-    expect(store.removed).toEqual([])
-    expect(store.upserted).toEqual([])
+    expect(result.current.state).toMatchObject({ kind: 'error', user: null, ready: false })
+    expect(store.library.topics).toHaveLength(0)
   })
+})
 
-  it('signs out without touching the record on this device', async () => {
-    const signOut = vi.fn(async () => {})
-    const store = fakeStore([realTopic()])
-    const backend = fakeBackend({ signOut })
+describe('local-first writes and retry', () => {
+  it('keeps an authenticated UID cache usable offline after it has been established', async () => {
+    const topic = realTopic()
+    writeLocalLibrary(OWNER.uid, oneTopicLibrary(topic))
+    let failLibrary: (message: string) => void = () => {}
+    const backend = fakeBackend({
+      observeLibrary: (_uid, _records, onError) => {
+        failLibrary = onError
+        return () => {}
+      },
+    })
+    const store = fakeStore()
     const { result } = renderHook(() => useSync(store, backend))
 
     act(() => backend.emitUser(OWNER))
-    await act(async () => {
-      await result.current.signOut()
-    })
+    act(() => failLibrary('offline'))
 
-    expect(signOut).toHaveBeenCalled()
-    expect(store.removed).toEqual([])
+    await waitFor(() => expect(result.current.state.kind).toBe('error'))
+    expect(result.current.state).toMatchObject({ kind: 'error', user: OWNER, ready: true })
+    expect(store.library.topics.some((candidate) => candidate.id === topic.id)).toBe(true)
   })
-})
 
-describe('what the ledger records', () => {
-  it('settles after adopting, rather than pushing the record straight back', async () => {
-    // The ledger has to hold what the library will serialize, not the text that
-    // arrived. If the parser normalizes anything at all, recording the arriving
-    // text would make the very next pass see a local change and push it back.
+  it('coalesces a local change, survives a failed write, and retries it', async () => {
+    vi.useFakeTimers()
     const topic = realTopic()
-    const store = fakeStore([])
-    const backend = fakeBackend()
-    const { result, rerender } = renderHook(({ s }) => useSync(s, backend), {
-      initialProps: { s: store },
+    writeLocalLibrary(OWNER.uid, oneTopicLibrary(topic))
+    let attempts = 0
+    let failNext = false
+    const backend = fakeBackend({
+      pushTopic: async () => {
+        attempts += 1
+        if (failNext) {
+          failNext = false
+          throw new Error('network unavailable')
+        }
+      },
     })
+    const store = fakeStore()
+    const { result, rerender } = renderHook(() => useSync(store, backend))
 
     act(() => backend.emitUser(OWNER))
-    act(() =>
-      backend.emitRecords([
-        // Deliberately not byte-identical to what the parser will produce: the
-        // same topic, re-serialized with its keys in a different order.
-        {
-          topicId: topic.id,
-          json: JSON.stringify(Object.fromEntries(Object.entries(topic).reverse())),
-          revision: 2,
-          updatedAtMs: 1_000,
-        },
-      ]),
-    )
+    emitCloud(backend, [{ topicId: topic.id, json: topicJson(topic), revision: 1, updatedAtMs: 1 }], JSON.stringify({ version: 5, catalogDelivered: [] }))
+    await act(async () => { await vi.runAllTimersAsync() })
+    expect(result.current.state.kind).toBe('synced')
+    const baselineAttempts = attempts
+    failNext = true
 
-    await waitFor(() => expect(store.upserted).toHaveLength(1))
+    const changed = { ...store.library.topics.find((candidate) => candidate.id === topic.id)!, status: 'learning' as const }
+    store.library = {
+      ...store.library,
+      topics: store.library.topics.map((candidate) => candidate.id === topic.id ? changed : candidate),
+    }
+    rerender()
 
-    // The library now holds the adopted topic; replan against the same remote.
-    const settled = fakeStore(store.upserted.slice())
-    rerender({ s: settled })
-    await waitFor(() => expect(result.current.state.kind).toBe('synced'))
-    expect(backend.pushed).toEqual([])
+    await act(async () => { await vi.advanceTimersByTimeAsync(700) })
+    expect(attempts).toBe(baselineAttempts + 1)
+    expect(result.current.state.kind).toBe('error')
+    expect(localStorage.getItem(`argus.library.sync.pending.v1.${OWNER.uid}`)).toBe('1')
+
+    await act(async () => { await vi.advanceTimersByTimeAsync(2_100) })
+    expect(attempts).toBeGreaterThanOrEqual(baselineAttempts + 2)
+    expect(result.current.state.kind).toBe('synced')
+  })
+
+  it('synchronizes a deliberate imported replacement', async () => {
+    vi.useFakeTimers()
+    const topic = realTopic()
+    writeLocalLibrary(OWNER.uid, oneTopicLibrary(topic))
+    const backend = fakeBackend()
+    const store = fakeStore()
+    const { result, rerender } = renderHook(() => useSync(store, backend))
+
+    act(() => backend.emitUser(OWNER))
+    emitCloud(backend, [{ topicId: topic.id, json: topicJson(topic), revision: 1, updatedAtMs: 1 }], JSON.stringify({ version: 5, catalogDelivered: [] }))
+    await act(async () => { await vi.runAllTimersAsync() })
+    expect(result.current.state.kind).toBe('synced')
+
+    const imported = { ...topic, title: `${topic.title} imported` }
+    store.library = { ...store.library, topics: [imported] }
+    rerender()
+    await act(async () => { await vi.advanceTimersByTimeAsync(700) })
+
+    expect(backend.pushed.some((write) => JSON.parse(write.json).title === imported.title)).toBe(true)
   })
 })
 
-describe('parsing a record that arrived from another device', () => {
-  it('accepts a real topic', () => {
-    const topic = realTopic()
-    expect(parseSyncedTopic(topicJson(topic))?.id).toBe(topic.id)
+describe('identity and portable learner state', () => {
+  it('never exposes account A cache after switching to account B', async () => {
+    const a = { ...realTopic(), id: 'account-a-topic', title: 'Account A' }
+    const b = { ...realTopic(), id: 'account-b-topic', title: 'Account B' }
+    writeLocalLibrary(OWNER.uid, oneTopicLibrary(a))
+    writeLocalLibrary(OTHER.uid, oneTopicLibrary(b))
+    const backend = fakeBackend()
+    const store = fakeStore()
+    const { result } = renderHook(() => useSync(store, backend))
+
+    act(() => backend.emitUser(OWNER))
+    emitCloud(backend, [])
+    await waitFor(() => expect(result.current.state.kind).toBe('synced'))
+    expect(store.library.topics.some((topic) => topic.id === a.id)).toBe(true)
+
+    act(() => backend.emitUser(OTHER))
+    expect(result.current.state.kind).toBe('restoring')
+    expect(store.library.topics.some((topic) => topic.id === a.id)).toBe(false)
+    emitCloud(backend, [])
+    await waitFor(() => expect(result.current.state.kind).toBe('synced'))
+    expect(store.library.topics.some((topic) => topic.id === b.id)).toBe(true)
+    expect(store.library.topics.some((topic) => topic.id === a.id)).toBe(false)
   })
 
-  it('refuses malformed JSON, a non-object, and a topic the boundary rejects', () => {
+  it('round-trips Morse lessonSitting with history and evidence through cloud JSON', async () => {
+    const morse = realTopic('international-morse-letters-printed')
+    const itemId = morse.items[0].id
+    if (!itemId) throw new Error('Morse fixture item needs a durable id.')
+    const portable: Topic = {
+      ...morse,
+      history: [{ at: '2026-09-15T12:00:00.000Z', correct: 1, total: 1, resolvedTo: 'learning' }],
+      lessonSitting: {
+        retrievals: 2,
+        correct: 1,
+        revisitItemIds: [itemId],
+        listeningSuppressed: true,
+      },
+    }
+    const json = topicJson(portable)
+    const parsed = parseSyncedTopic(json)
+    expect(parsed?.lessonSitting).toEqual(portable.lessonSitting)
+    expect(parsed?.history).toEqual(portable.history)
+
+    const store = fakeStore()
+    const backend = fakeBackend()
+    const { result } = renderHook(() => useSync(store, backend))
+    act(() => backend.emitUser(OWNER))
+    emitCloud(backend, [{ topicId: portable.id, json, revision: 7, updatedAtMs: 1 }])
+    await waitFor(() => expect(result.current.state.kind).toBe('synced'))
+    expect(store.library.topics.find((topic) => topic.id === portable.id)?.lessonSitting).toEqual(portable.lessonSitting)
+  })
+})
+
+describe('parsing and optional configuration', () => {
+  it('refuses malformed remote records at the v5 boundary', () => {
     expect(parseSyncedTopic('{ not json')).toBeNull()
     expect(parseSyncedTopic('"a string"')).toBeNull()
     expect(parseSyncedTopic('{"id":"x","status":"invented"}')).toBeNull()
   })
-})
 
-
-describe('a device that has never signed in', () => {
-  it('does not load Firebase or contact Google on boot', () => {
-    // The cost of the Auth SDK and its round trip is paid by everybody, on
-    // every load, if this observer is armed unconditionally — and answers "no"
-    // every time for a device that has never signed in.
-    localStorage.clear()
-    let observed = false
-    const backend = fakeBackend({
-      observeUser: () => {
-        observed = true
-        return () => {}
-      },
-    })
-    const { result } = renderHook(() => useSync(fakeStore([]), backend))
-    expect(observed).toBe(false)
-    expect(result.current.state.kind).toBe('signedOut')
-  })
-
-  it('arms the observer as soon as sign-in is asked for', async () => {
-    localStorage.clear()
-    let observed = false
-    const backend = fakeBackend({
-      observeUser: () => {
-        observed = true
-        return () => {}
-      },
-    })
-    const { result } = renderHook(() => useSync(fakeStore([]), backend))
-    await act(async () => {
-      await result.current.signIn()
-    })
-    expect(observed).toBe(true)
-  })
-
-  it('watches from boot once a device has signed in before', () => {
-    rememberSignedIn()
-    let observed = false
-    const backend = fakeBackend({
-      observeUser: () => {
-        observed = true
-        return () => {}
-      },
-    })
-    renderHook(() => useSync(fakeStore([]), backend))
-    expect(observed).toBe(true)
+  it('reports sync unavailable in a build with no Firebase configuration', () => {
+    const store = fakeStore()
+    const { result } = renderHook(() => useSync(store, unconfiguredSyncBackend()))
+    expect(result.current.state.kind).toBe('unconfigured')
   })
 })

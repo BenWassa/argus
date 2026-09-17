@@ -32,10 +32,13 @@ function toSyncUser(
   return { uid: user.uid, email: user.email, displayName: user.displayName }
 }
 
+function revisionConflict(topicId: string): Error {
+  return new Error(`Sync conflict: ${topicId} changed before this device could write it.`)
+}
+
 export function firebaseSyncBackend(config: FirebaseWebConfig): SyncBackend {
   async function services() {
     const { app, auth, firestore } = await loadFirebase()
-    // The inbox may already have initialized the one app this project needs.
     const existing = app.getApps()
     const instance = existing.length > 0 ? existing[0] : app.initializeApp(config)
     return {
@@ -46,11 +49,6 @@ export function firebaseSyncBackend(config: FirebaseWebConfig): SyncBackend {
     }
   }
 
-  /**
-   * A dynamic import means every subscription is set up asynchronously, so each
-   * one has to survive being torn down before it exists — and has to report a
-   * failure to load rather than leaving the caller waiting forever.
-   */
   function lazySubscription(
     start: (alive: () => boolean) => Promise<Unsubscribe | void>,
     onFailure: (error: unknown) => void,
@@ -114,8 +112,6 @@ export function firebaseSyncBackend(config: FirebaseWebConfig): SyncBackend {
               const data = document.data()
               if (typeof data.json !== 'string') continue
               const revision = typeof data.revision === 'number' ? data.revision : 0
-              // `toMillis` is absent exactly while this device's own write is
-              // still pending, which `planSync` treats as "not newer".
               const stamp = data.updatedAt as { toMillis?: () => number } | null | undefined
               records.push({
                 topicId: document.id,
@@ -133,19 +129,47 @@ export function firebaseSyncBackend(config: FirebaseWebConfig): SyncBackend {
 
     async pushTopic(uid, topicId, json, revision) {
       const { db, dbApi } = await services()
-      await dbApi.setDoc(dbApi.doc(db, `${libraryCollectionPath(uid)}/${topicId}`), {
-        topicId,
-        json,
-        revision,
-        // Server-controlled, and required to be exactly this by the rules, so a
-        // device clock can never decide which of two writes was later.
-        updatedAt: dbApi.serverTimestamp(),
+      const ref = dbApi.doc(db, `${libraryCollectionPath(uid)}/${topicId}`)
+      await dbApi.runTransaction(db, async (transaction) => {
+        const snapshot = await transaction.get(ref)
+        const data = snapshot.data()
+        const currentRevision = snapshot.exists() && typeof data?.revision === 'number'
+          ? data.revision
+          : null
+        const currentJson = snapshot.exists() && typeof data?.json === 'string' ? data.json : null
+
+        // A network failure can hide a successful commit from the caller. Treat
+        // replay of that exact revision/payload as success, but never let a
+        // different writer at that revision be overwritten.
+        if (currentRevision === revision && currentJson === json) return
+
+        const expected = revision - 1
+        const matches = revision === 1
+          ? !snapshot.exists()
+          : snapshot.exists() && currentRevision === expected
+        if (!matches) throw revisionConflict(topicId)
+
+        transaction.set(ref, {
+          topicId,
+          json,
+          revision,
+          updatedAt: dbApi.serverTimestamp(),
+        })
       })
     },
 
-    async deleteTopic(uid, topicId) {
+    async deleteTopic(uid, topicId, expectedRevision) {
       const { db, dbApi } = await services()
-      await dbApi.deleteDoc(dbApi.doc(db, `${libraryCollectionPath(uid)}/${topicId}`))
+      const ref = dbApi.doc(db, `${libraryCollectionPath(uid)}/${topicId}`)
+      await dbApi.runTransaction(db, async (transaction) => {
+        const snapshot = await transaction.get(ref)
+        if (!snapshot.exists()) return
+        const data = snapshot.data()
+        if (typeof data.revision !== 'number' || data.revision !== expectedRevision) {
+          throw revisionConflict(topicId)
+        }
+        transaction.delete(ref)
+      })
     },
 
     observeMeta(uid, onMeta, onError) {
