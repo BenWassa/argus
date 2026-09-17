@@ -6,6 +6,8 @@
 **Implementation:** explicitly out of scope  
 **Relationship:** companion to `ISSUE_104_LIBRARY_EXPANSION_RESEARCH.md`; this paper corrects the first pass's over-weighting of codes, alphabets and technical lexicons.
 
+> Editorial framing for all #104 expansion work is defined in `docs/open/ISSUE_104_EDITORIAL_IDENTITY.md`: Argus should feel like an adult, evidence-based practical miscellany of useful things worth knowing and doing, with the childhood spirit of *The Dangerous Book for Boys* as inspiration for breadth and curiosity rather than audience, tone or factual authority.
+
 ## Executive decision
 
 The next Argus expansion should move decisively toward **practical human-systems skills** rather than more symbol systems.
@@ -461,116 +463,64 @@ The app should not teach forensic collection techniques that require specialist 
 
 # 8. Firearms: what belongs and what does not
 
-There is a legitimate Argus firearms lane, but it should be deliberately narrow.
+This lane should be explicitly **Canada-first** and anchored to current official materials.
 
-In Canada, core firearms licensing and safe-handling education is federal. Storage/transport rules are federal. Ontario adds hunting rules and other provincial context, while municipalities may add discharge bylaws. The appropriate Argus product is therefore **Canada-first, Ontario-aware**.
+## 8.1 Appropriate Argus scope
 
-## 8.1 Strong candidate: ACTS firearm-safety rules
+Suitable topics include:
 
-The official Canadian firearms course materials define the “Vital Four ACTS”:
-
-- Assume every firearm is loaded;
-- Control the muzzle direction at all times;
-- Trigger finger stays off the trigger and outside the trigger guard;
-- See that the firearm is unloaded — PROVE it safe.
-
-This is high-value memory material because it is safety-first, standardized and already mnemonic.
+### Q. Canadian firearm safety — ACTS
 
 **Completion claim**
 
-> Can recall the Canadian Vital Four ACTS firearm-safety rules and identify violations in authored safety scenarios.
+> Can recall and explain the four ACTS safety rules used in the Canadian Firearms Safety Course.
 
-The scenario should be about recognizing unsafe conditions, not rehearsing tactical weapon use.
-
-## 8.2 Strong candidate: PROVE safety sequence
-
-Official Canadian Firearms Safety Course material defines PROVE as:
-
-- Point in the safest available direction;
-- Remove all ammunition;
-- Observe the chamber(s);
-- Verify the feeding path;
-- Examine the bore(s).
+### R. Canadian firearm safety — PROVE
 
 **Completion claim**
 
-> Can recall the official PROVE sequence and identify whether a described safety check omits a required step.
+> Can recall the five PROVE safety steps and their order as taught in the Canadian Firearms Safety Course.
 
-This is appropriate as memory rehearsal, but the app must explicitly state that it is not a substitute for supervised hands-on CFSC instruction or examination.
+### S. Federal storage and transportation essentials
 
-## 8.3 Strong candidate: federal storage and transportation rules
+**Completion claim**
 
-The current federal `Storage, Display, Transportation and Handling of Firearms by Individuals Regulations` provide clear, sourceable rules for non-restricted and restricted firearms. They are legally consequential and suitable for versioned scenario checks.
+> Can recall the current federal storage and transportation requirements explicitly covered by the topic for the named firearm category and source version.
 
-**Recommended format**
+This content must be versioned and re-reviewed when federal regulations change.
 
-Do **not** make one giant law deck. Split into narrow versioned topics such as:
+### T. Canadian self-defence legal framework — Criminal Code s.34
 
-- non-restricted firearm storage essentials;
-- non-restricted firearm transport essentials;
-- restricted firearm storage/transport essentials only if personally relevant.
+**Completion claim**
 
-Every topic should print the source regulation and review date.
+> Can identify the three-part statutory structure of self-defence under Criminal Code s.34 and the principal reasonableness factors listed in the section.
 
-**Completion claim example**
+This is legal literacy, not a decision algorithm for when to use force.
 
-> Can recall the federal requirements covered by this topic for storing a non-restricted firearm and recognize compliant/non-compliant authored examples.
+## 8.2 Out of scope for Argus
 
-## 8.4 Possible legal-literacy topic: Canadian self-defence framework
+Do not use the app to teach or rehearse:
 
-Section 34 of the Criminal Code provides a structured legal test: reasonable belief in force/threat, defensive purpose, and an act reasonable in the circumstances, with a non-exhaustive list of contextual factors.
+- tactical weapon employment;
+- marksmanship drills;
+- clearing buildings or rooms;
+- engagement tactics;
+- target-selection logic;
+- combat techniques;
+- weapon modification;
+- methods intended to increase lethality.
 
-This is useful legal literacy, but it must **not** become an app algorithm that says how much force to use in a real confrontation.
-
-A defensible topic would be:
-
-> Can recall the three-part statutory structure of Criminal Code s.34 and identify the categories of factors a court may consider.
-
-Learn support should emphasize that application is fact-specific and legal advice may be required.
-
-## 8.5 What should remain outside Argus
-
-Do not build courses teaching:
-
-- marksmanship technique;
-- tactical firearm deployment;
-- target engagement;
-- room clearing;
-- weapon retention/disarming;
-- shooting from concealment;
-- tactical reloads or stoppage drills;
-- offensive surveillance or attack planning;
-- improvised weapons.
-
-Those do not fit Argus's safe memory-support boundary and, where legitimate, require appropriate professional hands-on instruction.
+Hands-on firearm competence belongs in the CFSC/CRFSC, supervised range instruction and other lawful formal training.
 
 ---
 
-# 9. The missing product capability: authored scenario practice
+# 9. Proposed learning architecture: authored scenario practice
 
-This research changes the architecture recommendation more than the first pass did.
+The field/human-skills portfolio reveals a stronger next product primitive than another flashcard format.
 
-Visual stimuli are still useful, but **scenario practice is now the higher-value generic capability**.
+## 9.1 Generic scenario object
 
-## 9.1 Why cards are insufficient
-
-A learner can memorize:
-
-> “Paraphrasing is restating the content in your own words.”
-
-and still fail to paraphrase during a tense conversation.
-
-Likewise, memorizing:
-
-> “look for anomalies”
-
-does not show whether the learner mistakes prejudice for anomaly detection.
-
-Scenario practice closes part of that gap without claiming live competence.
-
-## 9.2 Recommended generic scenario object
-
-Conceptually:
+A future architecture issue should investigate a deterministic authored scenario model with fields conceptually like:
 
 ```ts
 Scenario {
@@ -578,349 +528,162 @@ Scenario {
   setup
   observations[]
   prompt
-  responseMode
-  choices?[]
-  rubric[]
-  explanation
+  options[]
+  preferredResponses[]
+  rationale
   sourceRefs[]
+  tags[]
 }
 ```
 
-This should remain authored content, deterministic and exportable. It does not need live AI generation.
+This is deliberately schematic, not a schema decision.
 
-## 9.3 Four reusable drill types
+## 9.2 Four scenario forms
 
-### Classification drill
+### Classification
 
-Use for:
+Example:
 
-- observation vs inference;
-- warning behaviour vs static risk factor;
-- safe/unsafe firearm condition;
-- compliant/non-compliant storage scenario.
+> Which statement is an observation rather than an inference?
 
-### Next-response drill
+### Next response
 
-Use for:
+Example:
 
-- de-escalation;
-- active listening;
-- motivational interviewing;
-- witness interviewing.
+> Which response best demonstrates reflective listening without agreeing with the claim?
 
-### Information-gap drill
+### Information gap
 
-Ask what information is still needed before reaching a conclusion.
+Example:
 
-This is particularly important for threat recognition and psychological judgement.
+> What additional information would most reduce uncertainty before escalating this situation?
 
-### Rewrite drill
+### Rewrite
 
-Give a poor statement and ask the learner to improve it:
+Example:
 
-- biased incident report → objective report;
-- confrontational question → neutral question;
-- advice-giving response → reflective response.
+> Rewrite this incident note so it separates observation from conclusion.
 
-## 9.4 Evidence semantics
+## 9.3 Evidence semantics
 
-Scenario practice should initially remain **formative**.
+Scenario practice should initially be **formative**, not equivalent to real-world competence.
 
-The existing Test remains the scored retention boundary. A course may require completing its scenario set before acquisition is “ready,” but scenario success should not quietly become permanent evidence of real-world competence.
+A learner can earn evidence for knowledge/application inside authored scenarios. The permanent completion claim must still say exactly what was tested.
 
-A future course claim could therefore be:
-
-> Completed the Argus de-escalation curriculum and retained its defined principles.
-
-not:
-
-> Proven competent at de-escalating real crises.
+Do not infer “street competence,” “negotiator competence,” “investigator competence,” or firearm competence from app performance.
 
 ---
 
-# 10. Recommended first practical-skills wave
+# 10. Recommended practical-skills programme
 
-This wave deliberately avoids another stack of lexicon topics.
+The first coherent practical-skills sequence should be:
 
-## Wave H1 — observation foundation
+1. **Situational awareness I — baseline, anomaly, reassess**
+2. **Observation versus inference**
+3. **De-escalation I — communication fundamentals**
+4. **Crisis active listening — FBI ALS**
+5. **Threat recognition I — concern, context, escalation**
+6. **Bias control in behavioural judgement**
+7. **Psychological First Aid — Look, Listen, Link, Live**
+8. **Interviewing I — cooperative information gathering**
 
-### 1. Situational awareness I — baseline, anomaly, reassess
+This sequence has a useful progression:
 
-Why first: foundational to threat recognition, field observation and personal safety.
+> observe accurately → interpret conservatively → communicate effectively → detect escalating concern → reduce judgement error → support → gather information.
 
-Treatment: short guided course + scenario classification.
+It creates materially different competence from the current symbol/mapping topics.
 
-### 2. Observation versus inference
+The firearm lane should be a separate later companion set:
 
-Why first: prevents overconfidence and profiling; improves every later behavioural course.
-
-Treatment: scenario-heavy ordinary/guided hybrid.
-
-### 3. Objective incident description
-
-Why first: immediately practical, Ontario-sourceable and easy to practice.
-
-Treatment: rewrite drills + short reports.
-
-## Wave H2 — communication
-
-### 4. De-escalation I — communication fundamentals
-
-Why: broad utility and clear Ontario training precedent.
-
-Treatment: guided scenario curriculum.
-
-### 5. Crisis active listening — FBI ALS
-
-Why: high-quality structured communication toolkit with strong practice value.
-
-Treatment: transcript-based drills.
-
-### 6. Behavioural Influence Stairway
-
-Why: small, coherent process model that explains *why* listening precedes influence.
-
-Treatment: ordinary framework topic embedded in H2.
-
-## Wave H3 — threat and psychology
-
-### 7. Threat recognition I — concern, context, escalation
-
-Why: directly addresses the owner's threat-detection interest while remaining behaviour-based and non-profiling.
-
-Treatment: scenario classification + reporting decisions.
-
-### 8. Bias control in behavioural judgement
-
-Why: necessary counterweight to threat training.
-
-Treatment: scenario traps and explanation.
-
-### 9. Psychological First Aid — Look, Listen, Link, Live
-
-Why: Canadian, practical and directly useful; pair with actual Red Cross training if deeper competence is desired.
-
-Treatment: compact guided topic + scenarios.
-
-## Wave H4 — investigation
-
-### 10. Interviewing I — cooperative information gathering
-
-### 11. Credibility and deception-detection limits
-
-### 12. Evidence continuity — six-step Ontario sequence
-
-These three form a coherent investigation/observation cluster.
-
-## Wave H5 — firearms safety and legal literacy
-
-### 13. Canadian firearm safety — ACTS
-
-### 14. Canadian firearm safety — PROVE
-
-### 15. Federal non-restricted storage/transport essentials
-
-### 16. Canadian self-defence legal framework — Criminal Code s.34
-
-This wave should be framed as **safety/legal recall** and explicitly linked to formal Canadian firearms instruction where relevant.
+1. ACTS;
+2. PROVE;
+3. federal storage/transport essentials;
+4. Criminal Code s.34 structure.
 
 ---
 
-# 11. What I would deprioritize from the original shortlist
+# 11. Candidate priority matrix
 
-The following original candidates remain valid, but they should no longer dominate near-term expansion:
-
-- radiotelephony numerals;
-- SI prefixes;
-- Greek alphabet;
-- binary/hex nibble mappings;
-- procedural radio words;
-- signal flags.
-
-They can stay in the backlog as compact reference topics.
-
-The more interesting product work is now:
-
-1. field observation;
-2. human behaviour;
-3. communication under stress;
-4. threat judgement;
-5. interviewing;
-6. safety/legal rehearsal.
-
-Beaufort and cloud recognition still fit because they are observational rather than primarily lexical.
+| Candidate | Practical value | Scenario need | Current app fit | Localization | Recommendation |
+|---|---|---|---|---|---|
+| Situational awareness I | Very high | High | Partial | Ontario source | **Priority** |
+| Observation vs inference | Very high | High | Partial | General + Ontario | **Priority** |
+| De-escalation I | Very high | Very high | Weak without scenarios | Ontario source | **Priority** |
+| Crisis active listening | High | Very high | Partial | General/FBI | **Priority** |
+| Threat recognition I | High | Very high | Weak without scenarios | General + local escalation | **Priority** |
+| Bias control | High | High | Partial | General + Ontario | **Priority** |
+| Psychological First Aid | High | High | Partial | Canadian | **Priority** |
+| Interviewing I | High | High | Partial | Ontario | **Priority** |
+| Evidence continuity | Medium-high | Medium | Good | Ontario | **Compact companion** |
+| ACTS | High | Low | Excellent | Canada | **Later companion** |
+| PROVE | High | Low | Excellent | Canada | **Later companion** |
+| Storage/transport law | High | Medium | Good | Canada | **Versioned companion** |
+| Criminal Code s.34 | High | Medium | Good | Canada | **Versioned legal literacy** |
 
 ---
 
-# 12. Research sources and authority
+# 12. Source direction
 
-## Ontario field/security training
+Implementation issues should verify and pin exact source versions. Research direction is currently based on:
 
-Ontario Ministry of the Solicitor General — Security Guard Training Syllabus, updated July 6, 2026:  
-https://www.ontario.ca/document/training-syllabus-security-guards
+## Ontario
 
-Relevant sections include:
+- Ontario security guard training syllabus
+- Ontario private investigator training syllabus
 
-- basic security procedures / situational awareness;  
-  https://www.ontario.ca/document/training-syllabus-security-guards/section-3-basic-security-procedures
-- effective communications / de-escalation;  
-  https://www.ontario.ca/document/training-syllabus-security-guards/section-9-effective-communications
-- emergency response;  
-  https://www.ontario.ca/document/training-syllabus-security-guards/section-6-emergency-response-preparation
-- sensitivity/bias;  
-  https://www.ontario.ca/document/training-syllabus-security-guards/section-10-sensitivity-training
+## Canada
 
-Ontario Ministry of the Solicitor General — Private Investigator Training Syllabus, updated July 6, 2026:  
-https://www.ontario.ca/document/training-syllabus-private-investigators
+- Canadian Red Cross Psychological First Aid
+- Canadian Firearms Safety Course / RCMP materials
+- federal firearms storage/transport regulations
+- Criminal Code s.34
 
-Relevant sections:
+## Behavioural / crisis research
 
-- investigative techniques, interviewing, surveillance, evidence and reporting;  
-  https://www.ontario.ca/document/training-syllabus-private-investigators/section-5-investigative-techniques
-- ethical reasoning, typicality/anomaly and bias;  
-  https://www.ontario.ca/document/training-syllabus-private-investigators/section-6-principles-ethical-reasoning-and-decision-making
-- communication and interaction;  
-  https://www.ontario.ca/document/training-syllabus-private-investigators/section-7-key-principles-communication-and-interaction
+- FBI Behavioral Analysis / threat-assessment materials
+- FBI Crisis Negotiation / active-listening materials
+- established evidence on interviewing and witness memory
+- established evidence on deception-detection limitations
 
-## Crisis and de-escalation
-
-Canadian Police Knowledge Network — Crisis Intervention and De-escalation, reviewed/updated 2026:  
-https://www.cpkn.ca/course/crisis-intervention-and-de-escalation/
-
-FBI Law Enforcement Bulletin — *Fifty Years of FBI Crisis (Hostage) Negotiation*:  
-https://leb.fbi.gov/articles/featured-articles/fifty-years-of-fbi-crisis-hostage-negotiation
-
-FBI LEB — crisis negotiator active-listening training/evaluation:  
-https://leb.fbi.gov/articles/focus/focus-on-training-an-evaluation-tool-for-crisis-negotiators
-
-FBI Behavioral Change Stairway:  
-https://leb.fbi.gov/image-repository/behavioral-change-stairway.jpg/view
-
-## Psychological support
-
-Canadian Red Cross — Psychological First Aid:  
-https://www.redcross.ca/training-and-certification/course-descriptions/psychological-first-aid-courses/psychological-first-aid
-
-Canadian Red Cross — Look, Listen, Link, Live:  
-https://www.redcross.ca/training-and-certification/first-aid-tips-and-resources/first-aid-tips/mental-health/self-care-with-the-look-listen-link-live-model
-
-SAMHSA — Motivational Interviewing / OARS:  
-https://library.samhsa.gov/sites/default/files/PEP20-02-02-014.pdf
-
-## Behavioural threat assessment
-
-FBI Behavioral Analysis / Threat Assessment and Threat Management:  
-https://www.fbi.gov/how-we-investigate/behavioral-analysis
-
-FBI — Prevent Mass Violence / concerning behaviours:  
-https://www.fbi.gov/how-we-investigate/prevent-mass-violence
-
-FBI — Pathway to Intended Violence quick-reference research:  
-https://www.fbi.gov/file-repository/piv-qrg.pdf
-
-Public Safety Canada — targeted-violence risk assessment background:  
-https://www.publicsafety.gc.ca/cnt/rsrcs/pblctns/2009-02-rdv/index-en.aspx
-
-Important interpretation rule: these sources support behaviour-based recognition and professional assessment/management; they do not support amateur prediction or demographic profiling.
-
-## Deception limits
-
-American Psychological Association — polygraph reliability overview, updated October 14, 2025:  
-https://www.apa.org/topics/cognitive-neuroscience/polygraph
-
-## Firearms safety and law
-
-Government of Canada / RCMP course material — Canadian Firearms Safety Course, PROVE module:  
-https://publications.gc.ca/collections/collection_2015/grc-rcmp/PS99-2-2-1-2014-eng.pdf
-
-Government of Canada / RCMP — Canadian Restricted Firearms Safety Course, Vital Four ACTS:  
-https://www.publications.gc.ca/collections/collection_2013/grc-rcmp/PS99-2-1-2008-eng.pdf
-
-Justice Laws — Storage, Display, Transportation and Handling of Firearms by Individuals Regulations, current federal law:  
-https://laws-lois.justice.gc.ca/eng/regulations/SOR-98-209/FullText.html
-
-Justice Laws — Criminal Code s.34, defence of person:  
-https://laws-lois.justice.gc.ca/eng/acts/C-46/section-34.html
-
-Ontario hunting regulations provide additional provincial firearm/hunting context where a future topic specifically concerns hunting:  
-https://www.ontario.ca/document/ontario-hunting-regulations-summary/general-regulations
+Each implementation issue should carry its own exact source register rather than relying on this research document alone.
 
 ---
 
-# 13. Owner decision package
+# 13. Owner decisions
 
-No implementation should start from this paper yet.
+Before implementation work:
 
-## Decision A — direction
+## A. Editorial direction
 
-Recommended:
+Recommended: approve **field and human skills** as the dominant next expansion direction, while retaining a smaller number of compact knowledge topics from the original research pass.
 
-**Replace the original lexicon-heavy first-wave recommendation with the field/human-skills programme as the main expansion track.**
+## B. First programme
 
-Keep technical/code topics as secondary backlog material.
+Recommended: approve the eight-topic practical sequence in §10 for detailed content scoping.
 
-## Decision B — first research-to-build candidates
+## C. Scenario practice
 
-Recommended first four:
+Recommended: open a separate product/architecture issue for generic authored scenario practice before implementing the courses that depend on it.
 
-1. Situational awareness I — baseline, anomaly, reassess;
-2. Observation versus inference;
-3. De-escalation I — communication fundamentals;
-4. Crisis active listening — FBI ALS.
+## D. Threat recognition boundary
 
-These establish whether scenario practice is worth productizing before moving into higher-stakes threat/firearm material.
+Recommended: approve behavioural/contextual threat recognition under the explicit non-profiling, non-diagnosis and non-prediction boundary.
 
-## Decision C — scenario capability
+## E. Firearms boundary
 
-Recommended:
-
-Approve a dedicated design issue for a **generic authored scenario-practice primitive** before implementing the four courses above.
-
-The design issue should resolve:
-
-- scenario data model;
-- response types;
-- formative versus scored semantics;
-- deterministic/offline behaviour;
-- accessibility;
-- authoring and provenance;
-- whether scenario completion can gate acquisition readiness without becoming formal real-world competence evidence.
-
-## Decision D — threat/psychology boundary
-
-Recommended:
-
-Approve behaviour-based threat recognition and bias-control research, but explicitly reject:
-
-- demographic profiling;
-- amateur psychiatric diagnosis;
-- “body-language lie detection” claims;
-- single-sign violence prediction.
-
-## Decision E — firearms lane
-
-Recommended:
-
-Approve firearms as a later **safety/legal companion** lane starting with:
-
-- ACTS;
-- PROVE;
-- current federal storage/transport rules;
-- Canadian self-defence legal structure.
-
-Require source/version dates and retain the rule that Argus does not replace CFSC/CRFSC, range instruction, legal advice or any hands-on certification.
+Recommended: approve Canada-first safety/legal memory support only; keep practical handling/tactical instruction external.
 
 ---
 
 # 14. Definition of done for this research extension
 
-This extension is complete when the owner has decided:
+This extension is complete when:
 
-- whether field/human skills replace lexicon-heavy content as the main expansion priority;
-- whether scenario practice is worth a dedicated product-design issue;
-- which first practical courses should be authored;
-- whether behavioural-threat training is in scope under the non-profiling boundary;
-- whether the firearms lane should proceed as safety/legal memory support;
-- which original compact-reference candidates remain in the near-term backlog.
+- the owner accepts/rejects the editorial direction;
+- the practical-skills programme is narrowed to a first implementation set;
+- the need for generic scenario practice is decided;
+- firearm scope is accepted/rejected;
+- approved courses are split into dedicated content-specification issues;
+- each implementation issue pins exact source versions and honest completion claims.
 
-No course content, schema, UI, scenario engine or firearm training implementation belongs in #104 itself.
+No course implementation belongs in this document.
