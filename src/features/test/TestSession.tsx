@@ -9,15 +9,8 @@ import {
   type PanInfo,
 } from 'motion/react'
 import { useLibrary } from '../../services/library/LibraryProvider'
-import { applyResolution, resolveAttempt, type Resolution } from '../../domain/study/scheduling'
-import { journeyFor } from '../../domain/study/journey'
-import { statusLabel } from '../../components/ui/StatusTag'
-import {
-  expectedAnswer,
-  morseAcquisitionProfile,
-  type AcquisitionCharacter,
-  type AcquisitionProfile,
-} from '../../domain/morse/testing/acquisitionProfile'
+import { applyResolution } from '../../domain/study/scheduling'
+import { expectedAnswer } from '../../domain/morse/testing/acquisitionProfile'
 import {
   isAssistedRung,
   mergeItemEvidence,
@@ -26,16 +19,25 @@ import {
   withBaselineCue,
 } from '../../domain/study/cueLadder'
 import { selectDistractors } from '../../domain/study/distractors'
-import { retentionCorrectCount, type AttemptAnswer } from '../../domain/library/items'
+import type { AttemptAnswer } from '../../domain/library/items'
 import { registerBackBlocker } from '../../app/routing/history'
-import type { Item, Topic } from '../../domain/library/topic'
-import type { CueState, ItemCueEvidence, ItemEvidenceStore } from '../../domain/study/evidence'
+import type { Topic } from '../../domain/library/topic'
+import type { ItemCueEvidence, ItemEvidenceStore } from '../../domain/study/evidence'
 import { ProgressiveCard, type ProgressiveAnswer } from './ProgressiveCard'
-import { targetsForItems } from '../../domain/study/practiceTargets'
+import {
+  acquisitionProfiles,
+  buildDeck,
+  openingBaselines,
+  shuffle,
+  swipeDecks,
+  type Card,
+} from './testDeck'
+import { nextView, type TestPhase, type TestView } from './testView'
+import { TestDone } from './TestDone'
+import { resolveBankedAttempt, type BankedAttempt } from './bankedAttempt'
 import { testCardTextClass } from './textScale'
 import {
   SWIPE_CUE_FULL_PX,
-  isTokenRecallDeck,
   swipeCommitDistance,
   swipeIntent,
   type SwipeGrade,
@@ -51,14 +53,6 @@ const EXIT_OVERSHOOT_PX = 140
 /** Fallback width when nothing has been measured yet, e.g. before first layout. */
 const ASSUMED_CARD_WIDTH = 360
 
-interface Card {
-  topicId: string
-  topicTitle: string
-  item: Item
-  /** Present only for a topic the acquisition ladder recognises. */
-  character?: AcquisitionCharacter
-}
-
 interface TestSessionProps {
   topicIds: string[]
   onExit: () => void
@@ -73,55 +67,12 @@ interface TestSessionProps {
   onPractice?: (topicId: string, itemIds: string[]) => void
 }
 
-function shuffle<T>(list: T[]): T[] {
-  const out = [...list]
-  for (let i = out.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1))
-    ;[out[i], out[j]] = [out[j], out[i]]
-  }
-  return out
-}
-
-/**
- * What is on screen, as one indivisible value.
- *
- * Answer confidentiality is a property of this shape, not of a transition
- * duration. `index` and the reveal state are the same atom, so no render —
- * batched, interrupted, re-entered or replayed — can pair the next card's
- * index with a state that mounts an answer. A graded card holds `index` for
- * the whole of its exit; the only move to the next index is to `asking`, and
- * `asking` mounts no answer text at all.
- */
-type View =
-  | { kind: 'asking'; index: number }
-  | { kind: 'revealed'; index: number }
-  | { kind: 'exiting'; index: number; grade: SwipeGrade }
-  | { kind: 'done' }
-
-type Phase = View['kind']
-
 function haptic(pattern: number | number[]) {
   try {
     navigator.vibrate?.(pattern)
   } catch {
     // Haptics are optional feedback and never block a Test.
   }
-}
-
-/**
- * A banked attempt, and whether progressive-acquisition readiness withheld its
- * advancement (#67). The end screen has to be able to say why a clean run left
- * the ladder where it was; "held at learning" alone reads like a bug.
- */
-interface BankedAttempt {
-  resolution: Resolution
-  withheldByAcquisition: boolean
-  /**
-   * True when the learner answered every card correctly and the run still could
-   * not bank, because the bidirectional claim does not yet hold independent
-   * evidence in both directions. Recorded work, not a failed recall (#90).
-   */
-  nonQualifying: boolean
 }
 
 export function TestSession({ topicIds, onExit, onPractice }: TestSessionProps) {
@@ -132,51 +83,10 @@ export function TestSession({ topicIds, onExit, onPractice }: TestSessionProps) 
   const [included] = useState<Topic[]>(() =>
     topicIds.map((id) => topics.find((t) => t.id === id)).filter(Boolean) as Topic[],
   )
-  /**
-   * The rung each topic's untested items open at.
-   *
-   * `free` only for a topic whose guided acquisition has actually finished, and
-   * readiness is permanent, so this is stable for the whole session. Every other
-   * topic — ordinary, imported, legacy, or still mid-curriculum — gets `rich`,
-   * which is exactly the behaviour it has always had.
-   */
-  const [baselines] = useState<Map<string, CueState>>(() => {
-    const found = new Map<string, CueState>()
-    for (const topic of included) {
-      found.set(topic.id, journeyFor(topic).acquisition.ready ? 'free' : 'rich')
-    }
-    return found
-  })
-  // Which topics the acquisition ladder drives. Every other topic keeps the
-  // reveal-and-self-score card exactly as it is.
-  const [profiles] = useState<Map<string, AcquisitionProfile>>(() => {
-    const found = new Map<string, AcquisitionProfile>()
-    for (const topic of included) {
-      const profile = morseAcquisitionProfile(topic)
-      if (profile) found.set(topic.id, profile)
-    }
-    return found
-  })
-
-  // Which self-score topics grade by swipe alone. Decided once, from content,
-  // so the affordance can never change part-way through a deck.
-  const [swipeTopics] = useState<Set<string>>(
-    () => new Set(included.filter((topic) => isTokenRecallDeck(topic.items)).map((topic) => topic.id)),
-  )
-
-  const [deck] = useState<Card[]>(() =>
-    included.flatMap((topic) => {
-      const profile = profiles.get(topic.id)
-      return shuffle(
-        topic.items.map((item) => ({
-          topicId: topic.id,
-          topicTitle: topic.title,
-          item,
-          ...(profile && item.id ? { character: profile.get(item.id) } : {}),
-        })),
-      )
-    }),
-  )
+  const [baselines] = useState(() => openingBaselines(included))
+  const [profiles] = useState(() => acquisitionProfiles(included))
+  const [swipeTopics] = useState(() => swipeDecks(included))
+  const [deck] = useState(() => buildDeck(included, profiles))
 
   // Cue evidence accrued this session, held apart from the scheduler's tally
   // and merged into the topic separately from any status resolution.
@@ -199,7 +109,7 @@ export function TestSession({ topicIds, onExit, onPractice }: TestSessionProps) 
    */
   const missedItems = useRef<Record<string, string[]>>({})
 
-  const [view, setView] = useState<View>({ kind: 'asking', index: 0 })
+  const [view, setView] = useState<TestView>({ kind: 'asking', index: 0 })
   const [tally, setTally] = useState<{ correct: number; total: number }>({ correct: 0, total: 0 })
   const [banked, setBanked] = useState<BankedAttempt[]>([])
   // The library as it stands now, not as it stood when the deck was built. A
@@ -218,7 +128,7 @@ export function TestSession({ topicIds, onExit, onPractice }: TestSessionProps) 
   const headingRef = useRef<HTMLHeadingElement>(null)
   // The view as of this instant, not as of the last committed render. Grading
   // reads it so two events in one React batch cannot both see `revealed`.
-  const viewRef = useRef<View>(view)
+  const viewRef = useRef<TestView>(view)
   viewRef.current = view
   // Closed the moment a grade is taken, reopened only when the next card is up.
   const gradeLock = useRef(false)
@@ -238,7 +148,7 @@ export function TestSession({ topicIds, onExit, onPractice }: TestSessionProps) 
 
   useEffect(() => registerBackBlocker(() => backGuard.current()), [])
 
-  const phase: Phase = view.kind
+  const phase: TestPhase = view.kind
   const index = view.kind === 'done' ? deck.length : view.index
   const card: Card | undefined = deck[index]
   /** The answer is mounted only while the card that owns it owns the screen. */
@@ -344,48 +254,19 @@ export function TestSession({ topicIds, onExit, onPractice }: TestSessionProps) 
       liveTopics.current.find((candidate) => candidate.id === topicId) ??
       included.find((candidate) => candidate.id === topicId)
     if (!topic) return
-    // The scheduler resolves the attempt exactly as it always has. Cue evidence
-    // is merged in afterwards, as a separate field, and changes nothing the
-    // resolution decided.
-    const mergedEvidence = { ...(topic.itemEvidence ?? {}), ...evidence }
-    // Acquisition evidence remains separate state. It is used here only as a
-    // safety gate: neither an incomplete direction nor a supported answer can be
-    // presented to the unchanged scheduler as a passing attempt for a
-    // bidirectional boundary. The attempt's own answers are passed alongside the
-    // store so a run carried by cued history cannot bank a claim of independent
-    // recall (#68).
-    const schedulerCorrect = retentionCorrectCount(
-      topic.items,
-      mergedEvidence,
-      attempt.correct,
+    const entry = resolveBankedAttempt(
+      topic,
+      attempt,
+      evidence,
       attemptAnswers.current[topicId] ?? [],
     )
-    // The second gate, and the one #67 adds. Early Test stays reachable for a
-    // topic still in progressive acquisition — it is a legitimate thing to want
-    // to try — but a run given before the learner has met every letter cannot
-    // bank retention the acquisition programme has not yet earned. The journey
-    // layer decides that; the scheduler is simply told the answer.
-    const { advancementEligible: journeyEligible } = journeyFor(topic)
-    // The third gate, and the one #90 asks for. A run the learner answered
-    // correctly end to end, which still cannot qualify because the bidirectional
-    // claim has not accumulated independent evidence in both directions, is
-    // recorded work rather than a failed recall. Scoring it as a failure would
-    // reset the one-day clock and route twenty-six correct answers back to
-    // drilling, which is both untrue and the opposite of what happened.
-    const cleanRun = attempt.total > 0 && attempt.correct === attempt.total
-    const nonQualifying = cleanRun && schedulerCorrect < attempt.total
-    const advancementEligible = journeyEligible && !nonQualifying
-    const resolution = resolveAttempt(topic, schedulerCorrect, attempt.total, new Date(), {
-      advancementEligible,
-    })
     // Composed onto the latest topic rather than written back whole, so lesson
     // support, the active sitting and anything else earned since the deck was
     // built survive the bank.
-    updateTopic(topicId, (current) => mergeItemEvidence(applyResolution(current, resolution), evidence))
-    setBanked((previous) => [
-      ...previous,
-      { resolution, withheldByAcquisition: !journeyEligible, nonQualifying },
-    ])
+    updateTopic(topicId, (current) =>
+      mergeItemEvidence(applyResolution(current, entry.resolution), evidence),
+    )
+    setBanked((previous) => [...previous, entry])
   }
 
   /**
@@ -438,8 +319,8 @@ export function TestSession({ topicIds, onExit, onPractice }: TestSessionProps) 
   }
 
   function reveal() {
-    if (viewRef.current.kind !== 'asking') return
-    const next: View = { kind: 'revealed', index: viewRef.current.index }
+    const next = nextView(viewRef.current, { kind: 'reveal' }, deck.length)
+    if (!next) return
     viewRef.current = next
     setView(next)
     haptic(8)
@@ -487,9 +368,9 @@ export function TestSession({ topicIds, onExit, onPractice }: TestSessionProps) 
     // batching leaves open, where two events in a single tick would both still
     // read the view as `revealed`.
     if (gradeLock.current) return
-    if (viewRef.current.kind !== 'revealed') return
-    const at = viewRef.current.index
-    if (!deck[at]) return
+    const at = viewRef.current.kind === 'revealed' ? viewRef.current.index : -1
+    const next = nextView(viewRef.current, { kind: 'grade', grade }, deck.length)
+    if (!next || !deck[at]) return
 
     gradeLock.current = true
     // Hold the armed cue through the exit: the card is leaving *as* this grade,
@@ -500,20 +381,18 @@ export function TestSession({ topicIds, onExit, onPractice }: TestSessionProps) 
     haptic(grade === 'correct' ? 12 : [10, 24, 10])
     recordGrade(at, grade === 'correct')
 
-    const next: View = { kind: 'exiting', index: at, grade }
     viewRef.current = next
     setView(next)
   }
 
   /** The next prompt becomes active only from here: after the exit completed. */
   function advance() {
-    if (viewRef.current.kind !== 'exiting') return
-    const at = viewRef.current.index
+    const next = nextView(viewRef.current, { kind: 'advance' }, deck.length)
+    if (!next) return
     x.set(0)
     setArmed(null)
     setDragging(false)
     gradeLock.current = false
-    const next: View = deck[at + 1] ? { kind: 'asking', index: at + 1 } : { kind: 'done' }
     viewRef.current = next
     setView(next)
   }
@@ -524,13 +403,12 @@ export function TestSession({ topicIds, onExit, onPractice }: TestSessionProps) 
    * in the topic, and `PASS_THRESHOLD` is untouched.
    */
   function answerProgressive(answer: ProgressiveAnswer) {
-    if (viewRef.current.kind === 'done') return
-    const at = viewRef.current.index
+    const at = viewRef.current.kind === 'done' ? -1 : viewRef.current.index
     const current = deck[at]
-    if (!current) return
+    const next = nextView(viewRef.current, { kind: 'answer' }, deck.length)
+    if (!next || !current) return
     haptic(answer.correct ? 12 : [10, 24, 10])
     recordGrade(at, answer.correct, noteAnswer(current, answer))
-    const next: View = deck[at + 1] ? { kind: 'asking', index: at + 1 } : { kind: 'done' }
     viewRef.current = next
     setView(next)
   }
@@ -808,161 +686,6 @@ export function TestSession({ topicIds, onExit, onPractice }: TestSessionProps) 
             : 'Or press ← and →'
           : 'Tap the card or press Space'}
       </p>
-    </section>
-  )
-}
-function TestDone({
-  banked,
-  missed,
-  onExit,
-  onPractice,
-  headingRef,
-}: {
-  banked: BankedAttempt[]
-  /** Item ids answered wrong in this run, per topic. */
-  missed: Record<string, string[]>
-  onExit: () => void
-  onPractice?: (topicId: string, itemIds: string[]) => void
-  headingRef: React.RefObject<HTMLHeadingElement | null>
-}) {
-  const resolutions = banked.map((entry) => entry.resolution)
-  const withheld = banked.filter((entry) => entry.withheldByAcquisition)
-  // Correct end to end, and still not a qualifying run. Named separately because
-  // it is the opposite of a failure and must not be reported as one.
-  const building = banked.filter((entry) => entry.nonQualifying && !entry.withheldByAcquisition)
-  const moved = banked
-    .filter((entry) => !entry.withheldByAcquisition && !entry.nonQualifying)
-    .map((entry) => entry.resolution)
-  const completed = moved.filter((resolution) => resolution.completed)
-  const decayed = moved.filter((resolution) => resolution.decayed)
-  const changed = moved.filter(
-    (resolution) => !resolution.completed && !resolution.decayed && resolution.to !== resolution.from,
-  )
-  const held = moved.filter(
-    (resolution) => !resolution.completed && !resolution.decayed && resolution.to === resolution.from,
-  )
-
-  /**
-   * One offer, for the first topic in this run that missed something.
-   *
-   * A multi-topic Test that missed items in several topics could offer several
-   * practice runs, but a screen that ends in a column of competing buttons is
-   * the decision-on-the-daily-path problem this redesign spent batches 1 to 3
-   * removing. The first one is the one to go and fix; the rest keep their own
-   * offer on their topic pages.
-   *
-   * The count comes from `targetsForItems` rather than from the raw miss list,
-   * so the number on the button is exactly what the run will ask. A badly
-   * broken twenty-item check is bounded by `PRACTICE_LIMIT`, and an offer that
-   * promised twenty and then asked ten would be the screen lying about the
-   * work.
-   */
-  const practiceOffer = banked
-    .map((entry) => {
-      const topic = entry.resolution.topic
-      const asked = targetsForItems(topic, missed[topic.id] ?? [])
-      // Counted in items, not directions: an item missed both ways is one
-      // thing to go and fix.
-      const itemIds = [...new Set(asked.map((target) => target.item.id))]
-      return { topicId: topic.id, title: topic.title, itemIds }
-    })
-    .find((candidate) => candidate.itemIds.length > 0)
-
-  return (
-    <section className="session session-done">
-      <h1 ref={headingRef} tabIndex={-1}>
-        {completed.length > 0 ? 'Banked' : 'Test ended'}
-      </h1>
-
-      {completed.map((resolution) => (
-        <div className="banked" key={resolution.topic.id}>
-          <span className="kicker">Completed</span>
-          <p className="banked-title">{resolution.topic.title}</p>
-          <p className="banked-note">
-            Recalled cleanly {resolution.gapDays} days after it was last drilled. It is now part of
-            your permanent record.
-          </p>
-        </div>
-      ))}
-
-      {decayed.map((resolution) => (
-        <p className="transition" key={resolution.topic.id}>
-          <strong>{resolution.topic.title}</strong> did not survive its spot check, so it goes back
-          to drilling. Your completion from{' '}
-          {resolution.topic.completedAt
-            ? new Date(resolution.topic.completedAt).toLocaleDateString()
-            : 'the original run'}{' '}
-          still stands.
-        </p>
-      ))}
-
-      {changed.map((resolution) => (
-        <p className="transition" key={resolution.topic.id}>
-          <strong>{resolution.topic.title}</strong>: {statusLabel(resolution.from).toLowerCase()} to{' '}
-          {statusLabel(resolution.to).toLowerCase()}.
-          {resolution.from === 'drilled' && resolution.to === 'learning' && (
-            <> The delayed test starts again once it is drilled clean.</>
-          )}
-        </p>
-      ))}
-
-      {held.map((resolution) => (
-        <p className="transition" key={resolution.topic.id}>
-          <strong>{resolution.topic.title}</strong> held at {statusLabel(resolution.to).toLowerCase()}.
-        </p>
-      ))}
-
-      {withheld.map((entry) => (
-        <p className="transition" key={entry.resolution.topic.id}>
-          <strong>{entry.resolution.topic.title}</strong>: the lesson has not been through every
-          letter yet, so this run is recorded but does not move the ladder. Finish the lesson and
-          the delayed test starts counting from there.
-        </p>
-      ))}
-
-      {building.map((entry) => (
-        <p className="transition" key={entry.resolution.topic.id}>
-          <strong>{entry.resolution.topic.title}</strong>: every answer correct. The claim covers
-          both printed directions, and this run has not yet seen both for every letter, so it is
-          recorded as progress rather than banked. Nothing was lost and no clock went backwards.
-          The next run asks the directions still outstanding.
-        </p>
-      ))}
-
-      {resolutions.length === 0 && (
-        <p className="transition">No topic ran to the end, so nothing changed rung.</p>
-      )}
-
-      {/* The offer to go and fix what just broke, and the only new action on
-          this screen. It is deliberately not the accent: the end screen's one
-          brass moment belongs to banking a completion, and a miss is not an
-          event to mark. Practice records nothing, so taking it costs the
-          learner nothing but the time. */}
-      {practiceOffer && onPractice && (
-        <div className="practice-offer">
-          <p>
-            {practiceOffer.itemIds.length}{' '}
-            {practiceOffer.itemIds.length === 1 ? 'item' : 'items'} did not come back on{' '}
-            <strong>{practiceOffer.title}</strong>. Practice asks only those, records nothing, and
-            leaves the check to prove it.
-          </p>
-          <button
-            type="button"
-            onClick={() => onPractice(practiceOffer.topicId, practiceOffer.itemIds)}
-          >
-            Practise {practiceOffer.itemIds.length}{' '}
-            {practiceOffer.itemIds.length === 1 ? 'item' : 'items'}
-          </button>
-        </div>
-      )}
-
-      <button
-        className={practiceOffer && onPractice ? 'ghost' : undefined}
-        type="button"
-        onClick={onExit}
-      >
-        Back to today
-      </button>
     </section>
   )
 }
