@@ -1,22 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { canonicalPattern } from '../../../domain/morse/testing/acquisitionProfile'
 import {
-  canonicalNotation,
-  mnemonicTextEquivalent,
-  spokenRhythm,
-} from '../../../domain/morse/mnemonics'
-import {
   advanceLesson,
   answerLesson,
   currentStep,
   introduceLesson,
   introducedGlyphs,
   lessonProgressCount,
-  lessonProgressOf,
   startLesson,
-  withLessonProgress,
-  type LessonCheckFormat,
-  type LessonEntry,
   type LessonRun,
 } from '../../../domain/morse/curriculum/lesson'
 import {
@@ -39,8 +30,6 @@ import {
   newLessonSitting,
   recordLessonRetrieval,
   suppressSittingListening,
-  withLessonSitting,
-  withoutLessonSitting,
   type LessonSitting,
 } from '../../../domain/morse/curriculum/lessonSitting'
 import {
@@ -48,25 +37,15 @@ import {
   morseWordCheckpointPath,
   type MorseWordCheckpointPathItem,
 } from '../../../domain/morse/curriculum/checkpoints'
-import { withAcquisitionReadiness } from '../../../domain/study/journey'
-import {
-  completeSitting,
-  morseReviewOf,
-  recordIntroduced,
-  recordListeningRetrieval,
-  recordPrintedRetrieval,
-  withMorseReview,
-} from '../../../domain/morse/curriculum/review'
-import type { MorseLetter } from '../../../domain/morse/code'
+import { morseReviewOf } from '../../../domain/morse/curriculum/review'
 import { useLibrary } from '../../../services/library/LibraryProvider'
 import type { Topic } from '../../../domain/library/topic'
-import { MorseKeyInput } from '../input/MorseKeyInput'
 import { useKeyedResponse } from '../input/useKeyedResponse'
 import { MorseCheckpoint } from './MorseCheckpoint'
-import { MorseMnemonic } from '../MorseMnemonic'
-import { MorseBeatGrammarNote, MorsePhrase } from '../MorsePhrase'
-import { MorsePlayButton } from '../MorsePlayButton'
+import { MorseBeatGrammarNote } from '../MorsePhrase'
 import { useMorseAudio } from '../useMorseAudio'
+import { CharacterStage, ListeningCheckStep, VisualCheckStep } from './LessonSteps'
+import { useLessonRecord } from './useLessonRecord'
 import './MorseLesson.css'
 
 /** The #78/#90 word-checkpoint milestones, tied to the checkpoint curriculum. */
@@ -86,125 +65,9 @@ interface MorseLessonProps {
   onReference: () => void
 }
 
-function CharacterStage({
-  glyph,
-  pattern,
-  playing,
-  activeIndex,
-  onToggle,
-}: {
-  glyph: string
-  pattern: string
-  playing: boolean
-  activeIndex: number | null
-  onToggle: () => void
-}) {
-  return (
-    <div className="lesson-stage">
-      <p className="lesson-glyph" aria-hidden="true">{glyph}</p>
-      <MorsePhrase glyph={glyph} />
-      <div className="lesson-visual">
-        <MorseMnemonic
-          glyph={glyph}
-          pattern={pattern}
-          textLabel={mnemonicTextEquivalent(glyph, pattern)}
-          activeIndex={activeIndex}
-        />
-        <MorsePlayButton glyph={glyph} playing={playing} onToggle={onToggle} />
-      </div>
-      <p className="lesson-canonical">
-        <span className="morse-notation" aria-hidden="true">{canonicalNotation(pattern)}</span>
-        <span className="morse-rhythm">{spokenRhythm(pattern)}</span>
-      </p>
-    </div>
-  )
-}
-
-/** Printed letter → Morse. Support changes the cue, never the response mechanism. */
-export function VisualCheckStep({
-  entry,
-  format,
-  regionRef,
-  armed,
-  onAnswer,
-}: {
-  entry: LessonEntry
-  format: LessonCheckFormat
-  regionRef: React.RefObject<HTMLDivElement | null>
-  armed: boolean
-  onAnswer: (response: string) => void
-}) {
-  return (
-    <div className="lesson-check" ref={regionRef} tabIndex={-1} data-question="visual">
-      <p className="lesson-task">Key this pattern</p>
-      <p className="lesson-glyph" aria-hidden="true">{entry.glyph}</p>
-      <h2 className="sr-only">Key the Morse pattern for {entry.glyph}.</h2>
-
-      {format === 'taught' && (
-        <div className="lesson-support" data-support="taught">
-          <MorsePhrase glyph={entry.glyph} />
-        </div>
-      )}
-
-      {format === 'cued' && (
-        <div className="lesson-support" data-support="cued">
-          <p className="lesson-length">
-            {entry.pattern.length} {entry.pattern.length === 1 ? 'signal' : 'signals'}
-          </p>
-        </div>
-      )}
-
-      {/* `inert` rather than `pointer-events: none`: the tap that finished the
-          previous retrieval must not fall through to anything at all. */}
-      <div className="lesson-answer" inert={!armed}>
-        <MorseKeyInput expectedLength={entry.pattern.length} locked={!armed} onSubmit={onAnswer} />
-      </div>
-    </div>
-  )
-}
-
-/** Morse sound → letter. The answer is never named by the prompt or audio control. */
-export function ListeningCheckStep({
-  entry,
-  options,
-  playing,
-  regionRef,
-  onToggle,
-  onAnswer,
-  onSkip,
-  armed,
-}: {
-  entry: LessonEntry
-  options: MorseLetter[]
-  playing: boolean
-  regionRef: React.RefObject<HTMLDivElement | null>
-  onToggle: () => void
-  onAnswer: (response: string) => void
-  onSkip: () => void
-  armed: boolean
-}) {
-  return (
-    <div className="lesson-check" ref={regionRef} tabIndex={-1} data-question="listening">
-      <p className="lesson-task">Listen, then choose the letter</p>
-      <h2 className="sr-only">Listen to the Morse sound, then choose the matching letter.</h2>
-      <div className="lesson-listening-stimulus">
-        <MorsePlayButton glyph={entry.glyph} playing={playing} onToggle={onToggle} concealGlyph />
-        <p className="lesson-length">Replay as needed.</p>
-      </div>
-      <div className="lesson-options" aria-label="Letter choices" inert={!armed}>
-        {options.map((option) => (
-          <button className="lesson-option lesson-letter-option" key={option} type="button" onClick={() => onAnswer(option)}>
-            {option}
-          </button>
-        ))}
-      </div>
-      <button className="ghost lesson-audio-skip" type="button" onClick={onSkip}>Can&apos;t listen now</button>
-    </div>
-  )
-}
-
 export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: MorseLessonProps) {
-  const { topics, updateTopic } = useLibrary()
+  const { topics } = useLibrary()
+  const record = useLessonRecord(topic.id)
   const { sounding, audioError, clearError, stop, toggle } = useMorseAudio()
   const headingRef = useRef<HTMLHeadingElement>(null)
   const stepRef = useRef<HTMLDivElement>(null)
@@ -293,15 +156,12 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
    */
   function commit(next: LessonRun) {
     setRun(next)
-    const progress = lessonProgressOf(next)
-    updateTopic(topic.id, (current) =>
-      withAcquisitionReadiness(withLessonProgress(current, progress)),
-    )
+    record.commitProgress(next)
   }
 
   function persistSitting(next: LessonSitting) {
     setSitting(next)
-    updateTopic(topic.id, (current) => withLessonSitting(current, next))
+    record.persistSitting(next)
   }
 
   /**
@@ -313,9 +173,7 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
    */
   function introduce(itemId: string) {
     commit(introduceLesson(run, itemId))
-    updateTopic(topic.id, (current) =>
-      withMorseReview(current, recordIntroduced(morseReviewOf(current), itemId)),
-    )
+    record.recordIntroduction(itemId)
   }
 
   /**
@@ -327,9 +185,7 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
    * reinstate a stale snapshot.
    */
   function notePrinted(itemId: string, correct: boolean) {
-    updateTopic(topic.id, (current) =>
-      withMorseReview(current, recordPrintedRetrieval(morseReviewOf(current), itemId, correct)),
-    )
+    record.recordPrinted(itemId, correct)
   }
 
   /**
@@ -337,9 +193,7 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
    * satisfy the printed claim nor reset printed staleness (#90 §5, #29).
    */
   function noteListening(itemId: string, correct: boolean) {
-    updateTopic(topic.id, (current) =>
-      withMorseReview(current, recordListeningRetrieval(morseReviewOf(current), itemId, correct)),
-    )
+    record.recordListening(itemId, correct)
   }
 
   /**
@@ -482,9 +336,7 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
     // when the learner actually moves on, rather than when a sitting is merely
     // abandoned — an abandoned sitting must not satisfy #90 §4 for work the
     // learner never came back to.
-    updateTopic(topic.id, (current) =>
-      withMorseReview(withoutLessonSitting(current), completeSitting(morseReviewOf(current))),
-    )
+    record.closeSitting()
     setListeningState(newLessonListeningState())
     setListeningFeedback(null)
     setAudioNotice(null)

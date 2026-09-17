@@ -31,7 +31,8 @@ import { seedLibrary } from '../../../domain/library/catalogSeed'
 import type { Topic } from '../../../domain/library/topic'
 import type { ItemLessonStore } from '../../../domain/morse/progress'
 import { LessonRun as GuidedRun } from './LessonRun'
-import { ListeningCheckStep, MorseLesson, VisualCheckStep } from './MorseLesson'
+import { MorseLesson } from './MorseLesson'
+import { ListeningCheckStep, VisualCheckStep } from './LessonSteps'
 
 const MORSE_ID = 'international-morse-letters-printed'
 
@@ -424,26 +425,42 @@ describe('accessibility and mobile composition', () => {
 
 describe('Learn cannot reach formal retention state', () => {
   it('imports no scheduler, cue ladder or distractor module', () => {
-    const code = source('./MorseLesson.tsx')
-    const imports = [...code.matchAll(/from '([^']+)'/g)].map((match) => match[1])
-    for (const forbidden of ['../../../domain/study/scheduling', '../../../domain/study/cueLadder', '../../../domain/study/distractors']) expect(imports).not.toContain(forbidden)
-    expect(code).not.toContain('resolveAttempt')
-    expect(code).not.toContain('itemEvidence')
+    // The lesson surface and the one module that writes for it. Both, because
+    // the rule is about what Learn can reach, not about which file it sits in.
+    for (const file of ['./MorseLesson.tsx', './useLessonRecord.ts']) {
+      const code = source(file)
+      const imports = [...code.matchAll(/from '([^']+)'/g)].map((match) => match[1])
+      for (const forbidden of [
+        '../../../domain/study/scheduling',
+        '../../../domain/study/cueLadder',
+        '../../../domain/study/distractors',
+      ]) {
+        expect(imports, `${file} imports ${forbidden}`).not.toContain(forbidden)
+      }
+      expect(code).not.toContain('resolveAttempt')
+      expect(code).not.toContain('itemEvidence')
+    }
   })
 
   it('writes only formative acquisition state, and only through composing updates', () => {
-    const code = source('./MorseLesson.tsx')
+    // Every durable write the lesson makes now lives in `useLessonRecord`, so
+    // that is where this rule is enforced. The lesson surface itself is checked
+    // to make no such write directly, which is what keeps the two in step.
+    const surface = source('./MorseLesson.tsx')
+    const record = source('./useLessonRecord.ts')
 
     // Whole-object writes would reinstate every sibling field as it looked when
     // the lesson opened, including a scheduler resolution banked since (#62).
-    expect(code).not.toContain('upsertTopic')
+    expect(record).not.toContain('upsertTopic')
+    expect(surface).not.toContain('upsertTopic')
+    expect(surface).not.toContain('updateTopic(')
 
     // Every durable write this surface makes, and what it is allowed to touch:
     // lesson support, the finite sitting, the formative review history, and the
     // acquisition-readiness anchor. Nothing here can reach status, history,
     // timestamps or `DirectionEvidence`.
-    const updaters = [...code.matchAll(/updateTopic\(topic\.id,/g)].map((match) =>
-      code.slice(match.index ?? 0, (match.index ?? 0) + 200),
+    const updaters = [...record.matchAll(/updateTopic\(topicId,/g)].map((match) =>
+      record.slice(match.index ?? 0, (match.index ?? 0) + 200),
     )
     expect(updaters.length).toBeGreaterThan(0)
     for (const updater of updaters) {
@@ -454,7 +471,8 @@ describe('Learn cannot reach formal retention state', () => {
 
     // The one thing imported from the journey layer is the acquisition anchor.
     // That layer can see the scheduler; this surface still must not.
-    const journeyImport = code.slice(code.indexOf("from '../../../domain/study/journey'") - 120, code.indexOf("from '../../../domain/study/journey'"))
+    const at = record.indexOf("from '../../../domain/study/journey'")
+    const journeyImport = record.slice(at - 120, at)
     expect(journeyImport).toContain('withAcquisitionReadiness')
     expect(journeyImport).not.toContain('resolveAttempt')
     expect(journeyImport).not.toContain('journeyFor')

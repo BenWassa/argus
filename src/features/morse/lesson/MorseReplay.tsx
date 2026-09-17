@@ -6,7 +6,7 @@ import {
   currentStep,
   type LessonRun,
 } from '../../../domain/morse/curriculum/lesson'
-import { VisualCheckStep } from './MorseLesson'
+import { VisualCheckStep } from './LessonSteps'
 import { useKeyedResponse } from '../input/useKeyedResponse'
 import './MorseReplay.css'
 
