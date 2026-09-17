@@ -1,6 +1,5 @@
 // @vitest-environment jsdom
 import { readFileSync } from 'node:fs'
-import { fileURLToPath } from 'node:url'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { catalogDefinition, freshCatalogTopic } from '../../lib/catalog'
@@ -38,10 +37,7 @@ describe('Morse placement response boundary', () => {
   })
 
   it('never passes the target pattern length into the shared Morse key', () => {
-    const code = readFileSync(
-      fileURLToPath(new URL('./MorsePlacementDialog.tsx', import.meta.url)),
-      'utf8',
-    )
+    const code = readFileSync('src/features/learn/MorsePlacementDialog.tsx', 'utf8')
     expect(code).toContain('expectedLength={1}')
     expect(code).not.toContain('expectedLength={expectedMorsePlacementPattern(target).length}')
     expect(code).not.toContain('Expected pattern length')
