@@ -10,6 +10,7 @@ import {
 import type { RunTarget } from '../../app/routing/routes'
 import { resolveStudy } from '../../domain/study/scheduling'
 import { Confirm } from '../../shared/ui/Confirm'
+import { AddMenu } from './AddMenu'
 import { TopicForm, type Draft } from './TopicForm'
 import { TopicPage } from './TopicPage'
 import { CompletionRecord } from './CompletionRecord'
@@ -72,6 +73,7 @@ export function LibraryPage({
   const [formOpen, setFormOpen] = useState(openFormOnMount)
   const [focusItems, setFocusItems] = useState(false)
   const [pendingDelete, setPendingDelete] = useState<Topic | null>(null)
+  const [addMenuOpen, setAddMenuOpen] = useState(false)
 
   // The inbox is a neighbour of the library, never a part of it. Its requests
   // are held in their own state and never enter `topics`, so nothing here can
@@ -190,6 +192,16 @@ export function LibraryPage({
     setFormOpen(true)
   }
 
+  // With no inbox in this build there is only one real choice, so the FAB
+  // skips straight to it rather than opening a menu with one option in it.
+  function openAdd() {
+    if (inbox.status === 'unconfigured') {
+      newTopic()
+      return
+    }
+    setAddMenuOpen(true)
+  }
+
   function editTopic(topic: Topic, atItems = false) {
     setEditing(topic)
     setDraft(null)
@@ -266,6 +278,20 @@ export function LibraryPage({
         />
       )}
 
+      {addMenuOpen && (
+        <AddMenu
+          onNewTopic={() => {
+            setAddMenuOpen(false)
+            newTopic()
+          }}
+          onWantToLearn={() => {
+            setAddMenuOpen(false)
+            setCapturing(true)
+          }}
+          onClose={() => setAddMenuOpen(false)}
+        />
+      )}
+
       {capturing && (
         <CaptureSheet
           onSubmit={inbox.addRequest}
@@ -323,19 +349,28 @@ export function LibraryPage({
                 : `${topics.length} ${topics.length === 1 ? 'topic' : 'topics'} · ${dueCount} due`}
           </p>
         </div>
-        <div className="lib-head-actions">
-          <button className="ghost" type="button" onClick={() => newTopic()}>
-            New topic
-          </button>
-          {/* Lighter than New topic on purpose: this one asks for an idea, not
-              a finite boundary. A build with no inbox does not offer it at all,
-              rather than showing a control that cannot work. */}
-          {inbox.status !== 'unconfigured' && (
-            <button className="lib-capture" type="button" onClick={() => setCapturing(true)}>
-              <span aria-hidden="true">+</span> Want to learn
-            </button>
-          )}
-        </div>
+        {/* The one utility that owns the learner's data, placed where a
+            settings control is expected to be rather than at the foot of the
+            shelves, where it read as buried. Creation lives in the FAB below,
+            not here, so this corner never has to arbitrate between the two. */}
+        <button
+          className="ghost icon lib-data-trigger"
+          type="button"
+          onClick={onOpenData}
+          aria-label="Data and backup"
+          title="Data and backup"
+        >
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
+            <path
+              d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3M12 4v11M7.5 11 12 15.5 16.5 11"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
       </div>
 
       <WantToLearn
@@ -418,8 +453,8 @@ export function LibraryPage({
             <div ref={list}>
               {groups.map((shelf) => (
                 <section className="lib-shelf" key={shelf.id}>
-                  <h2 className="lib-shelf-head">
-                    {shelf.label}
+                  <h2 className={`lib-shelf-head lib-shelf-${shelf.id}`}>
+                    <span className="lib-shelf-label">{shelf.label}</span>
                     <span className="lib-shelf-count tabular">{shelf.entries.length}</span>
                   </h2>
                   <ul className="index">
@@ -461,20 +496,29 @@ export function LibraryPage({
             </div>
           )}
 
-          {/* The permanent record, and then the one utility that owns the
-              learner's data. Both are read or reached deliberately, so they
-              close the page rather than competing with the shelves. */}
+          {/* The permanent record. It is read, not reached, so it closes the
+              page rather than competing with the shelves. */}
           <CompletionRecord topics={topics} />
-
-          <div className="lib-utility">
-            <button className="quiet lib-data" type="button" onClick={onOpenData}>
-              Data and backup
-            </button>
-            <p className="lib-utility-note">
-              Export the whole library to a file you own, or replace it from one.
-            </p>
-          </div>
         </>
+      )}
+
+      {topics.length > 0 && !selecting && (
+        <button
+          className="lib-fab"
+          type="button"
+          onClick={openAdd}
+          aria-label="Add to the library"
+        >
+          <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false">
+            <path
+              d="M12 5v14M5 12h14"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+          </svg>
+        </button>
       )}
 
       {selecting && chosen.length > 0 && (

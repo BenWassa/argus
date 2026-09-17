@@ -79,7 +79,7 @@
 }
 
 /* The one lit surface on Today is the required action itself. A day with
-   nothing due carries no brass and no shadow, because there is no work. */
+   nothing due carries no accent and no shadow, because there is no work. */
 .today-go {
   display: grid;
   gap: 2px;
@@ -151,7 +151,7 @@
 }
 
 @media (min-width: 980px) {
-  /* A full-width brass slab across a 760px column reads as a banner, not a
+  /* A full-width accent slab across a 760px column reads as a banner, not a
      key. Higher specificity than .today-go so the cap actually lands. */
   .today-actions {
     justify-items: start;

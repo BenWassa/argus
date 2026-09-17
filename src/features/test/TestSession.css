@@ -80,7 +80,7 @@
 }
 
 /* This button is a card surface, not a primary action. Keep its specificity
-   above the global button base/hover rules so brass control styling can never
+   above the global button base/hover rules so accent control styling can never
    leak onto the Test surface. */
 button.flip-card {
   width: 100%;
@@ -659,7 +659,7 @@ button.flip-card:active {
  *
  * Sits below the outcome copy and above `Back to today`, so the screen still
  * reads as an account of what happened first and an invitation second. It
- * carries no accent: brass marks banking a completion, and a miss is not an
+ * carries no accent: the accent marks banking a completion, and a miss is not an
  * event to mark. */
 .practice-offer {
   display: grid;

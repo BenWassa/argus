@@ -126,7 +126,7 @@ export function TestDone({
 
       {/* The offer to go and fix what just broke, and the only new action on
           this screen. It is deliberately not the accent: the end screen's one
-          brass moment belongs to banking a completion, and a miss is not an
+          accent moment belongs to banking a completion, and a miss is not an
           event to mark. Practice records nothing, so taking it costs the
           learner nothing but the time. */}
       {practiceOffer && onPractice && (

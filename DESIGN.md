@@ -18,10 +18,10 @@ colors:
   accent-2: "#ffffff"
   accent-ink: "#0b0d10"
   learning: "#8aa8c8"
-  survival: "#93ae95"
+  survival: "#92a9ab"
   tradecraft: "#a79ac0"
   danger: "#d98078"
-  ok: "#93b8a2"
+  ok: "#92b5ae"
   complete: "#8c98a5"
   warning: "#d68d5e"
 typography:
@@ -162,11 +162,11 @@ A restrained strategy: cool near-black neutrals carry almost the entire surface,
 
 ### Status
 - **Tarnish** (`#d68d5e`): decay, and nothing else. See the One Warm Colour Rule.
-- **Clay** (`#d98078`) for a missed card and for destructive actions; **Mineral** (`#93b8a2`) for a correct one. Both cooled until they sit inside the gunmetal world, but kept as a genuine red/green pair, because the one screen that grades you is the wrong place to spend clarity on minimalism.
+- **Clay** (`#d98078`) for a missed card and for destructive actions; **Mineral** (`#92b5ae`) for a correct one. Both cooled until they sit inside the gunmetal world, but kept as a genuine red/green pair, because the one screen that grades you is the wrong place to spend clarity on minimalism.
 - **Settled** (`#8c98a5`): a completed step. Cool slate — done, and no longer the thing in progress.
 
 ### Track semantics
-**Steel Blue — Learning** (`#8aa8c8`), **Mineral — Survival** (`#93ae95`), **Pewter — Tradecraft** (`#a79ac0`). Low chroma, so they read as tinted metal rather than as three crayons. None of them is copper, because copper means decay and the two appear on the same row.
+**Steel Blue — Learning** (`#8aa8c8`), **Verdigris — Survival** (`#92a9ab`), **Pewter — Tradecraft** (`#a79ac0`). Low chroma, so they read as tinted metal rather than as three crayons. None of them is copper, because copper means decay and the two appear on the same row.
 
 ### Named Rules
 **The One Accent Rule.** The polish appears only on the primary action, the current selection, and active state. Two polished elements on one screen means one of them is wrong. The single exception is the completion moment, where the polish marks the event rather than an action.

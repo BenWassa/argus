@@ -332,14 +332,14 @@ test('system Back dismisses clean and dirty dialogs before changing route', asyn
   await openApp(page)
   await openLibrary(page)
 
-  await page.getByRole('button', { name: 'New topic' }).click()
+  await page.getByRole('button', { name: 'Add to the library' }).click()
   await expect(page.getByRole('dialog', { name: 'New topic' })).toBeVisible()
   await systemBack(page)
   await expect(page.getByRole('dialog', { name: 'New topic' })).toHaveCount(0)
   await expect(page.getByRole('heading', { name: 'Library', level: 1 })).toBeVisible()
   await waitForHistoryIndex(page, 1)
 
-  await page.getByRole('button', { name: 'New topic' }).click()
+  await page.getByRole('button', { name: 'Add to the library' }).click()
   const title = page.getByLabel('Title')
   await title.fill('Unsaved navigation work')
 

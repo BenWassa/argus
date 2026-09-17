@@ -156,17 +156,17 @@
       },
       "survival": {
         "role": "track",
-        "displayName": "Mineral",
-        "canonical": "#93ae95",
+        "displayName": "Verdigris",
+        "canonical": "#92a9ab",
         "tonalRamp": [
-          "#202621",
-          "#3b463c",
-          "#556556",
-          "#738874",
-          "#93ae95",
-          "#aec2b0",
-          "#c9d6ca",
-          "#e1e8e1"
+          "#202526",
+          "#3a4444",
+          "#556263",
+          "#728485",
+          "#92a9ab",
+          "#adbfc0",
+          "#c9d4d5",
+          "#e1e7e8"
         ]
       },
       "tradecraft": {
@@ -201,17 +201,17 @@
       },
       "ok": {
         "role": "status",
-        "displayName": "Mineral Green",
-        "canonical": "#93b8a2",
+        "displayName": "Mineral",
+        "canonical": "#92b5ae",
         "tonalRamp": [
-          "#202824",
-          "#3b4a41",
-          "#556b5e",
-          "#73907e",
-          "#93b8a2",
-          "#aecab9",
-          "#c9dcd0",
-          "#e1ebe5"
+          "#202826",
+          "#3a4846",
+          "#556965",
+          "#728d88",
+          "#92b5ae",
+          "#adc8c2",
+          "#c9dad7",
+          "#e1ebe9"
         ]
       },
       "complete": {
@@ -365,7 +365,7 @@
       "refersTo": "topic-row",
       "description": "A dense index row, deliberately not a card. Trailing chevron and hairline divider signal affordance instead of shadow/lift.",
       "html": "<button class=\"ds-topic-row\"><div class=\"ds-topic-top\"><h3 class=\"ds-topic-title\">NATO Phonetic Alphabet</h3><span class=\"ds-tag\"><span class=\"ds-status-dot\"></span>Completed</span></div><p class=\"ds-topic-scope\">The 26 letters of the NATO phonetic alphabet, tested both directions.</p><div class=\"ds-meta-row\"><span class=\"ds-tag\">Learning</span><span class=\"ds-tag\">Recall</span><span class=\"ds-tag\">26 items</span></div></button>",
-      "css": ".ds-topic-row { position: relative; display: block; width: 100%; text-align: left; border: 0; border-bottom: 1px solid #343a42; border-radius: 0; padding: 15px 24px 15px 2px; background: transparent; color: #e6eaf0; cursor: pointer; transition: background 0.18s ease, padding 0.18s ease; } .ds-topic-row:hover { background: rgba(255,255,255,.018); padding-inline: 10px; } .ds-topic-row::after { content: '\\203A'; position: absolute; right: 5px; top: 50%; transform: translateY(-50%); color: #868f9d; font-size: 1.2rem; } .ds-topic-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding-right: 20px; } .ds-topic-title { margin: 0; font: 700 0.98rem ui-sans-serif, system-ui, sans-serif; } .ds-topic-scope { max-width: 68ch; font-size: 0.77rem; color: #979fac; margin: 4px 0 10px; } .ds-meta-row { display: flex; gap: 6px; } .ds-tag { font-size: 0.72rem; color: #868f9d; } .ds-tag + .ds-tag::before { content: '\\00b7'; color: #5b6472; margin-right: 6px; } .ds-status-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #93b8a2; margin-right: 5px; } .ds-topic-row:focus-visible { outline: 3px solid rgba(255,255,255,.4); outline-offset: 2px; }"
+      "css": ".ds-topic-row { position: relative; display: block; width: 100%; text-align: left; border: 0; border-bottom: 1px solid #343a42; border-radius: 0; padding: 15px 24px 15px 2px; background: transparent; color: #e6eaf0; cursor: pointer; transition: background 0.18s ease, padding 0.18s ease; } .ds-topic-row:hover { background: rgba(255,255,255,.018); padding-inline: 10px; } .ds-topic-row::after { content: '\\203A'; position: absolute; right: 5px; top: 50%; transform: translateY(-50%); color: #868f9d; font-size: 1.2rem; } .ds-topic-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding-right: 20px; } .ds-topic-title { margin: 0; font: 700 0.98rem ui-sans-serif, system-ui, sans-serif; } .ds-topic-scope { max-width: 68ch; font-size: 0.77rem; color: #979fac; margin: 4px 0 10px; } .ds-meta-row { display: flex; gap: 6px; } .ds-tag { font-size: 0.72rem; color: #868f9d; } .ds-tag + .ds-tag::before { content: '\\00b7'; color: #5b6472; margin-right: 6px; } .ds-status-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #92b5ae; margin-right: 5px; } .ds-topic-row:focus-visible { outline: 3px solid rgba(255,255,255,.4); outline-offset: 2px; }"
     },
     {
       "name": "Nav Item",

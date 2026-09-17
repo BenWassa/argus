@@ -11,8 +11,8 @@ import { Confirm } from '../../shared/ui/Confirm'
  * Export, import, sync and reset. A Library utility with its own route rather
  * than a permanent navigation slot: it is used a handful of times a year, and
  * `PRODUCT.md` asks for it to be first-class and easy to find, not for it to
- * hold a quarter of the bottom bar. Reached from the foot of Library, and its
- * own Back control returns there the way Topic does.
+ * hold a quarter of the bottom bar. Reached by a single icon in Library's
+ * header, and its own Back control returns there the way Topic does.
  *
  * Sync belongs here rather than in the bottom bar or a header for the same
  * reason: it is set up once and then has nothing to say. The record on this

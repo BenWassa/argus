@@ -39,7 +39,7 @@
 
 /*
  * The key is a physical object, so its state is elevation and tone, never hue
- * (#87). It keeps the brass identity it has at rest through hover and press;
+ * (#87). It keeps the lit identity it has at rest through hover and press;
  * what changes is that it sits down into the surface and loses its lift.
  *
  * The generic `button:hover` repaint is deliberately cancelled here. On

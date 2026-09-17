@@ -33,8 +33,8 @@
 }
 
 /* Track filters, so the three inks finally do something. Pressed state is
-   carried by brass type on a lifted surface, never a brass fill: filling them
-   would put three accent slabs on a screen whose primary action is brass. */
+   carried by lit type on a recessed surface, never an accent fill: filling
+   them would put three accent slabs on a screen that already has its own. */
 .lib-chip {
   min-height: 36px;
   padding: 7px 13px;
@@ -103,6 +103,25 @@
 
 .lib-shelf-count {
   color: var(--muted);
+}
+
+/* A small instrument light rather than another word: dim on a shelf that is
+   only waiting, lit on the one shelf that is actionable now. Glanceable
+   before a single label is read. */
+.lib-shelf-label::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: var(--s-sm);
+  border-radius: var(--r-pill);
+  background: var(--subtle);
+  vertical-align: middle;
+}
+
+.lib-shelf-due .lib-shelf-label::before {
+  background: var(--accent-2);
+  box-shadow: 0 0 4px rgb(255 255 255 / 45%);
 }
 
 /* ------------------------------------------------------------------ rows -- */
@@ -190,8 +209,8 @@
 
 /* The wait, drawn. The row already states it in words; this is so a shelf of
    thirty can be read at a glance instead of one date at a time. Neutral by
-   design: brass would spend the accent, and a semantic colour would turn a
-   schedule into a scoreboard. */
+   design: the accent would spend itself here, and a semantic colour would
+   turn a schedule into a scoreboard. */
 /* Acquisition progress, in words. Deliberately not the gap bar: a programme
    being learned has not entered a retention gap, and drawing it as one would
    make two different kinds of progress look like the same measurement. */
@@ -304,21 +323,82 @@
   }
 }
 
-/* ------------------------------------------------------- want to learn -- */
+/* --------------------------------------------------------------- header -- */
 
-/* Two actions in the head, and they are not peers. `Want to learn` is the
-   brass one because capture is the thing you do in a hurry; `New topic` stays
-   a ghost because authoring a finite boundary is deliberate work. */
-.lib-head-actions {
-  display: flex;
-  flex-wrap: wrap;
+/* Sits where a settings control is expected: top-right, one tap, always in
+   the same place whether the library is empty or full. */
+.lib-data-trigger {
+  flex-shrink: 0;
+  color: var(--subtle);
+}
+
+/* --------------------------------------------------------------- add fab -- */
+
+/* The one "+" in the product. Fixed above the thumb, clear of the bottom
+   nav on mobile and of the batch bar when one is showing (the two never
+   appear together — selecting hides this). Circular and lit, because it is
+   the single most-repeated action on the page and earns the accent. */
+.lib-fab {
+  position: fixed;
+  right: max(var(--s-lg), env(safe-area-inset-right));
+  bottom: calc(72px + var(--s-lg) + env(safe-area-inset-bottom));
+  z-index: 25;
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  display: inline-grid;
+  place-items: center;
+  border-radius: var(--r-pill);
+  box-shadow: var(--edge), var(--edge-under), var(--shadow-lift);
+}
+
+@media (min-width: 980px) {
+  .lib-fab {
+    bottom: var(--s-2xl);
+  }
+}
+
+/* ------------------------------------------------------------- add menu -- */
+
+.add-menu {
+  display: grid;
   gap: var(--s-sm);
 }
 
-.lib-capture span {
-  margin-right: 2px;
-  font-weight: 600;
+.add-menu-option {
+  display: grid;
+  gap: 3px;
+  justify-items: start;
+  padding: var(--s-md);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  text-align: left;
+  background: var(--surface-2);
+  box-shadow: none;
 }
+
+.add-menu-option:hover {
+  border-color: var(--line-hover);
+  background: var(--surface-3);
+}
+
+.add-menu-option:active {
+  box-shadow: var(--press);
+}
+
+.add-menu-option-title {
+  font-family: var(--font-display);
+  font-size: var(--t-component);
+  font-weight: var(--w-component);
+  color: var(--ink);
+}
+
+.add-menu-option-note {
+  font-size: var(--t-small);
+  color: var(--subtle);
+}
+
+/* ------------------------------------------------------- want to learn -- */
 
 /* The queue is a note to self, not a shelf. It gets a dashed edge and no row
    chrome at all, so nothing about it reads as a topic that could be run,
@@ -408,7 +488,7 @@
   align-self: center;
 }
 
-/* ------------------------------------------------- record and utility -- */
+/* ------------------------------------------------------------- record -- */
 
 /* The permanent record closes the library, because it is the artifact the
    product exists to build and the only thing the removed Progress destination
@@ -416,6 +496,10 @@
    control, no badge. */
 .lib-record {
   margin-top: var(--s-3xl);
+  /* Clears the FAB, which floats over the page rather than reserving its own
+     row in the flow: without this the last shelf's rows sit directly under
+     it. */
+  margin-bottom: 96px;
   padding-top: var(--s-lg);
   border-top: 1px solid var(--line-strong);
 }
@@ -431,25 +515,4 @@
   margin-top: var(--s-md);
   font-size: var(--t-small);
   color: var(--muted);
-}
-
-/* Export and import stay first-class and easy to find without spending a
-   quarter of the bottom bar on an action used a few times a year. */
-.lib-utility {
-  display: grid;
-  justify-items: start;
-  gap: 2px;
-  margin-top: var(--s-2xl);
-  padding-top: var(--s-lg);
-  border-top: 1px solid var(--line);
-}
-
-.lib-data {
-  padding-left: 0;
-  font-size: var(--t-body);
-}
-
-.lib-utility-note {
-  font-size: var(--t-small);
-  color: var(--subtle);
 }

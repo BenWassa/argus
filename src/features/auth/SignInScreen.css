@@ -47,10 +47,16 @@
   height: 124%;
   object-fit: cover;
   opacity: 0.68;
-  filter: blur(28px) saturate(0.72) brightness(0.46);
+  filter: blur(28px) saturate(0.4) brightness(0.4);
   transform: scale(1.04);
 }
 
+/* The source photography is warm sepia and olive brass — a field-manual
+   still life shot under tungsten light, not gunmetal. Regrading it here
+   rather than re-shooting it: desaturating and dimming the plate, then
+   replacing whatever hue survives with the product's own steel-blue via a
+   colour blend, so the image sits in the same cold light as everything
+   else on the page instead of importing its own warm one. */
 .signin-poster,
 .signin-video {
   position: absolute;
@@ -60,6 +66,17 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
+  filter: saturate(0.4) contrast(1.08) brightness(0.82);
+}
+
+.signin-media::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: var(--muted);
+  mix-blend-mode: color;
+  pointer-events: none;
 }
 
 .signin-poster {

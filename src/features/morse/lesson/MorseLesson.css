@@ -318,7 +318,7 @@
 }
 
 /* A hit is acknowledged, not celebrated: the same quiet layer a miss uses,
-   holding one word, with no brass and no lift. */
+   holding one word, with no accent and no lift. */
 .lesson-feedback.is-correct {
   display: grid;
   justify-items: start;

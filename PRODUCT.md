@@ -51,7 +51,7 @@ One shared derivation reads all four and answers the only question the learner a
 
 The learner is not asked to hold all four at once. Each surface states one sentence about a topic, in the schedule's own words, and the consequences of the other dimensions are stated where they bite: on a Test's end screen, on a row's status line. The dimensions stay four separate fields; they stopped being a printed table.
 
-**Progress is not a destination.** Its live sections were a third projection of the same derivation Library already shelves, and its one unique artifact — the permanent completion record — now closes Library, composed rather than listed. Nothing it showed was lost. Navigation is two destinations, `Today` and `Library`; `Data` keeps its own route and is reached from the foot of Library, because export and import must stay first-class and easy to find, not because they need a quarter of the bottom bar for a handful of uses a year.
+**Progress is not a destination.** Its live sections were a third projection of the same derivation Library already shelves, and its one unique artifact — the permanent completion record — now closes Library, composed rather than listed. Nothing it showed was lost. Navigation is two destinations, `Today` and `Library`; `Data` keeps its own route, reached by a single icon in Library's header, because export and import must stay first-class and easy to find — genuinely easy, not merely reachable at the foot of a long shelf list — without needing a quarter of the bottom bar for a handful of uses a year.
 
 ## Content boundary
 

@@ -45,16 +45,22 @@
 
   /* Track semantics. Metadata and typographic accents, never a surface. Low
      chroma, so they read as tinted metal rather than as three crayons — and
-     none of them is copper, because copper means decay. */
+     none of them is copper, because copper means decay. Survival sat at a
+     124° hue and still read as sage/olive drab against the cool chassis, so
+     it is pushed toward 185° — the same low chroma, but cyan-leaning rather
+     than yellow-leaning, so it reads as tinted steel rather than fatigues. */
   --learning: #8aa8c8;
-  --survival: #93ae95;
+  --survival: #92a9ab;
   --tradecraft: #a79ac0;
 
   /* Status */
   --danger: #d98078;
   --danger-2: #e8968e;
   --danger-ink: #140809;
-  --ok: #93b8a2;
+  /* Cooled the same way as --survival, from a 144° spring green to a 168°
+     sea-green: still unmistakably the affirmative colour, but through smoked
+     glass rather than a lawn. */
+  --ok: #92b5ae;
   /* Completion is settled, not lit: a cool slate that has clearly stopped
      being the thing in progress. */
   --complete: #8c98a5;
