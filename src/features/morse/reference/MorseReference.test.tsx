@@ -77,7 +77,7 @@ describe('the reference cannot write progress', () => {
   it('imports no store, scheduler, cue ladder or lesson-writing module', () => {
     const code = source('./MorseReference.tsx')
     const imports = [...code.matchAll(/from '([^']+)'/g)].map((match) => match[1])
-    for (const forbidden of ['../../../services/library/LibraryProvider', '../../../lib/scheduling', '../../../lib/cueLadder']) {
+    for (const forbidden of ['../../../services/library/LibraryProvider', '../../../domain/study/scheduling', '../../../domain/study/cueLadder']) {
       expect(imports).not.toContain(forbidden)
     }
     expect(imports.some((path) => path.includes('morseLesson'))).toBe(false)

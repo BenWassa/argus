@@ -8,9 +8,9 @@ import {
   withMorseReview,
 } from './curriculum/review'
 import { parseLibrary } from '../../lib/storage'
-import { seedLibrary } from '../../lib/seed'
+import { seedLibrary } from '../library/catalogSeed'
 import { DEFAULT_PACKET_PLAN } from './curriculum/packetOrder'
-import { isConfusable } from '../../lib/confusion'
+import { isConfusable } from '../study/confusion'
 import { morsePattern } from './code'
 import type { ItemLessonStore, Topic } from '../../lib/types'
 

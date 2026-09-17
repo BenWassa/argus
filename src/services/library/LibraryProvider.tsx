@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { clearLibrary, emptyLibrary, loadLibraryWithReport, reconcileLoadedLibrary, saveLibrary } from '../../lib/storage'
-import { NO_RECONCILIATION, type CatalogReconciliation } from '../../lib/catalog'
+import { NO_RECONCILIATION, type CatalogReconciliation } from '../../domain/library/catalog'
 import { clearAllLessonSittings } from '../../domain/morse/curriculum/lessonSittingStorage'
 import type { CurrentLibrary, Topic } from '../../lib/types'
 

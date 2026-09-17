@@ -5,9 +5,9 @@ import {
   launchFor,
   TEST_CONSEQUENCE_NOTE,
   type JourneyEntry,
-} from '../../lib/journey'
+} from '../../domain/study/journey'
 import type { RunTarget } from '../../app/routing/routes'
-import { resolveStudy } from '../../lib/scheduling'
+import { resolveStudy } from '../../domain/study/scheduling'
 import type { Mode } from '../../lib/types'
 import './Today.css'
 

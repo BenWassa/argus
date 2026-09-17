@@ -7,7 +7,7 @@ Current reconciliation: post-#28 v5/Morse programme
 
 ## Scope
 
-The original #8 audit covered the four topics then shipped in `src/lib/seed.ts`
+The original #8 audit covered the four topics then shipped in `src/domain/library/catalogSeed.ts`
 and drove #9/#11. This reconciled record also covers the International Morse
 topic — seeded as a temporary forward-only control by #23 and absorbed in place
 into the final bidirectional A–Z curriculum by #28 — so the document does not

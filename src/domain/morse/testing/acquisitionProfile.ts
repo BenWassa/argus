@@ -1,4 +1,4 @@
-import { revealedElementCount, type CueRung } from '../../../lib/cueLadder'
+import { revealedElementCount, type CueRung } from '../../study/cueLadder'
 import { MORSE_LETTERS, type MorseLetter } from '../code'
 import { mnemonicId, mnemonicTextEquivalent } from '../mnemonics'
 import { verbalMnemonic, type MorseVerbalBeat } from '../verbalMnemonics'

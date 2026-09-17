@@ -3,7 +3,7 @@ import { useLibrary } from '../../services/library/LibraryProvider'
 import { useSyncState } from '../../services/sync/SyncProvider'
 import type { SyncState } from '../../services/sync/useSync'
 import { exportFilename, parseLibrary } from '../../lib/storage'
-import { collisions } from '../../lib/catalog'
+import { collisions } from '../../domain/library/catalog'
 import { Confirm } from '../../components/ui/Confirm'
 
 /**

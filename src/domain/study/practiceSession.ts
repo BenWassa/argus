@@ -1,4 +1,4 @@
-import type { PracticeTarget } from './practice'
+import type { PracticeTarget } from './practiceTargets'
 
 /**
  * How far back a missed target is pushed before it is asked again.

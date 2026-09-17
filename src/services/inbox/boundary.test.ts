@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest'
 import { TRACK_HINTS, parseContentRequest, type ContentRequest } from './inboxModel'
 import { REQUIRED_INBOX_ENV, forbiddenInboxEnvKeys, inboxCollectionPath, readInboxConfig } from './inboxConfig'
 import { INBOX_UNCONFIGURED, describeInboxError, unavailableBackend } from './inboxBackend'
-import { dueTopics, isDue, resolveAttempt, shelves } from '../../lib/scheduling'
+import { dueTopics, isDue, resolveAttempt, shelves } from '../../domain/study/scheduling'
 import { parseLibrary } from '../../lib/storage'
 import { TRACKS } from '../../lib/types'
 

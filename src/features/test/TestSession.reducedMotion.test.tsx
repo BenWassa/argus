@@ -2,7 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, render, screen, waitFor } from '@testing-library/react'
 import { LibraryProvider } from '../../services/library/LibraryProvider'
-import { seedLibrary } from '../../lib/seed'
+import { seedLibrary } from '../../domain/library/catalogSeed'
 import type { Topic } from '../../lib/types'
 import { TestSession } from './TestSession'
 

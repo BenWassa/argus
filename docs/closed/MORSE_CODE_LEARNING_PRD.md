@@ -461,7 +461,7 @@ retention state: learning / drilled / completed / decayed
 cue state:       rich / delayed-choice / reduced / free
 ```
 
-They evolve independently. Cue evidence can withhold a passing bidirectional attempt until both directions have actually been demonstrated; it cannot grant, skip or reset retention evidence. `src/lib/scheduling.ts` remains authoritative for retention resolution.
+They evolve independently. Cue evidence can withhold a passing bidirectional attempt until both directions have actually been demonstrated; it cannot grant, skip or reset retention evidence. `src/domain/study/scheduling.ts` remains authoritative for retention resolution.
 
 ### 11.4 Generated groups are not extra completion items
 

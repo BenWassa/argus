@@ -1,6 +1,6 @@
 import shippedCatalog from './shippedCatalog.json'
-import { seedLibrary } from './seed'
-import type { CurrentLibrary, IdentifiedItem, Topic } from './types'
+import { seedLibrary } from './catalogSeed'
+import type { CurrentLibrary, IdentifiedItem, Topic } from '../../lib/types'
 
 /**
  * The shipped catalog is the set of topic ids Argus itself ships. It is held as

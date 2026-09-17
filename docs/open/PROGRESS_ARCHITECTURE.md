@@ -74,7 +74,7 @@ Formal evidence must remain structurally separate from formative Learn answers.
 
 **Question:** Has demonstrated recall survived the required time gap?
 
-Retention is owned by `src/lib/scheduling.ts` and the topic status/timestamps/history:
+Retention is owned by `src/domain/study/scheduling.ts` and the topic status/timestamps/history:
 
 ```text
 unstarted → learning → drilled → completed
@@ -597,7 +597,7 @@ The programme landed as one integrated change closing #66, #67, #69, #70 and #71
 
 ### The journey layer
 
-`src/lib/journey.ts`, one pure function `journeyFor(topic, now) => TopicJourney`. It holds nothing: every value is derived from durable fields owned by somebody else, so a surface and a test cannot get different answers, and there is no fifth progress database.
+`src/domain/study/journey.ts`, one pure function `journeyFor(topic, now) => TopicJourney`. It holds nothing: every value is derived from durable fields owned by somebody else, so a surface and a test cannot get different answers, and there is no fifth progress database.
 
 `TopicJourney` keeps the four dimensions apart and adds an interpretation over them:
 
@@ -688,7 +688,7 @@ The ten-answer Morse sitting is shown as `X / 10 retrievals`. `XP` is gone from 
 
 ### Where the invariants live
 
-- `src/lib/journey.test.ts` — the derivation itself: routing, readiness, the anchored clock, the gate, ordinary-topic regression, evidence separation, ranking and shelves.
+- `src/domain/study/journey.test.ts` — the derivation itself: routing, readiness, the anchored clock, the gate, ordinary-topic regression, evidence separation, ranking and shelves.
 - `src/features/crossSurface.test.tsx` — the consistency contract. Nine learner states are each asserted across all four surfaces, comparing rendered verbs, schedule lines, shelf placement and Progress section against the shared derivation rather than against hard-coded strings, so a label change cannot quietly let the surfaces disagree again.
 - `src/lib/storage.test.ts`, `src/lib/storageLoad.test.ts` — sitting validation, export/import round-trip, old-v5 compatibility, sidecar adoption and isolation, fresh-install integrity, existing-learner preservation.
 - `src/domain/morse/completionEvidence.test.ts` — unchanged; the #68 completion contract is untouched by this programme.

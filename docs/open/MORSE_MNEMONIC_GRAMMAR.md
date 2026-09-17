@@ -154,7 +154,7 @@ of the SVG asset set.
 
 ## What this work does not do
 
-- It does not change `src/lib/scheduling.ts`.
+- It does not change `src/domain/study/scheduling.ts`.
 - It does not add scoring units or change any durable item id.
 - It does not make recalling the verbal phrase part of completion.
 - It does not claim auditory reception, sending, WPM, groups, words or phrases;

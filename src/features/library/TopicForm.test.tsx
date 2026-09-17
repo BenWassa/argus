@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
-import { seedLibrary } from '../../lib/seed'
+import { seedLibrary } from '../../domain/library/catalogSeed'
 import { parseLibrary } from '../../lib/storage'
 import type { Topic } from '../../lib/types'
 import { TopicForm } from './TopicForm'

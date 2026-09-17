@@ -20,7 +20,7 @@ Primary code:
   completed-lesson replay projection (#75);
 - `src/domain/morse/curriculum/checkpoints.ts` — mechanically eligible, deterministic
   interstitial word-checkpoint projection (#78);
-- `src/lib/journey.ts` — the shared learner-journey derivation, and the
+- `src/domain/study/journey.ts` — the shared learner-journey derivation, and the
   acquisition-readiness anchor Learn stamps (#67);
 - `src/features/morse/lesson/MorseLesson.tsx` — guided lesson surface;
 - `src/features/learn/MorseProgramme.tsx` — visible lesson/checkpoint path;

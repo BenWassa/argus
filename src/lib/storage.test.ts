@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { absorbSeededMorseBaseline, parseLibrary } from './storage'
-import { seedLibrary } from './seed'
+import { seedLibrary } from '../domain/library/catalogSeed'
 
 const timestamp = '2026-08-01T00:00:00.000Z'
 

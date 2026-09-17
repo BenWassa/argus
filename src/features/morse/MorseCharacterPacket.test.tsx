@@ -5,7 +5,7 @@ import { morseAcquisitionProfile } from '../../domain/morse/testing/acquisitionP
 import { mnemonicId, mnemonicTextEquivalent } from '../../domain/morse/mnemonics'
 import { buildCharacterPackets } from '../../domain/morse/curriculum/packetOrder'
 import { parseLibrary } from '../../lib/storage'
-import { seedLibrary } from '../../lib/seed'
+import { seedLibrary } from '../../domain/library/catalogSeed'
 import type { LearnContent, MorseCharacterLearnItem } from '../../lib/types'
 import { LearnSupport } from '../learn/LearnSupport'
 import { MorseCharacterPacket } from './MorseCharacterPacket'

@@ -6,14 +6,14 @@ import {
   practiceItemCount,
   practiceTargets,
   targetsForItems,
-} from './practice'
+} from './practiceTargets'
 import type {
   DirectionEvidence,
   IdentifiedItem,
   ItemDirection,
   ItemEvidenceStore,
   Topic,
-} from './types'
+} from '../../lib/types'
 
 /**
  * Practice selects on durable evidence that already exists. Every test here

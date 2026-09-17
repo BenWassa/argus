@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { PracticeTarget } from './practice'
+import type { PracticeTarget } from './practiceTargets'
 import {
   PRACTICE_REVISIT_GAP,
   advancePractice,
@@ -9,8 +9,8 @@ import {
   practiceStep,
   startPracticeRun,
   targetKey,
-} from './practiceRun'
-import type { IdentifiedItem } from './types'
+} from './practiceSession'
+import type { IdentifiedItem } from '../../lib/types'
 
 function item(id: string, prompt: string, answer: string): IdentifiedItem {
   return { id, kind: 'bidirectional', prompt, answer }

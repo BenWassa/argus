@@ -10,7 +10,7 @@ cue/evidence ladder documented here. Learn cannot write `ItemCueEvidence`.
 
 Primary code:
 
-- `src/lib/cueLadder.ts` — rungs, fading and cue evidence;
+- `src/domain/study/cueLadder.ts` — rungs, fading and cue evidence;
 - `src/domain/morse/testing/acquisitionProfile.ts` — Morse profile, cue payload and objective grading;
 - `src/features/test/ProgressiveCard.tsx` — graded Test surface;
 - `src/features/morse/input/MorseKeyInput.tsx` — shared letter → Morse production
@@ -19,7 +19,7 @@ Primary code:
 ## Architectural boundary
 
 The acquisition ladder stays **inside Test** rather than changing scheduler
-semantics. `src/lib/scheduling.ts` remains the retention authority; `Session`
+semantics. `src/domain/study/scheduling.ts` remains the retention authority; `Session`
 feeds it one completed topic attempt exactly as before. Cue state may withhold a
 stronger claim until required evidence exists, but it cannot grant, skip or
 reset a retention interval.
@@ -255,7 +255,7 @@ honest practice and unreachable for a learner still being carried by the cues.
 
 ## Confusion model after #56
 
-`src/lib/confusion.ts` still provides the shared derived confusability model used
+`src/domain/study/confusion.ts` still provides the shared derived confusability model used
 by curriculum ordering and available discrimination logic. #56 removes visual
 multiple-choice pattern selection from the active Morse Test ladder, so
 `distractors.ts` no longer defines the learner's response on these rungs.

@@ -13,7 +13,7 @@ import {
   MorseAudioPlayer,
   MorsePlaybackCancelledError,
 } from '../../domain/morse/audio'
-import type { CueRung } from '../../lib/cueLadder'
+import type { CueRung } from '../../domain/study/cueLadder'
 import { MorseMnemonic } from '../morse/MorseMnemonic'
 import { MorseKeyInput } from '../morse/input/MorseKeyInput'
 import './ProgressiveMorseCue.css'

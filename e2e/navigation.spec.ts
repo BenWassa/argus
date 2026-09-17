@@ -7,7 +7,7 @@ const STORE_KEY = 'argus.library.v5'
 const SPLASH_KEY = 'argus-splash-seen'
 
 const shippedCatalog = JSON.parse(
-  readFileSync(fileURLToPath(new URL('../src/lib/shippedCatalog.json', import.meta.url)), 'utf8'),
+  readFileSync(fileURLToPath(new URL('../src/domain/library/shippedCatalog.json', import.meta.url)), 'utf8'),
 ) as { topicIds: string[] }
 
 const TOPIC: Topic = {

@@ -18,11 +18,11 @@ import {
   startLesson,
   withLessonProgress,
   type LessonRun,
-} from '../domain/morse/curriculum/lesson'
+} from '../morse/curriculum/lesson'
 import { COMPLETION_GAP_DAYS, resolveAttempt, resolveStudy } from './scheduling'
-import { parseLibrary } from './storage'
-import { seedLibrary } from './seed'
-import type { Topic } from './types'
+import { parseLibrary } from '../../lib/storage'
+import { seedLibrary } from '../library/catalogSeed'
+import type { Topic } from '../../lib/types'
 
 const MORSE_ID = 'international-morse-letters-printed'
 const DAY = 86_400_000

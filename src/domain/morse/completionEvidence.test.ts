@@ -6,16 +6,16 @@ import {
   isAssistedRung,
   recordAnswer,
   rungFor,
-} from '../../lib/cueLadder'
+} from '../study/cueLadder'
 import {
   hasCompleteTopicDirectionalCoverage,
   isQualifyingAttempt,
   retentionCorrectCount,
   type AttemptAnswer,
-} from '../../lib/items'
-import { COMPLETION_GAP_DAYS, resolveAttempt } from '../../lib/scheduling'
+} from '../library/items'
+import { COMPLETION_GAP_DAYS, resolveAttempt } from '../study/scheduling'
 import { parseLibrary } from '../../lib/storage'
-import { seedLibrary } from '../../lib/seed'
+import { seedLibrary } from '../library/catalogSeed'
 import type { DirectionEvidence, IdentifiedItem, ItemCueEvidence, ItemEvidenceStore, Topic } from '../../lib/types'
 
 /**

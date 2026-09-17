@@ -4,7 +4,7 @@ import {
   pruneItemEvidence,
   reconcileAuthoredItems,
   type ItemDraft,
-} from '../../lib/items'
+} from '../../domain/library/items'
 import { pruneLessonProgress } from '../../domain/morse/curriculum/lesson'
 import { pruneLessonSitting } from '../../domain/morse/curriculum/lessonSitting'
 import { pruneMorseReview } from '../../domain/morse/curriculum/review'

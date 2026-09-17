@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Page } from '@playwright/test'
-import { seedLibrary } from '../src/lib/seed'
+import { seedLibrary } from '../src/domain/library/catalogSeed'
 import type { Topic } from '../src/lib/types'
 
 /**
@@ -20,7 +20,7 @@ const SPLASH_KEY = 'argus-splash-seen'
 const NATO_ID = 'nato-phonetic'
 
 const shippedCatalog = JSON.parse(
-  readFileSync(fileURLToPath(new URL('../src/lib/shippedCatalog.json', import.meta.url)), 'utf8'),
+  readFileSync(fileURLToPath(new URL('../src/domain/library/shippedCatalog.json', import.meta.url)), 'utf8'),
 ) as { topicIds: string[] }
 
 const seeded = seedLibrary()

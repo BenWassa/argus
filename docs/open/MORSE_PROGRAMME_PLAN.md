@@ -50,7 +50,7 @@ write the `DirectionEvidence` that gates a bidirectional attempt.
 
 Cue/acquisition evidence and retention/completion evidence are separate
 dimensions. Cue progress must never qualify, skip, reset, or counterfeit a
-retention gap. `src/lib/scheduling.ts` remains the authority for completion.
+retention gap. `src/domain/study/scheduling.ts` remains the authority for completion.
 
 #75 lesson replay and #78 word checkpoints add no fourth durable clock. Both are
 formative, ephemeral projections inside Learn.

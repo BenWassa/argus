@@ -1,7 +1,7 @@
 import { morseAcquisitionProfile, type AcquisitionCharacter } from '../testing/acquisitionProfile'
 import { hasLaterSittingSuccess, morseReviewOf } from './review'
 import { byRetrievalPriority } from './lessonPriority'
-import { isConfusable } from '../../../lib/confusion'
+import { isConfusable } from '../../study/confusion'
 import { MORSE_LETTERS, morsePattern, type MorseLetter } from '../code'
 import {
   ACQUISITION_ORDER,

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { resolveAttempt } from './scheduling'
-import type { Status, Topic } from './types'
+import type { Status, Topic } from '../../lib/types'
 
 const DAY = 86_400_000
 const now = new Date('2026-09-02T12:00:00.000Z')

@@ -5,7 +5,7 @@ import { parseSyncedTopic, useSync, type SyncableStore } from './useSync'
 import { rememberSignedIn } from './syncSession'
 import { unconfiguredSyncBackend, type SyncBackend, type SyncUser } from './syncBackend'
 import { topicJson, type RemoteRecord } from './syncPlanner'
-import { seedLibrary } from '../../lib/seed'
+import { seedLibrary } from '../../domain/library/catalogSeed'
 import type { Topic } from '../../lib/types'
 
 /**

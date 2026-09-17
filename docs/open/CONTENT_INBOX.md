@@ -488,8 +488,8 @@ All four pieces above are shipped. This section records the decisions the design
 | Security Rules | `firestore.rules.template`, rendered by `npm run inbox:rules` |
 | rules tests (Firestore emulator) | `firestore/rules.test.ts`, `npm run test:rules` |
 | maintainer ingestion tool | `scripts/inbox/`, `npm run inbox` |
-| shipped catalog manifest | `src/lib/shippedCatalog.json` |
-| catalog reconciliation | `src/lib/catalog.ts` |
+| shipped catalog manifest | `src/domain/library/shippedCatalog.json` |
+| catalog reconciliation | `src/domain/library/catalog.ts` |
 | architectural boundary tests | `src/services/inbox/boundary.test.ts` |
 
 The Firebase SDK is loaded through a dynamic import, so a build without inbox configuration never fetches or runs it.
@@ -526,7 +526,7 @@ Changing the meaning of a topic that has already shipped is therefore still an e
 
 `npm run inbox -- list` reads pending requests into a research hand-off; `npm run inbox -- mark-added --id <requestId> --topics <id>[,<id>]` records that a request became shipped topics. The tool cannot write curriculum, open a pull request, merge or deploy.
 
-Marking is gated and idempotent: every topic id must already appear in `src/lib/shippedCatalog.json`, an identical re-mark is a no-op, and a *different* mark on an already-added request is refused rather than allowed to rewrite provenance.
+Marking is gated and idempotent: every topic id must already appear in `src/domain/library/shippedCatalog.json`, an identical re-mark is a no-op, and a *different* mark on an already-added request is refused rather than allowed to rewrite provenance.
 
 It talks to Firestore over the REST API with a token it mints from a service-account key named by `GOOGLE_APPLICATION_CREDENTIALS`. There is no Firebase Admin dependency in the repository, and no privileged credential is stored in it.
 

@@ -12,7 +12,7 @@ import {
   withCheckpointRetry,
 } from './checkpoints'
 import { parseLibrary } from '../../../lib/storage'
-import { seedLibrary } from '../../../lib/seed'
+import { seedLibrary } from '../../library/catalogSeed'
 import type { ItemLessonStore, Topic } from '../../../lib/types'
 
 const MORSE_ID = 'international-morse-letters-printed'

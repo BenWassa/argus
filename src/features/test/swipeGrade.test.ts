@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { seedLibrary } from '../../lib/seed'
+import { seedLibrary } from '../../domain/library/catalogSeed'
 import {
   SWIPE_COMMIT_MAX_PX,
   SWIPE_COMMIT_MIN_PX,

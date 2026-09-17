@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { morseAcquisitionProfile } from '../testing/acquisitionProfile'
-import { hasCompleteTopicDirectionalCoverage, retentionCorrectCount } from '../../../lib/items'
+import { hasCompleteTopicDirectionalCoverage, retentionCorrectCount } from '../../library/items'
 import { MORSE_LETTERS, type MorseLetter } from '../code'
 import {
   LESSON_CHOICE_OPTIONS,
@@ -20,11 +20,11 @@ import {
   withLessonProgress,
   type LessonRun,
 } from './lesson'
-import { differsOnlyInFinalElement, isConfusable } from '../../../lib/confusion'
+import { differsOnlyInFinalElement, isConfusable } from '../../study/confusion'
 import { DEFAULT_PACKET_PLAN } from './packetOrder'
-import { resolveAttempt, resolveStudy } from '../../../lib/scheduling'
+import { resolveAttempt, resolveStudy } from '../../study/scheduling'
 import { parseLibrary } from '../../../lib/storage'
-import { seedLibrary } from '../../../lib/seed'
+import { seedLibrary } from '../../library/catalogSeed'
 import type { ItemLessonStore, Topic } from '../../../lib/types'
 
 function morseTopic(): Topic {

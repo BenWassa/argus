@@ -8,7 +8,7 @@ import {
   retentionCorrectCount,
 } from './items'
 import type { AttemptAnswer } from './items'
-import type { IdentifiedItem, ItemCueEvidence } from './types'
+import type { IdentifiedItem, ItemCueEvidence } from '../../lib/types'
 
 const existing: IdentifiedItem[] = [
   { id: 'item-a', kind: 'forward', prompt: 'A', answer: '.-' },

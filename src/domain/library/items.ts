@@ -5,7 +5,7 @@ import type {
   ItemEvidenceStore,
   ItemKind,
   ItemCueEvidence,
-} from './types'
+} from '../../lib/types'
 
 let fallbackIdCounter = 0
 

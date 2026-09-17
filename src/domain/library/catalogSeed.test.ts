@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { seedLibrary } from './seed'
+import { seedLibrary } from './catalogSeed'
 
 function seededTopic(id: string) {
   const topic = seedLibrary().topics.find((candidate) => candidate.id === id)

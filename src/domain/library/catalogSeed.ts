@@ -1,4 +1,4 @@
-import type { Library, Topic } from './types'
+import type { Library, Topic } from '../../lib/types'
 
 const NATO = [
   'Alfa', 'Bravo', 'Charlie', 'Delta', 'Echo', 'Foxtrot', 'Golf', 'Hotel',

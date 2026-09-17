@@ -14,11 +14,11 @@ import {
   isAssistedRung,
   recordAnswer,
   rungFor,
-} from '../../lib/cueLadder'
+} from '../../domain/study/cueLadder'
 import { MORSE_LETTERS, type MorseLetter } from '../../domain/morse/code'
 import { verbalMnemonic } from '../../domain/morse/verbalMnemonics'
 import { parseLibrary } from '../../lib/storage'
-import { seedLibrary } from '../../lib/seed'
+import { seedLibrary } from '../../domain/library/catalogSeed'
 import type { IdentifiedItem, ItemCueEvidence, Topic } from '../../lib/types'
 import { ProgressiveCard } from './ProgressiveCard'
 

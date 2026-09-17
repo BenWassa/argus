@@ -6,7 +6,7 @@ Library format: v5
 
 ## Purpose
 
-This document records the research decisions behind the topics shipped by `src/lib/seed.ts`. For every topic, `scope` plus `items` remain the finite scored Test boundary. `topic.learn` is explanatory/acquisition support only and does not expand the completion claim.
+This document records the research decisions behind the topics shipped by `src/domain/library/catalogSeed.ts`. For every topic, `scope` plus `items` remain the finite scored Test boundary. `topic.learn` is explanatory/acquisition support only and does not expand the completion claim.
 
 ## Boundary matrix
 

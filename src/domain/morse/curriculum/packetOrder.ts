@@ -1,4 +1,4 @@
-import { differsOnlyInFinalElement } from '../../../lib/confusion'
+import { differsOnlyInFinalElement } from '../../study/confusion'
 import { MORSE_LETTERS, morsePattern, type MorseLetter } from '../code'
 import { patternExtentUnits } from '../mnemonics'
 

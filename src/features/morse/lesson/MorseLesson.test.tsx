@@ -22,7 +22,7 @@ import { lessonListeningOptions } from '../../../domain/morse/curriculum/listeni
 import { MORSE_FEEDBACK_CORRECT_MS, MORSE_TRANSITION_MS, morseElementDurationMs } from '../../../domain/morse/response'
 import { LibraryProvider } from '../../../services/library/LibraryProvider'
 import { parseLibrary, saveLibrary } from '../../../lib/storage'
-import { seedLibrary } from '../../../lib/seed'
+import { seedLibrary } from '../../../domain/library/catalogSeed'
 import type { ItemLessonStore, Topic } from '../../../lib/types'
 import { LessonRun as GuidedRun } from './LessonRun'
 import { ListeningCheckStep, MorseLesson, VisualCheckStep } from './MorseLesson'
@@ -420,7 +420,7 @@ describe('Learn cannot reach formal retention state', () => {
   it('imports no scheduler, cue ladder or distractor module', () => {
     const code = source('./MorseLesson.tsx')
     const imports = [...code.matchAll(/from '([^']+)'/g)].map((match) => match[1])
-    for (const forbidden of ['../../../lib/scheduling', '../../../lib/cueLadder', '../../../lib/distractors']) expect(imports).not.toContain(forbidden)
+    for (const forbidden of ['../../../domain/study/scheduling', '../../../domain/study/cueLadder', '../../../domain/study/distractors']) expect(imports).not.toContain(forbidden)
     expect(code).not.toContain('resolveAttempt')
     expect(code).not.toContain('itemEvidence')
   })
@@ -448,7 +448,7 @@ describe('Learn cannot reach formal retention state', () => {
 
     // The one thing imported from the journey layer is the acquisition anchor.
     // That layer can see the scheduler; this surface still must not.
-    const journeyImport = code.slice(code.indexOf("from '../../../lib/journey'") - 120, code.indexOf("from '../../../lib/journey'"))
+    const journeyImport = code.slice(code.indexOf("from '../../../domain/study/journey'") - 120, code.indexOf("from '../../../domain/study/journey'"))
     expect(journeyImport).toContain('withAcquisitionReadiness')
     expect(journeyImport).not.toContain('resolveAttempt')
     expect(journeyImport).not.toContain('journeyFor')

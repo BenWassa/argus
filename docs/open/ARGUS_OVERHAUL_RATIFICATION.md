@@ -29,7 +29,7 @@ against shipped source, not inferred from any document's own account:
   moved to the foot of Library, exactly as recorded.
 - `AppShell`'s nav array is exactly `[Today, Library]`; `View` still carries
   `'data'` for the route but it is not a nav tab.
-- `docs/open/TARGETED_PRACTICE.md` and `src/lib/practice.ts` exist — batch 5,
+- `docs/open/TARGETED_PRACTICE.md` and `src/domain/study/practiceTargets.ts` exist — batch 5,
   shipped as *practice*, formative by construction.
 - `src/domain/morse/curriculum/lessonPriority.ts`, `MorseReviewProgress`, and
   `src/domain/morse/listeningBalance.test.ts` / `morseProgrammeSimulation.test.ts`

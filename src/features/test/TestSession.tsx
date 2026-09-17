@@ -9,8 +9,8 @@ import {
   type PanInfo,
 } from 'motion/react'
 import { useLibrary } from '../../services/library/LibraryProvider'
-import { applyResolution, resolveAttempt, type Resolution } from '../../lib/scheduling'
-import { journeyFor } from '../../lib/journey'
+import { applyResolution, resolveAttempt, type Resolution } from '../../domain/study/scheduling'
+import { journeyFor } from '../../domain/study/journey'
 import { statusLabel } from '../../components/ui/StatusTag'
 import {
   expectedAnswer,
@@ -24,13 +24,13 @@ import {
   recordAnswer,
   rungFor,
   withBaselineCue,
-} from '../../lib/cueLadder'
-import { selectDistractors } from '../../lib/distractors'
-import { retentionCorrectCount, type AttemptAnswer } from '../../lib/items'
+} from '../../domain/study/cueLadder'
+import { selectDistractors } from '../../domain/study/distractors'
+import { retentionCorrectCount, type AttemptAnswer } from '../../domain/library/items'
 import { registerBackBlocker } from '../../app/routing/history'
 import type { CueState, Item, ItemCueEvidence, ItemEvidenceStore, Topic } from '../../lib/types'
 import { ProgressiveCard, type ProgressiveAnswer } from './ProgressiveCard'
-import { targetsForItems } from '../../lib/practice'
+import { targetsForItems } from '../../domain/study/practiceTargets'
 import { testCardTextClass } from './textScale'
 import {
   SWIPE_CUE_FULL_PX,

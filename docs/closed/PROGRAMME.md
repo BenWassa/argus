@@ -44,7 +44,7 @@ during which the scheduler status has been `learning` since the first one.
 finished and Test is the next action.
 
 The rule that replaces it: a progressive topic exposes an explicit acquisition
-readiness boundary, derived by `src/lib/journey.ts`. Until it is reached, every
+readiness boundary, derived by `src/domain/study/journey.ts`. Until it is reached, every
 surface recommends continuing the lesson, and a Test result — early Test remains
 reachable — is recorded without advancing the retention ladder. The qualifying
 `learning → drilled` gap is anchored at readiness rather than at first exposure.

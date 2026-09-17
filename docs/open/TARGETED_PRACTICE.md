@@ -47,7 +47,7 @@ Two entry points, two sources, one reason.
 
 ### From the topic page — derived from durable evidence
 
-`practiceTargets(topic)` in `src/lib/practice.ts` reads
+`practiceTargets(topic)` in `src/domain/study/practiceTargets.ts` reads
 `topic.itemEvidence[itemId].directions[direction]`. A direction is a target when
 `attempts > 0 && consecutiveCorrect === 0` — precisely a direction whose most
 recent answer was wrong.
@@ -93,7 +93,7 @@ should be decided deliberately rather than absorbed.
 
 ## The run
 
-`src/lib/practiceRun.ts` is the whole policy, as pure functions.
+`src/domain/study/practiceSession.ts` is the whole policy, as pure functions.
 
 - At most `PRACTICE_LIMIT` (10) targets, matching the lesson sitting and the
   replay limit so a formative run has a pace the learner already recognises.
@@ -160,8 +160,8 @@ offers over different sets are different routes and the second is not a no-op.
 
 | File | What it holds |
 | --- | --- |
-| `src/lib/practice.test.ts` | selection from durable evidence, ordering, the bound, offer counting, imperfect libraries |
-| `src/lib/practiceRun.test.ts` | queue policy, re-queue gap, direction identity, feedback |
+| `src/domain/study/practiceTargets.test.ts` | selection from durable evidence, ordering, the bound, offer counting, imperfect libraries |
+| `src/domain/study/practiceSession.test.ts` | queue policy, re-queue gap, direction identity, feedback |
 | `src/features/practice/PracticeRun.test.tsx` | the import boundary, storage identity, what it asks, reveal |
 | `src/features/test/TestSession.practice.test.tsx` | the end-screen offer for an ordinary topic |
 | `src/app/routing/routes.test.ts` | route validation, malformed item lists, route equality |

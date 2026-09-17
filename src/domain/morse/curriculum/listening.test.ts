@@ -26,7 +26,7 @@ import {
   recordLessonRetrieval,
 } from './lessonSitting'
 import { parseLibrary } from '../../../lib/storage'
-import { seedLibrary } from '../../../lib/seed'
+import { seedLibrary } from '../../library/catalogSeed'
 import type { MorseLetter } from '../code'
 import type { Topic } from '../../../lib/types'
 

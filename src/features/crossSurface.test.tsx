@@ -2,8 +2,8 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { LibraryProvider } from '../services/library/LibraryProvider'
-import { SHIPPED_CATALOG_TOPIC_IDS } from '../lib/catalog'
-import { journeyFor } from '../lib/journey'
+import { SHIPPED_CATALOG_TOPIC_IDS } from '../domain/library/catalog'
+import { journeyFor } from '../domain/study/journey'
 import {
   advanceLesson,
   answerLesson,
@@ -15,8 +15,8 @@ import {
   withLessonProgress,
   type LessonRun,
 } from '../domain/morse/curriculum/lesson'
-import { COMPLETION_GAP_DAYS, resolveStudy } from '../lib/scheduling'
-import { seedLibrary } from '../lib/seed'
+import { COMPLETION_GAP_DAYS, resolveStudy } from '../domain/study/scheduling'
+import { seedLibrary } from '../domain/library/catalogSeed'
 import { parseLibrary } from '../lib/storage'
 import type { Topic } from '../lib/types'
 import { Today } from './today/Today'

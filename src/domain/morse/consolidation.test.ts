@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { morseAcquisitionPosition } from './curriculum/lesson'
 import { completeSitting, newMorseReview, recordIntroduced, recordPrintedRetrieval, withMorseReview } from './curriculum/review'
 import { parseLibrary } from '../../lib/storage'
-import { seedLibrary } from '../../lib/seed'
+import { seedLibrary } from '../library/catalogSeed'
 import { ALL_MORSE_LETTERS } from './curriculum/packetOrder'
 import type { ItemLessonStore, MorseReviewProgress, Topic } from '../../lib/types'
 

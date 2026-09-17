@@ -9,7 +9,7 @@ const TOPIC_ID = 'navigation-focus-topic'
 const TOPIC_TITLE = 'Navigation focus topic'
 
 const shippedCatalog = JSON.parse(
-  readFileSync(fileURLToPath(new URL('../src/lib/shippedCatalog.json', import.meta.url)), 'utf8'),
+  readFileSync(fileURLToPath(new URL('../src/domain/library/shippedCatalog.json', import.meta.url)), 'utf8'),
 ) as { topicIds: string[] }
 
 const topic: Topic = {

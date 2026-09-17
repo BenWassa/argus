@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { practiceTargets, targetsForItems } from '../../lib/practice'
+import { practiceTargets, targetsForItems } from '../../domain/study/practiceTargets'
 import {
   advancePractice,
   answerPractice,
@@ -7,7 +7,7 @@ import {
   practiceComplete,
   practiceStep,
   startPracticeRun,
-} from '../../lib/practiceRun'
+} from '../../domain/study/practiceSession'
 import type { Topic } from '../../lib/types'
 import { testCardTextClass } from '../test/textScale'
 import './PracticeRun.css'

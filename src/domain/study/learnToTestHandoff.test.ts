@@ -8,9 +8,9 @@ import {
   rungFor,
   withBaselineCue,
 } from './cueLadder'
-import { seedLibrary } from './seed'
-import { parseLibrary } from './storage'
-import type { ItemCueEvidence, ItemDirection, ItemEvidenceStore, Topic } from './types'
+import { seedLibrary } from '../library/catalogSeed'
+import { parseLibrary } from '../../lib/storage'
+import type { ItemCueEvidence, ItemDirection, ItemEvidenceStore, Topic } from '../../lib/types'
 
 /**
  * The Learn → Test handoff (#90, items 6 and 7).

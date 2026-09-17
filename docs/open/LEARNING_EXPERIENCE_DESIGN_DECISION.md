@@ -39,8 +39,8 @@ Scope reviewed: `PRODUCT.md`, `DESIGN.md`, `README.md`,
 `docs/open/MORSE_CUE_LADDER.md`, `docs/open/MORSE_WORD_CHECKPOINTS.md`,
 `docs/open/MORSE_CHARACTER_ORDER.md`, `docs/open/NAVIGATION_HISTORY.md`,
 `docs/open/LEARN_CONTENT_MODEL.md`, `docs/closed/LIBRARY_AUDIT.md`; `src/app/App.tsx`,
-`src/app/routing/routes.ts`, `src/lib/journey.ts`, `src/lib/scheduling.ts`,
-`src/lib/cueLadder.ts`, `src/lib/types.ts`, the Today/Library/Topic/Progress/Data
+`src/app/routing/routes.ts`, `src/domain/study/journey.ts`, `src/domain/study/scheduling.ts`,
+`src/domain/study/cueLadder.ts`, `src/lib/types.ts`, the Today/Library/Topic/Progress/Data
 surfaces, generic Learn, Test `Session`, the Morse programme/lesson/replay/
 reference/checkpoint surfaces, `src/styles/global.css` shell and desktop rail,
 and the Playwright navigation/Morse/grading specs; issues #21, #29, #42, #90, #92.
@@ -71,7 +71,7 @@ curriculum.** Any architecture that makes the rare object the template is wrong
 at the shape level, no matter how good the curriculum is.
 
 The corollary matters just as much: the product already knows what the learner
-should do next. `journeyFor(topic, now)` in `src/lib/journey.ts` is a pure
+should do next. `journeyFor(topic, now)` in `src/domain/study/journey.ts` is a pure
 derivation over acquisition, evidence, retention and sitting, and it returns
 `action`, `actionLabel`, `primaryLabel`, `statusLabel` and `detail`. Four
 surfaces read it and cannot disagree. That work is done and it is good. The
@@ -809,7 +809,7 @@ lesson is now restorable from its durable sitting, so the alphabet is simply
 pushed and Back returns to the lesson it interrupted instead of abandoning it.
 
 **Batch 4 — the Learn → Test seam.** #90 items 6, 7 and 8, covered by
-`src/lib/learnToTestHandoff.test.ts`. Every mapping now receives both printed
+`src/domain/study/learnToTestHandoff.test.ts`. Every mapping now receives both printed
 directions within two full runs rather than nine.
 
 **Vocabulary.** One name per thing. `Learn` left the interface; `packet` became

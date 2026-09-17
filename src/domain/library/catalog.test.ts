@@ -8,9 +8,9 @@ import {
   inferredOrigin,
   reconcileCatalog,
 } from './catalog'
-import { parseLibrary } from './storage'
-import { seedLibrary } from './seed'
-import type { CurrentLibrary, Topic } from './types'
+import { parseLibrary } from '../../lib/storage'
+import { seedLibrary } from './catalogSeed'
+import type { CurrentLibrary, Topic } from '../../lib/types'
 
 const NOW = new Date('2026-09-05T10:00:00.000Z')
 

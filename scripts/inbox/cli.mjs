@@ -25,7 +25,7 @@ import { addedCommit, formatHandoff, pendingRequests, planMarkAdded, toContentRe
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
 
 export function shippedTopicIds() {
-  return JSON.parse(readFileSync(join(ROOT, 'src/lib/shippedCatalog.json'), 'utf8')).topicIds
+  return JSON.parse(readFileSync(join(ROOT, 'src/domain/library/shippedCatalog.json'), 'utf8')).topicIds
 }
 
 function parseArgs(argv) {

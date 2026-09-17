@@ -1,13 +1,13 @@
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { expect, type Page } from '@playwright/test'
-import { seedLibrary } from '../src/lib/seed'
+import { seedLibrary } from '../src/domain/library/catalogSeed'
 import { swipeCommitDistance } from '../src/features/test/swipeGrade'
 
 // Read as a file rather than imported, so this helper stays loadable by
 // Playwright's plain-Node transpiler as well as by Vite.
 const shippedCatalog = JSON.parse(
-  readFileSync(fileURLToPath(new URL('../src/lib/shippedCatalog.json', import.meta.url)), 'utf8'),
+  readFileSync(fileURLToPath(new URL('../src/domain/library/shippedCatalog.json', import.meta.url)), 'utf8'),
 ) as { topicIds: string[] }
 
 const STORE_KEY = 'argus.library.v5'

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
-import { journeyFor } from '../../lib/journey'
-import { resolveStudy } from '../../lib/scheduling'
+import { journeyFor } from '../../domain/study/journey'
+import { resolveStudy } from '../../domain/study/scheduling'
 import { useLibrary } from '../../services/library/LibraryProvider'
 import { morseLessonPath } from '../../domain/morse/curriculum/lessonPath'
 import { morseWordCheckpointPath } from '../../domain/morse/curriculum/checkpoints'
@@ -11,7 +11,7 @@ import { MorsePath } from '../morse/lesson/MorsePath'
 // were designed with; only where they are rendered changed.
 import '../learn/Reading.css'
 import type { RunTarget } from '../../app/routing/routes'
-import { hasPractice, practiceItemCount } from '../../lib/practice'
+import { hasPractice, practiceItemCount } from '../../domain/study/practiceTargets'
 import type { Mode, Topic } from '../../lib/types'
 import './TopicPage.css'
 

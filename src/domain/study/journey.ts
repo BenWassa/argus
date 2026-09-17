@@ -1,12 +1,12 @@
-import { hasCompleteDirectionalCoverage, itemKind } from './items'
-import { morseAcquisitionPosition } from '../domain/morse/curriculum/lesson'
+import { hasCompleteDirectionalCoverage, itemKind } from '../library/items'
+import { morseAcquisitionPosition } from '../morse/curriculum/lesson'
 import {
   LESSON_RETRIEVAL_TARGET,
   lessonSittingIsFresh,
   lessonSittingOf,
-} from '../domain/morse/curriculum/lessonSitting'
+} from '../morse/curriculum/lessonSitting'
 import { DUE_RANK, dueState, gapProgress } from './scheduling'
-import type { Mode, Status, Topic } from './types'
+import type { Mode, Status, Topic } from '../../lib/types'
 
 /**
  * The shared learner journey (#62/#67).

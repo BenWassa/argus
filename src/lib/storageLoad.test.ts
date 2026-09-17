@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { catalogDefinition, collisions } from './catalog'
+import { catalogDefinition, collisions } from '../domain/library/catalog'
 import { clearLibrary, emptyLibrary, loadLibraryWithReport, saveLibrary } from './storage'
 import { LEGACY_LESSON_SITTING_KEY } from '../domain/morse/curriculum/lessonSittingStorage'
-import { SHIPPED_CATALOG_TOPIC_IDS } from './catalog'
+import { SHIPPED_CATALOG_TOPIC_IDS } from '../domain/library/catalog'
 import type { CurrentLibrary, Topic } from './types'
 
 const KEY = 'argus.library.v5'

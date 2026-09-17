@@ -1,4 +1,4 @@
-import { COMPLETION_GAP_DAYS } from '../../lib/scheduling'
+import { COMPLETION_GAP_DAYS } from '../../domain/study/scheduling'
 import { StatusTag } from '../../components/ui/StatusTag'
 import { TRACKS, type Topic, type Track } from '../../lib/types'
 

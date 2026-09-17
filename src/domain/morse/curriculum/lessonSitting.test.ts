@@ -22,7 +22,7 @@ import {
   withoutLessonSitting,
 } from './lessonSitting'
 import { parseLibrary } from '../../../lib/storage'
-import { seedLibrary } from '../../../lib/seed'
+import { seedLibrary } from '../../library/catalogSeed'
 import type { Topic } from '../../../lib/types'
 
 function morseTopic(): Topic {

@@ -4,7 +4,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { LibraryProvider } from '../../services/library/LibraryProvider'
-import { seedLibrary } from '../../lib/seed'
+import { seedLibrary } from '../../domain/library/catalogSeed'
 import type { Topic } from '../../lib/types'
 import { PracticeRun } from './PracticeRun'
 
@@ -83,8 +83,8 @@ describe('practice writes nothing', () => {
     // these, it is no longer a formative run and this test should be the thing
     // that says so.
     expect(imports).not.toContain('../../services/library/LibraryProvider')
-    expect(imports).not.toContain('../../lib/scheduling')
-    expect(imports).not.toContain('../../lib/cueLadder')
+    expect(imports).not.toContain('../../domain/study/scheduling')
+    expect(imports).not.toContain('../../domain/study/cueLadder')
     expect(source).not.toContain('updateTopic')
     expect(source).not.toContain('resolveAttempt')
     expect(source).not.toContain('recordAnswer')

@@ -10,7 +10,7 @@ import {
   toContentRequest,
 } from './lib.mjs'
 import { shippedTopicIds } from './cli.mjs'
-import shippedCatalog from '../../src/lib/shippedCatalog.json' with { type: 'json' }
+import shippedCatalog from '../../src/domain/library/shippedCatalog.json' with { type: 'json' }
 
 const SHIPPED = shippedCatalog.topicIds
 

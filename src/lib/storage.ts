@@ -24,7 +24,7 @@ import {
   type Topic,
   TOPIC_ORIGINS,
 } from './types'
-import { migratedItemId } from './items'
+import { migratedItemId } from '../domain/library/items'
 import {
   LESSON_RETRIEVAL_TARGET,
   lessonSittingIsFresh,
@@ -33,7 +33,7 @@ import {
 } from '../domain/morse/curriculum/lessonSitting'
 import { clearAllLessonSittings, readLessonSittingSidecar } from '../domain/morse/curriculum/lessonSittingStorage'
 import { morseReviewIsFresh } from '../domain/morse/curriculum/review'
-import { seedLibrary } from './seed'
+import { seedLibrary } from '../domain/library/catalogSeed'
 import {
   NO_RECONCILIATION,
   SHIPPED_CATALOG_TOPIC_IDS,
@@ -42,7 +42,7 @@ import {
   inferredOrigin,
   reconcileCatalog,
   type CatalogReconciliation,
-} from './catalog'
+} from '../domain/library/catalog'
 
 const KEY = 'argus.library.v5'
 const LEGACY_KEYS = ['argus.library.v4', 'argus.library.v3', 'argus.library.v2'] as const

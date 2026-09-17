@@ -1,5 +1,5 @@
-import { identifiedItem, requiredDirections } from './items'
-import type { IdentifiedItem, Item, ItemCueEvidence, ItemDirection, Topic } from './types'
+import { identifiedItem, requiredDirections } from '../library/items'
+import type { IdentifiedItem, Item, ItemCueEvidence, ItemDirection, Topic } from '../../lib/types'
 
 /**
  * How many items one practice run may ask.

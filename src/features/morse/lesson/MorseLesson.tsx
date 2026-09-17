@@ -41,7 +41,7 @@ import {
   morseWordCheckpointPath,
   type MorseWordCheckpointPathItem,
 } from '../../../domain/morse/curriculum/checkpoints'
-import { withAcquisitionReadiness } from '../../../lib/journey'
+import { withAcquisitionReadiness } from '../../../domain/study/journey'
 import {
   completeSitting,
   morseReviewOf,
