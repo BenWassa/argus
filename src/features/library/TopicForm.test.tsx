@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { seedLibrary } from '../../domain/library/catalogSeed'
 import { parseLibrary } from '../../lib/storage'
-import type { Topic } from '../../lib/types'
+import type { Topic } from '../../domain/library/topic'
 import { TopicForm } from './TopicForm'
 
 /**

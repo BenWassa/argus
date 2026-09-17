@@ -1,7 +1,7 @@
 import { lessonPackets } from './lesson'
 import { morseLessonPath, type MorseLessonPathItem } from './lessonPath'
 import type { MorseLetter } from '../code'
-import type { Topic } from '../../../lib/types'
+import type { Topic } from '../../library/topic'
 
 export type MorseWordCheckpointId = 'after-4' | 'after-7' | 'after-10' | 'after-13'
 

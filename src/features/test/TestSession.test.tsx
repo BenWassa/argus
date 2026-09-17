@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { act, cleanup, render, screen, waitFor } from '@testing-library/react'
 import { LibraryProvider } from '../../services/library/LibraryProvider'
 import { seedLibrary } from '../../domain/library/catalogSeed'
-import type { Topic } from '../../lib/types'
+import type { Topic } from '../../domain/library/topic'
 import { TestSession } from './TestSession'
 
 const STORE_KEY = 'argus.library.v5'

@@ -14,7 +14,7 @@ import {
 } from './curriculum/review'
 import type { LessonEntry } from './curriculum/lesson'
 import type { MorseLetter } from './code'
-import type { MorseReviewProgress } from '../../lib/types'
+import type { MorseReviewProgress } from './progress'
 
 /**
  * #90 §5: listening is selected by need, not by whichever character the printed

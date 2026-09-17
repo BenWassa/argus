@@ -1,29 +1,35 @@
 import {
-  CUE_STATES,
-  ITEM_DIRECTIONS,
-  ITEM_KINDS,
   LEARN_KINDS,
-  LESSON_SUPPORTS,
-  STATUSES,
-  TRACKS,
-  type CurrentLibrary,
-  type DirectionEvidence,
-  type IdentifiedItem,
-  type ItemCueEvidence,
-  type ItemEvidenceStore,
-  type ItemLessonStore,
   type LearnBlock,
   type LearnCaseStudy,
   type LearnContent,
   type LearnSection,
   type LearnSource,
   type MorseCharacterLearnItem,
+} from '../domain/learning/content'
+import {
+  ITEM_KINDS,
+  STATUSES,
+  TRACKS,
+  type IdentifiedItem,
+  type Topic,
+  TOPIC_ORIGINS,
+} from '../domain/library/topic'
+import {
+  LESSON_SUPPORTS,
+  type ItemLessonStore,
   type MorseLessonSittingProgress,
   type MorseReviewItem,
   type MorseReviewProgress,
-  type Topic,
-  TOPIC_ORIGINS,
-} from './types'
+} from '../domain/morse/progress'
+import {
+  CUE_STATES,
+  ITEM_DIRECTIONS,
+  type DirectionEvidence,
+  type ItemCueEvidence,
+  type ItemEvidenceStore,
+} from '../domain/study/evidence'
+import type { CurrentLibrary } from '../infrastructure/persistence/librarySchema'
 import { migratedItemId } from '../domain/library/items'
 import {
   LESSON_RETRIEVAL_TARGET,
@@ -31,7 +37,10 @@ import {
   withLessonSitting,
   type LessonSitting,
 } from '../domain/morse/curriculum/lessonSitting'
-import { clearAllLessonSittings, readLessonSittingSidecar } from '../domain/morse/curriculum/lessonSittingStorage'
+import {
+  clearAllLessonSittings,
+  readLessonSittingSidecar,
+} from '../domain/morse/curriculum/lessonSittingStorage'
 import { morseReviewIsFresh } from '../domain/morse/curriculum/review'
 import { seedLibrary } from '../domain/library/catalogSeed'
 import {

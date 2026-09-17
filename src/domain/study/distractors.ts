@@ -4,7 +4,8 @@ import {
   differsOnlyInFinalElement,
 } from './confusion'
 import { isEstablished, isInAcquisition } from './cueLadder'
-import type { Item, ItemCueEvidence, ItemEvidenceStore } from '../../lib/types'
+import type { Item } from '../library/topic'
+import type { ItemCueEvidence, ItemEvidenceStore } from './evidence'
 
 // Re-exported so the confusion model has one definition but keeps one import
 // site for everything that already reads it as part of distractor selection.

@@ -1,4 +1,5 @@
-import type { MorseLessonSittingProgress, Topic } from '../../../lib/types'
+import type { Topic } from '../../library/topic'
+import type { MorseLessonSittingProgress } from '../progress'
 
 export const LESSON_RETRIEVAL_TARGET = 10
 export type LessonSitting = MorseLessonSittingProgress

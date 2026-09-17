@@ -16,7 +16,8 @@ import {
 import { COMPLETION_GAP_DAYS, resolveAttempt } from '../study/scheduling'
 import { parseLibrary } from '../../lib/storage'
 import { seedLibrary } from '../library/catalogSeed'
-import type { DirectionEvidence, IdentifiedItem, ItemCueEvidence, ItemEvidenceStore, Topic } from '../../lib/types'
+import type { IdentifiedItem, Topic } from '../library/topic'
+import type { DirectionEvidence, ItemCueEvidence, ItemEvidenceStore } from '../study/evidence'
 
 /**
  * #68 — adversarial cover for the exact printed claim:

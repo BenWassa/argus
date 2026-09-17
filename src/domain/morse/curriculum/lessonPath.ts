@@ -6,7 +6,7 @@ import {
   type LessonRun,
 } from './lesson'
 import type { MorseLetter } from '../code'
-import type { Topic } from '../../../lib/types'
+import type { Topic } from '../../library/topic'
 
 export type MorseLessonPathState = 'completed' | 'current' | 'unlocked' | 'locked'
 

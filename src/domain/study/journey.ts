@@ -6,7 +6,8 @@ import {
   lessonSittingOf,
 } from '../morse/curriculum/lessonSitting'
 import { DUE_RANK, dueState, gapProgress } from './scheduling'
-import type { Mode, Status, Topic } from '../../lib/types'
+import type { Mode } from '../../app/routing/routes'
+import type { Status, Topic } from '../library/topic'
 
 /**
  * The shared learner journey (#62/#67).

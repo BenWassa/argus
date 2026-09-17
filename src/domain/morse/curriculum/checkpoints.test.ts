@@ -13,7 +13,8 @@ import {
 } from './checkpoints'
 import { parseLibrary } from '../../../lib/storage'
 import { seedLibrary } from '../../library/catalogSeed'
-import type { ItemLessonStore, Topic } from '../../../lib/types'
+import type { Topic } from '../../library/topic'
+import type { ItemLessonStore } from '../progress'
 
 const MORSE_ID = 'international-morse-letters-printed'
 

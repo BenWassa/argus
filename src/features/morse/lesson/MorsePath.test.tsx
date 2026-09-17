@@ -7,7 +7,7 @@ import { morseLessonPath } from '../../../domain/morse/curriculum/lessonPath'
 import { morseWordCheckpointPath } from '../../../domain/morse/curriculum/checkpoints'
 import { seedLibrary } from '../../../domain/library/catalogSeed'
 import { parseLibrary } from '../../../lib/storage'
-import type { Topic } from '../../../lib/types'
+import type { Topic } from '../../../domain/library/topic'
 import { MorsePath } from './MorsePath'
 
 /**

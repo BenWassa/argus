@@ -12,7 +12,8 @@ import { MorsePath } from '../morse/lesson/MorsePath'
 import '../learn/Reading.css'
 import type { RunTarget } from '../../app/routing/routes'
 import { hasPractice, practiceItemCount } from '../../domain/study/practiceTargets'
-import type { Mode, Topic } from '../../lib/types'
+import type { Mode } from '../../app/routing/routes'
+import type { Topic } from '../../domain/library/topic'
 import './TopicPage.css'
 
 interface TopicPageProps {

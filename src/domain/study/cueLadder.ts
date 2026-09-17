@@ -1,13 +1,12 @@
 import { requiredDirections } from '../library/items'
+import type { Item, Topic } from '../library/topic'
 import type {
   CueState,
   DirectionEvidence,
-  Item,
   ItemCueEvidence,
   ItemDirection,
   ItemEvidenceStore,
-  Topic,
-} from '../../lib/types'
+} from './evidence'
 
 /**
  * The acquisition ladder.

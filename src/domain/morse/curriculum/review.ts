@@ -1,4 +1,5 @@
-import type { MorseReviewItem, MorseReviewProgress, Topic } from '../../../lib/types'
+import type { Topic } from '../../library/topic'
+import type { MorseReviewItem, MorseReviewProgress } from '../progress'
 
 /**
  * How many correct retrievals in a *later* sitting a character needs before the

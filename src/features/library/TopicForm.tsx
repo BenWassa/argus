@@ -8,7 +8,8 @@ import {
 import { pruneLessonProgress } from '../../domain/morse/curriculum/lesson'
 import { pruneLessonSitting } from '../../domain/morse/curriculum/lessonSitting'
 import { pruneMorseReview } from '../../domain/morse/curriculum/review'
-import { TRACKS, type Item, type LearnContent, type Topic, type Track } from '../../lib/types'
+import type { LearnContent } from '../../domain/learning/content'
+import { TRACKS, type Item, type Topic, type Track } from '../../domain/library/topic'
 
 /** Starting values for a new topic. Used to hand the user a worked example
  *  rather than describing what a good scope sentence looks like. */

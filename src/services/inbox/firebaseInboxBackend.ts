@@ -1,5 +1,10 @@
 import { inboxCollectionPath, type InboxConfig } from './inboxConfig'
-import { parseContentRequest, pendingRequestFields, type CaptureDraft, type ContentRequest } from './inboxModel'
+import {
+  parseContentRequest,
+  pendingRequestFields,
+  type CaptureDraft,
+  type ContentRequest,
+} from './inboxModel'
 import type { InboxBackend, InboxUser, Unsubscribe } from './inboxBackend'
 
 /**

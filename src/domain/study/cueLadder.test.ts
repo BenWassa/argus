@@ -18,7 +18,8 @@ import {
   withItemEvidence,
 } from './cueLadder'
 import { resolveAttempt, resolveStudy } from './scheduling'
-import type { IdentifiedItem, ItemCueEvidence, Topic } from '../../lib/types'
+import type { IdentifiedItem, Topic } from '../library/topic'
+import type { ItemCueEvidence } from './evidence'
 
 const forward: IdentifiedItem = { id: 'i-r', kind: 'forward', prompt: 'R', answer: '.-.' }
 const both: IdentifiedItem = { id: 'i-s', kind: 'bidirectional', prompt: 'S', answer: '...' }

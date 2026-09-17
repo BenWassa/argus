@@ -16,7 +16,8 @@ import {
   withMorseReview,
   withoutMorseReview,
 } from './review'
-import type { MorseReviewProgress, Topic } from '../../../lib/types'
+import type { Topic } from '../../library/topic'
+import type { MorseReviewProgress } from '../progress'
 
 function topicWith(morseReview?: MorseReviewProgress): Topic {
   return {

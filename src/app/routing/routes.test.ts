@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { isAppRoute, restoreRoute, sameRoute, type AppRoute } from './routes'
-import type { Topic } from '../../lib/types'
+import type { Topic } from '../../domain/library/topic'
 
 describe('the route model', () => {
   it('accepts only versioned serializable Argus routes', () => {

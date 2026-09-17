@@ -8,7 +8,7 @@ import {
   practiceStep,
   startPracticeRun,
 } from '../../domain/study/practiceSession'
-import type { Topic } from '../../lib/types'
+import type { Topic } from '../../domain/library/topic'
 import { testCardTextClass } from '../test/textScale'
 import './PracticeRun.css'
 

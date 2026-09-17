@@ -1,10 +1,17 @@
 import { describe, expect, it } from 'vitest'
 import { morseAcquisitionPosition } from './curriculum/lesson'
-import { completeSitting, newMorseReview, recordIntroduced, recordPrintedRetrieval, withMorseReview } from './curriculum/review'
+import {
+  completeSitting,
+  newMorseReview,
+  recordIntroduced,
+  recordPrintedRetrieval,
+  withMorseReview,
+} from './curriculum/review'
 import { parseLibrary } from '../../lib/storage'
 import { seedLibrary } from '../library/catalogSeed'
 import { ALL_MORSE_LETTERS } from './curriculum/packetOrder'
-import type { ItemLessonStore, MorseReviewProgress, Topic } from '../../lib/types'
+import type { Topic } from '../library/topic'
+import type { ItemLessonStore, MorseReviewProgress } from './progress'
 
 /**
  * #90 §4: settling every character is necessary but not sufficient for

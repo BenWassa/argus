@@ -27,7 +27,7 @@
  * this whole layer exists to avoid.
  */
 
-import type { Topic } from '../../lib/types'
+import type { Topic } from '../../domain/library/topic'
 
 /** A topic as it is stored remotely: the v5 JSON, and enough to order writes. */
 export interface RemoteRecord {

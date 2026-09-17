@@ -4,9 +4,16 @@ import { firebaseSyncBackend } from './firebaseSyncBackend'
 import { unconfiguredSyncBackend, type SyncBackend, type SyncUser } from './syncBackend'
 import { loadLedger, saveLedger } from './syncLedger'
 import { forgetSignedIn, hasSignedIn, rememberSignedIn } from './syncSession'
-import { nextLedger, planSync, topicJson, type Ledger, type RemoteRecord, type SyncAction } from './syncPlanner'
+import {
+  nextLedger,
+  planSync,
+  topicJson,
+  type Ledger,
+  type RemoteRecord,
+  type SyncAction,
+} from './syncPlanner'
 import { parseLibrary } from '../../lib/storage'
-import type { Topic } from '../../lib/types'
+import type { Topic } from '../../domain/library/topic'
 
 export type SyncState =
   | { kind: 'unconfigured' }

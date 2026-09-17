@@ -1,4 +1,4 @@
-import type { Status } from '../../lib/types'
+import type { Status } from '../../domain/library/topic'
 
 /**
  * Status is information, never praise or punishment. `decayed` reads the same

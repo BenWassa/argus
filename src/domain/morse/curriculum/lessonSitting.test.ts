@@ -23,7 +23,7 @@ import {
 } from './lessonSitting'
 import { parseLibrary } from '../../../lib/storage'
 import { seedLibrary } from '../../library/catalogSeed'
-import type { Topic } from '../../../lib/types'
+import type { Topic } from '../../library/topic'
 
 function morseTopic(): Topic {
   const parsed = parseLibrary(seedLibrary())

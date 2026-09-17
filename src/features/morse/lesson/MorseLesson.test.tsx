@@ -19,11 +19,16 @@ import {
   type LessonRun,
 } from '../../../domain/morse/curriculum/lesson'
 import { lessonListeningOptions } from '../../../domain/morse/curriculum/listening'
-import { MORSE_FEEDBACK_CORRECT_MS, MORSE_TRANSITION_MS, morseElementDurationMs } from '../../../domain/morse/response'
+import {
+  MORSE_FEEDBACK_CORRECT_MS,
+  MORSE_TRANSITION_MS,
+  morseElementDurationMs,
+} from '../../../domain/morse/response'
 import { LibraryProvider } from '../../../services/library/LibraryProvider'
 import { parseLibrary, saveLibrary } from '../../../lib/storage'
 import { seedLibrary } from '../../../domain/library/catalogSeed'
-import type { ItemLessonStore, Topic } from '../../../lib/types'
+import type { Topic } from '../../../domain/library/topic'
+import type { ItemLessonStore } from '../../../domain/morse/progress'
 import { LessonRun as GuidedRun } from './LessonRun'
 import { ListeningCheckStep, MorseLesson, VisualCheckStep } from './MorseLesson'
 

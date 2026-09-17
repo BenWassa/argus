@@ -1,5 +1,5 @@
 import { canonicalNotation, spokenRhythm } from '../../domain/morse/mnemonics'
-import type { MorseCharacterLearnItem } from '../../lib/types'
+import type { MorseCharacterLearnItem } from '../../domain/learning/content'
 import { MorseMnemonic } from './MorseMnemonic'
 import { MorseBeatGrammarNote, MorsePhrase } from './MorsePhrase'
 import { MorsePlayButton } from './MorsePlayButton'

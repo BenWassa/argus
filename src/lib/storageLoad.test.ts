@@ -3,7 +3,8 @@ import { catalogDefinition, collisions } from '../domain/library/catalog'
 import { clearLibrary, emptyLibrary, loadLibraryWithReport, saveLibrary } from './storage'
 import { LEGACY_LESSON_SITTING_KEY } from '../domain/morse/curriculum/lessonSittingStorage'
 import { SHIPPED_CATALOG_TOPIC_IDS } from '../domain/library/catalog'
-import type { CurrentLibrary, Topic } from './types'
+import type { Topic } from '../domain/library/topic'
+import type { CurrentLibrary } from '../infrastructure/persistence/librarySchema'
 
 const KEY = 'argus.library.v5'
 const NOW = new Date('2026-09-05T10:00:00.000Z')

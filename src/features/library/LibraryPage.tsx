@@ -18,7 +18,8 @@ import { WantToLearn } from './WantToLearn'
 import { useInbox } from '../../services/inbox/useInbox'
 import { describeInboxError } from '../../services/inbox/inboxBackend'
 import type { ContentRequest } from '../../services/inbox/inboxModel'
-import { TRACKS, type Mode, type Topic, type Track } from '../../lib/types'
+import type { Mode } from '../../app/routing/routes'
+import { TRACKS, type Topic, type Track } from '../../domain/library/topic'
 import './LibraryPage.css'
 
 interface LibraryProps {

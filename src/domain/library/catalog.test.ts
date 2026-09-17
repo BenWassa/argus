@@ -10,7 +10,8 @@ import {
 } from './catalog'
 import { parseLibrary } from '../../lib/storage'
 import { seedLibrary } from './catalogSeed'
-import type { CurrentLibrary, Topic } from '../../lib/types'
+import type { Topic } from './topic'
+import type { CurrentLibrary } from '../../infrastructure/persistence/librarySchema'
 
 const NOW = new Date('2026-09-05T10:00:00.000Z')
 

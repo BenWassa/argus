@@ -8,7 +8,8 @@ import {
   selectDistractors,
 } from './distractors'
 import { isAssistedRung, recordAnswer, rungFor } from './cueLadder'
-import type { IdentifiedItem, ItemCueEvidence, ItemEvidenceStore } from '../../lib/types'
+import type { IdentifiedItem } from '../library/topic'
+import type { ItemCueEvidence, ItemEvidenceStore } from './evidence'
 
 const deck: IdentifiedItem[] = (Object.keys(MORSE_LETTERS) as MorseLetter[]).map((letter) => ({
   id: `i-${letter}`,

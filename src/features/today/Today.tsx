@@ -8,7 +8,7 @@ import {
 } from '../../domain/study/journey'
 import type { RunTarget } from '../../app/routing/routes'
 import { resolveStudy } from '../../domain/study/scheduling'
-import type { Mode } from '../../lib/types'
+import type { Mode } from '../../app/routing/routes'
 import './Today.css'
 
 const WORDS = [

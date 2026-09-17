@@ -25,7 +25,7 @@ import {
   readNavigationState,
   replaceNavigationState,
 } from './history'
-import type { Mode, View } from '../../lib/types'
+import type { Mode, View } from './routes'
 
 function focusAfterTraversal(previous: AppRoute, next: AppRoute) {
   if (sameRoute(previous, next)) return

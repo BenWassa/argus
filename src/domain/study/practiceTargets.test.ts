@@ -7,13 +7,8 @@ import {
   practiceTargets,
   targetsForItems,
 } from './practiceTargets'
-import type {
-  DirectionEvidence,
-  IdentifiedItem,
-  ItemDirection,
-  ItemEvidenceStore,
-  Topic,
-} from '../../lib/types'
+import type { IdentifiedItem, Topic } from '../library/topic'
+import type { DirectionEvidence, ItemDirection, ItemEvidenceStore } from './evidence'
 
 /**
  * Practice selects on durable evidence that already exists. Every test here

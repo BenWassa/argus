@@ -2,7 +2,8 @@ import { revealedElementCount, type CueRung } from '../../study/cueLadder'
 import { MORSE_LETTERS, type MorseLetter } from '../code'
 import { mnemonicId, mnemonicTextEquivalent } from '../mnemonics'
 import { verbalMnemonic, type MorseVerbalBeat } from '../verbalMnemonics'
-import type { Item, LearnBlock, Topic } from '../../../lib/types'
+import type { LearnBlock } from '../../learning/content'
+import type { Item, Topic } from '../../library/topic'
 
 /**
  * What the Test ladder needs to know about one scored item to build cues for

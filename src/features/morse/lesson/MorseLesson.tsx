@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { canonicalPattern } from '../../../domain/morse/testing/acquisitionProfile'
-import { canonicalNotation, mnemonicTextEquivalent, spokenRhythm } from '../../../domain/morse/mnemonics'
+import {
+  canonicalNotation,
+  mnemonicTextEquivalent,
+  spokenRhythm,
+} from '../../../domain/morse/mnemonics'
 import {
   advanceLesson,
   answerLesson,
@@ -15,7 +19,10 @@ import {
   type LessonEntry,
   type LessonRun,
 } from '../../../domain/morse/curriculum/lesson'
-import { morseLessonPath, type MorseLessonPathItem } from '../../../domain/morse/curriculum/lessonPath'
+import {
+  morseLessonPath,
+  type MorseLessonPathItem,
+} from '../../../domain/morse/curriculum/lessonPath'
 import {
   answerListeningQuestion,
   lessonListeningOptions,
@@ -52,7 +59,7 @@ import {
 } from '../../../domain/morse/curriculum/review'
 import type { MorseLetter } from '../../../domain/morse/code'
 import { useLibrary } from '../../../services/library/LibraryProvider'
-import type { Topic } from '../../../lib/types'
+import type { Topic } from '../../../domain/library/topic'
 import { MorseKeyInput } from '../input/MorseKeyInput'
 import { useKeyedResponse } from '../input/useKeyedResponse'
 import { MorseCheckpoint } from './MorseCheckpoint'

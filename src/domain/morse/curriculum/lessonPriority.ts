@@ -1,5 +1,5 @@
 import { hasLaterSittingSuccess, hasListeningCoverage, sittingsSinceSeen } from './review'
-import type { LessonSupport, MorseReviewProgress } from '../../../lib/types'
+import type { LessonSupport, MorseReviewProgress } from '../progress'
 
 /**
  * How urgently a character wants retrieving (#90 §2).

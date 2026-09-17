@@ -10,7 +10,8 @@ import {
 } from './cueLadder'
 import { seedLibrary } from '../library/catalogSeed'
 import { parseLibrary } from '../../lib/storage'
-import type { ItemCueEvidence, ItemDirection, ItemEvidenceStore, Topic } from '../../lib/types'
+import type { Topic } from '../library/topic'
+import type { ItemCueEvidence, ItemDirection, ItemEvidenceStore } from './evidence'
 
 /**
  * The Learn → Test handoff (#90, items 6 and 7).

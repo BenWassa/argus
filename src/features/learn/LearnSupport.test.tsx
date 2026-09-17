@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import type { LearnContent } from '../../lib/types'
+import type { LearnContent } from '../../domain/learning/content'
 import { LearnSupport } from './LearnSupport'
 
 describe('structured Learn rendering', () => {

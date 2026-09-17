@@ -40,7 +40,7 @@ Scope reviewed: `PRODUCT.md`, `DESIGN.md`, `README.md`,
 `docs/open/MORSE_CHARACTER_ORDER.md`, `docs/open/NAVIGATION_HISTORY.md`,
 `docs/open/LEARN_CONTENT_MODEL.md`, `docs/closed/LIBRARY_AUDIT.md`; `src/app/App.tsx`,
 `src/app/routing/routes.ts`, `src/domain/study/journey.ts`, `src/domain/study/scheduling.ts`,
-`src/domain/study/cueLadder.ts`, `src/lib/types.ts`, the Today/Library/Topic/Progress/Data
+`src/domain/study/cueLadder.ts`, `src/domain/library/topic.ts`, the Today/Library/Topic/Progress/Data
 surfaces, generic Learn, Test `Session`, the Morse programme/lesson/replay/
 reference/checkpoint surfaces, `src/styles/global.css` shell and desktop rail,
 and the Playwright navigation/Morse/grading specs; issues #21, #29, #42, #90, #92.

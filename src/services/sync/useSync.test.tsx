@@ -6,7 +6,7 @@ import { rememberSignedIn } from './syncSession'
 import { unconfiguredSyncBackend, type SyncBackend, type SyncUser } from './syncBackend'
 import { topicJson, type RemoteRecord } from './syncPlanner'
 import { seedLibrary } from '../../domain/library/catalogSeed'
-import type { Topic } from '../../lib/types'
+import type { Topic } from '../../domain/library/topic'
 
 /**
  * Applying a plan is genuinely asynchronous — a push is awaited before the

@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { LibraryProvider } from '../../services/library/LibraryProvider'
 import { seedLibrary } from '../../domain/library/catalogSeed'
-import type { Topic } from '../../lib/types'
+import type { Topic } from '../../domain/library/topic'
 import { PracticeRun } from './PracticeRun'
 
 const STORE_KEY = 'argus.library.v5'

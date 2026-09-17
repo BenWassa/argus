@@ -1,4 +1,4 @@
-import type { Mode, Topic, View } from '../../lib/types'
+import type { Topic } from '../../domain/library/topic'
 
 /**
  * The route model: what a destination is, whether an unknown value is one, and
@@ -8,6 +8,23 @@ import type { Mode, Topic, View } from '../../lib/types'
  * restored history entry be validated against the live library without a
  * browser in the room. The history mechanics live in `history.ts`.
  */
+
+/**
+ * Top-level destinations.
+ *
+ * Two of them are navigation: Today is the docket, Library is everything owned.
+ * `data` is a Library utility with its own route rather than a third thumb-level
+ * slot, because export/import is a handful of uses a year and the bottom bar is
+ * the scarcest space in the product. Progress is gone as a destination: its live
+ * sections were a third reading of the same `journeyFor` derivation Library
+ * already shelves, and its permanent completion record now closes Library.
+ */
+export type View = 'today' | 'library' | 'data'
+
+/** Learn is ungraded exposure; Test is the single scored recall interaction. */
+export const MODES = ['learn', 'test'] as const
+export type Mode = (typeof MODES)[number]
+
 export type ParentRoute =
   | { kind: 'section'; view: View }
   | { kind: 'topic'; topicId: string }

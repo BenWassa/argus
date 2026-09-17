@@ -10,7 +10,7 @@ import {
   startPracticeRun,
   targetKey,
 } from './practiceSession'
-import type { IdentifiedItem } from '../../lib/types'
+import type { IdentifiedItem } from '../library/topic'
 
 function item(id: string, prompt: string, answer: string): IdentifiedItem {
   return { id, kind: 'bidirectional', prompt, answer }

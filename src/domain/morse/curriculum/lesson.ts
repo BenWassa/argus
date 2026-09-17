@@ -11,13 +11,13 @@ import {
   complexityOrderedLetters,
   type CharacterPacket,
 } from './packetOrder'
+import type { Topic } from '../../library/topic'
 import {
   LESSON_SUPPORTS,
   type ItemLessonStore,
   type LessonSupport,
   type MorseReviewProgress,
-  type Topic,
-} from '../../../lib/types'
+} from '../progress'
 
 /**
  * The guided Morse lesson policy (#48).

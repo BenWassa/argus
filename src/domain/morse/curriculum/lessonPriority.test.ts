@@ -12,7 +12,7 @@ import {
   recordListeningRetrieval,
   recordPrintedRetrieval,
 } from './review'
-import type { MorseReviewProgress } from '../../../lib/types'
+import type { MorseReviewProgress } from '../progress'
 
 function candidate(
   itemId: string,

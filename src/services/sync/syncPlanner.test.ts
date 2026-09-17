@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { nextLedger, planSync, topicJson, wouldLoseEvidence, type Ledger, type RemoteRecord } from './syncPlanner'
-import type { Topic } from '../../lib/types'
+import {
+  nextLedger,
+  planSync,
+  topicJson,
+  wouldLoseEvidence,
+  type Ledger,
+  type RemoteRecord,
+} from './syncPlanner'
+import type { Topic } from '../../domain/library/topic'
 
 /**
  * Sync is the only place two devices can disagree about the learner's record,

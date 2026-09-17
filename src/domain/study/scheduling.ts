@@ -1,4 +1,5 @@
-import type { Mode, Status, Topic } from '../../lib/types'
+import type { Mode } from '../../app/routing/routes'
+import type { Status, Topic } from '../library/topic'
 
 /** A topic reaches `drilled` only on a clean session. No partial credit. */
 export const PASS_THRESHOLD = 1

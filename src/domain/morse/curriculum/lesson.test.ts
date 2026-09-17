@@ -25,7 +25,8 @@ import { DEFAULT_PACKET_PLAN } from './packetOrder'
 import { resolveAttempt, resolveStudy } from '../../study/scheduling'
 import { parseLibrary } from '../../../lib/storage'
 import { seedLibrary } from '../../library/catalogSeed'
-import type { ItemLessonStore, Topic } from '../../../lib/types'
+import type { Topic } from '../../library/topic'
+import type { ItemLessonStore } from '../progress'
 
 function morseTopic(): Topic {
   const parsed = parseLibrary(seedLibrary())

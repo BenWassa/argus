@@ -22,7 +22,7 @@ import {
 import { COMPLETION_GAP_DAYS, resolveAttempt, resolveStudy } from './scheduling'
 import { parseLibrary } from '../../lib/storage'
 import { seedLibrary } from '../library/catalogSeed'
-import type { Topic } from '../../lib/types'
+import type { Topic } from '../library/topic'
 
 const MORSE_ID = 'international-morse-letters-printed'
 const DAY = 86_400_000

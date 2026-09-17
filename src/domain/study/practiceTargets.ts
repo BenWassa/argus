@@ -1,5 +1,6 @@
 import { identifiedItem, requiredDirections } from '../library/items'
-import type { IdentifiedItem, Item, ItemCueEvidence, ItemDirection, Topic } from '../../lib/types'
+import type { IdentifiedItem, Item, Topic } from '../library/topic'
+import type { ItemCueEvidence, ItemDirection } from './evidence'
 
 /**
  * How many items one practice run may ask.

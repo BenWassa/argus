@@ -1,6 +1,6 @@
 import { COMPLETION_GAP_DAYS } from '../../domain/study/scheduling'
 import { StatusTag } from '../../components/ui/StatusTag'
-import { TRACKS, type Topic, type Track } from '../../lib/types'
+import { TRACKS, type Topic, type Track } from '../../domain/library/topic'
 
 /**
  * The permanent completion record, and the reason Progress did not need to be a

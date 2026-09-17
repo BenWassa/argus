@@ -1,4 +1,4 @@
-import type { LearnBlock, LearnContent, LearnSection } from '../../lib/types'
+import type { LearnBlock, LearnContent, LearnSection } from '../../domain/learning/content'
 import { MorseCharacterPacket } from '../morse/MorseCharacterPacket'
 
 function LearnBlockView({ block }: { block: LearnBlock }) {

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import type { View } from '../../lib/types'
+import type { View } from '../../app/routing/routes'
 
 type NavView = Extract<View, 'today' | 'library'>
 

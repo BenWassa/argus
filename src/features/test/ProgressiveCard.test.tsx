@@ -19,7 +19,8 @@ import { MORSE_LETTERS, type MorseLetter } from '../../domain/morse/code'
 import { verbalMnemonic } from '../../domain/morse/verbalMnemonics'
 import { parseLibrary } from '../../lib/storage'
 import { seedLibrary } from '../../domain/library/catalogSeed'
-import type { IdentifiedItem, ItemCueEvidence, Topic } from '../../lib/types'
+import type { IdentifiedItem, Topic } from '../../domain/library/topic'
+import type { ItemCueEvidence } from '../../domain/study/evidence'
 import { ProgressiveCard } from './ProgressiveCard'
 
 const letters = Object.keys(MORSE_LETTERS) as MorseLetter[]

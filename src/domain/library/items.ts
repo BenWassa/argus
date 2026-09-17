@@ -1,11 +1,5 @@
-import type {
-  IdentifiedItem,
-  Item,
-  ItemDirection,
-  ItemEvidenceStore,
-  ItemKind,
-  ItemCueEvidence,
-} from '../../lib/types'
+import type { IdentifiedItem, Item, ItemKind } from './topic'
+import type { ItemDirection, ItemEvidenceStore, ItemCueEvidence } from '../study/evidence'
 
 let fallbackIdCounter = 0
 

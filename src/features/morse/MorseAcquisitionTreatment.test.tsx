@@ -6,7 +6,7 @@ import {
   verbalMnemonic,
   verbalMnemonicTextEquivalent,
 } from '../../domain/morse/verbalMnemonics'
-import type { MorseCharacterLearnItem } from '../../lib/types'
+import type { MorseCharacterLearnItem } from '../../domain/learning/content'
 import { MorseCharacterPacket } from './MorseCharacterPacket'
 import { MorseBeatGrammarNote, MorsePhrase, beatMarkGlyph } from './MorsePhrase'
 

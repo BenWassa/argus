@@ -28,7 +28,7 @@ import {
 import { parseLibrary } from '../../../lib/storage'
 import { seedLibrary } from '../../library/catalogSeed'
 import type { MorseLetter } from '../code'
-import type { Topic } from '../../../lib/types'
+import type { Topic } from '../../library/topic'
 
 function morseTopic(): Topic {
   const parsed = parseLibrary(seedLibrary())

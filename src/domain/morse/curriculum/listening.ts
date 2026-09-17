@@ -1,7 +1,7 @@
 import type { LessonEntry, LessonRun } from './lesson'
 import type { MorseLetter } from '../code'
 import { LISTENING_IMBALANCE_ALLOWANCE, hasListeningCoverage } from './review'
-import type { MorseReviewProgress } from '../../../lib/types'
+import type { MorseReviewProgress } from '../progress'
 
 /** One listening prompt at most every third completed formative retrieval. */
 export const LISTENING_RETRIEVAL_INTERVAL = 3

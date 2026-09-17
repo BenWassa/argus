@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { inboxConfig } from './inboxConfig'
-import { describeInboxError, unavailableBackend, type InboxBackend, type InboxUser } from './inboxBackend'
+import {
+  describeInboxError,
+  unavailableBackend,
+  type InboxBackend,
+  type InboxUser,
+} from './inboxBackend'
 import { pendingQueue, type CaptureDraft, type ContentRequest } from './inboxModel'
 import { firebaseInboxBackend } from './firebaseInboxBackend'
 

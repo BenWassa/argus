@@ -12,7 +12,8 @@ import { seedLibrary } from '../library/catalogSeed'
 import { DEFAULT_PACKET_PLAN } from './curriculum/packetOrder'
 import { isConfusable } from '../study/confusion'
 import { morsePattern } from './code'
-import type { ItemLessonStore, Topic } from '../../lib/types'
+import type { Topic } from '../library/topic'
+import type { ItemLessonStore } from './progress'
 
 /**
  * #90 §3: a sitting introduces at most one novel pair.

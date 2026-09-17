@@ -3,11 +3,16 @@ import { dirname, join, relative, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { TRACK_HINTS, parseContentRequest, type ContentRequest } from './inboxModel'
-import { REQUIRED_INBOX_ENV, forbiddenInboxEnvKeys, inboxCollectionPath, readInboxConfig } from './inboxConfig'
+import {
+  REQUIRED_INBOX_ENV,
+  forbiddenInboxEnvKeys,
+  inboxCollectionPath,
+  readInboxConfig,
+} from './inboxConfig'
 import { INBOX_UNCONFIGURED, describeInboxError, unavailableBackend } from './inboxBackend'
 import { dueTopics, isDue, resolveAttempt, shelves } from '../../domain/study/scheduling'
 import { parseLibrary } from '../../lib/storage'
-import { TRACKS } from '../../lib/types'
+import { TRACKS } from '../../domain/library/topic'
 
 /**
  * The architectural boundaries of #39, tested rather than asserted in prose.
