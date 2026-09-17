@@ -9,7 +9,7 @@ function source(file: string): string {
 describe('Morse word checkpoint surface', () => {
   it('reuses the #77 direct keyed input with expected-length auto grading', () => {
     const code = source('./MorseCheckpoint.tsx')
-    expect(code).toContain("import { MorseKeyInput } from '../morse/MorseKeyInput'")
+    expect(code).toContain("import { MorseKeyInput } from '../input/MorseKeyInput'")
     expect(code).toContain('expectedLength={MORSE_LETTERS[target.letter].length}')
     expect(code).toContain('const correct = pattern === MORSE_LETTERS[target.letter]')
     expect(code).not.toMatch(/>\s*(Submit|Check|Delete|Continue|Back)\s*</)
@@ -51,8 +51,8 @@ describe('Morse word checkpoint surface', () => {
 
   it('is structurally ephemeral and has no durable learner-state write path', () => {
     const code = source('./MorseCheckpoint.tsx')
-    expect(code).not.toContain("from '../../services/library/LibraryProvider'")
-    expect(code).not.toContain("from '../../lib/scheduling'")
+    expect(code).not.toContain("from '../../../services/library/LibraryProvider'")
+    expect(code).not.toContain("from '../../../lib/scheduling'")
     expect(code).not.toContain('updateTopic')
     expect(code).not.toContain('lessonProgress')
     expect(code).not.toContain('lessonSitting')

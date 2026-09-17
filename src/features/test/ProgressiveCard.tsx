@@ -14,8 +14,8 @@ import {
   MorsePlaybackCancelledError,
 } from '../../domain/morse/audio'
 import type { CueRung } from '../../lib/cueLadder'
-import { MorseMnemonic } from '../learn/MorseMnemonic'
-import { MorseKeyInput } from '../morse/MorseKeyInput'
+import { MorseMnemonic } from '../morse/MorseMnemonic'
+import { MorseKeyInput } from '../morse/input/MorseKeyInput'
 import './ProgressiveMorseCue.css'
 
 export interface ProgressiveAnswer {

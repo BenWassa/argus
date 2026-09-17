@@ -1,6 +1,6 @@
 import { Fragment } from 'react'
-import type { MorseLessonPathItem } from '../../domain/morse/curriculum/lessonPath'
-import type { MorseWordCheckpointPathItem } from '../../domain/morse/curriculum/checkpoints'
+import type { MorseLessonPathItem } from '../../../domain/morse/curriculum/lessonPath'
+import type { MorseWordCheckpointPathItem } from '../../../domain/morse/curriculum/checkpoints'
 import './MorsePath.css'
 
 interface MorsePathProps {

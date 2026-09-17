@@ -1,9 +1,9 @@
 import { useEffect, useRef } from 'react'
-import { canonicalNotation, spokenRhythm } from '../../domain/morse/mnemonics'
-import { MORSE_LETTERS, type MorseLetter } from '../../domain/morse/code'
-import { verbalMnemonic } from '../../domain/morse/verbalMnemonics'
-import { MorsePlayButton } from './MorsePlayButton'
-import { useMorseAudio } from './useMorseAudio'
+import { canonicalNotation, spokenRhythm } from '../../../domain/morse/mnemonics'
+import { MORSE_LETTERS, type MorseLetter } from '../../../domain/morse/code'
+import { verbalMnemonic } from '../../../domain/morse/verbalMnemonics'
+import { MorsePlayButton } from '../MorsePlayButton'
+import { useMorseAudio } from '../useMorseAudio'
 import './MorseReference.css'
 
 /**

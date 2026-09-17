@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { canonicalPattern } from '../../domain/morse/testing/acquisitionProfile'
-import { canonicalNotation, mnemonicTextEquivalent, spokenRhythm } from '../../domain/morse/mnemonics'
+import { canonicalPattern } from '../../../domain/morse/testing/acquisitionProfile'
+import { canonicalNotation, mnemonicTextEquivalent, spokenRhythm } from '../../../domain/morse/mnemonics'
 import {
   advanceLesson,
   answerLesson,
@@ -14,8 +14,8 @@ import {
   type LessonCheckFormat,
   type LessonEntry,
   type LessonRun,
-} from '../../domain/morse/curriculum/lesson'
-import { morseLessonPath, type MorseLessonPathItem } from '../../domain/morse/curriculum/lessonPath'
+} from '../../../domain/morse/curriculum/lesson'
+import { morseLessonPath, type MorseLessonPathItem } from '../../../domain/morse/curriculum/lessonPath'
 import {
   answerListeningQuestion,
   lessonListeningOptions,
@@ -24,7 +24,7 @@ import {
   chooseListeningTarget,
   suppressListening,
   type ListeningFeedback,
-} from '../../domain/morse/curriculum/listening'
+} from '../../../domain/morse/curriculum/listening'
 import {
   LESSON_RETRIEVAL_TARGET,
   lessonSittingComplete,
@@ -35,13 +35,13 @@ import {
   withLessonSitting,
   withoutLessonSitting,
   type LessonSitting,
-} from '../../domain/morse/curriculum/lessonSitting'
+} from '../../../domain/morse/curriculum/lessonSitting'
 import {
   checkpointNewlyUnlocked,
   morseWordCheckpointPath,
   type MorseWordCheckpointPathItem,
-} from '../../domain/morse/curriculum/checkpoints'
-import { withAcquisitionReadiness } from '../../lib/journey'
+} from '../../../domain/morse/curriculum/checkpoints'
+import { withAcquisitionReadiness } from '../../../lib/journey'
 import {
   completeSitting,
   morseReviewOf,
@@ -49,17 +49,17 @@ import {
   recordListeningRetrieval,
   recordPrintedRetrieval,
   withMorseReview,
-} from '../../domain/morse/curriculum/review'
-import type { MorseLetter } from '../../domain/morse/code'
-import { useLibrary } from '../../services/library/LibraryProvider'
-import type { Topic } from '../../lib/types'
-import { MorseKeyInput } from '../morse/MorseKeyInput'
-import { useKeyedResponse } from '../morse/useKeyedResponse'
+} from '../../../domain/morse/curriculum/review'
+import type { MorseLetter } from '../../../domain/morse/code'
+import { useLibrary } from '../../../services/library/LibraryProvider'
+import type { Topic } from '../../../lib/types'
+import { MorseKeyInput } from '../input/MorseKeyInput'
+import { useKeyedResponse } from '../input/useKeyedResponse'
 import { MorseCheckpoint } from './MorseCheckpoint'
-import { MorseMnemonic } from './MorseMnemonic'
-import { MorseBeatGrammarNote, MorsePhrase } from './MorsePhrase'
-import { MorsePlayButton } from './MorsePlayButton'
-import { useMorseAudio } from './useMorseAudio'
+import { MorseMnemonic } from '../MorseMnemonic'
+import { MorseBeatGrammarNote, MorsePhrase } from '../MorsePhrase'
+import { MorsePlayButton } from '../MorsePlayButton'
+import { useMorseAudio } from '../useMorseAudio'
 import './MorseLesson.css'
 
 /** The #78/#90 word-checkpoint milestones, tied to the checkpoint curriculum. */

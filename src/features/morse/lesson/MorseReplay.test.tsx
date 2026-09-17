@@ -18,11 +18,11 @@ describe('Morse lesson replay', () => {
     const code = source('./MorseReplay.tsx')
     const imports = [...code.matchAll(/from '([^']+)'/g)].map((match) => match[1])
     for (const forbidden of [
-      '../../services/library/LibraryProvider',
-      '../../lib/scheduling',
-      '../../lib/cueLadder',
-      '../../lib/journey',
-      '../../domain/morse/curriculum/lessonSitting',
+      '../../../services/library/LibraryProvider',
+      '../../../lib/scheduling',
+      '../../../lib/cueLadder',
+      '../../../lib/journey',
+      '../../../domain/morse/curriculum/lessonSitting',
     ]) expect(imports).not.toContain(forbidden)
     expect(code).not.toContain('updateTopic')
     expect(code).not.toContain('upsertTopic')

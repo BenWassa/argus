@@ -5,8 +5,8 @@ canonical visual representation of Morse timing, but it is now explicitly a
 **secondary visual scaffold** under the rhythmic verbal mnemonic described in
 `docs/open/MORSE_VERBAL_MNEMONICS.md`.
 
-Code: `src/domain/morse/mnemonics.ts` (geometry), `src/features/learn/MorseMnemonic.tsx`
-(drawing), `src/features/learn/MorseCharacterPacket.tsx` (the packet surface).
+Code: `src/domain/morse/mnemonics.ts` (geometry), `src/features/morse/MorseMnemonic.tsx`
+(drawing), `src/features/morse/MorseCharacterPacket.tsx` (the packet surface).
 
 ## Role after #42
 

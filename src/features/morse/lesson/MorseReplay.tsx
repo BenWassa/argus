@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
-import { canonicalPattern } from '../../domain/morse/testing/acquisitionProfile'
+import { canonicalPattern } from '../../../domain/morse/testing/acquisitionProfile'
 import {
   advanceLesson,
   answerLesson,
   currentStep,
   type LessonRun,
-} from '../../domain/morse/curriculum/lesson'
+} from '../../../domain/morse/curriculum/lesson'
 import { VisualCheckStep } from './MorseLesson'
-import { useKeyedResponse } from '../morse/useKeyedResponse'
+import { useKeyedResponse } from '../input/useKeyedResponse'
 import './MorseReplay.css'
 
 export const MORSE_REPLAY_RETRIEVAL_LIMIT = 10

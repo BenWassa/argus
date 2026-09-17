@@ -6,7 +6,7 @@ import { morseLessonPath } from '../../domain/morse/curriculum/lessonPath'
 import { morseWordCheckpointPath } from '../../domain/morse/curriculum/checkpoints'
 import { statusLabel } from '../../components/ui/StatusTag'
 import { LearnSupport } from '../learn/LearnSupport'
-import { MorsePath } from '../learn/MorsePath'
+import { MorsePath } from '../morse/lesson/MorsePath'
 // The reference and the structured support keep the editorial treatment they
 // were designed with; only where they are rendered changed.
 import '../learn/Reading.css'

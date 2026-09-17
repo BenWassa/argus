@@ -4,7 +4,7 @@ import {
   morseFeedbackMs,
   morseResponseArmed,
   type MorseResponsePhase,
-} from '../../domain/morse/response'
+} from '../../../domain/morse/response'
 
 /**
  * The keyed-answer lifecycle shared by Learn and the #78 word checkpoints (#87).

@@ -1,15 +1,15 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
-import { MORSE_LETTERS } from '../../domain/morse/code'
+import { MORSE_LETTERS } from '../../../domain/morse/code'
 import {
   MORSE_FEEDBACK_CORRECT_MS,
   MORSE_FEEDBACK_WRONG_MS,
   MORSE_TRANSITION_MS,
   morseElementDurationMs,
-} from '../../domain/morse/response'
-import { morseWordCheckpoints } from '../../domain/morse/curriculum/checkpoints'
-import { MorseCheckpoint } from '../learn/MorseCheckpoint'
+} from '../../../domain/morse/response'
+import { morseWordCheckpoints } from '../../../domain/morse/curriculum/checkpoints'
+import { MorseCheckpoint } from '../lesson/MorseCheckpoint'
 import { MorseKeyInput } from './MorseKeyInput'
 
 /**

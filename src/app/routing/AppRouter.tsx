@@ -5,9 +5,9 @@ import { Today } from '../../features/today/Today'
 import { LibraryPage } from '../../features/library/LibraryPage'
 import { DataManagementPage } from '../../features/data-management/DataManagementPage'
 import { TestSession } from '../../features/test/TestSession'
-import { LessonRun } from '../../features/learn/LessonRun'
+import { LessonRun } from '../../features/morse/lesson/LessonRun'
 import { PracticeRun } from '../../features/practice/PracticeRun'
-import { MorseReference } from '../../features/learn/MorseReference'
+import { MorseReference } from '../../features/morse/reference/MorseReference'
 import {
   ROOT_ROUTE,
   liveRoute,

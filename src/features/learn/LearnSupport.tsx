@@ -1,5 +1,5 @@
 import type { LearnBlock, LearnContent, LearnSection } from '../../lib/types'
-import { MorseCharacterPacket } from './MorseCharacterPacket'
+import { MorseCharacterPacket } from '../morse/MorseCharacterPacket'
 
 function LearnBlockView({ block }: { block: LearnBlock }) {
   switch (block.type) {

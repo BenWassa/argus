@@ -7,7 +7,7 @@ import { buildCharacterPackets } from '../../domain/morse/curriculum/packetOrder
 import { parseLibrary } from '../../lib/storage'
 import { seedLibrary } from '../../lib/seed'
 import type { LearnContent, MorseCharacterLearnItem } from '../../lib/types'
-import { LearnSupport } from './LearnSupport'
+import { LearnSupport } from '../learn/LearnSupport'
 import { MorseCharacterPacket } from './MorseCharacterPacket'
 import { MorseMnemonic } from './MorseMnemonic'
 

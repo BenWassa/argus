@@ -22,14 +22,14 @@ Primary code:
   interstitial word-checkpoint projection (#78);
 - `src/lib/journey.ts` — the shared learner-journey derivation, and the
   acquisition-readiness anchor Learn stamps (#67);
-- `src/features/learn/MorseLesson.tsx` — guided lesson surface;
+- `src/features/morse/lesson/MorseLesson.tsx` — guided lesson surface;
 - `src/features/learn/MorseProgramme.tsx` — visible lesson/checkpoint path;
-- `src/features/learn/MorseReplay.tsx` — local-only lesson replay;
-- `src/features/learn/MorseCheckpoint.tsx` — local-only word checkpoint runner;
-- `src/features/morse/MorseKeyInput.tsx` — shared letter → Morse response control;
-- `src/domain/morse/response.ts` / `src/features/morse/useKeyedResponse.ts` — shared
+- `src/features/morse/lesson/MorseReplay.tsx` — local-only lesson replay;
+- `src/features/morse/lesson/MorseCheckpoint.tsx` — local-only word checkpoint runner;
+- `src/features/morse/input/MorseKeyInput.tsx` — shared letter → Morse response control;
+- `src/domain/morse/response.ts` / `src/features/morse/input/useKeyedResponse.ts` — shared
   keyed feedback/transition timing and interaction gate (#87);
-- `src/features/learn/MorseReference.tsx` — shared A–Z lookup cards used by the
+- `src/features/morse/reference/MorseReference.tsx` — shared A–Z lookup cards used by the
   standalone reference and the always-visible Topic-page alphabet (#76).
 
 ## Product model and evidence boundary

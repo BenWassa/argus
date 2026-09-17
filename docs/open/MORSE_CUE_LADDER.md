@@ -13,7 +13,7 @@ Primary code:
 - `src/lib/cueLadder.ts` — rungs, fading and cue evidence;
 - `src/domain/morse/testing/acquisitionProfile.ts` — Morse profile, cue payload and objective grading;
 - `src/features/test/ProgressiveCard.tsx` — graded Test surface;
-- `src/features/morse/MorseKeyInput.tsx` — shared letter → Morse production
+- `src/features/morse/input/MorseKeyInput.tsx` — shared letter → Morse production
   control used by Learn and Test.
 
 ## Architectural boundary

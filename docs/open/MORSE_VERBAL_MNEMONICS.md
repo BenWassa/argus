@@ -2,9 +2,9 @@
 
 **Status:** implemented under #42; visible grammar corrected by #48  
 **Code:** `src/domain/morse/verbalMnemonics.ts` (the authored set),
-`src/features/learn/MorsePhrase.tsx` (the one rendering of it)  
+`src/features/morse/MorsePhrase.tsx` (the one rendering of it)  
 **Mechanical verification:** `src/domain/morse/verbalMnemonics.test.ts`,
-`src/features/learn/MorseAcquisitionTreatment.test.tsx`
+`src/features/morse/MorseAcquisitionTreatment.test.tsx`
 
 ## Purpose
 

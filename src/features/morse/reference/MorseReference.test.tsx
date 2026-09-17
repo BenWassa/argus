@@ -2,9 +2,9 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import { MORSE_LETTERS, type MorseLetter } from '../../domain/morse/code'
-import { canonicalNotation, spokenRhythm } from '../../domain/morse/mnemonics'
-import { verbalMnemonic } from '../../domain/morse/verbalMnemonics'
+import { MORSE_LETTERS, type MorseLetter } from '../../../domain/morse/code'
+import { canonicalNotation, spokenRhythm } from '../../../domain/morse/mnemonics'
+import { verbalMnemonic } from '../../../domain/morse/verbalMnemonics'
 import { MorseReference, MorseReferenceCards } from './MorseReference'
 
 const letters = Object.keys(MORSE_LETTERS) as MorseLetter[]
@@ -77,7 +77,7 @@ describe('the reference cannot write progress', () => {
   it('imports no store, scheduler, cue ladder or lesson-writing module', () => {
     const code = source('./MorseReference.tsx')
     const imports = [...code.matchAll(/from '([^']+)'/g)].map((match) => match[1])
-    for (const forbidden of ['../../services/library/LibraryProvider', '../../lib/scheduling', '../../lib/cueLadder']) {
+    for (const forbidden of ['../../../services/library/LibraryProvider', '../../../lib/scheduling', '../../../lib/cueLadder']) {
       expect(imports).not.toContain(forbidden)
     }
     expect(imports.some((path) => path.includes('morseLesson'))).toBe(false)

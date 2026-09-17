@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { act, cleanup, fireEvent, render as renderDom, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { MORSE_LETTERS } from '../../domain/morse/code'
+import { MORSE_LETTERS } from '../../../domain/morse/code'
 import {
   advanceLesson,
   answerLesson,
@@ -17,13 +17,13 @@ import {
   withLessonProgress,
   type LessonEntry,
   type LessonRun,
-} from '../../domain/morse/curriculum/lesson'
-import { lessonListeningOptions } from '../../domain/morse/curriculum/listening'
-import { MORSE_FEEDBACK_CORRECT_MS, MORSE_TRANSITION_MS, morseElementDurationMs } from '../../domain/morse/response'
-import { LibraryProvider } from '../../services/library/LibraryProvider'
-import { parseLibrary, saveLibrary } from '../../lib/storage'
-import { seedLibrary } from '../../lib/seed'
-import type { ItemLessonStore, Topic } from '../../lib/types'
+} from '../../../domain/morse/curriculum/lesson'
+import { lessonListeningOptions } from '../../../domain/morse/curriculum/listening'
+import { MORSE_FEEDBACK_CORRECT_MS, MORSE_TRANSITION_MS, morseElementDurationMs } from '../../../domain/morse/response'
+import { LibraryProvider } from '../../../services/library/LibraryProvider'
+import { parseLibrary, saveLibrary } from '../../../lib/storage'
+import { seedLibrary } from '../../../lib/seed'
+import type { ItemLessonStore, Topic } from '../../../lib/types'
 import { LessonRun as GuidedRun } from './LessonRun'
 import { ListeningCheckStep, MorseLesson, VisualCheckStep } from './MorseLesson'
 
@@ -392,9 +392,9 @@ describe('finite progress and evidence honesty', () => {
 
 describe('accessibility and mobile composition', () => {
   it('keeps one practical primary Morse key and readable listening choices', () => {
-    const global = source('../../styles/global.css')
+    const global = source('../../../styles/global.css')
     expect(global).toMatch(/^button \{[^}]*min-height:\s*44px/m)
-    const keyCss = source('../morse/MorseKeyInput.css')
+    const keyCss = source('../input/MorseKeyInput.css')
     expect(keyCss).toMatch(/\.morse-key\s*\{[^}]*min-height:\s*84px/)
     expect(keyCss).toContain('touch-action: none')
     const lessonCss = source('./MorseLesson.css')
@@ -402,7 +402,7 @@ describe('accessibility and mobile composition', () => {
   })
 
   it('respects reduced motion and text scaling', () => {
-    const css = `${source('./MorseLesson.css')}\n${source('../morse/MorseKeyInput.css')}`
+    const css = `${source('./MorseLesson.css')}\n${source('../input/MorseKeyInput.css')}`
     expect(css).toContain('@media (prefers-reduced-motion: reduce)')
     const typeSizes = [...css.matchAll(/font-size:\s*([^;]+);/g)].map((match) => match[1].trim())
     for (const size of typeSizes) expect(size).not.toMatch(/^\d+px$/)
@@ -420,7 +420,7 @@ describe('Learn cannot reach formal retention state', () => {
   it('imports no scheduler, cue ladder or distractor module', () => {
     const code = source('./MorseLesson.tsx')
     const imports = [...code.matchAll(/from '([^']+)'/g)].map((match) => match[1])
-    for (const forbidden of ['../../lib/scheduling', '../../lib/cueLadder', '../../lib/distractors']) expect(imports).not.toContain(forbidden)
+    for (const forbidden of ['../../../lib/scheduling', '../../../lib/cueLadder', '../../../lib/distractors']) expect(imports).not.toContain(forbidden)
     expect(code).not.toContain('resolveAttempt')
     expect(code).not.toContain('itemEvidence')
   })
@@ -448,7 +448,7 @@ describe('Learn cannot reach formal retention state', () => {
 
     // The one thing imported from the journey layer is the acquisition anchor.
     // That layer can see the scheduler; this surface still must not.
-    const journeyImport = code.slice(code.indexOf("from '../../lib/journey'") - 120, code.indexOf("from '../../lib/journey'"))
+    const journeyImport = code.slice(code.indexOf("from '../../../lib/journey'") - 120, code.indexOf("from '../../../lib/journey'"))
     expect(journeyImport).toContain('withAcquisitionReadiness')
     expect(journeyImport).not.toContain('resolveAttempt')
     expect(journeyImport).not.toContain('journeyFor')
@@ -462,7 +462,7 @@ describe('Learn cannot reach formal retention state', () => {
    * it for one.
    */
   it('keeps the review history formative by construction', () => {
-    const code = source('../../domain/morse/curriculum/review.ts')
+    const code = source('../../../domain/morse/curriculum/review.ts')
     const imports = [...code.matchAll(/from '([^']+)'/g)].map((match) => match[1])
     for (const forbidden of ['./scheduling', './cueLadder', './journey', './store']) {
       expect(imports).not.toContain(forbidden)

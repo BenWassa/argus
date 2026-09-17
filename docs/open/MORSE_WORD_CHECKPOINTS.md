@@ -11,7 +11,7 @@ whole-word application moments inside the existing Morse Learn journey.
 
 It does not change the formal Morse completion boundary, create a Practice mode,
 or define a new competency. The runtime implementation follows this contract in
-`src/domain/morse/curriculum/checkpoints.ts`, `src/features/learn/MorseCheckpoint.tsx`, and
+`src/domain/morse/curriculum/checkpoints.ts`, `src/features/morse/lesson/MorseCheckpoint.tsx`, and
 the existing `MorseProgramme` lesson path.
 
 ## Implementation record
