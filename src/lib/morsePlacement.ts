@@ -1,0 +1,292 @@
+import { morseAcquisitionProfile } from './acquisition'
+import { MORSE_LETTERS, type MorseLetter } from './morse'
+import { lessonPackets } from './morseLesson'
+import { morseWordCheckpoints } from './morseWordCheckpoints'
+import { resolveStudy } from './scheduling'
+import type { Topic } from './types'
+
+export type MorsePlacementExperience = 'some' | 'most'
+
+export interface MorsePlacementTarget {
+  kind: 'letter' | 'word'
+  letter: MorseLetter
+  lesson: number
+  word?: string
+  characterIndex?: number
+  retry?: boolean
+}
+
+export interface MorsePlacementLetterState {
+  status: 'unknown' | 'pass' | 'uncertain' | 'fail'
+  attempts: number
+  correct: number
+}
+
+export interface MorsePlacementLesson {
+  number: number
+  letters: MorseLetter[]
+}
+
+export interface MorsePlacementResult {
+  throughLesson: number
+  nextLesson: number | null
+  verifiedLetters: MorseLetter[]
+  promptCount: number
+  retries: number
+  wordConfirmations: number
+}
+
+export interface MorsePlacementRun {
+  experience: MorsePlacementExperience
+  lessons: MorsePlacementLesson[]
+  targets: MorsePlacementTarget[]
+  index: number
+  states: Partial<Record<MorseLetter, MorsePlacementLetterState>>
+  promptCount: number
+  retries: number
+  wordConfirmations: number
+  complete: boolean
+  result: MorsePlacementResult | null
+}
+
+function placementLessons(topic: Topic): MorsePlacementLesson[] | null {
+  const profile = morseAcquisitionProfile(topic)
+  if (!profile || profile.size !== 26) return null
+  const available = new Set([...profile.values()].map((character) => character.glyph as MorseLetter))
+  const lessons = lessonPackets().map((packet) => ({
+    number: packet.index + 1,
+    letters: packet.novel.filter((letter) => available.has(letter)),
+  }))
+  return lessons.every((lesson) => lesson.letters.length === 2) ? lessons : null
+}
+
+function letterTarget(letter: MorseLetter, lesson: number): MorsePlacementTarget {
+  return { kind: 'letter', letter, lesson }
+}
+
+function wordTargets(word: string, lesson: number): MorsePlacementTarget[] {
+  return Array.from(word).map((letter, characterIndex) => ({
+    kind: 'word' as const,
+    letter: letter as MorseLetter,
+    lesson,
+    word,
+    characterIndex,
+  }))
+}
+
+function someTargets(lessons: readonly MorsePlacementLesson[]): MorsePlacementTarget[] {
+  const checkpoints = morseWordCheckpoints()
+  const targets: MorsePlacementTarget[] = []
+  for (const lesson of lessons) {
+    for (const letter of lesson.letters) targets.push(letterTarget(letter, lesson.number))
+    const checkpoint = checkpoints.find((candidate) => candidate.afterLesson === lesson.number)
+    const word = checkpoint?.words[0]
+    if (word) targets.push(...wordTargets(word, lesson.number))
+  }
+  return targets
+}
+
+function mostTargets(lessons: readonly MorsePlacementLesson[]): MorsePlacementTarget[] {
+  const targets: MorsePlacementTarget[] = []
+  // Broad first sweep: one character from every lesson, then every partner.
+  // This is intentionally different from the sequential `some` route while
+  // still verifying every mapping before a full placement can be committed.
+  for (const lesson of lessons) targets.push(letterTarget(lesson.letters[0], lesson.number))
+  for (const lesson of lessons) targets.push(letterTarget(lesson.letters[1], lesson.number))
+
+  // Experienced learners get one integrated confirmation at the end rather
+  // than every milestone, keeping this path materially shorter than `some`.
+  const finalCheckpoint = morseWordCheckpoints().at(-1)
+  const finalWord = finalCheckpoint?.words.at(-1)
+  if (finalCheckpoint && finalWord) {
+    targets.push(...wordTargets(finalWord, finalCheckpoint.afterLesson))
+  }
+  return targets
+}
+
+export function startMorsePlacement(
+  topic: Topic,
+  experience: MorsePlacementExperience,
+): MorsePlacementRun | null {
+  const lessons = placementLessons(topic)
+  if (!lessons) return null
+  return {
+    experience,
+    lessons,
+    targets: experience === 'some' ? someTargets(lessons) : mostTargets(lessons),
+    index: 0,
+    states: {},
+    promptCount: 0,
+    retries: 0,
+    wordConfirmations: 0,
+    complete: false,
+    result: null,
+  }
+}
+
+export function currentMorsePlacementTarget(run: MorsePlacementRun): MorsePlacementTarget | null {
+  if (run.complete) return null
+  return run.targets[run.index] ?? null
+}
+
+function insertRetry(
+  targets: readonly MorsePlacementTarget[],
+  index: number,
+  target: MorsePlacementTarget,
+): MorsePlacementTarget[] {
+  const next = [...targets]
+  const remaining = Math.max(0, next.length - index - 1)
+  const intervening = Math.min(2, remaining)
+  next.splice(index + 1 + intervening, 0, {
+    kind: 'letter',
+    letter: target.letter,
+    lesson: target.lesson,
+    retry: true,
+  })
+  return next
+}
+
+function placementResult(run: MorsePlacementRun): MorsePlacementResult {
+  let firstWeakLesson: number | null = null
+  for (const lesson of run.lessons) {
+    if (lesson.letters.some((letter) => run.states[letter]?.status !== 'pass')) {
+      firstWeakLesson = lesson.number
+      break
+    }
+  }
+  const throughLesson = firstWeakLesson === null ? run.lessons.length : firstWeakLesson - 1
+  const verifiedLetters = run.lessons
+    .filter((lesson) => lesson.number <= throughLesson)
+    .flatMap((lesson) => lesson.letters)
+  return {
+    throughLesson,
+    nextLesson: throughLesson < run.lessons.length ? throughLesson + 1 : null,
+    verifiedLetters,
+    promptCount: run.promptCount,
+    retries: run.retries,
+    wordConfirmations: run.wordConfirmations,
+  }
+}
+
+function earliestFailedLesson(run: MorsePlacementRun): number | null {
+  for (const lesson of run.lessons) {
+    if (lesson.letters.some((letter) => run.states[letter]?.status === 'fail')) return lesson.number
+  }
+  return null
+}
+
+export function answerMorsePlacement(run: MorsePlacementRun, response: string): MorsePlacementRun {
+  const target = currentMorsePlacementTarget(run)
+  if (!target) return run
+
+  const correct = response.replace(/\s+/g, '') === MORSE_LETTERS[target.letter]
+  const before = run.states[target.letter] ?? { status: 'unknown' as const, attempts: 0, correct: 0 }
+  let targets = run.targets
+  let retries = run.retries
+  let status: MorsePlacementLetterState['status']
+
+  // Once the bounded confirmation has failed twice, later appearances (for
+  // example inside a word) cannot erase that demonstrated weakness. Otherwise
+  // a learner could miss a mapping twice in isolation and accidentally restore
+  // it to pass by getting the same letter once in a later word.
+  if (before.status === 'fail') {
+    status = 'fail'
+  } else if (correct) {
+    status = 'pass'
+  } else if (before.status === 'uncertain') {
+    status = 'fail'
+  } else {
+    status = 'uncertain'
+    targets = insertRetry(run.targets, run.index, target)
+    retries += 1
+  }
+
+  const states = {
+    ...run.states,
+    [target.letter]: {
+      status,
+      attempts: before.attempts + 1,
+      correct: before.correct + (correct ? 1 : 0),
+    },
+  }
+
+  let next: MorsePlacementRun = {
+    ...run,
+    targets,
+    states,
+    index: run.index + 1,
+    promptCount: run.promptCount + 1,
+    retries,
+    wordConfirmations: run.wordConfirmations + (target.kind === 'word' ? 1 : 0),
+  }
+
+  // `Some` moves in curriculum order, so a repeated miss is enough to stop at
+  // that earliest confirmed weakness rather than spending time on later lessons.
+  if (run.experience === 'some' && earliestFailedLesson(next) !== null) {
+    next = { ...next, complete: true }
+    return { ...next, result: placementResult(next) }
+  }
+
+  if (next.index >= next.targets.length) {
+    next = { ...next, complete: true }
+    return { ...next, result: placementResult(next) }
+  }
+
+  return next
+}
+
+export function canOfferMorsePlacement(topic: Topic): boolean {
+  if (topic.status !== 'unstarted' || topic.acquisitionReadyAt) return false
+  if (Object.keys(topic.lessonProgress ?? {}).length > 0) return false
+  if (topic.lessonSitting || topic.morseReview) return false
+  if (topic.history.length > 0) return false
+  const hasEvidence = Object.values(topic.itemEvidence ?? {}).some((entry) => {
+    return Object.values(entry.directions).some((direction) => (direction?.attempts ?? 0) > 0)
+  })
+  return !hasEvidence && placementLessons(topic) !== null
+}
+
+function itemIdByLetter(topic: Topic): Map<MorseLetter, string> | null {
+  const profile = morseAcquisitionProfile(topic)
+  if (!profile || profile.size !== 26) return null
+  const found = new Map<MorseLetter, string>()
+  for (const character of profile.values()) {
+    found.set(character.glyph as MorseLetter, character.itemId)
+  }
+  return found.size === 26 ? found : null
+}
+
+/**
+ * Commit a completed placement through the same canonical acquisition fields
+ * normal Learn already uses. No ordinary sitting/review history is fabricated:
+ * the assessment simply establishes that teaching support is no longer needed
+ * for the contiguous verified prefix. Full A–Z placement also records the
+ * existing permanent acquisition-ready anchor. Formal Test evidence/history is
+ * untouched.
+ */
+export function applyMorsePlacement(
+  topic: Topic,
+  result: MorsePlacementResult,
+  now: Date = new Date(),
+): Topic {
+  const byLetter = itemIdByLetter(topic)
+  if (!byLetter) return topic
+
+  const verifiedItemIds = result.verifiedLetters.flatMap((letter) => {
+    const itemId = byLetter.get(letter)
+    return itemId ? [itemId] : []
+  })
+  const lessonProgress = { ...(topic.lessonProgress ?? {}) }
+  for (const itemId of verifiedItemIds) lessonProgress[itemId] = 'settled'
+
+  let next = resolveStudy(topic, now)
+  next = { ...next, lessonProgress }
+  if (result.throughLesson >= lessonPackets().length && !next.acquisitionReadyAt) {
+    next = { ...next, acquisitionReadyAt: now.toISOString() }
+  }
+  return next
+}
+
+export function expectedMorsePlacementPattern(target: MorsePlacementTarget): string {
+  return MORSE_LETTERS[target.letter]
+}

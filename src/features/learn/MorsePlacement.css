@@ -1,0 +1,98 @@
+.morse-placement-intro,
+.morse-placement-result,
+.morse-placement-question {
+  display: grid;
+  gap: 1rem;
+}
+
+.morse-placement-choices {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.morse-placement-choices button {
+  min-height: 4.5rem;
+  text-align: left;
+  display: grid;
+  gap: 0.25rem;
+  align-content: center;
+}
+
+.morse-placement-choices button span {
+  font-weight: 400;
+  opacity: 0.78;
+}
+
+.morse-placement-question {
+  text-align: center;
+  outline: none;
+}
+
+.morse-placement-meta {
+  margin: 0;
+  font-size: 0.82rem;
+  opacity: 0.68;
+}
+
+.morse-placement-letter {
+  margin: 0.5rem 0 0;
+  font-size: clamp(4.5rem, 22vw, 7rem);
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+
+.morse-placement-word {
+  margin: 0.5rem 0 0;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.08em;
+  font-size: clamp(2.5rem, 13vw, 4.25rem);
+  line-height: 1.1;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+}
+
+.morse-placement-word .is-current {
+  text-decoration: underline;
+  text-decoration-thickness: 0.12em;
+  text-underline-offset: 0.12em;
+}
+
+.morse-placement-key {
+  display: grid;
+  justify-items: center;
+  gap: 0.5rem;
+}
+
+.morse-placement-feedback {
+  min-height: 5rem;
+  display: grid;
+  place-content: center;
+  gap: 0.25rem;
+}
+
+.morse-placement-feedback strong {
+  font-size: 1.15rem;
+}
+
+.morse-placement-feedback span {
+  opacity: 0.78;
+}
+
+.morse-placement-result-title {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+@media (max-height: 620px) {
+  .morse-placement-letter {
+    font-size: 3.75rem;
+  }
+
+  .morse-placement-word {
+    font-size: 2.4rem;
+  }
+}
