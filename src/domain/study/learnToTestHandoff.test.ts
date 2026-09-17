@@ -9,7 +9,7 @@ import {
   withBaselineCue,
 } from './cueLadder'
 import { seedLibrary } from '../library/catalogSeed'
-import { parseLibrary } from '../../lib/storage'
+import { parseLibrary } from '../../infrastructure/persistence/libraryParser'
 import type { Topic } from '../library/topic'
 import type { ItemCueEvidence, ItemDirection, ItemEvidenceStore } from './evidence'
 

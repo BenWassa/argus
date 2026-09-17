@@ -6,7 +6,7 @@ import {
   type LearnSection,
   type LearnSource,
   type MorseCharacterLearnItem,
-} from '../domain/learning/content'
+} from '../../domain/learning/content'
 import {
   ITEM_KINDS,
   STATUSES,
@@ -14,228 +14,41 @@ import {
   type IdentifiedItem,
   type Topic,
   TOPIC_ORIGINS,
-} from '../domain/library/topic'
+} from '../../domain/library/topic'
 import {
   LESSON_SUPPORTS,
   type ItemLessonStore,
   type MorseLessonSittingProgress,
   type MorseReviewItem,
   type MorseReviewProgress,
-} from '../domain/morse/progress'
+} from '../../domain/morse/progress'
 import {
   CUE_STATES,
   ITEM_DIRECTIONS,
   type DirectionEvidence,
   type ItemCueEvidence,
   type ItemEvidenceStore,
-} from '../domain/study/evidence'
-import type { CurrentLibrary } from '../infrastructure/persistence/librarySchema'
-import { migratedItemId } from '../domain/library/items'
+} from '../../domain/study/evidence'
+import type { CurrentLibrary } from './librarySchema'
+import { migratedItemId } from '../../domain/library/items'
 import {
   LESSON_RETRIEVAL_TARGET,
   lessonSittingIsFresh,
-  withLessonSitting,
   type LessonSitting,
-} from '../domain/morse/curriculum/lessonSitting'
-import {
-  clearAllLessonSittings,
-  readLessonSittingSidecar,
-} from '../domain/morse/curriculum/lessonSittingStorage'
-import { morseReviewIsFresh } from '../domain/morse/curriculum/review'
-import { seedLibrary } from '../domain/library/catalogSeed'
-import {
-  NO_RECONCILIATION,
-  SHIPPED_CATALOG_TOPIC_IDS,
-  catalogDefinitions,
-  freshCatalogTopic,
-  inferredOrigin,
-  reconcileCatalog,
-  type CatalogReconciliation,
-} from '../domain/library/catalog'
-
-const KEY = 'argus.library.v5'
-const LEGACY_KEYS = ['argus.library.v4', 'argus.library.v3', 'argus.library.v2'] as const
-
-/** A library holding nothing, and expecting nothing. Reset means reset. */
-export function emptyLibrary(): CurrentLibrary {
-  return { version: 5, topics: [], catalogDelivered: [...SHIPPED_CATALOG_TOPIC_IDS].sort() }
-}
+} from '../../domain/morse/curriculum/lessonSitting'
+import { morseReviewIsFresh } from '../../domain/morse/curriculum/review'
+import { inferredOrigin } from '../../domain/library/catalog'
 
 /**
- * The library a learner who has never used Argus starts with (#71).
+ * The import boundary: unknown JSON in, a valid `CurrentLibrary` or a reason
+ * out.
  *
- * Built from the shipped catalog through `freshCatalogTopic`, which is the same
- * door an existing library receives a new catalog topic through. That is the
- * whole point: a first install and a later delivery hand over identical topics,
- * so there is one definition of "a topic you have not done yet" rather than two.
- *
- * The seed carries demonstration learner state — a drilled NATO deck, a
- * completed bearings record, attempt history with dates — because it doubles as
- * the development and test fixture. None of it belongs to this learner. Shipping
- * it as their permanent record would put a completion on the Progress screen
- * that nobody earned, so delivery keeps the seed's *content* and drops every
- * status, timestamp, attempt and evidence field it carries.
+ * Everything here is validation, and it is deliberately strict — an unknown
+ * field or an impossible counter is rejected rather than dropped or clamped,
+ * because a clamped counter is fabricated learner progress wearing a plausible
+ * shape. Nothing here touches storage and nothing here migrates: this answers
+ * only "is this a library?".
  */
-function freshSeedLibrary(now: Date = new Date()): CurrentLibrary {
-  const migrated = parseLibrary({
-    version: 5,
-    topics: catalogDefinitions().map((definition) => freshCatalogTopic(definition, now)),
-  })
-  if (!migrated.ok) return emptyLibrary()
-  return {
-    ...migrated.library,
-    catalogDelivered: [...SHIPPED_CATALOG_TOPIC_IDS].sort(),
-  }
-}
-
-const SEEDED_MORSE_ID = 'international-morse-letters-printed'
-
-/** Absorb the temporary #23 control topic without duplicating it or losing its
- * stable item evidence/history. Only the exact shipped 26-row identity is
- * upgraded; arbitrary user-authored Morse topics are left alone. */
-export function absorbSeededMorseBaseline(library: CurrentLibrary): CurrentLibrary {
-  const finalTopic = freshSeedLibraryUnreconciled().topics.find((topic) => topic.id === SEEDED_MORSE_ID)
-  if (!finalTopic) return library
-  const topics = library.topics.map((topic) => {
-    if (topic.id !== SEEDED_MORSE_ID || topic.items.length !== finalTopic.items.length) return topic
-    const sameRows = topic.items.every((item, index) =>
-      item.id === finalTopic.items[index].id &&
-      item.prompt === finalTopic.items[index].prompt &&
-      item.answer === finalTopic.items[index].answer,
-    )
-    if (!sameRows) return topic
-    const hadForwardCompletion = topic.completedAt !== null &&
-      topic.items.some((item) => item.kind !== 'bidirectional')
-    return {
-      ...topic,
-      title: finalTopic.title,
-      scope: finalTopic.scope,
-      items: finalTopic.items,
-      learn: finalTopic.learn,
-      // Absorption is the explicit statement that this record is the shipped
-      // topic, so it also settles provenance for catalog reconciliation.
-      origin: 'catalog' as const,
-      // A #23 completion is retained in history, but cannot remain the active
-      // completion state for the stronger bidirectional claim.
-      ...(hadForwardCompletion ? { status: 'drilled' as const, completedAt: null } : {}),
-    }
-  })
-  return { ...library, topics }
-}
-
-function freshSeedLibraryUnreconciled(): CurrentLibrary {
-  const parsed = parseLibrary(seedLibrary())
-  return parsed.ok ? parsed.library : { version: 5, topics: [] }
-}
-
-/**
- * Everything a stored or imported library goes through before it becomes the
- * live record: the one explicit Morse migration, then delivery of shipped
- * catalog topics this library has never been offered. Both are append- or
- * migration-only; neither may rewrite unrelated learner state.
- */
-export function reconcileLoadedLibrary(
-  library: CurrentLibrary,
-  now: Date = new Date(),
-): { library: CurrentLibrary; report: CatalogReconciliation } {
-  return reconcileCatalog(absorbSeededMorseBaseline(library), now)
-}
-
-export interface LoadedLibrary {
-  library: CurrentLibrary
-  report: CatalogReconciliation
-}
-
-/**
- * Take over any active sitting the retired `argus.morse-learn-sittings.v1`
- * sidecar still holds (#66).
- *
- * Adoption is deliberately one-directional and conservative: a sidecar sitting
- * is used only for a topic whose canonical `lessonSitting` is absent, so the
- * durable field always wins a disagreement, and revisit ids naming items the
- * topic no longer has are dropped rather than failing the load — this is a
- * migration of local formative bookkeeping, not an import that could fabricate
- * progress. Running it a second time is a no-op, because the sidecar is removed
- * as soon as the canonical store has taken over.
- *
- * It is called only from `loadLibraryWithReport`. An import or a reset replaces
- * the whole library and clears the sidecar instead, so a sitting belonging to a
- * replaced library can never appear inside its successor.
- */
-export function adoptLegacyLessonSittings(library: CurrentLibrary): CurrentLibrary {
-  const sidecar = readLessonSittingSidecar()
-  if (Object.keys(sidecar).length === 0) return library
-
-  let changed = false
-  const topics = library.topics.map((topic) => {
-    if (topic.lessonSitting !== undefined) return topic
-    const found = sidecar[topic.id]
-    if (!found) return topic
-
-    const liveIds = new Set(topic.items.flatMap((item) => (item.id ? [item.id] : [])))
-    const revisitItemIds = found.revisitItemIds.filter((itemId) => liveIds.has(itemId))
-    const adopted = withLessonSitting(topic, { ...found, revisitItemIds })
-    if (adopted === topic) return topic
-    changed = true
-    return adopted
-  })
-
-  return changed ? { ...library, topics } : library
-}
-
-export function loadLibraryWithReport(now: Date = new Date()): LoadedLibrary {
-  try {
-    const found = [KEY, ...LEGACY_KEYS]
-      .map((key) => ({ key, raw: localStorage.getItem(key) }))
-      .find((entry) => entry.raw !== null)
-    if (!found?.raw) {
-      // Nothing stored, so there is no record for a stray sidecar to belong to.
-      clearAllLessonSittings()
-      return { library: freshSeedLibrary(now), report: NO_RECONCILIATION }
-    }
-
-    const parsed = parseLibrary(JSON.parse(found.raw))
-    if (!parsed.ok) {
-      clearAllLessonSittings()
-      return { library: freshSeedLibrary(now), report: NO_RECONCILIATION }
-    }
-
-    // Promote a valid legacy record immediately. This makes the migration
-    // durable even before the provider's first effect runs.
-    const adopted = adoptLegacyLessonSittings(parsed.library)
-    const reconciled = reconcileLoadedLibrary(adopted, now)
-    if (found.key !== KEY || reconciled.library !== parsed.library) saveLibrary(reconciled.library)
-    // The canonical store now holds everything the sidecar did. Remove it so it
-    // can never become a competing source of truth again.
-    clearAllLessonSittings()
-    return reconciled
-  } catch {
-    return { library: freshSeedLibrary(now), report: NO_RECONCILIATION }
-  }
-}
-
-export function loadLibrary(): CurrentLibrary {
-  return loadLibraryWithReport().library
-}
-
-export function saveLibrary(library: CurrentLibrary): void {
-  try {
-    localStorage.setItem(KEY, JSON.stringify(library))
-  } catch {
-    // Storage can be full or blocked in private mode. The app stays usable
-    // for the session; export is the recovery path and it stays reachable.
-  }
-}
-
-export function clearLibrary(): void {
-  try {
-    localStorage.removeItem(KEY)
-    for (const key of LEGACY_KEYS) localStorage.removeItem(key)
-  } catch {
-    /* nothing to recover from */
-  }
-}
-
 export type ParseResult =
   | { ok: true; library: CurrentLibrary }
   | { ok: false; error: string }
@@ -1023,8 +836,4 @@ function parseCatalogDelivered(value: unknown): string[] | undefined {
     if (id) ids.add(id)
   }
   return [...ids].sort()
-}
-
-export function exportFilename(now: Date = new Date()): string {
-  return `argus-library-${now.toISOString().slice(0, 10)}.json`
 }

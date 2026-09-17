@@ -17,7 +17,7 @@ import {
 } from '../domain/morse/curriculum/lesson'
 import { COMPLETION_GAP_DAYS, resolveStudy } from '../domain/study/scheduling'
 import { seedLibrary } from '../domain/library/catalogSeed'
-import { parseLibrary } from '../lib/storage'
+import { parseLibrary } from '../infrastructure/persistence/libraryParser'
 import type { Topic } from '../domain/library/topic'
 import { Today } from './today/Today'
 import { LibraryPage } from './library/LibraryPage'

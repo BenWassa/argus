@@ -66,14 +66,20 @@ The production build asks who you are before showing anything, so sign-in is not
 
 ## Application structure
 
-- `src/app/` — application composition and global providers
+- `src/app/` — application composition: providers, routing and the sign-in gate
+- `src/domain/` — the learning model and the rules over it, with no browser or
+  React in it: `library/` (topics, items, shipped catalog), `study/`
+  (scheduling, the journey, the cue ladder, practice) and `morse/` (the code,
+  its curriculum and its acquisition profile)
+- `src/features/` — the surfaces a learner sees, one folder per feature
+- `src/services/` — application services: `sync/`, `inbox/` and the library
+  provider. `inbox/` is a boundary that imports nothing from the learning library
+- `src/infrastructure/` — `persistence/`: parsing, migration and the local
+  library repository
 - `src/components/` — shared UI and layout components
-- `src/features/` — domain features
-- `src/lib/` — library types, storage/migration, scheduler, shipped-catalog reconciliation, Morse support and seeded data
-- `src/services/inbox/` — the content-inbox boundary; imports nothing from the learning library
+- `src/styles/` — global tokens and baseline styles
 - `scripts/` — maintainer tooling: rules rendering and content-inbox ingestion
 - `firestore/` — Firestore Security Rules tests, run against the emulator
-- `src/styles/` — global tokens and baseline styles
 - `public/` — static PWA assets copied directly into the build
 
 ## Deployment

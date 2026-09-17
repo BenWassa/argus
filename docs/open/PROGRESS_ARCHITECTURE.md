@@ -690,7 +690,7 @@ The ten-answer Morse sitting is shown as `X / 10 retrievals`. `XP` is gone from 
 
 - `src/domain/study/journey.test.ts` — the derivation itself: routing, readiness, the anchored clock, the gate, ordinary-topic regression, evidence separation, ranking and shelves.
 - `src/features/crossSurface.test.tsx` — the consistency contract. Nine learner states are each asserted across all four surfaces, comparing rendered verbs, schedule lines, shelf placement and Progress section against the shared derivation rather than against hard-coded strings, so a label change cannot quietly let the surfaces disagree again.
-- `src/lib/storage.test.ts`, `src/lib/storageLoad.test.ts` — sitting validation, export/import round-trip, old-v5 compatibility, sidecar adoption and isolation, fresh-install integrity, existing-learner preservation.
+- `src/infrastructure/persistence/libraryParser.test.ts`, `src/infrastructure/persistence/localLibraryRepository.test.ts` — sitting validation, export/import round-trip, old-v5 compatibility, sidecar adoption and isolation, fresh-install integrity, existing-learner preservation.
 - `src/domain/morse/completionEvidence.test.ts` — unchanged; the #68 completion contract is untouched by this programme.
 
 ## Non-goals

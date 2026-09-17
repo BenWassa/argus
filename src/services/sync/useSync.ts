@@ -12,7 +12,7 @@ import {
   type RemoteRecord,
   type SyncAction,
 } from './syncPlanner'
-import { parseLibrary } from '../../lib/storage'
+import { parseLibrary } from '../../infrastructure/persistence/libraryParser'
 import type { Topic } from '../../domain/library/topic'
 
 export type SyncState =

@@ -14,7 +14,7 @@ import {
   type AttemptAnswer,
 } from '../library/items'
 import { COMPLETION_GAP_DAYS, resolveAttempt } from '../study/scheduling'
-import { parseLibrary } from '../../lib/storage'
+import { parseLibrary } from '../../infrastructure/persistence/libraryParser'
 import { seedLibrary } from '../library/catalogSeed'
 import type { IdentifiedItem, Topic } from '../library/topic'
 import type { DirectionEvidence, ItemCueEvidence, ItemEvidenceStore } from '../study/evidence'

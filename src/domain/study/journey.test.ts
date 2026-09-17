@@ -20,7 +20,7 @@ import {
   type LessonRun,
 } from '../morse/curriculum/lesson'
 import { COMPLETION_GAP_DAYS, resolveAttempt, resolveStudy } from './scheduling'
-import { parseLibrary } from '../../lib/storage'
+import { parseLibrary } from '../../infrastructure/persistence/libraryParser'
 import { seedLibrary } from '../library/catalogSeed'
 import type { Topic } from '../library/topic'
 

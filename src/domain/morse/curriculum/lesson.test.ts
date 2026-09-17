@@ -23,7 +23,7 @@ import {
 import { differsOnlyInFinalElement, isConfusable } from '../../study/confusion'
 import { DEFAULT_PACKET_PLAN } from './packetOrder'
 import { resolveAttempt, resolveStudy } from '../../study/scheduling'
-import { parseLibrary } from '../../../lib/storage'
+import { parseLibrary } from '../../../infrastructure/persistence/libraryParser'
 import { seedLibrary } from '../../library/catalogSeed'
 import type { Topic } from '../../library/topic'
 import type { ItemLessonStore } from '../progress'

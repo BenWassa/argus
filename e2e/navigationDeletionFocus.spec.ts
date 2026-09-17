@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Page } from '@playwright/test'
-import type { Topic } from '../src/lib/types'
+import type { Topic } from '../src/domain/library/topic'
 
 const STORE_KEY = 'argus.library.v5'
 const SPLASH_KEY = 'argus-splash-seen'

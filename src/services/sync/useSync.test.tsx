@@ -27,7 +27,14 @@ beforeEach(() => {
   rememberSignedIn()
 })
 
-afterEach(() => {
+afterEach(async () => {
+  // Applying a plan finishes on a promise chain no assertion here waits for:
+  // the ledger is written after the push or adoption the test asserted on. Let
+  // that chain land before clearing, or a late `saveLedger` outlives the clear
+  // and becomes the *next* test's starting ledger — which reads as "this device
+  // already knew that topic and has since deleted it", and the next plan then
+  // drops the record instead of adopting it.
+  await act(async () => {})
   cleanup()
   localStorage.clear()
 })

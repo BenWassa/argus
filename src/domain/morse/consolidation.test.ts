@@ -7,7 +7,7 @@ import {
   recordPrintedRetrieval,
   withMorseReview,
 } from './curriculum/review'
-import { parseLibrary } from '../../lib/storage'
+import { parseLibrary } from '../../infrastructure/persistence/libraryParser'
 import { seedLibrary } from '../library/catalogSeed'
 import { ALL_MORSE_LETTERS } from './curriculum/packetOrder'
 import type { Topic } from '../library/topic'

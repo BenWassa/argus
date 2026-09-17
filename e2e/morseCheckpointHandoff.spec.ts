@@ -4,7 +4,8 @@ import { expect, test, type Page } from '@playwright/test'
 import { MORSE_LETTERS, type MorseLetter } from '../src/domain/morse/code'
 import { lessonPackets } from '../src/domain/morse/curriculum/lesson'
 import { seedLibrary } from '../src/domain/library/catalogSeed'
-import type { ItemLessonStore, Topic } from '../src/lib/types'
+import type { Topic } from '../src/domain/library/topic'
+import type { ItemLessonStore } from '../src/domain/morse/progress'
 
 /**
  * #88: the word checkpoint after Lesson 4 must be offered automatically the

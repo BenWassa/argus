@@ -25,7 +25,7 @@ import {
   newLessonSitting,
   recordLessonRetrieval,
 } from './lessonSitting'
-import { parseLibrary } from '../../../lib/storage'
+import { parseLibrary } from '../../../infrastructure/persistence/libraryParser'
 import { seedLibrary } from '../../library/catalogSeed'
 import type { MorseLetter } from '../code'
 import type { Topic } from '../../library/topic'

@@ -8,7 +8,7 @@ import {
   inferredOrigin,
   reconcileCatalog,
 } from './catalog'
-import { parseLibrary } from '../../lib/storage'
+import { parseLibrary } from '../../infrastructure/persistence/libraryParser'
 import { seedLibrary } from './catalogSeed'
 import type { Topic } from './topic'
 import type { CurrentLibrary } from '../../infrastructure/persistence/librarySchema'

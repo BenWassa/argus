@@ -8,12 +8,14 @@ import {
   type ReactNode,
 } from 'react'
 import {
-  clearLibrary,
   emptyLibrary,
-  loadLibraryWithReport,
   reconcileLoadedLibrary,
+} from '../../infrastructure/persistence/libraryMigrations'
+import {
+  clearLibrary,
+  loadLibraryWithReport,
   saveLibrary,
-} from '../../lib/storage'
+} from '../../infrastructure/persistence/localLibraryRepository'
 import { NO_RECONCILIATION, type CatalogReconciliation } from '../../domain/library/catalog'
 import { clearAllLessonSittings } from '../../domain/morse/curriculum/lessonSittingStorage'
 import type { Topic } from '../../domain/library/topic'

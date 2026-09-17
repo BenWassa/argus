@@ -4,7 +4,7 @@ import { MORSE_LETTERS, morsePattern, type MorseLetter } from '../../domain/mors
 import { morseAcquisitionProfile } from '../../domain/morse/testing/acquisitionProfile'
 import { mnemonicId, mnemonicTextEquivalent } from '../../domain/morse/mnemonics'
 import { buildCharacterPackets } from '../../domain/morse/curriculum/packetOrder'
-import { parseLibrary } from '../../lib/storage'
+import { parseLibrary } from '../../infrastructure/persistence/libraryParser'
 import { seedLibrary } from '../../domain/library/catalogSeed'
 import type { LearnContent, MorseCharacterLearnItem } from '../../domain/learning/content'
 import { LearnSupport } from '../learn/LearnSupport'

@@ -25,7 +25,8 @@ import {
   morseElementDurationMs,
 } from '../../../domain/morse/response'
 import { LibraryProvider } from '../../../services/library/LibraryProvider'
-import { parseLibrary, saveLibrary } from '../../../lib/storage'
+import { parseLibrary } from '../../../infrastructure/persistence/libraryParser'
+import { saveLibrary } from '../../../infrastructure/persistence/localLibraryRepository'
 import { seedLibrary } from '../../../domain/library/catalogSeed'
 import type { Topic } from '../../../domain/library/topic'
 import type { ItemLessonStore } from '../../../domain/morse/progress'

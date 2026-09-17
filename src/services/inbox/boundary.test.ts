@@ -11,7 +11,7 @@ import {
 } from './inboxConfig'
 import { INBOX_UNCONFIGURED, describeInboxError, unavailableBackend } from './inboxBackend'
 import { dueTopics, isDue, resolveAttempt, shelves } from '../../domain/study/scheduling'
-import { parseLibrary } from '../../lib/storage'
+import { parseLibrary } from '../../infrastructure/persistence/libraryParser'
 import { TRACKS } from '../../domain/library/topic'
 
 /**

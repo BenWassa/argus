@@ -1,10 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { catalogDefinition, collisions } from '../domain/library/catalog'
-import { clearLibrary, emptyLibrary, loadLibraryWithReport, saveLibrary } from './storage'
-import { LEGACY_LESSON_SITTING_KEY } from '../domain/morse/curriculum/lessonSittingStorage'
-import { SHIPPED_CATALOG_TOPIC_IDS } from '../domain/library/catalog'
-import type { Topic } from '../domain/library/topic'
-import type { CurrentLibrary } from '../infrastructure/persistence/librarySchema'
+import { catalogDefinition, collisions } from '../../domain/library/catalog'
+import { emptyLibrary } from './libraryMigrations'
+import {
+  clearLibrary,
+  loadLibraryWithReport,
+  saveLibrary,
+} from './localLibraryRepository'
+import { LEGACY_LESSON_SITTING_KEY } from '../../domain/morse/curriculum/lessonSittingStorage'
+import { SHIPPED_CATALOG_TOPIC_IDS } from '../../domain/library/catalog'
+import type { Topic } from '../../domain/library/topic'
+import type { CurrentLibrary } from './librarySchema'
 
 const KEY = 'argus.library.v5'
 const NOW = new Date('2026-09-05T10:00:00.000Z')

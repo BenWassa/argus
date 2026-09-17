@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Page } from '@playwright/test'
 import { seedLibrary } from '../src/domain/library/catalogSeed'
-import type { Topic } from '../src/lib/types'
+import type { Topic } from '../src/domain/library/topic'
 
 /**
  * What JSDOM cannot prove about the keyed Morse boundary (#87).

@@ -6,7 +6,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { morseLessonPath } from '../../../domain/morse/curriculum/lessonPath'
 import { morseWordCheckpointPath } from '../../../domain/morse/curriculum/checkpoints'
 import { seedLibrary } from '../../../domain/library/catalogSeed'
-import { parseLibrary } from '../../../lib/storage'
+import { parseLibrary } from '../../../infrastructure/persistence/libraryParser'
 import type { Topic } from '../../../domain/library/topic'
 import { MorsePath } from './MorsePath'
 
