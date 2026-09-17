@@ -135,6 +135,29 @@ describe('Morse placement policy', () => {
     expect(run.promptCount).toBeLessThanOrEqual(31)
   })
 
+  it('keeps a repeated late weakness unresolved even if that letter appears correctly in the final word', () => {
+    const topic = freshMorse()
+    let run = startMorsePlacement(topic, 'most')!
+    const lateWeak = run.lessons.at(-1)!.letters.at(-1)!
+    let misses = 0
+    let guard = 0
+
+    while (!run.complete && guard < 100) {
+      const target = currentMorsePlacementTarget(run)!
+      const shouldMiss = target.letter === lateWeak && misses < 2
+      if (shouldMiss) misses += 1
+      run = answerMorsePlacement(
+        run,
+        shouldMiss ? '----' : expectedMorsePlacementPattern(target),
+      )
+      guard += 1
+    }
+
+    expect(misses).toBe(2)
+    expect(run.states[lateWeak]?.status).toBe('fail')
+    expect(run.result).toMatchObject({ throughLesson: 12, nextLesson: 13 })
+  })
+
   it('can place a perfect experienced learner through all 13 lessons', () => {
     const run = perfect(freshMorse(), 'most')
     expect(run.result).toMatchObject({ throughLesson: 13, nextLesson: null })
