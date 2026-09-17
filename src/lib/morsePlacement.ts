@@ -129,15 +129,50 @@ export function currentMorsePlacementTarget(run: MorsePlacementRun): MorsePlacem
   return run.targets[run.index] ?? null
 }
 
+function bridgeTargets(
+  run: MorsePlacementRun,
+  target: MorsePlacementTarget,
+  count: number,
+): MorsePlacementTarget[] {
+  const chosen: MorsePlacementTarget[] = []
+  const seen = new Set<MorseLetter>([target.letter])
+
+  // Prefer material already demonstrated correctly. A tail miss should be
+  // separated by genuine retrieval, not by repeating another unresolved item.
+  for (let index = run.index - 1; index >= 0 && chosen.length < count; index -= 1) {
+    const candidate = run.targets[index]
+    if (seen.has(candidate.letter) || run.states[candidate.letter]?.status !== 'pass') continue
+    seen.add(candidate.letter)
+    chosen.push(letterTarget(candidate.letter, candidate.lesson))
+  }
+
+  // The normal runs always have plenty of prior passes by the time this is
+  // needed, but keep the state machine total even for synthetic/adversarial
+  // traces: fall back to distinct prior material rather than immediate repeat.
+  for (let index = run.index - 1; index >= 0 && chosen.length < count; index -= 1) {
+    const candidate = run.targets[index]
+    if (seen.has(candidate.letter)) continue
+    seen.add(candidate.letter)
+    chosen.push(letterTarget(candidate.letter, candidate.lesson))
+  }
+
+  return chosen.reverse()
+}
+
 function insertRetry(
-  targets: readonly MorsePlacementTarget[],
-  index: number,
+  run: MorsePlacementRun,
   target: MorsePlacementTarget,
 ): MorsePlacementTarget[] {
-  const next = [...targets]
-  const remaining = Math.max(0, next.length - index - 1)
-  const intervening = Math.min(2, remaining)
-  next.splice(index + 1 + intervening, 0, {
+  const next = [...run.targets]
+  const remaining = Math.max(0, next.length - run.index - 1)
+  const bridgeCount = Math.max(0, 2 - remaining)
+  if (bridgeCount > 0) next.push(...bridgeTargets(run, target, bridgeCount))
+
+  // Every ordinary first miss returns after two intervening prompts. Near the
+  // tail the bridge targets above extend the run so this stays true instead of
+  // degrading into an immediate last-question retry.
+  const intervening = Math.min(2, next.length - run.index - 1)
+  next.splice(run.index + 1 + intervening, 0, {
     kind: 'letter',
     letter: target.letter,
     lesson: target.lesson,
@@ -197,7 +232,7 @@ export function answerMorsePlacement(run: MorsePlacementRun, response: string): 
     status = 'fail'
   } else {
     status = 'uncertain'
-    targets = insertRetry(run.targets, run.index, target)
+    targets = insertRetry(run, target)
     retries += 1
   }
 

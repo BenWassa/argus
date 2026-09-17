@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Dialog } from '../../components/ui/Dialog'
-import { canonicalPattern } from '../../lib/acquisition'
+import { canonicalPattern, patternReading } from '../../lib/acquisition'
 import {
   answerMorsePlacement,
   currentMorsePlacementTarget,
@@ -37,6 +37,8 @@ export function MorsePlacementDialog({
 }: MorsePlacementDialogProps) {
   const [run, setRun] = useState<MorsePlacementRun | null>(null)
   const [feedback, setFeedback] = useState<Feedback | null>(null)
+  const [entry, setEntry] = useState('')
+  const [elementKey, setElementKey] = useState(0)
   const pendingRun = useRef<MorsePlacementRun | null>(null)
   const committed = useRef(false)
   const targetRef = useRef<HTMLDivElement>(null)
@@ -45,6 +47,8 @@ export function MorsePlacementDialog({
     const next = pendingRun.current
     pendingRun.current = null
     setFeedback(null)
+    setEntry('')
+    setElementKey((value) => value + 1)
     if (next) setRun(next)
   })
 
@@ -67,13 +71,25 @@ export function MorsePlacementDialog({
     committed.current = false
     reset()
     setFeedback(null)
+    setEntry('')
+    setElementKey((value) => value + 1)
     setRun(next)
   }
 
-  function answer(pattern: string) {
-    if (!run || !target || !armed) return
-    const correct = pattern.replace(/\s+/g, '') === expectedMorsePlacementPattern(target)
-    pendingRun.current = answerMorsePlacement(run, pattern)
+  function appendElement(pattern: string) {
+    if (!armed || feedback || pattern.length !== 1) return
+    setEntry((current) => (current.length < 4 ? `${current}${pattern}` : current))
+    // MorseKeyInput intentionally locks itself after its expected entry is
+    // complete. Placement asks it for one categorical element at a time, then
+    // remounts the same shared key for the next element. The target's true
+    // pattern length is therefore never handed to the control as a cue.
+    setElementKey((value) => value + 1)
+  }
+
+  function checkEntry() {
+    if (!run || !target || !armed || feedback || entry.length === 0) return
+    const correct = entry === expectedMorsePlacementPattern(target)
+    pendingRun.current = answerMorsePlacement(run, entry)
     setFeedback({ correct, letter: target.letter })
     answered(correct)
   }
@@ -176,13 +192,30 @@ export function MorsePlacementDialog({
           </div>
         ) : (
           <div className="morse-placement-key" inert={!armed}>
+            <p
+              className="morse-placement-entry mono"
+              aria-live="polite"
+              aria-label={entry ? `Keyed pattern: ${patternReading(entry)}` : 'Keyed pattern is empty'}
+            >
+              <span aria-hidden="true">{entry ? canonicalPattern(entry) : '\u00a0'}</span>
+            </p>
+            <p className="help morse-placement-entry-help">
+              Key the full pattern, then check it. Up to four signals.
+            </p>
             <MorseKeyInput
-              key={`${run.experience}-${run.index}-${target.letter}`}
-              expectedLength={expectedMorsePlacementPattern(target).length}
-              locked={!armed}
-              onSubmit={answer}
+              key={`${run.experience}-${run.index}-${target.letter}-${elementKey}`}
+              expectedLength={1}
+              locked={!armed || entry.length >= 4}
+              onSubmit={appendElement}
             />
-            <p className="sr-only">Expected pattern length {expectedMorsePlacementPattern(target).length}.</p>
+            <button
+              type="button"
+              className="ghost morse-placement-check"
+              disabled={!armed || entry.length === 0}
+              onClick={checkEntry}
+            >
+              Check pattern
+            </button>
           </div>
         )}
 
