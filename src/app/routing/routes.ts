@@ -1,7 +1,13 @@
-import type { Mode, View } from './types'
+import type { Mode, Topic, View } from '../../lib/types'
 
-export const ARGUS_NAVIGATION_VERSION = 1 as const
-
+/**
+ * The route model: what a destination is, whether an unknown value is one, and
+ * whether two of them are the same place.
+ *
+ * Pure data throughout. Nothing here reads `window`, which is what lets a
+ * restored history entry be validated against the live library without a
+ * browser in the room. The history mechanics live in `history.ts`.
+ */
 export type ParentRoute =
   | { kind: 'section'; view: View }
   | { kind: 'topic'; topicId: string }
@@ -33,16 +39,8 @@ export type AppRoute =
   | { kind: 'run'; mode: Mode; topicIds: string[]; origin: ParentRoute; target?: RunTarget }
   | { kind: 'reference'; topicId: string; origin: ParentRoute }
 
-export interface ArgusHistoryState {
-  argusNavigation: typeof ARGUS_NAVIGATION_VERSION
-  index: number
-  route: AppRoute
-}
-
-type BackBlocker = () => boolean
-
-const backBlockers: { token: symbol; handle: BackBlocker }[] = []
-let bypassNextBackBlocker = false
+/** Today is the docket, and the final Argus boundary before platform exit. */
+export const ROOT_ROUTE: ParentRoute = { kind: 'section', view: 'today' }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
@@ -102,43 +100,6 @@ export function isAppRoute(value: unknown): value is AppRoute {
   return false
 }
 
-export function readNavigationState(value: unknown = window.history.state): ArgusHistoryState | null {
-  if (!isRecord(value)) return null
-  if (value.argusNavigation !== ARGUS_NAVIGATION_VERSION) return null
-  if (!Number.isInteger(value.index) || (value.index as number) < 0) return null
-  if (!isAppRoute(value.route)) return null
-
-  return {
-    argusNavigation: ARGUS_NAVIGATION_VERSION,
-    index: value.index as number,
-    route: value.route,
-  }
-}
-
-function stateFor(route: AppRoute, index: number): ArgusHistoryState {
-  return { argusNavigation: ARGUS_NAVIGATION_VERSION, index, route }
-}
-
-export function replaceNavigationState(route: AppRoute, index: number) {
-  window.history.replaceState(stateFor(route, index), '')
-}
-
-export function pushNavigationState(route: AppRoute, currentIndex: number): number {
-  const nextIndex = currentIndex + 1
-  window.history.pushState(stateFor(route, nextIndex), '')
-  return nextIndex
-}
-
-/**
- * Visible Argus Back/Close actions already passed their own product safeguards.
- * Mark exactly the resulting traversal so a Test/dialog blocker does not ask a
- * second time when the browser emits popstate for that deliberate history.back.
- */
-export function backNavigation() {
-  bypassNextBackBlocker = true
-  window.history.back()
-}
-
 export function sameRoute(left: AppRoute, right: AppRoute): boolean {
   if (left.kind !== right.kind) return false
 
@@ -188,32 +149,66 @@ function sameParent(left: ParentRoute, right: ParentRoute): boolean {
     : left.kind === 'topic' && right.kind === 'topic' && left.topicId === right.topicId
 }
 
+export function parentFor(route: AppRoute): ParentRoute {
+  if (route.kind === 'section' || route.kind === 'topic') return route
+  return route.origin
+}
+
+function safeParent(route: ParentRoute, topics: Topic[]): ParentRoute {
+  if (route.kind === 'section') return route
+  return topics.some((topic) => topic.id === route.topicId)
+    ? route
+    : { kind: 'section', view: 'library' }
+}
+
 /**
- * Registers a synchronous Back policy for the currently mounted surface.
- * The newest mounted blocker wins, so a dialog naturally takes precedence over
- * the route behind it. Returning true means the caller consumed this Back.
+ * True for a run whose position is durable rather than held in memory.
+ *
+ * A canonical Morse lesson is the only one. Its retrieval count, correct count,
+ * letters to revisit and listening declination live in `Topic.lessonSitting`, so
+ * restoring that entry resumes exactly where the learner was rather than
+ * fabricating a fresh task. That is what lets the alphabet reference return to
+ * the lesson it was opened from instead of abandoning it.
+ *
+ * A Test run is never resumable: restoring it would start a new scored attempt.
+ * A replay or word checkpoint deliberately persists nothing, so there is no
+ * position to return to and restoring one would silently restart it.
  */
-export function registerBackBlocker(handle: BackBlocker): () => void {
-  const token = Symbol('argus-back-blocker')
-  backBlockers.push({ token, handle })
-
-  return () => {
-    const index = backBlockers.findIndex((entry) => entry.token === token)
-    if (index >= 0) backBlockers.splice(index, 1)
-  }
+function resumableRun(route: Extract<AppRoute, { kind: 'run' }>): boolean {
+  return route.mode === 'learn' && (route.target?.kind ?? 'lesson') === 'lesson'
 }
 
-export function consumeBackBlocker(): boolean {
-  if (bypassNextBackBlocker) {
-    bypassNextBackBlocker = false
-    return false
+/**
+ * Validate identifiers against the live library. A run that holds its state in
+ * memory is deliberately not reconstructed: a reload or Forward traversal falls
+ * back to the route that launched it rather than silently starting a fresh
+ * scored attempt. A run backed by durable state resumes instead.
+ */
+export function restoreRoute(route: AppRoute, topics: Topic[], restoreRun: boolean): AppRoute {
+  if (route.kind === 'section') return route
+
+  if (route.kind === 'topic') return safeParent(route, topics)
+
+  const origin = safeParent(route.origin, topics)
+
+  if (route.kind === 'reference') {
+    return topics.some((topic) => topic.id === route.topicId)
+      ? { ...route, origin }
+      : origin
   }
-  const blocker = backBlockers[backBlockers.length - 1]
-  return blocker ? blocker.handle() : false
+
+  if (!restoreRun && !resumableRun(route)) return origin
+  return route.topicIds.every((id) => topics.some((topic) => topic.id === id))
+    ? { ...route, origin }
+    : origin
 }
 
-/** Test-only reset for module-global blocker state. */
-export function clearBackBlockersForTests() {
-  backBlockers.splice(0, backBlockers.length)
-  bypassNextBackBlocker = false
+export function liveRoute(route: AppRoute, topics: Topic[]): AppRoute {
+  if (route.kind === 'run') {
+    const origin = safeParent(route.origin, topics)
+    return route.topicIds.every((id) => topics.some((topic) => topic.id === id))
+      ? { ...route, origin }
+      : origin
+  }
+  return restoreRoute(route, topics, true)
 }

@@ -39,7 +39,7 @@ Scope reviewed: `PRODUCT.md`, `DESIGN.md`, `README.md`,
 `docs/open/MORSE_CUE_LADDER.md`, `docs/open/MORSE_WORD_CHECKPOINTS.md`,
 `docs/open/MORSE_CHARACTER_ORDER.md`, `docs/open/NAVIGATION_HISTORY.md`,
 `docs/open/LEARN_CONTENT_MODEL.md`, `docs/closed/LIBRARY_AUDIT.md`; `src/app/App.tsx`,
-`src/lib/navigation.ts`, `src/lib/journey.ts`, `src/lib/scheduling.ts`,
+`src/app/routing/routes.ts`, `src/lib/journey.ts`, `src/lib/scheduling.ts`,
 `src/lib/cueLadder.ts`, `src/lib/types.ts`, the Today/Library/Topic/Progress/Data
 surfaces, generic Learn, Test `Session`, the Morse programme/lesson/replay/
 reference/checkpoint surfaces, `src/styles/global.css` shell and desktop rail,

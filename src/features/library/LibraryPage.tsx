@@ -7,7 +7,7 @@ import {
   TEST_CONSEQUENCE_NOTE,
   type JourneyEntry,
 } from '../../lib/journey'
-import type { RunTarget } from '../../lib/navigation'
+import type { RunTarget } from '../../app/routing/routes'
 import { resolveStudy } from '../../lib/scheduling'
 import { Confirm } from '../../components/ui/Confirm'
 import { TopicForm, type Draft } from './TopicForm'

@@ -164,7 +164,7 @@ offers over different sets are different routes and the second is not a no-op.
 | `src/lib/practiceRun.test.ts` | queue policy, re-queue gap, direction identity, feedback |
 | `src/features/practice/PracticeRun.test.tsx` | the import boundary, storage identity, what it asks, reveal |
 | `src/features/test/TestSession.practice.test.tsx` | the end-screen offer for an ordinary topic |
-| `src/lib/navigation.test.ts` | route validation, malformed item lists, route equality |
+| `src/app/routing/routes.test.ts` | route validation, malformed item lists, route equality |
 | `e2e/practice.spec.ts` | the App seam: offer → route → run → nothing written; reload fallback |
 
 ## Not in scope

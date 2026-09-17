@@ -27,7 +27,7 @@ import {
 } from '../../lib/cueLadder'
 import { selectDistractors } from '../../lib/distractors'
 import { retentionCorrectCount, type AttemptAnswer } from '../../lib/items'
-import { registerBackBlocker } from '../../lib/navigation'
+import { registerBackBlocker } from '../../app/routing/history'
 import type { CueState, Item, ItemCueEvidence, ItemEvidenceStore, Topic } from '../../lib/types'
 import { ProgressiveCard, type ProgressiveAnswer } from './ProgressiveCard'
 import { targetsForItems } from '../../lib/practice'

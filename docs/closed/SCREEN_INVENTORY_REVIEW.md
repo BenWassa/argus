@@ -219,7 +219,7 @@ There are also **30+ conditional visual configurations**. These are deliberately
 
 ### Route-level count: 8
 
-`src/lib/navigation.ts` models four route categories. Expanded into visual types, they are:
+`src/app/routing/routes.ts` models four route categories. Expanded into visual types, they are:
 
 1. **Today** section
 2. **Library** section
@@ -459,7 +459,7 @@ Only after that prototype decision should the team decide whether Progress or Da
 
 - `PRODUCT.md` for users, primary job, Learn/Test contract, progress and data-ownership principles.
 - `DESIGN.md` for task-first product design rules and the explicit ban on page-load sequences.
-- `src/app/App.tsx` and `src/lib/navigation.ts` for route model and history behavior.
+- `src/app/routing/AppRouter.tsx` and `src/app/routing/routes.ts` for route model and history behavior.
 - `src/features/today/Today.tsx`, `library/Library.tsx`, `library/TopicPage.tsx`, `progress/Progress.tsx`, and `data/Data.tsx` for section responsibilities.
 - `src/features/learn/*` and `src/features/test/*` for full-screen task flows and state boundaries.
 - `docs/closed/PROGRAMME.md` and `docs/open/PROGRESS_ARCHITECTURE.md` for current learning/progress authority.

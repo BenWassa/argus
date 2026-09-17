@@ -32,7 +32,7 @@ This document is the durable implementation scope for GitHub issue #93.
 > surface never mount — not a route guard hiding them after the fact. A device
 > that has signed in before shows a `restoring` state rather than a sign-in
 > button, so a returning owner is never asked twice, and never sees the library
-> before Firebase has actually confirmed the session. `src/app/gate.test.tsx`
+> before Firebase has actually confirmed the session. `src/app/gate/AuthGate.test.tsx`
 > covers all four states (signed out, restoring, open, and a failed sign-in
 > that must not open the door) because the browser suite deliberately runs the
 > *unconfigured* build (`npm run build:e2e`) and cannot exercise this: it

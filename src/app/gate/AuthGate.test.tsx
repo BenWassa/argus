@@ -1,11 +1,11 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from 'vitest'
 import { act, cleanup, render, screen, waitFor } from '@testing-library/react'
-import { LibraryProvider } from '../lib/LibraryProvider'
-import { SyncProvider } from '../lib/sync/SyncProvider'
-import { Gate } from './App'
-import { rememberSignedIn } from '../lib/sync/session'
-import type { SyncBackend, SyncUser } from '../lib/sync/backend'
+import { LibraryProvider } from '../../lib/LibraryProvider'
+import { SyncProvider } from '../../lib/sync/SyncProvider'
+import { AuthGate } from './AuthGate'
+import { rememberSignedIn } from '../../lib/sync/session'
+import type { SyncBackend, SyncUser } from '../../lib/sync/backend'
 
 /**
  * The entry boundary (#93 §1), which the browser suite deliberately does not
@@ -50,7 +50,7 @@ function renderApp(backend: SyncBackend) {
   return render(
     <LibraryProvider>
       <SyncProvider backend={backend}>
-        <Gate />
+        <AuthGate />
       </SyncProvider>
     </LibraryProvider>,
   )

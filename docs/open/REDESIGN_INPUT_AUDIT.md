@@ -14,7 +14,7 @@ The original requested foundation is no longer true: there is more than one remo
 
 ## Current screen and route inventory
 
-Argus uses one document URL and serializes its internal route in `history.state`. The route controller is `src/app/App.tsx`; route validation and equality live in `src/lib/navigation.ts`.
+Argus uses one document URL and serializes its internal route in `history.state`. The route controller is `src/app/routing/AppRouter.tsx`; route validation and equality live in `src/app/routing/routes.ts`.
 
 ### Durable destinations
 
@@ -201,12 +201,12 @@ An inaudible or clipped tone, real touch leaking across a lock, double grading, 
 
 ## Likely redesign-sensitive files
 
-- Routing/shell: `src/app/App.tsx`, `src/components/layout/AppShell.tsx`, `src/lib/navigation.ts`, `src/styles/global.css`.
+- Routing/shell: `src/app/routing/AppRouter.tsx`, `src/components/layout/AppShell.tsx`, `src/app/routing/routes.ts`, `src/app/routing/history.ts`, `src/styles/global.css`.
 - Destinations: `src/features/today/*`, `src/features/library/LibraryPage*`, `TopicPage*`, `CompletionRecord.tsx`, `src/features/data-management/DataManagementPage.tsx`.
 - Learning: `LessonRun.tsx`, `MorsePath*`, `MorseLesson*`, `MorseReplay*`, `MorseCheckpoint*`, `MorseReference*`, `Reading.css`, and `LearnSupport.tsx`.
 - Assessment/input: `src/features/test/*` and `src/features/morse/*`.
 - Authoring/transients/splash: TopicForm, CaptureSheet, WantToLearn, Dialog, Confirm, StatusTag, and SplashScreen.
-- Structural tests: `e2e/navigation*`, `e2e/morse*`, `e2e/nato*`, `src/features/crossSurface.test.tsx`, MorsePath/Session/MorseLesson tests, and `src/lib/navigation.test.ts`.
+- Structural tests: `e2e/navigation*`, `e2e/morse*`, `e2e/nato*`, `src/features/crossSurface.test.tsx`, MorsePath/Session/MorseLesson tests, and `src/app/routing/routes.test.ts`.
 
 ## Risk register
 

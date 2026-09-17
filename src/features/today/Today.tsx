@@ -6,7 +6,7 @@ import {
   TEST_CONSEQUENCE_NOTE,
   type JourneyEntry,
 } from '../../lib/journey'
-import type { RunTarget } from '../../lib/navigation'
+import type { RunTarget } from '../../app/routing/routes'
 import { resolveStudy } from '../../lib/scheduling'
 import type { Mode } from '../../lib/types'
 import './Today.css'

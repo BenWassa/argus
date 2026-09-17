@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, type ReactNode } from 'react'
-import { registerBackBlocker } from '../../lib/navigation'
+import { registerBackBlocker } from '../../app/routing/history'
 
 interface DialogProps {
   title: string

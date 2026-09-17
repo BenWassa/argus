@@ -1,21 +1,8 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
-import {
-  ARGUS_NAVIGATION_VERSION,
-  clearBackBlockersForTests,
-  consumeBackBlocker,
-  isAppRoute,
-  readNavigationState,
-  registerBackBlocker,
-  sameRoute,
-  type AppRoute,
-} from './navigation'
+import { describe, expect, it } from 'vitest'
+import { isAppRoute, restoreRoute, sameRoute, type AppRoute } from './routes'
+import type { Topic } from '../../lib/types'
 
-afterEach(() => {
-  clearBackBlockersForTests()
-  vi.restoreAllMocks()
-})
-
-describe('navigation state', () => {
+describe('the route model', () => {
   it('accepts only versioned serializable Argus routes', () => {
     const topic = { kind: 'topic', topicId: 'topic-a' } as const
     const run = {
@@ -31,40 +18,6 @@ describe('navigation state', () => {
     expect(isAppRoute({ kind: 'topic', topicId: '' })).toBe(false)
     expect(isAppRoute({ kind: 'run', mode: 'test', topicIds: [], origin: topic })).toBe(false)
     expect(isAppRoute({ kind: 'run', mode: 'practice', topicIds: ['topic-a'], origin: topic })).toBe(false)
-  })
-
-  it('rejects foreign, malformed and unknown-version history state', () => {
-    expect(readNavigationState(null)).toBeNull()
-    expect(readNavigationState({ route: { kind: 'section', view: 'today' } })).toBeNull()
-    expect(
-      readNavigationState({
-        argusNavigation: ARGUS_NAVIGATION_VERSION + 1,
-        index: 0,
-        route: { kind: 'section', view: 'today' },
-      }),
-    ).toBeNull()
-    expect(
-      readNavigationState({
-        argusNavigation: ARGUS_NAVIGATION_VERSION,
-        index: -1,
-        route: { kind: 'section', view: 'today' },
-      }),
-    ).toBeNull()
-  })
-
-  it('reads a valid versioned entry without domain snapshots', () => {
-    const state = {
-      argusNavigation: ARGUS_NAVIGATION_VERSION,
-      index: 3,
-      route: {
-        kind: 'run',
-        mode: 'learn',
-        topicIds: ['topic-a', 'topic-b'],
-        origin: { kind: 'section', view: 'library' },
-      },
-    }
-
-    expect(readNavigationState(state)).toEqual(state)
   })
 
   it('compares route identity including run origin', () => {
@@ -88,32 +41,6 @@ describe('navigation state', () => {
     expect(sameRoute(topic, otherTopic)).toBe(false)
     expect(sameRoute(runFromTopic, runFromTopic)).toBe(true)
     expect(sameRoute(runFromTopic, runFromLibrary)).toBe(false)
-  })
-})
-
-describe('Back blockers', () => {
-  it('gives the newest mounted transient first refusal and cleans up safely', () => {
-    const lower = vi.fn(() => true)
-    const upper = vi.fn(() => true)
-    const removeLower = registerBackBlocker(lower)
-    const removeUpper = registerBackBlocker(upper)
-
-    expect(consumeBackBlocker()).toBe(true)
-    expect(upper).toHaveBeenCalledTimes(1)
-    expect(lower).not.toHaveBeenCalled()
-
-    removeUpper()
-    expect(consumeBackBlocker()).toBe(true)
-    expect(lower).toHaveBeenCalledTimes(1)
-
-    removeLower()
-    expect(consumeBackBlocker()).toBe(false)
-  })
-
-  it('lets a mounted surface decline Back without inventing a stop', () => {
-    const remove = registerBackBlocker(() => false)
-    expect(consumeBackBlocker()).toBe(false)
-    remove()
   })
 })
 
@@ -173,5 +100,57 @@ describe('a practice run in the route model', () => {
       target: { kind: 'lesson' },
     }
     expect(sameRoute(practice(), lesson)).toBe(false)
+  })
+})
+
+/**
+ * `restoreRoute` was private to `App.tsx` and only ever exercised through a
+ * rendered tree. It is the rule that decides what a reload or a Forward
+ * traversal is allowed to bring back, so it is worth stating directly.
+ */
+describe('restoring a route against the live library', () => {
+  const topics = [{ id: 'topic-a' }, { id: 'topic-b' }] as Topic[]
+  const library = { kind: 'section', view: 'library' } as const
+
+  it('drops a topic the library no longer holds', () => {
+    expect(restoreRoute({ kind: 'topic', topicId: 'topic-a' }, topics, false)).toEqual({
+      kind: 'topic',
+      topicId: 'topic-a',
+    })
+    expect(restoreRoute({ kind: 'topic', topicId: 'gone' }, topics, false)).toEqual(library)
+  })
+
+  it('declines an in-memory run rather than starting a fresh scored attempt', () => {
+    const test: AppRoute = {
+      kind: 'run',
+      mode: 'test',
+      topicIds: ['topic-a'],
+      origin: library,
+    }
+    expect(restoreRoute(test, topics, false)).toEqual(library)
+    // Forward into a live run is a different question, and is allowed.
+    expect(restoreRoute(test, topics, true)).toEqual(test)
+  })
+
+  it('resumes a canonical lesson, whose position is durable', () => {
+    const lesson: AppRoute = {
+      kind: 'run',
+      mode: 'learn',
+      topicIds: ['topic-a'],
+      origin: library,
+      target: { kind: 'lesson' },
+    }
+    expect(restoreRoute(lesson, topics, false)).toEqual(lesson)
+  })
+
+  it('falls back to the origin when the run names a missing topic', () => {
+    const lesson: AppRoute = {
+      kind: 'run',
+      mode: 'learn',
+      topicIds: ['gone'],
+      origin: library,
+      target: { kind: 'lesson' },
+    }
+    expect(restoreRoute(lesson, topics, false)).toEqual(library)
   })
 })

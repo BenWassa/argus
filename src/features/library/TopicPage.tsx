@@ -10,7 +10,7 @@ import { MorsePath } from '../learn/MorsePath'
 // The reference and the structured support keep the editorial treatment they
 // were designed with; only where they are rendered changed.
 import '../learn/Reading.css'
-import type { RunTarget } from '../../lib/navigation'
+import type { RunTarget } from '../../app/routing/routes'
 import { hasPractice, practiceItemCount } from '../../lib/practice'
 import type { Mode, Topic } from '../../lib/types'
 import './TopicPage.css'

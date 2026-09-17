@@ -6,7 +6,7 @@ Status: implementation contract for [#45](https://github.com/BenWassa/argus/issu
 
 Argus is a single-page React application, but its meaningful screen changes are currently held only in component state.
 
-At the top level, `src/app/App.tsx` holds:
+At the top level, `src/app/routing/AppRouter.tsx` holds:
 
 - `view: View` for `today`, `library`, `progress`, and `data`;
 - `run` for full-surface Learn/Test sessions;
@@ -62,7 +62,7 @@ A router dependency is acceptable only if it produces a materially simpler and s
 
 ## Navigation state model
 
-Centralize the durable navigation model near `Routes` in `src/app/App.tsx` rather than allowing browser history to mirror unrelated component-local state.
+Centralize the durable navigation model near `AppRouter` in `src/app/routing/AppRouter.tsx` rather than allowing browser history to mirror unrelated component-local state.
 
 A suitable serializable route union is conceptually:
 
@@ -318,12 +318,12 @@ Keep the change narrow and testable.
 
 A reasonable decomposition is:
 
-1. `src/lib/navigation.ts`
+1. `src/app/routing/routes.ts` and `src/app/routing/history.ts`
    - versioned `AppRoute`/history-state types;
    - validation/normalization;
    - `push`, `replace`, `back`, and `popstate` adapter;
    - no learner-domain logic.
-2. `src/app/App.tsx`
+2. `src/app/routing/AppRouter.tsx`
    - make the durable route the source of truth instead of independent `view` + `run` state;
    - resolve route → screen;
    - seed initial history entry;

@@ -50,7 +50,7 @@ export default defineConfig({
     // has an account to sign in to — so this is the same app, exercised in the
     // local-only configuration the repository has always supported, rather than
     // the gate being disabled by a test-only flag. The gate itself is covered
-    // in `src/app/gate.test.tsx`.
+    // in `src/app/gate/AuthGate.test.tsx`.
     command: 'npm run build:e2e && npx vite preview --port 4173 --host 127.0.0.1',
     url: 'http://127.0.0.1:4173/',
     reuseExistingServer: !process.env.CI,
