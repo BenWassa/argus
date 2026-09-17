@@ -1,55 +1,73 @@
 /*
  * Argus design tokens. Single source of truth, derived from DESIGN.md.
  * Nothing in the app hardcodes a colour, radius, or type step.
+ *
+ * Material: brushed gunmetal. The chassis is cool milled grey, the one lit
+ * thing is polished steel, and the one warm thing is tarnish. Depth comes from
+ * a bevel — a light top edge and a dark bottom one — rather than from drop
+ * shadows, so raised controls read as stamped hardware and recessed tracks read
+ * as engraved into it.
  */
 
 :root {
-  /* Surfaces. Field Black through Lifted Olive: hierarchy comes from tonal
-     layering, and every step is genuinely used. Neutrals tint toward green. */
-  --bg: #0d100e;
-  --surface: #131714;
-  --surface-2: #1d221e;
-  --surface-3: #29302a;
-  --surface-4: #39413a;
-  --field: #0f1310;
+  /* Surfaces. Cool milled greys; hierarchy comes from tonal layering and every
+     step is genuinely used. --field is the one surface below the page: inputs
+     and progress tracks are cut into the chassis, not laid on it. */
+  --bg: #101215;
+  --surface: #16191d;
+  --surface-2: #1d2126;
+  --surface-3: #272c33;
+  --surface-4: #343a42;
+  --field: #0b0d10;
 
   /* Text */
-  --ink: #f5f3ec;
-  --muted: #aab1a6;
-  --subtle: #8b948a;
-  --placeholder: #7d857c;
+  --ink: #e6eaf0;
+  /* Lifted alongside --subtle: at #939ba7 the one readout set on a lit card
+     face landed at 4.46:1, and every other pairing only gains from the step. */
+  --muted: #979fac;
+  /* Lifted until it clears 4.5:1 on --surface-2 as well as on the page ground;
+     below that it failed on hovered rows, which is where it is most read. */
+  --subtle: #868f9d;
+  --placeholder: #767f8e;
 
   /* Rules */
-  --line: #333b34;
-  --line-strong: #4d574e;
-  --line-hover: #6b776c;
+  --line: #2a2f37;
+  --line-strong: #3d4450;
+  --line-hover: #5b6472;
 
-  /* Brass. The one accent: primary action, current selection, active state. */
-  --accent: #d6b574;
-  --accent-2: #f0d39a;
-  --accent-ink: #1c150a;
-  --accent-wash: rgb(214 181 116 / 12%);
+  /* Polished steel. The one accent: primary action, current selection, active
+     state. It is a material, not a hue — the accent surfaces are the ones
+     catching the light, and --ink stays a cooler off-white so they separate. */
+  --accent: #e9edf3;
+  --accent-2: #ffffff;
+  --accent-ink: #0b0d10;
+  --accent-wash: rgb(233 237 243 / 10%);
 
-  /* Track semantics. Metadata and typographic accents, never a surface. */
-  --learning: #8fb5cf;
-  --survival: #98b77c;
-  --tradecraft: #c99a82;
+  /* Track semantics. Metadata and typographic accents, never a surface. Low
+     chroma, so they read as tinted metal rather than as three crayons — and
+     none of them is copper, because copper means decay. */
+  --learning: #8aa8c8;
+  --survival: #93ae95;
+  --tradecraft: #a79ac0;
 
   /* Status */
-  --danger: #e0958c;
-  --danger-2: #e9a9a1;
-  --danger-ink: #1d100e;
-  --ok: #9dc5a2;
-  /* Completion is a restrained field green, distinct from the brass used for
-     the action currently in progress. */
-  --complete: #748c65;
-  --warning: #d8bd79;
+  --danger: #d98078;
+  --danger-2: #e8968e;
+  --danger-ink: #140809;
+  --ok: #93b8a2;
+  /* Completion is settled, not lit: a cool slate that has clearly stopped
+     being the thing in progress. */
+  --complete: #8c98a5;
+  /* Tarnish. The single warm note in the whole system, spent only on a skill
+     that has decayed and needs repair, so it is unmistakable wherever it
+     appears. */
+  --warning: #d68d5e;
 
-  /* Radii */
-  --r-sm: 9px;
-  --r-md: 10px;
-  --r-lg: 14px;
-  --r-xl: 18px;
+  /* Radii. Machined rather than soft: tight enough to read as a milled edge. */
+  --r-sm: 6px;
+  --r-md: 8px;
+  --r-lg: 12px;
+  --r-xl: 16px;
   --r-pill: 999px;
 
   /* Spacing */
@@ -61,12 +79,18 @@
   --s-2xl: 40px;
   --s-3xl: 64px;
 
-  /* Type. Two families: a native serif for the things you read and remember,
-     a native sans for the things you operate. No web font, so nothing to
-     download and nothing to break when the PWA opens offline. */
+  /* Type. Two voices: a native sans for everything you read and operate, a
+     native mono for everything the instrument reports — counts, dates,
+     positions, status. No web font, so nothing to download and nothing to break
+     when the PWA opens offline.
+
+     --font-display is deliberately the same family as --font: the display voice
+     is now carried by size, weight and negative tracking rather than by a
+     second family. The token stays so the surfaces that speak in it remain
+     named, and so the family can be changed in one place. */
   --font: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-display: ui-serif, "New York", Georgia, "Times New Roman", serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --font-display: var(--font);
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
 
   /* Scale. Real contrast between adjacent steps, and a display step that is
      allowed to be genuinely large. */
@@ -74,33 +98,55 @@
   --t-page: 2.15rem;
   --t-section: 1.45rem;
   --t-component: 1.05rem;
-  /* Serif standfirst/overview copy: DESIGN.md's "slightly larger reading
-     size" exception to body voice, named so it stops drifting per-file. */
+  /* Standfirst/overview copy: DESIGN.md's "slightly larger reading size"
+     exception to body voice, named so it stops drifting per-file. */
   --t-lede: 1.15rem;
   --t-body: 0.98rem;
   --t-small: 0.85rem;
   --t-label: 0.72rem;
+  /* The readout step. Mono is wider than the sans at the same size, so the
+     instrument voice is set one notch smaller and less tracked than a sans
+     label would be, or a row of them will not fit a 320px screen. */
+  --t-readout: 0.68rem;
+  --track-readout: 0.055em;
 
-  /* Weights. The serif carries authority at 600; pushing it to 700 turns
-     editorial into shouty. */
+  /* Weights. A sans has to work harder than a serif did to read as display, so
+     the large steps sit at 600 with the tracking pulled in. */
   --w-display: 600;
   --w-page: 600;
   --w-section: 600;
-  --w-component: 650;
-  --w-label: 650;
+  --w-component: 600;
+  --w-label: 600;
   --w-body: 400;
 
-  /* Elevation. Depth reads as material and light, not as drop-shadowed cards.
-     --edge is the top highlight that makes a raised surface look raised. */
-  --edge: inset 0 1px 0 rgb(255 255 255 / 8%);
-  --shadow-sm: 0 1px 2px rgb(0 0 0 / 32%);
-  --shadow-key: 0 12px 30px rgb(0 0 0 / 40%);
-  --shadow: 0 18px 48px rgb(0 0 0 / 34%);
-  --shadow-lift: 0 28px 64px rgb(0 0 0 / 46%);
+  /* Elevation. Depth reads as machined material: --edge is the top highlight
+     that makes a raised surface look raised, --edge-under the dark lower lip
+     that gives it thickness, --engrave the inner shadow that cuts a track into
+     the chassis, and --press the deeper one a control falls into when held. */
+  --edge: inset 0 1px 0 rgb(255 255 255 / 7%);
+  --edge-under: inset 0 -1px 0 rgb(0 0 0 / 50%);
+  --engrave: inset 0 1px 3px rgb(0 0 0 / 62%);
+  --press: inset 0 2px 5px rgb(0 0 0 / 50%);
+  /* The same press, read on a lit surface: a white plate does not need half a
+     stop of black dropped into it to look held. */
+  --press-lit: inset 0 2px 4px rgb(0 0 0 / 22%);
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 40%);
+  --shadow-key: 0 10px 26px rgb(0 0 0 / 46%);
+  --shadow: 0 16px 42px rgb(0 0 0 / 42%);
+  --shadow-lift: 0 26px 60px rgb(0 0 0 / 54%);
 
-  /* Grain. A single inline SVG, so the page ground has tooth instead of
-     reading as a flat fill. Never networked, never animated. */
+  /* Texture. Three fixed, non-animated layers so the dark greys read as metal
+     instead of as an empty fill: grain for tooth, machining for the brushed
+     direction, convexity for the light falling on it from above. Alpha is baked
+     in, so each layer can be tuned without a shared opacity. */
   --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  --machining:
+    repeating-linear-gradient(-45deg, rgb(255 255 255 / 1.5%) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(-45deg, rgb(0 0 0 / 6%) 0 1px, transparent 1px 4px);
+  --convex: radial-gradient(130% 78% at 50% -14%, rgb(255 255 255 / 4.5%), transparent 66%);
+  /* The diagonal sheen a stamped panel catches. Used on the few surfaces that
+     are meant to feel like a lifted plate, never on the page ground. */
+  --sheen: linear-gradient(145deg, rgb(255 255 255 / 4%), transparent 46%);
 
   /* Motion: state feedback and card physics. Nothing decorative. */
   --t-fast: 150ms;

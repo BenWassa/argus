@@ -9,9 +9,10 @@
 }
 
 .today-date {
-  font-size: var(--t-label);
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
   font-weight: var(--w-label);
-  letter-spacing: 0.09em;
+  letter-spacing: var(--track-readout);
   text-transform: uppercase;
   color: var(--subtle);
   white-space: nowrap;
@@ -39,7 +40,7 @@
 .horizon-head {
   margin-top: var(--s-2xl);
   padding-bottom: var(--s-sm);
-  border-bottom: 1px solid color-mix(in srgb, var(--accent) 30%, var(--line));
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 22%, var(--line));
 }
 
 .horizon-head + .today-sub + .index.docket {
@@ -48,8 +49,10 @@
 
 /* Why the topic surfaced today, not which rung it sits on. */
 .due-reason {
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
   font-weight: var(--w-label);
-  letter-spacing: 0.045em;
+  letter-spacing: var(--track-readout);
   text-transform: uppercase;
   color: var(--muted);
 }
@@ -100,7 +103,7 @@
   letter-spacing: 0.01em;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: rgb(28 21 10 / 74%);
+  color: color-mix(in srgb, var(--accent-ink) 74%, transparent);
 }
 
 .today-alts {

@@ -117,7 +117,7 @@ oldest first, ties broken by the topic's own item order.
   the primary action, because the primary action is the check — only the check
   can re-earn anything.
 - The end screen offer sits below the outcome copy and above `Back to today`,
-  and carries no accent. The end screen's one brass moment belongs to banking a
+  and carries no accent. The end screen's one lit moment belongs to banking a
   completion; a miss is not an event to mark.
 - Offers count **items**, not directions. A bidirectional item missed both ways
   is one thing to go and fix, and calling it two would overstate the damage.

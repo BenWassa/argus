@@ -491,7 +491,7 @@
 }
 
 .morse-audio-error {
-  color: var(--warning);
+  color: var(--danger-2);
 }
 
 @media (prefers-reduced-motion: reduce) {

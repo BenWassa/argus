@@ -14,7 +14,7 @@
   overflow: hidden;
   text-align: center;
   background:
-    radial-gradient(circle at 50% 6%, rgb(214 181 116 / 9%), transparent 34%),
+    radial-gradient(circle at 50% 6%, var(--accent-wash), transparent 34%),
     linear-gradient(180deg, var(--surface) 0%, var(--bg) 46%, var(--field) 100%);
 }
 
@@ -110,11 +110,18 @@
   margin-bottom: var(--s-xl);
 }
 
+/* The wordmark is the instrument's nameplate, so it is stamped in the readout
+   voice rather than set as a title. */
 .signin-mark {
   margin: 0;
-  font-size: clamp(2.25rem, 11vw, 3rem);
+  font-family: var(--font-mono);
+  font-size: clamp(2rem, 9.5vw, 2.6rem);
+  font-weight: var(--w-section);
   line-height: 1;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.22em;
+  /* Tracking adds the gap after the last letter too, which visually pushes a
+     centred wordmark left. */
+  text-indent: 0.22em;
   text-transform: uppercase;
 }
 
@@ -133,10 +140,11 @@ button.signin-action {
   gap: 11px;
   padding: 14px 20px;
   border: 1px solid var(--line-strong);
+  border-top-color: var(--line-hover);
   border-radius: var(--r-xl);
   color: var(--ink);
-  background: var(--surface-2);
-  box-shadow: var(--edge), var(--shadow-sm);
+  background: linear-gradient(180deg, var(--surface-3), var(--surface-2));
+  box-shadow: var(--edge), var(--edge-under), var(--shadow-sm);
 }
 
 button.signin-action:hover {

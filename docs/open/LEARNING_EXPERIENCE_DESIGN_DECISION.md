@@ -385,7 +385,7 @@ re-bank anything; the *next* check is what re-earns evidence. The learner then
 sees `Check again` rather than being sent silently back to a full 26-item run.
 
 **J8 — completion, then retention.** A clean qualifying check ≥30 days after
-drilling banks completion; the end screen is the one place brass marks an event
+drilling banks completion; the end screen is the one place the accent marks an event
 rather than an action (`DESIGN.md` One Accent Rule). The topic joins the numbered
 record at the foot of Library. 90 days later Today shows `Spot check ready`; a
 failed spot check shows `Needs repair` and routes to repair — never to a scolding

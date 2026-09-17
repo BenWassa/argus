@@ -34,18 +34,24 @@
 }
 
 /* The primary bar is #51's guaranteed finite sitting target. Packet readiness is
-   stated separately in text and remains durable acquisition state. */
+   stated separately in text and remains durable acquisition state.
+
+   It is drawn as an engraved track with a polished inlay running along it: the
+   one meter in the app whose fill is the accent, because closing this sitting's
+   finite boundary is exactly what the screen is asking for. */
 .lesson-progress {
   block-size: 6px;
   border-radius: var(--r-pill);
-  background: var(--surface-3);
+  background: var(--field);
+  box-shadow: var(--engrave);
   overflow: hidden;
 }
 
 .lesson-progress-fill {
   display: block;
   block-size: 100%;
-  background: var(--accent);
+  border-radius: inherit;
+  background: linear-gradient(180deg, var(--accent-2), var(--accent));
   transition: inline-size 220ms ease;
 }
 
@@ -102,11 +108,12 @@
 
 .lesson-task {
   margin: 0;
-  font-size: var(--t-label);
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
   font-weight: var(--w-label);
-  letter-spacing: 0.08em;
+  letter-spacing: var(--track-readout);
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--ink);
 }
 
 /* A quiet state marker: review remains the same Learn run, never a new mode. */

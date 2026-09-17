@@ -6,7 +6,7 @@
 
 Argus uses one unified opening/authentication surface. The former standalone first-visit splash followed by a separate sign-in screen is superseded.
 
-The visual/interaction reference is the current HAUS sign-in composition: a centered bounded shell with media above and authentication content below. Argus retains its own dark field/brass design tokens, typography, copy, Firebase behavior, and learning-product identity.
+The visual/interaction reference is the current HAUS sign-in composition: a centered bounded shell with media above and authentication content below. Argus retains its own dark gunmetal/steel design tokens, typography, copy, Firebase behavior, and learning-product identity.
 
 ## Invariants
 

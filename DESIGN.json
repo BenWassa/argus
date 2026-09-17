@@ -1,105 +1,329 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-07-30T00:00:00Z",
+  "generatedAt": "2026-09-16T00:00:00Z",
   "title": "Design System: Argus",
   "extensions": {
     "colorMeta": {
       "accent": {
         "role": "primary",
-        "displayName": "Brass",
-        "canonical": "#d6b574",
-        "tonalRamp": ["#3d2f14", "#5c481d", "#7c6127", "#9c7a30", "#bc9a4d", "#d6b574", "#e4c791", "#f0d39a"]
+        "displayName": "Polish",
+        "canonical": "#e9edf3",
+        "tonalRamp": [
+          "#333435",
+          "#5d5f61",
+          "#87898d",
+          "#b6b9be",
+          "#e9edf3",
+          "#eef2f6",
+          "#f4f6f9",
+          "#f9fafc"
+        ]
       },
       "accent-2": {
         "role": "primary",
-        "displayName": "Bright Brass",
-        "canonical": "#f0d39a",
-        "tonalRamp": ["#3d2f14", "#5c481d", "#7c6127", "#9c7a30", "#bc9a4d", "#d6b574", "#e4c791", "#f0d39a"]
+        "displayName": "Highlight",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "#383838",
+          "#666666",
+          "#949494",
+          "#c7c7c7",
+          "#ffffff",
+          "#ffffff",
+          "#ffffff",
+          "#ffffff"
+        ]
       },
       "bg": {
         "role": "neutral",
-        "displayName": "Field Black",
-        "canonical": "#0f1210",
-        "tonalRamp": ["#0f1210", "#151916", "#1b201c", "#232923", "#303730", "#465047", "#788077", "#a9b0a5"]
+        "displayName": "Gunmetal",
+        "canonical": "#101215",
+        "tonalRamp": [
+          "#101215",
+          "#16191d",
+          "#1d2126",
+          "#272c33",
+          "#343a42",
+          "#3d4450",
+          "#5b6472",
+          "#979fac"
+        ]
       },
       "surface": {
         "role": "neutral",
-        "displayName": "Olive Surface",
-        "canonical": "#151916",
-        "tonalRamp": ["#0f1210", "#151916", "#1b201c", "#232923", "#303730", "#465047", "#788077", "#a9b0a5"]
+        "displayName": "Milled",
+        "canonical": "#16191d",
+        "tonalRamp": [
+          "#101215",
+          "#16191d",
+          "#1d2126",
+          "#272c33",
+          "#343a42",
+          "#3d4450",
+          "#5b6472",
+          "#979fac"
+        ]
       },
       "surface-2": {
         "role": "neutral",
-        "displayName": "Raised Olive",
-        "canonical": "#1b201c",
-        "tonalRamp": ["#0f1210", "#151916", "#1b201c", "#232923", "#303730", "#465047", "#788077", "#a9b0a5"]
+        "displayName": "Raised",
+        "canonical": "#1d2126",
+        "tonalRamp": [
+          "#101215",
+          "#16191d",
+          "#1d2126",
+          "#272c33",
+          "#343a42",
+          "#3d4450",
+          "#5b6472",
+          "#979fac"
+        ]
       },
       "surface-3": {
         "role": "neutral",
-        "displayName": "Lifted Olive",
-        "canonical": "#232923",
-        "tonalRamp": ["#0f1210", "#151916", "#1b201c", "#232923", "#303730", "#465047", "#788077", "#a9b0a5"]
+        "displayName": "Lifted",
+        "canonical": "#272c33",
+        "tonalRamp": [
+          "#101215",
+          "#16191d",
+          "#1d2126",
+          "#272c33",
+          "#343a42",
+          "#3d4450",
+          "#5b6472",
+          "#979fac"
+        ]
+      },
+      "surface-4": {
+        "role": "neutral",
+        "displayName": "Top",
+        "canonical": "#343a42",
+        "tonalRamp": [
+          "#101215",
+          "#16191d",
+          "#1d2126",
+          "#272c33",
+          "#343a42",
+          "#3d4450",
+          "#5b6472",
+          "#979fac"
+        ]
+      },
+      "field": {
+        "role": "neutral",
+        "displayName": "Recess",
+        "canonical": "#0b0d10",
+        "tonalRamp": [
+          "#101215",
+          "#16191d",
+          "#1d2126",
+          "#272c33",
+          "#343a42",
+          "#3d4450",
+          "#5b6472",
+          "#979fac"
+        ]
       },
       "ink": {
         "role": "neutral",
-        "displayName": "Warm Bone",
-        "canonical": "#f4f2ea",
-        "tonalRamp": ["#0f1210", "#151916", "#1b201c", "#232923", "#303730", "#465047", "#788077", "#f4f2ea"]
+        "displayName": "Ink",
+        "canonical": "#e6eaf0",
+        "tonalRamp": [
+          "#101215",
+          "#16191d",
+          "#1d2126",
+          "#272c33",
+          "#343a42",
+          "#3d4450",
+          "#5b6472",
+          "#979fac"
+        ]
       },
       "learning": {
-        "role": "tertiary",
-        "displayName": "Dusty Blue — Learning",
-        "canonical": "#8fb5cf",
-        "tonalRamp": ["#16232c", "#223849", "#2f4d63", "#46698a", "#6690ac", "#8fb5cf", "#b0cadf", "#d3e3ee"]
+        "role": "track",
+        "displayName": "Steel Blue",
+        "canonical": "#8aa8c8",
+        "tonalRamp": [
+          "#1e252c",
+          "#374350",
+          "#506174",
+          "#6c839c",
+          "#8aa8c8",
+          "#a7bed6",
+          "#c4d4e4",
+          "#dee7f0"
+        ]
       },
       "survival": {
-        "role": "tertiary",
-        "displayName": "Sage — Survival",
-        "canonical": "#98b77c",
-        "tonalRamp": ["#1c2415", "#2c3a20", "#3d4f2b", "#567238", "#779653", "#98b77c", "#b7cd9e", "#d7e4c2"]
+        "role": "track",
+        "displayName": "Mineral",
+        "canonical": "#93ae95",
+        "tonalRamp": [
+          "#202621",
+          "#3b463c",
+          "#556556",
+          "#738874",
+          "#93ae95",
+          "#aec2b0",
+          "#c9d6ca",
+          "#e1e8e1"
+        ]
       },
       "tradecraft": {
-        "role": "tertiary",
-        "displayName": "Clay — Tradecraft",
-        "canonical": "#c99a82",
-        "tonalRamp": ["#2e2018", "#443023", "#5c4130", "#7a5843", "#9c765c", "#c99a82", "#dab7a3", "#ebd6ca"]
+        "role": "track",
+        "displayName": "Pewter",
+        "canonical": "#a79ac0",
+        "tonalRamp": [
+          "#25222a",
+          "#433e4d",
+          "#61596f",
+          "#827896",
+          "#a79ac0",
+          "#bdb3d0",
+          "#d3cce0",
+          "#e6e3ed"
+        ]
       },
       "danger": {
-        "role": "error",
-        "displayName": "Signal Coral",
-        "canonical": "#e0958c",
-        "tonalRamp": ["#3a1815", "#55231e", "#722f28", "#9b4038", "#c4645a", "#e0958c", "#ecb2ab", "#f6d4d0"]
+        "role": "status",
+        "displayName": "Clay",
+        "canonical": "#d98078",
+        "tonalRamp": [
+          "#301c1a",
+          "#573330",
+          "#7e4a46",
+          "#a9645e",
+          "#d98078",
+          "#e2a09a",
+          "#ecc0bc",
+          "#f4dbd9"
+        ]
       },
       "ok": {
-        "role": "success",
-        "displayName": "Muted Green",
-        "canonical": "#9dc5a2",
-        "tonalRamp": ["#17251a", "#263a2a", "#364f3a", "#4d6c4f", "#6f9573", "#9dc5a2", "#bcd8bf", "#dcecdd"]
+        "role": "status",
+        "displayName": "Mineral Green",
+        "canonical": "#93b8a2",
+        "tonalRamp": [
+          "#202824",
+          "#3b4a41",
+          "#556b5e",
+          "#73907e",
+          "#93b8a2",
+          "#aecab9",
+          "#c9dcd0",
+          "#e1ebe5"
+        ]
+      },
+      "complete": {
+        "role": "status",
+        "displayName": "Settled",
+        "canonical": "#8c98a5",
+        "tonalRamp": [
+          "#1f2124",
+          "#383d42",
+          "#515860",
+          "#6d7781",
+          "#8c98a5",
+          "#a9b2bc",
+          "#c6ccd2",
+          "#dfe2e6"
+        ]
       },
       "warning": {
-        "role": "warning",
-        "displayName": "Muted Gold",
-        "canonical": "#d8bd79",
-        "tonalRamp": ["#3a2f13", "#55461d", "#715f28", "#93803a", "#b6a058", "#d8bd79", "#e5cd98", "#f1e2c0"]
+        "role": "status",
+        "displayName": "Tarnish",
+        "canonical": "#d68d5e",
+        "tonalRamp": [
+          "#2f1f15",
+          "#563826",
+          "#7c5237",
+          "#a76e49",
+          "#d68d5e",
+          "#e0aa86",
+          "#eac6ae",
+          "#f4dfd2"
+        ]
       }
     },
     "typographyMeta": {
-      "page-title": { "displayName": "Page Title", "purpose": "H1 on every top-level view. No eyebrow label above it." },
-      "section-title": { "displayName": "Section Title", "purpose": "H2 for major in-page sections." },
-      "component-title": { "displayName": "Component Title", "purpose": "H3, topic titles, card/panel headings." },
-      "body": { "displayName": "Body", "purpose": "All prose. Measure capped near 68ch." },
-      "label": { "displayName": "Label", "purpose": "Metadata, kickers, stat card eyebrows. Used sparingly." }
+      "display": {
+        "displayName": "Display",
+        "purpose": "Topic titles on the Learn sheet. The largest type in the product."
+      },
+      "page-title": {
+        "displayName": "Page Title",
+        "purpose": "H1 on every top-level view. No eyebrow label above it."
+      },
+      "section-title": {
+        "displayName": "Section Title",
+        "purpose": "H2 for major in-page sections."
+      },
+      "component-title": {
+        "displayName": "Component Title",
+        "purpose": "H3, topic titles, card/panel headings."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "All prose. Measure capped near 68ch."
+      },
+      "readout": {
+        "displayName": "Readout",
+        "purpose": "The mono voice: counts, dates, positions, status words, track labels, kickers. Everything the instrument reports rather than says."
+      }
     },
     "shadows": [
-      { "name": "ambient-panel", "value": "0 18px 48px rgba(0,0,0,.28)", "purpose": "Reserved for the Test panel and the due-Test surface — the single most important element per view." }
+      {
+        "name": "edge",
+        "value": "inset 0 1px 0 rgb(255 255 255 / 7%)",
+        "purpose": "The lit top edge on anything raised. Paired with edge-under."
+      },
+      {
+        "name": "edge-under",
+        "value": "inset 0 -1px 0 rgb(0 0 0 / 50%)",
+        "purpose": "The dark lower lip that gives a raised control thickness."
+      },
+      {
+        "name": "engrave",
+        "value": "inset 0 1px 3px rgb(0 0 0 / 62%)",
+        "purpose": "Anything cut into the chassis: inputs, progress tracks, an engaged filter chip."
+      },
+      {
+        "name": "press",
+        "value": "inset 0 2px 5px rgb(0 0 0 / 50%)",
+        "purpose": "A held control dropping into the chassis."
+      },
+      {
+        "name": "press-lit",
+        "value": "inset 0 2px 4px rgb(0 0 0 / 22%)",
+        "purpose": "The same press read on the polished primary, which needs far less black in it to look held."
+      },
+      {
+        "name": "ambient-panel",
+        "value": "0 16px 42px rgb(0 0 0 / 42%)",
+        "purpose": "Reserved for the flashcard and the due-Test surface — the single most important element per view."
+      }
     ],
     "motion": [
-      { "name": "state-transition", "value": "150-200ms ease", "purpose": "Default duration for hover/focus/active feedback on buttons, chips, fields, nav." },
-      { "name": "reduced-motion-floor", "value": "0.01ms", "purpose": "prefers-reduced-motion collapses all animation/transition durations to near-zero." }
+      {
+        "name": "state-transition",
+        "value": "150-200ms ease",
+        "purpose": "Default duration for hover/focus/active feedback on buttons, chips, fields, nav."
+      },
+      {
+        "name": "reduced-motion-floor",
+        "value": "0.01ms",
+        "purpose": "prefers-reduced-motion collapses all animation/transition durations to near-zero."
+      }
     ],
     "breakpoints": [
-      { "name": "sm", "value": "680px" },
-      { "name": "desktop", "value": "980px" }
+      {
+        "name": "sm",
+        "value": "680px"
+      },
+      {
+        "name": "desktop",
+        "value": "980px"
+      }
     ]
   },
   "components": [
@@ -109,23 +333,23 @@
       "refersTo": "button-primary",
       "description": "The single accent-colored action per screen — Start due Test, Save topic, Begin session.",
       "html": "<button class=\"ds-btn-primary\">Start due Test</button>",
-      "css": ".ds-btn-primary { min-height: 44px; padding: 11px 14px; border-radius: 10px; border: 1px solid #d6b574; background: #d6b574; color: #20180d; font: 700 0.86rem ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif; cursor: pointer; transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease; } .ds-btn-primary:hover { background: #f0d39a; border-color: #f0d39a; } .ds-btn-primary:active { transform: translateY(1px); } .ds-btn-primary:focus-visible { outline: 3px solid rgba(240,211,154,.32); outline-offset: 2px; }"
+      "css": ".ds-btn-primary { min-height: 44px; padding: 11px 14px; border-radius: 10px; border: 1px solid #e9edf3; background: #e9edf3; color: #0b0d10; font: 700 0.86rem ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif; cursor: pointer; transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease; } .ds-btn-primary:hover { background: #ffffff; border-color: #ffffff; } .ds-btn-primary:active { transform: translateY(1px); } .ds-btn-primary:focus-visible { outline: 3px solid rgba(255,255,255,.4); outline-offset: 2px; }"
     },
     {
       "name": "Ghost Button",
       "kind": "button",
       "refersTo": "button-ghost",
-      "description": "Secondary action, same shape as primary, olive surface instead of brass.",
+      "description": "Secondary action, same shape as primary, a milled-grey bevel instead of the polish.",
       "html": "<button class=\"ds-btn-ghost\">Author a topic</button>",
-      "css": ".ds-btn-ghost { min-height: 44px; padding: 11px 14px; border-radius: 10px; border: 1px solid #465047; background: #1b201c; color: #f4f2ea; font: 700 0.86rem ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif; cursor: pointer; transition: background 0.18s ease, border-color 0.18s ease; } .ds-btn-ghost:hover { background: #232923; border-color: #59645a; } .ds-btn-ghost:focus-visible { outline: 3px solid rgba(240,211,154,.32); outline-offset: 2px; border-color: #d6b574; }"
+      "css": ".ds-btn-ghost { min-height: 44px; padding: 11px 14px; border-radius: 10px; border: 1px solid #3d4450; background: #1d2126; color: #e6eaf0; font: 700 0.86rem ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif; cursor: pointer; transition: background 0.18s ease, border-color 0.18s ease; } .ds-btn-ghost:hover { background: #272c33; border-color: #5b6472; } .ds-btn-ghost:focus-visible { outline: 3px solid rgba(255,255,255,.4); outline-offset: 2px; border-color: #e9edf3; }"
     },
     {
       "name": "Filter Chip",
       "kind": "chip",
       "refersTo": "chip",
-      "description": "Track/status filter. Active state reuses the same brass-equals-current logic as buttons and nav.",
+      "description": "Track/status filter. Active state reuses the same polish-equals-current logic as buttons and nav.",
       "html": "<button class=\"ds-chip ds-chip-active\" aria-pressed=\"true\">Learning</button>",
-      "css": ".ds-chip { min-height: 38px; padding: 8px 11px; border-radius: 999px; border: 1px solid #303730; background: transparent; color: #f4f2ea; font: 700 0.76rem ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif; cursor: pointer; transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease; } .ds-chip:hover { border-color: #465047; } .ds-chip-active, .ds-chip[aria-pressed=\"true\"] { background: #d6b574; border-color: #d6b574; color: #20180d; } .ds-chip:focus-visible { outline: 3px solid rgba(240,211,154,.32); outline-offset: 2px; }"
+      "css": ".ds-chip { min-height: 38px; padding: 8px 11px; border-radius: 999px; border: 1px solid #343a42; background: transparent; color: #e6eaf0; font: 700 0.76rem ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif; cursor: pointer; transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease; } .ds-chip:hover { border-color: #3d4450; } .ds-chip-active, .ds-chip[aria-pressed=\"true\"] { background: #e9edf3; border-color: #e9edf3; color: #0b0d10; } .ds-chip:focus-visible { outline: 3px solid rgba(255,255,255,.4); outline-offset: 2px; }"
     },
     {
       "name": "Text Field",
@@ -133,7 +357,7 @@
       "refersTo": "field",
       "description": "Search and form input. One step darker than surrounding surfaces for contrast.",
       "html": "<input class=\"ds-field\" placeholder=\"Search topics\" />",
-      "css": ".ds-field { min-height: 44px; width: 100%; padding: 11px 12px; border-radius: 10px; border: 1px solid #465047; background: #121613; color: #f4f2ea; font: 400 0.86rem ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif; } .ds-field::placeholder { color: #7d857c; } .ds-field:focus-visible { outline: 3px solid rgba(240,211,154,.32); outline-offset: 2px; border-color: #d6b574; }"
+      "css": ".ds-field { min-height: 44px; width: 100%; padding: 11px 12px; border-radius: 10px; border: 1px solid #3d4450; background: #0b0d10; color: #e6eaf0; font: 400 0.86rem ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif; } .ds-field::placeholder { color: #767f8e; } .ds-field:focus-visible { outline: 3px solid rgba(255,255,255,.4); outline-offset: 2px; border-color: #e9edf3; }"
     },
     {
       "name": "Topic Row",
@@ -141,15 +365,15 @@
       "refersTo": "topic-row",
       "description": "A dense index row, deliberately not a card. Trailing chevron and hairline divider signal affordance instead of shadow/lift.",
       "html": "<button class=\"ds-topic-row\"><div class=\"ds-topic-top\"><h3 class=\"ds-topic-title\">NATO Phonetic Alphabet</h3><span class=\"ds-tag\"><span class=\"ds-status-dot\"></span>Completed</span></div><p class=\"ds-topic-scope\">The 26 letters of the NATO phonetic alphabet, tested both directions.</p><div class=\"ds-meta-row\"><span class=\"ds-tag\">Learning</span><span class=\"ds-tag\">Recall</span><span class=\"ds-tag\">26 items</span></div></button>",
-      "css": ".ds-topic-row { position: relative; display: block; width: 100%; text-align: left; border: 0; border-bottom: 1px solid #303730; border-radius: 0; padding: 15px 24px 15px 2px; background: transparent; color: #f4f2ea; cursor: pointer; transition: background 0.18s ease, padding 0.18s ease; } .ds-topic-row:hover { background: rgba(255,255,255,.018); padding-inline: 10px; } .ds-topic-row::after { content: '\\203A'; position: absolute; right: 5px; top: 50%; transform: translateY(-50%); color: #788077; font-size: 1.2rem; } .ds-topic-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding-right: 20px; } .ds-topic-title { margin: 0; font: 700 0.98rem ui-sans-serif, system-ui, sans-serif; } .ds-topic-scope { max-width: 68ch; font-size: 0.77rem; color: #a9b0a5; margin: 4px 0 10px; } .ds-meta-row { display: flex; gap: 6px; } .ds-tag { font-size: 0.72rem; color: #788077; } .ds-tag + .ds-tag::before { content: '\\00b7'; color: #59615a; margin-right: 6px; } .ds-status-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #9dc5a2; margin-right: 5px; } .ds-topic-row:focus-visible { outline: 3px solid rgba(240,211,154,.32); outline-offset: 2px; }"
+      "css": ".ds-topic-row { position: relative; display: block; width: 100%; text-align: left; border: 0; border-bottom: 1px solid #343a42; border-radius: 0; padding: 15px 24px 15px 2px; background: transparent; color: #e6eaf0; cursor: pointer; transition: background 0.18s ease, padding 0.18s ease; } .ds-topic-row:hover { background: rgba(255,255,255,.018); padding-inline: 10px; } .ds-topic-row::after { content: '\\203A'; position: absolute; right: 5px; top: 50%; transform: translateY(-50%); color: #868f9d; font-size: 1.2rem; } .ds-topic-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding-right: 20px; } .ds-topic-title { margin: 0; font: 700 0.98rem ui-sans-serif, system-ui, sans-serif; } .ds-topic-scope { max-width: 68ch; font-size: 0.77rem; color: #979fac; margin: 4px 0 10px; } .ds-meta-row { display: flex; gap: 6px; } .ds-tag { font-size: 0.72rem; color: #868f9d; } .ds-tag + .ds-tag::before { content: '\\00b7'; color: #5b6472; margin-right: 6px; } .ds-status-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #93b8a2; margin-right: 5px; } .ds-topic-row:focus-visible { outline: 3px solid rgba(255,255,255,.4); outline-offset: 2px; }"
     },
     {
       "name": "Nav Item",
       "kind": "nav",
       "refersTo": "nav-item",
-      "description": "Bottom nav on mobile, left rail on desktop. Active state uses Bright Brass, aria-current=page.",
+      "description": "Bottom nav on mobile, left rail on desktop. Active state uses Highlight, aria-current=page.",
       "html": "<button class=\"ds-nav-btn ds-nav-btn-active\" aria-current=\"page\" aria-label=\"Library\"><svg viewBox=\"0 0 24 24\" fill=\"none\" width=\"22\" height=\"22\"><path d=\"M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5v-16Z\" stroke=\"currentColor\" stroke-width=\"1.7\"/><path d=\"M4 18.5A2.5 2.5 0 0 1 6.5 16H20\" stroke=\"currentColor\" stroke-width=\"1.7\"/></svg>Library</button>",
-      "css": ".ds-nav-btn { display: flex; flex-direction: column; align-items: center; gap: 3px; min-height: 50px; padding: 6px 10px; border: 0; border-radius: 9px; background: transparent; color: #a9b0a5; font: 700 0.66rem ui-sans-serif, system-ui, sans-serif; cursor: pointer; transition: color 0.18s ease, background 0.18s ease; } .ds-nav-btn:hover { color: #f4f2ea; } .ds-nav-btn-active, .ds-nav-btn[aria-current='page'] { color: #f0d39a; background: rgba(214,181,116,.07); } .ds-nav-btn:focus-visible { outline: 3px solid rgba(240,211,154,.32); outline-offset: 2px; }"
+      "css": ".ds-nav-btn { display: flex; flex-direction: column; align-items: center; gap: 3px; min-height: 50px; padding: 6px 10px; border: 0; border-radius: 9px; background: transparent; color: #979fac; font: 700 0.66rem ui-sans-serif, system-ui, sans-serif; cursor: pointer; transition: color 0.18s ease, background 0.18s ease; } .ds-nav-btn:hover { color: #e6eaf0; } .ds-nav-btn-active, .ds-nav-btn[aria-current='page'] { color: #ffffff; background: rgba(255,255,255,.07); } .ds-nav-btn:focus-visible { outline: 3px solid rgba(255,255,255,.4); outline-offset: 2px; }"
     },
     {
       "name": "Sheet Close Button",
@@ -157,46 +381,77 @@
       "refersTo": "sheet",
       "description": "44x44px dismiss control on modal sheets. Always carries an explicit aria-label naming what it closes.",
       "html": "<button class=\"ds-close-btn\" aria-label=\"Close topic details\"><svg viewBox=\"0 0 24 24\" fill=\"none\" width=\"18\" height=\"18\"><path d=\"M6 6l12 12M18 6L6 18\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\"/></svg></button>",
-      "css": ".ds-close-btn { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border: 1px solid #303730; border-radius: 10px; background: #1b201c; color: #f4f2ea; cursor: pointer; transition: background 0.18s ease, border-color 0.18s ease; } .ds-close-btn:hover { background: #232923; border-color: #465047; } .ds-close-btn:focus-visible { outline: 3px solid rgba(240,211,154,.32); outline-offset: 2px; border-color: #d6b574; }"
+      "css": ".ds-close-btn { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border: 1px solid #343a42; border-radius: 10px; background: #1d2126; color: #e6eaf0; cursor: pointer; transition: background 0.18s ease, border-color 0.18s ease; } .ds-close-btn:hover { background: #272c33; border-color: #3d4450; } .ds-close-btn:focus-visible { outline: 3px solid rgba(255,255,255,.4); outline-offset: 2px; border-color: #e9edf3; }"
     }
   ],
   "narrative": {
-    "northStar": "The Quiet Field Index",
-    "overview": "Argus is styled as a field manual, not a dashboard: a dark, low-glare reference the owner opens for a few minutes, uses without friction, and closes. Every screen answers one question, what's due, what's next, before it answers anything else. The palette is dark olive and near-black surfaces with a single warm brass accent reserved for the primary action and the current state; three muted track colors (dusty blue, sage, clay) carry semantic meaning only, never decoration. Controls are named as direct actions (\"Start due Test,\" \"Export JSON,\" never \"Get started\" or \"Let's go\"), the copy voice matches the visual restraint.\n\nThe system explicitly rejects the instincts of a generated SaaS dashboard: no marketing hero on the Test surface, no wall of identical metric cards, no rounded card-in-a-card nesting, no eyebrow labels ceremonializing routine headings. A prior design pass shipped exactly that pattern, hero, four stat cards, a grid of topic cards, and design critique flagged it as competent but \"category-interchangeable,\" recognizable Argus ingredients in a generic composition. This spec exists to keep that from recurring. It equally rejects the opposite failure mode this content invites: nothing here should read as tactical, military, or survivalist. The three subject tracks (learning, survival, tradecraft) are handled as calm, muted metadata, not as a HUD.",
+    "northStar": "Brushed Gunmetal",
+    "overview": "Argus is styled as a precision instrument, not a dashboard and not a journal: a dark, low-glare index the owner opens for a few minutes, uses without friction, and closes. Surfaces are milled cool grey and read as stamped plate; controls protrude with a lit top edge and fall into the chassis when held; progress tracks are cut into the surface rather than drawn on it. One thing on a screen is polished, and it is the action you are being asked to take. A native sans carries everything a person reads and operates; a native mono carries everything the instrument reports.",
     "keyCharacteristics": [
-      "Dark, warm-tinted neutrals; one brass accent used sparingly, never decoratively",
-      "Flat surfaces differentiated by tone, not shadow — depth comes from layering, not elevation",
-      "Dense index rows over card grids; a topic list reads like a table of contents, not a gallery",
-      "Fixed type sizes, native UI sans only — no fluid display type, no serif ceremony",
-      "Motion is restrained: state feedback only, 150–200ms, no decorative choreography",
-      "Every interactive element carries visible default / hover / focus / active / disabled states"
+      "Cool milled greys over grain, machining marks and a convex highlight; one polished-steel accent, never decorative",
+      "Sans for language, mono for readings, and the boundary between them is meaningful",
+      "Depth from bevel and engraving, not from stacked drop shadows",
+      "Exactly one warm colour in the product, and it means a skill has decayed",
+      "Dense index rows over card grids; a topic list reads like a table of contents",
+      "Motion is state feedback plus one piece of card physics; nothing else moves"
     ],
     "rules": [
-      { "name": "The One Accent Rule", "body": "Brass appears only on the primary action, the current selection, and active state. If a second element on the same screen carries brass, one of them is wrong.", "section": "colors" },
-      { "name": "The No Track-as-Background Rule", "body": "Learning/Survival/Tradecraft colors label metadata (a tag, a dot) and are never used as a card background, button fill, or large surface area, that would tip the product toward the tactical/game aesthetic it explicitly rejects.", "section": "colors" },
-      { "name": "The No-Eyebrow Rule", "body": "Page and section headings do not get an eyebrow label above them. Eyebrow-weight type is reserved for genuine metadata, never as heading decoration.", "section": "typography" },
-      { "name": "The Flat-By-Default Rule", "body": "No shadow on topic rows, chips, buttons, stat cells, or sheets. Shadow is spent once, on the single most important surface per view.", "section": "elevation" },
-      { "name": "The Nothing-Nests Rule", "body": "A card does not contain another card. If a component needs internal grouping, use a hairline divider or spacing, not a nested bordered container.", "section": "components" }
+      {
+        "name": "The One Accent Rule",
+        "body": "The polish (near-white steel) appears only on the primary action, the current selection, and active state. If a second element on the same screen carries it, one of them is wrong. The accent is a material rather than a hue: --ink is deliberately held below white so the two separate.",
+        "section": "colors"
+      },
+      {
+        "name": "The No Track-as-Background Rule",
+        "body": "Learning/Survival/Tradecraft colors label metadata (a tag, a dot) and are never used as a card background, button fill, or large surface area, that would tip the product toward the tactical/game aesthetic it explicitly rejects.",
+        "section": "colors"
+      },
+      {
+        "name": "The No-Eyebrow Rule",
+        "body": "Page and section headings do not get an eyebrow label above them. Eyebrow-weight type is reserved for genuine metadata, never as heading decoration.",
+        "section": "typography"
+      },
+      {
+        "name": "The Bevel-Not-Shadow Rule",
+        "body": "Depth on ordinary controls comes from the bevel — a lit top edge and a dark lower lip — and on recessed elements from an inset engraving. Drop shadow is spent once, on the single most important surface per view.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Nothing-Nests Rule",
+        "body": "A card does not contain another card. If a component needs internal grouping, use a hairline divider or spacing, not a nested bordered container.",
+        "section": "components"
+      },
+      {
+        "name": "The One Warm Colour Rule",
+        "body": "Tarnish (#d68d5e) is the only warm colour in the product and it means exactly one thing: this skill has decayed and needs repair. On an otherwise entirely grey-and-white screen it cannot be missed. Spending it anywhere else destroys the only pre-attentive signal the system has."
+      },
+      {
+        "name": "The Two-Voice Rule",
+        "body": "Mono means a reading; sans means language. A button verb never uses the mono, and a status word never uses the sans. Mixing them destroys the only signal that tells the eye which is which."
+      }
     ],
     "dos": [
       "Do open every top-level view on the task (what's due, start Test), never on a summary, pitch, or hero.",
-      "Do hold Brass to exactly three roles: primary action, current selection, active/current state.",
-      "Do use flat tonal layering for hierarchy instead of shadow.",
+      "Do hold the polish to exactly three roles: primary action, current selection, active/current state.",
+      "Do build hierarchy from tonal layering and bevel, and reserve drop shadow for the one lit surface per view.",
       "Do render topic listings as a dense hairline-divided index, not a card grid.",
       "Do give every interactive element default, hover, focus-visible, active, and disabled states, with a minimum 44px primary touch target.",
       "Do name controls as direct actions and explain the recovery path in empty states.",
       "Do treat retention decay as a routing signal, same visual weight as any other status, never styled as an error or a scolding.",
-      "Do keep JSON export/import visually first-class, not buried as a settings afterthought."
+      "Do keep JSON export/import visually first-class, not buried as a settings afterthought.",
+      "Do keep tarnish for decay alone, so it stays the one warm thing on a cool screen.",
+      "Do set every reading — count, date, position, status, track — in the mono voice, and everything a person reads or presses in the sans."
     ],
     "donts": [
       "Don't put a hero, oversized slogan, or eyebrow label above a page or section heading.",
       "Don't build a wall of identical metric cards; consolidate into one instrument-panel stat strip.",
       "Don't nest a card inside a card, or use border-left/border-right as a colored accent stripe on any row, alert, or callout.",
       "Don't use gradient text, glassmorphism, or decorative rings/gradients anywhere in the Test loop.",
-      "Don't reach for military, survivalist, tactical, or 'prepper' visual language even though the subject matter invites it.",
+      "Don't let the machined material drag the language tactical. The chassis is machined; the words are not — Argus says 'Needs repair' and 'Start', never 'TST' or 'INITIATE EXECUTION'. The subject matter invites the opposite, and the framing is competence, not catastrophe.",
       "Don't add streaks, badges, XP, or any shame-based nudge for missed Test days.",
       "Don't widen the mobile layout for desktop and call it done; desktop gets a genuine side-rail, task-oriented layout.",
-      "Don't use a serif or fluid display typeface, or any animation beyond a 150-200ms state transition."
+      "Don't use a serif or fluid display typeface; display character comes from size, weight and tracking.",
+      "Don't add outer glow. A polished surface catches light; it does not emit it, and glow smears on OLED."
     ]
   }
 }

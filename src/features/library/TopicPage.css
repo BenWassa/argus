@@ -43,9 +43,10 @@
   margin: 0;
   padding-top: var(--s-md);
   border-top: 1px solid var(--line);
-  font-size: var(--t-label);
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
   font-weight: var(--w-label);
-  letter-spacing: 0.09em;
+  letter-spacing: var(--track-readout);
   text-transform: uppercase;
 }
 
@@ -102,7 +103,7 @@
   font-size: var(--t-label);
   font-weight: var(--w-body);
   letter-spacing: 0.01em;
-  color: rgb(28 21 10 / 74%);
+  color: color-mix(in srgb, var(--accent-ink) 74%, transparent);
 }
 
 /* Available, not recommended. It never takes the primary's shape. */

@@ -34,9 +34,21 @@ body::before {
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  opacity: 0.032;
+  opacity: 0.04;
   background-image: var(--grain);
   background-repeat: repeat;
+}
+
+/* The brushed finish over the tooth: machining marks all running one way, and
+   the light a curved panel catches from above. Fixed rather than scrolled, so
+   the 1px marks never moire against moving content, and never animated. */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: var(--machining), var(--convex);
 }
 
 .app-shell,
@@ -69,7 +81,7 @@ body::before {
   right: max(var(--s-lg), env(safe-area-inset-right));
   bottom: max(var(--s-lg), env(safe-area-inset-bottom));
   color: var(--ink);
-  background: rgba(15, 18, 16, 0.88);
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
   border-color: var(--line-strong);
 }
 
@@ -94,15 +106,16 @@ ol {
   list-style: none;
 }
 
-/* Two voices. The serif carries the things you read and remember: page
-   titles, topic names, the prompt itself. The sans carries the things you
-   operate: buttons, metadata, status, counts. */
+/* Two voices. The sans carries everything you read and operate: titles, topic
+   names, the prompt itself, buttons. The mono carries everything the instrument
+   reports: counts, dates, positions, status. Display character comes from size,
+   weight and tracking pulled in hard, not from a second family. */
 h1 {
   font-family: var(--font-display);
   font-size: var(--t-page);
   font-weight: var(--w-page);
   line-height: 1.06;
-  letter-spacing: -0.018em;
+  letter-spacing: -0.028em;
 }
 
 h2 {
@@ -110,7 +123,7 @@ h2 {
   font-size: var(--t-section);
   font-weight: var(--w-section);
   line-height: 1.18;
-  letter-spacing: -0.012em;
+  letter-spacing: -0.02em;
 }
 
 h3 {
@@ -123,14 +136,15 @@ p {
   max-width: var(--measure);
 }
 
-/* Metadata voice: sans, small, letter-spaced, quiet. The only place
-   label-weight type belongs. */
+/* Readout voice: mono, small, letter-spaced, quiet. Every label that reports
+   what the instrument knows speaks in it, which is what keeps the sans reserved
+   for the things a person reads and presses. */
 .kicker {
   display: block;
-  font-family: var(--font);
-  font-size: var(--t-label);
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
   font-weight: var(--w-label);
-  letter-spacing: 0.09em;
+  letter-spacing: var(--track-readout);
   text-transform: uppercase;
   color: var(--subtle);
 }
@@ -138,6 +152,7 @@ p {
 /* Counts, positions, dates: never let them reflow as the digits change. */
 .tabular,
 .session-bar {
+  font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
 }
 
@@ -168,6 +183,9 @@ code {
 
 /* ------------------------------------------------------------- controls -- */
 
+/* Controls are hardware. At rest they protrude: a light top edge, a dark lower
+   lip, a shadow beneath. Held, they drop into the chassis — the surface moves
+   down a pixel and the shadow moves inside it. */
 button {
   min-height: 44px;
   padding: 11px 16px;
@@ -191,6 +209,7 @@ button:hover {
 
 button:active {
   transform: translateY(1px);
+  box-shadow: var(--press-lit);
 }
 
 button:disabled {
@@ -201,14 +220,21 @@ button:disabled {
 
 button.ghost {
   color: var(--ink);
-  background: var(--surface-2);
+  background: linear-gradient(180deg, var(--surface-3), var(--surface-2));
   border-color: var(--line-strong);
-  box-shadow: var(--edge), var(--shadow-sm);
+  border-top-color: var(--line-hover);
+  box-shadow: var(--edge), var(--edge-under), var(--shadow-sm);
 }
 
 button.ghost:hover {
-  background: var(--surface-3);
+  background: linear-gradient(180deg, var(--surface-4), var(--surface-3));
   border-color: var(--line-hover);
+}
+
+button.ghost:active {
+  background: var(--surface-2);
+  border-top-color: var(--line-strong);
+  box-shadow: var(--press);
 }
 
 /* A text-weight action. Used where a third control would otherwise force a
@@ -231,6 +257,10 @@ button.quiet:hover {
   border-color: transparent;
   text-decoration: underline;
   text-underline-offset: 4px;
+}
+
+button.quiet:active {
+  box-shadow: none;
 }
 
 button.danger {
@@ -265,6 +295,7 @@ button.icon {
   font: inherit;
   color: var(--ink);
   background: var(--field);
+  box-shadow: var(--engrave);
   transition: border-color var(--t-fast) var(--ease);
 }
 
@@ -311,8 +342,9 @@ main:focus {
   inset: auto 0 0;
   z-index: 20;
   display: flex;
-  border-top: 1px solid var(--line);
-  background: var(--surface);
+  border-top: 1px solid var(--line-strong);
+  background: linear-gradient(180deg, var(--surface-2), var(--surface));
+  box-shadow: var(--edge), 0 -4px 18px rgb(0 0 0 / 40%);
   padding-bottom: env(safe-area-inset-bottom);
 }
 
@@ -328,6 +360,7 @@ main:focus {
 }
 
 .nav-btn {
+  position: relative;
   width: 100%;
   min-height: 54px;
   display: flex;
@@ -352,10 +385,23 @@ main:focus {
 
 .nav-btn:active {
   transform: none;
+  box-shadow: none;
 }
 
 .nav-btn[aria-current='page'] {
   color: var(--accent-2);
+}
+
+/* Once the accent is a near-white, a hue shift alone cannot carry "current"
+   against ink that is also near-white. A machined bar on the edge the nav is
+   attached to says it instead, and says it at a glance. */
+.nav-btn[aria-current='page']::before {
+  content: '';
+  position: absolute;
+  inset: 0 26% auto;
+  height: 2px;
+  border-radius: var(--r-pill);
+  background: var(--accent-2);
 }
 
 /* --------------------------------------------------------------- index -- */
@@ -398,6 +444,7 @@ main:focus {
 
 .index-row:active {
   transform: none;
+  box-shadow: none;
 }
 
 .index-row::after {
@@ -435,8 +482,10 @@ main:focus {
 }
 
 .status {
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
   font-weight: var(--w-label);
-  letter-spacing: 0.045em;
+  letter-spacing: var(--track-readout);
   text-transform: uppercase;
   color: var(--muted);
 }
@@ -452,9 +501,10 @@ main:focus {
 /* Track colour is a typographic accent, never a surface fill and never a
    side stripe. It reads as one of three printing inks. */
 .track {
+  font-family: var(--font-mono);
   font-weight: var(--w-label);
-  font-size: var(--t-label);
-  letter-spacing: 0.045em;
+  font-size: var(--t-readout);
+  letter-spacing: var(--track-readout);
   text-transform: uppercase;
 }
 
@@ -490,10 +540,10 @@ main:focus {
   align-items: baseline;
   justify-content: space-between;
   gap: var(--s-md);
-  font-family: var(--font);
-  font-size: var(--t-label);
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
   font-weight: var(--w-label);
-  letter-spacing: 0.09em;
+  letter-spacing: var(--track-readout);
   line-height: 1.2;
   text-transform: uppercase;
   color: var(--muted);
@@ -538,9 +588,10 @@ main:focus {
 
 /* The one thing that is true of this topic now, in the schedule's own words. */
 .progress-state {
-  font-size: var(--t-label);
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
   font-weight: var(--w-label);
-  letter-spacing: 0.045em;
+  letter-spacing: var(--track-readout);
   text-transform: uppercase;
   color: var(--muted);
 }
@@ -559,20 +610,29 @@ main:focus {
 }
 
 /* Retention only, exactly as in Library. A topic still being acquired has not
-   entered a gap and shows no bar. */
+   entered a gap and shows no bar.
+
+   The track is cut into the page rather than drawn on it, and the fill sits
+   inside the cut. It stays neutral steel on purpose: spending the accent here
+   would light up every row, and a semantic colour would turn a schedule into a
+   scoreboard. */
 .progress-gap {
   display: block;
   width: 100%;
   max-width: 132px;
-  height: 1px;
-  margin-top: 3px;
-  background: var(--line);
+  height: 3px;
+  margin-top: 5px;
+  overflow: hidden;
+  border-radius: var(--r-pill);
+  background: var(--field);
+  box-shadow: var(--engrave);
 }
 
 .progress-gap-fill {
   display: block;
   height: 100%;
-  background: var(--line-hover);
+  border-radius: inherit;
+  background: linear-gradient(180deg, var(--muted), var(--line-hover));
 }
 
 .progress-aside {
@@ -608,9 +668,10 @@ main:focus {
 }
 
 .record-number {
-  font-size: var(--t-small);
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
   font-variant-numeric: tabular-nums;
-  color: var(--accent);
+  color: var(--subtle);
 }
 
 .record-title {
@@ -629,7 +690,8 @@ main:focus {
 }
 
 .record-date {
-  font-size: var(--t-small);
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
   font-variant-numeric: tabular-nums;
   color: var(--muted);
   white-space: nowrap;
@@ -672,6 +734,14 @@ main:focus {
   gap: 1px;
 }
 
+/* The two things in the bar that are not readings: the deck's name, and the
+   control. Both stay in the sans, because one is a name and the other is a
+   thing you press. */
+.session-topic,
+.session-bar button {
+  font-family: var(--font);
+}
+
 .session-topic {
   font-weight: var(--w-label);
   color: var(--ink);
@@ -695,16 +765,26 @@ main:focus {
 }
 
 /* The completion moment: the one event the product exists to produce, and the
-   only place brass is spent on something other than an action. */
+   only place the polish is spent on something other than an action. A stamped
+   plate — sheen across it, light caught along the top edge. */
 .banked {
   width: 100%;
   padding: var(--s-xl);
-  border: 1px solid var(--accent);
+  border: 1px solid var(--line-hover);
   border-radius: var(--r-lg);
   background:
-    radial-gradient(110% 90% at 50% -10%, rgb(214 181 116 / 13%), transparent 62%),
+    radial-gradient(110% 90% at 50% -10%, var(--accent-wash), transparent 62%),
+    var(--sheen),
     linear-gradient(180deg, var(--surface-4), var(--surface-2));
   box-shadow: var(--edge), var(--shadow-lift);
+}
+
+/* A lit plate takes brighter text. Quiet greys that read correctly on the page
+   ground do not survive being laid on the one surface catching the most light,
+   so on this plate the hierarchy is carried by size and case alone. */
+.banked .kicker,
+.banked-note {
+  color: var(--ink);
 }
 
 .banked-title {
@@ -749,7 +829,8 @@ main:focus {
   flex-direction: column;
   border: 1px solid var(--line-strong);
   border-radius: var(--r-xl) var(--r-xl) 0 0;
-  background: var(--surface);
+  background: linear-gradient(180deg, var(--surface-2), var(--surface));
+  box-shadow: var(--edge), var(--shadow-lift);
 }
 
 .sheet-head {
@@ -823,7 +904,10 @@ main:focus {
     align-items: stretch;
     padding: var(--s-xl) var(--s-md);
     border-top: 0;
-    border-right: 1px solid var(--line);
+    border-right: 1px solid var(--line-strong);
+    /* The rail is attached on the left, so the light and the shadow it casts
+       both turn ninety degrees with it. */
+    box-shadow: inset 1px 0 0 rgb(255 255 255 / 5%), 4px 0 18px rgb(0 0 0 / 30%);
   }
 
   .nav .brand {
@@ -860,6 +944,13 @@ main:focus {
 
   .nav-btn[aria-current='page'] {
     background: var(--surface-2);
+    box-shadow: var(--edge);
+  }
+
+  .nav-btn[aria-current='page']::before {
+    inset: 20% auto 20% 0;
+    width: 2px;
+    height: auto;
   }
 
   main {

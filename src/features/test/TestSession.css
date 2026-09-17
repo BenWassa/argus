@@ -33,9 +33,10 @@
   border: 1px solid currentcolor;
   border-radius: var(--r-pill);
   background: var(--surface);
-  font-size: var(--t-label);
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
   font-weight: var(--w-label);
-  letter-spacing: 0.09em;
+  letter-spacing: var(--track-readout);
   text-transform: uppercase;
   white-space: nowrap;
   pointer-events: none;
@@ -137,23 +138,27 @@ button.flip-card:active {
   border-radius: var(--r-xl);
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-  box-shadow: var(--edge), var(--shadow);
+  box-shadow: var(--edge), var(--edge-under), var(--shadow);
 }
 
+/* A stamped plate: the sheen a flat panel catches as it turns, over the depth
+   gradient that gives it thickness. */
 .flip-front {
   background:
-    radial-gradient(circle at 50% 34%, rgb(255 255 255 / 4%), transparent 46%),
+    var(--sheen),
     linear-gradient(160deg, var(--surface-3), var(--surface));
 }
 
-/* The answer face is the one lit by brass: it is the thing you came for. */
+/* The answer face is the one catching the light: it is the thing you came
+   for. */
 .flip-back {
   position: relative;
   overflow: hidden;
   transform: rotateY(180deg);
-  border-color: rgb(214 181 116 / 52%);
+  border-color: color-mix(in srgb, var(--accent) 34%, var(--line-strong));
   background:
-    radial-gradient(circle at 50% 36%, rgb(214 181 116 / 14%), transparent 52%),
+    radial-gradient(circle at 50% 36%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 54%),
+    var(--sheen),
     linear-gradient(160deg, var(--surface-3), var(--surface));
 }
 
@@ -168,19 +173,32 @@ button.flip-card:active {
 }
 
 .flip-wash-miss {
-  background: linear-gradient(to right, rgb(224 149 140 / 46%), rgb(224 149 140 / 10%) 42%, transparent 72%);
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--danger) 46%, transparent),
+    color-mix(in srgb, var(--danger) 10%, transparent) 42%,
+    transparent 72%
+  );
 }
 
 .flip-wash-hit {
-  background: linear-gradient(to left, rgb(157 197 162 / 46%), rgb(157 197 162 / 10%) 42%, transparent 72%);
+  background: linear-gradient(
+    to left,
+    color-mix(in srgb, var(--ok) 46%, transparent),
+    color-mix(in srgb, var(--ok) 10%, transparent) 42%,
+    transparent 72%
+  );
 }
 
+/* One step brighter than the other readouts in the product, because this one
+   is set on a lit card face rather than on the page ground. */
 .flip-label {
-  font-size: var(--t-label);
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
   font-weight: var(--w-label);
-  letter-spacing: 0.09em;
+  letter-spacing: var(--track-readout);
   text-transform: uppercase;
-  color: var(--subtle);
+  color: var(--muted);
 }
 
 .flip-back .flip-label {
@@ -281,9 +299,10 @@ button.flip-card:active {
   gap: var(--s-md);
   margin: 0;
   padding: 0 var(--s-sm);
-  font-size: var(--t-label);
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
   font-weight: var(--w-label);
-  letter-spacing: 0.09em;
+  letter-spacing: var(--track-readout);
   text-transform: uppercase;
 }
 
@@ -440,9 +459,10 @@ button.flip-card:active {
 }
 
 .test-rung-name {
-  font-size: var(--t-label);
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
   font-weight: var(--w-label);
-  letter-spacing: 0.08em;
+  letter-spacing: var(--track-readout);
   text-transform: uppercase;
   color: var(--subtle);
 }
@@ -483,9 +503,10 @@ button.flip-card:active {
 
 .test-cue-label {
   margin: 0;
-  font-size: var(--t-label);
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
   font-weight: var(--w-label);
-  letter-spacing: 0.08em;
+  letter-spacing: var(--track-readout);
   text-transform: uppercase;
   color: var(--subtle);
 }
@@ -610,9 +631,10 @@ button.flip-card:active {
 
 .test-feedback-verdict {
   margin: 0;
-  font-size: var(--t-label);
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
   font-weight: var(--w-label);
-  letter-spacing: 0.08em;
+  letter-spacing: var(--track-readout);
   text-transform: uppercase;
   color: var(--muted);
 }

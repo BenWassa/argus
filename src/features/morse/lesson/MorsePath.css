@@ -41,7 +41,8 @@
   display: grid;
   place-items: center;
   position: relative;
-  font-size: var(--t-small);
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
   font-variant-numeric: tabular-nums;
   color: var(--subtle);
 }
@@ -89,9 +90,10 @@
 
 .morse-path-status {
   grid-area: status;
-  font-size: var(--t-label);
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
   font-weight: var(--w-label);
-  letter-spacing: 0.09em;
+  letter-spacing: var(--track-readout);
   text-transform: uppercase;
   color: var(--subtle);
 }
@@ -107,9 +109,10 @@
 .morse-path-action.is-locked {
   align-self: center;
   min-height: 0;
-  font-size: var(--t-label);
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
   font-weight: var(--w-label);
-  letter-spacing: 0.09em;
+  letter-spacing: var(--track-readout);
   text-transform: uppercase;
   color: var(--subtle);
 }

@@ -40,9 +40,10 @@
   padding: 7px 13px;
   border: 1px solid var(--line);
   border-radius: var(--r-pill);
-  font-size: var(--t-label);
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
   font-weight: var(--w-label);
-  letter-spacing: 0.045em;
+  letter-spacing: var(--track-readout);
   text-transform: uppercase;
   color: var(--muted);
   background: transparent;
@@ -55,10 +56,13 @@
   background: var(--surface-2);
 }
 
+/* An engaged filter looks engaged: lit type on a surface that has been pressed
+   into the chassis rather than lifted off it. */
 .lib-chip[aria-pressed='true'] {
   color: var(--accent-2);
-  border-color: var(--accent);
-  background: var(--surface-3);
+  border-color: var(--line-hover);
+  background: var(--field);
+  box-shadow: var(--engrave);
 }
 
 .lib-chip-learning[aria-pressed='false'] { color: var(--learning); }
@@ -86,15 +90,15 @@
   justify-content: space-between;
   gap: var(--s-md);
   padding: var(--s-sm) 0;
-  font-family: var(--font);
-  font-size: var(--t-label);
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
   font-weight: var(--w-label);
-  letter-spacing: 0.09em;
+  letter-spacing: var(--track-readout);
   line-height: 1.2;
   text-transform: uppercase;
   color: var(--subtle);
   background: var(--bg);
-  border-bottom: 1px solid color-mix(in srgb, var(--accent) 30%, var(--line));
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 22%, var(--line));
 }
 
 .lib-shelf-count {
@@ -157,6 +161,7 @@
 
 .lib-action:active {
   transform: none;
+  box-shadow: none;
 }
 
 .lib-action:focus-visible {
@@ -169,8 +174,10 @@
 }
 
 .lib-when.is-due {
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
   font-weight: var(--w-label);
-  letter-spacing: 0.045em;
+  letter-spacing: var(--track-readout);
   text-transform: uppercase;
   color: var(--muted);
 }
@@ -198,16 +205,20 @@
   display: block;
   width: 100%;
   max-width: 132px;
-  height: 1px;
+  height: 3px;
   /* The row grid already contributes its 5px gap above this. */
-  margin-top: 3px;
-  background: var(--line);
+  margin-top: 5px;
+  overflow: hidden;
+  border-radius: var(--r-pill);
+  background: var(--field);
+  box-shadow: var(--engrave);
 }
 
 .lib-gap-fill {
   display: block;
   height: 100%;
-  background: var(--line-hover);
+  border-radius: inherit;
+  background: linear-gradient(180deg, var(--muted), var(--line-hover));
 }
 
 .lib-consequence {
@@ -232,14 +243,15 @@
   padding: var(--s-sm) var(--s-sm) var(--s-sm) var(--s-lg);
   border: 1px solid var(--line-strong);
   border-radius: var(--r-lg);
-  background: var(--surface-2);
-  box-shadow: var(--edge), var(--shadow);
+  background: linear-gradient(180deg, var(--surface-3), var(--surface-2));
+  box-shadow: var(--edge), var(--edge-under), var(--shadow);
 }
 
 .lib-batch-count {
-  font-size: var(--t-label);
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
   font-weight: var(--w-label);
-  letter-spacing: 0.045em;
+  letter-spacing: var(--track-readout);
   text-transform: uppercase;
   color: var(--muted);
 }
@@ -324,9 +336,10 @@
   align-items: center;
   gap: var(--s-sm);
   margin: 0;
-  font-size: var(--t-label);
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
   font-weight: var(--w-label);
-  letter-spacing: 0.06em;
+  letter-spacing: var(--track-readout);
   text-transform: uppercase;
   color: var(--muted);
 }
