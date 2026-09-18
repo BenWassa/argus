@@ -131,14 +131,11 @@
    voice rather than set as a title. */
 .signin-mark {
   margin: 0;
-  font-family: var(--font-mono);
+  font-family: "Black Ops One", system-ui, sans-serif;
   font-size: clamp(2rem, 9.5vw, 2.6rem);
-  font-weight: var(--w-section);
+  font-weight: 400;
+  font-style: normal;
   line-height: 1;
-  letter-spacing: 0.22em;
-  /* Tracking adds the gap after the last letter too, which visually pushes a
-     centred wordmark left. */
-  text-indent: 0.22em;
   text-transform: uppercase;
 }
 

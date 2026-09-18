@@ -44,6 +44,11 @@ function sentence(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1)
 }
 
+function militaryDate(date: Date): string {
+  const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
+  return `${String(date.getDate()).padStart(2, '0')} ${months[date.getMonth()]} ${date.getFullYear()}`
+}
+
 /** Mirrors the seeded library, so the empty state teaches the shape of a topic
  *  rather than restating the rule in the abstract. */
 const PRIMER = [
@@ -71,11 +76,7 @@ interface TodayProps {
 export function Today({ onStart, onOpenTopic, onGoToLibrary, onOpenProfile }: TodayProps) {
   const { topics, updateTopic } = useLibrary()
   const [showAllDue, setShowAllDue] = useState(false)
-  const stamp = new Date().toLocaleDateString(undefined, {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'short',
-  })
+  const stamp = militaryDate(new Date())
 
   // One derivation for the whole page. Today asks the journey layer what each
   // topic needs rather than reading status and reaching its own conclusion, so
@@ -89,7 +90,7 @@ export function Today({ onStart, onOpenTopic, onGoToLibrary, onOpenProfile }: To
   if (topics.length === 0) {
     return (
       <>
-        <Head verdict="Nothing here yet" stamp={stamp} onProfile={onOpenProfile} />
+        <Head stamp={stamp} onProfile={onOpenProfile} />
         <p className="today-note">
           Argus holds topics that can be genuinely finished. Every one states its own boundary
           before it can exist, and that boundary is what makes finishing possible.
@@ -119,7 +120,7 @@ export function Today({ onStart, onOpenTopic, onGoToLibrary, onOpenProfile }: To
   if (practicable.length === 0) {
     return (
       <>
-        <Head verdict="Nothing to test yet" stamp={stamp} onProfile={onOpenProfile} />
+        <Head stamp={stamp} onProfile={onOpenProfile} />
         <p className="today-note">
           {sentence(topicCount(topics.length))} in the library, none with any items yet. A topic
           needs its prompts and answers before it can be read or tested.
@@ -142,7 +143,7 @@ export function Today({ onStart, onOpenTopic, onGoToLibrary, onOpenProfile }: To
 
     return (
       <>
-        <Head verdict="Nothing due" stamp={stamp} onProfile={onOpenProfile} />
+        <Head stamp={stamp} onProfile={onOpenProfile} />
         <p className="today-note">
           Recall needs the gap to mean anything, so the schedule is holding.
         </p>
@@ -179,10 +180,6 @@ export function Today({ onStart, onOpenTopic, onGoToLibrary, onOpenProfile }: To
   // opens; passive reference browsing happens only by navigating to the topic.
   // A guided lesson is a bounded run and Test is scored. `dueEntries` already
   // ranks the day, so the one primary action follows the top-ranked topic.
-  const lessons = due.filter(
-    (entry) => entry.journey.action === 'learn' && entry.journey.acquisition.progressive,
-  )
-  const toStart = due.filter((entry) => entry.journey.action === 'enroll')
   const toTest = due.filter((entry) => entry.journey.action === 'test')
   const lead = due[0]
   const leadsWithTest = lead.journey.action === 'test'
@@ -205,18 +202,6 @@ export function Today({ onStart, onOpenTopic, onGoToLibrary, onOpenProfile }: To
     )
   }
 
-  const verdict = sentence(
-    [
-      lessons.length > 0
-        ? `${count(lessons.length)} ${lessons.length === 1 ? 'lesson' : 'lessons'}`
-        : null,
-      toStart.length > 0 ? `${count(toStart.length)} to start` : null,
-      toTest.length > 0 ? `${count(toTest.length)} to prove` : null,
-    ]
-      .filter(Boolean)
-      .join(', '),
-  )
-
   // A catch-up day should still read as "the one thing," not as a list to
   // work through. The docket shows the lead rows and holds the rest behind
   // an explicit disclosure rather than presenting every due topic as an
@@ -226,7 +211,7 @@ export function Today({ onStart, onOpenTopic, onGoToLibrary, onOpenProfile }: To
 
   return (
     <>
-      <Head verdict={verdict} stamp={stamp} onProfile={onOpenProfile} />
+      <Head stamp={stamp} onProfile={onOpenProfile} />
 
       <ul className="index docket">
         {visibleDue.map((entry) => (
@@ -287,20 +272,19 @@ export function Today({ onStart, onOpenTopic, onGoToLibrary, onOpenProfile }: To
   )
 }
 
-/** The verdict is the page's largest type, because naming the view is the one
- *  thing the navigation already does. */
+/** The Argus wordmark anchors the page while the docket below names the work. */
 function Head({
-  verdict,
   stamp,
   onProfile,
 }: {
-  verdict: string
   stamp: string
   onProfile: () => void
 }) {
   return (
     <div className="today-head">
-      <h1 aria-live="polite">{verdict}</h1>
+      <h1 className="today-brand" aria-live="polite">
+        ARGUS
+      </h1>
       <div className="today-head-tools">
         <p className="today-date tabular">{stamp}</p>
         <button
