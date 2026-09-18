@@ -151,13 +151,15 @@ describe('catalog reconciliation', () => {
     expect(collisions(report)).toEqual(['cardinal-bearings'])
   })
 
-  it('does not resurrect a delivered topic the learner deleted', () => {
+  it('restores a missing shipped topic even when an older record says it was delivered', () => {
     const delivered = [...SHIPPED_CATALOG_TOPIC_IDS].sort()
     const { library, report } = reconcileCatalog(libraryOf([worked('nato-phonetic')], delivered), NOW)
 
-    expect(report.added).toEqual([])
-    expect(library.topics.map((topic) => topic.id)).toEqual(['nato-phonetic'])
-    expect(report.withheld.map((entry) => entry.reason)).toContain('previously-delivered')
+    expect(report.added).toContain('cardinal-bearings')
+    expect(library.topics.map((topic) => topic.id).sort()).toEqual([...SHIPPED_CATALOG_TOPIC_IDS].sort())
+    const restored = library.topics.find((topic) => topic.id === 'cardinal-bearings')
+    expect(restored?.status).toBe('unstarted')
+    expect(restored?.history).toEqual([])
   })
 
   it('infers delivery for a record written before delivery was tracked', () => {
@@ -193,13 +195,14 @@ describe('catalog reconciliation', () => {
     expect(twice.library).toBe(once.library)
   })
 
-  it('leaves an empty library empty when delivery is already recorded', () => {
+  it('recovers the shipped baseline from an empty legacy record', () => {
     const { library, report } = reconcileCatalog(
       libraryOf([], [...SHIPPED_CATALOG_TOPIC_IDS].sort()),
       NOW,
     )
-    expect(library.topics).toEqual([])
-    expect(report.added).toEqual([])
+    expect(library.topics.map((topic) => topic.id).sort()).toEqual([...SHIPPED_CATALOG_TOPIC_IDS].sort())
+    expect(report.added).toEqual([...SHIPPED_CATALOG_TOPIC_IDS])
+    expect(library.topics.every((topic) => topic.status === 'unstarted')).toBe(true)
   })
 
   it('delivers into an empty library that has never been offered anything', () => {
