@@ -220,9 +220,14 @@ describe('cue state stays separate from retention state', () => {
     expect(cued.to).toBe(bare.to)
     expect(cued.completed).toBe(bare.completed)
     expect(cued.gapDays).toBe(bare.gapDays)
-    const { itemEvidence: _plain, ...plainStudy } = resolveStudy({ ...topic, status: 'unstarted' })
+    const now = new Date('2026-01-03T00:00:00.000Z')
+    const { itemEvidence: _plain, ...plainStudy } = resolveStudy(
+      { ...topic, status: 'unstarted' },
+      now,
+    )
     const { itemEvidence: _withCue, ...cuedStudy } = resolveStudy(
       withItemEvidence({ ...topic, status: 'unstarted' }, forward.id, { cue: 'free', directions: {} }),
+      now,
     )
     expect(cuedStudy).toEqual(plainStudy)
   })
