@@ -5,7 +5,7 @@ import { SyncProvider, useSyncState } from '../lib/sync/SyncProvider'
 import { SignInScreen } from '../features/auth/SignInScreen'
 import { Today } from '../features/today/Today'
 import { Library } from '../features/library/Library'
-import { Data } from '../features/data/Data'
+import { Profile } from '../features/data/Data'
 import { Session } from '../features/test/Session'
 import { LessonRun } from '../features/learn/LessonRun'
 import { PracticeRun } from '../features/practice/PracticeRun'
@@ -374,9 +374,12 @@ function Routes() {
 
   const view: View = route.kind === 'topic' ? 'library' : route.view
   const topicId = route.kind === 'topic' ? route.topicId : null
-  // Topic and Data are both children of Library, so both mark Library current.
-  // The bar names where you are in the app, not which component is mounted.
-  const navView = view === 'data' ? 'library' : view
+  // Profile is a child utility reached from Today. A stale historical `data`
+  // entry is treated as Profile for compatibility. Today and Library remain
+  // the only primary destinations in the shell.
+  const renderedView = view === 'data' ? 'profile' : view
+  const navView: Extract<View, 'today' | 'library'> =
+    renderedView === 'library' ? 'library' : 'today'
 
   return (
     <AppShell view={navView} onNavigate={navigateSection}>
@@ -388,6 +391,7 @@ function Routes() {
             setAuthorOnEntry(true)
             navigate({ kind: 'section', view: 'library' })
           }}
+          onOpenProfile={() => navigate({ kind: 'section', view: 'profile' })}
         />
       )}
       {view === 'library' && (
@@ -398,10 +402,9 @@ function Routes() {
           openTopicOnMount={topicId}
           onOpenTopic={(id) => navigate({ kind: 'topic', topicId: id })}
           onCloseTopic={goBack}
-          onOpenData={() => navigate({ kind: 'section', view: 'data' })}
         />
       )}
-      {view === 'data' && <Data onBack={goBack} />}
+      {renderedView === 'profile' && <Profile onBack={goBack} />}
     </AppShell>
   )
 }
