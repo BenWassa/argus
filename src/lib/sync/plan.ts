@@ -27,8 +27,10 @@
  * this whole layer exists to avoid.
  */
 
-import { isShippedCatalogId } from '../catalog'
+import shippedCatalog from '../shippedCatalog.json'
 import type { Topic } from '../types'
+
+const SHIPPED_TOPIC_IDS = new Set<string>(shippedCatalog.topicIds)
 
 /** A topic as it is stored remotely: the v5 JSON, and enough to order writes. */
 export interface RemoteRecord {
@@ -173,7 +175,7 @@ export function planSync(
       // Re-publish it instead. User-authored topics keep normal deletion
       // semantics, where the ledger distinguishes a remote deletion from a new
       // local creation.
-      if (known && isShippedCatalogId(id)) {
+      if (known && SHIPPED_TOPIC_IDS.has(id)) {
         actions.push({ kind: 'push', topicId: id, json: topicJson(local), revision: known.revision + 1 })
       } else if (known) actions.push({ kind: 'dropLocal', topicId: id })
       else actions.push({ kind: 'push', topicId: id, json: topicJson(local), revision: 1 })
