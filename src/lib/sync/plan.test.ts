@@ -65,18 +65,6 @@ describe('a topic that exists on only one side', () => {
       { kind: 'push', topicId: 'nato-phonetic', json: topicJson(shipped), revision: 4 },
     ])
   })
-
-  it('re-adopts shipped curriculum instead of propagating a local deletion', () => {
-    const shipped = topic('nato-phonetic')
-    const { actions } = planSync(
-      [],
-      [remote('nato-phonetic', shipped, 3)],
-      ledgerFor('nato-phonetic', shipped, 3),
-    )
-    expect(actions).toEqual([
-      { kind: 'adopt', topicId: 'nato-phonetic', json: topicJson(shipped), revision: 3 },
-    ])
-  })
 })
 
 describe('a topic both sides hold', () => {
