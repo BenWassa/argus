@@ -11,6 +11,10 @@ const shippedCatalog = JSON.parse(
   readFileSync(fileURLToPath(new URL('../src/domain/library/shippedCatalog.json', import.meta.url)), 'utf8'),
 ) as { topicIds: string[] }
 
+const { version: appVersion } = JSON.parse(
+  readFileSync(fileURLToPath(new URL('../package.json', import.meta.url)), 'utf8'),
+) as { version: string }
+
 const USER_TOPIC: Topic = {
   id: 'profile-reset-user-topic',
   title: 'Personal reset fixture',
@@ -54,7 +58,7 @@ test('a legacy Data history entry restores Profile under Today navigation', asyn
   })
 
   await expect(page.getByRole('heading', { name: 'Profile', level: 1 })).toBeVisible()
-  await expect(page.getByText('App version 1.0.2', { exact: true })).toBeVisible()
+  await expect(page.getByText(`App version ${appVersion}`, { exact: true })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Today', exact: true })).toHaveAttribute(
     'aria-current',
     'page',
