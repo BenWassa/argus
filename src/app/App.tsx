@@ -291,18 +291,20 @@ function Routes() {
     setAuthorOnEntry(false)
 
     if (current.kind === 'section' && current.view === next) return
-    // Library is already the active section while a Topic page or the Data
-    // utility is open. Its nav button therefore behaves like that page's visible
-    // Back control rather than pushing a duplicate Library stop.
-    if (next === 'library') {
-      if (current.kind === 'topic') {
-        goBack()
-        return
-      }
-      if (current.kind === 'section' && current.view === 'data') {
-        goBack()
-        return
-      }
+    // A child utility marks its parent primary destination current. Pressing
+    // that already-current destination should therefore behave like the
+    // utility's visible Back control rather than pushing a duplicate stop.
+    if (next === 'library' && current.kind === 'topic') {
+      goBack()
+      return
+    }
+    if (
+      next === 'today' &&
+      current.kind === 'section' &&
+      (current.view === 'profile' || current.view === 'data')
+    ) {
+      goBack()
+      return
     }
 
     navigate({ kind: 'section', view: next })
