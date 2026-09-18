@@ -97,8 +97,6 @@ export function topicOrigin(topic: Topic): NonNullable<Topic['origin']> {
 export type WithheldReason =
   /** A local topic the learner owns holds this id. Never overwritten. */
   | 'user-authored-collision'
-  /** Already delivered once and since removed. Deletion is durable. */
-  | 'previously-delivered'
 
 export interface CatalogReconciliation {
   /** Catalog ids added to the library as fresh unstarted topics. */
@@ -118,14 +116,16 @@ export function collisions(report: CatalogReconciliation): string[] {
 }
 
 /**
- * Deliver shipped catalog topics that an existing library has never been
- * offered.
+ * Ensure the shipped catalog baseline exists in the learner library.
  *
- * This is a delivery mechanism, not a replacement policy. It only ever appends.
- * A topic that already exists locally is left exactly as it is, whoever owns
- * it, so no status, timestamp, attempt, item id or cue-evidence record can be
- * changed by the catalog growing. Changing the meaning of a topic that has
- * already shipped therefore remains an explicit migration decision, of which
+ * This is a delivery/recovery mechanism, not a replacement policy. It only ever
+ * appends. A topic that already exists locally is left exactly as it is,
+ * whoever owns it, so no status, timestamp, attempt, item id or cue-evidence
+ * record can be changed by the catalog growing. A missing shipped topic is
+ * restored as fresh content even when an older record says it was delivered
+ * before: shipped Argus curriculum is baseline product content, not disposable
+ * learner data. Changing the meaning of a topic that has already shipped
+ * therefore remains an explicit migration decision, of which
  * `absorbSeededMorseBaseline` is the one Argus has made.
  *
  * Deterministic: the same library and `now` always produce the same result, and
@@ -162,11 +162,6 @@ export function reconcileCatalog(
         // catalog topic would hide a real conflict.
         report.withheld.push({ id: definition.id, reason: 'user-authored-collision' })
       }
-      continue
-    }
-
-    if (delivered.has(definition.id)) {
-      report.withheld.push({ id: definition.id, reason: 'previously-delivered' })
       continue
     }
 
