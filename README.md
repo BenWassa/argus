@@ -51,6 +51,9 @@ The production build asks who you are before showing anything, so sign-in is not
 - `PRODUCT.md` — current implemented product contract and design principles.
 - `DESIGN.md` / `DESIGN.json` — current visual and interaction system.
 - `docs/open/LEARN_CONTENT_MODEL.md` — structured Learn schema/editorial contract.
+- `docs/open/ISSUE_104_EDITORIAL_IDENTITY.md` — active editorial direction for expanding Argus as an evidence-based practical miscellany.
+- `docs/open/ISSUE_104_LIBRARY_EXPANSION_RESEARCH.md` — first-pass research and admission criteria for compact finite-recall topics.
+- `docs/open/ISSUE_104_FIELD_HUMAN_SKILLS_EXPANSION.md` — companion research for practical human-systems skills and scenario-based learning; detailed candidate papers live under `docs/open/library-research/`.
 - `docs/closed/LIBRARY_AUDIT.md` — reconciled shipped-library boundary/content audit.
 - `docs/closed/SEEDED_CONTENT_PROVENANCE.md` — authoritative source record for the original seeded topics.
 - `docs/open/CONTENT_INBOX.md` — content-inbox and curated-ingestion architecture, and the Firebase setup it needs.
