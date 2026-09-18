@@ -53,6 +53,30 @@ describe('a topic that exists on only one side', () => {
     const { actions } = planSync([], [remote('knots', gone, 3)], ledgerFor('knots', gone, 3))
     expect(actions).toEqual([{ kind: 'deleteRemote', topicId: 'knots' }])
   })
+
+  it('re-publishes a restored shipped topic instead of applying a stale remote deletion', () => {
+    const shipped = topic('nato-phonetic')
+    const { actions } = planSync(
+      [shipped],
+      [],
+      ledgerFor('nato-phonetic', shipped, 3),
+    )
+    expect(actions).toEqual([
+      { kind: 'push', topicId: 'nato-phonetic', json: topicJson(shipped), revision: 4 },
+    ])
+  })
+
+  it('re-adopts shipped curriculum instead of propagating a local deletion', () => {
+    const shipped = topic('nato-phonetic')
+    const { actions } = planSync(
+      [],
+      [remote('nato-phonetic', shipped, 3)],
+      ledgerFor('nato-phonetic', shipped, 3),
+    )
+    expect(actions).toEqual([
+      { kind: 'adopt', topicId: 'nato-phonetic', json: topicJson(shipped), revision: 3 },
+    ])
+  })
 })
 
 describe('a topic both sides hold', () => {
