@@ -28,8 +28,6 @@ interface LibraryProps {
   /** Durable topic navigation is owned by App/history, not only local state. */
   onOpenTopic: (topicId: string) => void
   onCloseTopic: () => void
-  /** Export/import/reset. A Library utility with its own route, not a tab. */
-  onOpenData: () => void
   /** Set when Today sends the user here to author their first topic. */
   openFormOnMount?: boolean
   /** Current topic identity restored by browser Back/Forward when present. */
@@ -59,7 +57,6 @@ export function Library({
   onReference,
   onOpenTopic,
   onCloseTopic,
-  onOpenData,
   openFormOnMount = false,
   openTopicOnMount = null,
 }: LibraryProps) {
@@ -460,19 +457,9 @@ export function Library({
             </div>
           )}
 
-          {/* The permanent record, and then the one utility that owns the
-              learner's data. Both are read or reached deliberately, so they
-              close the page rather than competing with the shelves. */}
+          {/* The permanent record closes the learning library. Account, sync
+              and data controls live under Profile from Today. */}
           <CompletionRecord topics={topics} />
-
-          <div className="lib-utility">
-            <button className="quiet lib-data" type="button" onClick={onOpenData}>
-              Data and backup
-            </button>
-            <p className="lib-utility-note">
-              Export the whole library to a file you own, or replace it from one.
-            </p>
-          </div>
         </>
       )}
 
