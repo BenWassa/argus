@@ -4,7 +4,7 @@
 
 **Authority:** Current for the shipped Morse placement behavior; later ratified product decisions supersede this document
 
-**Last verified:** 2026-09-17
+**Last verified:** 2026-09-18
 
 **Issue:** #105
 
@@ -67,12 +67,12 @@ the canonical lesson sequence.
 1. Visit canonical lessons in order and ask both novel letters.
 2. At Lessons 4, 7, 10, and 13, use the first mechanically eligible checkpoint
    word as integrated sequence confirmation.
-3. Apply the same uncertainty and confirmation rule to letters encountered in
-   words.
+3. At a word prompt, key the full word before one verdict. The same uncertainty
+   and confirmation rule is then applied to its constituent letters.
 4. Stop once a repeated miss fixes the earliest required lesson.
 
-A perfect run contains 42 prompts before any miss-triggered rechecks: 26
-isolated letters plus `TIME`, `TRAIN`, `FLOW`, and `BOX`.
+A perfect run contains 30 prompts before any miss-triggered rechecks: 26
+isolated letters plus full-word `TIME`, `TRAIN`, `FLOW`, and `BOX` prompts.
 
 ### Know most Morse
 
@@ -85,8 +85,8 @@ isolated letters plus `TIME`, `TRAIN`, `FLOW`, and `BOX`.
 5. Scan from the beginning for the earliest letter that did not finish in a
    passing state.
 
-A perfect run contains 30 prompts: 26 isolated mappings and the four letters in
-`QUIZ`.
+A perfect run contains 27 prompts: 26 isolated mappings and one full-word
+`QUIZ` prompt.
 
 ## Curriculum and persistence authority
 

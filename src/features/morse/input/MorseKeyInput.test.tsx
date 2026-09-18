@@ -102,12 +102,13 @@ describe('one-touch Morse key', () => {
     expect(code).toContain('disabled={inputBlocked || entry.length >= expectedLength}')
   })
 
-  it('retries a released first press after AudioContext resume instead of losing it', () => {
+  it('starts first-press audio synchronously and keeps a released press audible', () => {
     const code = source('./MorseKeyInput.tsx')
     expect(code).toContain('releasedElement')
     expect(code).toContain('playReleasedTone')
-    expect(code).toContain('void startTone(event.pointerId)')
-    expect(code).toContain('A quick first press may beat AudioContext.resume()')
+    expect(code).toContain('startTone(event.pointerId)')
+    expect(code).toContain('starts the oscillator before waiting for')
+    expect(code).toContain('starts inside the direct first press')
     expect(code).toContain('Never block Morse entry because sound is unavailable')
   })
 

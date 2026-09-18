@@ -153,26 +153,6 @@ export class MorseAudioPlayer {
     return this.context
   }
 
-  /**
-   * Must be reached directly from the user-triggered `play()` call. Creating
-   * the context and invoking resume happen before any unrelated async work, so
-   * first-play retains the browser's transient user activation.
-   */
-  private async ensureRunningContext(): Promise<AudioContextLike> {
-    const context = this.ensureContext()
-    if (context.state !== 'running') {
-      try {
-        await context.resume()
-      } catch {
-        throw new Error('Morse audio could not start. Tap Play again after returning to the app and check your device media volume.')
-      }
-    }
-    if (context.state !== 'running') {
-      throw new Error(`Morse audio is still ${context.state}. Tap Play again after returning to the app and check your device media volume.`)
-    }
-    return context
-  }
-
   private stopActive(): void {
     if (!this.active) return
     try {
@@ -200,14 +180,18 @@ export class MorseAudioPlayer {
     const generation = ++this.requestGeneration
 
     this.stopActive()
-    const context = await this.ensureRunningContext()
-
-    if (
-      generation !== this.requestGeneration ||
-      this.disposed ||
-      this.visibility?.hidden
-    ) {
-      throw new MorsePlaybackCancelledError()
+    const context = this.ensureContext()
+    // Resume is invoked inside the Play event, but deliberately not awaited
+    // before the source is started. Mobile PWA engines can drop the first
+    // gesture's activation between those two operations. AudioContext time is
+    // frozen while suspended, so this schedule begins normally on unlock.
+    let resume: Promise<void> | null = null
+    if (context.state !== 'running') {
+      try {
+        resume = context.resume()
+      } catch {
+        throw new Error('Morse audio could not start. Tap Play again after returning to the app and check your device media volume.')
+      }
     }
 
     const oscillator = context.createOscillator()
@@ -242,6 +226,27 @@ export class MorseAudioPlayer {
     this.lastRequest = { text, options: { ...options } }
     oscillator.start(startAt)
     oscillator.stop(at)
+
+    if (resume) {
+      try {
+        await resume
+      } catch {
+        if (generation === this.requestGeneration) this.stopActive()
+        throw new Error('Morse audio could not start. Tap Play again after returning to the app and check your device media volume.')
+      }
+    }
+
+    if (
+      generation !== this.requestGeneration ||
+      this.disposed ||
+      this.visibility?.hidden
+    ) {
+      throw new MorsePlaybackCancelledError()
+    }
+    if (context.state !== 'running') {
+      this.stopActive()
+      throw new Error(`Morse audio is still ${context.state}. Tap Play again after returning to the app and check your device media volume.`)
+    }
     return schedule
   }
 

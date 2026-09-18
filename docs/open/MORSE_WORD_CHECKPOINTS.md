@@ -20,9 +20,10 @@ the existing `MorseProgramme` lesson path.
 7. Their eligibility is projected from the existing lesson path, their allowed
 letters are derived from `lessonPackets()`, and the curated corpus is validated
 against those derived sets at runtime/test time. The checkpoint runner owns only
-transient React state and reuses the shared #77 `MorseKeyInput`; it has no learner
-store, scheduler, Test-evidence, lesson-progress, sitting or completion write
-path.
+transient React state and reuses the shared #77 `MorseKeyInput`; its word wrapper
+advances internally between character patterns and gives one verdict only after
+the full word is keyed. It has no learner store, scheduler, Test-evidence,
+lesson-progress, sitting or completion write path.
 
 The canonical programme remains 13 lessons. A checkpoint never gates the next
 lesson and has no durable completion flag. Once a milestone has been reached,
@@ -81,7 +82,7 @@ Flow:
 
 1. four brief individual-letter keyed warm-ups chosen deterministically from the
    known set;
-2. one simple familiar word;
+2. one simple familiar word, keyed fully before its single verdict;
 3. concise completion state;
 4. continue naturally into the lesson journey.
 
@@ -94,7 +95,7 @@ The second checkpoint appears immediately after Lesson 7.
 Flow:
 
 1. four brief individual-letter keyed warm-ups;
-2. two modest familiar words;
+2. two modest familiar words, each keyed fully before its single verdict;
 3. concise completion state;
 4. continue naturally into the lesson journey.
 
@@ -141,11 +142,11 @@ these transitions writes checkpoint completion, skip or seen state.
 Reuse the shared direct Morse key introduced by #77. Do not create a second
 keying widget or response model.
 
-For every warm-up target and every character in a word:
+For every warm-up target and every word:
 
 - show the plaintext target;
-- for a word, keep the full word visible and clearly emphasize the current
-  character;
+- for a word, keep the full word visible, collect its character patterns
+  without intermediate verdicts, then grade the complete word once;
 - learner enters Morse with the same tap/hold interaction as existing keyed
   production;
 - expected element count auto-grades exactly once;
@@ -208,7 +209,7 @@ programme, not like a separate dashboard or mode.
 
 Preserve:
 
-- whole-word visibility with an unmistakable current character;
+- whole-word visibility and one post-word verdict;
 - >=44 CSS px primary touch targets;
 - keyboard access and sensible focus restoration;
 - reduced-motion behaviour;
@@ -227,8 +228,8 @@ Preserve:
 - all curated content using only eligible letters;
 - explicit protection against `O` leaking into Lesson-7 content;
 - warm-up → word flow;
-- whole-word/current-character rendering;
-- per-character expected-length auto-grading;
+- whole-word rendering with no intermediate character verdict;
+- expected-length auto-grading for each internal pattern and one word verdict;
 - correct and wrong progression without correction controls;
 - replayability;
 - no mutation of acquisition, sitting, scheduler, Test evidence or completion;

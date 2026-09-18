@@ -229,7 +229,8 @@ describe('MorseAudioPlayer', () => {
     const player = new MorseAudioPlayer(() => context, new FakeVisibility())
 
     await expect(player.play('E')).rejects.toThrow(/still interrupted/)
-    expect(context.oscillators).toHaveLength(0)
+    expect(context.oscillators).toHaveLength(1)
+    expect(context.oscillators[0].disconnected).toBe(1)
   })
 
   it('turns a rejected mobile resume into actionable non-blocking feedback', async () => {
@@ -238,7 +239,8 @@ describe('MorseAudioPlayer', () => {
     const player = new MorseAudioPlayer(() => context, new FakeVisibility())
 
     await expect(player.play('E')).rejects.toThrow(/Tap Play again/)
-    expect(context.oscillators).toHaveLength(0)
+    expect(context.oscillators).toHaveLength(1)
+    expect(context.oscillators[0].disconnected).toBe(1)
   })
 
   it('cancels current playback before a new play or replay', async () => {
@@ -267,12 +269,16 @@ describe('MorseAudioPlayer', () => {
 
     const first = player.play('A', { characterWpm: 20, effectiveWpm: 20 })
     const second = player.play('B', { characterWpm: 20, effectiveWpm: 20 })
+    // Both sources begin in their direct Play call, before the shared resume
+    // promise resolves. The stale source is immediately disconnected.
+    expect(context.oscillators).toHaveLength(2)
+    expect(context.oscillators[0].disconnected).toBe(1)
     releaseResume()
 
     await expect(first).rejects.toBeInstanceOf(MorsePlaybackCancelledError)
     const schedule = await second
     expect(schedule.text).toBe('B')
-    expect(context.oscillators).toHaveLength(1)
+    expect(context.oscillators).toHaveLength(2)
   })
 
   it('cannot start a stale oscillator after Stop while resume is still in flight', async () => {
@@ -288,7 +294,8 @@ describe('MorseAudioPlayer', () => {
     releaseResume()
 
     await expect(pending).rejects.toBeInstanceOf(MorsePlaybackCancelledError)
-    expect(context.oscillators).toHaveLength(0)
+    expect(context.oscillators).toHaveLength(1)
+    expect(context.oscillators[0].disconnected).toBe(1)
   })
 
   it('cancels on background without racing an app-issued suspend, then resumes browser-suspended audio on the next tap', async () => {

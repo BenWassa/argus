@@ -151,11 +151,11 @@ describe('Morse word checkpoint curriculum', () => {
     expect(checkpointNewlyUnlocked(duringRepair, afterRepair, 13)).toBe(false)
   })
 
-  it('flattens four warm-ups before deterministic whole-word character targets', () => {
+  it('places four warm-ups before deterministic whole-word targets', () => {
     for (const checkpoint of morseWordCheckpoints()) {
       const targets = checkpointTargets(checkpoint)
       expect(targets.slice(0, 4).map((target) => target.kind)).toEqual(['warmup', 'warmup', 'warmup', 'warmup'])
-      expect(targets.slice(4).filter((target) => target.kind === 'word').map((target) => target.letter).join('')).toBe(checkpoint.words.join(''))
+      expect(targets.slice(4).filter((target) => target.kind === 'word').map((target) => target.word)).toEqual(checkpoint.words)
     }
   })
 
@@ -165,9 +165,8 @@ describe('Morse word checkpoint curriculum', () => {
     const retried = withCheckpointRetry(targets, 4, missed)
 
     expect(retried).toHaveLength(targets.length + 1)
-    expect(checkpointTargetKey(retried[7])).toBe(checkpointTargetKey(missed))
+    expect(checkpointTargetKey(retried[6])).toBe(checkpointTargetKey(missed))
     expect(retried[5]).toBe(targets[5])
-    expect(retried[6]).toBe(targets[6])
   })
 
   it('keeps retry insertion finite at the end of a checkpoint', () => {

@@ -24,13 +24,22 @@ export interface MorseWordCheckpointPathItem extends MorseWordCheckpoint {
   unlocked: boolean
 }
 
-export interface MorseCheckpointTarget {
-  kind: 'warmup' | 'word'
+export interface MorseCheckpointWarmupTarget {
+  kind: 'warmup'
   letter: MorseLetter
   word: string | null
   wordIndex: number | null
   characterIndex: number | null
 }
+
+export interface MorseCheckpointWordTarget {
+  kind: 'word'
+  word: string
+  wordIndex: number
+  letters: MorseLetter[]
+}
+
+export type MorseCheckpointTarget = MorseCheckpointWarmupTarget | MorseCheckpointWordTarget
 
 const CURATED_CHECKPOINTS: readonly CuratedCheckpoint[] = [
   {
@@ -171,14 +180,11 @@ export function checkpointTargets(checkpoint: MorseWordCheckpoint): MorseCheckpo
   }))
 
   checkpoint.words.forEach((word, wordIndex) => {
-    Array.from(word).forEach((letter, characterIndex) => {
-      targets.push({
-        kind: 'word',
-        letter: letter as MorseLetter,
-        word,
-        wordIndex,
-        characterIndex,
-      })
+    targets.push({
+      kind: 'word',
+      word,
+      wordIndex,
+      letters: Array.from(word) as MorseLetter[],
     })
   })
 
@@ -187,7 +193,9 @@ export function checkpointTargets(checkpoint: MorseWordCheckpoint): MorseCheckpo
 
 /** Stable identity for a target inside one finite checkpoint run. */
 export function checkpointTargetKey(target: MorseCheckpointTarget): string {
-  return [target.kind, target.letter, target.wordIndex ?? '-', target.characterIndex ?? '-'].join(':')
+  return target.kind === 'warmup'
+    ? [target.kind, target.letter].join(':')
+    : [target.kind, target.wordIndex, target.word].join(':')
 }
 
 /**

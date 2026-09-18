@@ -1,5 +1,7 @@
 # Morse Learn: guided acquisition, finite sittings, listening, path, and reference
 
+> **Current pacing contract — 2026-09-18.** This maintained contract supersedes the ten-answer budget and review-filler policy below. New letters receive one supported check and one unaided confirmation; returning letters need one correct printed check. After a mistake, the next correct recall ends that letter's repair; further mistakes keep it pending. Completed letters are never reopened as spacers. A lesson ends when its roster is done, even before ten answers, and unresolved corrections continue beyond ten. Automatic listening is limited to unfinished returning letters, once successfully per lesson, with a retry after a miss; it never grants printed mastery. Continuing to the next lesson closes the sitting and starts a fresh one. Whole-programme simulations enforce at most two successful prompts per letter per error-free lesson, including listening, and four printed answers for the first lesson.
+
 > **#90/#92/#96 closeout addendum — 2026-09-15.** Current implementation supersedes stale status/details later in this historical contract where they conflict. `Topic.morseReview` is additive formative scheduling state, now including a printed-retrieval count used only to break genuinely equal review need fairly; one 10-retrieval sitting may introduce at most one two-character novel pair and fills the remainder with cumulative item-aware review. New learners require later-sitting **printed** success before acquisition readiness while legacy/previously-ready learners are not regressed; listening is selected by need and remains unable to alter printed evidence/history. Ordinary lesson returns are now selected from actual need rather than static packet position, while any unsettled historical packet return remains an obligation. Cumulative continuation is visibly but quietly marked **Review**. Listening choice placement rotates by listening-slot ordinal rather than lesson step, so fixed cadence cannot teach a correct-answer position. The formative checkpoint arc is now **Lessons 4, 7, 10 and 13**, with #88 first-unlock handoff at all four, late-acquired characters in later material, one bounded local retry after intervening targets where practical, and a local-only completion summary. Checkpoint/replay work still writes no lesson support, sitting, `morseReview`, `DirectionEvidence`, retention timestamp or completion. The deterministic one-pair/review-only sitting policy is settled; the final same-day continuation/spacing **copy and presentation** remains an owner decision under #92. The shipped Morse topic currently uses a quiet `Morse alphabet` link rather than embedding all 26 cards; that placement remains an explicit #92 owner decision. #29 stays outside this contract and #42 remains the separate Pixel acceptance track.
 
 Issues #48, #51, #52, #56, #75, #76, #77, #78, #87 and #88. Parent #21. Preserves #28's
@@ -148,10 +150,12 @@ duration is not returned to Learn, Test, the scheduler or the evidence store and
 must never become a WPM/sending claim through this control.
 
 The learner-generated sidetone uses the same core tone/level and click-free edge
-shaping as sample playback. #77 also closes the fresh-mobile first-press race: a
-quick release while `AudioContext.resume()` is pending is sounded once after the
-context resumes before that element is committed. Audio failure remains
-non-blocking to categorical key entry.
+shaping as sample playback. To preserve the first key sound on mobile, the key
+starts its oscillator in the direct press event before waiting for
+`AudioContext.resume()`; a quick release still sounds its canonical element
+once before it is committed. Audio failure remains non-blocking to categorical
+key entry. `docs/open/MORSE_AUDIO_RUNTIME.md` is the maintained cross-surface
+lifecycle and device-acceptance contract.
 
 Pointer cancellation/lost capture produces no element. The key suppresses
 long-press browser UI and touch scrolling while an active press is being

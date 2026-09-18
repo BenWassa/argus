@@ -16,7 +16,7 @@ function freshMorse() {
 afterEach(() => cleanup())
 
 describe('Morse placement response boundary', () => {
-  it('collects an uncued pattern and makes the learner decide when it is complete', () => {
+  it('accepts an uncued pattern directly and grades it at the known pattern boundary', () => {
     render(
       <MorsePlacementDialog
         topic={freshMorse()}
@@ -31,15 +31,16 @@ describe('Morse placement response boundary', () => {
 
     expect(screen.getByRole('dialog', { name: 'Morse placement check' })).toBeTruthy()
     expect(screen.getByRole('button', { name: /Morse key/i })).toBeTruthy()
-    expect((screen.getByRole('button', { name: 'Check pattern' }) as HTMLButtonElement).disabled).toBe(true)
-    expect(screen.getByText('Key the full pattern, then check it. Up to four signals.')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Check pattern' })).toBeNull()
+    expect(screen.queryByText(/Key the full pattern, then check/i)).toBeNull()
     expect(screen.queryByText(/Expected pattern length/i)).toBeNull()
   })
 
-  it('never passes the target pattern length into the shared Morse key', () => {
+  it('uses the shared key’s automatic completion instead of a placement-only confirmation', () => {
     const code = readFileSync('src/features/morse/MorsePlacementDialog.tsx', 'utf8')
-    expect(code).toContain('expectedLength={1}')
-    expect(code).not.toContain('expectedLength={expectedMorsePlacementPattern(target).length}')
+    expect(code).toContain('expectedLength={expectedMorsePlacementPattern(target).length}')
+    expect(code).toContain("import { MorseWordKeyInput } from './input/MorseWordKeyInput'")
+    expect(code).not.toContain('Check pattern')
     expect(code).not.toContain('Expected pattern length')
   })
 })

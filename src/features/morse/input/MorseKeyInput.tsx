@@ -75,10 +75,10 @@ function contextConstructor(): typeof AudioContext | undefined {
  * sidetone shares the sample player's tone, level and click-free edge shaping
  * so keyed and played Morse sound like one system.
  *
- * An element is never committed before its audible form has finished. If a
- * first quick press ends while AudioContext.resume() is still pending, the
- * released element is sounded once after resume before it is submitted, rather
- * than silently losing the first tone.
+ * An element is never committed before its audible form has finished. Its
+ * oscillator starts inside the direct first press, even when the context is
+ * suspended, so resume cannot consume the mobile gesture before there is an
+ * audible source waiting for it.
  */
 export function MorseKeyInput({
   onSubmit,
@@ -267,7 +267,7 @@ export function MorseKeyInput({
     commitElement(element, durationMs + MORSE_AUDIO_EDGE_RAMP_MS)
   }, [clearReleasedToneTimer, commitElement, stopTone])
 
-  const startTone = useCallback(async (pointerId: number) => {
+  const startTone = useCallback((pointerId: number) => {
     const generation = ++audioGenerationRef.current
     const AudioContextCtor = contextConstructor()
     if (!AudioContextCtor) {
@@ -282,15 +282,27 @@ export function MorseKeyInput({
     try {
       const context = audioContextRef.current ?? new AudioContextCtor()
       audioContextRef.current = context
-      if (context.state !== 'running') await context.resume()
-      if (generation !== audioGenerationRef.current) return
-
       const press = pressRef.current
       if (!press || press.pointerId !== pointerId) return
-      if (context.state !== 'running') throw new Error('AudioContext did not resume.')
 
+      // This path intentionally starts the oscillator before waiting for
+      // `resume()`. On iOS and installed Android PWAs a quick first tap can
+      // lose its transient user activation by the time an awaited resume
+      // settles. A source started against a suspended context waits there and
+      // becomes audible as soon as this direct interaction unlocks it.
       if (press.releasedElement) playReleasedTone(context, pointerId, press.releasedElement)
       else beginTone(context, pointerId)
+
+      if (context.state === 'running') return
+      void context.resume().catch(() => {
+        if (generation !== audioGenerationRef.current) return
+        const current = pressRef.current
+        if (current?.pointerId === pointerId && current.releasedElement) {
+          pressRef.current = null
+          stopTone()
+          commitElement(current.releasedElement, morseElementDurationMs(current.releasedElement))
+        }
+      })
     } catch {
       if (generation !== audioGenerationRef.current) return
       const press = pressRef.current
@@ -300,7 +312,7 @@ export function MorseKeyInput({
       }
       // Never block Morse entry because sound is unavailable.
     }
-  }, [beginTone, commitElement, playReleasedTone])
+  }, [beginTone, commitElement, playReleasedTone, stopTone])
 
   /**
    * Keyboard and assistive activation produce the same complete element the
@@ -310,7 +322,7 @@ export function MorseKeyInput({
   const keyElement = useCallback((element: '.' | '-') => {
     if (lockedRef.current) return
     pressRef.current = { pointerId: KEYBOARD_POINTER_ID, startedAt: now(), releasedElement: element }
-    void startTone(KEYBOARD_POINTER_ID)
+    startTone(KEYBOARD_POINTER_ID)
   }, [now, startTone])
 
   const cancelPress = useCallback((pointerId: number) => {
@@ -418,7 +430,7 @@ export function MorseKeyInput({
           pressRef.current = { pointerId: event.pointerId, startedAt: now() }
           setPressed(true)
           event.currentTarget.setPointerCapture?.(event.pointerId)
-          void startTone(event.pointerId)
+          startTone(event.pointerId)
         }}
         onPointerUp={(event) => {
           const press = pressRef.current
@@ -433,10 +445,10 @@ export function MorseKeyInput({
             // waits for it rather than racing it.
             finishSustainedTone(element)
           } else {
-            // A quick first press may beat AudioContext.resume(). Retry directly
-            // from pointerup's user activation; `startTone` will sound the
-            // released element before committing it once the context is ready.
-            void startTone(event.pointerId)
+            // This only occurs if pointer-down could not create the tone (for
+            // example, a context closed between events). Retry from pointer-up
+            // while the interaction is still directly user initiated.
+            startTone(event.pointerId)
           }
         }}
         onPointerCancel={(event) => cancelPress(event.pointerId)}

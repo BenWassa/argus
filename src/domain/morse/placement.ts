@@ -12,7 +12,8 @@ export interface MorsePlacementTarget {
   letter: MorseLetter
   lesson: number
   word?: string
-  characterIndex?: number
+  /** All letters in a word are submitted together and receive one verdict. */
+  letters?: MorseLetter[]
   retry?: boolean
 }
 
@@ -64,14 +65,17 @@ function letterTarget(letter: MorseLetter, lesson: number): MorsePlacementTarget
   return { kind: 'letter', letter, lesson }
 }
 
-function wordTargets(word: string, lesson: number): MorsePlacementTarget[] {
-  return Array.from(word).map((letter, characterIndex) => ({
-    kind: 'word' as const,
-    letter: letter as MorseLetter,
+function wordTarget(word: string, lesson: number): MorsePlacementTarget {
+  const letters = Array.from(word) as MorseLetter[]
+  return {
+    kind: 'word',
+    // `letter` preserves the target's stable bridge/retry identity. The
+    // complete `letters` array is the grading authority for a word response.
+    letter: letters[0],
+    letters,
     lesson,
     word,
-    characterIndex,
-  }))
+  }
 }
 
 function someTargets(lessons: readonly MorsePlacementLesson[]): MorsePlacementTarget[] {
@@ -81,7 +85,7 @@ function someTargets(lessons: readonly MorsePlacementLesson[]): MorsePlacementTa
     for (const letter of lesson.letters) targets.push(letterTarget(letter, lesson.number))
     const checkpoint = checkpoints.find((candidate) => candidate.afterLesson === lesson.number)
     const word = checkpoint?.words[0]
-    if (word) targets.push(...wordTargets(word, lesson.number))
+    if (word) targets.push(wordTarget(word, lesson.number))
   }
   return targets
 }
@@ -99,7 +103,7 @@ function mostTargets(lessons: readonly MorsePlacementLesson[]): MorsePlacementTa
   const finalCheckpoint = morseWordCheckpoints().at(-1)
   const finalWord = finalCheckpoint?.words.at(-1)
   if (finalCheckpoint && finalWord) {
-    targets.push(...wordTargets(finalWord, finalCheckpoint.afterLesson))
+    targets.push(wordTarget(finalWord, finalCheckpoint.afterLesson))
   }
   return targets
 }
@@ -210,39 +214,47 @@ function earliestFailedLesson(run: MorsePlacementRun): number | null {
   return null
 }
 
-export function answerMorsePlacement(run: MorsePlacementRun, response: string): MorsePlacementRun {
+export function answerMorsePlacement(run: MorsePlacementRun, response: string | readonly string[]): MorsePlacementRun {
   const target = currentMorsePlacementTarget(run)
   if (!target) return run
 
-  const correct = response.replace(/\s+/g, '') === MORSE_LETTERS[target.letter]
-  const before = run.states[target.letter] ?? { status: 'unknown' as const, attempts: 0, correct: 0 }
+  const responses = typeof response === 'string'
+    ? response.trim().split(/\s+/).filter(Boolean)
+    : response.map((entry) => entry.replace(/\s+/g, ''))
+  const letters = target.kind === 'word' ? target.letters ?? [] : [target.letter]
   let targets = run.targets
   let retries = run.retries
-  let status: MorsePlacementLetterState['status']
+  let states = { ...run.states }
 
-  // Once the bounded confirmation has failed twice, later appearances (for
-  // example inside a word) cannot erase that demonstrated weakness. Otherwise
-  // a learner could miss a mapping twice in isolation and accidentally restore
-  // it to pass by getting the same letter once in a later word.
-  if (before.status === 'fail') {
-    status = 'fail'
-  } else if (correct) {
-    status = 'pass'
-  } else if (before.status === 'uncertain') {
-    status = 'fail'
-  } else {
-    status = 'uncertain'
-    targets = insertRetry(run, target)
-    retries += 1
-  }
+  for (const [index, letter] of letters.entries()) {
+    const entryCorrect = responses[index] === MORSE_LETTERS[letter]
+    const before = states[letter] ?? { status: 'unknown' as const, attempts: 0, correct: 0 }
+    let status: MorsePlacementLetterState['status']
 
-  const states = {
-    ...run.states,
-    [target.letter]: {
-      status,
-      attempts: before.attempts + 1,
-      correct: before.correct + (correct ? 1 : 0),
-    },
+    // A word is one response surface, but it still preserves the established
+    // per-letter placement policy: a repeated miss remains sticky and an
+    // isolated first miss gets one spaced retry.
+    if (before.status === 'fail') {
+      status = 'fail'
+    } else if (entryCorrect) {
+      status = 'pass'
+    } else if (before.status === 'uncertain') {
+      status = 'fail'
+    } else {
+      status = 'uncertain'
+      const retryTarget = letterTarget(letter, target.lesson)
+      targets = insertRetry({ ...run, targets, states }, retryTarget)
+      retries += 1
+    }
+
+    states = {
+      ...states,
+      [letter]: {
+        status,
+        attempts: before.attempts + 1,
+        correct: before.correct + (entryCorrect ? 1 : 0),
+      },
+    }
   }
 
   let next: MorsePlacementRun = {
@@ -323,5 +335,8 @@ export function applyMorsePlacement(
 }
 
 export function expectedMorsePlacementPattern(target: MorsePlacementTarget): string {
+  if (target.kind === 'word') {
+    return (target.letters ?? []).map((letter) => MORSE_LETTERS[letter]).join(' ')
+  }
   return MORSE_LETTERS[target.letter]
 }

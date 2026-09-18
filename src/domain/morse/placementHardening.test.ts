@@ -59,7 +59,12 @@ describe('Morse placement hardening', () => {
     while (run.index < run.targets.length - 1) run = correct(run)
     const final = currentMorsePlacementTarget(run)!
 
-    run = answerMorsePlacement(run, '----')
+    // A word is one prompt now. Miss only Q so this still exercises the
+    // tail-retry guarantee without fabricating four independent misses.
+    const response = final.kind === 'word'
+      ? final.letters!.map((letter) => letter === final.letter ? '----' : expectedMorsePlacementPattern({ ...final, kind: 'letter', letter }))
+      : ['----']
+    run = answerMorsePlacement(run, response)
 
     expect(run.complete).toBe(false)
     expect(run.states[final.letter]?.status).toBe('uncertain')

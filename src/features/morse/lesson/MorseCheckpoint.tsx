@@ -9,6 +9,7 @@ import {
   type MorseWordCheckpoint,
 } from '../../../domain/morse/curriculum/checkpoints'
 import { MorseKeyInput } from '../input/MorseKeyInput'
+import { MorseWordKeyInput } from '../input/MorseWordKeyInput'
 import { useKeyedResponse } from '../input/useKeyedResponse'
 import './MorseCheckpoint.css'
 
@@ -66,9 +67,12 @@ export function MorseCheckpoint({ checkpoint, onExit, onContinue, continueLabel 
     else if (armed) targetRef.current?.focus({ preventScroll: true })
   }, [complete, armed, index])
 
-  function answer(pattern: string) {
+  function answer(pattern: string | readonly string[]) {
     if (!target || !armed) return
-    const correct = pattern === MORSE_LETTERS[target.letter]
+    const correct = target.kind === 'warmup'
+      ? pattern === MORSE_LETTERS[target.letter]
+      : Array.isArray(pattern) && pattern.length === target.letters.length &&
+        pattern.every((entry, index) => entry === MORSE_LETTERS[target.letters[index]])
     setAttempts((count) => count + 1)
     if (correct) {
       setCorrectAnswers((count) => count + 1)
@@ -144,10 +148,10 @@ export function MorseCheckpoint({ checkpoint, onExit, onContinue, continueLabel 
         tabIndex={-1}
         aria-label={target.kind === 'warmup'
           ? `Key the Morse pattern for ${target.letter}`
-          : `Key ${target.letter} in the word ${target.word}`}
+          : `Key the word ${target.word}`}
       >
         <p className="lesson-task">
-          {target.kind === 'warmup' ? 'Warm up' : 'Key the highlighted letter'}
+          {target.kind === 'warmup' ? 'Warm up' : 'Key the whole word'}
         </p>
 
         {target.kind === 'warmup' ? (
@@ -157,19 +161,8 @@ export function MorseCheckpoint({ checkpoint, onExit, onContinue, continueLabel 
           </>
         ) : (
           <>
-            <p className="morse-checkpoint-word" aria-hidden="true">
-              {Array.from(target.word ?? '').map((letter, characterIndex) => (
-                <span
-                  className={characterIndex === target.characterIndex ? 'is-current' : undefined}
-                  key={`${target.word}-${characterIndex}`}
-                >
-                  {letter}
-                </span>
-              ))}
-            </p>
-            <h1 className="sr-only">
-              Key {target.letter}, character {(target.characterIndex ?? 0) + 1} of {target.word}.
-            </h1>
+            <p className="morse-checkpoint-word" aria-hidden="true">{target.word}</p>
+            <h1 className="sr-only">Key the whole word {target.word}.</h1>
           </>
         )}
 
@@ -180,22 +173,31 @@ export function MorseCheckpoint({ checkpoint, onExit, onContinue, continueLabel 
             aria-live="assertive"
           >
             <strong>{feedback.correct ? 'Correct' : 'Miss'}</strong>
-            {!feedback.correct && (
+            {!feedback.correct && (feedback.target.kind === 'warmup' ? (
               <span>
                 {feedback.target.letter} is <span className="mono">{canonicalPattern(MORSE_LETTERS[feedback.target.letter])}</span>
               </span>
-            )}
+            ) : <span>{feedback.target.word} will come back after another prompt.</span>)}
           </div>
         ) : (
           // `inert` is the real gate: `pointer-events: none` alone would let the
           // same tap fall through to whatever sits underneath the key.
           <div className="morse-checkpoint-answer" inert={!armed}>
-            <MorseKeyInput
-              key={`${checkpoint.id}-${index}`}
-              expectedLength={MORSE_LETTERS[target.letter].length}
-              locked={!armed}
-              onSubmit={answer}
-            />
+            {target.kind === 'warmup' ? (
+              <MorseKeyInput
+                key={`${checkpoint.id}-${index}`}
+                expectedLength={MORSE_LETTERS[target.letter].length}
+                locked={!armed}
+                onSubmit={answer}
+              />
+            ) : (
+              <MorseWordKeyInput
+                key={`${checkpoint.id}-${index}`}
+                word={target.word}
+                locked={!armed}
+                onSubmit={answer}
+              />
+            )}
           </div>
         )}
       </div>

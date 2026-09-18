@@ -55,8 +55,8 @@ describe('Morse placement policy', () => {
     expect(some).not.toBeNull()
     expect(most).not.toBeNull()
 
-    expect(some?.targets).toHaveLength(42)
-    expect(most?.targets).toHaveLength(30)
+    expect(some?.targets).toHaveLength(30)
+    expect(most?.targets).toHaveLength(27)
     expect(some?.targets.slice(0, 4).map((target) => target.lesson)).toEqual([1, 1, 2, 2])
     expect(most?.targets.slice(0, 4).map((target) => target.lesson)).toEqual([1, 2, 3, 4])
   })
@@ -161,7 +161,7 @@ describe('Morse placement policy', () => {
   it('can place a perfect experienced learner through all 13 lessons', () => {
     const run = perfect(freshMorse(), 'most')
     expect(run.result).toMatchObject({ throughLesson: 13, nextLesson: null })
-    expect(run.promptCount).toBe(30)
+    expect(run.promptCount).toBe(27)
     expect(run.retries).toBe(0)
   })
 })

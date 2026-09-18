@@ -7,24 +7,26 @@ function source(file: string): string {
 }
 
 describe('Morse word checkpoint surface', () => {
-  it('reuses the #77 direct keyed input with expected-length auto grading', () => {
+  it('uses direct keyed input and gives a word one automatic verdict', () => {
     const code = source('./MorseCheckpoint.tsx')
     expect(code).toContain("import { MorseKeyInput } from '../input/MorseKeyInput'")
+    expect(code).toContain("import { MorseWordKeyInput } from '../input/MorseWordKeyInput'")
     expect(code).toContain('expectedLength={MORSE_LETTERS[target.letter].length}')
-    expect(code).toContain('const correct = pattern === MORSE_LETTERS[target.letter]')
+    expect(code).toContain('pattern.every((entry, index) => entry === MORSE_LETTERS[target.letters[index]])')
     expect(code).not.toMatch(/>\s*(Submit|Check|Delete|Continue|Back)\s*</)
     expect(code).not.toContain('Backspace')
   })
 
-  it('shows the whole word with an explicit current-character treatment', () => {
+  it('shows the whole word without turning each character into a checkpoint', () => {
     const code = source('./MorseCheckpoint.tsx')
     expect(code).toContain('morse-checkpoint-word')
-    expect(code).toContain("characterIndex === target.characterIndex ? 'is-current' : undefined")
-    expect(code).toContain('Key the highlighted letter')
-    expect(code).toContain('character {(target.characterIndex ?? 0) + 1} of {target.word}')
+    expect(code).toContain('Key the whole word')
+    expect(code).toContain('Key the whole word {target.word}')
+    expect(code).not.toContain('Key the highlighted letter')
+    expect(code).not.toContain('characterIndex')
   })
 
-  it('advances after either correct or wrong feedback without a between-character Continue action', () => {
+  it('advances after either correct or wrong feedback without a manual confirmation action', () => {
     const code = source('./MorseCheckpoint.tsx')
     expect(code).toContain('setFeedback({ correct, target })')
     expect(code).toContain('answered(correct)')
@@ -87,7 +89,7 @@ describe('Morse word checkpoint surface', () => {
     const lesson = source('./MorseLesson.tsx')
     expect(lesson).toContain('const CHECKPOINT_LESSON_NUMBERS = new Set([4, 7, 10, 13])')
     expect(lesson).toContain('checkpointNewlyUnlocked(pathBeforeAnswer, pathNow, completedLessonNumber)')
-    expect(lesson).toContain('setCheckpointInvite({ checkpoint: invite, resume: next })')
+    expect(lesson).toContain('setCheckpointInvite({ checkpoint: invite, resume: cleared })')
     expect(lesson).toContain('Skip for now')
   })
 })

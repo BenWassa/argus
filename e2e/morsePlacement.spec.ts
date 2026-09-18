@@ -56,7 +56,7 @@ async function keyElement(page: Page, element: '.' | '-') {
   await page.keyboard.press(element)
 }
 
-test('placement collects the learner-selected full pattern before grading and abandons cleanly', async ({ page }) => {
+test('placement grades a complete keyed pattern directly and abandons cleanly', async ({ page }) => {
   await openFreshMorse(page)
   const before = await page.evaluate((key) => window.localStorage.getItem(key), STORE_KEY)
 
@@ -68,17 +68,13 @@ test('placement collects the learner-selected full pattern before grading and ab
   const glyph = ((await page.locator('.morse-placement-letter').textContent()) ?? '').trim() as MorseLetter
   const pattern = MORSE_LETTERS[glyph]
   expect(pattern).toBeTruthy()
-  // The current canonical first target is one signal. This is the regression
-  // case #107 got wrong: passing the true target length into MorseKeyInput made
-  // the first signal auto-grade before the learner could express a longer belief.
+  // The current canonical first target is one signal. The shared key now owns
+  // completion, so this first signal must produce the verdict without an extra
+  // placement-only Check action.
   expect(pattern).toHaveLength(1)
 
   await keyElement(page, pattern[0] as '.' | '-')
-  await expect(page.getByRole('button', { name: 'Check pattern' })).toBeEnabled()
-  await expect(page.getByText('Correct', { exact: true })).toHaveCount(0)
-  await expect(page.getByText('Not quite', { exact: true })).toHaveCount(0)
-
-  await page.getByRole('button', { name: 'Check pattern' }).click()
+  await expect(page.getByRole('button', { name: 'Check pattern' })).toHaveCount(0)
   await expect(page.getByText('Correct', { exact: true })).toBeVisible()
 
   await page.getByRole('button', { name: 'Exit placement check' }).click()
