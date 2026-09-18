@@ -15,6 +15,7 @@ import {
   answerListeningQuestion,
   lessonListeningOptions,
   newLessonListeningState,
+  recordListeningAnswer,
   recordLessonQuestion,
   shouldUseListeningQuestion,
   suppressListening,
@@ -50,13 +51,13 @@ function introducedRun(): LessonRun {
 
 function entryAtSupport(support: LessonEntry['support']): LessonEntry {
   const run = introducedRun()
-  return { ...run.entries[0], support, introduced: true }
+  return { ...run.entries[0], novel: false, support, introduced: true }
 }
 
 describe('Morse listening question scheduling', () => {
   it('uses a restrained deterministic 3rd/6th/9th retrieval cadence', () => {
     expect(LISTENING_RETRIEVAL_INTERVAL).toBe(3)
-    const entry = entryAtSupport('cued')
+    const entry = entryAtSupport('solo')
     const state = newLessonListeningState()
     expect(shouldUseListeningQuestion(0, entry, state)).toBe(false)
     expect(shouldUseListeningQuestion(1, entry, state)).toBe(false)
@@ -70,16 +71,29 @@ describe('Morse listening question scheduling', () => {
     expect(run.entries[0].introduced).toBe(false)
     expect(shouldUseListeningQuestion(2, run.entries[0], newLessonListeningState())).toBe(false)
     expect(shouldUseListeningQuestion(2, entryAtSupport('taught'), newLessonListeningState())).toBe(false)
+    expect(shouldUseListeningQuestion(2, entryAtSupport('cued'), newLessonListeningState())).toBe(false)
   })
 
   it('does not immediately repeat the same target in another modality', () => {
-    const entry = entryAtSupport('cued')
+    const entry = entryAtSupport('solo')
     const state = recordLessonQuestion(newLessonListeningState(), entry.itemId)
     expect(shouldUseListeningQuestion(2, entry, state)).toBe(false)
   })
 
+  it('does not offer optional listening for a new character or a printed-complete entry', () => {
+    const entry = entryAtSupport('solo')
+    expect(shouldUseListeningQuestion(2, { ...entry, novel: true }, newLessonListeningState())).toBe(false)
+    expect(shouldUseListeningQuestion(2, { ...entry, done: true }, newLessonListeningState())).toBe(false)
+  })
+
+  it('uses a successful listening answer at most once per character in a run', () => {
+    const entry = entryAtSupport('solo')
+    const state = recordListeningAnswer(newLessonListeningState(), entry.itemId, true)
+    expect(shouldUseListeningQuestion(5, entry, state)).toBe(false)
+  })
+
   it("Can't listen now suppresses listening for the rest of this sitting without spending a retrieval", () => {
-    const entry = entryAtSupport('cued')
+    const entry = entryAtSupport('solo')
     const sitting = newLessonSitting()
     const state = suppressListening(newLessonListeningState())
 
@@ -90,7 +104,7 @@ describe('Morse listening question scheduling', () => {
   })
 
   it('a new sitting resets listening suppression', () => {
-    const entry = entryAtSupport('cued')
+    const entry = entryAtSupport('solo')
     const suppressed = suppressListening(newLessonListeningState())
     expect(shouldUseListeningQuestion(2, entry, suppressed)).toBe(false)
     expect(shouldUseListeningQuestion(2, entry, newLessonListeningState())).toBe(true)

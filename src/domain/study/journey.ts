@@ -292,7 +292,7 @@ export function journeyFor(topic: Topic, now: Date = new Date()): TopicJourney {
       `lesson ${acquisition.packet} of ${acquisition.packetCount}`,
     ]
     if (sitting?.active) {
-      parts.push(`${sitting.retrievals} of ${sitting.target} retrievals this sitting`)
+      parts.push(`${sitting.retrievals} retrievals this sitting`)
     }
     return {
       topicId: topic.id,

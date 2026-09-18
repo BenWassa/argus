@@ -10,6 +10,10 @@ export const LISTENING_RETRIEVAL_INTERVAL = 3
 export interface LessonListeningState {
   suppressed: boolean
   previousItemId: string | null
+  /** A sound answer that must be checked again before another audio target. */
+  pendingRetryItemId: string | null
+  /** A correct sound answer is formative once per character in a lesson run. */
+  successfulItemIds: readonly string[]
 }
 
 export interface ListeningFeedback {
@@ -26,7 +30,12 @@ export interface ListeningAnswer {
 }
 
 export function newLessonListeningState(): LessonListeningState {
-  return { suppressed: false, previousItemId: null }
+  return {
+    suppressed: false,
+    previousItemId: null,
+    pendingRetryItemId: null,
+    successfulItemIds: [],
+  }
 }
 
 export function suppressListening(state: LessonListeningState): LessonListeningState {
@@ -41,11 +50,41 @@ export function recordLessonQuestion(
 }
 
 /**
+ * Record the outcome of an auditory question without changing printed work.
+ *
+ * A miss gets one immediate recheck (and continues to be rechecked if it is
+ * missed again). A hit clears that obligation and removes this character from
+ * the rest of the run's optional listening pool. This is deliberately runtime
+ * state: hearing a letter is not printed acquisition evidence.
+ */
+export function recordListeningAnswer(
+  state: LessonListeningState,
+  itemId: string,
+  correct: boolean,
+): LessonListeningState {
+  if (!correct) {
+    return {
+      ...state,
+      previousItemId: itemId,
+      pendingRetryItemId: itemId,
+    }
+  }
+
+  return {
+    ...state,
+    previousItemId: itemId,
+    pendingRetryItemId: null,
+    successfulItemIds: state.successfulItemIds.includes(itemId)
+      ? state.successfulItemIds
+      : [...state.successfulItemIds, itemId],
+  }
+}
+
+/**
  * Whether this retrieval slot is one the cadence offers to listening.
  *
- * Still the 3rd/6th/9th slot of a sitting: the cadence itself was never the
- * problem, and a learner who has budgeted ten retrievals should not suddenly
- * meet six of them by ear.
+ * Offer reinforcement every third retrieval while unfinished returning
+ * material remains. The cadence never extends a completed lesson.
  */
 export function isListeningSlot(retrievalsCompleted: number): boolean {
   return (retrievalsCompleted + 1) % LISTENING_RETRIEVAL_INTERVAL === 0
@@ -54,13 +93,23 @@ export function isListeningSlot(retrievalsCompleted: number): boolean {
 /**
  * Whether this character may be asked by ear at all.
  *
- * Listening is reinforcement, not the first presentation of a mapping, so a
- * character still being taught is excluded. A target cannot immediately switch
+ * Listening is reinforcement, not acquisition: a character that still owes
+ * more than one printed check is excluded. A target cannot immediately switch
  * modality and repeat while its answer is still fresh.
  */
 export function isListeningEligible(entry: LessonEntry, state: LessonListeningState): boolean {
   if (state.suppressed) return false
-  if (!entry.introduced || entry.support === 'taught') return false
+  // New mappings and cued returns still owe two printed acquisition checks.
+  // Audio is optional reinforcement only when a returning character has one
+  // printed check left, keeping a character to at most two correct prompts in
+  // this run (one sound, one print).
+  if (
+    entry.novel ||
+    entry.done ||
+    !entry.introduced ||
+    (entry.support !== 'solo' && entry.support !== 'settled')
+  ) return false
+  if (state.successfulItemIds.includes(entry.itemId)) return false
   return state.previousItemId !== entry.itemId
 }
 
@@ -123,6 +172,15 @@ export function chooseListeningTarget(
   state: LessonListeningState,
   review: MorseReviewProgress,
 ): LessonEntry | null {
+  if (state.suppressed) return null
+
+  // A miss is not allowed to disappear behind the cadence. Keep checking the
+  // same sound mapping until it is right; a correct recheck clears this state.
+  if (state.pendingRetryItemId) {
+    const pending = entries.find((entry) => entry.itemId === state.pendingRetryItemId)
+    if (pending?.introduced) return pending
+  }
+
   if (!isListeningSlot(retrievalsCompleted)) return null
 
   const eligible = entries.filter((entry) => isListeningEligible(entry, state))
@@ -147,10 +205,11 @@ export function chooseListeningTarget(
  * unfamiliar letter, because nothing else exists yet to draw from.
  *
  * Distractors vary by target, listening history and the current offered slot;
- * answer placement rotates by listening-slot ordinal. Neither rule depends on
- * the reset-prone lesson step that establishes the fixed listening cadence, so
- * the correct answer cannot become a learnable cadence residue. The result is
- * still a pure function of the durable/formative inputs and current sitting.
+ * answer placement rotates by the durable total of prior listening attempts.
+ * Neither rule depends on the reset-prone lesson step that establishes the
+ * fixed listening cadence, so the correct answer cannot become a learnable
+ * cadence residue. The result is still a pure function of the
+ * durable/formative inputs and current sitting.
  */
 export function lessonListeningOptions(
   run: LessonRun,
@@ -175,11 +234,14 @@ export function lessonListeningOptions(
   }
 
   const options = [...alternatives]
-  // Offered slots are exactly the 3rd/6th/9th retrievals. Their ordinal (not
-  // the lesson-step counter, which resets at packet boundaries) gives a
-  // deterministic 0/1/2 rotation for three-choice questions.
-  const listeningOrdinal = Math.floor(retrievalsCompleted / LISTENING_RETRIEVAL_INTERVAL)
-  const at = listeningOrdinal % (options.length + 1)
+  // A short run can have only one listening slot, so a per-run slot ordinal
+  // would always put that answer first. Durable history continues the rotation
+  // across packets and sittings while still producing a deterministic choice.
+  const priorListeningAttempts = Object.values(review.items).reduce(
+    (total, item) => total + item.heard,
+    0,
+  )
+  const at = priorListeningAttempts % (options.length + 1)
   options.splice(at, 0, entry.glyph)
   return options
 }

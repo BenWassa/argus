@@ -18,14 +18,13 @@ import {
   answerListeningQuestion,
   lessonListeningOptions,
   newLessonListeningState,
+  recordListeningAnswer,
   recordLessonQuestion,
   chooseListeningTarget,
   suppressListening,
   type ListeningFeedback,
 } from '../../../domain/morse/curriculum/listening'
 import {
-  LESSON_RETRIEVAL_TARGET,
-  lessonSittingComplete,
   lessonSittingOf,
   newLessonSitting,
   recordLessonRetrieval,
@@ -37,7 +36,7 @@ import {
   morseWordCheckpointPath,
   type MorseWordCheckpointPathItem,
 } from '../../../domain/morse/curriculum/checkpoints'
-import { morseReviewOf } from '../../../domain/morse/curriculum/review'
+import { completeSitting, morseReviewOf, withMorseReview } from '../../../domain/morse/curriculum/review'
 import { useLibrary } from '../../../services/library/LibraryProvider'
 import type { Topic } from '../../../domain/library/topic'
 import { useKeyedResponse } from '../input/useKeyedResponse'
@@ -86,7 +85,6 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
   }))
   const [listeningFeedback, setListeningFeedback] = useState<ListeningFeedback | null>(null)
   const [audioNotice, setAudioNotice] = useState<string | null>(null)
-  const [packetsAdvanced, setPacketsAdvanced] = useState(0)
   // #88: a milestone lesson just settled and its word checkpoint is being
   // offered before the learner is sent on. Local and ephemeral like the
   // checkpoint itself — losing it on reload re-derives the same choice from
@@ -112,9 +110,8 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
   const topicRef = useRef<Topic>(live)
   topicRef.current = live
 
-  const sittingDone = lessonSittingComplete(sitting)
   const hasFeedback = Boolean(run.feedback || listeningFeedback)
-  const step = hasFeedback || sittingDone ? null : currentStep(run)
+  const step = hasFeedback ? null : currentStep(run)
   const packetProgress = lessonProgressCount(run)
   /**
    * Which character this slot asks by ear, chosen by listening need across the
@@ -140,9 +137,9 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
   }, [audioError, stop])
 
   useEffect(() => {
-    if (checkpointInvite || run.complete || run.finished || (sittingDone && !hasFeedback)) headingRef.current?.focus()
+    if (checkpointInvite || run.complete || run.finished) headingRef.current?.focus()
     else if (!hasFeedback && armed) stepRef.current?.focus({ preventScroll: true })
-  }, [run.step, run.complete, run.finished, sittingDone, hasFeedback, armed, listeningState.suppressed, checkpointInvite])
+  }, [run.step, run.complete, run.finished, hasFeedback, armed, listeningState.suppressed, checkpointInvite])
 
   /**
    * Persist one lesson step.
@@ -223,29 +220,10 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
 
   function movePastVisualFeedback(
     answeredRun: LessonRun,
-    nextSitting: typeof sitting,
     pathBeforeAnswer: MorseLessonPathItem[] | null,
   ) {
     const cleared = advanceLesson(answeredRun)
     const invite = cleared.complete ? newlyUnlockedCheckpoint(cleared.packetIndex + 1, pathBeforeAnswer) : null
-
-    if (cleared.complete && !lessonSittingComplete(nextSitting)) {
-      // #90 §3: the sitting has already had its novel pair, so what fills the
-      // remaining retrievals is cumulative review rather than another pair.
-      // This is the whole fix for a sitting quietly teaching four letters.
-      const next = startLesson(topicRef.current, { allowNovel: false })
-      if (next) {
-        if (next.packetIndex > cleared.packetIndex) {
-          setPacketsAdvanced((count) => count + (next.packetIndex - cleared.packetIndex))
-        }
-        if (invite) {
-          setCheckpointInvite({ checkpoint: invite, resume: next })
-          return
-        }
-        setRun(next)
-        return
-      }
-    }
 
     if (invite) {
       setCheckpointInvite({ checkpoint: invite, resume: cleared })
@@ -288,7 +266,7 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
     // A hit used to advance in the same tick it was recorded, so its feedback
     // existed in state for less than a frame and the learner never saw it. Both
     // verdicts now stand for their policy duration before the surface moves.
-    pendingAdvance.current = () => movePastVisualFeedback(next, nextSitting, pathBeforeAnswer)
+    pendingAdvance.current = () => movePastVisualFeedback(next, pathBeforeAnswer)
     answered(next.feedback.correct)
   }
 
@@ -298,7 +276,7 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
     if (!result) return
     stop()
     setRun(result.run)
-    setListeningState((state) => recordLessonQuestion(state, itemId))
+    setListeningState((state) => recordListeningAnswer(state, itemId, result.feedback.correct))
     const nextSitting = recordLessonRetrieval(sitting, itemId, result.feedback.correct)
     persistSitting(nextSitting)
     noteListening(itemId, result.feedback.correct)
@@ -320,35 +298,25 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
     setAudioNotice('Listening skipped. This sitting will stay visual.')
   }
 
-  function nextSitting() {
-    const next = startLesson(topicRef.current)
+  function nextPacket() {
+    // Select review against the next sitting ordinal, matching the durable close.
+    const nextTopic = withMorseReview(topicRef.current, completeSitting(morseReviewOf(topicRef.current)))
+    const next = startLesson(nextTopic)
     if (!next) return
     stop()
     clearError()
     resetResponse()
     pendingAdvance.current = null
     setRun(next)
-    // The next finite sitting starts clean, and a clean sitting is the absent
-    // field rather than stored zeroes. The learner's listening declination
-    // belonged to the sitting that just ended, so it lifts with it.
+    // A packet completes the current sitting. The next packet begins clean,
+    // and a clean sitting is represented by the absent durable field.
     setSitting(newLessonSitting())
-    // Closing the sitting is what makes the next one "later". Counted here,
-    // when the learner actually moves on, rather than when a sitting is merely
-    // abandoned — an abandoned sitting must not satisfy #90 §4 for work the
-    // learner never came back to.
+    // Count the close when the learner actually proceeds. This makes the next
+    // retrieval a later-sitting success without crediting an abandoned run.
     record.closeSitting()
     setListeningState(newLessonListeningState())
     setListeningFeedback(null)
     setAudioNotice(null)
-    setPacketsAdvanced(0)
-  }
-
-  function nextPacket() {
-    const next = startLesson(topicRef.current)
-    if (!next) return
-    resetResponse()
-    pendingAdvance.current = null
-    setRun(next)
   }
 
   const bar = (
@@ -360,7 +328,7 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
         <span className="tabular">
           {run.finished
             ? 'All packets settled'
-            : `${sitting.retrievals} / ${LESSON_RETRIEVAL_TARGET} retrievals`}
+            : `${sitting.retrievals} retrievals`}
         </span>
       </p>
       <button className="ghost small" type="button" onClick={onExit}>Close</button>
@@ -419,26 +387,7 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
     )
   }
 
-  if (sittingDone && !hasFeedback) {
-    const packetsSettled = packetsAdvanced + (run.complete ? 1 : 0)
-    const revisit = sitting.revisitItemIds.length
-    return (
-      <section className="session morse-lesson">
-        {bar}
-        <h1 ref={headingRef} tabIndex={-1} className="lesson-title">Lesson complete</h1>
-        <p className="lesson-lede"><strong>{sitting.retrievals} retrievals</strong> · {sitting.correct} correct · {revisit} {revisit === 1 ? 'letter' : 'letters'} to revisit</p>
-        <p className="lesson-foot">Lesson {run.packetIndex + 1} of {run.packetCount}: {packetProgress.done} of {packetProgress.total} settled.</p>
-        {packetsSettled > 0 && <p className="lesson-foot">{packetsSettled === 1 ? '1 lesson settled this sitting.' : `${packetsSettled} lessons settled this sitting.`}</p>}
-        <div className="lesson-exits" inert={!armed}>
-          <button type="button" onClick={nextSitting}>Next lesson</button>
-          <button className="ghost" type="button" onClick={onExit}>Stop here</button>
-        </div>
-        <p className="lesson-foot">That count is this sitting&apos;s progress and nothing else. Test is still the only place the A–Z claim is proved.</p>
-      </section>
-    )
-  }
-
-  if (run.complete && sitting.retrievals === 0) {
+  if (run.complete) {
     const last = run.packetIndex + 1 >= run.packetCount
     return (
       <section className="session morse-lesson">
@@ -461,10 +410,6 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
     <section className="session morse-lesson" data-phase={phase}>
       {bar}
       <h1 ref={headingRef} tabIndex={-1} className="sr-only">Morse lesson, packet {run.packetIndex + 1} of {run.packetCount}</h1>
-      <div className="lesson-progress" role="progressbar" aria-valuemin={0} aria-valuemax={LESSON_RETRIEVAL_TARGET}
-        aria-valuenow={sitting.retrievals} aria-label="Retrievals this sitting">
-        <span className="lesson-progress-fill" style={{ inlineSize: `${(sitting.retrievals / LESSON_RETRIEVAL_TARGET) * 100}%` }} />
-      </div>
       <p className="lesson-foot">Lesson progress: {packetProgress.done} of {packetProgress.total} settled.</p>
       {run.reviewOnly && <p className="lesson-review-label">Review</p>}
 

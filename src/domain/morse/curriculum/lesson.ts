@@ -1,5 +1,5 @@
 import { morseAcquisitionProfile, type AcquisitionCharacter } from '../testing/acquisitionProfile'
-import { hasLaterSittingSuccess, morseReviewOf } from './review'
+import { hasLaterSittingSuccess, morseReviewOf, sittingsSinceSeen } from './review'
 import { byRetrievalPriority } from './lessonPriority'
 import { isConfusable } from '../../study/confusion'
 import { MORSE_LETTERS, morsePattern, type MorseLetter } from '../code'
@@ -59,32 +59,27 @@ import {
  * recognition of what is still on screen, with one item of intervening material
  * so it is not an echo.
  *
- * **Cue reduction after success.** One correct retrieval at a support level
- * fades that item one level: `taught → cued → solo → settled`. This is
- * deliberately faster than Test's `CUE_FADE_STREAK` of two. Test's streak
- * governs durable *evidence* about scored performance; a lesson is a few
- * minutes long and its job is to hand the learner to the uncued format quickly,
- * per the diminishing-cues finding in PRD §5.5. Nothing is claimed by reaching
- * `settled` except that the lesson will stop scaffolding that character.
+ * **Fast confirmation after success.** A new character gets one supported
+ * retrieval and one unaided retrieval: `taught → solo → settled`. Learn is
+ * formative, so a correct answer should move the learner on rather than turn
+ * a two-letter lesson into repetitive drilling. Test remains responsible for
+ * durable scored evidence.
  *
- * **Errors restore support.** A miss restores the support that was actually
- * being withheld: one level below the *format* the check used. `solo` and
- * `settled` share the unaided format, so a miss at either returns the learner to
- * `cued` rather than to a level that would show nothing. A miss never resets to
- * the bottom — an error is evidence about this character, not about the learner.
+ * **Errors retain repair support.** A miss restores the support that was
+ * actually being withheld: one level below the *format* the check used. `solo`
+ * and `settled` share the unaided format, so a miss at either records `cued`
+ * rather than a level that would show nothing. The immediate confirmation is
+ * still unaided: only an unaided success may settle the character.
  *
- * **Delayed recurrence of weak items.** A missed character is barred from the
- * next `WEAK_ITEM_DELAY_STEPS` steps, so it always returns *after* intervening
- * material. `nextStepIndex` additionally guarantees that a missed item is never
- * the very next step, by reopening already-settled roster material as genuine
- * interleaved retrieval when nothing else is pending. There is therefore no
- * miss → reteach → same-question loop where the answer is still on screen.
+ * **Errors get one confirmation.** A miss is re-taught in feedback and returns
+ * after any available intervening material. The next correct answer settles
+ * it; repeated misses keep it pending until one is correct. Completed entries
+ * are never reopened merely to fill time.
  *
- * **Interleaving prior-packet material.** The roster's returning characters are
- * prior-packet material chosen by `buildCharacterPackets`. They are retrieved
- * unaided, and a miss on one drops it back down the support ladder and blocks
- * packet advancement until it is produced unaided again — which is the whole
- * point of interleaving rather than decoration.
+ * **Interleaving prior material.** Returning characters are selected from
+ * previously introduced material by current retrieval need. They are retrieved
+ * once unaided, and a miss blocks packet advancement until its unaided
+ * confirmation succeeds — interleaving is reinforcement, not decoration.
  *
  * **Packet readiness.** A packet advances only when every roster character —
  * novel and returning — is `settled`. There is no other route: the packet index
@@ -106,7 +101,7 @@ import {
  * is restarted from zero and nobody is dropped into material they never met.
  */
 
-/** How many steps a missed character is barred from returning for. */
+/** How many steps a missed character is barred from returning for when another pending item can intervene. */
 export const WEAK_ITEM_DELAY_STEPS = 2
 
 /** Alternatives on a supported lesson check: the answer plus two distractors. */
@@ -127,9 +122,10 @@ export function checkFormat(support: LessonSupport): LessonCheckFormat {
   return support === 'settled' ? 'solo' : support
 }
 
-/** One correct retrieval fades one level. `settled` is the top of the ladder. */
+/** A supported success earns the unaided confirmation; that confirmation settles it. */
 export function fadedSupport(support: LessonSupport): LessonSupport {
-  return LESSON_SUPPORTS[Math.min(LESSON_SUPPORTS.length - 1, supportIndex(support) + 1)]
+  if (support === 'settled') return 'settled'
+  return support === 'solo' ? 'settled' : 'solo'
 }
 
 /**
@@ -151,6 +147,8 @@ export interface LessonEntry {
   introduced: boolean
   /** Retrieved at least once in this lesson. */
   asked: boolean
+  /** A miss is awaiting one successful confirmation before the item settles. */
+  recovery?: boolean
   /** Settled *and* retrieved this lesson. Packet readiness needs every entry done. */
   done: boolean
   /** Step index before which this entry may not be asked again. */
@@ -300,8 +298,8 @@ export function morseAcquisitionPosition(topic: Topic): MorseAcquisitionPosition
 
 /**
  * The first packet the learner has not fully settled — the whole of the
- * lesson's durable position. A static packet's still-unsettled return remains
- * an obligation, while settled returns are replaced by current review need.
+ * lesson's durable position. An unsettled historical return remains an
+ * obligation, while settled material is selected by current review need.
  * Returns `packets.length` when every packet obligation is settled.
  */
 export function firstUnsettledPacket(
@@ -321,10 +319,10 @@ export function firstUnsettledPacket(
 
 /**
  * Review characters for an ordinary novel-pair run. The packet still supplies
- * the canonical pair and its index; its historical static returns are no
- * longer a learner selector. That static plan kept reintroducing early letters
- * simply because they appeared in more future packets, even when a later
- * character had the same or greater current need.
+ * the canonical pair and its index; historical returns are no longer a general
+ * learner selector. That plan kept reintroducing early letters simply because
+ * they appeared in more future packets, even when later characters had equal
+ * or greater current need.
  */
 function ordinaryReviewRoster(
   byGlyph: Map<MorseLetter, AcquisitionCharacter>,
@@ -333,9 +331,9 @@ function ordinaryReviewRoster(
   packet: CharacterPacket,
 ): MorseLetter[] {
   const novel = new Set(packet.novel)
-  // Preserve any historical packet return that is still weak: it is already a
-  // confusable-safe obligation of this packet. Settled static returns must not
-  // keep winning future slots just because they appeared early in the plan.
+  // Preserve a historical packet return that is still weak: it remains a
+  // confusable-safe obligation. Settled historical returns must not keep
+  // winning future slots merely because they appeared early in the plan.
   const required = packet.review.filter((glyph) => {
     const character = byGlyph.get(glyph)
     return character !== undefined && store[character.itemId] !== 'settled'
@@ -344,6 +342,19 @@ function ordinaryReviewRoster(
     const character = byGlyph.get(glyph)
     const support = character ? store[character.itemId] : undefined
     if (!character || support === undefined || novel.has(glyph) || required.includes(glyph)) return []
+    // Once a character has survived a later sitting, it needs an actual gap
+    // before it can take another ordinary review slot. Without this guard the
+    // earliest settled pair keeps filling every later packet simply because it
+    // is always eligible first. Weak items and items still awaiting their first
+    // later-sitting success remain eligible immediately.
+    if (
+      support === 'settled' &&
+      (review.items[character.itemId]?.printed ?? 0) > 0 &&
+      hasLaterSittingSuccess(review, character.itemId) &&
+      sittingsSinceSeen(review, character.itemId) < 2
+    ) {
+      return []
+    }
     return [{ glyph, support, itemId: character.itemId, order }]
   }).sort(byRetrievalPriority(review))
 
@@ -546,37 +557,30 @@ function byStaleness(a: LessonEntry, b: LessonEntry): number {
 }
 
 /**
- * Which entry the next step belongs to, and whether the queue had to reopen
- * settled material to avoid repeating the item the learner just saw the answer
- * to. Returns `null` when the lesson is complete.
+ * Which unfinished entry belongs to the next step. Returns `null` when the
+ * lesson is complete. A completed entry is never reopened as a spacer.
  */
-function nextStepIndex(run: LessonRun): { at: number; reopen: boolean } | null {
+function nextStepIndex(run: LessonRun): number | null {
   const pending = run.entries.filter((entry) => !entry.done)
   if (pending.length === 0) return null
 
   const eligible = pending.filter((entry) => entry.notBefore <= run.step)
   if (eligible.length > 0) {
     const chosen = [...eligible].sort(byStaleness)[0]
-    return { at: run.entries.indexOf(chosen), reopen: false }
+    return run.entries.indexOf(chosen)
   }
 
-  // Nothing is eligible, which happens exactly when the learner has just
-  // answered the only pending item. Bring back the roster's least recently
-  // retrieved settled character instead: real interleaved retrieval, and never
-  // the question whose answer is still on screen.
-  const settled = run.entries.filter((entry) => entry.done)
-  if (settled.length > 0) {
-    const chosen = [...settled].sort(byStaleness)[0]
-    return { at: run.entries.indexOf(chosen), reopen: true }
-  }
-
+  // No other unfinished item can provide spacing. Revisit the earliest pending
+  // correction rather than reopening a character the learner already completed.
   const chosen = [...pending].sort((a, b) => a.notBefore - b.notBefore || byStaleness(a, b))[0]
-  return { at: run.entries.indexOf(chosen), reopen: false }
+  return run.entries.indexOf(chosen)
 }
 
 /**
  * The one dominant task on screen. An entry that has never been introduced is
- * introduced first, in roster order; everything after that is retrieval.
+ * introduced first, in roster order; everything after that is retrieval. A
+ * post-miss confirmation is always solo, even while its stored support keeps
+ * the repair level for a resumed lesson.
  */
 export function currentStep(run: LessonRun): LessonStep | null {
   if (run.complete) return null
@@ -587,9 +591,9 @@ export function currentStep(run: LessonRun): LessonStep | null {
   if (uninitiated.length > 0) return { kind: 'introduce', entry: uninitiated[0] }
 
   const next = nextStepIndex(run)
-  if (!next) return null
-  const entry = run.entries[next.at]
-  return { kind: 'check', entry, format: checkFormat(entry.support) }
+  if (next === null) return null
+  const entry = run.entries[next]
+  return { kind: 'check', entry, format: entry.recovery ? 'solo' : checkFormat(entry.support) }
 }
 
 function replaceEntry(run: LessonRun, itemId: string, next: LessonEntry): LessonEntry[] {
@@ -621,13 +625,16 @@ export function answerLesson(run: LessonRun, itemId: string, response: string): 
 
   const normalised = response.replace(/\s+/g, '')
   const correct = normalised.length > 0 && normalised === entry.pattern
-  const support = correct ? fadedSupport(entry.support) : restoredSupport(entry.support)
+  // A correction is an unaided check for a fluke: one success after any miss
+  // settles the item, while another miss leaves it awaiting that same check.
+  const support = correct && entry.recovery ? 'settled' : correct ? fadedSupport(entry.support) : restoredSupport(entry.support)
   const step = run.step + 1
 
   const next: LessonEntry = {
     ...entry,
     support,
     asked: true,
+    recovery: correct ? undefined : true,
     lastAskedAt: run.step,
     // A correct answer needs one item of intervening material before it returns;
     // a miss needs the full weak-item delay so the correction is not an echo.
@@ -649,21 +656,11 @@ export function answerLesson(run: LessonRun, itemId: string, response: string): 
 }
 
 /**
- * Dismiss feedback and expose the next step. Reopening settled material as a
- * spacer happens here, so the reopened entry is visible in the run rather than
- * conjured inside a render.
+ * Dismiss feedback and expose the next unfinished step.
  */
 export function advanceLesson(run: LessonRun): LessonRun {
   const cleared: LessonRun = { ...run, feedback: null }
-  if (cleared.complete) return cleared
-
-  const next = nextStepIndex(cleared)
-  if (!next || !next.reopen) return cleared
-
-  const entries = cleared.entries.map((entry, at) =>
-    at === next.at ? { ...entry, asked: false, done: false, notBefore: cleared.step } : entry,
-  )
-  return { ...cleared, entries, complete: false }
+  return cleared
 }
 
 /** The durable delta: one support level per roster item, and nothing else. */

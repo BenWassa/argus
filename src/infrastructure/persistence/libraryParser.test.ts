@@ -442,8 +442,12 @@ describe('the active Morse Learn sitting is durable and portable (#66)', () => {
     expect(parsed({ retrievals: 0, correct: 0, revisitItemIds: [] })).not.toHaveProperty('lessonSitting')
   })
 
+  it('round-trips retries beyond the former ten-answer budget', () => {
+    const sitting = { retrievals: 17, correct: 2, revisitItemIds: ['item-1'] }
+    expect(parsed(sitting).lessonSitting).toEqual(sitting)
+  })
+
   it('rejects counters that no sitting could have produced', () => {
-    expect(rejection({ retrievals: 11, correct: 0, revisitItemIds: [] })).toContain('finite sitting is 10')
     expect(rejection({ retrievals: 3, correct: 4, revisitItemIds: [] })).toContain('more correct answers than retrievals')
     expect(rejection({ retrievals: 2, correct: -1, revisitItemIds: [] })).toContain('non-negative integers')
     expect(rejection({ retrievals: 1.5, correct: 1, revisitItemIds: [] })).toContain('non-negative integers')

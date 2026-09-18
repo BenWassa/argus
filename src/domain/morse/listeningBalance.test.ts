@@ -5,6 +5,7 @@ import {
   isListeningSlot,
   listeningNeed,
   newLessonListeningState,
+  recordListeningAnswer,
   suppressListening,
 } from './curriculum/listening'
 import {
@@ -59,6 +60,34 @@ describe('the cadence is unchanged', () => {
 
   it('asks nothing on a slot the cadence does not offer', () => {
     expect(chooseListeningTarget(0, [entry('E', 0)], state, introduced('E'))).toBeNull()
+  })
+})
+
+describe('a listening miss is resolved before cadence resumes', () => {
+  it('rechecks a miss on the next retrieval even when it is not a listening slot', () => {
+    const review = introduced('E', 'T')
+    const afterMiss = recordListeningAnswer(state, 'item-E', false)
+
+    const chosen = chooseListeningTarget(3, [entry('E', 0), entry('T', 1)], afterMiss, review)
+    expect(chosen?.glyph).toBe('E')
+  })
+
+  it('keeps rechecking after another miss, then removes the target after a hit', () => {
+    const review = introduced('E', 'T')
+    const missedTwice = recordListeningAnswer(recordListeningAnswer(state, 'item-E', false), 'item-E', false)
+    expect(chooseListeningTarget(4, [entry('E', 0), entry('T', 1)], missedTwice, review)?.glyph).toBe('E')
+
+    const recovered = recordListeningAnswer(missedTwice, 'item-E', true)
+    expect(chooseListeningTarget(5, [entry('E', 0), entry('T', 1)], recovered, review)?.glyph).toBe('T')
+  })
+
+  it('does not use completed entries as listening fillers', () => {
+    const review = introduced('E', 'T')
+    const chosen = chooseListeningTarget(2, [
+      { ...entry('E', 0), done: true },
+      entry('T', 1),
+    ], state, review)
+    expect(chosen?.glyph).toBe('T')
   })
 })
 

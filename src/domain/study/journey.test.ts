@@ -134,7 +134,7 @@ describe('progressive acquisition routes the learner to Learn until it is ready'
       active: true,
       listeningSuppressed: false,
     })
-    expect(journey.detail).toContain('6 of 10 retrievals this sitting')
+    expect(journey.detail).toContain('6 retrievals this sitting')
     // The sitting is not retention and not acquisition. It moves neither.
     expect(journey.retention.status).toBe('learning')
     expect(journey.acquisition.ready).toBe(false)

@@ -9,17 +9,19 @@ import {
   startLesson,
   withLessonProgress,
   type LessonRun,
+  type LessonStep,
+  type LessonEntry,
 } from './curriculum/lesson'
 import {
+  answerListeningQuestion,
   chooseListeningTarget,
   lessonListeningOptions,
   newLessonListeningState,
   recordLessonQuestion,
+  recordListeningAnswer,
 } from './curriculum/listening'
 import { introducedGlyphs } from './curriculum/lesson'
 import {
-  LESSON_RETRIEVAL_TARGET,
-  lessonSittingComplete,
   newLessonSitting,
   recordLessonRetrieval,
 } from './curriculum/lessonSitting'
@@ -70,6 +72,7 @@ interface Options {
 
 interface Trace {
   topic: Topic
+  promptsPerSitting: Map<MorseLetter, number>[]
   sittings: number
   /** Novel characters introduced per sitting. */
   novelPerSitting: number[]
@@ -87,9 +90,8 @@ interface Trace {
  * Run the programme to acquisition readiness, or until the sitting cap.
  *
  * Deliberately mirrors what `MorseLesson` does with these functions: introduce,
- * answer, advance, record the sitting, and at ten retrievals close the sitting
- * and start the next. A packet settling early asks for a review-only run, which
- * is the novel budget under test.
+ * answer, advance, and finish as soon as the roster is settled. No filler
+ * rounds are created to reach an arbitrary answer count.
  */
 function runProgramme(options: Options = {}): Trace {
   const alwaysMiss = options.alwaysMiss ?? new Set<MorseLetter>()
@@ -97,6 +99,7 @@ function runProgramme(options: Options = {}): Trace {
 
   let topic = morseTopic()
   const novelPerSitting: number[] = []
+  const promptsPerSitting: Map<MorseLetter, number>[] = []
   const printed = new Map<MorseLetter, number>()
   const heard = new Map<MorseLetter, number>()
   const listeningPositions: number[] = []
@@ -110,19 +113,13 @@ function runProgramme(options: Options = {}): Trace {
     let sitting = newLessonSitting()
     let listeningState = newLessonListeningState()
     let novelThisSitting = 0
+    const prompts = new Map<MorseLetter, number>()
 
-    while (!lessonSittingComplete(sitting)) {
-      const step = currentStep(run)
-      if (!step) {
-        // The packet settled with retrievals left. Continue with review only,
-        // which is the novel budget: no second pair inside one sitting.
-        const next: LessonRun | null = startLesson(topic, { allowNovel: false })
-        // A finished programme has no steps left to give, and asking again
-        // would return the same empty run forever.
-        if (!next || next.finished || next.entries.length === 0) break
-        run = next
-        continue
-      }
+    // The UI ends when the roster is done. This guard models a learner leaving
+    // after persistent errors, so an always-wrong mock cannot run forever.
+    for (let guard = 0; guard < 100; guard += 1) {
+      const step: LessonStep | null = currentStep(run)
+      if (!step) break
 
       if (step.kind === 'introduce') {
         if (step.entry.novel) novelThisSitting += 1
@@ -137,14 +134,14 @@ function runProgramme(options: Options = {}): Trace {
       const declined =
         options.declineListeningAfter !== undefined &&
         sitting.retrievals >= options.declineListeningAfter
-      const listeningEntry = audio && !declined
+      const listeningEntry: LessonEntry | null = audio && !declined
         ? chooseListeningTarget(sitting.retrievals, run.entries, listeningState, morseReviewOf(topic))
         : null
 
       if (listeningEntry) {
         // Listening is formative only: it moves no printed support, and here it
         // moves only the listening counters.
-        const correct = !alwaysMiss.has(listeningEntry.glyph)
+        const correct: boolean = !alwaysMiss.has(listeningEntry.glyph)
         heard.set(listeningEntry.glyph, (heard.get(listeningEntry.glyph) ?? 0) + 1)
         const options = lessonListeningOptions(
           run,
@@ -158,17 +155,19 @@ function runProgramme(options: Options = {}): Trace {
           topic,
           recordListeningRetrieval(morseReviewOf(topic), listeningEntry.itemId, correct),
         )
-        listeningState = recordLessonQuestion(listeningState, listeningEntry.itemId)
+        listeningState = recordListeningAnswer(listeningState, listeningEntry.itemId, correct)
+        prompts.set(listeningEntry.glyph, (prompts.get(listeningEntry.glyph) ?? 0) + 1)
         sitting = recordLessonRetrieval(sitting, listeningEntry.itemId, correct)
-        run = { ...run, step: run.step + 1 }
+        run = answerListeningQuestion(run, listeningEntry.itemId, correct ? listeningEntry.glyph : '?')!.run
         continue
       }
 
       const entry = step.entry
-      const correct = !alwaysMiss.has(entry.glyph)
+      const correct: boolean = !alwaysMiss.has(entry.glyph)
       const answered = answerLesson(run, entry.itemId, correct ? entry.pattern : 'x')
       if (answered === run || !answered.feedback) break
 
+      prompts.set(entry.glyph, (prompts.get(entry.glyph) ?? 0) + 1)
       printed.set(entry.glyph, (printed.get(entry.glyph) ?? 0) + 1)
       const review = morseReviewOf(topic)
       const before = review.items[entry.itemId]?.laterCorrect ?? 0
@@ -183,6 +182,7 @@ function runProgramme(options: Options = {}): Trace {
       run = advanceLesson(answered)
     }
 
+    promptsPerSitting.push(prompts)
     novelPerSitting.push(novelThisSitting)
     topic = withMorseReview(topic, completeSitting(morseReviewOf(topic)))
     sittings += 1
@@ -191,7 +191,7 @@ function runProgramme(options: Options = {}): Trace {
     if (!position || position.finished) break
   }
 
-  return { topic, sittings, novelPerSitting, printed, heard, listeningPositions, laterCorrect }
+  return { topic, sittings, promptsPerSitting, novelPerSitting, printed, heard, listeningPositions, laterCorrect }
 }
 
 describe('the novel-item budget holds across a whole programme', () => {
@@ -257,16 +257,16 @@ describe('cumulative coverage', () => {
     // The opening sittings honestly have only E/I available, so whole-programme
     // totals need not be equal. The separate equal-need roster simulation
     // proves that acquisition order stops deciding once broad review exists.
-    expect(most - fewest).toBeLessThanOrEqual(7)
+    expect(most - fewest).toBeLessThanOrEqual(3)
   })
 })
 
 describe('listening coverage', () => {
-  it('gives every introduced character at least one listening retrieval', () => {
+  it('uses listening for returning material without extending a completed lesson', () => {
     const trace = runProgramme({ audio: true })
-    const introduced = ALL_MORSE_LETTERS.filter((glyph) => trace.printed.has(glyph))
-    const unheard = introduced.filter((glyph) => !trace.heard.has(glyph))
-    expect(unheard).toEqual([])
+    expect(trace.heard.size).toBeGreaterThan(0)
+    expect(trace.promptsPerSitting[0].size).toBe(2)
+    expect([...trace.promptsPerSitting[0].values()]).toEqual([2, 2])
   })
 
   it('spreads listening rather than landing on one subset', () => {
@@ -293,14 +293,14 @@ describe('listening coverage', () => {
 })
 
 describe('the sitting boundary is respected', () => {
-  it('never exceeds the advertised retrieval target in a sitting', () => {
-    // `runProgramme` closes a sitting at the target; this asserts the target is
-    // what the sitting module says it is rather than a number repeated here.
-    expect(LESSON_RETRIEVAL_TARGET).toBe(10)
-    const trace = runProgramme()
-    expect(trace.sittings * LESSON_RETRIEVAL_TARGET).toBeGreaterThanOrEqual(
-      [...trace.printed.values()].reduce((sum, count) => sum + count, 0),
-    )
+  it('asks successful characters at most twice per lesson, including listening', () => {
+    for (const audio of [false, true]) {
+      const trace = runProgramme({ audio })
+      for (const prompts of trace.promptsPerSitting) {
+        expect(Math.max(...prompts.values())).toBeLessThanOrEqual(2)
+      }
+      expect([...trace.promptsPerSitting[0].values()].reduce((sum, count) => sum + count, 0)).toBe(4)
+    }
   })
 
   it('has a packet for every stage of the path', () => {

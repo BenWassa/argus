@@ -35,7 +35,7 @@ export type ItemLessonStore = Record<string, LessonSupport>
 
 /**
  * Durable progress through the current finite Morse Learn sitting (#59, #66).
- * This is formative session bookkeeping only: it resumes the visible 0–10
+ * This is formative session bookkeeping only: it resumes the actual
  * sitting across exit/reload and cannot satisfy Test or scheduler evidence.
  *
  * `Topic.lessonSitting` is the single durable authority for this state (#66).
@@ -45,7 +45,7 @@ export type ItemLessonStore = Record<string, LessonSupport>
  *
  * `listeningSuppressed` is here rather than in runtime state because the sitting
  * itself is now durable. `Can't listen now` is a statement about the sitting the
- * learner is in; resuming that same sitting at 6/10 and silently regaining
+ * learner is in; resuming that same sitting after six retrievals and silently regaining
  * listening would contradict what they said. Audio errors, playback position and
  * the within-lesson queue remain transient.
  */

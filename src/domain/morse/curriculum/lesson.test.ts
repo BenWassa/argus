@@ -93,8 +93,8 @@ function settleEverything(topic: Topic): Topic {
 }
 
 describe('the lesson support ladder', () => {
-  it('fades one level per correct retrieval and stops at settled', () => {
-    expect(fadedSupport('taught')).toBe('cued')
+  it('uses one supported check and one solo confirmation for new material', () => {
+    expect(fadedSupport('taught')).toBe('solo')
     expect(fadedSupport('cued')).toBe('solo')
     expect(fadedSupport('solo')).toBe('settled')
     expect(fadedSupport('settled')).toBe('settled')
@@ -170,10 +170,10 @@ describe('the first lesson', () => {
     expect(checkedAt - introducedAt).toBe(2)
   })
 
-  it('walks a correct learner down the ladder and asks the last check unaided', () => {
+  it('asks a correct new character only twice: supported, then unaided', () => {
     const { trace, run } = playLesson(topic, () => true)
     const forE = trace.filter((entry) => entry.kind === 'check' && entry.glyph === 'E')
-    expect(forE.map((entry) => entry.format)).toEqual(['taught', 'cued', 'solo'])
+    expect(forE.map((entry) => entry.format)).toEqual(['taught', 'solo'])
     expect(run.complete).toBe(true)
   })
 
@@ -200,7 +200,6 @@ describe('errors', () => {
     // Get E to `solo`, then miss it.
     run = advanceLesson(answerLesson(run, itemIdFor(topic, 'E'), '.'))
     run = advanceLesson(answerLesson(run, itemIdFor(topic, 'I'), '..'))
-    run = advanceLesson(answerLesson(run, itemIdFor(topic, 'E'), '.'))
     expect(run.entries.find((entry) => entry.glyph === 'E')?.support).toBe('solo')
 
     const missed = answerLesson(run, itemIdFor(topic, 'E'), '-')
@@ -208,41 +207,34 @@ describe('errors', () => {
     expect(missed.entries.find((entry) => entry.glyph === 'E')?.support).toBe('cued')
   })
 
-  it('never asks the missed character as the very next step, at any point in any packet', () => {
-    // Exhaustive over the programme: miss the nth check of every lesson and
-    // assert that the correction is never an immediate echo.
-    for (let packet = 0; packet < lessonPackets().length; packet += 1) {
-      let current = morseTopic()
-      for (let ahead = 0; ahead < packet; ahead += 1) {
-        current = withLessonProgress(current, lessonProgressOf(playLesson(current, () => true).run))
-      }
-      for (let missAt = 0; missAt < 12; missAt += 1) {
-        let seen = 0
-        let missedGlyph: MorseLetter | null = null
-        let nextGlyph: MorseLetter | null = null
-        let run = startLesson(current) as LessonRun
+  it('settles on the next success after a miss and keeps retrying only while wrong', () => {
+    let run = startLesson(topic) as LessonRun
+    run = introduceLesson(run, itemIdFor(topic, 'E'))
+    run = introduceLesson(run, itemIdFor(topic, 'I'))
 
-        for (let guard = 0; guard < 200 && !run.complete; guard += 1) {
-          const step = currentStep(run)
-          if (!step) break
-          if (step.kind === 'introduce') {
-            run = introduceLesson(run, step.entry.itemId)
-            continue
-          }
-          if (missedGlyph) {
-            nextGlyph = step.entry.glyph
-            break
-          }
-          const miss = seen === missAt
-          seen += 1
-          if (miss) missedGlyph = step.entry.glyph
-          const response = miss ? `${step.entry.pattern}.` : step.entry.pattern
-          run = advanceLesson(answerLesson(run, step.entry.itemId, response))
-        }
+    // E misses, I supplies the available intervening retrieval, then E's
+    // correction settles it immediately instead of restarting the ladder.
+    run = advanceLesson(answerLesson(run, itemIdFor(topic, 'E'), '-'))
+    run = advanceLesson(answerLesson(run, itemIdFor(topic, 'I'), '..'))
+    // The repair support is stored as taught, but the confirmation itself is
+    // unaided. A supported retry could not establish solo readiness.
+    expect(currentStep(run)).toMatchObject({
+      kind: 'check',
+      entry: { glyph: 'E', support: 'taught', recovery: true },
+      format: 'solo',
+    })
+    run = advanceLesson(answerLesson(run, itemIdFor(topic, 'E'), '.'))
+    expect(run.entries.find((entry) => entry.glyph === 'E')).toMatchObject({ support: 'settled', done: true })
 
-        if (missedGlyph && nextGlyph) expect(nextGlyph).not.toBe(missedGlyph)
-      }
-    }
+    // A second miss keeps the same correction pending; the following correct
+    // answer settles it, without reopening E after it is done.
+    run = advanceLesson(answerLesson(run, itemIdFor(topic, 'I'), '-'))
+    expect(currentStep(run)).toMatchObject({ kind: 'check', entry: { glyph: 'I' }, format: 'solo' })
+    run = advanceLesson(answerLesson(run, itemIdFor(topic, 'I'), '-'))
+    expect(currentStep(run)).toMatchObject({ kind: 'check', entry: { glyph: 'I' }, format: 'solo' })
+    run = advanceLesson(answerLesson(run, itemIdFor(topic, 'I'), '..'))
+    expect(run.complete).toBe(true)
+    expect(run.entries.find((entry) => entry.glyph === 'E')).toMatchObject({ support: 'settled', done: true })
   })
 
   it('brings the missed character back after intervening material, not at the end of time', () => {
@@ -276,6 +268,40 @@ describe('errors', () => {
 })
 
 describe('interleaving prior packets', () => {
+  it('does not refill the next roster with recently consolidated early letters', () => {
+    const topic = morseTopic()
+    const first = lessonPackets()[0].novel
+    const progress: ItemLessonStore = Object.fromEntries(
+      first.map((glyph) => [itemIdFor(topic, glyph), 'settled']),
+    )
+    const recent = {
+      sittings: 1,
+      items: Object.fromEntries(
+        first.map((glyph) => [itemIdFor(topic, glyph), {
+          introducedIn: 1,
+          lastSeenIn: 1,
+          laterCorrect: 1,
+          printed: 2,
+          heard: 0,
+          heardCorrect: 0,
+        }]),
+      ),
+    }
+
+    // At the following sitting those characters have only a one-sitting gap.
+    // The next packet stays smaller instead of filling its review slots with E/I.
+    const run = startLesson({ ...topic, lessonProgress: progress, morseReview: recent }) as LessonRun
+    expect(run.packetIndex).toBe(1)
+    expect(run.entries.filter((entry) => !entry.novel)).toEqual([])
+
+    const afterGap = startLesson({
+      ...topic,
+      lessonProgress: progress,
+      morseReview: { ...recent, sittings: 2 },
+    }) as LessonRun
+    expect(afterGap.entries.filter((entry) => !entry.novel).map((entry) => entry.glyph)).toContain(first[0])
+  })
+
   it('puts earlier characters on later rosters and actually retrieves them', () => {
     let topic = morseTopic()
     for (let packet = 0; packet < 4; packet += 1) {
@@ -359,7 +385,7 @@ describe('leaving and resuming', () => {
     const resumed = startLesson(left) as LessonRun
 
     expect(resumed.packetIndex).toBe(0)
-    expect(resumed.entries.find((entry) => entry.glyph === 'E')?.support).toBe('cued')
+    expect(resumed.entries.find((entry) => entry.glyph === 'E')?.support).toBe('solo')
     expect(resumed.entries.find((entry) => entry.glyph === 'I')?.support).toBe('taught')
   })
 

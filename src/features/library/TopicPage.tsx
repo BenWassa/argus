@@ -369,7 +369,7 @@ function PrimaryAction({
         <span className="topic-primary-verb">{journey.primaryLabel}</span>
         <span className="topic-primary-note">
           {sitting?.active
-            ? `Pick up at ${sitting.retrievals} of ${sitting.target} retrievals.`
+            ? `Resume after ${sitting.retrievals} retrievals.`
             : `Two new letters, then retrieval. Lesson ${acquisition.packet} of ${acquisition.packetCount}.`}
         </span>
       </button>

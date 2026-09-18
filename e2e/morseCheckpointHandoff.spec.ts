@@ -132,7 +132,9 @@ test('Lesson 4 completion surfaces the checkpoint invitation automatically, gate
   await expect(page.locator('.lesson-exits[inert]')).toHaveCount(0)
 
   await skip.click()
-  // Skipping changes nothing about the forward journey: Lesson 5 begins.
+  // Skipping returns to the completed lesson; continuing starts Lesson 5.
+  await expect(page.getByRole('heading', { name: 'Lesson 4 done' })).toBeVisible()
+  await page.getByRole('button', { name: 'Next lesson', exact: true }).click()
   await expect(page.getByText('Lesson 5 of 13', { exact: true })).toBeVisible()
 })
 
@@ -156,6 +158,8 @@ test('the checkpoint remains available on the path after the automatic invitatio
   await expect(page.getByRole('button', { name: 'Skip for now' })).toBeEnabled({ timeout: 2_000 })
   await page.getByRole('button', { name: 'Skip for now' }).click()
 
+  await expect(page.getByRole('heading', { name: 'Lesson 4 done' })).toBeVisible()
+  await page.getByRole('button', { name: 'Next lesson', exact: true }).click()
   await expect(page.getByText('Lesson 5 of 13', { exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Close' }).click()
 

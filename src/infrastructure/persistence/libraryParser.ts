@@ -32,7 +32,6 @@ import {
 import type { CurrentLibrary } from '../../domain/library/library'
 import { migratedItemId } from '../../domain/library/items'
 import {
-  LESSON_RETRIEVAL_TARGET,
   lessonSittingIsFresh,
   type LessonSitting,
 } from '../../domain/morse/curriculum/lessonSitting'
@@ -515,12 +514,6 @@ function parseLessonSitting(
   const correct = nonNegativeInteger(value.correct)
   if (retrievals === null || correct === null) {
     return { ok: false, error: `${where} lessonSitting counters must be non-negative integers.` }
-  }
-  if (retrievals > LESSON_RETRIEVAL_TARGET) {
-    return {
-      ok: false,
-      error: `${where} lessonSitting records ${retrievals} retrievals; a finite sitting is ${LESSON_RETRIEVAL_TARGET}.`,
-    }
   }
   if (correct > retrievals) {
     return { ok: false, error: `${where} lessonSitting has more correct answers than retrievals.` }

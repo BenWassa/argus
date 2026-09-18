@@ -197,7 +197,12 @@ describe('printed letter → Morse uses one production mechanism', () => {
   })
 
   it('keeps only non-answer-bearing element count on cued production', () => {
-    const html = render(topic, runAtFormat(topic, 'cued'))
+    // Imported progress can still present the legacy cued support. New runs
+    // move directly from taught to solo, so exercise the shared surface rather
+    // than manufacturing a slower current lesson.
+    const html = renderToStaticMarkup(
+      <VisualCheckStep entry={tEntry()} format="cued" regionRef={ref} armed onAnswer={() => undefined} />,
+    )
     expect(html).toContain('data-support="cued"')
     expect(html).toMatch(/\d+ signals?/)
     expect(html).toContain('class="morse-key"')
@@ -335,8 +340,8 @@ describe('feedback and modality boundaries', () => {
     const code = source('./MorseLesson.tsx')
     // A hit used to call `movePastVisualFeedback` synchronously inside
     // `answerVisual`, which cleared `run.feedback` in the same tick it was set.
-    expect(code).not.toContain('if (next.feedback.correct) movePastVisualFeedback(next, nextSitting)')
-    expect(code).toContain('pendingAdvance.current = () => movePastVisualFeedback(next, nextSitting, pathBeforeAnswer)')
+    expect(code).not.toContain('if (next.feedback.correct) movePastVisualFeedback(next, pathBeforeAnswer)')
+    expect(code).toContain('pendingAdvance.current = () => movePastVisualFeedback(next, pathBeforeAnswer)')
     expect(code).toContain('answered(next.feedback.correct)')
     // Durations live in the shared policy, never as a private literal here.
     expect(code).not.toMatch(/setTimeout\([^)]*\d{3}/)
@@ -353,26 +358,22 @@ describe('feedback and modality boundaries', () => {
 
   it("Can't listen now changes only runtime modality state and does not record a retrieval", () => {
     const code = source('./MorseLesson.tsx')
-    const skip = code.slice(code.indexOf('function skipListening()'), code.indexOf('function nextSitting()'))
+    const skip = code.slice(code.indexOf('function skipListening()'), code.indexOf('function nextPacket()'))
     expect(skip).toContain('suppressListening')
     expect(skip).not.toContain('recordLessonRetrieval')
     expect(skip).not.toContain('answerLesson')
   })
 })
 
-describe('finite progress and evidence honesty', () => {
+describe('lesson progress and evidence honesty', () => {
   const topic = seededTopic(MORSE_ID)
 
-  it('states lesson position and the finite sitting target in plain terms', () => {
+  it('states lesson position and the current retrieval count in plain terms', () => {
     const html = render(topic, startLesson(topic) as LessonRun)
     expect(html).toContain('Lesson 1 of 13')
-    // #62: the ten-answer sitting is a finite retrieval budget, not an economy.
-    // Argus rejects a global XP model, so the copy must not imply one.
-    expect(html).toContain('0 / 10 retrievals')
+    expect(html).toContain('0 retrievals')
     expect(html).not.toContain('XP')
     expect(html).toContain('Lesson progress: 0 of 2 settled')
-    expect(html).toContain('aria-label="Retrievals this sitting"')
-    expect(html).toContain('aria-valuemax="10"')
   })
 
   it('resumes the durable sitting from the topic rather than a sidecar', () => {
@@ -381,8 +382,20 @@ describe('finite progress and evidence honesty', () => {
       lessonSitting: { retrievals: 6, correct: 4, revisitItemIds: [topic.items[0].id as string] },
     }
     const html = render(resumed, startLesson(resumed) as LessonRun)
-    expect(html).toContain('6 / 10 retrievals')
-    expect(html).toContain('aria-valuenow="6"')
+    expect(html).toContain('6 retrievals')
+  })
+
+  it('finishes a settled packet at its natural endpoint, regardless of retrieval count', () => {
+    const run = { ...(startLesson(topic) as LessonRun), complete: true }
+    const inProgress: Topic = {
+      ...topic,
+      lessonSitting: { retrievals: 6, correct: 5, revisitItemIds: [] },
+    }
+    const html = render(inProgress, run)
+    expect(html).toContain('Lesson 1 done')
+    expect(html).toContain('Next lesson')
+    expect(source('./MorseLesson.tsx')).not.toContain('allowNovel: false')
+    expect(source('./MorseLesson.tsx')).not.toContain('lessonSittingComplete')
   })
 
   it('sends a finished learner to formal Test rather than claiming completion', () => {
@@ -530,6 +543,13 @@ describe('#88 automatic word-checkpoint handoff at lesson completion', () => {
     }
   }
 
+  async function keyWord(word: string) {
+    for (const glyph of word) {
+      await keyPattern(MORSE_LETTERS[glyph as keyof typeof MORSE_LETTERS])
+      await settle()
+    }
+  }
+
   /**
    * Drive the real rendered lesson — introductions and keyed checks alike —
    * one answer at a time until either the checkpoint invitation appears or
@@ -562,9 +582,11 @@ describe('#88 automatic word-checkpoint handoff at lesson completion', () => {
     for (let targetIndex = 0; targetIndex < maxTargets; targetIndex += 1) {
       if (screen.queryByRole('heading', { name: 'Word checkpoint complete' })) return
       const label = document.querySelector('.morse-checkpoint-target')?.getAttribute('aria-label') ?? ''
-      const glyph = label.match(/^Key (?:the Morse pattern for )?([A-Z])(?:\s|$)/)?.[1] as keyof typeof MORSE_LETTERS | undefined
-      if (!glyph) throw new Error(`Could not read the checkpoint target from "${label}".`)
-      await keyPattern(MORSE_LETTERS[glyph])
+      const glyph = label.match(/^Key the Morse pattern for ([A-Z])$/)?.[1] as keyof typeof MORSE_LETTERS | undefined
+      const word = label.match(/^Key the word ([A-Z]+)$/)?.[1]
+      if (!glyph && !word) throw new Error(`Could not read the checkpoint target from "${label}".`)
+      if (glyph) await keyPattern(MORSE_LETTERS[glyph])
+      else await keyWord(word as string)
       advanceTime(MORSE_FEEDBACK_CORRECT_MS + MORSE_TRANSITION_MS)
     }
     throw new Error(`Did not complete the checkpoint within ${maxTargets} targets.`)
@@ -640,9 +662,11 @@ describe('#88 automatic word-checkpoint handoff at lesson completion', () => {
     advanceTime(MORSE_TRANSITION_MS)
     fireEvent.click(screen.getByRole('button', { name: 'Skip for now' }))
 
-    // Lesson 5 continues exactly as an un-invited sitting would: no gate, no
-    // memory that an invitation was ever shown.
+    // Skipping preserves the settled lesson endpoint. The learner decides when
+    // to begin the next packet; no review filler appears in between.
     expect(screen.queryByRole('button', { name: 'Start checkpoint' })).toBeNull()
+    expect(screen.getByText('Lesson 4 done')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Next lesson' }))
     expect(screen.getByText('Lesson 5 of 13')).toBeTruthy()
   })
 
@@ -666,6 +690,8 @@ describe('#88 automatic word-checkpoint handoff at lesson completion', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Keep going' }))
     expect(screen.queryByRole('heading', { name: 'Learn Morse A–Z' })).toBeNull()
+    expect(screen.getByText('Lesson 4 done')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Next lesson' }))
     expect(screen.getByText('Lesson 5 of 13')).toBeTruthy()
   })
 
@@ -699,7 +725,7 @@ describe('#88 automatic word-checkpoint handoff at lesson completion', () => {
   it('reuses the #87 touch-safe boundary for every terminal screen, not only the new one', () => {
     const code = source('./MorseLesson.tsx')
     const exitGroups = [...code.matchAll(/<div className="lesson-exits"[^>]*>/g)].map((match) => match[0])
-    expect(exitGroups.length).toBeGreaterThanOrEqual(4)
+    expect(exitGroups.length).toBeGreaterThanOrEqual(3)
     for (const group of exitGroups) expect(group).toContain('inert={!armed}')
   })
 })

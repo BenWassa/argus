@@ -60,12 +60,12 @@ describe('finite Morse Learn sittings', () => {
     expect(sitting.revisitItemIds).toEqual(['weak-item'])
   })
 
-  it('cannot extend beyond the configured target', () => {
+  it('keeps counting retries beyond the former target', () => {
     let sitting = newLessonSitting()
     for (let at = 0; at < LESSON_RETRIEVAL_TARGET + 5; at += 1) {
       sitting = recordLessonRetrieval(sitting, `item-${at}`, at % 2 === 0)
     }
-    expect(sitting.retrievals).toBe(LESSON_RETRIEVAL_TARGET)
+    expect(sitting.retrievals).toBe(LESSON_RETRIEVAL_TARGET + 5)
     expect(lessonSittingRemaining(sitting)).toBe(0)
     expect(lessonSittingComplete(sitting)).toBe(true)
   })

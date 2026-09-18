@@ -120,8 +120,6 @@ export function recordLessonRetrieval(
   itemId: string,
   correct: boolean,
 ): LessonSitting {
-  if (lessonSittingComplete(sitting)) return sitting
-
   const revisitItemIds = correct || sitting.revisitItemIds.includes(itemId)
     ? sitting.revisitItemIds
     : [...sitting.revisitItemIds, itemId]

@@ -414,11 +414,11 @@ describe('partially acquired Morse is never routed to Test', () => {
     cleanup()
     renderToday()
     expect(rowFor(resumed.title, todayDocket()).textContent).toContain(
-      '6 of 10 retrievals this sitting',
+      '6 retrievals this sitting',
     )
     cleanup()
     renderTopicPage(resumed)
-    expect(document.body.textContent).toContain('6 of 10 retrievals')
+    expect(document.body.textContent).toContain('6 retrievals')
     // Plain terminology: the finite sitting is a retrieval budget, not a score.
     expect(document.body.textContent).not.toContain('XP')
   })
