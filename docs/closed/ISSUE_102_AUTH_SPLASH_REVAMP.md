@@ -1,6 +1,11 @@
 # Issue #102 — HAUS-style Argus auth + splash revamp
 
-**Status:** Active implementation scope for #102.
+**Status:** Completed and closed with GitHub issue #102.
+
+**Closeout:** The unified auth/splash surface, reduced-motion behavior, media
+fallbacks, auth gate and production validation were shipped to `main` and
+deployed to Firebase Hosting. Retained here as the historical implementation
+contract and acceptance record.
 
 ## Product decision
 
