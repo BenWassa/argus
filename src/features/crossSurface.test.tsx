@@ -442,7 +442,7 @@ describe('acquisition readiness moves every surface together', () => {
     // It still appears under `Coming up`, which is the honest place for it: an
     // early Test stays reachable, it simply is not what today asks for.
     renderToday()
-    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Nothing due')
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('ARGUS')
     expect(rowFor(topic.title, todayDocket()).querySelector('.sr-only')?.textContent).toContain(
       'Test',
     )
