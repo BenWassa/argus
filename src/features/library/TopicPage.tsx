@@ -102,6 +102,12 @@ export function TopicPage({
   const practiceCount = hasPractice(topic) ? practiceItemCount(topic) : 0
 
   function startLearning() {
+    // Fresh Morse is the placement boundary. Generic enrollment would flip the
+    // topic to learning first, which makes placement intentionally ineligible.
+    if (placementEligible) {
+      setPlacementOpen(true)
+      return
+    }
     updateTopic(topic.id, (current) => resolveStudy(current))
   }
 
