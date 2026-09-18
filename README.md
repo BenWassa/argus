@@ -41,9 +41,11 @@ The production site is **https://argus-b7a5a.web.app**, on Firebase Hosting. Git
 
 ## Sync
 
-Signing in with Google keeps the library in step across the owner's own devices. Once signed in, the copy in the browser is what Argus reads and writes and every surface works offline exactly as before, and signing out changes nothing locally. Where the same topic changed on two devices, neither copy is overwritten — the conflict is reported in Profile.
+Signing in with Google keeps the library in step across the owner's own devices. The copy in the browser remains the interaction authority, and signing out leaves that local copy untouched. Where the same topic changed on two devices, neither copy is overwritten — the conflict is reported in Profile.
 
-The production build asks who you are before showing anything, so sign-in is not optional there. A build with no Firebase configuration — what the browser test suite runs against — has nothing to gate and stays entirely local. See `PRODUCT.md` and `docs/open/ISSUE_93_FIREBASE_PROGRESS_SYNC.md`.
+The production build asks who you are before showing anything, so sign-in is not optional there. A build with no Firebase configuration — what the browser test suite runs against — has nothing to gate and stays entirely local.
+
+The **full offline-first runtime guarantee is active scope in #113**, not yet a claim about the current localStorage/service-worker implementation. #113 moves canonical persistence to IndexedDB, makes sync intent durable across restart, hardens provisioned-device offline auth startup and makes the production Vite app shell deterministic for cold offline launch. See `PRODUCT.md`, `docs/open/ISSUE_93_FIREBASE_PROGRESS_SYNC.md` and `docs/open/ISSUE_113_OFFLINE_FIRST_RUNTIME.md`.
 
 ## Durable product and programme documentation
 
@@ -64,6 +66,7 @@ The production build asks who you are before showing anything, so sign-in is not
 - `docs/open/MORSE_PROGRAMME_PLAN.md` — current Morse programme decisions, workstream ownership and implementation status.
 - `docs/open/MORSE_CHARACTER_ORDER.md` — shipped character order/packet rule and verified Koch/CW Academy provenance comparison.
 - `docs/open/ISSUE_105_MORSE_PLACEMENT_ASSESSMENT.md` — maintained contract for fresh-start Morse placement, bounded confirmation, and evidence-safe progress application.
+- `docs/open/ISSUE_113_OFFLINE_FIRST_RUNTIME.md` — active contract for IndexedDB local authority, durable sync/outbox, deterministic offline PWA launch, storage lifecycle and content-size/download policy.
 - `docs/closed/MORSE_PROVENANCE_RECONCILIATION.md` — provenance/doc-reconciliation closeout for the pre-#28 documentation lane.
 
 `argus-prd.md` is the original July 2026 vision document. Where it describes superseded runtime/schema details, `PRODUCT.md` and the durable programme documents above govern current implemented behaviour.
