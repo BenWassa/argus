@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, renderHook, screen } from '@testing-library/react'
 import { MORSE_LETTERS } from '../../../domain/morse/code'
 import {
   MORSE_FEEDBACK_CORRECT_MS,
@@ -11,6 +11,7 @@ import {
 import { morseWordCheckpoints } from '../../../domain/morse/curriculum/checkpoints'
 import { MorseCheckpoint } from '../lesson/MorseCheckpoint'
 import { MorseKeyInput } from './MorseKeyInput'
+import { useKeyedResponse } from './useKeyedResponse'
 
 /**
  * Browser-lifecycle contract for the keyed Morse response (#87).
@@ -377,5 +378,34 @@ describe('the checkpoint boundary cannot be crossed by a tap still in flight', (
 
     advance(MORSE_TRANSITION_MS)
     expect(answerRegion()?.hasAttribute('inert')).toBe(false)
+  })
+})
+
+describe('a replay in progress holds the surface open past the policy dwell', () => {
+  it('does not advance while isHeld reports true, however long that lasts', () => {
+    let held = true
+    const advanceSpy = vi.fn()
+    const { result } = renderHook(() => useKeyedResponse(advanceSpy, () => held))
+
+    act(() => result.current.answered(false))
+    advance(MORSE_FEEDBACK_WRONG_MS)
+    expect(advanceSpy).not.toHaveBeenCalled()
+
+    // Held well past the policy dwell: a fixed timer alone would have fired by now.
+    advance(5000)
+    expect(advanceSpy).not.toHaveBeenCalled()
+
+    held = false
+    advance(1000)
+    expect(advanceSpy).toHaveBeenCalledTimes(1)
+  })
+
+  it('advances at the normal dwell when nothing holds it', () => {
+    const advanceSpy = vi.fn()
+    const { result } = renderHook(() => useKeyedResponse(advanceSpy))
+
+    act(() => result.current.answered(false))
+    advance(MORSE_FEEDBACK_WRONG_MS)
+    expect(advanceSpy).toHaveBeenCalledTimes(1)
   })
 })

@@ -22,11 +22,13 @@ export const MORSE_FEEDBACK_CORRECT_MS = 550
 
 /**
  * A miss has to be read, not just noticed: these surfaces show the correct
- * pattern, and on Learn a whole re-teaching stage. This is the previous Learn
- * reteach dwell, kept, and now applied to checkpoints too so a miss does not
- * flash past in half the time on one surface and linger on the other.
+ * pattern, and on Learn a whole re-teaching stage. 1400ms (the previous Learn
+ * reteach dwell) proved too short to actually read a two-line correction and
+ * decide whether to replay the sound before the surface moved on, so this is
+ * longer still. On Learn specifically, replaying the sound also holds the
+ * surface open past this floor — see `useKeyedResponse`'s `isHeld`.
  */
-export const MORSE_FEEDBACK_WRONG_MS = 1400
+export const MORSE_FEEDBACK_WRONG_MS = 2000
 
 /**
  * The outgoing/incoming swap. Deliberately shorter than `--t-base`: this is

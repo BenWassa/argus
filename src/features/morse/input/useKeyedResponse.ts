@@ -24,14 +24,25 @@ import {
  * `armed` is the gate. It is state, not a timer, and it stays closed for the
  * whole of `feedback` and `transitioning` including under
  * `prefers-reduced-motion`, where only the animation is dropped.
+ *
+ * `isHeld` covers the one thing the policy duration alone cannot: a learner
+ * who spends the feedback window replaying the correct sound rather than
+ * reading. Without it the fixed timer tore the correction down mid-playback
+ * (or a beat after it), which is indistinguishable from the surface simply
+ * moving on too fast. The floor still applies — a glance-and-tap cannot skip
+ * the dwell — but a genuine replay now finishes before the surface can move.
  */
-export function useKeyedResponse(advance: () => void) {
+const HOLD_POLL_MS = 150
+
+export function useKeyedResponse(advance: () => void, isHeld: () => boolean = () => false) {
   const [phase, setPhase] = useState<MorseResponsePhase>('ready')
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  // The surface re-creates its advance callback every render; the lifecycle
-  // must run the one that was current when the answer landed.
+  // The surface re-creates its advance/held callbacks every render; the
+  // lifecycle must read whichever was current at the moment it fires.
   const advanceRef = useRef(advance)
   advanceRef.current = advance
+  const isHeldRef = useRef(isHeld)
+  isHeldRef.current = isHeld
 
   const clear = useCallback(() => {
     if (timerRef.current) clearTimeout(timerRef.current)
@@ -47,14 +58,19 @@ export function useKeyedResponse(advance: () => void) {
   const answered = useCallback((correct: boolean) => {
     clear()
     setPhase('feedback')
-    timerRef.current = setTimeout(() => {
+    const settle = () => {
+      if (isHeldRef.current()) {
+        timerRef.current = setTimeout(settle, HOLD_POLL_MS)
+        return
+      }
       advanceRef.current()
       setPhase('transitioning')
       timerRef.current = setTimeout(() => {
         timerRef.current = null
         setPhase('ready')
       }, MORSE_TRANSITION_MS)
-    }, morseFeedbackMs(correct))
+    }
+    timerRef.current = setTimeout(settle, morseFeedbackMs(correct))
   }, [clear])
 
   /** Leaving the keyed flow entirely (exit, new sitting, unmount of a run). */

@@ -98,11 +98,16 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
    * it must act on are the ones that existed when the learner responded.
    */
   const pendingAdvance = useRef<(() => void) | null>(null)
-  const { phase, armed, answered, reset: resetResponse } = useKeyedResponse(() => {
-    const advance = pendingAdvance.current
-    pendingAdvance.current = null
-    advance?.()
-  })
+  const { phase, armed, answered, reset: resetResponse } = useKeyedResponse(
+    () => {
+      const advance = pendingAdvance.current
+      pendingAdvance.current = null
+      advance?.()
+    },
+    // A learner who taps to replay the correct sound on a miss is still
+    // reading the correction; the surface must not move on underneath them.
+    () => sounding !== null,
+  )
   // The lesson's own view of the topic, kept current from the store rather than
   // frozen at mount, so resuming a packet reads the support levels that exist
   // now. Writes go through `updateTopic` and never replay this value.
