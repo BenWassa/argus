@@ -109,6 +109,7 @@ function renderToday() {
         onStart={() => undefined}
         onOpenTopic={() => undefined}
         onGoToLibrary={() => undefined}
+        onOpenProfile={() => undefined}
       />
     </LibraryProvider>,
   )
@@ -122,7 +123,6 @@ function renderLibrary() {
         onReference={() => undefined}
         onOpenTopic={() => undefined}
         onCloseTopic={() => undefined}
-        onOpenData={() => undefined}
       />
     </LibraryProvider>,
   )
