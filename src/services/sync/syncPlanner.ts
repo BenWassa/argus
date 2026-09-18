@@ -27,7 +27,10 @@
  * this whole layer exists to avoid.
  */
 
+import shippedCatalog from '../../domain/library/shippedCatalog.json'
 import type { Topic } from '../../domain/library/topic'
+
+const SHIPPED_TOPIC_IDS = new Set<string>(shippedCatalog.topicIds)
 
 /** A topic as it is stored remotely: the v5 JSON, and enough to order writes. */
 export interface RemoteRecord {
@@ -167,14 +170,22 @@ export function planSync(
     const known = ledger[id]
 
     if (local && !record) {
-      // Known to the ledger means the server had it and no longer does, which
-      // is another device's deletion arriving. Otherwise it is new here.
-      if (known) actions.push({ kind: 'dropLocal', topicId: id })
+      // Shipped topics are baseline product content. An old synced deletion
+      // must not erase a catalog topic that recovery has just restored locally.
+      // Re-publish it instead. User-authored topics keep normal deletion
+      // semantics, where the ledger distinguishes a remote deletion from a new
+      // local creation.
+      if (known && SHIPPED_TOPIC_IDS.has(id)) {
+        actions.push({ kind: 'push', topicId: id, json: topicJson(local), revision: known.revision + 1 })
+      } else if (known) actions.push({ kind: 'dropLocal', topicId: id })
       else actions.push({ kind: 'push', topicId: id, json: topicJson(local), revision: 1 })
       continue
     }
 
     if (!local && record) {
+      // Individual deletion keeps its existing semantics. The recovery case is
+      // the opposite shape — a restored local shipped topic facing an absent
+      // remote record — and is handled above.
       if (known) actions.push({ kind: 'deleteRemote', topicId: id })
       else actions.push({ kind: 'adopt', topicId: id, json: record.json, revision: record.revision })
       continue

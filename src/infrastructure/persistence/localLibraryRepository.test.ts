@@ -101,12 +101,13 @@ describe('loading a library that already exists on the device', () => {
     expect(library.topics.filter((topic) => topic.id === 'ooda-loop')).toEqual([mine])
   })
 
-  it('leaves a reset library empty rather than re-seeding it on the next load', () => {
+  it('recovers the shipped baseline from a legacy empty reset record', () => {
     saveLibrary(emptyLibrary())
 
     const { library, report } = loadLibraryWithReport(NOW)
-    expect(library.topics).toEqual([])
-    expect(report.added).toEqual([])
+    expect(library.topics.map((topic) => topic.id).sort()).toEqual([...SHIPPED_CATALOG_TOPIC_IDS].sort())
+    expect(report.added).toEqual([...SHIPPED_CATALOG_TOPIC_IDS])
+    expect(library.topics.every((topic) => topic.status === 'unstarted')).toBe(true)
   })
 
   it('seeds a device that has never held a library', () => {

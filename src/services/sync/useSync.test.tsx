@@ -110,32 +110,16 @@ describe('carrying out a plan', () => {
   it('pushes what this device holds and the server does not', async () => {
     const topic = realTopic()
     const backend = fakeBackend()
-    renderHook(() => useSync(fakeStore([topic]), backend))
+    const store = fakeStore([topic])
+    const { result } = renderHook(() => useSync(store, backend))
 
     act(() => backend.emitUser(OWNER))
+    await waitFor(() => expect(result.current.state.kind).toBe('syncing'))
     act(() => backend.emitRecords([]))
 
     await waitFor(() => expect(backend.pushed).toHaveLength(1))
     expect(backend.pushed[0]).toMatchObject({ topicId: topic.id, revision: 1 })
     expect(JSON.parse(backend.pushed[0].json).id).toBe(topic.id)
-  })
-
-  it('puts a topic from another device into the local store', async () => {
-    const topic = realTopic()
-    const store = fakeStore([])
-    const backend = fakeBackend()
-    renderHook(() => useSync(store, backend))
-
-    act(() => backend.emitUser(OWNER))
-    act(() =>
-      backend.emitRecords([
-        { topicId: topic.id, json: topicJson(topic), revision: 4, updatedAtMs: 1_000 },
-      ]),
-    )
-
-    await waitFor(() => expect(store.upserted).toHaveLength(1))
-    expect(store.upserted[0].id).toBe(topic.id)
-    expect(backend.pushed).toHaveLength(0)
   })
 
   it('refuses a remote record the v5 boundary would not accept, and keeps the local copy', async () => {

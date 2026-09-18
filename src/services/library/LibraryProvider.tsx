@@ -16,7 +16,7 @@ import {
   loadLibraryWithReport,
   saveLibrary,
 } from '../../infrastructure/persistence/localLibraryRepository'
-import { NO_RECONCILIATION, type CatalogReconciliation } from '../../domain/library/catalog'
+import type { CatalogReconciliation } from '../../domain/library/catalog'
 import { clearAllLessonSittings } from '../../domain/morse/curriculum/lessonSittingStorage'
 import type { Topic } from '../../domain/library/topic'
 import type { CurrentLibrary } from '../../domain/library/library'
@@ -105,8 +105,9 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
   const resetLibrary = useCallback(() => {
     clearLibrary()
     clearAllLessonSittings()
-    setLibrary(emptyLibrary())
-    setCatalogReport(NO_RECONCILIATION)
+    const reset = reconcileLoadedLibrary(emptyLibrary())
+    setLibrary(reset.library)
+    setCatalogReport(reset.report)
   }, [])
 
   const value = useMemo(
