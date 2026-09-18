@@ -97,6 +97,7 @@ export function LessonRun({ topicId, target, onExit, onCheck, onReference }: Les
   if (!topic || !guided) return null
 
   function beginWithoutPlacement() {
+    if (!topic) return
     const enrolled = resolveStudy(topic)
     updateTopic(topicId, (current) => resolveStudy(current))
     setRun(startLesson(enrolled))
@@ -108,6 +109,7 @@ export function LessonRun({ topicId, target, onExit, onCheck, onReference }: Les
   }
 
   function continueAfterPlacement(result: MorsePlacementResult) {
+    if (!topic) return
     if (result.nextLesson === null) {
       onExit()
       return
