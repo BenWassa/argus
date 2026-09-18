@@ -41,7 +41,7 @@ The production site is **https://argus-b7a5a.web.app**, on Firebase Hosting. Git
 
 ## Sync
 
-Signing in with Google keeps the library in step across the owner's own devices. Once signed in, the copy in the browser is what Argus reads and writes and every surface works offline exactly as before, and signing out changes nothing locally. Where the same topic changed on two devices, neither copy is overwritten — the conflict is reported on the Data screen.
+Signing in with Google keeps the library in step across the owner's own devices. Once signed in, the copy in the browser is what Argus reads and writes and every surface works offline exactly as before, and signing out changes nothing locally. Where the same topic changed on two devices, neither copy is overwritten — the conflict is reported in Profile.
 
 The production build asks who you are before showing anything, so sign-in is not optional there. A build with no Firebase configuration — what the browser test suite runs against — has nothing to gate and stays entirely local. See `PRODUCT.md` and `docs/open/ISSUE_93_FIREBASE_PROGRESS_SYNC.md`.
 

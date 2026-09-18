@@ -20,7 +20,7 @@ import type { Mode } from '../../domain/study/mode'
  * sections were a third reading of the same `journeyFor` derivation Library
  * already shelves, and its permanent completion record now closes Library.
  */
-export type View = 'today' | 'library' | 'data'
+export type View = 'today' | 'library' | 'profile' | 'data'
 
 export type ParentRoute =
   | { kind: 'section'; view: View }
@@ -66,7 +66,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
  * its root rather than restoring a route it can no longer render.
  */
 function isView(value: unknown): value is View {
-  return value === 'today' || value === 'library' || value === 'data'
+  return value === 'today' || value === 'library' || value === 'profile' || value === 'data'
 }
 
 function isMode(value: unknown): value is Mode {

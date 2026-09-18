@@ -1,5 +1,10 @@
 # Argus learning-experience overhaul — ratification package (#92)
 
+> **#109 navigation addendum — 2026-09-17.** Profile now owns account, sync,
+> export, import, reset, and catalog-delivery status as a Today child. It is not
+> a primary navigation destination. This supersedes historical statements below
+> that place Data under Library; old `data` history entries remain compatible.
+
 > **Closeout addendum — 2026-09-15.** This block supersedes stale implementation-status statements later in this document; the original synthesis is retained below for decision history. Batch 6 has now substantially landed on `main`, and the #90/#92 closeout completes its remaining checkpoint arc. Current implementation/tests are authoritative.
 >
 > **#90 current matrix:** (1) state boundaries preserved; (2) item-aware review shipped; (3) at most two novel characters per 10-retrieval sitting with remaining budget cumulative review shipped; (4) later-sitting printed success before new-learner readiness shipped with legacy/previously-ready compatibility; (5) need-balanced listening shipped and formative-only; (6–7) Learn→Test independent handoff/bidirectional distribution shipped in batch 4; (8) explicit non-qualifying scheduler handling is already shipped via `advancementEligible: false` and does not reset retention clocks; (9) checkpoints now span Lessons **4, 7, 10 and 13**, include late-acquired material, one bounded local retry after intervening targets where practical, and a local-only summary.
@@ -44,7 +49,7 @@ against shipped source, not inferred from any document's own account:
 
 So the four questions #92 asks in order are answered, and answered in the shipped app, not on paper:
 
-1. **App structure** — `Today` (the docket) and `Library` (browse/author/record), with `Data` as a route reached from the foot of Library. See `LEARNING_EXPERIENCE_DESIGN_DECISION.md` §3.
+1. **App structure** — `Today` (the docket) and `Library` (browse/author/record), with `Profile` as a Today child for account, sync, and data controls. See the #109 addendum in `LEARNING_EXPERIENCE_DESIGN_DECISION.md`.
 2. **Topic/course structure** — one topic shell, two bodies: an ordinary topic's body *is* its reference (briefing, if any, then the numbered set); a curriculum topic's (Morse's) body is its path. See §4–§5.
 3. **Learning journey** — `Learn` and `Test` survive as internal semantics only; the learner reads `Read`, `Lesson N`, `Test`, and — since batch 5 — `Practise the N items you missed`. See §6 (J1–J10) and §7.
 4. **Evidence/state model** — unchanged in its boundaries, extended within them: `MorseReviewProgress` (batch 6) and practice (batch 5) both write only formative state, asserted structurally by test. Acquisition, formal evidence, retention and current-sitting stay four separate fields. See §7–§8, and `docs/open/PROGRESS_ARCHITECTURE.md` for the underlying contract.

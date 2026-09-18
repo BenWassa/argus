@@ -323,15 +323,6 @@
   }
 }
 
-/* --------------------------------------------------------------- header -- */
-
-/* Sits where a settings control is expected: top-right, one tap, always in
-   the same place whether the library is empty or full. */
-.lib-data-trigger {
-  flex-shrink: 0;
-  color: var(--subtle);
-}
-
 /* --------------------------------------------------------------- add fab -- */
 
 /* The one "+" in the product. Fixed above the thumb, clear of the bottom

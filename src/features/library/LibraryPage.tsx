@@ -30,8 +30,6 @@ interface LibraryProps {
   /** Durable topic navigation is owned by App/history, not only local state. */
   onOpenTopic: (topicId: string) => void
   onCloseTopic: () => void
-  /** Export/import/reset. A Library utility with its own route, not a tab. */
-  onOpenData: () => void
   /** Set when Today sends the user here to author their first topic. */
   openFormOnMount?: boolean
   /** Current topic identity restored by browser Back/Forward when present. */
@@ -61,7 +59,6 @@ export function LibraryPage({
   onReference,
   onOpenTopic,
   onCloseTopic,
-  onOpenData,
   openFormOnMount = false,
   openTopicOnMount = null,
 }: LibraryProps) {
@@ -349,28 +346,6 @@ export function LibraryPage({
                 : `${topics.length} ${topics.length === 1 ? 'topic' : 'topics'} · ${dueCount} due`}
           </p>
         </div>
-        {/* The one utility that owns the learner's data, placed where a
-            settings control is expected to be rather than at the foot of the
-            shelves, where it read as buried. Creation lives in the FAB below,
-            not here, so this corner never has to arbitrate between the two. */}
-        <button
-          className="ghost icon lib-data-trigger"
-          type="button"
-          onClick={onOpenData}
-          aria-label="Data and backup"
-          title="Data and backup"
-        >
-          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
-            <path
-              d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3M12 4v11M7.5 11 12 15.5 16.5 11"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button>
       </div>
 
       <WantToLearn

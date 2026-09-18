@@ -109,10 +109,18 @@ function renderToday() {
         onStart={() => undefined}
         onOpenTopic={() => undefined}
         onGoToLibrary={() => undefined}
+        onOpenProfile={() => undefined}
       />
     </LibraryProvider>,
   )
 }
+
+describe('Today utility entry points', () => {
+  it('keeps Profile reachable without adding a primary navigation destination', () => {
+    renderToday()
+    expect(screen.getByRole('button', { name: 'Open profile' })).toBeTruthy()
+  })
+})
 
 function renderLibrary() {
   return render(
@@ -122,7 +130,6 @@ function renderLibrary() {
         onReference={() => undefined}
         onOpenTopic={() => undefined}
         onCloseTopic={() => undefined}
-        onOpenData={() => undefined}
       />
     </LibraryProvider>,
   )
@@ -534,10 +541,10 @@ describe('Library absorbed Progress without losing what it said', () => {
     }
   })
 
-  it('keeps export and import reachable without spending a navigation slot on them', () => {
+  it('keeps account and data utilities out of the learning Library', () => {
     install([blank('cardinal-bearings')])
     renderLibrary()
-    expect(screen.getByRole('button', { name: 'Data and backup' })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Data and backup' })).toBeNull()
   })
 })
 

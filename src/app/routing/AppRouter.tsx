@@ -3,7 +3,7 @@ import { AppShell } from '../../shared/layout/AppShell'
 import { useLibrary } from '../../services/library/LibraryProvider'
 import { Today } from '../../features/today/Today'
 import { LibraryPage } from '../../features/library/LibraryPage'
-import { DataManagementPage } from '../../features/data-management/DataManagementPage'
+import { ProfilePage } from '../../features/data-management/ProfilePage'
 import { TestSession } from '../../features/test/TestSession'
 import { LessonRun } from '../../features/morse/lesson/LessonRun'
 import { PracticeRun } from '../../features/practice/PracticeRun'
@@ -187,18 +187,17 @@ export function AppRouter() {
     setAuthorOnEntry(false)
 
     if (current.kind === 'section' && current.view === next) return
-    // Library is already the active section while a Topic page or the Data
-    // utility is open. Its nav button therefore behaves like that page's visible
-    // Back control rather than pushing a duplicate Library stop.
-    if (next === 'library') {
-      if (current.kind === 'topic') {
-        goBack()
-        return
-      }
-      if (current.kind === 'section' && current.view === 'data') {
-        goBack()
-        return
-      }
+    if (next === 'library' && current.kind === 'topic') {
+      goBack()
+      return
+    }
+    if (
+      next === 'today' &&
+      current.kind === 'section' &&
+      (current.view === 'profile' || current.view === 'data')
+    ) {
+      goBack()
+      return
     }
 
     navigate({ kind: 'section', view: next })
@@ -270,9 +269,11 @@ export function AppRouter() {
 
   const view: View = route.kind === 'topic' ? 'library' : route.view
   const topicId = route.kind === 'topic' ? route.topicId : null
-  // Topic and Data are both children of Library, so both mark Library current.
-  // The bar names where you are in the app, not which component is mounted.
-  const navView = view === 'data' ? 'library' : view
+  // `data` remains valid only so old browser history can open the utility it
+  // named. Profile belongs to Today; neither utility becomes primary nav.
+  const renderedView = view === 'data' ? 'profile' : view
+  const navView: Extract<View, 'today' | 'library'> =
+    renderedView === 'library' ? 'library' : 'today'
 
   return (
     <AppShell view={navView} onNavigate={navigateSection}>
@@ -284,6 +285,7 @@ export function AppRouter() {
             setAuthorOnEntry(true)
             navigate({ kind: 'section', view: 'library' })
           }}
+          onOpenProfile={() => navigate({ kind: 'section', view: 'profile' })}
         />
       )}
       {view === 'library' && (
@@ -294,10 +296,9 @@ export function AppRouter() {
           openTopicOnMount={topicId}
           onOpenTopic={(id) => navigate({ kind: 'topic', topicId: id })}
           onCloseTopic={goBack}
-          onOpenData={() => navigate({ kind: 'section', view: 'data' })}
         />
       )}
-      {view === 'data' && <DataManagementPage onBack={goBack} />}
+      {renderedView === 'profile' && <ProfilePage onBack={goBack} />}
     </AppShell>
   )
 }

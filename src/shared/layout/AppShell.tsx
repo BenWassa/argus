@@ -15,12 +15,10 @@ interface AppShellProps {
  *
  * Today is the docket: what the schedule wants now. Library is everything owned,
  * including the permanent completion record. Progress used to sit here and was a
- * third projection of the derivation Library already shelves; Data used to sit
- * here and is used a handful of times a year. Both were spending half the bottom
- * bar on under five percent of sessions.
+ * third projection of the derivation Library already shelves; utility controls
+ * likewise do not earn a permanent destination.
  *
- * Data keeps its route and reaches it from Library, exactly as Topic does, and
- * marks Library current while it is open.
+ * Profile is reached from Today and marks Today current while it is open.
  */
 const NAV: { id: NavView; label: string; path: string }[] = [
   { id: 'today', label: 'Today', path: 'M4 7h16M4 12h16M4 17h9' },

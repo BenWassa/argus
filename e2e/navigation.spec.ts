@@ -298,34 +298,31 @@ test('partial Test Back reuses End test, Back resumes, and confirmed exit preser
   expect(history).toEqual([])
 })
 
-test('Data is a Library utility with its own route, Back and current tab', async ({ page }) => {
+test('Profile is a Today utility with its own route, Back and current tab', async ({ page }) => {
   await openApp(page)
-  await openLibrary(page)
 
-  // Export and import stay first-class and easy to find without holding a
-  // quarter of the bottom bar for an action used a few times a year.
-  await page.getByRole('button', { name: 'Data and backup' }).click()
-  await expect(page.getByRole('heading', { name: 'Data', level: 1 })).toBeVisible()
+  await page.getByRole('button', { name: 'Open profile' }).click()
+  await expect(page.getByRole('heading', { name: 'Profile', level: 1 })).toBeVisible()
   expect(await navigationState(page)).toMatchObject({
-    index: 2,
-    route: { kind: 'section', view: 'data' },
+    index: 1,
+    route: { kind: 'section', view: 'profile' },
   })
 
-  // Data is a child of Library, so Library is where you are.
-  await expect(page.getByRole('button', { name: 'Library', exact: true })).toHaveAttribute(
+  // Profile is a child of Today, so Today remains the current destination.
+  await expect(page.getByRole('button', { name: 'Today', exact: true })).toHaveAttribute(
     'aria-current',
     'page',
   )
 
-  await page.getByRole('button', { name: 'Back to Library' }).click()
-  await expect(page.getByRole('heading', { name: 'Library', level: 1 })).toBeVisible()
-  expect((await navigationState(page)).index).toBe(1)
+  await page.getByRole('button', { name: 'Back to Today' }).click()
+  await expect(page.getByRole('button', { name: 'Open profile' })).toBeVisible()
+  expect((await navigationState(page)).index).toBe(0)
 
   // And the nav button behaves like that Back rather than pushing a duplicate.
-  await page.getByRole('button', { name: 'Data and backup' }).click()
-  await page.getByRole('button', { name: 'Library', exact: true }).click()
-  await expect(page.getByRole('heading', { name: 'Library', level: 1 })).toBeVisible()
-  expect((await navigationState(page)).index).toBe(1)
+  await page.getByRole('button', { name: 'Open profile' }).click()
+  await page.getByRole('button', { name: 'Today', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Open profile' })).toBeVisible()
+  expect((await navigationState(page)).index).toBe(0)
 })
 
 test('system Back dismisses clean and dirty dialogs before changing route', async ({ page }) => {

@@ -1,6 +1,6 @@
 # Redesign input audit
 
-> **Status:** Current factual input package for design synthesis. Last revalidated 2026-09-14 against local `main` at `e9885e586b895922f37317bfe027f0fcc81d6e02`; deployed runtime remains `bc0cf14aeb6b49d1ef10cda87f908ed563c5412c` (`v0.2.0`). This document records the existing product and unresolved boundaries. It does not approve further architecture or implementation.
+> **Status:** Current factual input package for design synthesis. Navigation and source paths were revalidated 2026-09-17 during the upgrade reconciliation; deployment observations and test counts below retain their dated audit context. This document records the product and unresolved boundaries. It does not approve further architecture or implementation.
 
 ## Repository and verification baseline
 
@@ -19,10 +19,10 @@ Argus uses one document URL and serializes its internal route in `history.state`
 ### Durable destinations
 
 1. **Today** is the root. It covers the empty-library primer, topics with no items, nothing-due/coming-up state, and the due docket. Work is labelled as lessons, readings, or Tests. Ordinary reading opens a Topic; Morse acquisition launches the current lesson; scored work launches Test.
-2. **Library** owns search, track filters, journey shelves, row actions, multi-topic Test selection, inbox/capture entry, permanent Completion record, and the Data utility link.
+2. **Library** owns search, track filters, journey shelves, row actions, multi-topic Test selection, inbox/capture entry, and the permanent Completion record.
 3. **Topic** is a durable Library child. An ordinary runnable Topic visibly contains its briefing/reference and opening it records initial exposure. It presents a compact state line, one derived primary action, attempt history, completion note, and authoring controls.
 4. **Morse Topic/curriculum** replaces the former programme hub. It shows the 13-lesson path, checkpoints after lessons 4 and 7, replayable completed lessons, an A-Z Test step, and a separate alphabet-reference link.
-5. **Data** is a durable Library child, not a primary navigation destination. It provides export, validated import/replace, reset, and catalog-delivery status.
+5. **Profile** is a durable Today child, not a primary navigation destination. It owns account and sync state, export, validated import/replace, reset, and catalog-delivery status. Historical `data` routes resolve here for compatibility.
 
 There is no standalone Progress destination and no generic full-screen Learn screen. Progress is distributed across Today, Library shelves/rows, Topic state, Test summaries, and Library's permanent Completion record.
 
@@ -39,7 +39,7 @@ There is no standalone Progress destination and no generic full-screen Learn scr
 ### History, focus, and resume
 
 - Today seeds the root with `replaceState`; Back from the root remains browser-owned.
-- Re-selecting the current section adds no entry. Library navigation while Topic or Data is open reuses Back.
+- Re-selecting the current section adds no entry. Library navigation while Topic is open, or Today navigation while Profile is open, reuses Back.
 - Missing Topic routes fall back to Library; on initial restoration, malformed or obsolete Progress routes normalize to Today.
 - Test, replay, and checkpoint entries do not resume after reload. A canonical lesson may resume because `lessonSitting` is durable.
 - Partial Tests and dirty forms register newest-first Back blockers.
@@ -202,7 +202,7 @@ An inaudible or clipped tone, real touch leaking across a lock, double grading, 
 ## Likely redesign-sensitive files
 
 - Routing/shell: `src/app/routing/AppRouter.tsx`, `src/shared/layout/AppShell.tsx`, `src/app/routing/routes.ts`, `src/app/routing/history.ts`, `src/styles/global.css`.
-- Destinations: `src/features/today/*`, `src/features/library/LibraryPage*`, `TopicPage*`, `CompletionRecord.tsx`, `src/features/data-management/DataManagementPage.tsx`.
+- Destinations: `src/features/today/*`, `src/features/library/LibraryPage*`, `TopicPage*`, `CompletionRecord.tsx`, `src/features/data-management/ProfilePage.tsx`.
 - Learning: `LessonRun.tsx`, `MorsePath*`, `MorseLesson*`, `MorseReplay*`, `MorseCheckpoint*`, `MorseReference*`, `Reading.css`, and `LearnSupport.tsx`.
 - Assessment/input: `src/features/test/*` and `src/features/morse/*`.
 - Authoring/transients/splash: TopicForm, CaptureSheet, WantToLearn, Dialog, Confirm, StatusTag, and SplashScreen.

@@ -51,7 +51,7 @@ One shared derivation reads all four and answers the only question the learner a
 
 The learner is not asked to hold all four at once. Each surface states one sentence about a topic, in the schedule's own words, and the consequences of the other dimensions are stated where they bite: on a Test's end screen, on a row's status line. The dimensions stay four separate fields; they stopped being a printed table.
 
-**Progress is not a destination.** Its live sections were a third projection of the same derivation Library already shelves, and its one unique artifact — the permanent completion record — now closes Library, composed rather than listed. Nothing it showed was lost. Navigation is two destinations, `Today` and `Library`; `Data` keeps its own route, reached by a single icon in Library's header, because export and import must stay first-class and easy to find — genuinely easy, not merely reachable at the foot of a long shelf list — without needing a quarter of the bottom bar for a handful of uses a year.
+**Progress is not a destination.** Its live sections were a third projection of the same derivation Library already shelves, and its one unique artifact — the permanent completion record — now closes Library, composed rather than listed. Nothing it showed was lost. Navigation is two destinations, `Today` and `Library`; `Profile` is a Today child reached from its header. It owns account, sync, export, import, and reset without spending a quarter of the bottom bar on utilities or mixing account controls into the learning Library.
 
 ## Content boundary
 
@@ -82,7 +82,7 @@ A build with Firebase configured asks who you are before anything else: `Today`,
 
 Sync is deliberately narrow. It carries the record as the exact JSON the v5 storage boundary already validates, rather than as a second Firestore-shaped schema that could drift from it, and an arriving record goes through that same boundary before it reaches the library — so sync cannot widen what a topic is allowed to be, and cannot affect what has been proved. One document per topic means two devices working on different topics do not overwrite each other.
 
-Where a topic genuinely changed on two devices at once, **neither copy is overwritten**. Sync detects the conflict, leaves both devices exactly as they are, and names the topic on the Data screen for the owner to settle by export and import. A remote copy is likewise refused, not applied, if taking it would drop attempts or item evidence the local copy already holds — a learner's history only grows, so a shorter one is an older copy arriving late rather than a later edit.
+Where a topic genuinely changed on two devices at once, **neither copy is overwritten**. Sync detects the conflict, leaves both devices exactly as they are, and names the topic in Profile for the owner to settle by export and import. A remote copy is likewise refused, not applied, if taking it would drop attempts or item evidence the local copy already holds — a learner's history only grows, so a shorter one is an older copy arriving late rather than a later edit.
 
 This is deliberate, and it is the policy `docs/open/ISSUE_93_FIREBASE_PROGRESS_SYNC.md` requires: silent last-write-wins is not acceptable for a record whose whole value is that it was actually earned. Explicit detection is the documented first-release position; field-level merge is the later option it leaves open.
 

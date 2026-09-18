@@ -8,6 +8,38 @@
   gap: var(--s-xs) var(--s-md);
 }
 
+.today-head-tools {
+  display: flex;
+  align-items: center;
+  gap: var(--s-sm);
+}
+
+.today-profile {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: linear-gradient(180deg, var(--surface-3), var(--surface-2));
+  color: var(--muted);
+  box-shadow: var(--edge), var(--edge-under), var(--shadow-sm);
+}
+
+.today-profile:hover {
+  border-color: var(--line-hover);
+  color: var(--ink);
+}
+
+.today-profile svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .today-date {
   font-family: var(--font-mono);
   font-size: var(--t-readout);
