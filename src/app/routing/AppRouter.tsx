@@ -30,6 +30,15 @@ import type { Mode } from '../../domain/study/mode'
 
 function focusAfterTraversal(previous: AppRoute, next: AppRoute) {
   if (sameRoute(previous, next)) return
+  if (next.kind === 'topic') {
+    // Library keeps the page component mounted while browser history restores
+    // a topic. Wait two frames so its local openId state has committed before
+    // restoring the heading focus target.
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => document.querySelector<HTMLElement>('.topic-title')?.focus())
+    })
+    return
+  }
   if (next.kind !== 'section') return
 
   // Topic -> Library has a stronger target: Library restores the row that

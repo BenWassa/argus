@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import { journeyFor } from '../../domain/study/journey'
 import { resolveStudy } from '../../domain/study/scheduling'
 import { useLibrary } from '../../services/library/LibraryProvider'
@@ -87,7 +87,10 @@ export function TopicPage({
    */
   const journey = journeyFor(topic)
 
-  useEffect(() => {
+  // Restore the page heading before the browser paints the traversed entry.
+  // A passive effect can lose a race with Playwright/browser focus handling
+  // after history.forward(), leaving the restored topic visible but unfocused.
+  useLayoutEffect(() => {
     heading.current?.focus()
   }, [topic.id])
 
