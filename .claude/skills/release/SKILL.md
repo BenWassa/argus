@@ -69,9 +69,10 @@ with workers=1, that's a real regression — stop and investigate, do not releas
    (append the `Co-Authored-By` trailer per current session attribution guidance)
 6. **Tag**: `git tag -a vX.Y.Z -m "vX.Y.Z"`
 7. **Push**: `git push --follow-tags`
-8. **Deploy**: not automatic. Ask explicitly before running `npm run deploy:hosting`
-   even if the release request already said "release and deploy" — it's outward-facing.
-   If confirmed, run it and verify the live site afterward rather than trusting exit 0:
+8. **Deploy**: run `npm run deploy:hosting` as part of every normal release. An
+   explicit release request authorizes this configured deployment; do not ask for
+   a second confirmation. Never run it for `--verify-only`. Verify the live site
+   afterward rather than trusting exit 0:
    fetch `https://argus-b7a5a.web.app/`, extract the referenced `/assets/index-*.js`,
    and confirm it actually serves `text/javascript` (a stale SPA rewrite serving
    `index.html` for that path has happened before and looks fine from curl's exit
