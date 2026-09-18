@@ -344,9 +344,9 @@ export interface CurrentLibrary {
   version: 5
   topics: Topic[]
   /**
-   * Shipped catalog topic ids this library has already been offered. Delivery
-   * is recorded rather than inferred from presence, so deleting a catalog
-   * topic is durable and reconciliation never resurrects it.
+   * Shipped catalog topic ids this library has already been offered. The list
+   * remains useful provenance for delivery/reporting, but shipped topics are
+   * baseline product content: if one is absent, reconciliation may restore it.
    */
   catalogDelivered?: string[]
 }
@@ -357,14 +357,12 @@ export type Library = LegacyLibraryV4 | CurrentLibrary
 /**
  * Top-level destinations.
  *
- * Two of them are navigation: Today is the docket, Library is everything owned.
- * `data` is a Library utility with its own route rather than a third thumb-level
- * slot, because export/import is a handful of uses a year and the bottom bar is
- * the scarcest space in the product. Progress is gone as a destination: its live
- * sections were a third reading of the same `journeyFor` derivation Library
- * already shelves, and its permanent completion record now closes Library.
+ * Two of them are primary navigation: Today is the docket, Library is everything
+ * owned. Profile is a child utility reached from Today and owns account, sync,
+ * export/import and reset. `data` remains accepted only as a compatibility
+ * alias for stale history entries written before #109.
  */
-export type View = 'today' | 'library' | 'data'
+export type View = 'today' | 'library' | 'profile' | 'data'
 
 /** Learn is ungraded exposure; Test is the single scored recall interaction. */
 export const MODES = ['learn', 'test'] as const
