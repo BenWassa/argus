@@ -97,6 +97,8 @@ export function topicOrigin(topic: Topic): NonNullable<Topic['origin']> {
 export type WithheldReason =
   /** A local topic the learner owns holds this id. Never overwritten. */
   | 'user-authored-collision'
+  /** Already delivered once and since removed. Individual deletion stays durable. */
+  | 'previously-delivered'
 
 export interface CatalogReconciliation {
   /** Catalog ids added to the library as fresh unstarted topics. */
@@ -121,12 +123,13 @@ export function collisions(report: CatalogReconciliation): string[] {
  * This is a delivery/recovery mechanism, not a replacement policy. It only ever
  * appends. A topic that already exists locally is left exactly as it is,
  * whoever owns it, so no status, timestamp, attempt, item id or cue-evidence
- * record can be changed by the catalog growing. A missing shipped topic is
- * restored as fresh content even when an older record says it was delivered
- * before: shipped Argus curriculum is baseline product content, not disposable
- * learner data. Changing the meaning of a topic that has already shipped
- * therefore remains an explicit migration decision, of which
- * `absorbSeededMorseBaseline` is the one Argus has made.
+ * record can be changed by the catalog growing. Individual deletion of a
+ * shipped topic remains durable. The recovery exception is an entirely empty
+ * library: that legacy reset/sync state is repaired back to the shipped
+ * baseline instead of leaving Argus with no built-in curriculum at all.
+ * Changing the meaning of a topic that has already shipped therefore remains
+ * an explicit migration decision, of which `absorbSeededMorseBaseline` is the
+ * one Argus has made.
  *
  * Deterministic: the same library and `now` always produce the same result, and
  * running it a second time changes nothing.
@@ -149,6 +152,7 @@ export function reconcileCatalog(
 
   const report: CatalogReconciliation = { added: [], present: [], withheld: [] }
   const additions: Topic[] = []
+  const recoverBaseline = library.topics.length === 0
 
   for (const definition of catalogDefinitions()) {
     const local = byId.get(definition.id)
@@ -162,6 +166,11 @@ export function reconcileCatalog(
         // catalog topic would hide a real conflict.
         report.withheld.push({ id: definition.id, reason: 'user-authored-collision' })
       }
+      continue
+    }
+
+    if (delivered.has(definition.id) && !recoverBaseline) {
+      report.withheld.push({ id: definition.id, reason: 'previously-delivered' })
       continue
     }
 
