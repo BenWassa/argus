@@ -83,6 +83,18 @@ afterEach(() => {
 })
 
 describe('fresh Morse placement entry', () => {
+  it('routes the primary fresh-state action through placement before enrollment', () => {
+    renderFresh()
+    fireEvent.click(screen.getByRole('button', { name: /start learning/i }))
+
+    expect(screen.getByRole('dialog', { name: 'Check your Morse level' })).toBeTruthy()
+
+    const stored = JSON.parse(localStorage.getItem(STORE_KEY) ?? '{}') as { topics?: Topic[] }
+    const topic = stored.topics?.find((candidate) => candidate.id === MORSE_ID)
+    expect(topic?.status).toBe('unstarted')
+    expect(topic?.learningAt).toBeNull()
+  })
+
   it('offers New, Some and Most before the first lesson starts', () => {
     renderFresh()
     fireEvent.click(screen.getByRole('button', { name: /start lesson/i }))
