@@ -151,15 +151,13 @@ describe('catalog reconciliation', () => {
     expect(collisions(report)).toEqual(['cardinal-bearings'])
   })
 
-  it('restores a missing shipped topic even when an older record says it was delivered', () => {
+  it('keeps individual deletion durable once a library still contains other topics', () => {
     const delivered = [...SHIPPED_CATALOG_TOPIC_IDS].sort()
     const { library, report } = reconcileCatalog(libraryOf([worked('nato-phonetic')], delivered), NOW)
 
-    expect(report.added).toContain('cardinal-bearings')
-    expect(library.topics.map((topic) => topic.id).sort()).toEqual([...SHIPPED_CATALOG_TOPIC_IDS].sort())
-    const restored = library.topics.find((topic) => topic.id === 'cardinal-bearings')
-    expect(restored?.status).toBe('unstarted')
-    expect(restored?.history).toEqual([])
+    expect(report.added).toEqual([])
+    expect(library.topics.map((topic) => topic.id)).toEqual(['nato-phonetic'])
+    expect(report.withheld.map((entry) => entry.reason)).toContain('previously-delivered')
   })
 
   it('infers delivery for a record written before delivery was tracked', () => {
