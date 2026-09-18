@@ -5,11 +5,10 @@ import type { MorseLetter } from '../code'
 import {
   checkpointEligibleLetters,
   checkpointNewlyUnlocked,
-  checkpointTargetKey,
-  checkpointTargets,
   morseWordCheckpointPath,
   morseWordCheckpoints,
-  withCheckpointRetry,
+  nextCheckpointRunState,
+  type MorseCheckpointRunState,
 } from './checkpoints'
 import { parseLibrary } from '../../../infrastructure/persistence/libraryParser'
 import { seedLibrary } from '../../library/catalogSeed'
@@ -151,29 +150,29 @@ describe('Morse word checkpoint curriculum', () => {
     expect(checkpointNewlyUnlocked(duringRepair, afterRepair, 13)).toBe(false)
   })
 
-  it('places four warm-ups before deterministic whole-word targets', () => {
+  it('finishes warm-ups before traversing every word atomically', () => {
     for (const checkpoint of morseWordCheckpoints()) {
-      const targets = checkpointTargets(checkpoint)
-      expect(targets.slice(0, 4).map((target) => target.kind)).toEqual(['warmup', 'warmup', 'warmup', 'warmup'])
-      expect(targets.slice(4).filter((target) => target.kind === 'word').map((target) => target.word)).toEqual(checkpoint.words)
+      const states: MorseCheckpointRunState[] = []
+      let state: MorseCheckpointRunState = { phase: 'warmup', warmupIndex: 0 }
+      while (state.phase !== 'complete') {
+        states.push(state)
+        state = nextCheckpointRunState(checkpoint, state)
+      }
+      expect(states.slice(0, 4)).toEqual([0, 1, 2, 3].map((warmupIndex) => ({ phase: 'warmup', warmupIndex })))
+      expect(states.slice(4)).toEqual(checkpoint.words.flatMap((word, wordIndex) =>
+        Array.from(word, (_, characterIndex) => ({ phase: 'word', wordIndex, characterIndex })),
+      ))
     }
   })
 
-  it('requeues one missed target after two intervening targets when available', () => {
-    const targets = checkpointTargets(morseWordCheckpoints()[2])
-    const missed = targets[4]
-    const retried = withCheckpointRetry(targets, 4, missed)
-
-    expect(retried).toHaveLength(targets.length + 1)
-    expect(checkpointTargetKey(retried[6])).toBe(checkpointTargetKey(missed))
-    expect(retried[5]).toBe(targets[5])
-  })
-
-  it('keeps retry insertion finite at the end of a checkpoint', () => {
-    const targets = checkpointTargets(morseWordCheckpoints()[0])
-    const last = targets.at(-1)!
-    const retried = withCheckpointRetry(targets, targets.length - 1, last)
-    expect(retried).toHaveLength(targets.length + 1)
-    expect(checkpointTargetKey(retried.at(-1)!)).toBe(checkpointTargetKey(last))
+  it('keeps Lesson-10 FLOW and PLANT contiguous without response-dependent requeue', () => {
+    const checkpoint = morseWordCheckpoints()[2]
+    let state: MorseCheckpointRunState = { phase: 'warmup', warmupIndex: 3 }
+    const letters: string[] = []
+    while (state.phase !== 'complete') {
+      state = nextCheckpointRunState(checkpoint, state)
+      if (state.phase === 'word') letters.push(checkpoint.words[state.wordIndex][state.characterIndex])
+    }
+    expect(letters.join('')).toBe('FLOWPLANT')
   })
 })

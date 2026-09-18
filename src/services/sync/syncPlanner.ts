@@ -84,22 +84,37 @@ export function topicJson(topic: Topic): string {
  * damaged copy arriving late — exactly the case #93 names as unacceptable to
  * apply. It is refused and reported rather than adopted.
  *
- * This reads only the two fields whose growth is monotonic. It is not a merge
- * and does not try to judge the rest of the record.
+ * This reads only monotonic learner-progress fields: scored attempts and item
+ * evidence, plus settled lesson support and the permanent acquisition-ready
+ * anchor. It is not a merge and does not try to judge the rest of the record.
  */
 interface Weight {
   history: number
   evidence: number
+  settledLessons: number
+  acquisitionReady: number
 }
 
 function size(value: unknown): number {
   return value && typeof value === 'object' ? Object.keys(value as object).length : 0
 }
 
-function weigh(value: { history?: unknown; itemEvidence?: unknown }): Weight {
+function settledLessonCount(value: unknown): number {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return 0
+  return Object.values(value as Record<string, unknown>).filter((level) => level === 'settled').length
+}
+
+function weigh(value: {
+  history?: unknown
+  itemEvidence?: unknown
+  lessonProgress?: unknown
+  acquisitionReadyAt?: unknown
+}): Weight {
   return {
     history: Array.isArray(value.history) ? value.history.length : 0,
     evidence: size(value.itemEvidence),
+    settledLessons: settledLessonCount(value.lessonProgress),
+    acquisitionReady: typeof value.acquisitionReadyAt === 'string' ? 1 : 0,
   }
 }
 
@@ -107,21 +122,29 @@ function weighJson(json: string): Weight | null {
   try {
     const parsed: unknown = JSON.parse(json)
     if (!parsed || typeof parsed !== 'object') return null
-    return weigh(parsed as { history?: unknown; itemEvidence?: unknown })
+    return weigh(parsed as {
+      history?: unknown
+      itemEvidence?: unknown
+      lessonProgress?: unknown
+      acquisitionReadyAt?: unknown
+    })
   } catch {
     return null
   }
 }
 
-/** True when `a` holds at least as much of both kinds of evidence as `b`. */
+/** True when `a` holds at least as much monotonic learner progress as `b`. */
 function covers(a: Weight, b: Weight): boolean {
-  return a.history >= b.history && a.evidence >= b.evidence
+  return a.history >= b.history
+    && a.evidence >= b.evidence
+    && a.settledLessons >= b.settledLessons
+    && a.acquisitionReady >= b.acquisitionReady
 }
 
 export function wouldLoseEvidence(remoteJson: string, local: Topic): boolean {
   const remote = weighJson(remoteJson)
   if (!remote) return true
-  return !covers(remote, weigh(local as { history?: unknown; itemEvidence?: unknown }))
+  return !covers(remote, weigh(local))
 }
 
 /**
@@ -140,7 +163,7 @@ function firstMeeting(localJson: string, local: Topic, record: RemoteRecord): Sy
   if (localJson === record.json) return null
   const remote = weighJson(record.json)
   if (!remote) return { kind: 'push', topicId: local.id, json: localJson, revision: record.revision + 1 }
-  const mine = weigh(local as { history?: unknown; itemEvidence?: unknown })
+  const mine = weigh(local)
   const remoteCovers = covers(remote, mine)
   const localCovers = covers(mine, remote)
   if (remoteCovers && !localCovers) {

@@ -7,48 +7,45 @@ function source(file: string): string {
 }
 
 describe('Morse word checkpoint surface', () => {
-  it('uses direct keyed input and gives a word one automatic verdict', () => {
+  it('uses direct keyed input for each letter in a word', () => {
     const code = source('./MorseCheckpoint.tsx')
     expect(code).toContain("import { MorseKeyInput } from '../input/MorseKeyInput'")
-    expect(code).toContain("import { MorseWordKeyInput } from '../input/MorseWordKeyInput'")
-    expect(code).toContain('expectedLength={MORSE_LETTERS[target.letter].length}')
-    expect(code).toContain('pattern.every((entry, index) => entry === MORSE_LETTERS[target.letters[index]])')
+    expect(code).not.toContain('MorseWordKeyInput')
+    expect(code).toContain('expectedLength={MORSE_LETTERS[letter].length}')
+    expect(code).toContain('pattern === MORSE_LETTERS[letter]')
     expect(code).not.toMatch(/>\s*(Submit|Check|Delete|Continue|Back)\s*</)
     expect(code).not.toContain('Backspace')
   })
 
-  it('shows the whole word without turning each character into a checkpoint', () => {
+  it('keeps the whole word visible and highlights the current character', () => {
     const code = source('./MorseCheckpoint.tsx')
     expect(code).toContain('morse-checkpoint-word')
-    expect(code).toContain('Key the whole word')
-    expect(code).toContain('Key the whole word {target.word}')
-    expect(code).not.toContain('Key the highlighted letter')
-    expect(code).not.toContain('characterIndex')
+    expect(code).toContain('Key the highlighted letter')
+    expect(code).toContain("characterIndex === run.characterIndex ? 'is-current'")
+    expect(code).toContain('letter {run.characterIndex + 1} of {word}')
   })
 
   it('advances after either correct or wrong feedback without a manual confirmation action', () => {
     const code = source('./MorseCheckpoint.tsx')
-    expect(code).toContain('setFeedback({ correct, target })')
+    expect(code).toContain('setFeedback({ correct, letter })')
     expect(code).toContain('answered(correct)')
     expect(code).toContain('useKeyedResponse')
     expect(code).not.toContain('setTimeout(')
     expect(code).not.toContain('MORSE_CHECKPOINT_FEEDBACK_MS')
-    expect(code).toContain('setIndex((current) => current + 1)')
+    expect(code).toContain('nextCheckpointRunState(checkpoint, current)')
     expect(code).toContain("feedback.correct ? 'Correct' : 'Miss'")
     expect(code).toContain('inert={!armed}')
     expect(code).toContain('locked={!armed}')
     expect(code).not.toContain('>Continue<')
   })
 
-  it('revisits a missed target at most once and reports a small local summary', () => {
+  it('never requeues a miss and reports a small local summary', () => {
     const code = source('./MorseCheckpoint.tsx')
-    expect(code).toContain('checkpointTargetKey(target)')
-    expect(code).toContain('retriedTargets.current.has(key)')
-    expect(code).toContain('retriedTargets.current.add(key)')
-    expect(code).toContain('withCheckpointRetry(current, index, target)')
+    expect(code).not.toContain('checkpointTargetKey')
+    expect(code).not.toContain('retriedTargets')
+    expect(code).not.toContain('withCheckpointRetry')
     expect(code).toContain('{correctAnswers} of {attempts} correct')
-    expect(code).toContain("'target' : 'targets'} revisited once")
-    expect(code).toContain("' · no misses to revisit'")
+    expect(code).toContain("{' · '}one pass")
   })
 
   it('is structurally ephemeral and has no durable learner-state write path', () => {

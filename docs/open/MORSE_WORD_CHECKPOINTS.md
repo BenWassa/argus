@@ -1,6 +1,8 @@
 # Morse Learn — early word-application checkpoints
 
-> **#90 closeout addendum — 2026-09-15.** The original #78 record below is retained for history, but its "exactly two" / "later-half non-goal" statements are superseded. The same formative checkpoint architecture now spans **Lessons 4, 7, 10 and 13**. Lesson 10 uses warm-ups `V F B P` with `FLOW`, `PLANT`; Lesson 13 uses `X C J Q` with `BOX`, `COZY`, `JAZZ`, `QUIZ`. All content is mechanically checked against `lessonPackets()` at its milestone, and the final checkpoint exercises every late-acquired `X C Z J Y Q` somewhere in its material. A first miss is reinserted once after up to two intervening targets where practical; a second miss is not requeued. Completion shows only local correct/attempt/revisited counts. All four milestones use the existing #88 first-unlock invitation, remain skippable/non-gating and path-accessible, and checkpoint/replay answers still write no lesson support, sitting, `morseReview`, `DirectionEvidence`, retention timestamp or completion state.
+> **#115 correction — 2026-09-18.** The #90 target-level retry rule is superseded. All four checkpoints now use an explicit local warm-up → word-character → complete progression. Warm-ups finish before word mode; a word remains visible and is keyed one highlighted letter at a time, contiguously through its final character. Misses receive local feedback but are never requeued inside or across words. The run remains formative and writes no saved Learn, Test, scheduler, evidence, retention, or completion state.
+>
+> **#90 closeout addendum — 2026-09-15.** The original #78 record below is retained for history, but its "exactly two" / "later-half non-goal" statements are superseded. The same formative checkpoint architecture now spans **Lessons 4, 7, 10 and 13**. Lesson 10 uses warm-ups `V F B P` with `FLOW`, `PLANT`; Lesson 13 uses `X C J Q` with `BOX`, `COZY`, `JAZZ`, `QUIZ`. All content is mechanically checked against `lessonPackets()` at its milestone, and the final checkpoint exercises every late-acquired `X C Z J Y Q` somewhere in its material. All four milestones use the existing #88 first-unlock invitation, remain skippable/non-gating and path-accessible, and checkpoint/replay answers still write no lesson support, sitting, `morseReview`, `DirectionEvidence`, retention timestamp or completion state.
 
 Issue: #78  
 Parent: #21  
@@ -20,9 +22,9 @@ the existing `MorseProgramme` lesson path.
 7. Their eligibility is projected from the existing lesson path, their allowed
 letters are derived from `lessonPackets()`, and the curated corpus is validated
 against those derived sets at runtime/test time. The checkpoint runner owns only
-transient React state and reuses the shared #77 `MorseKeyInput`; its word wrapper
-advances internally between character patterns and gives one verdict only after
-the full word is keyed. It has no learner store, scheduler, Test-evidence,
+transient React state and reuses the shared #77 `MorseKeyInput`; its explicit
+run state advances through each word character without allowing other targets
+inside a word. It has no learner store, scheduler, Test-evidence,
 lesson-progress, sitting or completion write path.
 
 The canonical programme remains 13 lessons. A checkpoint never gates the next
@@ -82,7 +84,7 @@ Flow:
 
 1. four brief individual-letter keyed warm-ups chosen deterministically from the
    known set;
-2. one simple familiar word, keyed fully before its single verdict;
+2. one simple familiar word, keyed one highlighted character at a time without interruption;
 3. concise completion state;
 4. continue naturally into the lesson journey.
 
@@ -95,7 +97,7 @@ The second checkpoint appears immediately after Lesson 7.
 Flow:
 
 1. four brief individual-letter keyed warm-ups;
-2. two modest familiar words, each keyed fully before its single verdict;
+2. two modest familiar words, each keyed one highlighted character at a time without interruption;
 3. concise completion state;
 4. continue naturally into the lesson journey.
 
@@ -142,11 +144,12 @@ these transitions writes checkpoint completion, skip or seen state.
 Reuse the shared direct Morse key introduced by #77. Do not create a second
 keying widget or response model.
 
-For every warm-up target and every word:
+For every warm-up target and every word character:
 
 - show the plaintext target;
-- for a word, keep the full word visible, collect its character patterns
-  without intermediate verdicts, then grade the complete word once;
+- for a word, keep the full word visible and highlight only the current character;
+- after per-letter feedback, advance automatically to the next character of the
+  same word until its final-character boundary;
 - learner enters Morse with the same tap/hold interaction as existing keyed
   production;
 - expected element count auto-grades exactly once;
@@ -209,7 +212,7 @@ programme, not like a separate dashboard or mode.
 
 Preserve:
 
-- whole-word visibility and one post-word verdict;
+- whole-word visibility with only the current character highlighted;
 - >=44 CSS px primary touch targets;
 - keyboard access and sensible focus restoration;
 - reduced-motion behaviour;
@@ -228,8 +231,8 @@ Preserve:
 - all curated content using only eligible letters;
 - explicit protection against `O` leaking into Lesson-7 content;
 - warm-up → word flow;
-- whole-word rendering with no intermediate character verdict;
-- expected-length auto-grading for each internal pattern and one word verdict;
+- whole-word rendering with immediate feedback for the highlighted character;
+- expected-length auto-grading for each character pattern;
 - correct and wrong progression without correction controls;
 - replayability;
 - no mutation of acquisition, sitting, scheduler, Test evidence or completion;

@@ -5,11 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && npm run size:report",
     "test": "vitest run",
     "check": "npm run test && npm run build && npm run test:browser",
     "preview": "vite preview",
     "typecheck": "tsc -b",
+    "size:report": "node scripts/reportBuildSize.mjs",
     "inbox:rules": "node scripts/renderRules.mjs",
     "inbox": "node scripts/inbox/cli.mjs",
     "test:rules": "node scripts/renderRules.mjs --emulator && npx --yes firebase-tools@14 emulators:exec --only firestore --project argus-rules-test \"vitest run --config vitest.rules.config.ts\"",

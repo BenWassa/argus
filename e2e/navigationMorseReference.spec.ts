@@ -174,8 +174,8 @@ test('unlocked word checkpoint auto-advances through a miss and never mutates sa
   await expect(page.getByText('Warm-up 1 of 4', { exact: true })).toBeVisible()
 
   // E expects one element. A dah is immediately a miss; there is no edit or
-  // confirmation opportunity before the checkpoint moves on. #90 gives that
-  // target one spaced retry after two intervening targets before continuing.
+  // confirmation opportunity before the checkpoint moves on, and #115 never
+  // requeues the missed warm-up inside the following word.
   await keyPattern(page, '-')
   await expect(page.getByRole('status')).toContainText('Miss')
   await expect(page.getByText('Warm-up 2 of 4', { exact: true })).toBeVisible({ timeout: 2_000 })
@@ -183,8 +183,6 @@ test('unlocked word checkpoint auto-advances through a miss and never mutates sa
   await keyPattern(page, '-')
   await expect(page.getByText('Warm-up 3 of 4', { exact: true })).toBeVisible({ timeout: 2_000 })
   await keyPattern(page, '.-')
-  await expect(page.getByText('Warm-up 1 of 4', { exact: true })).toBeVisible({ timeout: 2_000 })
-  await keyPattern(page, '.')
   await expect(page.getByText('Warm-up 4 of 4', { exact: true })).toBeVisible({ timeout: 2_000 })
   await keyPattern(page, '..-')
   await expect(page.getByText('Word 1 of 1', { exact: true })).toBeVisible({ timeout: 2_000 })
@@ -193,7 +191,9 @@ test('unlocked word checkpoint auto-advances through a miss and never mutates sa
   await expect(word).toHaveText('TIME')
   await expect(word.locator('.is-current')).toHaveText('T')
 
-  await keyPattern(page, '-')
+  // Miss T, then prove the run still advances through I, M and E contiguously.
+  await keyPattern(page, '.')
+  await expect(page.getByRole('status')).toContainText('Miss')
   await expect(word.locator('.is-current')).toHaveText('I', { timeout: 2_000 })
   await keyPattern(page, '..')
   await expect(word.locator('.is-current')).toHaveText('M', { timeout: 2_000 })
@@ -202,7 +202,8 @@ test('unlocked word checkpoint auto-advances through a miss and never mutates sa
   await keyPattern(page, '.')
 
   await expect(page.getByRole('heading', { name: 'Word checkpoint complete' })).toBeVisible({ timeout: 2_000 })
-  await expect(page.getByText(/1 target revisited once/)).toBeVisible()
+  await expect(page.getByText('6 of 8 correct')).toBeVisible()
+  await expect(page.getByText(/one pass/)).toBeVisible()
   expect(await page.evaluate((key) => window.localStorage.getItem(key), STORE_KEY)).toBe(before)
 
   await page.getByRole('button', { name: 'Back to lessons' }).click()

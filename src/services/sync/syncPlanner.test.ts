@@ -184,6 +184,24 @@ describe('a remote copy that would lose evidence', () => {
       } as unknown as Topic),
     ).toBe(true)
   })
+
+  it('refuses a remote copy that would erase Morse placement progress', () => {
+    const placedOut = topic('morse-code', {
+      status: 'learning',
+      lessonProgress: { e: 'settled', t: 'settled', a: 'settled', n: 'settled' },
+      acquisitionReadyAt: '2026-09-18T12:00:00.000Z',
+    })
+    const withoutPlacement = topic('morse-code', { status: 'learning' })
+
+    const plan = planSync(
+      [placedOut],
+      [remote('morse-code', withoutPlacement, 5)],
+      ledgerFor('morse-code', placedOut, 2),
+    )
+
+    expect(plan.actions).toEqual([])
+    expect(plan.conflicts).toEqual(['morse-code'])
+  })
 })
 
 describe('the ledger after a plan is applied', () => {
@@ -237,6 +255,21 @@ describe('the first sync on a new device', () => {
     expect(plan.conflicts).toEqual([])
     expect(plan.actions).toEqual([
       { kind: 'push', topicId: 'knots', json: topicJson(earned), revision: 5 },
+    ])
+  })
+
+  it('sends local placement up instead of adopting a placement-free remote copy', () => {
+    const placedOut = topic('morse-code', {
+      status: 'learning',
+      lessonProgress: { e: 'settled', t: 'settled' },
+    })
+    const withoutPlacement = topic('morse-code', { status: 'learning' })
+
+    const plan = planSync([placedOut], [remote('morse-code', withoutPlacement, 4)], {})
+
+    expect(plan.conflicts).toEqual([])
+    expect(plan.actions).toEqual([
+      { kind: 'push', topicId: 'morse-code', json: topicJson(placedOut), revision: 5 },
     ])
   })
 

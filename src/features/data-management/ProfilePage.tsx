@@ -1,9 +1,14 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useLibrary } from '../../services/library/LibraryProvider'
 import { useSyncState } from '../../services/sync/SyncProvider'
 import type { SyncState } from '../../services/sync/useSync'
 import { parseLibrary } from '../../infrastructure/persistence/libraryParser'
 import { exportFilename } from '../../infrastructure/persistence/localLibraryRepository'
+import {
+  formatStorageBytes,
+  inspectStorage,
+  type StorageStatus,
+} from '../../infrastructure/persistence/storageStatus'
 import { collisions } from '../../domain/library/catalog'
 import { Confirm } from '../../shared/ui/Confirm'
 import packageMetadata from '../../../package.json'
@@ -20,6 +25,19 @@ export function ProfilePage({ onBack }: { onBack: () => void }) {
   const [message, setMessage] = useState<{ tone: 'ok' | 'error'; text: string } | null>(null)
   const [confirmReset, setConfirmReset] = useState(false)
   const [pendingImport, setPendingImport] = useState<{ file: File; count: number } | null>(null)
+  const [online, setOnline] = useState(() => navigator.onLine)
+  const [storage, setStorage] = useState<StorageStatus | null>(null)
+
+  useEffect(() => {
+    const updateOnline = () => setOnline(navigator.onLine)
+    window.addEventListener('online', updateOnline)
+    window.addEventListener('offline', updateOnline)
+    void inspectStorage().then(setStorage)
+    return () => {
+      window.removeEventListener('online', updateOnline)
+      window.removeEventListener('offline', updateOnline)
+    }
+  }, [])
 
   function exportLibrary() {
     // The whole durable record, not just the topics: catalog delivery history
@@ -71,6 +89,17 @@ export function ProfilePage({ onBack }: { onBack: () => void }) {
       </p>
 
       <Sync state={sync.state} onSignIn={sync.signIn} onSignOut={sync.signOut} />
+
+      <h2 className="profile-section-title">Offline availability</h2>
+      <p className="lede-text">
+        <strong>{online ? 'Online' : 'Offline'}.</strong> The complete shipped curriculum and app
+        shell are available on this device after the app has loaded successfully once.
+      </p>
+      <p className="note">
+        {storage === null
+          ? 'Checking local storage…'
+          : storageMessage(storage)}
+      </p>
 
       <h2 className="profile-section-title">Data &amp; backup</h2>
       <p className="lede-text">
@@ -154,6 +183,22 @@ export function ProfilePage({ onBack }: { onBack: () => void }) {
       )}
     </>
   )
+}
+
+function storageMessage(storage: StorageStatus): string {
+  const footprint = storage.usage === null
+    ? ''
+    : ` Approximate local usage: ${formatStorageBytes(storage.usage)}${
+      storage.quota === null ? '.' : ` of ${formatStorageBytes(storage.quota)} available.`
+    }`
+  switch (storage.persistence) {
+    case 'granted':
+      return `Browser storage protection is enabled.${footprint}`
+    case 'denied':
+      return `Browser storage protection was not granted. Sync or export provides a recovery copy.${footprint}`
+    case 'unsupported':
+      return `This browser does not report storage protection.${footprint}`
+  }
 }
 
 interface CatalogNoticeProps {

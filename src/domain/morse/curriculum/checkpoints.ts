@@ -24,22 +24,10 @@ export interface MorseWordCheckpointPathItem extends MorseWordCheckpoint {
   unlocked: boolean
 }
 
-export interface MorseCheckpointWarmupTarget {
-  kind: 'warmup'
-  letter: MorseLetter
-  word: string | null
-  wordIndex: number | null
-  characterIndex: number | null
-}
-
-export interface MorseCheckpointWordTarget {
-  kind: 'word'
-  word: string
-  wordIndex: number
-  letters: MorseLetter[]
-}
-
-export type MorseCheckpointTarget = MorseCheckpointWarmupTarget | MorseCheckpointWordTarget
+export type MorseCheckpointRunState =
+  | { phase: 'warmup'; warmupIndex: number }
+  | { phase: 'word'; wordIndex: number; characterIndex: number }
+  | { phase: 'complete' }
 
 const CURATED_CHECKPOINTS: readonly CuratedCheckpoint[] = [
   {
@@ -169,50 +157,27 @@ export function checkpointNewlyUnlocked(
   return !checkpointUnlocked(before, afterLesson) && checkpointUnlocked(after, afterLesson)
 }
 
-/** Flatten the fixed warm-up → word run without creating a progress or practice subsystem. */
-export function checkpointTargets(checkpoint: MorseWordCheckpoint): MorseCheckpointTarget[] {
-  const targets: MorseCheckpointTarget[] = checkpoint.warmups.map((letter) => ({
-    kind: 'warmup',
-    letter,
-    word: null,
-    wordIndex: null,
-    characterIndex: null,
-  }))
+/** Advance the local run without a flat/adaptive target queue. */
+export function nextCheckpointRunState(
+  checkpoint: MorseWordCheckpoint,
+  state: MorseCheckpointRunState,
+): MorseCheckpointRunState {
+  if (state.phase === 'complete') return state
+  if (state.phase === 'warmup') {
+    if (state.warmupIndex + 1 < checkpoint.warmups.length) {
+      return { phase: 'warmup', warmupIndex: state.warmupIndex + 1 }
+    }
+    return checkpoint.words.length > 0
+      ? { phase: 'word', wordIndex: 0, characterIndex: 0 }
+      : { phase: 'complete' }
+  }
 
-  checkpoint.words.forEach((word, wordIndex) => {
-    targets.push({
-      kind: 'word',
-      word,
-      wordIndex,
-      letters: Array.from(word) as MorseLetter[],
-    })
-  })
-
-  return targets
-}
-
-/** Stable identity for a target inside one finite checkpoint run. */
-export function checkpointTargetKey(target: MorseCheckpointTarget): string {
-  return target.kind === 'warmup'
-    ? [target.kind, target.letter].join(':')
-    : [target.kind, target.wordIndex, target.word].join(':')
-}
-
-/**
- * Reinsert one missed target after up to two untouched targets.
- *
- * The caller is responsible for allowing at most one retry per target, keeping
- * the checkpoint finite while still giving a miss a spaced second look where
- * the remaining run makes that possible.
- */
-export function withCheckpointRetry(
-  targets: readonly MorseCheckpointTarget[],
-  currentIndex: number,
-  target: MorseCheckpointTarget,
-): MorseCheckpointTarget[] {
-  const next = [...targets]
-  const remaining = Math.max(0, next.length - currentIndex - 1)
-  const intervening = Math.min(2, remaining)
-  next.splice(currentIndex + 1 + intervening, 0, target)
-  return next
+  const word = checkpoint.words[state.wordIndex]
+  if (state.characterIndex + 1 < word.length) {
+    return { ...state, characterIndex: state.characterIndex + 1 }
+  }
+  if (state.wordIndex + 1 < checkpoint.words.length) {
+    return { phase: 'word', wordIndex: state.wordIndex + 1, characterIndex: 0 }
+  }
+  return { phase: 'complete' }
 }

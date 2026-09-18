@@ -1,15 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { canonicalPattern } from '../../../domain/morse/testing/acquisitionProfile'
-import { MORSE_LETTERS } from '../../../domain/morse/code'
+import { MORSE_LETTERS, type MorseLetter } from '../../../domain/morse/code'
 import {
-  checkpointTargetKey,
-  checkpointTargets,
-  withCheckpointRetry,
-  type MorseCheckpointTarget,
+  nextCheckpointRunState,
+  type MorseCheckpointRunState,
   type MorseWordCheckpoint,
 } from '../../../domain/morse/curriculum/checkpoints'
 import { MorseKeyInput } from '../input/MorseKeyInput'
-import { MorseWordKeyInput } from '../input/MorseWordKeyInput'
 import { useKeyedResponse } from '../input/useKeyedResponse'
 import './MorseCheckpoint.css'
 
@@ -23,7 +20,7 @@ interface MorseCheckpointProps {
 
 interface CheckpointFeedback {
   correct: boolean
-  target: MorseCheckpointTarget
+  letter: MorseLetter
 }
 
 /**
@@ -35,29 +32,29 @@ interface CheckpointFeedback {
  * on exactly the same schedule as a Learn retrieval, and the next letter cannot
  * be keyed by a tap that was still in flight when the previous one landed.
  *
- * #90 adds one bounded local repair rule: a target missed for the first time is
- * inserted once more after up to two intervening targets. The retry queue and
- * completion summary exist only for this mounted run; neither can mutate Learn,
- * Test, scheduler or retention state.
+ * Progress is an explicit warm-up → word-character → complete state machine.
+ * Once a word starts, misses cannot insert unrelated work before its boundary.
  */
 export function MorseCheckpoint({ checkpoint, onExit, onContinue, continueLabel }: MorseCheckpointProps) {
-  const [targets, setTargets] = useState<MorseCheckpointTarget[]>(() => checkpointTargets(checkpoint))
-  const [index, setIndex] = useState(0)
+  const [run, setRun] = useState<MorseCheckpointRunState>({ phase: 'warmup', warmupIndex: 0 })
   const [feedback, setFeedback] = useState<CheckpointFeedback | null>(null)
   const [attempts, setAttempts] = useState(0)
   const [correctAnswers, setCorrectAnswers] = useState(0)
-  const [retries, setRetries] = useState(0)
-  const retriedTargets = useRef<Set<string>>(new Set())
   const headingRef = useRef<HTMLHeadingElement>(null)
   const targetRef = useRef<HTMLDivElement>(null)
 
   const { phase, armed, answered } = useKeyedResponse(() => {
     setFeedback(null)
-    setIndex((current) => current + 1)
+    setRun((current) => nextCheckpointRunState(checkpoint, current))
   })
 
-  const complete = index >= targets.length
-  const target = complete ? null : targets[index]
+  const complete = run.phase === 'complete'
+  const word = run.phase === 'word' ? checkpoint.words[run.wordIndex] : null
+  const letter: MorseLetter | null = run.phase === 'warmup'
+    ? checkpoint.warmups[run.warmupIndex]
+    : run.phase === 'word'
+      ? word![run.characterIndex] as MorseLetter
+      : null
 
   useEffect(() => {
     if (complete) headingRef.current?.focus({ preventScroll: true })
@@ -65,26 +62,16 @@ export function MorseCheckpoint({ checkpoint, onExit, onContinue, continueLabel 
     // is still mid-transition would hand a keyboard learner a control the
     // pointer learner cannot use yet.
     else if (armed) targetRef.current?.focus({ preventScroll: true })
-  }, [complete, armed, index])
+  }, [complete, armed, run])
 
   function answer(pattern: string | readonly string[]) {
-    if (!target || !armed) return
-    const correct = target.kind === 'warmup'
-      ? pattern === MORSE_LETTERS[target.letter]
-      : Array.isArray(pattern) && pattern.length === target.letters.length &&
-        pattern.every((entry, index) => entry === MORSE_LETTERS[target.letters[index]])
+    if (!letter || !armed || Array.isArray(pattern)) return
+    const correct = pattern === MORSE_LETTERS[letter]
     setAttempts((count) => count + 1)
     if (correct) {
       setCorrectAnswers((count) => count + 1)
-    } else {
-      const key = checkpointTargetKey(target)
-      if (!retriedTargets.current.has(key)) {
-        retriedTargets.current.add(key)
-        setTargets((current) => withCheckpointRetry(current, index, target))
-        setRetries((count) => count + 1)
-      }
     }
-    setFeedback({ correct, target })
+    setFeedback({ correct, letter })
     answered(correct)
   }
 
@@ -104,9 +91,7 @@ export function MorseCheckpoint({ checkpoint, onExit, onContinue, continueLabel 
           <h1 ref={headingRef} tabIndex={-1}>Word checkpoint complete</h1>
           <p>
             <strong>{correctAnswers} of {attempts} correct</strong>
-            {retries > 0
-              ? ` · ${retries} ${retries === 1 ? 'target' : 'targets'} revisited once`
-              : ' · no misses to revisit'}
+            {' · '}one pass
           </p>
           <p>You applied letters you already know. This run did not change saved lesson or Test progress.</p>
           {onContinue ? (
@@ -122,13 +107,14 @@ export function MorseCheckpoint({ checkpoint, onExit, onContinue, continueLabel 
     )
   }
 
-  if (!target) return null
+  if (!letter) return null
 
-  const wordNumber = target.wordIndex === null ? null : target.wordIndex + 1
-  const warmupNumber = target.kind === 'warmup' ? checkpoint.warmups.indexOf(target.letter) + 1 : null
-  const stepLabel = target.kind === 'warmup'
-    ? `Warm-up ${warmupNumber} of ${checkpoint.warmups.length}`
-    : `Word ${wordNumber} of ${checkpoint.words.length}`
+  const stepLabel = run.phase === 'warmup'
+    ? `Warm-up ${run.warmupIndex + 1} of ${checkpoint.warmups.length}`
+    : `Word ${run.wordIndex + 1} of ${checkpoint.words.length}`
+  const targetKey = run.phase === 'warmup'
+    ? `warmup-${run.warmupIndex}`
+    : `word-${run.wordIndex}-${run.characterIndex}`
 
   return (
     <section className="session morse-lesson morse-checkpoint">
@@ -142,27 +128,31 @@ export function MorseCheckpoint({ checkpoint, onExit, onContinue, continueLabel 
 
       <div
         className="morse-checkpoint-target"
-        key={index}
+        key={targetKey}
         data-phase={phase}
         ref={targetRef}
         tabIndex={-1}
-        aria-label={target.kind === 'warmup'
-          ? `Key the Morse pattern for ${target.letter}`
-          : `Key the word ${target.word}`}
+        aria-label={`Key the Morse pattern for ${letter}`}
       >
         <p className="lesson-task">
-          {target.kind === 'warmup' ? 'Warm up' : 'Key the whole word'}
+          {run.phase === 'warmup' ? 'Warm up' : 'Key the highlighted letter'}
         </p>
 
-        {target.kind === 'warmup' ? (
+        {run.phase === 'warmup' ? (
           <>
-            <p className="morse-checkpoint-letter" aria-hidden="true">{target.letter}</p>
-            <h1 className="sr-only">Key the Morse pattern for {target.letter}.</h1>
+            <p className="morse-checkpoint-letter" aria-hidden="true">{letter}</p>
+            <h1 className="sr-only">Key the Morse pattern for {letter}.</h1>
           </>
         ) : (
           <>
-            <p className="morse-checkpoint-word" aria-hidden="true">{target.word}</p>
-            <h1 className="sr-only">Key the whole word {target.word}.</h1>
+            <p className="morse-checkpoint-word" aria-hidden="true">
+              {Array.from(word!).map((character, characterIndex) => (
+                <span className={characterIndex === run.characterIndex ? 'is-current' : undefined} key={characterIndex}>
+                  {character}
+                </span>
+              ))}
+            </p>
+            <h1 className="sr-only">Key {letter}, letter {run.characterIndex + 1} of {word}.</h1>
           </>
         )}
 
@@ -173,31 +163,20 @@ export function MorseCheckpoint({ checkpoint, onExit, onContinue, continueLabel 
             aria-live="assertive"
           >
             <strong>{feedback.correct ? 'Correct' : 'Miss'}</strong>
-            {!feedback.correct && (feedback.target.kind === 'warmup' ? (
-              <span>
-                {feedback.target.letter} is <span className="mono">{canonicalPattern(MORSE_LETTERS[feedback.target.letter])}</span>
-              </span>
-            ) : <span>{feedback.target.word} will come back after another prompt.</span>)}
+            {!feedback.correct && <span>
+              {feedback.letter} is <span className="mono">{canonicalPattern(MORSE_LETTERS[feedback.letter])}</span>
+            </span>}
           </div>
         ) : (
           // `inert` is the real gate: `pointer-events: none` alone would let the
           // same tap fall through to whatever sits underneath the key.
           <div className="morse-checkpoint-answer" inert={!armed}>
-            {target.kind === 'warmup' ? (
-              <MorseKeyInput
-                key={`${checkpoint.id}-${index}`}
-                expectedLength={MORSE_LETTERS[target.letter].length}
-                locked={!armed}
-                onSubmit={answer}
-              />
-            ) : (
-              <MorseWordKeyInput
-                key={`${checkpoint.id}-${index}`}
-                word={target.word}
-                locked={!armed}
-                onSubmit={answer}
-              />
-            )}
+            <MorseKeyInput
+              key={`${checkpoint.id}-${targetKey}`}
+              expectedLength={MORSE_LETTERS[letter].length}
+              locked={!armed}
+              onSubmit={answer}
+            />
           </div>
         )}
       </div>

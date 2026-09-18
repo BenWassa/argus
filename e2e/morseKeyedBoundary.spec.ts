@@ -51,28 +51,6 @@ const LIBRARY = JSON.stringify({
 })
 
 /**
- * A tap driven entirely inside the page's own JS context.
- *
- * Two separate Playwright mouse commands each cost a CDP round trip, and
- * under parallel test load that round trip can occasionally exceed the 300ms
- * hold threshold, misclassifying a tap as a hold. Dispatching both events from
- * one `evaluate` call keeps the down-to-up gap at native-call speed, so the
- * test exercises the tap/hold boundary rather than host scheduling.
- */
-async function tapKey(page: Page) {
-  // The deliberate press waits for the key to actually arm. `Locator.evaluate`
-  // waits only for attachment, and since #87 an attached key is inert while a
-  // verdict stands or a transition runs, so pressing on attachment alone races
-  // the boundary this file exists to test rather than testing it.
-  await expect(page.locator('.morse-key')).toBeEnabled({ timeout: 4_000 })
-  await page.locator('.morse-key').evaluate((element) => {
-    const options = { pointerId: 1, button: 0, isPrimary: true, bubbles: true, cancelable: true }
-    element.dispatchEvent(new PointerEvent('pointerdown', options))
-    element.dispatchEvent(new PointerEvent('pointerup', options))
-  })
-}
-
-/**
  * A stray press exactly as it lands in the real world: on whatever exists at
  * that instant, or on nothing. `Locator.evaluate()` waits for `.morse-key` to
  * attach, which would let a press queued during a gap fire the moment the
@@ -118,8 +96,10 @@ test('a hit is acknowledged instead of vanishing in the frame it was recorded', 
 test('rapid tapping through the boundary cannot answer the letter that follows', async ({ page }) => {
   await openCheckpoint(page)
 
-  // E is one dit.
-  await tapKey(page)
+  // E is one dit. Keyboard input reaches the same commit and response-boundary
+  // path without asking CDP to synthesize a sub-300ms pointer gesture while
+  // several emulated phones may be synchronously starting Web Audio.
+  await page.keyboard.type('.')
   await expect(page.getByRole('status')).toContainText('Correct')
 
   // Hammer the same spot while the verdict is still standing and through the
