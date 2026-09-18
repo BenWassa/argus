@@ -121,7 +121,6 @@
 
 .lib-shelf-due .lib-shelf-label::before {
   background: var(--accent-2);
-  box-shadow: 0 0 4px rgb(255 255 255 / 45%);
 }
 
 /* ------------------------------------------------------------------ rows -- */
@@ -328,7 +327,9 @@
 /* The one "+" in the product. Fixed above the thumb, clear of the bottom
    nav on mobile and of the batch bar when one is showing (the two never
    appear together — selecting hides this). Circular and lit, because it is
-   the single most-repeated action on the page and earns the accent. */
+   the single most-repeated action on the page and earns the accent — but
+   --shadow-lift stays reserved for the completion moment and sheets, so
+   this sits at flashcard depth instead. */
 .lib-fab {
   position: fixed;
   right: max(var(--s-lg), env(safe-area-inset-right));
@@ -340,7 +341,7 @@
   display: inline-grid;
   place-items: center;
   border-radius: var(--r-pill);
-  box-shadow: var(--edge), var(--edge-under), var(--shadow-lift);
+  box-shadow: var(--edge), var(--edge-under), var(--shadow);
 }
 
 @media (min-width: 980px) {
@@ -402,17 +403,43 @@
   background: var(--surface-2);
 }
 
+.want-head-row {
+  margin: 0;
+}
+
+/* The whole header is the disclosure: closed by default, so the note-to-self
+   queue earns a count in the header rather than a permanent seat ahead of
+   the shelves. */
 .want-head {
   display: flex;
   align-items: center;
   gap: var(--s-sm);
-  margin: 0;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
   font-family: var(--font-mono);
   font-size: var(--t-readout);
   font-weight: var(--w-label);
   letter-spacing: var(--track-readout);
   text-transform: uppercase;
   color: var(--muted);
+}
+
+.want-head:hover {
+  color: var(--ink);
+  background: transparent;
+}
+
+.want-disclosure::before {
+  content: '\203A';
+  display: inline-block;
+  transition: transform 180ms;
+}
+
+.want-disclosure.is-open::before {
+  transform: rotate(90deg);
 }
 
 .want-count::before {
@@ -483,8 +510,10 @@
 
 /* The permanent record closes the library, because it is the artifact the
    product exists to build and the only thing the removed Progress destination
-   held that existed nowhere else. It is read, never pressed: no filter, no
-   control, no badge. */
+   held that existed nowhere else. The list itself is read, never pressed: no
+   filter, no other control. Its header is the one exception, holding the
+   disclosure that keeps the itemized list from competing with the shelves
+   above it. */
 .lib-record {
   margin-top: var(--s-3xl);
   /* Clears the FAB, which floats over the page rather than reserving its own
@@ -495,11 +524,51 @@
   border-top: 1px solid var(--line-strong);
 }
 
-.lib-record-head {
+.lib-record-head-row {
   margin: 0;
+}
+
+/* Sans for the label, because it is a title; mono for the count, because it
+   is a reading. The itemized list waits behind this tap so the record still
+   closes the page without competing with the shelves above it. */
+.lib-record-head {
+  display: flex;
+  align-items: center;
+  gap: var(--s-sm);
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
   font-family: var(--font-display);
   font-size: var(--t-section);
   font-weight: var(--w-section);
+  color: var(--ink);
+}
+
+.lib-record-head:hover {
+  color: var(--ink);
+  background: transparent;
+}
+
+.lib-record-disclosure::before {
+  content: '\203A';
+  display: inline-block;
+  color: var(--subtle);
+  transition: transform 180ms;
+}
+
+.lib-record-disclosure.is-open::before {
+  transform: rotate(90deg);
+}
+
+.lib-record-total {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  font-weight: var(--w-label);
+  letter-spacing: var(--track-readout);
+  color: var(--muted);
 }
 
 .lib-record-totals {

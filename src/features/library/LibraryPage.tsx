@@ -571,9 +571,10 @@ function Row({ entry, onDueShelf, selecting, selected, onOpen, onToggle, onActio
         className="index-row"
         data-row={topic.id}
         // A topic with no items cannot be run, so it cannot be selected either.
-        // Tapping it in select mode still opens it, which is the only useful
-        // thing left to do with it.
-        onClick={selecting && runnable ? onToggle : onOpen}
+        // Disabled rather than falling through to onOpen: a tap mid-selection
+        // should not silently exit the batch and navigate away.
+        disabled={selecting && !runnable}
+        onClick={selecting ? onToggle : onOpen}
       >
         <span className="index-title">{topic.title}</span>
         <span className="index-meta">

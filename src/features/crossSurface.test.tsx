@@ -498,7 +498,10 @@ describe('Library absorbed Progress without losing what it said', () => {
     expect(bearings.querySelector('.lib-when.is-repair')?.textContent).toBe('Needs repair')
 
     // Decay routes work without erasing history: the bearings topic is due for
-    // repair *and* still holds its place in the permanent record.
+    // repair *and* still holds its place in the permanent record, once opened
+    // — the itemized list waits behind its header's disclosure so it does not
+    // compete with the shelves above it.
+    fireEvent.click(screen.getByRole('button', { name: /Completion record/ }))
     const record = document.querySelector('.record') as HTMLElement
     expect(within(record).getByText('Cardinal and intercardinal bearings')).toBeTruthy()
     expect(within(record).getByText('NATO phonetic alphabet')).toBeTruthy()

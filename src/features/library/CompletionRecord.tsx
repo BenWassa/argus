@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { COMPLETION_GAP_DAYS } from '../../domain/study/scheduling'
 import { StatusTag } from '../../shared/ui/StatusTag'
 import { TRACKS, type Topic, type Track } from '../../domain/library/topic'
@@ -11,10 +12,12 @@ import { TRACKS, type Topic, type Track } from '../../domain/library/topic'
  * the artifact the whole product exists to build, so it closes Library rather
  * than living behind a tab that answered a question once a month.
  *
- * It is read, never pressed. No control, no filter, no badge, no percentage:
- * a topic is finished or it is not, and `completedAt` survives decay because
- * having once recalled it cold is a fact about the past that a later lapse does
- * not retract.
+ * It is read, never pressed. No control, no filter, no percentage: a topic is
+ * finished or it is not, and `completedAt` survives decay because having once
+ * recalled it cold is a fact about the past that a later lapse does not
+ * retract. The header still states the count and closes the page either way;
+ * only the itemized list waits behind one tap, so the shelves above stay the
+ * unambiguous reason the page exists.
  */
 
 const TRACK_LABELS: Record<Track, string> = {
@@ -24,6 +27,8 @@ const TRACK_LABELS: Record<Track, string> = {
 }
 
 export function CompletionRecord({ topics }: { topics: Topic[] }) {
+  const [open, setOpen] = useState(false)
+
   const completions = topics
     .filter((topic) => topic.completedAt)
     .sort((a, b) => (b.completedAt ?? '').localeCompare(a.completedAt ?? ''))
@@ -36,8 +41,18 @@ export function CompletionRecord({ topics }: { topics: Topic[] }) {
 
   return (
     <section className="lib-record" aria-labelledby="completion-record-head">
-      <h2 id="completion-record-head" className="lib-record-head">
-        Completion record
+      <h2 className="lib-record-head-row">
+        <button
+          type="button"
+          className="lib-record-head"
+          id="completion-record-head"
+          aria-expanded={open}
+          onClick={() => setOpen((o) => !o)}
+        >
+          Completion record
+          <span className={`lib-record-disclosure${open ? ' is-open' : ''}`} aria-hidden="true" />
+          <span className="lib-record-total tabular">{completions.length}</span>
+        </button>
       </h2>
 
       {completions.length === 0 ? (
@@ -45,7 +60,7 @@ export function CompletionRecord({ topics }: { topics: Topic[] }) {
           No completions yet. A topic completes only after you recall it cleanly at least{' '}
           {COMPLETION_GAP_DAYS} days after it was last drilled.
         </p>
-      ) : (
+      ) : open ? (
         <>
           <ol className="record">
             {completions.map((topic, i) => (
@@ -81,7 +96,7 @@ export function CompletionRecord({ topics }: { topics: Topic[] }) {
             ))}
           </p>
         </>
-      )}
+      ) : null}
     </section>
   )
 }

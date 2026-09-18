@@ -79,6 +79,12 @@
   margin-top: var(--s-md);
 }
 
+/* The disclosure that keeps a catch-up day from reading as a homework list:
+   the lead rows show, the rest wait behind one explicit tap. */
+.docket-more {
+  margin-top: var(--s-sm);
+}
+
 /* Why the topic surfaced today, not which rung it sits on. */
 .due-reason {
   font-family: var(--font-mono);

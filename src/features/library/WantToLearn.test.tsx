@@ -1,5 +1,7 @@
+// @vitest-environment jsdom
 import { renderToStaticMarkup } from 'react-dom/server'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { WantToLearn } from './WantToLearn'
 import { CaptureSheet } from './CaptureSheet'
 import type { ContentRequest } from '../../services/inbox/inboxModel'
@@ -25,8 +27,16 @@ const requests: ContentRequest[] = [
   },
 ]
 
-function queue(overrides: Partial<Parameters<typeof WantToLearn>[0]> = {}) {
-  return renderToStaticMarkup(
+/**
+ * Renders the queue and returns its markup. `open: true` clicks the
+ * disclosure open first — needed for the "ready" status, which now collapses
+ * by default so the note-to-self queue does not compete with the shelves in
+ * the same scroll. Every other status (loading, signed-out, unauthorized) is
+ * never collapsible, and an error is never hidden by the disclosure either
+ * way, so those assertions do not need to open anything.
+ */
+function queue(overrides: Partial<Parameters<typeof WantToLearn>[0]> = {}, { open = false } = {}) {
+  const { container } = render(
     <WantToLearn
       status="ready"
       requests={requests}
@@ -37,21 +47,36 @@ function queue(overrides: Partial<Parameters<typeof WantToLearn>[0]> = {}) {
       {...overrides}
     />,
   )
+  if (open) {
+    fireEvent.click(screen.getByRole('button', { name: /Want to learn/ }))
+  }
+  return container.innerHTML
 }
 
 describe('the pending queue in Library', () => {
-  it('shows captured text and a count, and nothing else', () => {
-    const html = queue()
+  afterEach(cleanup)
+
+  it('shows captured text and a count once opened', () => {
+    const html = queue({}, { open: true })
     expect(html).toContain('Want to learn')
     expect(html).toContain('Maritime signal flags')
     expect(html).toContain('the knots section')
     expect(html).toContain('>2<')
   })
 
+  it('holds the ready queue behind a closed disclosure until opened', () => {
+    // The routine case collapses by default: the count still shows in the
+    // header, but the request text waits for one explicit tap.
+    const html = queue()
+    expect(html).toContain('Want to learn')
+    expect(html).toContain('>2<')
+    expect(html).not.toContain('Maritime signal flags')
+  })
+
   it('uses none of the language a topic uses', () => {
     // The product rule made visible: a request has no boundary to finish, so it
     // may not borrow the vocabulary of something that does.
-    const html = queue()
+    const html = queue({}, { open: true })
     for (const word of [
       'unstarted',
       'drilled',
@@ -69,7 +94,7 @@ describe('the pending queue in Library', () => {
   })
 
   it('offers no way to run, test or schedule a request', () => {
-    const html = queue()
+    const html = queue({}, { open: true })
     expect(html).not.toContain('lib-action')
     expect(html).not.toContain('index-row')
     expect(html).not.toContain('>Test<')
@@ -77,14 +102,17 @@ describe('the pending queue in Library', () => {
   })
 
   it('names the request in the control that removes it', () => {
-    expect(queue()).toContain('aria-label="Remove request: Maritime signal flags"')
+    expect(queue({}, { open: true })).toContain(
+      'aria-label="Remove request: Maritime signal flags"',
+    )
   })
 
   it('marks a request the server has not acknowledged yet', () => {
-    expect(queue()).toContain('saving…')
+    expect(queue({}, { open: true })).toContain('saving…')
   })
 
   it('offers a one-time sign-in and says the library is unaffected', () => {
+    // Not the routine "ready" status, so nothing here waits behind a tap.
     const html = queue({ status: 'signed-out', requests: [] })
     expect(html).toContain('Sign in to the inbox')
     expect(html).toContain('stay on this device')
@@ -95,9 +123,10 @@ describe('the pending queue in Library', () => {
   })
 
   it('says when the queue could not be read, without hiding it', () => {
+    // An error is never worth a tap to discover, so it surfaces even while
+    // the routine queue itself stays collapsed.
     const html = queue({ error: 'The inbox could not be reached.' })
     expect(html).toContain('The inbox could not be reached.')
-    expect(html).toContain('Maritime signal flags')
   })
 })
 

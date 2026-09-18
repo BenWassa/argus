@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useLibrary } from '../../services/library/LibraryProvider'
 import {
   dueEntries,
@@ -15,6 +16,12 @@ const WORDS = [
   'no', 'one', 'two', 'three', 'four', 'five', 'six',
   'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve',
 ]
+
+/** How many due rows show before the docket collapses behind a disclosure.
+ *  A busy catch-up day should still read as "the one thing" at a glance,
+ *  not as a homework list — see the "Coming up" horizon, which caps at
+ *  the same number for the same reason. */
+const DOCKET_VISIBLE = 5
 
 /** Small counts read as prose. Past twelve the numeral is clearer than the word. */
 function count(n: number): string {
@@ -63,6 +70,7 @@ interface TodayProps {
 
 export function Today({ onStart, onOpenTopic, onGoToLibrary, onOpenProfile }: TodayProps) {
   const { topics, updateTopic } = useLibrary()
+  const [showAllDue, setShowAllDue] = useState(false)
   const stamp = new Date().toLocaleDateString(undefined, {
     weekday: 'short',
     day: 'numeric',
@@ -209,15 +217,32 @@ export function Today({ onStart, onOpenTopic, onGoToLibrary, onOpenProfile }: To
       .join(', '),
   )
 
+  // A catch-up day should still read as "the one thing," not as a list to
+  // work through. The docket shows the lead rows and holds the rest behind
+  // an explicit disclosure rather than presenting every due topic as an
+  // equally-weighted choice.
+  const visibleDue = showAllDue ? due : due.slice(0, DOCKET_VISIBLE)
+  const hiddenDue = due.length - visibleDue.length
+
   return (
     <>
       <Head verdict={verdict} stamp={stamp} onProfile={onOpenProfile} />
 
       <ul className="index docket">
-        {due.map((entry) => (
+        {visibleDue.map((entry) => (
           <DocketRow key={entry.topic.id} entry={entry} onLaunch={() => launch(entry)} />
         ))}
       </ul>
+
+      {hiddenDue > 0 && (
+        <button
+          className="quiet docket-more"
+          type="button"
+          onClick={() => setShowAllDue(true)}
+        >
+          +{count(hiddenDue)} more due
+        </button>
+      )}
 
       <div className="today-actions">
         {/* Batching is for proving, not for enrollment or browsing. A scored

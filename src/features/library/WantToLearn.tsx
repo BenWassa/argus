@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { ContentRequest } from '../../services/inbox/inboxModel'
 import type { InboxStatus } from '../../services/inbox/useInbox'
 
@@ -28,16 +29,36 @@ export function WantToLearn({
   onRemove,
   removing,
 }: WantToLearnProps) {
+  // Closed by default, but only once there is nothing that needs attention.
+  // A setup prompt, a loading state or an error is never worth a second tap
+  // to see — only the routine "ready" queue, competing with the shelves in
+  // the same scroll, collapses behind its own count. Nothing here is ever
+  // hidden without the learner's own choice: an error stays visible even
+  // while collapsed.
+  const [open, setOpen] = useState(false)
+  const collapsible = status === 'ready'
+  const expanded = !collapsible || open
+
   // A build without inbox configuration says nothing at all. Argus is not
   // diminished by a cloud service it was never given.
   if (status === 'unconfigured') return null
 
   return (
     <section className="want" aria-labelledby="want-heading">
-      <h2 className="want-head" id="want-heading">
-        Want to learn
-        {status === 'ready' && requests.length > 0 && (
-          <span className="want-count tabular">{requests.length}</span>
+      <h2 className="want-head-row" id="want-heading">
+        {collapsible ? (
+          <button
+            type="button"
+            className="want-head"
+            aria-expanded={open}
+            onClick={() => setOpen((o) => !o)}
+          >
+            <span className={`want-disclosure${open ? ' is-open' : ''}`} aria-hidden="true" />
+            Want to learn
+            {requests.length > 0 && <span className="want-count tabular">{requests.length}</span>}
+          </button>
+        ) : (
+          <span className="want-head">Want to learn</span>
         )}
       </h2>
 
@@ -46,8 +67,8 @@ export function WantToLearn({
       {status === 'signed-out' && (
         <div className="want-setup">
           <p className="note">
-            Capture ideas here and turn them into researched topics later. It needs a one-time
-            sign-in; your library and its history stay on this device either way.
+            Capture ideas here and turn them into researched topics later. It needs a
+            one-time sign-in; your library and its history stay on this device either way.
           </p>
           <button className="ghost" type="button" onClick={onSignIn}>
             Sign in to the inbox
@@ -61,11 +82,13 @@ export function WantToLearn({
         </p>
       )}
 
-      {status === 'ready' && requests.length === 0 && (
-        <p className="note">Nothing captured yet. Use “Want to learn” when something occurs to you.</p>
+      {expanded && status === 'ready' && requests.length === 0 && (
+        <p className="note">
+          Nothing captured yet. Use “Want to learn” when something occurs to you.
+        </p>
       )}
 
-      {status === 'ready' && requests.length > 0 && (
+      {expanded && status === 'ready' && requests.length > 0 && (
         <ul className="want-list">
           {requests.map((request) => (
             <li className="want-entry" key={request.id}>
