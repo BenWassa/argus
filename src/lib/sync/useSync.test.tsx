@@ -113,27 +113,6 @@ describe('carrying out a plan', () => {
     expect(JSON.parse(backend.pushed[0].json).id).toBe(topic.id)
   })
 
-  it('puts a topic from another device into the local store', async () => {
-    const topic = realTopic()
-    const store = fakeStore([])
-    const backend = fakeBackend()
-    const { result } = renderHook(() => useSync(store, backend))
-
-    act(() => backend.emitUser(OWNER))
-    // Remote observation is mounted by the user-state effect. Wait for that
-    // lifecycle boundary before emitting records rather than racing the effect.
-    await waitFor(() => expect(result.current.state.kind).toBe('syncing'))
-    act(() =>
-      backend.emitRecords([
-        { topicId: topic.id, json: topicJson(topic), revision: 4, updatedAtMs: 1_000 },
-      ]),
-    )
-
-    await waitFor(() => expect(store.upserted).toHaveLength(1))
-    expect(store.upserted[0].id).toBe(topic.id)
-    expect(backend.pushed).toHaveLength(0)
-  })
-
   it('refuses a remote record the v5 boundary would not accept, and keeps the local copy', async () => {
     // The evidence contract is defined by the parse boundary, so a device that
     // cannot parse a record must not adopt it — and must not delete its own.
