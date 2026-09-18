@@ -1,6 +1,7 @@
 import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import { createHash } from 'node:crypto'
+import { execFileSync } from 'node:child_process'
 import { readdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
@@ -14,6 +15,20 @@ async function listFiles(directory: string, root = directory): Promise<string[]>
   )
 
   return files.flat().sort()
+}
+
+function sourceBuildId(): string {
+  const supplied = process.env.ARGUS_BUILD_SHA ?? process.env.GITHUB_SHA
+  if (supplied) return supplied.slice(0, 7)
+
+  try {
+    return execFileSync('git', ['rev-parse', '--short=7', 'HEAD'], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim()
+  } catch {
+    return 'unknown'
+  }
 }
 
 function serviceWorkerPlugin() {
@@ -118,6 +133,9 @@ self.addEventListener('fetch', (event) => {
 }
 
 export default defineConfig({
+  define: {
+    __ARGUS_BUILD_ID__: JSON.stringify(sourceBuildId()),
+  },
   plugins: [react(), serviceWorkerPlugin()],
   // Firebase Hosting is the sole deployment target, serving from the root of
   // its own domain. GitHub Pages is retired.
