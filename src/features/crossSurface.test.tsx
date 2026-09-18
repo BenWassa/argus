@@ -115,6 +115,13 @@ function renderToday() {
   )
 }
 
+describe('Today utility entry points', () => {
+  it('keeps Profile reachable from Today without adding a primary nav destination', () => {
+    renderToday()
+    expect(screen.getByRole('button', { name: 'Open profile' })).toBeTruthy()
+  })
+})
+
 function renderLibrary() {
   return render(
     <LibraryProvider>
