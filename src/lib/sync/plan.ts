@@ -181,12 +181,10 @@ export function planSync(
     }
 
     if (!local && record) {
-      // Likewise, a local absence of shipped curriculum is repaired from the
-      // server rather than propagated as a deletion. User-authored topics keep
-      // their ordinary delete semantics.
-      if (known && isShippedCatalogId(id)) {
-        actions.push({ kind: 'adopt', topicId: id, json: record.json, revision: record.revision })
-      } else if (known) actions.push({ kind: 'deleteRemote', topicId: id })
+      // Individual deletion keeps its existing semantics. The recovery case is
+      // the opposite shape — a restored local shipped topic facing an absent
+      // remote record — and is handled above.
+      if (known) actions.push({ kind: 'deleteRemote', topicId: id })
       else actions.push({ kind: 'adopt', topicId: id, json: record.json, revision: record.revision })
       continue
     }
