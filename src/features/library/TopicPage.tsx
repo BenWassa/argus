@@ -102,12 +102,6 @@ export function TopicPage({
   const practiceCount = hasPractice(topic) ? practiceItemCount(topic) : 0
 
   function startLearning() {
-    // Fresh Morse is the placement boundary. Generic enrollment would flip the
-    // topic to learning first, which makes placement intentionally ineligible.
-    if (placementEligible) {
-      setPlacementOpen(true)
-      return
-    }
     updateTopic(topic.id, (current) => resolveStudy(current))
   }
 
@@ -314,6 +308,10 @@ export function TopicPage({
           topic={topic}
           onClose={() => setPlacementOpen(false)}
           onNew={() => {
+            // "New" is itself the learner's placement decision. Record the
+            // ordinary curriculum start before entering LessonRun so its
+            // boundary gate does not ask the same question a second time.
+            updateTopic(topic.id, (current) => resolveStudy(current))
             setPlacementOpen(false)
             onStart('learn', [topic.id], { kind: 'lesson' })
           }}
