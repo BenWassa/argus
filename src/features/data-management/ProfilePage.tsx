@@ -6,6 +6,7 @@ import { parseLibrary } from '../../infrastructure/persistence/libraryParser'
 import { exportFilename } from '../../infrastructure/persistence/localLibraryRepository'
 import { collisions } from '../../domain/library/catalog'
 import { Confirm } from '../../shared/ui/Confirm'
+import './ProfilePage.css'
 
 /**
  * Owner/account utility reached from Today. Sync establishes whose record this
@@ -70,7 +71,7 @@ export function ProfilePage({ onBack }: { onBack: () => void }) {
 
       <Sync state={sync.state} onSignIn={sync.signIn} onSignOut={sync.signOut} />
 
-      <h2>Data &amp; backup</h2>
+      <h2 className="profile-section-title">Data &amp; backup</h2>
       <p className="lede-text">
         Export writes the whole learner record to a JSON file you own. Import replaces your local
         learner record. An entirely empty legacy record is repaired back to the shipped baseline.
@@ -107,7 +108,7 @@ export function ProfilePage({ onBack }: { onBack: () => void }) {
 
       <CatalogNotice added={catalogReport.added} withheld={collisions(catalogReport)} />
 
-      <h3>Reset learning data</h3>
+      <h3 className="profile-subsection-title">Reset learning data</h3>
       <p className="lede-text">
         Removes user-authored topics and learner progress from this device, then restores the
         shipped Argus topics as fresh, unstarted content.
@@ -216,7 +217,7 @@ function Sync({
     // work.
     return (
       <>
-        <h2>Account &amp; sync</h2>
+        <h2 className="profile-section-title">Account &amp; sync</h2>
         <p className="lede-text">
           This build has no Firebase configuration, so there is nothing to sign in to. Export and
           import carry the library between devices instead.
@@ -227,7 +228,7 @@ function Sync({
 
   return (
     <>
-      <h2>Account &amp; sync</h2>
+      <h2 className="profile-section-title">Account &amp; sync</h2>
       <p className="lede-text">
         Signing in with Google keeps this library on your own devices in step. The copy in this
         browser stays the one Argus reads and writes, so Argus works the same offline, and signing

@@ -14,9 +14,9 @@ import type { Mode } from '../../domain/study/mode'
  * Top-level destinations.
  *
  * Two of them are navigation: Today is the docket, Library is everything owned.
- * `data` is a Library utility with its own route rather than a third thumb-level
- * slot, because export/import is a handful of uses a year and the bottom bar is
- * the scarcest space in the product. Progress is gone as a destination: its live
+ * `profile` is a Today utility with its own route rather than a third thumb-level
+ * slot; legacy `data` entries remain valid only for history compatibility.
+ * Progress is gone as a destination: its live
  * sections were a third reading of the same `journeyFor` derivation Library
  * already shelves, and its permanent completion record now closes Library.
  */

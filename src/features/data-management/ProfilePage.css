@@ -1,0 +1,9 @@
+.profile-section-title {
+  margin-top: var(--s-2xl);
+  padding-top: var(--s-lg);
+  border-top: 1px solid var(--line);
+}
+
+.profile-subsection-title {
+  margin-top: var(--s-xl);
+}
