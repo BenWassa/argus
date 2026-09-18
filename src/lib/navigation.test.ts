@@ -27,6 +27,9 @@ describe('navigation state', () => {
 
     expect(isAppRoute(topic)).toBe(true)
     expect(isAppRoute(run)).toBe(true)
+    expect(isAppRoute({ kind: 'section', view: 'profile' })).toBe(true)
+    // Kept only so old browser history written before #109 can still unwind.
+    expect(isAppRoute({ kind: 'section', view: 'data' })).toBe(true)
     expect(isAppRoute({ kind: 'section', view: 'unknown' })).toBe(false)
     expect(isAppRoute({ kind: 'topic', topicId: '' })).toBe(false)
     expect(isAppRoute({ kind: 'run', mode: 'test', topicIds: [], origin: topic })).toBe(false)
