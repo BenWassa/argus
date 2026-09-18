@@ -541,10 +541,10 @@ describe('Library absorbed Progress without losing what it said', () => {
     }
   })
 
-  it('keeps export and import reachable without spending a navigation slot on them', () => {
+  it('keeps account and data utilities out of the learning Library', () => {
     install([blank('cardinal-bearings')])
     renderLibrary()
-    expect(screen.getByRole('button', { name: 'Data and backup' })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Data and backup' })).toBeNull()
   })
 })
 
