@@ -18,7 +18,7 @@ import { Confirm } from '../../components/ui/Confirm'
  * device remains the one the app reads and writes, so everything below sync on
  * this page keeps working exactly as it did when there was no account at all.
  */
-export function Data({ onBack }: { onBack: () => void }) {
+export function Profile({ onBack }: { onBack: () => void }) {
   const { topics, library, catalogReport, replaceLibrary, resetLibrary } = useLibrary()
   const sync = useSyncState()
   const fileInput = useRef<HTMLInputElement>(null)
@@ -65,14 +65,22 @@ export function Data({ onBack }: { onBack: () => void }) {
 
   return (
     <>
-      <button className="quiet topic-back" type="button" aria-label="Back to Library" onClick={onBack}>
-        <span aria-hidden="true">←</span> Library
+      <button className="quiet topic-back" type="button" aria-label="Back to Today" onClick={onBack}>
+        <span aria-hidden="true">←</span> Today
       </button>
 
-      <h1>Data</h1>
+      <h1>Profile</h1>
       <p className="lede-text">
-        This browser holds the library Argus reads and writes. Export writes the whole record to a
-        JSON file you own; import replaces what is here with the contents of that file.
+        Account, sync and data controls. Learning content stays in Library; these controls manage
+        the copy of Argus that belongs to you.
+      </p>
+
+      <Sync state={sync.state} onSignIn={sync.signIn} onSignOut={sync.signOut} />
+
+      <h2>Data &amp; backup</h2>
+      <p className="lede-text">
+        Export writes the whole learner record to a JSON file you own. Import replaces your local
+        learner record, while the shipped Argus catalog remains available as baseline content.
       </p>
 
       <div className="actions start">
@@ -82,9 +90,6 @@ export function Data({ onBack }: { onBack: () => void }) {
         <button className="ghost" type="button" onClick={() => fileInput.current?.click()}>
           Import JSON
         </button>
-        {/* Driven by the real button above, and hidden from the accessibility
-            tree so it is not announced twice. Keyboard users reach the button,
-            never a label wrapping an unfocusable input. */}
         <input
           ref={fileInput}
           className="sr-only"
@@ -106,12 +111,10 @@ export function Data({ onBack }: { onBack: () => void }) {
 
       <CatalogNotice added={catalogReport.added} withheld={collisions(catalogReport)} />
 
-      <Sync state={sync.state} onSignIn={sync.signIn} onSignOut={sync.signOut} />
-
-      <h2>Reset</h2>
+      <h3>Reset learning data</h3>
       <p className="lede-text">
-        Clears every topic and its history from this device. Export first if you want to keep a
-        copy.
+        Removes user-authored topics and learner progress from this device, then restores the
+        shipped Argus topics as fresh, unstarted content.
       </p>
       <button
         className="danger"
@@ -119,14 +122,14 @@ export function Data({ onBack }: { onBack: () => void }) {
         disabled={topics.length === 0}
         onClick={() => setConfirmReset(true)}
       >
-        Reset library
+        Reset learning data
       </button>
 
       {pendingImport && (
         <Confirm
-          title="Replace library"
-          body={`Importing replaces all ${topics.length} topics on this device with the ${pendingImport.count} in this file, including their history, completion records, Learn support, any lesson sitting in progress, item identity, and cue evidence. Export first if you want to keep what is here.`}
-          confirmLabel="Replace library"
+          title="Replace learner data"
+          body={`Importing replaces all ${topics.length} topics on this device with the ${pendingImport.count} in this file, including their history, completion records, Learn support, any lesson sitting in progress, item identity, and cue evidence. Missing shipped Argus topics are restored as fresh baseline content. Export first if you want to keep what is here.`}
+          confirmLabel="Replace data"
           onCancel={() => setPendingImport(null)}
           onConfirm={() => {
             void applyImport(pendingImport.file)
@@ -137,14 +140,14 @@ export function Data({ onBack }: { onBack: () => void }) {
 
       {confirmReset && (
         <Confirm
-          title="Reset library"
-          body={`All ${topics.length} topics, their Learn support, any lesson sitting in progress, test history, completion records, and cue evidence will be removed from this device. This cannot be undone, and an export made now is the only copy you will have.`}
-          confirmLabel="Reset library"
+          title="Reset learning data"
+          body={`All learner progress and user-authored topics on this device will be removed. The shipped Argus catalog will return as fresh, unstarted content. This cannot be undone; export first if you want a copy of your current record.`}
+          confirmLabel="Reset data"
           onCancel={() => setConfirmReset(false)}
           onConfirm={() => {
             resetLibrary()
             setConfirmReset(false)
-            setMessage({ tone: 'ok', text: 'Library reset. Nothing is stored on this device.' })
+            setMessage({ tone: 'ok', text: 'Learning data reset. Shipped topics restored.' })
           }}
         />
       )}
@@ -217,7 +220,7 @@ function Sync({
     // work.
     return (
       <>
-        <h2>Sync</h2>
+        <h2>Account &amp; sync</h2>
         <p className="lede-text">
           This build has no Firebase configuration, so there is nothing to sign in to. Export and
           import carry the library between devices instead.
@@ -228,7 +231,7 @@ function Sync({
 
   return (
     <>
-      <h2>Sync</h2>
+      <h2>Account &amp; sync</h2>
       <p className="lede-text">
         Signing in with Google keeps this library on your own devices in step. The copy in this
         browser stays the one Argus reads and writes, so Argus works the same offline, and signing
