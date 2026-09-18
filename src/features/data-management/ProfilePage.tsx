@@ -92,8 +92,8 @@ export function ProfilePage({ onBack }: { onBack: () => void }) {
 
       <h2 className="profile-section-title">Offline availability</h2>
       <p className="lede-text">
-        <strong>{online ? 'Online' : 'Offline'}.</strong> The complete shipped curriculum and app
-        shell are available on this device after the app has loaded successfully once.
+        <strong>{online ? 'Online' : 'Offline'}.</strong> The shipped curriculum is bundled with
+        Argus. Full offline relaunch and restart-safe sync are not yet guaranteed.
       </p>
       <p className="note">
         {storage === null
@@ -153,7 +153,7 @@ export function ProfilePage({ onBack }: { onBack: () => void }) {
       </button>
 
       <h2 className="profile-section-title">About</h2>
-      <p className="note tabular">App version {packageMetadata.version}</p>
+      <p className="note tabular">App version {packageMetadata.version} · build {__ARGUS_BUILD_ID__}</p>
 
       {pendingImport && (
         <Confirm
