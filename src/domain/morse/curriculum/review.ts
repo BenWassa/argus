@@ -33,6 +33,25 @@ export const LISTENING_COVERAGE_TARGET = 1
  */
 export const LISTENING_IMBALANCE_ALLOWANCE = 1
 
+// Runtime-only marker for an item established independently by placement (or
+// legacy data). It is derived from settled support and never persisted.
+const INDEPENDENTLY_ESTABLISHED = 0
+
+function independentlyEstablishedItem(currentSittingOrdinal: number): MorseReviewItem {
+  return {
+    introducedIn: INDEPENDENTLY_ESTABLISHED,
+    lastSeenIn: currentSittingOrdinal,
+    laterCorrect: 0,
+    printed: 0,
+    heard: 0,
+    heardCorrect: 0,
+  }
+}
+
+function isIndependentlyEstablished(item: MorseReviewItem | undefined): boolean {
+  return item?.introducedIn === INDEPENDENTLY_ESTABLISHED
+}
+
 export function newMorseReview(): MorseReviewProgress {
   return { sittings: 0, items: {} }
 }
@@ -48,10 +67,20 @@ export function newMorseReview(): MorseReviewProgress {
  * finished learner backwards is `acquisitionReadyAt`, which is permanent and
  * is checked before any of this.
  */
-export function morseReviewOf(topic: Pick<Topic, 'morseReview'>): MorseReviewProgress {
+export function morseReviewOf(
+  topic: Pick<Topic, 'morseReview' | 'lessonProgress'>,
+): MorseReviewProgress {
   const stored = topic.morseReview
-  if (!stored) return newMorseReview()
-  return { sittings: stored.sittings, items: { ...stored.items } }
+  const review = stored
+    ? { sittings: stored.sittings, items: { ...stored.items } }
+    : newMorseReview()
+  const ordinal = review.sittings + 1
+  for (const [itemId, support] of Object.entries(topic.lessonProgress ?? {})) {
+    if (support === 'settled' && review.items[itemId] === undefined) {
+      review.items[itemId] = independentlyEstablishedItem(ordinal)
+    }
+  }
+  return review
 }
 
 /** The ordinal of the sitting currently in progress. Completed sittings plus one. */
@@ -146,12 +175,14 @@ export function completeSitting(review: MorseReviewProgress): MorseReviewProgres
 
 /** Whether this item has survived the gap between sittings often enough. */
 export function hasLaterSittingSuccess(review: MorseReviewProgress, itemId: string): boolean {
-  return (review.items[itemId]?.laterCorrect ?? 0) >= LATER_SITTING_SUCCESSES
+  const item = review.items[itemId]
+  return isIndependentlyEstablished(item) || (item?.laterCorrect ?? 0) >= LATER_SITTING_SUCCESSES
 }
 
 /** Whether this item has been met in sound often enough. */
 export function hasListeningCoverage(review: MorseReviewProgress, itemId: string): boolean {
-  return (review.items[itemId]?.heard ?? 0) >= LISTENING_COVERAGE_TARGET
+  const item = review.items[itemId]
+  return isIndependentlyEstablished(item) || (item?.heard ?? 0) >= LISTENING_COVERAGE_TARGET
 }
 
 /**
@@ -164,7 +195,17 @@ export function hasListeningCoverage(review: MorseReviewProgress, itemId: string
 export function sittingsSinceSeen(review: MorseReviewProgress, itemId: string): number {
   const item = review.items[itemId]
   if (!item) return Number.MAX_SAFE_INTEGER
+  if (isIndependentlyEstablished(item)) return 0
   return Math.max(0, currentSitting(review) - item.lastSeenIn)
+}
+
+function persistableReview(review: MorseReviewProgress): MorseReviewProgress {
+  return {
+    sittings: review.sittings,
+    items: Object.fromEntries(
+      Object.entries(review.items).filter(([, item]) => !isIndependentlyEstablished(item)),
+    ),
+  }
 }
 
 /**
@@ -175,8 +216,9 @@ export function sittingsSinceSeen(review: MorseReviewProgress, itemId: string): 
  * stale snapshot of them — the same discipline `withLessonSitting` keeps.
  */
 export function withMorseReview(topic: Topic, review: MorseReviewProgress): Topic {
-  if (morseReviewIsFresh(review)) return withoutMorseReview(topic)
-  return { ...topic, morseReview: { sittings: review.sittings, items: { ...review.items } } }
+  const persistable = persistableReview(review)
+  if (morseReviewIsFresh(persistable)) return withoutMorseReview(topic)
+  return { ...topic, morseReview: { sittings: persistable.sittings, items: { ...persistable.items } } }
 }
 
 export function withoutMorseReview(topic: Topic): Topic {

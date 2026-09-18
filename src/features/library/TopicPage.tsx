@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { journeyFor } from '../../domain/study/journey'
 import { resolveStudy } from '../../domain/study/scheduling'
 import { useLibrary } from '../../services/library/LibraryProvider'
@@ -7,6 +7,8 @@ import { morseWordCheckpointPath } from '../../domain/morse/curriculum/checkpoin
 import { statusLabel } from '../../shared/ui/StatusTag'
 import { LearnSupport } from '../learn/LearnSupport'
 import { MorsePath } from '../morse/lesson/MorsePath'
+import { MorsePlacementDialog } from '../morse/MorsePlacementDialog'
+import { applyMorsePlacement, canOfferMorsePlacement } from '../../domain/morse/placement'
 // The reference and the structured support keep the editorial treatment they
 // were designed with; only where they are rendered changed.
 import '../learn/Reading.css'
@@ -71,6 +73,7 @@ export function TopicPage({
 }: TopicPageProps) {
   const { updateTopic } = useLibrary()
   const heading = useRef<HTMLHeadingElement>(null)
+  const [placementOpen, setPlacementOpen] = useState(false)
   const runnable = topic.items.length > 0
 
   const path = runnable ? morseLessonPath(topic) : null
@@ -90,6 +93,7 @@ export function TopicPage({
 
   const { acquisition } = journey
   const testing = journey.action === 'test'
+  const placementEligible = course && canOfferMorsePlacement(topic)
 
   // How many items a check has left outstanding, counted in items rather than
   // in directions: a bidirectional item missed both ways is one thing to go and
@@ -103,6 +107,14 @@ export function TopicPage({
 
   function startCheck() {
     onStart('test', [topic.id])
+  }
+
+  function startCurrentMorseLesson() {
+    if (placementEligible) {
+      setPlacementOpen(true)
+      return
+    }
+    onStart('learn', [topic.id], { kind: 'lesson' })
   }
 
   return (
@@ -142,7 +154,7 @@ export function TopicPage({
             journey={journey}
             course={course}
             onEnroll={startLearning}
-            onLesson={() => onStart('learn', [topic.id], { kind: 'lesson' })}
+            onLesson={startCurrentMorseLesson}
             onCheck={startCheck}
           />
 
@@ -212,9 +224,13 @@ export function TopicPage({
             path={path}
             checkpoints={checkpoints}
             ready={acquisition.ready}
-            onLesson={(index, replay) =>
+            onLesson={(index, replay) => {
+              if (!replay && placementEligible) {
+                setPlacementOpen(true)
+                return
+              }
               onStart('learn', [topic.id], replay ? { kind: 'replay', index } : { kind: 'lesson' })
-            }
+            }}
             onCheckpoint={(checkpoint) =>
               onStart('learn', [topic.id], {
                 kind: 'checkpoint',
@@ -287,6 +303,25 @@ export function TopicPage({
           Delete topic
         </button>
       </div>
+      {placementOpen && course && (
+        <MorsePlacementDialog
+          topic={topic}
+          onClose={() => setPlacementOpen(false)}
+          onNew={() => {
+            setPlacementOpen(false)
+            onStart('learn', [topic.id], { kind: 'lesson' })
+          }}
+          onCommit={(result) => {
+            updateTopic(topic.id, (current) => applyMorsePlacement(current, result))
+          }}
+          onContinue={(result) => {
+            setPlacementOpen(false)
+            if (result.nextLesson !== null) {
+              onStart('learn', [topic.id], { kind: 'lesson' })
+            }
+          }}
+        />
+      )}
     </article>
   )
 }
