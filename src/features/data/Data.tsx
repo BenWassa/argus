@@ -7,16 +7,13 @@ import { collisions } from '../../lib/catalog'
 import { Confirm } from '../../components/ui/Confirm'
 
 /**
- * Export, import, sync and reset. A Library utility with its own route rather
- * than a permanent navigation slot: it is used a handful of times a year, and
- * `PRODUCT.md` asks for it to be first-class and easy to find, not for it to
- * hold a quarter of the bottom bar. Reached from the foot of Library, and its
- * own Back control returns there the way Topic does.
+ * Profile is the owner/account utility reached from Today. Sync is the first
+ * subsection because it describes whose record this is; Data & backup follows
+ * as a lower-frequency control surface. Neither belongs in the primary bottom
+ * navigation or inside the learning Library hierarchy.
  *
- * Sync belongs here rather than in the bottom bar or a header for the same
- * reason: it is set up once and then has nothing to say. The record on this
- * device remains the one the app reads and writes, so everything below sync on
- * this page keeps working exactly as it did when there was no account at all.
+ * The local learner library remains the record Argus reads and writes. Profile
+ * only exposes account/sync and portability controls around that same record.
  */
 export function Profile({ onBack }: { onBack: () => void }) {
   const { topics, library, catalogReport, replaceLibrary, resetLibrary } = useLibrary()
