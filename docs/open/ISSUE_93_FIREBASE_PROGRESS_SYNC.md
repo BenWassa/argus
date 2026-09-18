@@ -1,6 +1,6 @@
 # Issue #93 — Firebase-authenticated learner progress sync
 
-Status: **mostly implemented — 2026-09-16.** The sync layer, Security Rules and the sign-in entry boundary are built and tested; the local-data recovery rules are not.
+Status: **mostly implemented — 2026-09-18.** The authenticated Firebase mirror, Security Rules, per-topic conflict planner and sign-in entry boundary are built and tested. **Issue #113 now owns the offline-runtime/storage follow-up**: IndexedDB local authority, atomic local write + sync intent, durable retry/outbox, production cold-launch caching, provisioned-device offline startup, storage lifecycle and sizing/download policy. #93 remains authority for cloud recovery, owner isolation, remote record shape and conservative cross-device conflict behavior.
 
 This document is the durable implementation scope for GitHub issue #93.
 
@@ -40,15 +40,18 @@ This document is the durable implementation scope for GitHub issue #93.
 > nothing to sign in to. A build with no Firebase configuration remains
 > ungated, exactly as `Owner decisions` below records.
 >
-> **What has not landed, and is still open:**
+> **What has not landed / follow-up ownership:**
 >
 > 1. **Local invalid/missing data recovery** and **first migration for existing
->    users**. Today an empty local library does not attempt authenticated
->    recovery before seeding a fresh one, which is the specific data-loss hole
->    this issue opens with.
-> 2. **Coalescing and retry** of cloud writes. Writes are made as plans are
->    carried out, and a failure is surfaced rather than retried.
-> 3. `lessonSitting` state is local-only and still excluded.
+>    users** remain required by #93's data-loss contract. Their implementation is
+>    now part of #113's IndexedDB/bootstrap migration lane so there is one local
+>    recovery authority rather than parallel fixes.
+> 2. **Coalescing and durable retry** of cloud writes are now owned by #113's
+>    outbox/reconnect lane. #93's remote schema and conflict planner remain the
+>    policy those retries must obey.
+> 3. Any durable learner field still excluded from sync must be reconciled as
+>    part of #113 against the current schema at implementation time; do not
+>    maintain a second list of offline-only progress fields here.
 >
 > **Owner decision — 2026-09-16.** Gating every learning surface behind Google
 > sign-in makes an account mandatory for what was a local-first app. This
