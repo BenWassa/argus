@@ -151,7 +151,7 @@ describe('catalog reconciliation', () => {
     expect(collisions(report)).toEqual(['cardinal-bearings'])
   })
 
-  it('does not resurrect a delivered topic the learner deleted', () => {
+  it('keeps individual deletion durable once a library still contains other topics', () => {
     const delivered = [...SHIPPED_CATALOG_TOPIC_IDS].sort()
     const { library, report } = reconcileCatalog(libraryOf([worked('nato-phonetic')], delivered), NOW)
 
@@ -193,13 +193,14 @@ describe('catalog reconciliation', () => {
     expect(twice.library).toBe(once.library)
   })
 
-  it('leaves an empty library empty when delivery is already recorded', () => {
+  it('recovers the shipped baseline from an empty legacy record', () => {
     const { library, report } = reconcileCatalog(
       libraryOf([], [...SHIPPED_CATALOG_TOPIC_IDS].sort()),
       NOW,
     )
-    expect(library.topics).toEqual([])
-    expect(report.added).toEqual([])
+    expect(library.topics.map((topic) => topic.id).sort()).toEqual([...SHIPPED_CATALOG_TOPIC_IDS].sort())
+    expect(report.added).toEqual([...SHIPPED_CATALOG_TOPIC_IDS])
+    expect(library.topics.every((topic) => topic.status === 'unstarted')).toBe(true)
   })
 
   it('delivers into an empty library that has never been offered anything', () => {

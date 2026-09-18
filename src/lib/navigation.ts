@@ -54,7 +54,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
  * its root rather than restoring a route it can no longer render.
  */
 function isView(value: unknown): value is View {
-  return value === 'today' || value === 'library' || value === 'data'
+  return value === 'today' || value === 'library' || value === 'profile' || value === 'data'
 }
 
 function isMode(value: unknown): value is Mode {

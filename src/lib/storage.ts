@@ -47,7 +47,7 @@ import {
 const KEY = 'argus.library.v5'
 const LEGACY_KEYS = ['argus.library.v4', 'argus.library.v3', 'argus.library.v2'] as const
 
-/** A library holding nothing, and expecting nothing. Reset means reset. */
+/** Raw empty learner data. Reconciliation restores shipped baseline content. */
 export function emptyLibrary(): CurrentLibrary {
   return { version: 5, topics: [], catalogDelivered: [...SHIPPED_CATALOG_TOPIC_IDS].sort() }
 }

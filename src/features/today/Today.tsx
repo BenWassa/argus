@@ -58,9 +58,10 @@ interface TodayProps {
   onStart: (mode: Mode, topicIds: string[], target?: RunTarget) => void
   onOpenTopic: (topicId: string) => void
   onGoToLibrary: () => void
+  onOpenProfile: () => void
 }
 
-export function Today({ onStart, onOpenTopic, onGoToLibrary }: TodayProps) {
+export function Today({ onStart, onOpenTopic, onGoToLibrary, onOpenProfile }: TodayProps) {
   const { topics, updateTopic } = useLibrary()
   const stamp = new Date().toLocaleDateString(undefined, {
     weekday: 'short',
@@ -80,7 +81,7 @@ export function Today({ onStart, onOpenTopic, onGoToLibrary }: TodayProps) {
   if (topics.length === 0) {
     return (
       <>
-        <Head verdict="Nothing here yet" stamp={stamp} />
+        <Head verdict="Nothing here yet" stamp={stamp} onProfile={onOpenProfile} />
         <p className="today-note">
           Argus holds topics that can be genuinely finished. Every one states its own boundary
           before it can exist, and that boundary is what makes finishing possible.
@@ -110,7 +111,7 @@ export function Today({ onStart, onOpenTopic, onGoToLibrary }: TodayProps) {
   if (practicable.length === 0) {
     return (
       <>
-        <Head verdict="Nothing to test yet" stamp={stamp} />
+        <Head verdict="Nothing to test yet" stamp={stamp} onProfile={onOpenProfile} />
         <p className="today-note">
           {sentence(topicCount(topics.length))} in the library, none with any items yet. A topic
           needs its prompts and answers before it can be read or tested.
@@ -133,7 +134,7 @@ export function Today({ onStart, onOpenTopic, onGoToLibrary }: TodayProps) {
 
     return (
       <>
-        <Head verdict="Nothing due" stamp={stamp} />
+        <Head verdict="Nothing due" stamp={stamp} onProfile={onOpenProfile} />
         <p className="today-note">
           Recall needs the gap to mean anything, so the schedule is holding.
         </p>
@@ -210,7 +211,7 @@ export function Today({ onStart, onOpenTopic, onGoToLibrary }: TodayProps) {
 
   return (
     <>
-      <Head verdict={verdict} stamp={stamp} />
+      <Head verdict={verdict} stamp={stamp} onProfile={onOpenProfile} />
 
       <ul className="index docket">
         {due.map((entry) => (
@@ -263,11 +264,33 @@ export function Today({ onStart, onOpenTopic, onGoToLibrary }: TodayProps) {
 
 /** The verdict is the page's largest type, because naming the view is the one
  *  thing the navigation already does. */
-function Head({ verdict, stamp }: { verdict: string; stamp: string }) {
+function Head({
+  verdict,
+  stamp,
+  onProfile,
+}: {
+  verdict: string
+  stamp: string
+  onProfile: () => void
+}) {
   return (
     <div className="today-head">
       <h1 aria-live="polite">{verdict}</h1>
-      <p className="today-date tabular">{stamp}</p>
+      <div className="today-head-tools">
+        <p className="today-date tabular">{stamp}</p>
+        <button
+          className="today-profile"
+          type="button"
+          aria-label="Open profile"
+          title="Profile"
+          onClick={onProfile}
+        >
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
+            <circle cx="12" cy="8" r="3.25" />
+            <path d="M5.75 19c.6-3.25 2.68-5 6.25-5s5.65 1.75 6.25 5" />
+          </svg>
+        </button>
+      </div>
     </div>
   )
 }
