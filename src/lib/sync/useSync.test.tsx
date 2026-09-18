@@ -117,9 +117,12 @@ describe('carrying out a plan', () => {
     const topic = realTopic()
     const store = fakeStore([])
     const backend = fakeBackend()
-    renderHook(() => useSync(store, backend))
+    const { result } = renderHook(() => useSync(store, backend))
 
     act(() => backend.emitUser(OWNER))
+    // Remote observation is mounted by the user-state effect. Wait for that
+    // lifecycle boundary before emitting records rather than racing the effect.
+    await waitFor(() => expect(result.current.state.kind).toBe('syncing'))
     act(() =>
       backend.emitRecords([
         { topicId: topic.id, json: topicJson(topic), revision: 4, updatedAtMs: 1_000 },
