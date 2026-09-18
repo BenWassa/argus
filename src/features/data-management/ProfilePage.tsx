@@ -6,6 +6,7 @@ import { parseLibrary } from '../../infrastructure/persistence/libraryParser'
 import { exportFilename } from '../../infrastructure/persistence/localLibraryRepository'
 import { collisions } from '../../domain/library/catalog'
 import { Confirm } from '../../shared/ui/Confirm'
+import packageMetadata from '../../../package.json'
 import './ProfilePage.css'
 
 /**
@@ -121,6 +122,9 @@ export function ProfilePage({ onBack }: { onBack: () => void }) {
       >
         Reset learning data
       </button>
+
+      <h2 className="profile-section-title">About</h2>
+      <p className="note tabular">App version {packageMetadata.version}</p>
 
       {pendingImport && (
         <Confirm

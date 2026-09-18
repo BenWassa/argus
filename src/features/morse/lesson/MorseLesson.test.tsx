@@ -141,7 +141,13 @@ function tEntry(): LessonEntry {
 const ref = { current: null }
 
 describe('the guided run mounts one task and never a menu', () => {
-  it('opens the Morse lesson itself rather than a curriculum picker', () => {
+  it('opens the Morse lesson itself rather than a curriculum picker once placement is resolved', () => {
+    const topic = seededTopic(MORSE_ID)
+    seedLibraryWithTopic({
+      ...topic,
+      status: 'learning',
+      learningAt: '2026-09-18T12:00:00.000Z',
+    })
     const html = guidedRun(MORSE_ID)
     expect(html).toContain('morse-lesson')
     // The path is the topic page's body now, so the run does not repeat it.
