@@ -88,8 +88,9 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
   const resetLibrary = useCallback(() => {
     clearLibrary()
     clearAllLessonSittings()
-    setLibrary(emptyLibrary())
-    setCatalogReport(NO_RECONCILIATION)
+    const reset = reconcileLoadedLibrary(emptyLibrary())
+    setLibrary(reset.library)
+    setCatalogReport(reset.report)
   }, [])
 
   const value = useMemo(
