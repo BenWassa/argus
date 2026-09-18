@@ -77,7 +77,7 @@ export function Profile({ onBack }: { onBack: () => void }) {
       <h2>Data &amp; backup</h2>
       <p className="lede-text">
         Export writes the whole learner record to a JSON file you own. Import replaces your local
-        learner record, while the shipped Argus catalog remains available as baseline content.
+        learner record. An entirely empty legacy record is repaired back to the shipped baseline.
       </p>
 
       <div className="actions start">
@@ -125,7 +125,7 @@ export function Profile({ onBack }: { onBack: () => void }) {
       {pendingImport && (
         <Confirm
           title="Replace learner data"
-          body={`Importing replaces all ${topics.length} topics on this device with the ${pendingImport.count} in this file, including their history, completion records, Learn support, any lesson sitting in progress, item identity, and cue evidence. Missing shipped Argus topics are restored as fresh baseline content. Export first if you want to keep what is here.`}
+          body={`Importing replaces all ${topics.length} topics on this device with the ${pendingImport.count} in this file, including their history, completion records, Learn support, any lesson sitting in progress, item identity, and cue evidence. An entirely empty legacy record is repaired back to the shipped baseline. Export first if you want to keep what is here.`}
           confirmLabel="Replace data"
           onCancel={() => setPendingImport(null)}
           onConfirm={() => {
