@@ -38,13 +38,13 @@ const MAY_IMPORT: Record<string, string[]> = {
 /**
  * Cross-feature imports that reach past a feature's root, and are known debt.
  *
- * Both are real: the Test ladder keys Morse, and the topic page shows the
- * curriculum path. Either they become part of `features/morse`'s root surface
- * or the consumer stops needing them — this list may shrink, never grow.
+ * One is left: the topic page shows the curriculum path. Either it becomes
+ * part of `features/morse`'s root surface or the consumer stops needing it —
+ * this list may shrink, never grow. The Test ladder's keyed answer took the
+ * first route, and is now `features/morse/keyedResponse`.
  */
 const DEEP_FEATURE_IMPORTS = new Set([
   'src/features/library/TopicPage.tsx -> src/features/morse/lesson/MorsePath',
-  'src/features/test/ProgressiveCard.tsx -> src/features/morse/input/MorseKeyInput',
 ])
 
 function sourceFiles(root: string): string[] {
