@@ -117,7 +117,7 @@ export function MorseCheckpoint({ checkpoint, onExit, onContinue, continueLabel 
     : `word-${run.wordIndex}-${run.characterIndex}`
 
   return (
-    <section className="session morse-lesson morse-checkpoint">
+    <section className="session morse-lesson morse-checkpoint" data-step="check">
       <div className="session-bar">
         <p>
           <span className="session-topic">{label}</span>

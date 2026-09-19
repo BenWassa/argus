@@ -117,6 +117,93 @@
   color: var(--subtle);
 }
 
+/* --------------------------------------------------- the finished run -- */
+
+/* The completed stretch above the current lesson, collapsed so the row the
+   learner came for is the first one on the page. It keeps the spine and the
+   row rhythm, so the fold reads as part of the sequence rather than as a
+   control bolted above it. */
+.morse-path-folded {
+  grid-template-areas: "number main";
+  grid-template-columns: 2.75rem minmax(0, 1fr);
+  align-items: start;
+  padding: 0;
+}
+
+.morse-path-folded > .morse-path-number {
+  padding-block: 12px;
+  color: var(--complete);
+}
+
+.morse-path-fold {
+  grid-area: main;
+  min-width: 0;
+}
+
+.morse-path-fold summary {
+  display: grid;
+  gap: 2px;
+  padding: 12px 0;
+  font-size: var(--t-small);
+  color: var(--subtle);
+  cursor: pointer;
+}
+
+.morse-path-fold summary:hover {
+  color: var(--muted);
+}
+
+.morse-path-fold summary:focus-visible {
+  outline: 2px solid var(--accent-2);
+  outline-offset: 2px;
+}
+
+.morse-path-fold-letters {
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  letter-spacing: var(--track-readout);
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+/* The nested list borrows the row treatment but not the outer spine: it is
+   already inside one. */
+.morse-path-nested {
+  margin: 0 0 var(--s-sm);
+  border-top: 1px solid var(--line);
+}
+
+.morse-path-nested .morse-path-item {
+  grid-template-areas: "number main action";
+  grid-template-columns: 2rem minmax(0, 1fr) auto;
+  padding: 10px 0;
+}
+
+.morse-path-nested .morse-path-number::after {
+  content: none;
+}
+
+.morse-path-nested .morse-path-letters {
+  font-size: 1.1rem;
+}
+
+.morse-path-nested .morse-path-item:last-child {
+  border-bottom: 0;
+}
+
+@media (max-width: 380px) {
+  .morse-path-folded {
+    grid-template-columns: 2.4rem minmax(0, 1fr);
+  }
+
+  .morse-path-nested .morse-path-item {
+    grid-template-areas:
+      "number main"
+      "number action";
+    grid-template-columns: 2rem minmax(0, 1fr);
+  }
+}
+
 /* ------------------------------------------------------------- states -- */
 
 .morse-path-item.is-completed .morse-path-number,

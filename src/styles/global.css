@@ -747,6 +747,22 @@ main:focus {
   color: var(--ink);
 }
 
+/* Which run this is, when the run is not the canonical one. A tag rather than a
+   longer title: it has to stay legible beside a lesson number on a 320px
+   screen, and it must not read as an action. */
+.session-mode {
+  padding: 1px 6px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-sm);
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  font-weight: var(--w-label);
+  letter-spacing: var(--track-readout);
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
 .rate {
   display: grid;
   grid-template-columns: 1fr 1fr;

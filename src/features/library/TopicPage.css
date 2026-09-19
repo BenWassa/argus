@@ -214,6 +214,23 @@
   outline-offset: 2px;
 }
 
+/* The course's explanatory support, folded. Open, it is reading, so it takes
+   the reading measure rather than running the full width of the path above it. */
+.topic-course-notes[open] {
+  padding-bottom: var(--s-lg);
+}
+
+.topic-course-notes .learn-support,
+.topic-course-grammar {
+  max-width: 62ch;
+}
+
+.topic-course-grammar {
+  margin: var(--s-lg) 0 0;
+  font-size: var(--t-small);
+  color: var(--muted);
+}
+
 .fold-history {
   padding-bottom: var(--s-md);
   border-top: 1px solid var(--line);

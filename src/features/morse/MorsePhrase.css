@@ -1,0 +1,69 @@
+/* #44/#48 — the spoken phrase is the primary memory hook, so it reads as one
+   line of text, and its timing is carried by an explicit mark under every word
+   rather than by capitalisation.
+
+   The previous treatment made casing load-bearing: lowercase meant a short beat
+   and capitals meant a held one, which contradicted the supplied `A LONG`
+   exemplar where `A` is the short beat. Every visible word is now rendered
+   uppercase by `MorsePhrase`, so casing carries no information and can carry no
+   contradiction; the `·`/`—` mark beneath each word carries the duration, and
+   `docs/open/MORSE_VERBAL_MNEMONICS.md` records the same rule. The authored casing
+   survives in the accessible text equivalent.
+
+   Aligning one mark under one word is also what stops deliberate repetition
+   looking like duplicated data: `ZOOM ZOOM ZIP ZIP` visibly has four marks
+   under four words.
+
+   These rules live with `MorsePhrase` rather than with `MorseCharacterPacket`.
+   The packet is reachable only through `LearnSupport`, which a curriculum topic
+   never renders — so every phrase the Morse lesson shows was being styled by a
+   stylesheet belonging to a component the lesson cannot mount. It worked only
+   because the bundler collects every imported stylesheet into one document;
+   deleting an unrelated reading surface would have silently unstyled the
+   mnemonic at the centre of acquisition. */
+
+.morse-phrase {
+  min-width: 0;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.15rem, 4.8vw, 1.6rem);
+  font-weight: var(--w-display);
+  line-height: 1.1;
+}
+
+/* Baseline-aligned words on one line, each with its own mark directly beneath:
+   the phrase stays one cohesive object while every beat is separately legible.
+   Wrapping is by whole beats, so a word never separates from its mark. */
+.morse-phrase-beats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.15em 0.45em;
+}
+
+.morse-phrase-beat {
+  display: inline-grid;
+  justify-items: center;
+  gap: 0.05em;
+  overflow-wrap: anywhere;
+}
+
+.morse-phrase-mark {
+  font-family: var(--font-mono);
+  /* Sized well above a decorative caption: the mark is the timing, so it has to
+     survive a small phone screen and a reader at 200% text. */
+  font-size: 0.72em;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: var(--accent);
+}
+
+.morse-phrase-beat.is-hidden .morse-phrase-word,
+.morse-phrase-beat.is-hidden .morse-phrase-mark {
+  color: var(--subtle);
+}
+
+.morse-grammar-mark {
+  font-family: var(--font-mono);
+  color: var(--accent);
+}

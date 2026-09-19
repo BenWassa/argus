@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { lessonPackets } from './lesson'
-import { morseLessonPath, startReplayLesson } from './lessonPath'
+import { lessonPackets, startLesson } from './lesson'
+import { morseLessonPath, nextReplayLesson, startReplayLesson } from './lessonPath'
 import { parseLibrary } from '../../../infrastructure/persistence/libraryParser'
 import { seedLibrary } from '../../library/catalogSeed'
 import type { Topic } from '../../library/topic'
@@ -24,6 +24,15 @@ function itemIdForGlyph(value: Topic, glyph: string): string {
 
 function withProgress(value: Topic, progress: ItemLessonStore): Topic {
   return { ...value, lessonProgress: progress }
+}
+
+/** Every character in the first `lessons` packets settled, and nothing after. */
+function settledThrough(value: Topic, lessons: number): ItemLessonStore {
+  const progress: ItemLessonStore = {}
+  for (const packet of lessonPackets().slice(0, lessons)) {
+    for (const glyph of packet.characters) progress[itemIdForGlyph(value, glyph)] = 'settled'
+  }
+  return progress
 }
 
 describe('Morse lesson path', () => {
@@ -91,20 +100,66 @@ describe('completed lesson replay', () => {
     expect(startReplayLesson(value, 12)).toBeNull()
   })
 
-  it('creates an ephemeral uncued run for a completed lesson without changing the topic', () => {
+  it('reruns the canonical first-exposure lesson rather than a stripped quiz (#117)', () => {
     const value = topic()
     const first = lessonPackets()[0]
-    const progress: ItemLessonStore = {}
-    for (const glyph of first.characters) progress[itemIdForGlyph(value, glyph)] = 'settled'
-    const progressed = withProgress(value, progress)
+    const progressed = withProgress(value, settledThrough(value, 1))
     const before = JSON.stringify(progressed)
 
     const replay = startReplayLesson(progressed, 0)
     expect(replay).not.toBeNull()
     expect(replay!.packetIndex).toBe(0)
     expect(replay!.entries.map((entry) => entry.glyph)).toEqual(first.characters)
-    expect(replay!.entries.every((entry) => entry.support === 'solo')).toBe(true)
-    expect(replay!.entries.every((entry) => entry.introduced)).toBe(true)
+    // The novel pair is met again the way it was met the first time: taught,
+    // not yet introduced, so the mnemonic/canonical/audio introduction screen
+    // is shown before any retrieval is asked for.
+    const novel = replay!.entries.filter((entry) => entry.novel)
+    expect(novel.map((entry) => entry.glyph)).toEqual([...first.novel])
+    expect(novel.every((entry) => entry.support === 'taught')).toBe(true)
+    expect(novel.every((entry) => entry.introduced === false)).toBe(true)
     expect(JSON.stringify(progressed)).toBe(before)
+  })
+
+  it('builds every replay from the canonical lesson builder, so the roster cannot drift', () => {
+    const value = topic()
+    for (let index = 0; index < lessonPackets().length; index += 1) {
+      // A learner who has settled everything can replay any lesson; the run
+      // must match what a learner standing at that position would be given.
+      const completed = withProgress(value, settledThrough(value, lessonPackets().length))
+      const atPosition = withProgress(value, settledThrough(value, index))
+
+      const replay = startReplayLesson(completed, index)
+      const canonical = startLesson(atPosition)
+      expect(replay).not.toBeNull()
+      expect(canonical).not.toBeNull()
+      expect(replay!.packetIndex).toBe(index)
+      expect(replay!.entries.map((entry) => entry.glyph)).toEqual(
+        canonical!.entries.map((entry) => entry.glyph),
+      )
+    }
+  })
+
+  it('walks the printed curriculum and stops after the last lesson', () => {
+    const value = topic()
+    const completed = withProgress(value, settledThrough(value, lessonPackets().length))
+    const last = lessonPackets().length - 1
+
+    expect(nextReplayLesson(completed, 0)!.packetIndex).toBe(1)
+    expect(nextReplayLesson(completed, last - 1)!.packetIndex).toBe(last)
+    expect(nextReplayLesson(completed, last)).toBeNull()
+  })
+
+  it('never reports the end-of-curriculum run, whatever the learner has settled', () => {
+    const value = topic()
+    const completed = withProgress(value, settledThrough(value, lessonPackets().length))
+    // `startLesson` hands a fully settled learner the finished screen. A replay
+    // asks about an earlier position, so it must always produce a real lesson.
+    expect(startLesson(completed)!.finished).toBe(true)
+    for (let index = 0; index < lessonPackets().length; index += 1) {
+      const replay = startReplayLesson(completed, index)
+      expect(replay!.finished).toBe(false)
+      expect(replay!.complete).toBe(false)
+      expect(replay!.entries.length).toBeGreaterThan(0)
+    }
   })
 })

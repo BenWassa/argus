@@ -83,7 +83,7 @@ export function practiceComplete(state: PracticeRunState): boolean {
  * Nothing here touches a topic, and nothing here returns one. That is the whole
  * evidence guarantee: a practice answer has no path to durable state because
  * this function has no durable state to reach. `PracticeRun` imports no store
- * write, exactly as `MorseReplay` imports none.
+ * write, exactly as `MorseCheckpoint` imports none.
  */
 export function answerPractice(state: PracticeRunState, correct: boolean): PracticeRunState {
   const target = currentTarget(state)

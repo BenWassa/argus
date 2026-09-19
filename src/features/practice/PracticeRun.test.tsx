@@ -79,7 +79,7 @@ describe('practice writes nothing', () => {
     const source = readFileSync(resolve('src/features/practice/PracticeRun.tsx'), 'utf8')
     const imports = [...source.matchAll(/^import[\s\S]*?from '([^']+)'/gm)].map((m) => m[1])
 
-    // The same guarantee `MorseReplay` gives. If a future edit needs one of
+    // The same guarantee `MorseCheckpoint` gives. If a future edit needs one of
     // these, it is no longer a formative run and this test should be the thing
     // that says so.
     expect(imports).not.toContain('../../services/library/LibraryProvider')

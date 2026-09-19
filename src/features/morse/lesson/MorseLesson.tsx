@@ -12,6 +12,7 @@ import {
 } from '../../../domain/morse/curriculum/lesson'
 import {
   morseLessonPath,
+  nextReplayLesson,
   type MorseLessonPathItem,
 } from '../../../domain/morse/curriculum/lessonPath'
 import {
@@ -59,14 +60,33 @@ interface CheckpointHandoff {
 interface MorseLessonProps {
   topic: Topic
   initialRun: LessonRun
+  /**
+   * True when this is a rerun of a lesson the learner has already reached
+   * (#117).
+   *
+   * Replay is deliberately not a second surface. It is this component, with
+   * this component's screens, steps, mnemonics, audio, feedback and word
+   * checkpoints, running a lesson the canonical builder produced for an earlier
+   * position. The flag changes three things and nothing else: the record writes
+   * nothing, "next lesson" walks the printed order instead of the learner's
+   * durable position, and the copy stops implying a first meeting.
+   */
+  replay?: boolean
   onExit: () => void
   onTest: () => void
   onReference: () => void
 }
 
-export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: MorseLessonProps) {
+export function MorseLesson({
+  topic,
+  initialRun,
+  replay = false,
+  onExit,
+  onTest,
+  onReference,
+}: MorseLessonProps) {
   const { topics } = useLibrary()
-  const record = useLessonRecord(topic.id)
+  const record = useLessonRecord(topic.id, replay)
   const { sounding, audioError, clearError, stop, toggle } = useMorseAudio()
   const headingRef = useRef<HTMLHeadingElement>(null)
   const stepRef = useRef<HTMLDivElement>(null)
@@ -74,7 +94,14 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
   const [run, setRun] = useState<LessonRun>(initialRun)
   // The sitting resumes from the topic itself (#66). There is no sidecar store:
   // what the learner sees at 6/10 is the same value an export carries.
-  const [sitting, setSitting] = useState<LessonSitting>(() => lessonSittingOf(topic))
+  //
+  // A replay opens a clean local sitting instead. Showing the learner's real
+  // "6 retrievals" against work that cannot advance it would be a readout of
+  // somebody else's progress, and resuming a durable sitting inside a run that
+  // never closes it would strand that sitting mid-count.
+  const [sitting, setSitting] = useState<LessonSitting>(() =>
+    replay ? newLessonSitting() : lessonSittingOf(topic),
+  )
   const [listeningState, setListeningState] = useState(() => ({
     ...newLessonListeningState(),
     // A durable sitting has to resume the learner's own declaration with it.
@@ -118,6 +145,23 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
   const hasFeedback = Boolean(run.feedback || listeningFeedback)
   const step = hasFeedback ? null : currentStep(run)
   const packetProgress = lessonProgressCount(run)
+  /**
+   * Whether the `·`/`—` mark grammar still needs explaining on the spot.
+   *
+   * The note used to appear under every introduction — twenty-six times across
+   * the course, plus every replay — always illustrated with `ZOOM ZOOM ZIP ZIP`,
+   * a letter other than the one being taught. Explaining the notation is a
+   * first-meeting job, not a permanent caption competing with the mnemonic it
+   * is describing.
+   *
+   * The test is about the learner rather than the lesson's position, which is
+   * what makes it right for someone placed into the middle of the course: they
+   * told the placement check they already know Morse, and a learner who is
+   * genuinely new has always met fewer than a lesson's worth of characters when
+   * they first see this. Everyone else keeps it permanently under
+   * `How this course works` on the topic page.
+   */
+  const notationIsNew = introducedGlyphs(live).length < 3
   /**
    * Which character this slot asks by ear, chosen by listening need across the
    * whole roster rather than by whichever one the printed queue offered (#90
@@ -211,16 +255,32 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
    * passing through a later lesson-complete screen, or a repair re-settling an
    * already-reached lesson.
    */
+  function checkpointOf(completedLessonNumber: number): MorseWordCheckpointPathItem | null {
+    const checkpoints = morseWordCheckpointPath(topicRef.current)
+    return checkpoints?.find((checkpoint) => checkpoint.afterLesson === completedLessonNumber) ?? null
+  }
+
   function newlyUnlockedCheckpoint(
     completedLessonNumber: number,
     pathBeforeAnswer: MorseLessonPathItem[] | null,
   ): MorseWordCheckpointPathItem | null {
-    if (!pathBeforeAnswer || !CHECKPOINT_LESSON_NUMBERS.has(completedLessonNumber)) return null
+    if (!CHECKPOINT_LESSON_NUMBERS.has(completedLessonNumber)) return null
+
+    // A replay writes nothing, so the two path snapshots are necessarily
+    // identical and the first-crossing test can never fire. The milestone is
+    // still part of the lesson being rerun, and #117 asks for the word
+    // checkpoints where they belong — so replay offers the checkpoint the
+    // lesson reaches, which is already unlocked by definition.
+    if (replay) {
+      const checkpoint = checkpointOf(completedLessonNumber)
+      return checkpoint?.unlocked ? checkpoint : null
+    }
+
+    if (!pathBeforeAnswer) return null
     const pathNow = morseLessonPath(topicRef.current)
     if (!pathNow) return null
     if (!checkpointNewlyUnlocked(pathBeforeAnswer, pathNow, completedLessonNumber)) return null
-    const checkpoints = morseWordCheckpointPath(topicRef.current)
-    return checkpoints?.find((checkpoint) => checkpoint.afterLesson === completedLessonNumber) ?? null
+    return checkpointOf(completedLessonNumber)
   }
 
   function movePastVisualFeedback(
@@ -304,10 +364,19 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
   }
 
   function nextPacket() {
-    // Select review against the next sitting ordinal, matching the durable close.
-    const nextTopic = withMorseReview(topicRef.current, completeSitting(morseReviewOf(topicRef.current)))
-    const next = startLesson(nextTopic)
-    if (!next) return
+    // A replay walks the printed curriculum, because the learner's durable
+    // position is the one thing it is not moving: asking `startLesson` for
+    // "the next lesson" would hand back wherever acquisition actually stands.
+    // The end of the curriculum is an exit rather than a new screen — the
+    // replay has no claim to make, and the path it returns to says the rest.
+    const next = replay
+      ? nextReplayLesson(topicRef.current, run.packetIndex)
+      : // Select review against the next sitting ordinal, matching the durable close.
+        startLesson(withMorseReview(topicRef.current, completeSitting(morseReviewOf(topicRef.current))))
+    if (!next) {
+      if (replay) onExit()
+      return
+    }
     stop()
     clearError()
     resetResponse()
@@ -324,12 +393,20 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
     setAudioNotice(null)
   }
 
+  // Replay is named once, in the bar, where it stays visible for the whole run.
+  // It belongs there rather than on every screen: the learner needs to know
+  // which run they are in, not to be reminded at every step that it does not
+  // count.
   const bar = (
     <div className="session-bar">
       <p>
         <span className="session-topic">
           {run.finished ? 'Morse curriculum' : `Lesson ${run.packetIndex + 1} of ${run.packetCount}`}
         </span>
+        {/* Its own element with real whitespace around it, so the line reads as
+            two facts to a screen reader too rather than as `Lesson 1 of
+            13Replay`. */}
+        {replay && <> <span className="session-mode">Replay</span></>}
         <span className="tabular">
           {run.finished
             ? 'All packets settled'
@@ -358,7 +435,11 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
       <section className="session morse-lesson">
         {bar}
         <h1 ref={headingRef} tabIndex={-1} className="lesson-title">Lesson {checkpoint.afterLesson} complete</h1>
-        <p className="lesson-lede">You now know enough letters to use a few of them together.</p>
+        <p className="lesson-lede">
+          {replay
+            ? 'This is the point in the course where the letters so far get used together.'
+            : 'You now know enough letters to use a few of them together.'}
+        </p>
         <div className="checkpoint-invite-card">
           <p className="lesson-task">Word checkpoint</p>
           <p>Key a real word one letter at a time, using only letters you already know.</p>
@@ -397,13 +478,24 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
     return (
       <section className="session morse-lesson">
         {bar}
-        <h1 ref={headingRef} tabIndex={-1} className="lesson-title">Lesson {run.packetIndex + 1} done</h1>
-        <p className="lesson-lede">Every character in this packet was produced from the letter alone. {last ? 'That was the last lesson.' : 'The next lesson brings two new characters and mixes these back in.'}</p>
+        <h1 ref={headingRef} tabIndex={-1} className="lesson-title">
+          Lesson {run.packetIndex + 1} {replay ? 'replayed' : 'done'}
+        </h1>
+        <p className="lesson-lede">
+          Every character in this packet was produced from the letter alone.{' '}
+          {last
+            ? 'That was the last lesson.'
+            : 'The next lesson brings two new characters and mixes these back in.'}
+        </p>
         <div className="lesson-exits" inert={!armed}>
           <button type="button" onClick={nextPacket}>{last ? 'Finish' : 'Next lesson'}</button>
           <button className="ghost" type="button" onClick={onExit}>Stop here</button>
         </div>
-        <p className="lesson-foot">Nothing in Learn is scored. Test is still the only place the A–Z claim is proved.</p>
+        <p className="lesson-foot">
+          {replay
+            ? 'A replay teaches; it records nothing. Your lesson position, evidence and completion are exactly as you left them.'
+            : 'Nothing in Learn is scored. Test is still the only place the A–Z claim is proved.'}
+        </p>
       </section>
     )
   }
@@ -412,7 +504,15 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
   const shownListeningFeedback = listeningFeedback
 
   return (
-    <section className="session morse-lesson" data-phase={phase}>
+    <section
+      className="session morse-lesson"
+      data-phase={phase}
+      // `data-step` marks the screens whose whole job is one retrieval, so the
+      // stylesheet can bring the answer down into thumb reach instead of
+      // leaving a third of a phone screen empty beneath it. Feedback is
+      // excluded on purpose: a correction is read from the top down.
+      data-step={!hasFeedback && step ? step.kind : undefined}
+    >
       {bar}
       <h1 ref={headingRef} tabIndex={-1} className="sr-only">Morse lesson, packet {run.packetIndex + 1} of {run.packetCount}</h1>
       <p className="lesson-foot">Lesson progress: {packetProgress.done} of {packetProgress.total} settled.</p>
@@ -451,7 +551,7 @@ export function MorseLesson({ topic, initialRun, onExit, onTest, onReference }: 
           <p className="lesson-task">New letter</p>
           <CharacterStage glyph={step.entry.glyph} pattern={step.entry.pattern} playing={sounding?.glyph === step.entry.glyph}
             activeIndex={sounding?.glyph === step.entry.glyph ? sounding.index : null} onToggle={() => toggle(step.entry.glyph)} />
-          <MorseBeatGrammarNote className="lesson-grammar" />
+          {notationIsNew && <MorseBeatGrammarNote className="lesson-grammar" />}
           <button
             className="lesson-next"
             type="button"

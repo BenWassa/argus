@@ -26,7 +26,6 @@ Primary code:
   acquisition-readiness anchor Learn stamps (#67);
 - `src/features/morse/lesson/MorseLesson.tsx` — guided lesson surface;
 - `src/features/learn/MorseProgramme.tsx` — visible lesson/checkpoint path;
-- `src/features/morse/lesson/MorseReplay.tsx` — local-only lesson replay;
 - `src/features/morse/lesson/MorseCheckpoint.tsx` — local-only word checkpoint runner;
 - `src/features/morse/input/MorseKeyInput.tsx` — shared letter → Morse response control;
 - `src/domain/morse/response.ts` / `src/features/morse/input/useKeyedResponse.ts` — shared
@@ -342,6 +341,71 @@ support that normal Learn uses. Completed or previously reached lessons can be
 replayed, but replay is local-only: it never demotes saved support, moves the
 canonical current lesson, changes an active sitting, or writes formal evidence.
 
+**#117 — replay is a mode of the lesson, not a surface beside it.** Replay was
+originally its own component rendering a flat uncued queue: every mapping
+pre-introduced at `solo`, capped at ten retrievals, with no mnemonic, canonical
+notation, audio, introduction screen or word checkpoint. A learner who had
+finished the course and chose to go back over Lesson 1 was shown a bare glyph
+and a key. That surface is gone.
+
+`startReplayLesson(topic, index)` now builds its run by calling the canonical
+`startLesson` against a copy of the topic rewound to the position that lesson
+was first opened at — every earlier packet settled, the lesson itself untouched.
+The packet, roster, novel pair, interleaved review selection and
+introduce-then-retrieve shape are therefore produced by exactly the code that
+produced them the first time, and cannot drift from it. `MorseLesson` renders
+the run with `replay`, which changes three things and nothing else: the record
+writes nothing, `Next lesson` walks the printed order via `nextReplayLesson`
+rather than the learner's durable position, and the copy stops implying a first
+meeting. Word checkpoints are offered where the replayed lesson reaches them.
+
+The isolation is structural and lives in one place: `useLessonRecord(topicId,
+replay)` substitutes a no-op for `updateTopic`, and `MorseLesson` has no other
+write path. `MorseLesson.replay.test.tsx` drives a complete replayed lesson and
+asserts the stored record is unchanged byte for byte.
+
+## Screen presentation (2026-09-19 review)
+
+Four presentation defects found by driving the shipped app at phone width across
+a fresh, a mid-course and a finished learner. None of them changes a boundary;
+all four are pinned by `MorseScreens.test.tsx`.
+
+**The course's own support had nowhere to render.** `LearnSupport` was mounted
+only in `TopicPage`'s ordinary-topic branch, which a curriculum topic never
+takes, so the authored Morse overview — dits and dahs, the 1:3:7 spacing, how
+the lesson chooses what to show next, what the completion claim does and does not
+cover — was written, shipped and displayed on no surface. It is now a
+`How this course works` fold below the curriculum.
+
+**The mark grammar is explained at first meeting only.** `MorseBeatGrammarNote`
+appeared under every introduction — twenty-six times across the course, plus
+every replay — always illustrated with `ZOOM ZOOM ZIP ZIP`, a letter other than
+the one being taught. It now shows while `introducedGlyphs(topic).length < 3`,
+which is a statement about the learner rather than the lesson's position and so
+stays correct for someone placed into the middle of the course. Its permanent
+home is the fold above.
+
+**A retrieval screen uses the height it is given.** The prompt and key packed to
+the top and the composition ended around 540px of an 844px phone, leaving a third
+of the display empty beneath the control being pressed. Screens rendering a step
+carry `data-step`, and the step is centred in the run: prompt, support and key
+stay one object and the key lands in the lower half. Terminal screens and
+feedback cards are excluded and still read from the top.
+
+**The Morse key states its own mechanic.** `Tap for dit; press and hold for dah`
+existed only in `aria-label`. `TAP · HOLD —` is now on the key face, in the same
+marks the mnemonic uses, hidden from assistive tech because the button label
+already says it in sentences.
+
+**The path opens near the current lesson.** Thirteen lessons, four checkpoints
+and a Test is eighteen rows; at lesson 6 the current row sat at 945px on an 844px
+screen. The completed run above the current lesson now collapses to one fold row,
+carrying any checkpoint whose milestone falls inside it, which brings the current
+row to 771px. Nothing ahead folds — seeing the end of a finite curriculum is the
+premise — and a learner who has finished the course keeps the full index. On a
+667px phone the row still falls below the fold; closing that fully means
+condensing the topic header, which this pass did not do.
+
 #78 inserts two non-numbered path milestones immediately after Lessons 4 and 7.
 They do not become lessons, do not block Lesson 5/8 and carry no durable
 completion flag. Eligibility comes from the canonical path; later lesson reach
@@ -426,7 +490,8 @@ See `docs/open/MORSE_VERBAL_MNEMONICS.md` for mnemonic grammar and provenance.
    press duration, speed or sending metrics.
 8. Learn and Test import that same shared input rather than maintaining separate
    dit/dah entry widgets.
-9. `MorseReplay.tsx` and `MorseCheckpoint.tsx` import no learner-store write path;
+9. `MorseCheckpoint.tsx` imports no learner-store write path, and `MorseLesson.tsx`
+   in replay mode is handed a `useLessonRecord` whose writes are no-ops (#117);
    their answers and misses are ephemeral.
 10. Checkpoint unlock/content projection is derived from `lessonPackets()` /
     `morseLessonPath()` and does not add a durable checkpoint database.

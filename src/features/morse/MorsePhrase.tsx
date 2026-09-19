@@ -3,6 +3,7 @@ import {
   verbalMnemonicTextEquivalent,
   type MorseVerbalBeat,
 } from '../../domain/morse/verbalMnemonics'
+import './MorsePhrase.css'
 
 /**
  * The rhythmic verbal mnemonic, rendered as one cohesive phrase whose timing is

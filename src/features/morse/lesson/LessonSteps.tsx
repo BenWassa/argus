@@ -16,8 +16,9 @@ import { MorsePlayButton } from '../MorsePlayButton'
  *
  * Presentation only — each takes what it should show and reports what the
  * learner did. None of them reads the library, the sitting or the review
- * history, which is what lets `MorseReplay` reuse the printed step without
- * acquiring a lesson's worth of durable state along with it.
+ * history, which is what lets one set of steps serve first-time acquisition and
+ * replay alike: the difference between the two is consequence, decided at the
+ * record boundary, and never anything a step has to know about.
  */
 export function CharacterStage({
   glyph,

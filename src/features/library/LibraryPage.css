@@ -155,31 +155,46 @@
   accent-color: var(--accent);
 }
 
-/* One meaning per zone. The left navigates, the right runs, and a hairline
-   says they are not the same control. */
+/* One meaning per zone. The left navigates, the right runs.
+ *
+ * A hairline said they were not the same control; it did not say the right zone
+ * was a control at all (#117). Set in muted text on the page ground, the one
+ * place in Library where a run actually starts read as a caption on the row —
+ * the surface whose whole job is to answer "what can I do with this" was the
+ * least legible thing on it.
+ *
+ * It is now the system's ghost control: a raised face with a top highlight and
+ * a lower lip, `--ink` text, and a press that drops it into the row. That is
+ * the existing `button.ghost` treatment rather than new chrome, so nothing here
+ * is invented and the One Lit Surface rule still holds — the cell is raised by
+ * a bevel, never by a shadow or the accent, both of which stay reserved for the
+ * primary action on the page. It fills its grid cell rather than floating as a
+ * pill inside it, because the row is two zones and the join between them is the
+ * thing that has to read. */
 .lib-action {
   align-self: stretch;
   padding: 0 var(--s-sm);
   border: 0;
-  border-left: 1px solid var(--line);
+  border-left: 1px solid var(--line-strong);
   border-radius: 0;
   font-size: var(--t-small);
   font-weight: var(--w-component);
   letter-spacing: 0.01em;
-  color: var(--muted);
-  background: transparent;
-  box-shadow: none;
+  color: var(--ink);
+  background: linear-gradient(180deg, var(--surface-3), var(--surface-2));
+  box-shadow: var(--edge), var(--edge-under);
 }
 
 .lib-action:hover {
   color: var(--ink);
-  border-color: var(--line);
-  background: var(--surface-2);
+  border-color: var(--line-hover);
+  background: linear-gradient(180deg, var(--surface-4), var(--surface-3));
 }
 
 .lib-action:active {
   transform: none;
-  box-shadow: none;
+  background: var(--surface-2);
+  box-shadow: var(--press);
 }
 
 .lib-action:focus-visible {

@@ -31,7 +31,7 @@ interface PracticeRunProps {
  *
  * The evidence boundary here is structural, not documentary. This module
  * imports no store write path, no scheduler and no evidence recorder — the same
- * guarantee `MorseReplay` gives, arrived at the same way. A practice answer
+ * guarantee `MorseCheckpoint` gives, arrived at the same way. A practice answer
  * cannot reach `itemEvidence`, cannot move `lastTestedAt`, cannot resolve an
  * attempt and cannot qualify a completion, because there is no function in
  * scope that does any of those things.

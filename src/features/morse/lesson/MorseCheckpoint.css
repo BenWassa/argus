@@ -14,6 +14,17 @@
   outline: none;
 }
 
+/* The retrieval composition in `MorseLesson.css` turns this into a flex column
+   so the key can reach the foot of the run, and `justify-items` does not apply
+   to a flex container. */
+.morse-lesson[data-step] .morse-checkpoint-target {
+  align-items: center;
+}
+
+.morse-lesson[data-step] .morse-checkpoint-answer {
+  width: 100%;
+}
+
 .morse-checkpoint-target .lesson-task {
   margin: 0;
 }

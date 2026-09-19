@@ -6,6 +6,7 @@ import { morseLessonPath } from '../../domain/morse/curriculum/lessonPath'
 import { morseWordCheckpointPath } from '../../domain/morse/curriculum/checkpoints'
 import { statusLabel } from '../../shared/ui/StatusTag'
 import { LearnSupport } from '../learn/LearnSupport'
+import { MorseBeatGrammarNote } from '../morse/MorsePhrase'
 import { MorsePath } from '../morse/lesson/MorsePath'
 import { MorsePlacementDialog } from '../morse/MorsePlacementDialog'
 import { applyMorsePlacement, canOfferMorsePlacement } from '../../domain/morse/placement'
@@ -182,14 +183,21 @@ export function TopicPage({
           )}
 
           {/* The path not recommended, at text weight. It never takes the shape
-              of the primary control, and it states its own consequence. */}
+              of the primary control, and it states its own consequence.
+
+              It launches a replay rather than `{ kind: 'lesson' }` (#117). A
+              learner who has settled every letter has no unsettled packet left,
+              so asking for "the lesson" handed them the end-of-curriculum
+              screen — a control labelled `Go back over a lesson` that could not
+              go back over one. Replay runs the canonical course from Lesson 1,
+              through the same screens, and records nothing. */}
           {course && testing && (
             <button
               className="quiet topic-alt"
               type="button"
-              onClick={() => onStart('learn', [topic.id], { kind: 'lesson' })}
+              onClick={() => onStart('learn', [topic.id], { kind: 'replay', index: 0 })}
             >
-              Go back over a lesson
+              Replay the course from lesson 1
             </button>
           )}
           {!course && (
@@ -244,9 +252,28 @@ export function TopicPage({
           />
 
           <p className="topic-body-foot">
-            Lessons, replays and word checkpoints are practice and record no score. Test is the
-            only place the A–Z claim is proved.
+            Replays and word checkpoints run the same lessons and record nothing at all. Test is
+            the only place the A–Z claim is proved.
           </p>
+
+          {/* The course's own explanatory support, which had nowhere to be.
+              `LearnSupport` was rendered only in the ordinary-topic branch
+              below, so for a curriculum topic the authored overview — what a
+              dit and a dah are, how the spacing works, how the lesson chooses
+              what to show next, and what the completion claim does and does not
+              cover — was written, shipped and displayed nowhere at all.
+
+              It is a fold rather than a band of prose: the curriculum is what
+              this page is for, and this is the thing you come back to once,
+              when something stops making sense. The mark grammar joins it here,
+              because the lesson now explains that only at first meeting. */}
+          {topic.learn && (
+            <details className="fold topic-course-notes">
+              <summary>How this course works</summary>
+              <LearnSupport content={topic.learn} />
+              <MorseBeatGrammarNote className="topic-course-grammar" />
+            </details>
+          )}
         </section>
       ) : runnable ? (
         /* The reference, as reading rather than as a fold. A card shape promises
@@ -363,14 +390,18 @@ function PrimaryAction({
   }
 
   if (journey.action === 'learn' && course) {
-    const { acquisition, sitting } = journey
+    const { sitting } = journey
     return (
       <button className="topic-primary" type="button" onClick={onLesson}>
         <span className="topic-primary-verb">{journey.primaryLabel}</span>
+        {/* The verb already names the lesson and the state line above already
+            gives the position, so repeating `lesson N of M` here put the same
+            number on screen three times inside four lines. The note says the
+            one thing neither of them does: what pressing it is like. */}
         <span className="topic-primary-note">
           {sitting?.active
             ? `Resume after ${sitting.retrievals} retrievals.`
-            : `Two new letters, then retrieval. Lesson ${acquisition.packet} of ${acquisition.packetCount}.`}
+            : 'Two new letters, then retrieval.'}
         </span>
       </button>
     )

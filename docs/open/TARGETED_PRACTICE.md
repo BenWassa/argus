@@ -24,7 +24,7 @@ not a status transition, not a completion.
 
 This is enforced structurally rather than by policy. `PracticeRun.tsx` imports
 no store write path, no scheduler and no evidence recorder, which is the same
-guarantee `MorseReplay` gives and for the same reason: a surface that cannot
+guarantee `MorseCheckpoint` gives and for the same reason: a surface that cannot
 reach durable state cannot corrupt it. `src/features/practice/PracticeRun.test.tsx`
 asserts the absence of those imports directly, so an edit that reintroduces one
 fails the suite rather than quietly changing what practice means.

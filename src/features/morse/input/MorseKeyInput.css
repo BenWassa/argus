@@ -66,6 +66,11 @@
   filter: brightness(0.88);
 }
 
+.morse-key {
+  gap: var(--s-sm);
+  align-content: center;
+}
+
 .morse-key-face {
   display: block;
   inline-size: clamp(3.5rem, 24vw, 6.5rem);
@@ -73,6 +78,40 @@
   border-radius: 999px;
   background: currentColor;
   opacity: 0.38;
+}
+
+/* The instruction, on the thing it instructs. Set quiet enough that it never
+   competes with the key's own physicality, and in the same `·`/`—` marks the
+   mnemonic phrase uses, so the learner reads one notation everywhere. */
+.morse-key-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0 var(--s-md);
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  font-weight: var(--w-label);
+  letter-spacing: var(--track-readout);
+  text-transform: uppercase;
+  line-height: 1.2;
+  color: currentColor;
+  opacity: 0.55;
+}
+
+.morse-key-legend-mark {
+  letter-spacing: 0;
+}
+
+/* A key that is locked or already full is not asking for a press, so it stops
+   telling the learner how to make one. */
+.morse-key:disabled .morse-key-legend {
+  opacity: 0;
+}
+
+@media (orientation: landscape) and (max-height: 560px) {
+  .morse-key-legend {
+    display: none;
+  }
 }
 
 @media (orientation: landscape) and (max-height: 560px) {

@@ -459,6 +459,18 @@ export function MorseKeyInput({
         }}
       >
         <span className="morse-key-face" aria-hidden="true" />
+        {/* What the key does, said on the key.
+            The tap/hold rule existed only in `aria-label`, so a sighted learner
+            met an unlabelled slab at the first retrieval of Lesson 1 and had to
+            discover the single mechanic the whole product runs on. It is stated
+            in the marks the lesson already teaches — `·` short, `—` held — so
+            it reinforces the mnemonic grammar rather than adding a second
+            vocabulary, and it is hidden from assistive tech because the button's
+            own label says the same thing in sentences. */}
+        <span className="morse-key-legend" aria-hidden="true">
+          <span>Tap <span className="morse-key-legend-mark">·</span></span>
+          <span>Hold <span className="morse-key-legend-mark">—</span></span>
+        </span>
       </button>
     </div>
   )

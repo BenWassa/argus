@@ -203,7 +203,7 @@ An inaudible or clipped tone, real touch leaking across a lock, double grading, 
 
 - Routing/shell: `src/app/routing/AppRouter.tsx`, `src/shared/layout/AppShell.tsx`, `src/app/routing/routes.ts`, `src/app/routing/history.ts`, `src/styles/global.css`.
 - Destinations: `src/features/today/*`, `src/features/library/LibraryPage*`, `TopicPage*`, `CompletionRecord.tsx`, `src/features/data-management/ProfilePage.tsx`.
-- Learning: `LessonRun.tsx`, `MorsePath*`, `MorseLesson*`, `MorseReplay*`, `MorseCheckpoint*`, `MorseReference*`, `Reading.css`, and `LearnSupport.tsx`.
+- Learning: `LessonRun.tsx`, `MorsePath*`, `MorseLesson*`, `MorseCheckpoint*`, `MorseReference*`, `Reading.css`, and `LearnSupport.tsx`.
 - Assessment/input: `src/features/test/*` and `src/features/morse/*`.
 - Authoring/transients/splash: TopicForm, CaptureSheet, WantToLearn, Dialog, Confirm, StatusTag, and SplashScreen.
 - Structural tests: `e2e/navigation*`, `e2e/morse*`, `e2e/nato*`, `src/features/crossSurface.test.tsx`, MorsePath/Session/MorseLesson tests, and `src/app/routing/routes.test.ts`.

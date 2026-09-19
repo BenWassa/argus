@@ -106,6 +106,69 @@
   gap: var(--s-md);
 }
 
+/* ------------------------------------------------- retrieval composition -- */
+
+/*
+ * A retrieval screen asks for one thing, so it should use the screen it is
+ * given. It did not: the prompt and the key packed to the top and the composition
+ * ended around 540px of an 844px phone, leaving a third of the display as an
+ * empty band below the control the learner has to hit repeatedly — and leaving
+ * that control out of comfortable thumb reach on the way.
+ *
+ * The prompt still reads from the top. What changes is that the answer block is
+ * pushed to the foot of the run, which is both where the thumb is and where a
+ * keyed instrument belongs. `min-height: 100svh` on `.morse-lesson` already
+ * reserves the space; this is what spends it.
+ *
+ * Scoped to `[data-step]` so it never touches the terminal screens, where a
+ * title, a lede and two exits genuinely should sit together at the top, or the
+ * feedback card, which is read downward from the verdict.
+ */
+.morse-lesson[data-step] {
+  display: flex;
+  flex-direction: column;
+}
+
+.morse-lesson[data-step] .lesson-check,
+.morse-lesson[data-step] .lesson-introduce,
+.morse-lesson[data-step] .morse-checkpoint-target {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-md);
+}
+
+/*
+ * The free height is spent around the task, not below it.
+ *
+ * Pushing the answer to the foot with `margin-block-start: auto` overcorrects:
+ * the key ends up flush against the bottom edge with the glyph it belongs to
+ * 450px away, which trades a dead band for a divided screen. Centring the whole
+ * step instead keeps the prompt, its support and the key together as one object
+ * and splits the slack above and below it — so the key lands in the lower half
+ * where the thumb is, and nothing is stranded at either edge.
+ */
+.morse-lesson[data-step] .lesson-check,
+.morse-lesson[data-step] .lesson-introduce,
+.morse-lesson[data-step] .morse-checkpoint-target {
+  justify-content: center;
+}
+
+/* The bar's standing margin is sized for screens that carry a title under it.
+   A retrieval screen carries a task, and the gap read as a hole. */
+.morse-lesson[data-step] .session-bar {
+  margin-bottom: var(--s-lg);
+}
+
+/* Landscape has no spare height to spend, so the run packs normally there. */
+@media (max-height: 560px) {
+  .morse-lesson[data-step] .lesson-check,
+  .morse-lesson[data-step] .lesson-introduce,
+  .morse-lesson[data-step] .morse-checkpoint-target {
+    justify-content: flex-start;
+  }
+}
+
 .lesson-task {
   margin: 0;
   font-family: var(--font-mono);

@@ -27,9 +27,19 @@ import { withAcquisitionReadiness } from '../../../domain/study/journey'
  * write, may have moved this topic since, and writing back a captured object
  * would quietly undo it. Each function touches exactly one field family, so a
  * lesson answer can never reach retention evidence by accident.
+ *
+ * `replay` is the one branch (#117). A replay runs the identical lesson through
+ * the identical screens, and differs from first-time acquisition only in
+ * consequence — so the difference is expressed once, here, by handing the
+ * surface a record that writes nothing at all. Nothing above this boundary has
+ * to remember which mode it is in to keep earned state safe: support levels,
+ * the sitting, review history and the readiness anchor are simply unreachable
+ * from a replay, the same way `MorseCheckpoint` has always been unable to
+ * reach them.
  */
-export function useLessonRecord(topicId: string) {
-  const { updateTopic } = useLibrary()
+export function useLessonRecord(topicId: string, replay = false) {
+  const { updateTopic: write } = useLibrary()
+  const updateTopic: typeof write = replay ? () => {} : write
 
   return {
     /**

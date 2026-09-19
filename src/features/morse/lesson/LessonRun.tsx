@@ -12,7 +12,6 @@ import { useLibrary } from '../../../services/library/LibraryProvider'
 import type { RunTarget } from '../../../app/routing/routes'
 import { MorseCheckpoint } from './MorseCheckpoint'
 import { MorseLesson } from './MorseLesson'
-import { MorseReplay } from './MorseReplay'
 import { MorsePlacementDialog } from '../MorsePlacementDialog'
 
 interface LessonRunProps {
@@ -38,9 +37,15 @@ interface LessonRunProps {
  *
  * The evidence boundary is unchanged and still structural. `MorseLesson` writes
  * formative acquisition, the durable sitting and the readiness anchor through
- * narrow functional topic updates. `MorseReplay` and `MorseCheckpoint` import no
- * store write path at all, so their answers cannot reach the scheduler, cue
- * evidence or completion.
+ * narrow functional topic updates — except in replay, where it is handed a
+ * record that writes nothing (#117). `MorseCheckpoint` imports no store write
+ * path at all, so its answers cannot reach the scheduler, cue evidence or
+ * completion either.
+ *
+ * Replay is a mode of the lesson rather than a surface beside it. It used to be
+ * its own component showing a bare glyph and a key, which meant a learner who
+ * asked to go back over Lesson 1 was handed a stripped quiz instead of the
+ * lesson they were asking for.
  */
 export function LessonRun({ topicId, target, onExit, onCheck, onReference }: LessonRunProps) {
   const { topics, updateTopic } = useLibrary()
@@ -141,14 +146,11 @@ export function LessonRun({ topicId, target, onExit, onCheck, onReference }: Les
 
   if (!run) return null
 
-  if (target.kind === 'replay') {
-    return <MorseReplay initialRun={run} onExit={onExit} />
-  }
-
   return (
     <MorseLesson
       topic={topic}
       initialRun={run}
+      replay={target.kind === 'replay'}
       onExit={onExit}
       onTest={onCheck}
       onReference={onReference}

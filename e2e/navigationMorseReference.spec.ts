@@ -143,7 +143,7 @@ test('opening Morse lands on the curriculum, with the alphabet a step away', asy
   await expect(heading).toBeFocused()
 })
 
-test('a lesson replay writes nothing and returns to the curriculum', async ({ page }) => {
+test('a lesson replay reruns the real lesson, writes nothing and returns to the curriculum', async ({ page }) => {
   await openApp(page)
   await openMorseTopic(page)
 
@@ -151,14 +151,28 @@ test('a lesson replay writes nothing and returns to the curriculum', async ({ pa
   const onTopic = await state(page)
   await page.getByRole('button', { name: 'Replay lesson 1', exact: true }).click()
 
-  await expect(page.getByRole('heading', { name: 'Replay Morse lesson 1' })).toBeVisible()
-  await expect(page.getByText('0 / 10 max')).toBeVisible()
+  // #117: the same lesson, not a stripped quiz. The first-exposure
+  // introduction is back, with the rhythmic mnemonic, the canonical notation
+  // and the sound that teach the letter.
+  await expect(page.getByText('Lesson 1 of 13', { exact: true })).toBeVisible()
+  await expect(page.locator('.session-mode')).toHaveText('Replay')
+  await expect(page.getByText('New letter', { exact: true })).toBeVisible()
+  await expect(page.locator('.morse-phrase')).toBeVisible()
+  await expect(page.locator('.morse-notation')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Got it' })).toBeVisible()
+
   // A replay is a task, so it is a route: Android Back leaves it the same way
   // the visible Close does, rather than unwinding an invisible selection.
   expect(await state(page)).toMatchObject({
     index: onTopic.index + 1,
     route: { kind: 'run', mode: 'learn' },
   })
+
+  // Acknowledging an introduction is a durable write in ordinary acquisition.
+  // In a replay it must reach nothing at all, so the check below is taken after
+  // the learner has actually moved through part of the lesson.
+  await page.getByRole('button', { name: 'Got it' }).click()
+  await expect(page.locator('.lesson-check, .lesson-introduce')).toBeVisible()
 
   await page.getByRole('button', { name: 'Close' }).click()
   await expect(page.getByRole('heading', { name: morse.title, level: 1 })).toBeFocused()
