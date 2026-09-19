@@ -59,7 +59,11 @@ export function useKeyedResponse(advance: () => void, isHeld: () => boolean = ()
     clear()
     setPhase('feedback')
     const settle = () => {
-      if (isHeldRef.current()) {
+      // Only a miss has anything to replay; checking isHeld on a hit would
+      // just add fragility to the one path that is supposed to be quick and
+      // hands-free, for a case (`sounding` lagging after the keyed press's
+      // own tone) that has nothing to do with the learner reading anything.
+      if (!correct && isHeldRef.current()) {
         timerRef.current = setTimeout(settle, HOLD_POLL_MS)
         return
       }
