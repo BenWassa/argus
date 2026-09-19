@@ -113,7 +113,7 @@ describe('states are distinguishable and reachable', () => {
   it('keeps the Test reachable before readiness, and names the consequence there', () => {
     const props = renderPath({ ready: false })
     const check = document.querySelector('.morse-path-check') as HTMLElement
-    expect(check.textContent).toContain('without moving the ladder')
+    expect(check.textContent).toContain('does not move the ladder')
     fireEvent.click(check.querySelector('.morse-path-action') as HTMLElement)
     expect(props.onCheck).toHaveBeenCalled()
   })

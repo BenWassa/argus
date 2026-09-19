@@ -578,6 +578,7 @@ function parseLessonSitting(
  * - a later-sitting success count above the sittings that have actually
  *   elapsed since introduction could not have been earned;
  * - correct listening answers cannot exceed listening retrievals;
+ * - an unrepaired miss names a sitting the character already existed for;
  * - a history that records nothing normalises back to the absent field, so an
  *   empty history has exactly one representation.
  */
@@ -624,13 +625,19 @@ function parseMorseReview(
     const printed = raw.printed === undefined ? 0 : nonNegativeInteger(raw.printed)
     const heard = nonNegativeInteger(raw.heard)
     const heardCorrect = nonNegativeInteger(raw.heardCorrect)
+    // The repair debt is absent for every character that has never been missed,
+    // which is most of them and all of any record written before it existed. A
+    // legacy record therefore reads as "owes nothing", which is the honest
+    // reading: nothing was recording misses, so none can be claimed.
+    const missedIn = raw.missedIn === undefined ? undefined : nonNegativeInteger(raw.missedIn)
     if (
       introducedIn === null ||
       lastSeenIn === null ||
       laterCorrect === null ||
       printed === null ||
       heard === null ||
-      heardCorrect === null
+      heardCorrect === null ||
+      missedIn === null
     ) {
       return {
         ok: false,
@@ -667,8 +674,24 @@ function parseMorseReview(
         error: `${where} morseReview for "${itemId}" has more correct listening answers than listening retrievals.`,
       }
     }
+    if (missedIn !== undefined && (missedIn < introducedIn || missedIn > highestOrdinal)) {
+      return {
+        ok: false,
+        error: `${where} morseReview for "${itemId}" records a miss outside the sittings it existed for.`,
+      }
+    }
 
-    parsed[itemId] = { introducedIn, lastSeenIn, laterCorrect, printed, heard, heardCorrect }
+    parsed[itemId] = {
+      introducedIn,
+      lastSeenIn,
+      laterCorrect,
+      printed,
+      heard,
+      heardCorrect,
+      // Absent rather than `undefined`, so a repaired character and one that was
+      // never missed have exactly one representation between them.
+      ...(missedIn === undefined ? {} : { missedIn }),
+    }
   }
 
   const review: MorseReviewProgress = { sittings, items: parsed }

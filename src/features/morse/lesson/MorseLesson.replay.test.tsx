@@ -152,7 +152,7 @@ describe('#117 replay reruns the canonical acquisition course', () => {
     seedStore(finishedLearner())
     renderReplay(0)
 
-    expect(screen.getByText(`Lesson 1 of ${lessonPackets().length}`)).toBeTruthy()
+    expect(screen.getByLabelText(`Lesson 1 of ${lessonPackets().length}`)).toBeTruthy()
     expect(screen.getByText('Replay')).toBeTruthy()
   })
 
@@ -160,20 +160,25 @@ describe('#117 replay reruns the canonical acquisition course', () => {
     seedStore(finishedLearner())
     renderReplay(4)
 
-    expect(screen.getByText(`Lesson 5 of ${lessonPackets().length}`)).toBeTruthy()
+    expect(screen.getByLabelText(`Lesson 5 of ${lessonPackets().length}`)).toBeTruthy()
     const run = startReplayLesson(finishedLearner(), 4)
     expect(run!.entries.filter((entry) => entry.novel).map((entry) => entry.glyph)).toEqual([
       ...lessonPackets()[4].novel,
     ])
   })
 
-  it('reports a clean sitting rather than reading out the learner’s real one', () => {
+  /**
+   * The bar no longer reads a sitting count out at all — it was a number that
+   * measured nothing the learner was working towards. What has to stay true is
+   * the reason it was asserted here: a replay opens a clean local sitting and
+   * cannot move, or display, the learner's real one.
+   */
+  it('opens a clean sitting rather than resuming the learner’s real one', () => {
     seedStore(finishedLearner())
     renderReplay(0)
 
-    // The stored learner is six retrievals into a sitting a replay cannot move.
-    expect(screen.getByText('0 retrievals')).toBeTruthy()
-    expect(screen.queryByText('6 retrievals')).toBeNull()
+    expect(screen.queryByText(/retrievals/)).toBeNull()
+    expect(source('./MorseLesson.tsx')).toContain('replay ? newLessonSitting() : lessonSittingOf(topic)')
   })
 })
 
@@ -199,7 +204,7 @@ describe('#117 replay leaves every earned fact exactly as it found it', () => {
   async function driveLesson(maxSteps = 60) {
     for (let step = 0; step < maxSteps; step += 1) {
       if (screen.queryByText(/^Lesson \d+ replayed$/)) return
-      if (screen.queryByRole('button', { name: 'Start checkpoint' })) return
+      if (screen.queryByRole('button', { name: 'Start' })) return
       const gotIt = screen.queryByRole('button', { name: 'Got it' })
       if (gotIt) {
         fireEvent.click(gotIt)
@@ -259,7 +264,7 @@ describe('#117 replay leaves every earned fact exactly as it found it', () => {
     await driveLesson()
 
     fireEvent.click(screen.getByRole('button', { name: 'Next lesson' }))
-    expect(screen.getByText(`Lesson 2 of ${lessonPackets().length}`)).toBeTruthy()
+    expect(screen.getByLabelText(`Lesson 2 of ${lessonPackets().length}`)).toBeTruthy()
     expect(screen.getByText('Replay')).toBeTruthy()
   })
 
@@ -268,9 +273,9 @@ describe('#117 replay leaves every earned fact exactly as it found it', () => {
     await driveLesson()
 
     expect(
-      screen.getByText(/A replay teaches; it records nothing\./),
+      screen.getByText('A replay records nothing.'),
     ).toBeTruthy()
-    expect(screen.queryByText(/Test is still the only place the A–Z claim is proved\./)).toBeNull()
+    expect(screen.queryByText('Nothing in Learn is scored.')).toBeNull()
   })
 })
 

@@ -2,6 +2,21 @@
 
 > **Current Morse pacing update — 2026-09-18.** The maintained [Morse lesson contract](MORSE_LESSON.md) supersedes references below to a mandatory ten-answer sitting. Sitting counters retain actual attempts, including retries beyond ten; roster completion ends the lesson early without review filler. Durable acquisition, listening, and formal retention evidence remain separate.
 
+> **Repair-debt addendum — 2026-09-19.** `MorseReviewItem` gains one optional
+> field, `missedIn`: the sitting ordinal of an unrepaired printed miss, absent
+> when nothing is owed. It is formative scheduling state like the rest of
+> `Topic.morseReview` — not Test evidence, not retention state, and unable to
+> qualify a completion. It opens on a printed miss and closes only on a correct
+> printed retrieval in a *later* sitting, so a repaired character and one that
+> was never missed serialise identically (the key is absent, never `undefined`).
+> It is additive inside v5, reads as "owes nothing" on any record written before
+> it existed, round-trips through export/import, and the parser rejects a miss
+> naming a sitting the character did not exist for. A listening answer neither
+> opens nor closes it, and placement-established items own no debt. It exists
+> because review selection previously had no term for the learner's own errors:
+> a miss lowered support only until the next correct answer restored it, after
+> which nothing remembered it had happened.
+
 > **#90/#92/#96 closeout addendum — 2026-09-15.** This block supersedes stale implementation-status statements later in the historical #62/#92 record. `Topic.morseReview` is one optional formative scheduling field: a completed-sitting ordinal plus per-item introduction sitting, latest printed sitting, later-sitting correct count, total printed retrieval count, listening count and listening-correct count. The total printed count only breaks a genuine equal-need review tie toward the less-exposed item; it is **not** Test evidence or retention state. Printed and listening history remain separate; listening cannot satisfy later-sitting printed consolidation or reset printed staleness. The field is additive inside v5, may be absent on legacy records (the new counter normalizes to zero), round-trips through export/import, and item reconciliation prunes deleted-item references without inventing history. New Morse learners now require later-sitting printed consolidation before readiness; an existing `acquisitionReadyAt` and the legacy no-review-history compatibility path prevent regression. #90 item 8 is also already implemented: a clean non-qualifying Test uses `advancementEligible: false`, so the scheduler records the run without moving/resetting retention status or clocks. #92 removed standalone Progress as a destination; current cross-surface truth is Today + Library + Topic. Historical sections below are retained for architecture provenance, including their now-superseded “no new durable field” / “items 2–5 and 9 outstanding” wording.
 
 Parent programme: #62  

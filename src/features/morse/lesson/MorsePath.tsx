@@ -135,7 +135,7 @@ export function MorsePath({
                           CP
                         </span>
                         <span className="morse-path-main">
-                          <strong className="morse-path-checkpoint-title">Word checkpoint</strong>
+                          <strong className="morse-path-checkpoint-title">Checkpoint</strong>
                         </span>
                         <button
                           className="ghost small morse-path-action"
@@ -207,12 +207,16 @@ export function MorsePath({
                   CP
                 </span>
                 <span className="morse-path-main">
-                  <strong className="morse-path-checkpoint-title">Word checkpoint</strong>
+                  {/* `Word checkpoint` on four rows, each one also named `after
+                      lesson N` by its button. The row's position in the list
+                      already says which lesson it follows, so the name is just
+                      what the thing is. */}
+                  <strong className="morse-path-checkpoint-title">Checkpoint</strong>
                   {/* Said once, at the first one. Four rows carrying the same
                       sentence verbatim explained it no better than one did and
                       cost three lines of a phone screen. */}
                   {checkpoint.afterLesson === checkpoints[0]?.afterLesson && (
-                    <span className="morse-path-note">Real words, letters you already know</span>
+                    <span className="morse-path-note">Real words, letters you know</span>
                   )}
                 </span>
                 {checkpoint.unlocked ? (
@@ -250,8 +254,8 @@ export function MorsePath({
           <strong className="morse-path-checkpoint-title">Test</strong>
           <span className="morse-path-note">
             {ready
-              ? 'Every letter, both directions, no support. This is where the claim is proved.'
-              : 'Open now, but the lesson has not reached every letter, so an early run is recorded without moving the ladder.'}
+              ? 'Every letter, both directions, no support'
+              : 'Open early — an early run does not move the ladder'}
           </span>
         </span>
         <button

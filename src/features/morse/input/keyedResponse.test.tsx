@@ -4,7 +4,6 @@ import { act, cleanup, fireEvent, render, renderHook, screen } from '@testing-li
 import { MORSE_LETTERS } from '../../../domain/morse/code'
 import {
   MORSE_FEEDBACK_CORRECT_MS,
-  MORSE_FEEDBACK_WRONG_MS,
   MORSE_TRANSITION_MS,
   morseElementDurationMs,
 } from '../../../domain/morse/response'
@@ -297,7 +296,7 @@ describe('the checkpoint boundary cannot be crossed by a tap still in flight', (
 
   it('holds a hit on screen for the shared dwell, then transitions before re-arming', async () => {
     render(<MorseCheckpoint checkpoint={checkpoint} onExit={vi.fn()} />)
-    expect(screen.getByText('Warm-up 1 of 4')).toBeTruthy()
+    expect(screen.getByText('1/4')).toBeTruthy()
 
     const first = checkpoint.warmups[0]
     await keyPattern(MORSE_LETTERS[first])
@@ -308,7 +307,7 @@ describe('the checkpoint boundary cannot be crossed by a tap still in flight', (
     expect(screen.getByText('Correct')).toBeTruthy()
 
     advance(40)
-    expect(screen.getByText('Warm-up 2 of 4')).toBeTruthy()
+    expect(screen.getByText('2/4')).toBeTruthy()
     // The next letter exists but is not yet answerable.
     expect(key().disabled).toBe(true)
 
@@ -316,7 +315,12 @@ describe('the checkpoint boundary cannot be crossed by a tap still in flight', (
     expect(key().disabled).toBe(false)
   })
 
-  it('keeps a miss readable for longer than a hit, on the one shared policy', async () => {
+  /**
+   * The reversal of the old policy. A miss used to stand for a fixed 2000ms
+   * and then remove itself; this asserts it now stands for as long as the
+   * learner leaves it, and ends only on the control they press.
+   */
+  it('holds a miss until the learner dismisses it, however long that takes', async () => {
     render(<MorseCheckpoint checkpoint={checkpoint} onExit={vi.fn()} />)
 
     const first = checkpoint.warmups[0]
@@ -324,12 +328,18 @@ describe('the checkpoint boundary cannot be crossed by a tap still in flight', (
     await keyPattern(wrong.repeat(MORSE_LETTERS[first].length))
 
     expect(screen.getByText('Miss')).toBeTruthy()
-    advance(MORSE_FEEDBACK_CORRECT_MS + 20)
-    expect(screen.getByText('Miss')).toBeTruthy()
 
-    advance(MORSE_FEEDBACK_WRONG_MS - MORSE_FEEDBACK_CORRECT_MS)
-    expect(screen.getByText('Warm-up 2 of 4')).toBeTruthy()
-    expect(MORSE_FEEDBACK_WRONG_MS).toBeGreaterThan(MORSE_FEEDBACK_CORRECT_MS)
+    // Far past any dwell the old policy ever used.
+    advance(60_000)
+    expect(screen.getByText('Miss')).toBeTruthy()
+    expect(screen.getByText('1/4')).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
+    expect(screen.getByText('2/4')).toBeTruthy()
+    // The next letter is still gated for the transition, exactly as after a hit.
+    expect(key().disabled).toBe(true)
+    advance(MORSE_TRANSITION_MS)
+    expect(key().disabled).toBe(false)
   })
 
   it('cannot be answered again during feedback or during the transition that follows', async () => {
@@ -348,7 +358,7 @@ describe('the checkpoint boundary cannot be crossed by a tap still in flight', (
 
     // The dwell ends and warm-up 2 appears, but it is mid-transition.
     advance(MORSE_FEEDBACK_CORRECT_MS)
-    expect(screen.getByText('Warm-up 2 of 4')).toBeTruthy()
+    expect(screen.getByText('2/4')).toBeTruthy()
 
     // Tapping through the transition too.
     for (let press = 0; press < 4; press += 1) {
@@ -359,7 +369,7 @@ describe('the checkpoint boundary cannot be crossed by a tap still in flight', (
     // Warm-up 2 is reached un-answered: not one of those presses became an
     // answer to a letter the learner had not yet been shown.
     advance(MORSE_TRANSITION_MS)
-    expect(screen.getByText('Warm-up 2 of 4')).toBeTruthy()
+    expect(screen.getByText('2/4')).toBeTruthy()
     expect(screen.queryByText('Correct')).toBeNull()
     expect(screen.queryByText('Miss')).toBeNull()
     expect(key().disabled).toBe(false)
@@ -381,31 +391,48 @@ describe('the checkpoint boundary cannot be crossed by a tap still in flight', (
   })
 })
 
-describe('a replay in progress holds the surface open past the policy dwell', () => {
-  it('does not advance while isHeld reports true, however long that lasts', () => {
-    let held = true
-    const advanceSpy = vi.fn()
-    const { result } = renderHook(() => useKeyedResponse(advanceSpy, () => held))
-
-    act(() => result.current.answered(false))
-    advance(MORSE_FEEDBACK_WRONG_MS)
-    expect(advanceSpy).not.toHaveBeenCalled()
-
-    // Held well past the policy dwell: a fixed timer alone would have fired by now.
-    advance(5000)
-    expect(advanceSpy).not.toHaveBeenCalled()
-
-    held = false
-    advance(1000)
-    expect(advanceSpy).toHaveBeenCalledTimes(1)
-  })
-
-  it('advances at the normal dwell when nothing holds it', () => {
+describe('a correction ends on a press, a hit ends on the clock', () => {
+  it('never advances a miss on its own, whatever time passes', () => {
     const advanceSpy = vi.fn()
     const { result } = renderHook(() => useKeyedResponse(advanceSpy))
 
     act(() => result.current.answered(false))
-    advance(MORSE_FEEDBACK_WRONG_MS)
+    advance(60_000)
+
+    expect(advanceSpy).not.toHaveBeenCalled()
+    expect(result.current.holding).toBe(true)
+    expect(result.current.armed).toBe(false)
+
+    act(() => result.current.acknowledge())
+    expect(advanceSpy).toHaveBeenCalledTimes(1)
+    expect(result.current.holding).toBe(false)
+  })
+
+  it('still advances a hit by itself, so a clean run needs no taps between answers', () => {
+    const advanceSpy = vi.fn()
+    const { result } = renderHook(() => useKeyedResponse(advanceSpy))
+
+    act(() => result.current.answered(true))
+    expect(result.current.holding).toBe(false)
+    advance(MORSE_FEEDBACK_CORRECT_MS)
+
+    expect(advanceSpy).toHaveBeenCalledTimes(1)
+  })
+
+  /**
+   * `acknowledge` is wired to a control that only a correction shows, but the
+   * guard is in the hook rather than in the markup: a hit's dwell must not be
+   * skippable by a press that lands on whatever occupied that position before.
+   */
+  it('ignores an acknowledgement that does not belong to a held correction', () => {
+    const advanceSpy = vi.fn()
+    const { result } = renderHook(() => useKeyedResponse(advanceSpy))
+
+    act(() => result.current.answered(true))
+    act(() => result.current.acknowledge())
+    expect(advanceSpy).not.toHaveBeenCalled()
+
+    advance(MORSE_FEEDBACK_CORRECT_MS)
     expect(advanceSpy).toHaveBeenCalledTimes(1)
   })
 })

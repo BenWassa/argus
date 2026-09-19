@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
+  PRIORITY_MISS_AGE_CAP,
   PRIORITY_STALENESS_CAP,
+  PRIORITY_UNREPAIRED_MISS,
   byRetrievalPriority,
   retrievalPriority,
   type PriorityCandidate,
@@ -186,5 +188,63 @@ describe('determinism', () => {
       byRetrievalPriority(review),
     )
     expect(order[0].itemId).toBe('late')
+  })
+})
+
+
+/**
+ * The miss term, asserted as a rule rather than as an observation about
+ * particular weights: whatever else is true of two characters, the one the
+ * learner actually got wrong is asked first.
+ */
+describe('an unrepaired miss outranks everything else', () => {
+  function missedInSitting1(itemId: string): MorseReviewProgress {
+    let review = recordIntroduced(newMorseReview(), itemId)
+    return recordPrintedRetrieval(review, itemId, false)
+  }
+
+  it('beats the most urgent character that has nothing outstanding', () => {
+    // `never` is as urgent as a clean character can be: never introduced, so
+    // maximally stale, unconsolidated, unheard, and still on `taught` support.
+    const review = missedInSitting1('missed')
+    const missed = retrievalPriority(candidate('missed', 'settled'), review)
+    const never = retrievalPriority(candidate('never', 'taught'), review)
+
+    expect(missed).toBeGreaterThan(never)
+    expect(missed).toBeGreaterThanOrEqual(PRIORITY_UNREPAIRED_MISS)
+    expect(never).toBeLessThan(PRIORITY_UNREPAIRED_MISS)
+  })
+
+  it('stops counting once the character is repaired', () => {
+    let review = missedInSitting1('a')
+    review = completeSitting(review)
+    const owed = retrievalPriority(candidate('a'), review)
+
+    review = recordPrintedRetrieval(review, 'a', true)
+    expect(retrievalPriority(candidate('a'), review)).toBeLessThan(owed)
+  })
+
+  it('puts the oldest unpaid debt first among several', () => {
+    let review = newMorseReview()
+    for (const itemId of ['old', 'new']) review = recordIntroduced(review, itemId)
+    review = recordPrintedRetrieval(review, 'old', false)
+    review = completeSitting(review)
+    review = completeSitting(review)
+    review = recordPrintedRetrieval(review, 'new', false)
+
+    const ordered = [candidate('new', 'settled', 0), candidate('old', 'settled', 1)]
+      .sort(byRetrievalPriority(review))
+      .map((entry) => entry.itemId)
+    expect(ordered).toEqual(['old', 'new'])
+  })
+
+  it('caps the age term so it can never reach the miss step itself', () => {
+    let review = recordIntroduced(newMorseReview(), 'a')
+    review = recordPrintedRetrieval(review, 'a', false)
+    for (let sitting = 0; sitting < PRIORITY_MISS_AGE_CAP + 20; sitting += 1) {
+      review = completeSitting(review)
+    }
+    // One miss, however old, never scores as two.
+    expect(retrievalPriority(candidate('a'), review)).toBeLessThan(PRIORITY_UNREPAIRED_MISS * 2)
   })
 })

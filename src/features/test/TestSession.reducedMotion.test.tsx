@@ -98,7 +98,7 @@ describe('reduced motion', () => {
       screen.getByRole('button', { name: 'Mark correct' }).click()
     })
     await settled(second)
-    expect(screen.getByText(/Test ·/).textContent).toContain('3 of 5')
+    expect(screen.getByLabelText('Card 3 of 5')).toBeTruthy()
   })
 
   it('keeps the answer-confidentiality invariant across the whole deck', async () => {
@@ -137,7 +137,7 @@ describe('reduced motion', () => {
     })
     expect(promptNow()).toBe(first)
     await settled(first)
-    expect(screen.getByText(/Test ·/).textContent).toContain('2 of 26')
+    expect(screen.getByLabelText('Card 2 of 26')).toBeTruthy()
   })
 
   it('banks the same attempt it would have banked with motion on', async () => {

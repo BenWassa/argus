@@ -169,9 +169,9 @@ describe('one gesture, one grade', () => {
     })
 
     expect(promptNow()).toBe(first)
-    expect(screen.getByText(/Test ·/).textContent).toContain('1 of 26')
+    expect(screen.getByLabelText('Card 1 of 26')).toBeTruthy()
     await settled(first)
-    expect(screen.getByText(/Test ·/).textContent).toContain('2 of 26')
+    expect(screen.getByLabelText('Card 2 of 26')).toBeTruthy()
   })
 
   it('cannot be double-scored through the accessible grade actions', async () => {
@@ -188,7 +188,7 @@ describe('one gesture, one grade', () => {
 
     expect(promptNow()).toBe(first)
     await settled(first)
-    expect(screen.getByText(/Test ·/).textContent).toContain('2 of 5')
+    expect(screen.getByLabelText('Card 2 of 5')).toBeTruthy()
   })
 
   it('records one answer per card and banks the attempt it actually ran', async () => {
@@ -305,7 +305,7 @@ describe('which decks get the swipe-first treatment', () => {
     })
     expect(promptNow()).toBe(first)
     await settled(first)
-    expect(screen.getByText(/Test ·/).textContent).toContain('2 of 4')
+    expect(screen.getByLabelText('Card 2 of 4')).toBeTruthy()
   })
 })
 

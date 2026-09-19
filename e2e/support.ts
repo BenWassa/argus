@@ -186,9 +186,9 @@ export async function assertNoAnswerLeaked(page: Page, minimumPrompts = 1) {
   }
 }
 
-/** The `Test · N of 26` counter, as a number. */
+/** The card counter in the session bar, as a number. */
 export async function cardNumber(page: Page): Promise<number> {
-  const text = (await page.locator('.session-bar .tabular').textContent()) ?? ''
-  const match = /(\d+) of/.exec(text)
+  const label = (await page.locator('.session-count').first().getAttribute('aria-label')) ?? ''
+  const match = /(\d+) of/.exec(label)
   return match ? Number(match[1]) : Number.NaN
 }

@@ -1,5 +1,5 @@
 import { morseAcquisitionProfile, type AcquisitionCharacter } from '../testing/acquisitionProfile'
-import { hasLaterSittingSuccess, morseReviewOf, sittingsSinceSeen } from './review'
+import { hasLaterSittingSuccess, morseReviewOf, owesRepair, sittingsSinceSeen } from './review'
 import { byRetrievalPriority } from './lessonPriority'
 import { isConfusable } from '../../study/confusion'
 import { MORSE_LETTERS, morsePattern, type MorseLetter } from '../code'
@@ -346,11 +346,15 @@ function ordinaryReviewRoster(
     // before it can take another ordinary review slot. Without this guard the
     // earliest settled pair keeps filling every later packet simply because it
     // is always eligible first. Weak items and items still awaiting their first
-    // later-sitting success remain eligible immediately.
+    // later-sitting success remain eligible immediately — and so does a
+    // character carrying an unrepaired miss, which is the one case where the
+    // learner's own history says "ask me this again soon" and a cooling-off
+    // rule written for over-exposed early letters would say the opposite.
     if (
       support === 'settled' &&
       (review.items[character.itemId]?.printed ?? 0) > 0 &&
       hasLaterSittingSuccess(review, character.itemId) &&
+      !owesRepair(review, character.itemId) &&
       sittingsSinceSeen(review, character.itemId) < 2
     ) {
       return []

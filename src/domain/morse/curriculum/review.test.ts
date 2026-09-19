@@ -11,7 +11,9 @@ import {
   pruneMorseReview,
   recordIntroduced,
   recordListeningRetrieval,
+  owesRepair,
   recordPrintedRetrieval,
+  sittingsSinceMissed,
   sittingsSinceSeen,
   withMorseReview,
   withoutMorseReview,
@@ -206,5 +208,106 @@ describe('pruning deleted items', () => {
 
   it('survives an absent record', () => {
     expect(pruneMorseReview(undefined, [{ id: 'a' }])).toBeUndefined()
+  })
+})
+
+
+/**
+ * The repair debt (the targeted-review fix).
+ *
+ * Until this existed, a miss left no durable trace once its support level came
+ * back up, so review selection genuinely could not tell a learner who had
+ * struggled with `Q` from one who had never got it wrong — both were handed the
+ * same rosters by staleness and acquisition order alone.
+ */
+describe('a printed miss becomes a standing obligation', () => {
+  function introducedIn(sitting: number): MorseReviewProgress {
+    let review = newMorseReview()
+    for (let closed = 1; closed < sitting; closed += 1) review = completeSitting(review)
+    return recordIntroduced(review, 'a')
+  }
+
+  it('owes nothing until something is actually missed', () => {
+    const review = recordPrintedRetrieval(introducedIn(1), 'a', true)
+    expect(owesRepair(review, 'a')).toBe(false)
+    expect(sittingsSinceMissed(review, 'a')).toBeNull()
+  })
+
+  it('opens on a miss, stamped with the sitting it happened in', () => {
+    const review = recordPrintedRetrieval(introducedIn(1), 'a', false)
+    expect(owesRepair(review, 'a')).toBe(true)
+    expect(review.items.a.missedIn).toBe(1)
+    expect(sittingsSinceMissed(review, 'a')).toBe(0)
+  })
+
+  /**
+   * The whole reason the debt is an ordinal rather than a flag. The lesson
+   * re-asks a missed character a couple of steps later in the same sitting,
+   * with the correction it just showed still fresh — copying that back is not
+   * evidence the character survived anything.
+   */
+  it('is not cleared by the immediate in-sitting confirmation', () => {
+    let review = recordPrintedRetrieval(introducedIn(1), 'a', false)
+    review = recordPrintedRetrieval(review, 'a', true)
+    expect(owesRepair(review, 'a')).toBe(true)
+    expect(review.items.a.missedIn).toBe(1)
+  })
+
+  it('clears on a correct retrieval in a later sitting', () => {
+    let review = recordPrintedRetrieval(introducedIn(1), 'a', false)
+    review = recordPrintedRetrieval(review, 'a', true)
+    review = completeSitting(review)
+    expect(sittingsSinceMissed(review, 'a')).toBe(1)
+
+    review = recordPrintedRetrieval(review, 'a', true)
+    expect(owesRepair(review, 'a')).toBe(false)
+    expect(sittingsSinceMissed(review, 'a')).toBeNull()
+  })
+
+  it('moves forward rather than accumulating when the same character is missed again', () => {
+    let review = recordPrintedRetrieval(introducedIn(1), 'a', false)
+    review = completeSitting(review)
+    review = recordPrintedRetrieval(review, 'a', false)
+    expect(review.items.a.missedIn).toBe(2)
+    expect(sittingsSinceMissed(review, 'a')).toBe(0)
+  })
+
+  /**
+   * A repaired character has to serialise exactly like one that was never
+   * missed, or an export would carry two representations of "owes nothing" and
+   * the storage boundary would see an undefined value.
+   */
+  it('leaves no key behind once it is repaired', () => {
+    let review = recordPrintedRetrieval(introducedIn(1), 'a', false)
+    review = completeSitting(review)
+    review = recordPrintedRetrieval(review, 'a', true)
+    expect('missedIn' in review.items.a).toBe(false)
+    expect(JSON.parse(JSON.stringify(review))).toEqual(review)
+  })
+
+  it('makes no claim about a character placement established independently', () => {
+    const topic = topicWith()
+    const review = morseReviewOf({ ...topic, lessonProgress: { a: 'settled' } })
+    expect(owesRepair(review, 'a')).toBe(false)
+    expect(sittingsSinceMissed(review, 'a')).toBeNull()
+  })
+
+  it('reads a record written before the debt existed as owing nothing', () => {
+    const legacy: MorseReviewProgress = {
+      sittings: 3,
+      items: { a: { introducedIn: 1, lastSeenIn: 3, laterCorrect: 1, printed: 4, heard: 1, heardCorrect: 1 } },
+    }
+    expect(owesRepair(legacy, 'a')).toBe(false)
+  })
+
+  it('a listening answer neither opens nor clears it', () => {
+    let review = recordPrintedRetrieval(introducedIn(1), 'a', false)
+    review = completeSitting(review)
+    review = recordListeningRetrieval(review, 'a', true)
+    expect(owesRepair(review, 'a')).toBe(true)
+
+    let clean = recordPrintedRetrieval(introducedIn(1), 'a', true)
+    clean = recordListeningRetrieval(clean, 'a', false)
+    expect(owesRepair(clean, 'a')).toBe(false)
   })
 })

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
+  MORSE_FEEDBACK_CORRECT_MS,
   MORSE_TRANSITION_MS,
-  morseFeedbackMs,
   morseResponseArmed,
   type MorseResponsePhase,
 } from '../../../domain/morse/response'
@@ -25,24 +25,36 @@ import {
  * whole of `feedback` and `transitioning` including under
  * `prefers-reduced-motion`, where only the animation is dropped.
  *
- * `isHeld` covers the one thing the policy duration alone cannot: a learner
- * who spends the feedback window replaying the correct sound rather than
- * reading. Without it the fixed timer tore the correction down mid-playback
- * (or a beat after it), which is indistinguishable from the surface simply
- * moving on too fast. The floor still applies — a glance-and-tap cannot skip
- * the dwell — but a genuine replay now finishes before the surface can move.
+ * ## A hit is timed; a miss is not
+ *
+ * A hit dwells for `MORSE_FEEDBACK_CORRECT_MS` and moves on by itself, because
+ * there is nothing on it to read and a lesson of correct answers should not
+ * need a tap between each one.
+ *
+ * A miss starts no timer. The correction stands until the surface calls
+ * `acknowledge`, which is wired to a control the learner presses. Every
+ * previous attempt here was a guess at how long reading a correction takes —
+ * 1400ms, then 2000ms, then 2000ms plus a poll that extended it while the
+ * sound was replaying — and each one still tore the correction down at some
+ * moment the learner had not chosen. The learner is the only one who knows
+ * when they are done reading, so they are the one who says so.
  */
-const HOLD_POLL_MS = 150
-
-export function useKeyedResponse(advance: () => void, isHeld: () => boolean = () => false) {
+export function useKeyedResponse(advance: () => void) {
   const [phase, setPhase] = useState<MorseResponsePhase>('ready')
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  // The surface re-creates its advance/held callbacks every render; the
-  // lifecycle must read whichever was current at the moment it fires.
+  // The surface re-creates its advance callback every render; the lifecycle
+  // must read whichever was current at the moment it fires.
   const advanceRef = useRef(advance)
   advanceRef.current = advance
-  const isHeldRef = useRef(isHeld)
-  isHeldRef.current = isHeld
+  /**
+   * True while a correction is waiting on the learner rather than on a clock.
+   *
+   * State rather than a ref because the surface renders the control that ends
+   * the hold, and a ref would not bring it on screen. It is also the guard that
+   * stops a stray press during a hit's own 550ms dwell from advancing twice —
+   * once from the press and once from the timer it did not cancel.
+   */
+  const [holding, setHolding] = useState(false)
 
   const clear = useCallback(() => {
     if (timerRef.current) clearTimeout(timerRef.current)
@@ -51,6 +63,16 @@ export function useKeyedResponse(advance: () => void, isHeld: () => boolean = ()
 
   useEffect(() => clear, [clear])
 
+  const settle = useCallback(() => {
+    setHolding(false)
+    advanceRef.current()
+    setPhase('transitioning')
+    timerRef.current = setTimeout(() => {
+      timerRef.current = null
+      setPhase('ready')
+    }, MORSE_TRANSITION_MS)
+  }, [])
+
   /**
    * Called once per graded response. The surface shows its own feedback; this
    * decides how long it stands and when the next target becomes answerable.
@@ -58,30 +80,28 @@ export function useKeyedResponse(advance: () => void, isHeld: () => boolean = ()
   const answered = useCallback((correct: boolean) => {
     clear()
     setPhase('feedback')
-    const settle = () => {
-      // Only a miss has anything to replay; checking isHeld on a hit would
-      // just add fragility to the one path that is supposed to be quick and
-      // hands-free, for a case (`sounding` lagging after the keyed press's
-      // own tone) that has nothing to do with the learner reading anything.
-      if (!correct && isHeldRef.current()) {
-        timerRef.current = setTimeout(settle, HOLD_POLL_MS)
-        return
-      }
-      advanceRef.current()
-      setPhase('transitioning')
-      timerRef.current = setTimeout(() => {
-        timerRef.current = null
-        setPhase('ready')
-      }, MORSE_TRANSITION_MS)
+    if (!correct) {
+      // Open-ended. `acknowledge` is the only thing that ends it.
+      setHolding(true)
+      return
     }
-    timerRef.current = setTimeout(settle, morseFeedbackMs(correct))
-  }, [clear])
+    setHolding(false)
+    timerRef.current = setTimeout(settle, MORSE_FEEDBACK_CORRECT_MS)
+  }, [clear, settle])
+
+  /** The learner has finished reading a correction and asked to carry on. */
+  const acknowledge = useCallback(() => {
+    if (!holding) return
+    clear()
+    settle()
+  }, [clear, holding, settle])
 
   /** Leaving the keyed flow entirely (exit, new sitting, unmount of a run). */
   const reset = useCallback(() => {
     clear()
+    setHolding(false)
     setPhase('ready')
   }, [clear])
 
-  return { phase, armed: morseResponseArmed(phase), answered, reset }
+  return { phase, armed: morseResponseArmed(phase), holding, answered, acknowledge, reset }
 }

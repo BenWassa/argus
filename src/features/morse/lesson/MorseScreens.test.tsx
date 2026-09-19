@@ -185,7 +185,7 @@ describe('a retrieval screen uses the screen it is given', () => {
     renderLesson(settledThrough(seededTopic(), lessonPackets().length))
     const section = document.querySelector('.morse-lesson')!
     expect(section.hasAttribute('data-step')).toBe(false)
-    expect(screen.getByText('You have been through every letter')).toBeTruthy()
+    expect(screen.getByText('Every letter covered')).toBeTruthy()
   })
 })
 
@@ -234,7 +234,7 @@ describe('the curriculum opens on where the learner actually is', () => {
 
   it('states the checkpoint’s nature once rather than on all four rows', () => {
     renderPath(settledThrough(seededTopic(), lessonPackets().length))
-    expect(screen.getAllByText('Word checkpoint')).toHaveLength(4)
-    expect(screen.getAllByText('Real words, letters you already know')).toHaveLength(1)
+    expect(screen.getAllByText('Checkpoint')).toHaveLength(4)
+    expect(screen.getAllByText('Real words, letters you know')).toHaveLength(1)
   })
 })

@@ -1,5 +1,50 @@
 # Morse Learn: guided acquisition, finite sittings, listening, path, and reference
 
+> **Current correction, repair-review and chrome contract — 2026-09-19.** This
+> maintained contract supersedes the correction-dwell, review-marking and
+> session-chrome statements below where they conflict.
+>
+> **A correction holds until the learner dismisses it.** A hit keeps its short
+> automatic dwell (`MORSE_FEEDBACK_CORRECT_MS`); a miss has no duration at all.
+> `useKeyedResponse` starts no timer for it, and the surface shows a `Continue`
+> control that calls `acknowledge`. This reverses #87's original "neither verdict
+> takes a confirmation" rule, which was right about a hit and wrong about a miss:
+> every duration ever chosen for a correction (1400ms, then 2000ms, then 2000ms
+> plus an audio-replay poll) was a guess at the learner's reading speed, and each
+> one still removed the correction at a moment they had not chosen. The input
+> gate is unchanged — `armed` stays closed for the whole hold — and the rule is
+> identical in Learn, replay and the word checkpoints. `MORSE_FEEDBACK_WRONG_MS`
+> and `morseFeedbackMs` are removed; there is no duration left to tune.
+>
+> **Review is selected by what the learner actually missed.**
+> `MorseReviewItem.missedIn` records the sitting of an unrepaired printed miss.
+> It opens on a miss and closes only on a correct printed retrieval in a *later*
+> sitting — the immediate in-lesson confirmation proves the learner can copy a
+> correction still on screen, which is a different claim.
+> `PRIORITY_UNREPAIRED_MISS` dominates every other term in `retrievalPriority`,
+> and an outstanding repair is exempt from the two-sitting cooling-off guard in
+> `ordinaryReviewRoster`. Before this, nothing durable survived a miss once its
+> support level came back up, so two learners with opposite error histories were
+> handed identical rosters — a property the whole-programme simulations now
+> assert against. The acquisition-separation rule still outranks a repair, and a
+> character missed in the final lesson has no later lesson to be repaired in, so
+> `B`, `Q`, `Y` and `Z` remain unreachable inside the thirteen; the simulation
+> names them rather than hiding them.
+>
+> **Returning material is marked on the step, not on the run.** The `Review`
+> mark moved off `LessonRun.reviewOnly` — which nothing in the app builds, so in
+> practice no lesson ever showed it — onto every check whose entry is not novel.
+> It is a chip carrying a circling-arrow mark and the word, in `--learning`, and
+> the glyph is tinted and enlarged to match.
+>
+> **One word and one number in the session bar.** Every run surface — Learn,
+> word checkpoints, Test, Practice and the alphabet — names itself in one word on
+> the left and carries its position as a number in `.session-count` on the right.
+> `Lesson 4 of 13` over `7 retrievals`, `Checkpoint after lesson 4`,
+> `Test · 3 of 26` and `Practice · 5 to go` are all retired. In-lesson progress
+> is the engraved `.lesson-progress` bar rather than the sentence
+> `Lesson progress: 2 of 5 settled`.
+
 > **Current pacing contract — 2026-09-18.** This maintained contract supersedes the ten-answer budget and review-filler policy below. New letters receive one supported check and one unaided confirmation; returning letters need one correct printed check. After a mistake, the next correct recall ends that letter's repair; further mistakes keep it pending. Completed letters are never reopened as spacers. A settled letter with a successful later-sitting review is omitted from ordinary review until at least a two-sitting gap; empty review slots stay empty. A lesson ends when its roster is done, even before ten answers, and unresolved corrections continue beyond ten. Automatic listening is limited to unfinished returning letters, once successfully per lesson, with a retry after a miss; it never grants printed mastery. Continuing to the next lesson closes the sitting and starts a fresh one. Whole-programme simulations enforce at most two successful prompts per letter per error-free lesson, including listening, and four printed answers for the first lesson.
 
 > **#90/#92/#96 closeout addendum — 2026-09-15.** Current implementation supersedes stale status/details later in this historical contract where they conflict. `Topic.morseReview` is additive formative scheduling state, now including a printed-retrieval count used only to break genuinely equal review need fairly; one 10-retrieval sitting may introduce at most one two-character novel pair and fills the remainder with cumulative item-aware review. New learners require later-sitting **printed** success before acquisition readiness while legacy/previously-ready learners are not regressed; listening is selected by need and remains unable to alter printed evidence/history. Ordinary lesson returns are now selected from actual need rather than static packet position, while any unsettled historical packet return remains an obligation. Cumulative continuation is visibly but quietly marked **Review**. Listening choice placement rotates by listening-slot ordinal rather than lesson step, so fixed cadence cannot teach a correct-answer position. The formative checkpoint arc is now **Lessons 4, 7, 10 and 13**, with #88 first-unlock handoff at all four, late-acquired characters in later material, one bounded local retry after intervening targets where practical, and a local-only completion summary. Checkpoint/replay work still writes no lesson support, sitting, `morseReview`, `DirectionEvidence`, retention timestamp or completion. The deterministic one-pair/review-only sitting policy is settled; the final same-day continuation/spacing **copy and presentation** remains an owner decision under #92. The shipped Morse topic currently uses a quiet `Morse alphabet` link rather than embedding all 26 cards; that placement remains an explicit #92 owner decision. #29 stays outside this contract and #42 remains the separate Pixel acceptance track.
@@ -139,7 +184,8 @@ checkpoints under the #77 direct-entry contract:
 - entered elements become visible immediately;
 - the caller supplies only the expected element count;
 - reaching that count locks and submits the response exactly once automatically;
-- there is no Back/delete, Check/Submit or between-answer Continue path;
+- there is no Back/delete or Check/Submit path, and no Continue between a
+  *correct* answer and the next target;
 - a mis-key is therefore a miss and cannot be edited into correctness;
 - keyboard `.` and `-` use the same automatic grading contract; Backspace and
   Enter are not correction/confirmation controls.
@@ -164,9 +210,11 @@ gesture.
 #87 now owns the complete keyed-response boundary. Press duration chooses only
 dit versus dah; the shared audio path renders that accepted element completely,
 so a quick tap is not a clipped chirp and the final element finishes before the
-answer advances. Once an answer commits, keyed input is inert through the brief
-`Correct`/wrong feedback dwell and target transition; automatic advance remains,
-but the next target is not live until that transition is finished. Learn, replay
+answer advances. Once an answer commits, keyed input is inert through the
+feedback and the target transition alike. A `Correct` verdict advances
+automatically after the shared dwell; a correction holds until the learner
+presses `Continue` (2026-09-19, above). Either way the next target is not live
+until the transition behind it has finished. Learn, replay
 and word checkpoints share this policy. Reduced motion may remove the visual
 movement but never the input gate. The Morse key's pressed state is tactile and
 tonal/elevation-based rather than blue/accent. None of this changes lesson

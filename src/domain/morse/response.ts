@@ -21,14 +21,23 @@ import { LEARN_ACQUISITION_MORSE_TIMING } from './code'
 export const MORSE_FEEDBACK_CORRECT_MS = 550
 
 /**
- * A miss has to be read, not just noticed: these surfaces show the correct
- * pattern, and on Learn a whole re-teaching stage. 1400ms (the previous Learn
- * reteach dwell) proved too short to actually read a two-line correction and
- * decide whether to replay the sound before the surface moved on, so this is
- * longer still. On Learn specifically, replaying the sound also holds the
- * surface open past this floor — see `useKeyedResponse`'s `isHeld`.
+ * A miss has no duration at all: it holds until the learner dismisses it.
+ *
+ * It used to have one — 1400ms, then 2000ms, then 2000ms plus a poll that kept
+ * the correction up while the sound was replaying. Every one of those was an
+ * attempt to guess how long reading a correction takes, and the guess is not
+ * available: it depends on whether the learner is comparing what they keyed
+ * against what they should have, replaying the sound twice, or simply looking
+ * away. A correction that removes itself is the one moment in the lesson where
+ * the surface is doing something the learner did not ask for, on the one screen
+ * they most need to stay still.
+ *
+ * So a miss now ends on a press. There is no constant here to tune, and
+ * `useKeyedResponse` starts no timer for it — see `acknowledge`.
+ *
+ * A hit keeps its short automatic dwell. Nothing is being read there, and ten
+ * correct retrievals in a row should not need ten taps to get through.
  */
-export const MORSE_FEEDBACK_WRONG_MS = 2000
 
 /**
  * The outgoing/incoming swap. Deliberately shorter than `--t-base`: this is
@@ -37,10 +46,6 @@ export const MORSE_FEEDBACK_WRONG_MS = 2000
  * visual part is removed and the gate is not.
  */
 export const MORSE_TRANSITION_MS = 180
-
-export function morseFeedbackMs(correct: boolean): number {
-  return correct ? MORSE_FEEDBACK_CORRECT_MS : MORSE_FEEDBACK_WRONG_MS
-}
 
 /**
  * Canonical audible length of one keyed element at the Learn acquisition rate.
@@ -64,6 +69,9 @@ export function morseElementDurationMs(element: '.' | '-'): number {
  * make the boundary between two retrievals uncrossable by a finger that is
  * still moving: `committing` covers the final element finishing its tone,
  * `feedback` the visible result, `transitioning` the swap itself.
+ *
+ * `feedback` is timed for a hit and open-ended for a miss; either way it is not
+ * `ready`, so the gate below is the same answer for both.
  */
 export type MorseResponsePhase = 'ready' | 'committing' | 'feedback' | 'transitioning'
 

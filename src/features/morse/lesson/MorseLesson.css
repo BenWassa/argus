@@ -179,15 +179,80 @@
   color: var(--ink);
 }
 
-/* A quiet state marker: review remains the same Learn run, never a new mode. */
-.lesson-review-label {
+/*
+ * Returning material, made unmistakable.
+ *
+ * A lesson mixes two new letters with a few older ones, and the two kinds of
+ * screen used to be identical: mid-lesson on `Y` and `Z` a retrieval of `R`
+ * simply appeared, and nothing on the screen said why. The learner's only
+ * available reading was that the app had lost its place.
+ *
+ * So a review step gets its own colour, its own mark and its own entrance. The
+ * colour is `--learning`, the track semantic already spent on the acquisition
+ * dimension elsewhere in the app, so this reads as the same idea rather than as
+ * a fourth accent nobody has met. It is the one place in Learn that is allowed
+ * a hue, which is exactly what makes it legible at a glance.
+ */
+.lesson-task.is-review {
+  /* A chip rather than a line of text: it has to be findable in the half-second
+     before the learner starts reading the glyph, and a chip is an object where
+     a label is just more words in the same place the last one was. */
+  /* Both, because the step is a grid on the terminal screens and a flex column
+     on the retrieval ones. Either way the chip is the width of its own words. */
   justify-self: start;
-  margin: calc(var(--s-sm) * -1) 0 0;
-  color: var(--subtle);
-  font-size: var(--t-small);
-  font-weight: var(--w-label);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.35em 0.8em 0.35em 0.6em;
+  border: 1px solid color-mix(in srgb, var(--learning) 60%, transparent);
+  border-radius: var(--r-pill);
+  background: color-mix(in srgb, var(--learning) 12%, var(--surface-2));
+  font-family: var(--font-display);
+  font-size: var(--t-section);
+  font-weight: var(--w-section);
+  letter-spacing: 0.01em;
+  text-transform: none;
+  color: var(--learning);
+}
+
+.review-mark {
+  inline-size: 1em;
+  block-size: 1em;
+  flex: none;
+  /* One turn on arrival: the mark performs the thing it means, once, and then
+     holds still. Anything repeating would compete with the retrieval. */
+  animation: review-mark-turn 520ms var(--ease) both;
+}
+
+@keyframes review-mark-turn {
+  from { transform: rotate(-190deg); opacity: 0; }
+  to { transform: rotate(0deg); opacity: 1; }
+}
+
+/*
+ * The glyph carries the distinction as well as the chip.
+ *
+ * One small coloured label at the top of a screen is exactly the thing a
+ * learner mid-retrieval does not look at. The letter is what they are looking
+ * at, so the letter is tinted and set larger than a first meeting: a returning
+ * character is being asked from memory alone, with no phrase and no element
+ * count under it, and it should own the screen accordingly.
+ */
+.lesson-check[data-kind='review'] .lesson-glyph {
+  font-size: clamp(4.5rem, 26vw, 7.5rem);
+  color: var(--learning);
+}
+
+.lesson-check[data-kind='review'] .lesson-listening-stimulus {
+  border-color: var(--learning);
+  background: color-mix(in srgb, var(--learning) 8%, var(--surface-2));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .review-mark {
+    animation: none;
+  }
 }
 
 .lesson-support,
@@ -281,6 +346,13 @@
 .lesson-submit,
 .lesson-next {
   min-height: 52px;
+}
+
+/* A correction ends on a press, so its control sits at the foot of the card
+   with room around it, where the thumb already is after keying an answer. */
+.lesson-feedback .lesson-next {
+  margin-block-start: var(--s-sm);
+  justify-self: stretch;
 }
 
 .lesson-feedback {

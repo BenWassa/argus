@@ -388,7 +388,7 @@ describe('partially acquired Morse is never routed to Test', () => {
 
     const check = document.querySelector('.morse-path-check')
     expect(check?.querySelector('.morse-path-action')?.textContent).toBe('Try early')
-    expect(check?.textContent).toContain('without moving the ladder')
+    expect(check?.textContent).toContain('does not move the ladder')
   })
 
   it('shows acquisition progress as words, never as a retention gap bar', () => {

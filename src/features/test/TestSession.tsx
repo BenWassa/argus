@@ -509,10 +509,14 @@ export function TestSession({ topicIds, onExit, onPractice }: TestSessionProps) 
         <div className="session-bar">
           <p>
             <span className="session-topic">{card.topicTitle}</span>
-            <span className="tabular">
-              Test · {topicPosition.current} of {topicPosition.of}
-            </span>
           </p>
+          {/* Position as a number in the corner, the same grammar every run
+              surface uses. `Test · 3 of 12` named the surface the learner is
+              standing on and spelled out a reading they only ever glance at. */}
+          <span className="session-count tabular" aria-label={`Card ${topicPosition.current} of ${topicPosition.of}`}>
+            {topicPosition.current}
+            <span className="session-count-of" aria-hidden="true">/{topicPosition.of}</span>
+          </span>
           <button className="ghost small" type="button" onClick={requestExit}>
             End test
           </button>
@@ -554,10 +558,11 @@ export function TestSession({ topicIds, onExit, onPractice }: TestSessionProps) 
       <div className="session-bar">
         <p>
           <span className="session-topic">{card.topicTitle}</span>
-          <span className="tabular">
-            Test · {topicPosition.current} of {topicPosition.of}
-          </span>
         </p>
+        <span className="session-count tabular" aria-label={`Card ${topicPosition.current} of ${topicPosition.of}`}>
+          {topicPosition.current}
+          <span className="session-count-of" aria-hidden="true">/{topicPosition.of}</span>
+        </span>
         <button className="ghost small" type="button" onClick={requestExit}>
           End test
         </button>

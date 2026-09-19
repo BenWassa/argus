@@ -85,6 +85,14 @@
   border-color: var(--danger);
 }
 
+/* The correction now waits on the learner, so it carries the control that ends
+   it. Given room of its own: it is the only thing on the card that is pressed,
+   and it must not read as part of the sentence above it. */
+.morse-checkpoint-feedback .lesson-next {
+  margin-block-start: var(--s-sm);
+  min-width: 10rem;
+}
+
 .morse-checkpoint-feedback strong,
 .morse-checkpoint-feedback span,
 .morse-checkpoint-summary h1,

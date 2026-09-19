@@ -730,8 +730,33 @@ main:focus {
    same prompt and the user cannot tell which answer is wanted. */
 .session-bar p {
   display: flex;
-  flex-direction: column;
-  gap: 1px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-sm);
+  min-width: 0;
+}
+
+/*
+ * Where you are, as a number, where a page number goes.
+ *
+ * The bar used to spell out `Lesson 4 of 13` on one line and `7 retrievals` on
+ * the next. Both are readings, and a reading belongs in the instrument voice at
+ * the edge of the frame rather than in a sentence: the learner glances at this
+ * between retrievals and should not have to read it. The total stays, one step
+ * quieter, because a finite course you can see the end of is the premise.
+ */
+.session-count {
+  margin-inline-start: auto;
+  font-family: var(--font-mono);
+  font-size: var(--t-component);
+  font-weight: var(--w-label);
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.session-count-of {
+  color: var(--subtle);
+  font-size: var(--t-small);
 }
 
 /* The two things in the bar that are not readings: the deck's name, and the

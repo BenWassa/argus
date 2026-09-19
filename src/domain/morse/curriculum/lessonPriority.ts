@@ -1,4 +1,10 @@
-import { hasLaterSittingSuccess, hasListeningCoverage, sittingsSinceSeen } from './review'
+import {
+  hasLaterSittingSuccess,
+  hasListeningCoverage,
+  owesRepair,
+  sittingsSinceMissed,
+  sittingsSinceSeen,
+} from './review'
 import type { LessonSupport, MorseReviewProgress } from '../progress'
 
 /**
@@ -14,9 +20,18 @@ import type { LessonSupport, MorseReviewProgress } from '../progress'
  *
  * Higher is more urgent. The terms, in the order they dominate:
  *
+ *   unrepaired miss  the learner got this character wrong in print and has not
+ *                    yet produced it correctly in a later sitting. Nothing
+ *                    outranks it: review that ignores what the learner actually
+ *                    missed is not review, and until this term existed the
+ *                    programme genuinely could not tell two learners with
+ *                    opposite error histories apart — it handed both the same
+ *                    thirteen rosters
+ *   miss age         among outstanding repairs, the oldest debt first, capped
+ *                    so it can never reach the miss term's own step
  *   unconsolidated   a character that has never survived a gap between sittings
  *                    is the whole point of the programme's later stages, and
- *                    outranks everything else (#90 §4)
+ *                    outranks everything below it (#90 §4)
  *   support          scaffolding still on screen means the character is not yet
  *                    produced unaided; weaker support is more urgent
  *   staleness        sittings since it was last retrieved in print, capped so a
@@ -25,7 +40,16 @@ import type { LessonSupport, MorseReviewProgress } from '../progress'
  *                    the smallest term: it is formative support for printed
  *                    recall, not a claim of its own (#90 §5, and #29 keeps the
  *                    auditory boundary)
+ *
+ * The spacing is what makes the ordering a rule rather than an observation: the
+ * largest score a character with nothing outstanding can reach is
+ * `PRIORITY_UNCONSOLIDATED` + three support rungs + the staleness cap + the
+ * listening nudge, which is 176 — below `PRIORITY_UNREPAIRED_MISS`. So a missed
+ * character always outranks an unmissed one, whatever else is true of either.
  */
+export const PRIORITY_UNREPAIRED_MISS = 200
+export const PRIORITY_PER_UNREPAIRED_SITTING = 4
+export const PRIORITY_MISS_AGE_CAP = 5
 export const PRIORITY_UNCONSOLIDATED = 100
 export const PRIORITY_PER_SUPPORT_RUNG = 20
 export const PRIORITY_PER_STALE_SITTING = 3
@@ -60,13 +84,19 @@ export function retrievalPriority(
 ): number {
   const { itemId, support } = candidate
 
+  const owed = owesRepair(review, itemId)
+  const repair = owed ? PRIORITY_UNREPAIRED_MISS : 0
+  const missAge = owed
+    ? Math.min(sittingsSinceMissed(review, itemId) ?? 0, PRIORITY_MISS_AGE_CAP) *
+      PRIORITY_PER_UNREPAIRED_SITTING
+    : 0
   const unconsolidated = hasLaterSittingSuccess(review, itemId) ? 0 : PRIORITY_UNCONSOLIDATED
   const scaffolding = SUPPORT_URGENCY[support] * PRIORITY_PER_SUPPORT_RUNG
   const stale =
     Math.min(sittingsSinceSeen(review, itemId), PRIORITY_STALENESS_CAP) * PRIORITY_PER_STALE_SITTING
   const unheard = hasListeningCoverage(review, itemId) ? 0 : PRIORITY_NO_LISTENING
 
-  return unconsolidated + scaffolding + stale + unheard
+  return repair + missAge + unconsolidated + scaffolding + stale + unheard
 }
 
 /**

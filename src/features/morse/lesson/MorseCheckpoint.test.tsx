@@ -13,19 +13,32 @@ describe('Morse word checkpoint surface', () => {
     expect(code).not.toContain('MorseWordKeyInput')
     expect(code).toContain('expectedLength={MORSE_LETTERS[letter].length}')
     expect(code).toContain('pattern === MORSE_LETTERS[letter]')
-    expect(code).not.toMatch(/>\s*(Submit|Check|Delete|Continue|Back)\s*</)
+    // No Submit/Delete/Backspace: the key commits on the final element. The one
+    // button a target may carry is the `Continue` that ends a correction, and
+    // it appears only inside the miss branch of the feedback block.
+    expect(code).not.toMatch(/>\s*(Submit|Check|Delete|Back)\s*</)
     expect(code).not.toContain('Backspace')
   })
 
   it('keeps the whole word visible and highlights the current character', () => {
     const code = source('./MorseCheckpoint.tsx')
     expect(code).toContain('morse-checkpoint-word')
-    expect(code).toContain('Key the highlighted letter')
+    expect(code).toContain("run.phase === 'warmup' ? 'Warm up' : 'Word'")
     expect(code).toContain("characterIndex === run.characterIndex ? 'is-current'")
     expect(code).toContain('letter {run.characterIndex + 1} of {word}')
   })
 
-  it('advances after either correct or wrong feedback without a manual confirmation action', () => {
+  /**
+   * Reverses the original #87 rule that neither verdict took a confirmation.
+   *
+   * That rule was right about a hit and wrong about a miss. A correction is the
+   * only screen here with something on it to read, and every duration this
+   * surface ever chose for it was a guess at someone else's reading speed. So a
+   * hit still clears itself and a miss now waits for the learner — one shared
+   * boundary still, with the difference owned by `useKeyedResponse` rather than
+   * by a private timer here.
+   */
+  it('clears a hit by itself and holds a miss until the learner continues', () => {
     const code = source('./MorseCheckpoint.tsx')
     expect(code).toContain('setFeedback({ correct, letter })')
     expect(code).toContain('answered(correct)')
@@ -36,7 +49,11 @@ describe('Morse word checkpoint surface', () => {
     expect(code).toContain("feedback.correct ? 'Correct' : 'Miss'")
     expect(code).toContain('inert={!armed}')
     expect(code).toContain('locked={!armed}')
-    expect(code).not.toContain('>Continue<')
+    // The dismissal lives inside the miss branch and is driven by the hook's
+    // own hold state, so it can never appear beside a hit.
+    expect(code).toContain('onClick={acknowledge} disabled={!holding}')
+    const missBranch = code.slice(code.indexOf('{!feedback.correct && ('), code.indexOf('morse-checkpoint-answer'))
+    expect(missBranch).toContain('onClick={acknowledge}')
   })
 
   it('never requeues a miss and reports a small local summary', () => {
@@ -45,7 +62,7 @@ describe('Morse word checkpoint surface', () => {
     expect(code).not.toContain('retriedTargets')
     expect(code).not.toContain('withCheckpointRetry')
     expect(code).toContain('{correctAnswers} of {attempts} correct')
-    expect(code).toContain("{' · '}one pass")
+    expect(code).toContain('Nothing here changed saved progress.')
   })
 
   it('is structurally ephemeral and has no durable learner-state write path', () => {
@@ -79,7 +96,10 @@ describe('Morse word checkpoint surface', () => {
     expect(code).toContain('onContinue ? (')
     expect(code).toContain('{continueLabel ?? \'Keep going\'}')
     expect(code).toMatch(/<button type="button" disabled=\{!armed\} onClick=\{onExit\}>Back to lessons<\/button>/)
-    expect(code).not.toContain('>Continue<')
+    // The summary screen offers no `Continue`: that word belongs to a held
+    // correction, and confusing the two would make one of them mean nothing.
+    const summary = code.slice(code.indexOf('morse-checkpoint-summary'), code.indexOf('if (!letter)'))
+    expect(summary).not.toMatch(/>\s*Continue\s*</)
   })
 
   it('extends the #88 automatic handoff to all four cumulative milestones', () => {
@@ -87,6 +107,6 @@ describe('Morse word checkpoint surface', () => {
     expect(lesson).toContain('const CHECKPOINT_LESSON_NUMBERS = new Set([4, 7, 10, 13])')
     expect(lesson).toContain('checkpointNewlyUnlocked(pathBeforeAnswer, pathNow, completedLessonNumber)')
     expect(lesson).toContain('setCheckpointInvite({ checkpoint: invite, resume: cleared })')
-    expect(lesson).toContain('Skip for now')
+    expect(lesson).toContain('onClick={skipInvitedCheckpoint}>Skip<')
   })
 })

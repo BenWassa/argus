@@ -87,6 +87,24 @@ export interface MorseReviewItem {
   laterCorrect: number
   /** Every printed retrieval. Used only to break equal review need fairly. */
   printed: number
+  /**
+   * Sitting ordinal of an unrepaired printed miss, absent when nothing is owed.
+   *
+   * The one thing the programme could not previously say. `lessonProgress`
+   * records the support a character currently gets, and a miss restores support
+   * — but as soon as the learner keys it correctly again the support level
+   * returns to `settled` and the fact that they ever got it wrong is gone. So
+   * review selection had no idea which characters the learner had actually
+   * struggled with, and picked purely on staleness and acquisition order. Two
+   * learners with opposite error histories were handed the identical thirteen
+   * lessons.
+   *
+   * It is a sitting ordinal rather than a flag so the repair can be held to the
+   * same bar as acquisition itself (#90 §4): the miss clears when the character
+   * is produced correctly in a *later* sitting, not by the immediate in-lesson
+   * correction, which only proves the answer is still on screen.
+   */
+  missedIn?: number
   /** Listening retrievals offered. Formative support, never a claim. */
   heard: number
   /** Listening retrievals answered correctly. */

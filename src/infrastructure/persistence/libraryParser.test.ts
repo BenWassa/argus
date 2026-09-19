@@ -680,6 +680,26 @@ describe('formative Morse review history is durable and portable (#90)', () => {
     expect(again.ok && again.library.topics[0].morseReview).toEqual(review)
   })
 
+  it('round-trips an unrepaired miss, and keeps its absence absent', () => {
+    const owed = { sittings: 2, items: { 'item-1': { ...ITEM, missedIn: 2 } } }
+    expect(parsed(owed).morseReview).toEqual(owed)
+
+    // A repaired character and one that was never missed have to serialise
+    // identically, or "owes nothing" would have two representations.
+    expect(parsed({ sittings: 2, items: { 'item-1': ITEM } }).morseReview?.items['item-1'])
+      .not.toHaveProperty('missedIn')
+  })
+
+  /**
+   * The conservative half of this field's migration. Nothing was recording
+   * misses before it existed, so a record written then owes nothing — which is
+   * the honest reading rather than a generous one.
+   */
+  it('reads a record written before the repair debt existed as owing nothing', () => {
+    expect(parsed({ sittings: 2, items: { 'item-1': ITEM } }).morseReview?.items['item-1'].missedIn)
+      .toBeUndefined()
+  })
+
   it('normalises pre-#96 history without a printed counter conservatively', () => {
     const legacy = { ...ITEM }
     delete (legacy as Partial<typeof ITEM>).printed
@@ -725,6 +745,14 @@ describe('formative Morse review history is durable and portable (#90)', () => {
     expect(rejection({ sittings: 2, items: { 'item-1': { ...ITEM, heard: 1, heardCorrect: 2 } } }))
       .toContain('more correct listening answers')
     expect(rejection({ sittings: 2, items: { 'item-1': { ...ITEM, heard: 1.5 } } }))
+      .toContain('non-negative integer counters')
+    // A character cannot have been missed before it was introduced, or in a
+    // sitting this record has not reached.
+    expect(rejection({ sittings: 2, items: { 'item-1': { ...ITEM, introducedIn: 2, lastSeenIn: 2, laterCorrect: 0, missedIn: 1 } } }))
+      .toContain('miss outside the sittings it existed for')
+    expect(rejection({ sittings: 2, items: { 'item-1': { ...ITEM, missedIn: 9 } } }))
+      .toContain('miss outside the sittings it existed for')
+    expect(rejection({ sittings: 2, items: { 'item-1': { ...ITEM, missedIn: -1 } } }))
       .toContain('non-negative integer counters')
   })
 

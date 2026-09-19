@@ -81,7 +81,7 @@ async function openCheckpoint(page: Page) {
   await page.getByRole('button', { name: 'Library', exact: true }).click()
   await page.locator(`[data-row="${MORSE_ID}"]`).click()
   await page.getByRole('button', { name: 'Start word checkpoint after lesson 4' }).click()
-  await expect(page.getByText('Warm-up 1 of 4', { exact: true })).toBeVisible()
+  await expect(page.getByText('1/4', { exact: true })).toBeVisible()
 }
 
 test('a hit is acknowledged instead of vanishing in the frame it was recorded', async ({ page }) => {
@@ -90,7 +90,7 @@ test('a hit is acknowledged instead of vanishing in the frame it was recorded', 
   // E is one dit.
   await page.keyboard.type('.')
   await expect(page.getByRole('status')).toContainText('Correct')
-  await expect(page.getByText('Warm-up 2 of 4', { exact: true })).toBeVisible({ timeout: 3_000 })
+  await expect(page.getByText('2/4', { exact: true })).toBeVisible({ timeout: 3_000 })
 })
 
 test('rapid tapping through the boundary cannot answer the letter that follows', async ({ page }) => {
@@ -111,7 +111,7 @@ test('rapid tapping through the boundary cannot answer the letter that follows',
 
   // Warm-up 2 is T. It must arrive un-answered: none of those presses may have
   // been spent on a letter that was not yet on screen.
-  await expect(page.getByText('Warm-up 2 of 4', { exact: true })).toBeVisible({ timeout: 4_000 })
+  await expect(page.getByText('2/4', { exact: true })).toBeVisible({ timeout: 4_000 })
   await expect(page.locator('.morse-checkpoint-feedback')).toHaveCount(0)
 
   // And it is still answerable normally once the boundary has resolved.
@@ -132,7 +132,7 @@ test('the key is answerable, then absent under a verdict, then answerable again'
   // is nothing for a stray press to land on.
   await expect(page.locator('.morse-key')).toHaveCount(0)
 
-  await expect(page.getByText('Warm-up 2 of 4', { exact: true })).toBeVisible({ timeout: 3_000 })
+  await expect(page.getByText('2/4', { exact: true })).toBeVisible({ timeout: 3_000 })
   await expect(page.locator('.morse-key')).toBeEnabled({ timeout: 3_000 })
   await expect(page.locator('.morse-checkpoint-answer')).not.toHaveAttribute('inert', /.*/)
 })

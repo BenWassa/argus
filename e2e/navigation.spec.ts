@@ -264,7 +264,7 @@ test('partial Test Back reuses End test, Back resumes, and confirmed exit preser
   // Keyboard grading is part of the stable Test contract and does not depend on
   // whether the current deck renders visible grading buttons or swipe hints.
   await page.keyboard.press('ArrowRight')
-  await expect(page.locator('.session-bar .tabular')).toContainText('2 of 2')
+  await expect(page.locator('.session-bar .session-count')).toHaveAttribute('aria-label', 'Card 2 of 2')
 
   await systemBack(page)
   await expect(page.getByRole('heading', { name: 'End test', level: 1 })).toBeVisible()
@@ -275,7 +275,7 @@ test('partial Test Back reuses End test, Back resumes, and confirmed exit preser
   await systemBack(page)
   await expect(page.getByRole('heading', { name: 'End test', level: 1 })).toHaveCount(0)
   await expect(page.locator('.flip-card')).toBeVisible()
-  await expect(page.locator('.session-bar .tabular')).toContainText('2 of 2')
+  await expect(page.locator('.session-bar .session-count')).toHaveAttribute('aria-label', 'Card 2 of 2')
   await waitForRouteKind(page, 'run')
   await waitForHistoryIndex(page, 3)
 

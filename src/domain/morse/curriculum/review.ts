@@ -136,13 +136,43 @@ export function recordPrintedRetrieval(
 ): MorseReviewProgress {
   const existing = review.items[itemId] ?? newReviewItem(sitting)
   const later = correct && sitting > existing.introducedIn
+  const missedIn = repairDebt(existing, correct, sitting)
   const next: MorseReviewItem = {
     ...existing,
     lastSeenIn: Math.max(existing.lastSeenIn, sitting),
     laterCorrect: existing.laterCorrect + (later ? 1 : 0),
     printed: existing.printed + 1,
   }
+  // A present-or-absent key rather than an explicit `undefined`, so a repaired
+  // character serialises identically to one that was never missed and the
+  // storage boundary never sees an undefined value.
+  if (missedIn === undefined) delete next.missedIn
+  else next.missedIn = missedIn
   return { ...review, items: { ...review.items, [itemId]: next } }
+}
+
+/**
+ * How one printed answer moves the repair debt.
+ *
+ * A miss opens it, stamped with the sitting it happened in. A correct answer
+ * closes it only from a *later* sitting than the miss: the confirmation the
+ * lesson asks for immediately afterwards proves the learner can copy a
+ * correction that is still on the screen, which is not the same claim, and
+ * treating it as repair is exactly how a struggling character used to vanish
+ * from review the moment its support level went back up.
+ *
+ * Reopening is idempotent on the ordinal rather than on the flag: missing the
+ * same character twice in one sitting leaves one debt from that sitting, and
+ * missing it again next sitting moves the debt forward.
+ */
+function repairDebt(
+  existing: MorseReviewItem,
+  correct: boolean,
+  sitting: number,
+): number | undefined {
+  if (!correct) return sitting
+  if (existing.missedIn === undefined) return undefined
+  return sitting > existing.missedIn ? undefined : existing.missedIn
 }
 
 /**
@@ -177,6 +207,32 @@ export function completeSitting(review: MorseReviewProgress): MorseReviewProgres
 export function hasLaterSittingSuccess(review: MorseReviewProgress, itemId: string): boolean {
   const item = review.items[itemId]
   return isIndependentlyEstablished(item) || (item?.laterCorrect ?? 0) >= LATER_SITTING_SUCCESSES
+}
+
+/**
+ * Whether this character owes a repair: missed in print, and not yet produced
+ * correctly in a sitting after the one it was missed in.
+ *
+ * This is the question review selection now leads on. An item established by
+ * placement rather than by the lesson has no such history and owes nothing.
+ */
+export function owesRepair(review: MorseReviewProgress, itemId: string): boolean {
+  const item = review.items[itemId]
+  if (!item || isIndependentlyEstablished(item)) return false
+  return item.missedIn !== undefined
+}
+
+/**
+ * Sittings since the unrepaired miss, or `null` when nothing is owed. Orders
+ * one outstanding repair against another: the oldest unpaid debt goes first.
+ */
+export function sittingsSinceMissed(
+  review: MorseReviewProgress,
+  itemId: string,
+): number | null {
+  const item = review.items[itemId]
+  if (!item || item.missedIn === undefined || isIndependentlyEstablished(item)) return null
+  return Math.max(0, currentSitting(review) - item.missedIn)
 }
 
 /** Whether this item has been met in sound often enough. */

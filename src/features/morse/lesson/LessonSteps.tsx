@@ -20,6 +20,50 @@ import { MorsePlayButton } from '../MorsePlayButton'
  * replay alike: the difference between the two is consequence, decided at the
  * record boundary, and never anything a step has to know about.
  */
+
+/**
+ * The mark on a step that is bringing an earlier character back.
+ *
+ * A lesson mixes two new letters with a handful of returning ones, and until
+ * now the screens were identical: mid-lesson on `Y` and `Z`, a retrieval of `R`
+ * simply appeared, and the only honest reading available to the learner was
+ * that the app had lost its place. The circling arrow says the opposite —
+ * this is coming round again, on purpose, because it is due.
+ *
+ * Drawn rather than lettered so the meaning survives at a glance and at any
+ * text size, and `aria-hidden` because the word beside it already says it.
+ */
+export function ReviewMark() {
+  return (
+    <svg className="review-mark" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path
+        d="M20 12a8 8 0 1 1-2.34-5.66"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.4"
+        strokeLinecap="round"
+      />
+      <path d="M20 3.5V9h-5.5" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+/**
+ * The one line naming what this step is.
+ *
+ * Returning material gets the whole treatment — mark, colour and size — because
+ * that is the distinction the learner cannot otherwise make. New material gets
+ * a single quiet word, because the glyph under it is already the whole prompt.
+ */
+export function StepLabel({ review, children }: { review?: boolean; children: React.ReactNode }) {
+  if (!review) return <p className="lesson-task">{children}</p>
+  return (
+    <p className="lesson-task is-review">
+      <ReviewMark />
+      Review
+    </p>
+  )
+}
 export function CharacterStage({
   glyph,
   pattern,
@@ -68,11 +112,20 @@ export function VisualCheckStep({
   armed: boolean
   onAnswer: (response: string) => void
 }) {
+  const review = !entry.novel
   return (
-    <div className="lesson-check" ref={regionRef} tabIndex={-1} data-question="visual">
-      <p className="lesson-task">Key this pattern</p>
+    <div
+      className="lesson-check"
+      ref={regionRef}
+      tabIndex={-1}
+      data-question="visual"
+      data-kind={review ? 'review' : 'new'}
+    >
+      <StepLabel review={review}>Key it</StepLabel>
       <p className="lesson-glyph" aria-hidden="true">{entry.glyph}</p>
-      <h2 className="sr-only">Key the Morse pattern for {entry.glyph}.</h2>
+      <h2 className="sr-only">
+        {review ? 'Review. ' : ''}Key the Morse pattern for {entry.glyph}.
+      </h2>
 
       {format === 'taught' && (
         <div className="lesson-support" data-support="taught">
@@ -118,12 +171,17 @@ export function ListeningCheckStep({
   armed: boolean
 }) {
   return (
-    <div className="lesson-check" ref={regionRef} tabIndex={-1} data-question="listening">
-      <p className="lesson-task">Listen, then choose the letter</p>
+    <div
+      className="lesson-check"
+      ref={regionRef}
+      tabIndex={-1}
+      data-question="listening"
+      data-kind={entry.novel ? 'new' : 'review'}
+    >
+      <StepLabel review={!entry.novel}>Listen</StepLabel>
       <h2 className="sr-only">Listen to the Morse sound, then choose the matching letter.</h2>
       <div className="lesson-listening-stimulus">
         <MorsePlayButton glyph={entry.glyph} playing={playing} onToggle={onToggle} concealGlyph />
-        <p className="lesson-length">Replay as needed.</p>
       </div>
       <div className="lesson-options" aria-label="Letter choices" inert={!armed}>
         {options.map((option) => (

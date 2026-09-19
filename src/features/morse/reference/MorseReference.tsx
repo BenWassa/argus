@@ -98,8 +98,8 @@ export function MorseReference({ onExit }: { onExit: () => void }) {
       <div className="session-bar">
         <p>
           <span className="session-topic">Morse alphabet</span>
-          <span className="tabular">26 letters</span>
         </p>
+        <span className="session-count tabular" aria-label="26 letters">26</span>
         <button className="ghost small" type="button" onClick={onExit}>Close</button>
       </div>
 

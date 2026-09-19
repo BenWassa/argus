@@ -155,16 +155,22 @@ For every warm-up target and every word character:
 - expected element count auto-grades exactly once;
 - a mis-key is a miss and cannot be edited away;
 - show lightweight immediate correct/wrong feedback;
-- advance automatically to the next target.
+- advance automatically to the next target after a *correct* answer;
+- hold a correction until the learner presses `Continue`.
 
-Do not introduce Back, delete, Submit, Check, or Continue between characters.
+Do not introduce Back, delete, Submit or Check between characters, and no
+Continue after a correct answer. The one `Continue` on this surface belongs to a
+correction, and it is the shared rule rather than a local one — see the
+2026-09-19 contract in `MORSE_LESSON.md`. The bar names itself `Checkpoint` in
+one word and carries its position as a number, rather than
+`Checkpoint after lesson 4` plus `Warm-up 1 of 4`.
 
 Touch duration remains categorical input only. It is not sending timing, WPM,
 or formal evidence. #87 separates that classification from the audible element:
 every accepted dit/dah is rendered as a complete tone, the final tone finishes
 before the answer boundary advances, and the answer region remains locked through
-brief visible correct/wrong feedback and the target transition. Automatic
-advance remains. Reduced motion removes nonessential animation but not the safety
+visible correct/wrong feedback and the target transition. A hit advances
+automatically; a correction waits on the learner. Reduced motion removes nonessential animation but not the safety
 gate, and the shared Morse key uses a tactile tonal/elevation press state rather
 than blue/accent styling.
 

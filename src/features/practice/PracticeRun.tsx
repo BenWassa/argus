@@ -96,7 +96,7 @@ export function PracticeRun({ topic, itemIds, onExit, onCheck }: PracticeRunProp
         <div className="session-bar">
           <p>
             <span className="session-topic">{topic.title}</span>
-            <span className="tabular">Practice</span>
+            <span className="session-mode">Practice</span>
           </p>
           <button className="ghost small" type="button" onClick={onExit}>
             Close
@@ -131,8 +131,11 @@ export function PracticeRun({ topic, itemIds, onExit, onCheck }: PracticeRunProp
       <div className="session-bar">
         <p>
           <span className="session-topic">{topic.title}</span>
-          <span className="tabular">Practice · {remaining} to go</span>
+          <span className="session-mode">Practice</span>
         </p>
+        {/* How many are left, as a number. The word `Practice` is already on
+            the row and does not need repeating beside the count. */}
+        <span className="session-count tabular" aria-label={`${remaining} to go`}>{remaining}</span>
         <button className="ghost small" type="button" onClick={onExit}>
           Close
         </button>
