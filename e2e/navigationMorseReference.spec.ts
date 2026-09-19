@@ -3,6 +3,10 @@ import { fileURLToPath } from 'node:url'
 import { expect, test, type Page } from '@playwright/test'
 import { seedLibrary } from '../src/domain/library/catalogSeed'
 import type { Topic } from '../src/domain/library/topic'
+import { MORSE_FEEDBACK_WRONG_MS, MORSE_TRANSITION_MS } from '../src/domain/morse/response'
+
+/** Miss dwell plus the transition that follows it, with margin for CI jitter. */
+const MISS_TRANSITION_TIMEOUT = MORSE_FEEDBACK_WRONG_MS + MORSE_TRANSITION_MS + 1_000
 
 const STORE_KEY = 'argus.library.v5'
 const SPLASH_KEY = 'argus-splash-seen'
@@ -178,7 +182,7 @@ test('unlocked word checkpoint auto-advances through a miss and never mutates sa
   // requeues the missed warm-up inside the following word.
   await keyPattern(page, '-')
   await expect(page.getByRole('status')).toContainText('Miss')
-  await expect(page.getByText('Warm-up 2 of 4', { exact: true })).toBeVisible({ timeout: 2_000 })
+  await expect(page.getByText('Warm-up 2 of 4', { exact: true })).toBeVisible({ timeout: MISS_TRANSITION_TIMEOUT })
 
   await keyPattern(page, '-')
   await expect(page.getByText('Warm-up 3 of 4', { exact: true })).toBeVisible({ timeout: 2_000 })
@@ -194,7 +198,7 @@ test('unlocked word checkpoint auto-advances through a miss and never mutates sa
   // Miss T, then prove the run still advances through I, M and E contiguously.
   await keyPattern(page, '.')
   await expect(page.getByRole('status')).toContainText('Miss')
-  await expect(word.locator('.is-current')).toHaveText('I', { timeout: 2_000 })
+  await expect(word.locator('.is-current')).toHaveText('I', { timeout: MISS_TRANSITION_TIMEOUT })
   await keyPattern(page, '..')
   await expect(word.locator('.is-current')).toHaveText('M', { timeout: 2_000 })
   await keyPattern(page, '--')
