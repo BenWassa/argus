@@ -440,219 +440,259 @@ button.flip-card:active {
   }
 }
 
-/* --- The acquisition ladder --------------------------------------------------
-   A cue rung is a graded prompt, not a flip card: the prompt is stated, the
-   scaffolding beneath it is explicit about being scaffolding, and the response
-   controls sit within thumb reach at the bottom of a phone. */
+/* --- The Morse ladder card ---------------------------------------------------
+ *
+ * One column, four things at most: what to do, the prompt, at most one piece of
+ * support, and the control that answers it. The previous composition opened
+ * with the rung's own name and an instruction sentence, set the prompt in a
+ * card of its own, and then stacked a dashed cue panel carrying up to four
+ * renderings of the same scaffolding — so the learner met five framed objects
+ * before reaching the key, and the key itself sat mid-screen with a third of a
+ * phone empty beneath it.
+ *
+ * This is the lesson's retrieval grammar, because a graded Morse question and a
+ * formative one are the same act: a task word, the glyph, the support if there
+ * is any, and the key at the foot where the thumb already is. */
 
+.rapid-session.is-progressive {
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+/*
+ * The free height is spent around the question rather than below it: the whole
+ * group is centred in the run, which keeps the prompt, its support and the key
+ * together as one object and still lands the key in the lower half of a phone.
+ * Landscape has no height to spend, so it packs from the top.
+ */
 .progressive-card {
-  display: grid;
-  align-content: start;
-  gap: var(--s-lg);
-  padding-top: var(--s-lg);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--s-md);
+  min-width: 0;
 }
 
-.test-rung {
-  display: grid;
-  gap: 2px;
+/* One word for what this question wants. The rung's internal name said nothing
+   a learner could act on, and the instruction under it restated the legend the
+   key already carries. */
+.test-task {
   margin: 0;
-}
-
-.test-rung-name {
   font-family: var(--font-mono);
   font-size: var(--t-readout);
   font-weight: var(--w-label);
   letter-spacing: var(--track-readout);
   text-transform: uppercase;
-  color: var(--subtle);
+  color: var(--ink);
 }
 
-.test-rung-instruction {
-  font-size: var(--t-small);
-  color: var(--muted);
-}
-
+/* The prompt is the largest thing on the screen and carries no frame: a box
+   around a single letter is chrome around the one element that needs none. */
 .test-prompt {
-  padding: var(--s-xl) var(--s-md);
-  border: 1px solid var(--line);
-  border-radius: var(--r-lg);
-  background: var(--surface-2);
-  box-shadow: var(--edge);
-  text-align: center;
-}
-
-.test-prompt-value {
   margin: 0;
   font-family: var(--font-display);
-  font-size: clamp(2.6rem, 14vw, 4rem);
+  font-size: clamp(3.4rem, 18vw, 5.5rem);
   font-weight: var(--w-display);
-  line-height: 1.05;
-  letter-spacing: 0.04em;
+  line-height: 0.9;
   overflow-wrap: anywhere;
 }
 
-/* Scaffolding is visually marked as temporary. It never looks like the answer
-   because it never is the answer: only a strict prefix of it. */
-.test-cue {
-  display: grid;
-  gap: var(--s-xs);
-  padding: var(--s-md);
-  border: 1px dashed var(--line-strong);
-  border-radius: var(--r-md);
-}
-
-.test-cue-label {
-  margin: 0;
-  font-family: var(--font-mono);
-  font-size: var(--t-readout);
-  font-weight: var(--w-label);
-  letter-spacing: var(--track-readout);
-  text-transform: uppercase;
-  color: var(--subtle);
-}
-
-.test-cue-pattern {
-  margin: 0;
-  font-family: var(--font-mono);
-  font-size: 1.4rem;
-  letter-spacing: 0.14em;
-  color: var(--ink);
-}
-
-.test-cue-length {
-  margin: 0;
-  font-size: var(--t-small);
-  color: var(--muted);
-}
-
-.test-options {
-  display: grid;
-  gap: var(--s-sm);
-}
-
-.test-option {
-  min-height: 58px;
-  padding: var(--s-md);
-  border: 1px solid var(--line-strong);
-  border-radius: var(--r-md);
-  background: var(--surface-3);
-  box-shadow: var(--edge);
-  color: var(--ink);
-  font-family: var(--font-mono);
-  font-size: 1.3rem;
-  letter-spacing: 0.16em;
-}
-
-.test-waiting {
-  margin: 0;
-  padding: var(--s-lg) 0;
-  text-align: center;
-  font-size: var(--t-small);
-  color: var(--subtle);
-}
-
-.test-production,
-.test-entry-form {
-  display: grid;
-  gap: var(--s-md);
-}
-
-.test-entry {
-  margin: 0;
-  min-height: 2.2em;
-  padding: var(--s-md);
-  border-bottom: 2px solid var(--line-strong);
-  font-family: var(--font-mono);
-  font-size: 1.5rem;
-  letter-spacing: 0.16em;
-  text-align: center;
-  overflow-wrap: anywhere;
-}
-
-/* Two oversized keys side by side: reachable with one thumb, and unambiguous
-   at a glance because they are the same two shapes the notation uses. */
-.test-keys {
-  display: grid;
-  grid-template-columns: 1fr 1fr auto;
-  gap: var(--s-sm);
-  align-items: stretch;
-}
-
-.test-key {
-  min-height: 72px;
-  border-radius: var(--r-lg);
-  font-size: 1.8rem;
+/* A printed pattern is notation, not display type, and it is drawn rather than
+   typeset: every mark keeps its real proportion — a dah is three dits long —
+   so the prompt reads as a rhythm at a glance. */
+.test-prompt.is-pattern {
+  font-size: clamp(1.7rem, 9vw, 2.4rem);
   line-height: 1;
 }
 
-.test-key-small {
-  min-height: 72px;
-  padding-inline: var(--s-md);
+.test-pattern {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.44em;
 }
 
-.test-submit,
-.test-next {
-  min-height: 52px;
+.test-pattern-mark {
+  display: block;
+  block-size: 0.44em;
+  border-radius: var(--r-pill);
+  background: var(--ink);
 }
 
-.test-entry-label {
+.test-pattern-mark.is-dit {
+  inline-size: 0.44em;
+}
+
+.test-pattern-mark.is-dah {
+  inline-size: 1.32em;
+}
+
+/* Whatever this rung discloses, in the one panel the lesson uses for the same
+   job. There is never more than one. */
+.test-support {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-sm) var(--s-md);
+  margin: 0;
+  padding: var(--s-md);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  box-shadow: var(--edge);
+}
+
+.test-length {
   font-size: var(--t-small);
   color: var(--muted);
 }
 
+.test-answer {
+  display: grid;
+  width: 100%;
+  margin-block-start: var(--s-sm);
+}
+
+/* One character is asked for, so the field is the size of one character. A
+   full-width box for a single letter reads as though more were wanted. */
+.test-entry {
+  display: grid;
+  justify-items: start;
+  gap: var(--s-sm);
+}
+
 .test-entry-input {
-  min-height: 64px;
-  padding: var(--s-md);
+  inline-size: 5.5rem;
+  min-height: 72px;
+  padding: var(--s-sm);
   font-family: var(--font-display);
   font-size: 2.4rem;
   text-align: center;
   text-transform: uppercase;
 }
 
-.test-hint {
-  margin: 0;
-  font-size: var(--t-small);
-  color: var(--subtle);
-}
-
-.test-feedback {
-  display: grid;
-  gap: var(--s-sm);
-  padding: var(--s-md);
-  border: 1px solid color-mix(in srgb, var(--danger) 45%, var(--line));
-  background: color-mix(in srgb, var(--danger) 10%, var(--surface-2));
-  border-radius: var(--r-md);
-}
-
-.test-feedback.is-correct {
-  border-color: color-mix(in srgb, var(--ok) 45%, var(--line));
-  background: color-mix(in srgb, var(--ok) 10%, var(--surface-2));
-}
-
-.test-feedback-verdict {
+/* The same voice as the key's own legend, on the control it describes. */
+.test-entry-legend {
   margin: 0;
   font-family: var(--font-mono);
   font-size: var(--t-readout);
   font-weight: var(--w-label);
   letter-spacing: var(--track-readout);
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--subtle);
 }
 
-.test-feedback-answer {
-  display: flex;
+/*
+ * Short landscape has no spare height to spend, so the run packs from the top
+ * and the question gives some of its own scale back. The key has to stay on
+ * screen: an answer control the learner would have to scroll to is not one they
+ * can answer with.
+ */
+@media (max-height: 560px) {
+  .progressive-card {
+    justify-content: flex-start;
+    gap: var(--s-sm);
+  }
+
+  .test-prompt {
+    font-size: clamp(2rem, 11vh, 2.6rem);
+  }
+
+  .test-prompt.is-pattern {
+    font-size: clamp(1.3rem, 6vh, 1.8rem);
+  }
+
+  .test-support {
+    padding: var(--s-sm) var(--s-md);
+  }
+
+  .progressive-card .morse-key-entry {
+    min-height: 1.2em;
+    font-size: 1.3rem;
+  }
+
+  .test-answer {
+    margin-block-start: 0;
+  }
+
+  .test-entry-input {
+    min-height: 56px;
+  }
+}
+
+/* A hit is acknowledged, not celebrated, and a miss is a correction to read:
+   the same quiet layer for both, and no colour wash over either. */
+.test-feedback {
+  display: grid;
+  gap: var(--s-sm);
+  margin-block-start: var(--s-sm);
+  padding: var(--s-lg);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-lg);
+  background: var(--surface-2);
+}
+
+.test-feedback.is-correct {
+  justify-items: start;
+  gap: var(--s-xs);
+}
+
+.test-verdict {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--t-section);
+  font-weight: var(--w-section);
+  color: var(--danger-2);
+}
+
+.test-feedback.is-correct .test-verdict {
+  color: var(--ok);
+}
+
+.test-correction {
+  display: grid;
+  gap: var(--s-xs);
+}
+
+/* Label and value on one baseline, the labels in a column of their own, so the
+   two patterns sit directly above one another and can be read against each
+   other at a glance. */
+.test-correction-row {
+  display: grid;
+  grid-template-columns: 6.5rem minmax(0, 1fr);
   align-items: baseline;
   gap: var(--s-md);
   margin: 0;
-  font-size: 1.3rem;
-  letter-spacing: 0.14em;
 }
 
-.test-feedback-glyph {
+.test-correction-label {
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  font-weight: var(--w-label);
+  letter-spacing: var(--track-readout);
+  text-transform: uppercase;
+  color: var(--subtle);
+}
+
+.test-correction-value {
+  font-size: 1.3rem;
+  letter-spacing: 0.14em;
+  color: var(--ink);
+}
+
+.test-correction-glyph {
   font-family: var(--font-display);
-  font-size: 2rem;
+  font-size: 1.6rem;
   font-weight: var(--w-display);
+  line-height: 1;
   letter-spacing: 0;
+  color: var(--ink);
+}
+
+/* A correction ends on a press, so its control sits at the foot of the card
+   with room around it, where the thumb already is after keying an answer. */
+.test-next {
+  min-height: 52px;
+  margin-block-start: var(--s-sm);
 }
 
 /* The offer to practise what a check just missed (#92 batch 5).

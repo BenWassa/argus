@@ -13,8 +13,9 @@ Primary code:
 - `src/domain/study/cueLadder.ts` — rungs, fading and cue evidence;
 - `src/domain/morse/testing/acquisitionProfile.ts` — Morse profile, cue payload and objective grading;
 - `src/features/test/ProgressiveCard.tsx` — graded Test surface;
-- `src/features/morse/input/MorseKeyInput.tsx` — shared letter → Morse production
-  control used by Learn and Test.
+- `src/features/morse/keyedResponse.ts` — the keyed answer as `features/morse`
+  offers it to Test: the shared letter → Morse production control and the
+  response lifecycle that owns the boundary between two answers.
 
 ## Architectural boundary
 
@@ -46,13 +47,19 @@ The first four rungs are all printed letter → Morse production. The amount of
 support fades; the response control does not change. The fifth rung reverses the
 printed mapping and takes a typed character.
 
-| # | Rung | Stored cue | Direction | Response | Scaffolding |
+| # | Rung | Stored cue | Direction | Response | Scaffolding shown |
 |---|---|---|---|---|---|
-| 1 | Rhythm support | `rich` | letter → pattern | shared Morse key | strict opening verbal/SVG prefix, canonical prefix, plus length |
-| 2 | Reduced rhythm | `delayed-choice` | letter → pattern | shared Morse key | first verbal/SVG beat, canonical first element, plus length |
-| 3 | Element count | `reduced` | letter → pattern | shared Morse key | element count only |
+| 1 | Rhythm support | `rich` | letter → pattern | shared Morse key | strict opening prefix of the mnemonic phrase |
+| 2 | Reduced rhythm | `delayed-choice` | letter → pattern | shared Morse key | first beat of the mnemonic phrase |
+| 3 | Element count | `reduced` | letter → pattern | shared Morse key | signal count only |
 | 4 | Free production | `free` | letter → pattern | shared Morse key | none |
 | 5 | Free reception | `free` | printed pattern → letter | character entry | none |
+
+The rung's *allowance* — `allowsArtwork`, `allowsVerbalCue`, `showsLength`,
+`revealPolicy` — is unchanged and still what `isAssistedRung` reads. What the
+card spends of that allowance is a presentation decision, recorded under
+[The card](#the-card) below: one disclosure per rung rather than four readings
+of the same one.
 
 There are **no visual pattern alternatives** on these Test rungs. There is also
 no target-audio control while a printed letter → pattern question is live. This
@@ -62,16 +69,41 @@ would disclose the pattern the learner is supposed to produce.
 Listening multiple choice belongs to the distinct sound → letter formative
 interaction in Learn and is not part of this printed Test ladder.
 
-## Shared Morse key
+## The card
+
+One column, and at most four things in it: the task in a word, the prompt, the
+rung's single disclosure, and the control that answers it.
+
+- **Task.** `Key it` for the four forward rungs, `Name it` for reception. The
+  rung's own name (`Rhythm support`, `Free production`) is implementation
+  vocabulary and is never shown; nor is an instruction line restating the
+  legend the key already carries.
+- **Prompt.** The bare glyph, unframed and the largest thing on the screen. A
+  printed pattern is drawn mark by mark in its real proportions — a dah three
+  times the length of a dit — rather than typeset as `— — · —` at display size.
+- **Support.** Exactly one, chosen by strength: the opening of the mnemonic
+  phrase via the shared `MorsePhrase` where the rung allows a verbal cue,
+  otherwise the signal count, otherwise nothing. The phrase carries the `·`/`—`
+  marks and a `?` per hidden beat, so the separate timing SVG, the revealed
+  notation line and the element tally that used to sit beside it are gone: they
+  were the same cue a third and fourth time over.
+- **Answer.** The shared Morse key, or a one-character field that grades on the
+  character with no separate submit.
+- **Feedback.** A hit is one word and moves on by itself after
+  `MORSE_FEEDBACK_CORRECT_MS`; a miss holds until `Continue`, showing what was
+  given and what the answer is on two aligned rows. The response control is
+  gated for the whole of both and across the swap into the next question, via
+  the shared `useKeyedResponse` — the same lifecycle Learn and the word
+  checkpoints run (#87).
 
 The forward Test rungs use the same `MorseKeyInput` as Learn:
 
 - one visible primary touch target;
 - tap / short press → dit `·`;
 - press-and-hold → dah `—`;
-- Back removes the last element;
-- Submit grades the accumulated pattern;
-- keyboard equivalents: `.`, `-`, Backspace and Enter.
+- keyboard equivalents: `.` and `-`;
+- no edit or submit path: the pattern grades itself the moment it is complete,
+  and a mis-key is a miss.
 
 The tap/hold threshold is categorical input only. Duration is not exposed to the
 caller or persisted, so this UI cannot become evidence of sending skill or WPM.
@@ -85,7 +117,7 @@ The first two rungs may reveal only a **strict prefix** of the canonical answer;
 a cue can never equal the whole pattern. For a one-element character, prefix
 reveal is therefore empty.
 
-Rung 3 exposes only element count. Rungs 4 and 5 are fully uncued.
+Rung 3 exposes only the signal count. Rungs 4 and 5 are fully uncued.
 
 Tests assert for every character and rung that an uncued payload contains only:
 
@@ -96,9 +128,10 @@ Tests assert for every character and rung that an uncued payload contains only:
 and that rendered uncued cards contain no verbal mnemonic, SVG cue, answer
 notation, target audio or length hint.
 
-The `mnemonicId` path renders only `revealedRawPattern`, never the whole pattern.
-That keeps the SVG a secondary partial timing scaffold rather than an answer
-surface.
+`mnemonicId` and `revealedRawPattern` remain a strict prefix in the payload. The
+Test card no longer renders the SVG built from them — the phrase prefix beside
+it said the same thing — so the timing artwork is Learn's, where a secondary
+scaffold belongs.
 
 ## Why rungs 4 and 5 share one stored cue state
 
@@ -288,6 +321,10 @@ metadata without changing scored item identity or evidence semantics.
 - the forward response UI to the same one-touch Morse key used in Learn;
 - the former reduced-rung target-audio cue to non-answer-bearing element-count
   support only.
+
+A later pass cut the card itself back to one disclosure per rung and gave it
+Learn's retrieval composition and response lifecycle. It changes no rung, cue
+state, fade rule, payload or evidence semantics; see [The card](#the-card).
 
 #56 preserves:
 

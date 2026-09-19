@@ -124,11 +124,16 @@ The all-26 suite runs the same invariants over the full alphabet.
 
 #42 makes the visual hierarchy explicit in Test:
 
-- rich Test may render only the strict disclosed SVG prefix;
-- delayed Test may render only the first SVG element when a prefix exists;
-- canonical-support Test has **no SVG**;
+- rich Test may disclose only the strict opening prefix of the mnemonic;
+- delayed Test may disclose only its first beat;
+- signal-count Test discloses no mnemonic at all;
 - free production and printed pattern → letter reverse recall have **no SVG,
   verbal mnemonic, audio cue, length hint or answer prefix**.
+
+The Test card now spends that allowance on the phrase prefix alone — its `·`/`—`
+marks carry the timing the SVG was drawing — so the artwork itself is Learn's.
+The payload rule is unchanged: what may be disclosed is still a strict prefix,
+and an uncued rung still discloses nothing.
 
 The same `buildCuePayload` object controls verbal, SVG, canonical and audio
 support, and tests assert that an uncued payload contains only its rung id.

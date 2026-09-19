@@ -10,7 +10,6 @@ import {
 } from 'motion/react'
 import { useLibrary } from '../../services/library/LibraryProvider'
 import { applyResolution } from '../../domain/study/scheduling'
-import { expectedAnswer } from '../../domain/morse/testing/acquisitionProfile'
 import {
   isAssistedRung,
   mergeItemEvidence,
@@ -18,7 +17,6 @@ import {
   rungFor,
   withBaselineCue,
 } from '../../domain/study/cueLadder'
-import { selectDistractors } from '../../domain/study/distractors'
 import type { AttemptAnswer } from '../../domain/library/items'
 import { registerBackBlocker } from '../../app/routing/history'
 import type { Topic } from '../../domain/library/topic'
@@ -28,7 +26,6 @@ import {
   acquisitionProfiles,
   buildDeck,
   openingBaselines,
-  shuffle,
   swipeDecks,
   type Card,
 } from './testDeck'
@@ -43,9 +40,6 @@ import {
   type SwipeGrade,
 } from './swipeGrade'
 import './TestSession.css'
-
-/** Alternatives on a choice rung: the answer plus three distractors. */
-const CHOICE_OPTIONS = 4
 
 /** How far past its own width a committed card travels before it is gone. */
 const EXIT_OVERSHOOT_PX = 140
@@ -227,23 +221,6 @@ export function TestSession({ topicIds, onExit, onPractice }: TestSessionProps) 
     const first = deck.findIndex((candidate) => candidate.topicId === card.topicId)
     return { current: index - first + 1, of: cards.length }
   }, [card, deck, index])
-
-  // Alternatives are chosen per card: evidence-driven, stage-aware, and
-  // recomputed only when the card changes so they do not reshuffle mid-answer.
-  const options = useMemo(() => {
-    if (!card?.character) return []
-    const rung = rungFor(card.item, evidenceFor(card))
-    if (rung.response !== 'choice') return []
-    const topic = included.find((candidate) => candidate.id === card.topicId)
-    const distractors = selectDistractors({
-      target: card.item,
-      pool: topic?.items ?? [],
-      evidence: { ...(topic?.itemEvidence ?? {}), ...(cueEvidence[card.topicId] ?? {}) },
-      count: CHOICE_OPTIONS - 1,
-    })
-    return shuffle([expectedAnswer(rung, card.character), ...distractors.map((item) => item.answer)])
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [index])
 
   function bank(
     topicId: string,
@@ -522,12 +499,13 @@ export function TestSession({ topicIds, onExit, onPractice }: TestSessionProps) 
           </button>
         </div>
 
+        {/* Deliberately not keyed per card. The card owns the keyed-answer
+            lifecycle, and the gate that stops a finger still moving through one
+            answer landing on the next has to survive the swap between them. */}
         <ProgressiveCard
-          key={`${card.topicId}-${card.item.id}-${index}`}
           cardKey={`${card.topicId}-${card.item.id}-${index}`}
           character={card.character}
           rung={rung}
-          options={options}
           onAnswer={answerProgressive}
         />
       </section>

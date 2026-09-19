@@ -41,7 +41,6 @@ function render(letter: MorseLetter, rungIndex: number) {
     <ProgressiveCard
       character={character(letter)}
       rung={CUE_RUNGS[rungIndex]}
-      options={[]}
       onAnswer={() => undefined}
       cardKey={`${letter}-${rungIndex}`}
       now={() => 0}
@@ -63,10 +62,10 @@ describe('cue-bearing content cannot reach an uncued rung', () => {
     for (const rungIndex of [3, 4]) {
       for (const letter of letters) {
         const html = render(letter, rungIndex)
-        expect(html).not.toContain('class="test-cue')
+        expect(html).not.toContain('class="test-support')
         expect(html).not.toContain('argus-morse-rhythm')
         expect(html).not.toContain('the whole answer spelled out')
-        expect(html).not.toContain('elements in total')
+        expect(html).not.toContain('signals')
         expect(html).not.toContain('Play canonical rhythm')
         expect(html).not.toContain(verbalMnemonic(letter).phrase)
       }
@@ -75,7 +74,7 @@ describe('cue-bearing content cannot reach an uncued rung', () => {
 
   it('never shows the answer side of the item before it is answered', () => {
     for (const letter of letters) {
-      const above = render(letter, 3).split('class="test-production"')[0]
+      const above = render(letter, 3).split('class="test-answer"')[0]
       const canonical = Array.from(MORSE_LETTERS[letter]).map((m) => (m === '.' ? '·' : '—')).join(' ')
       expect(above).not.toContain(canonical)
       expect(above).not.toContain(character(letter).reading)
@@ -109,45 +108,73 @@ describe('cue-bearing content cannot reach an uncued rung', () => {
 
 const R_BEATS = verbalMnemonic('R').beats.map((beat) => beat.text)
 
+/**
+ * The cue is the shared `MorsePhrase`, so a disclosed beat is a phrase word
+ * rather than the bespoke captioned chip the Test card used to draw for itself.
+ */
 function containsBeatWord(html: string, word: string): boolean {
-  return html.includes(`<strong>${word}</strong>`)
+  return html.includes(`<span class="morse-phrase-word">${word.toUpperCase()}</span>`)
 }
 
 describe('rung rendering', () => {
-  it('uses keyed production with reduced verbal + SVG support at the richest Test rung', () => {
+  it('discloses the opening of the phrase, and only that, at the richest Test rung', () => {
     const html = render('R', 0)
     expect(html).toContain('class="morse-key"')
-    expect(html).not.toContain('class="test-option mono')
-    expect(html).toContain('test-cue')
-    expect(html).toContain('3 elements in total')
-    expect(html).toContain('Rhythm support')
+    expect(html).toContain('class="test-support"')
     expect(containsBeatWord(html, R_BEATS[0])).toBe(true)
     expect(containsBeatWord(html, R_BEATS[1])).toBe(true)
-    expect(html).toContain('<svg')
     expect(containsBeatWord(html, R_BEATS[2])).toBe(false)
+    // The phrase marks already carry the timing and the count of what is
+    // hidden, so the SVG trace, the notation line and the element tally that
+    // used to sit beside them are gone rather than repeating it three times.
+    expect(html).not.toContain('<svg')
+    expect(html).not.toContain('signals')
+    expect(html).not.toContain('elements in total')
   })
 
-  it('uses the same key with one opening verbal/visual beat at the next rung', () => {
+  it('uses the same key with one opening beat at the next rung', () => {
     const html = render('R', 1)
     expect(html).toContain('class="morse-key"')
-    expect(html).not.toContain('the alternatives are coming')
-    expect(html).not.toContain('class="test-option mono')
     expect(containsBeatWord(html, R_BEATS[0])).toBe(true)
     expect(containsBeatWord(html, R_BEATS[1])).toBe(false)
-    expect(html).toContain('<svg')
+    expect(html).not.toContain('<svg')
   })
 
-  it('reduces to element-count support without target audio or multiple choice', () => {
+  it('reduces to signal-count support without target audio or artwork', () => {
     const html = render('R', 2)
-    expect(html).toContain('3 elements in total')
+    expect(html).toContain('3 signals')
     expect(html).toContain('class="morse-key"')
-    expect(html).not.toContain('test-cue-pattern')
-    expect(html).not.toContain('test-cue-verbal')
+    expect(html).not.toContain('morse-phrase')
     expect(html).not.toContain('<svg')
     expect(html).not.toContain('Play canonical rhythm')
-    expect(html).not.toContain('class="test-option mono')
     const payload = buildCuePayload(CUE_RUNGS[2], character('R'))
     expect(payload.audioText).toBeUndefined()
+  })
+
+  it('says what the question wants in one word, and never names the rung', () => {
+    for (let rungIndex = 0; rungIndex < FREE_RECEPTION_RUNG; rungIndex += 1) {
+      const html = render('R', rungIndex)
+      expect(html).toContain('class="test-task">Key it<')
+      expect(html).not.toContain(CUE_RUNGS[rungIndex].label)
+      expect(html).not.toContain(CUE_RUNGS[rungIndex].instruction)
+    }
+    const reception = render('Q', FREE_RECEPTION_RUNG)
+    expect(reception).toContain('class="test-task">Name it<')
+    expect(reception).not.toContain(CUE_RUNGS[FREE_RECEPTION_RUNG].label)
+    expect(reception).not.toContain(CUE_RUNGS[FREE_RECEPTION_RUNG].instruction)
+  })
+
+  it('shows at most one piece of support, and the prompt exactly once', () => {
+    for (let rungIndex = 0; rungIndex < CUE_RUNGS.length; rungIndex += 1) {
+      const letter: MorseLetter = rungIndex === FREE_RECEPTION_RUNG ? 'Q' : 'R'
+      const html = render(letter, rungIndex)
+      expect((html.match(/class="test-support/g) ?? []).length).toBeLessThanOrEqual(1)
+      // The SVG cue used to reprint the prompt letter inside the cue panel, so
+      // the screen carried the question twice over.
+      if (rungIndex !== FREE_RECEPTION_RUNG) {
+        expect((html.match(new RegExp(`>${letter}<`, 'g')) ?? [])).toHaveLength(1)
+      }
+    }
   })
 
   it('uses the uncluttered shared key for free production', () => {
@@ -175,11 +202,17 @@ describe('rung rendering', () => {
 
   it('prompts with the printed pattern and takes a typed character for reception', () => {
     const html = render('Q', 4)
+    // The field is the whole control: it grades on the character, exactly as
+    // the key grades on the last element, so there is no second tap to make.
     expect(html).toContain('Which character is this?')
     expect(html).toContain('test-entry-input')
     expect(html).toContain('autoCapitalize="characters"')
-    expect(html).toContain('— — · —')
+    expect(html).not.toContain('>Submit<')
+    // Drawn from the canonical notation, mark by mark, in its real proportions.
     expect(promptFor(CUE_RUNGS[4], character('Q'))).toBe('— — · —')
+    expect((html.match(/test-pattern-mark is-dah/g) ?? [])).toHaveLength(3)
+    expect((html.match(/test-pattern-mark is-dit/g) ?? [])).toHaveLength(1)
+    expect(html).toContain('dah dah dit dah')
   })
 })
 
