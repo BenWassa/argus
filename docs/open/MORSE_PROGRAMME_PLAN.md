@@ -394,6 +394,16 @@ repoint old content at new artwork.
 | K | #78 | Early word-application checkpoints after Lessons 4 and 7 | **Implemented in current #78 branch; merge gate pending** |
 | 6 | #29 | Auditory reception / sending / continuous material | **Deferred pending learner validation** |
 | P | #79 | Desktop specialist review | **Parked; not part of #78** |
+| — | #119 | Post-acquisition fluency, haptics and play | **Separate workstream; research proposal awaiting ratification** |
+
+#119 is deliberately not a child of this plan's numbering. The A–Z acquisition
+programme it documents is complete; #119 asks what comes after it, and the
+research and design proposal is
+`docs/open/ISSUE_119_MORSE_POST_ACQUISITION_FLUENCY_RESEARCH.md`. Nothing in
+that document is ratified or implemented, and it has no authority over any
+decision recorded here. It does not reopen #29: its proposed Play surface is
+formative throughout and cannot write evidence, so any scored auditory or
+sending claim remains #29's alone.
 
 ## Completion boundary
 
@@ -496,7 +506,8 @@ The full record is `docs/open/MORSE_LESSON.md`. In summary:
 - Existing non-Morse topics keep their scheduler/completion semantics.
 - Export/import and migration preserve durable learner state.
 - #29 stays deferred until the corrected A–Z foundation receives real learner
-  validation; #79 stays parked and is not pulled into #78.
+  validation; #79 stays parked and is not pulled into #78. #119 is a separate
+  post-acquisition workstream and may not satisfy any part of #29.
 - Formative Learn retrieval never counts as a retention attempt, never advances
   a scheduler interval, never writes directional evidence and never awards
   completion.

@@ -67,6 +67,7 @@ The **full offline-first runtime guarantee is active scope in #113**, not yet a 
 - `docs/open/MORSE_CHARACTER_ORDER.md` — shipped character order/packet rule and verified Koch/CW Academy provenance comparison.
 - `docs/open/ISSUE_105_MORSE_PLACEMENT_ASSESSMENT.md` — maintained contract for fresh-start Morse placement, bounded confirmation, and evidence-safe progress application.
 - `docs/open/MORSE_AUDIO_RUNTIME.md` — maintained Web Audio lifecycle and first-press regression contract for every Morse audio surface.
+- `docs/open/ISSUE_119_MORSE_POST_ACQUISITION_FLUENCY_RESEARCH.md` — research and design proposal (not yet ratified) for post-acquisition Morse fluency: pinned character speed with a Farnsworth ladder, words/groups/continuous progression, a shared semantic haptic vocabulary, the celebration hierarchy and a formative-only measurement model.
 - `docs/open/ISSUE_113_OFFLINE_FIRST_RUNTIME.md` — active contract for IndexedDB local authority, durable sync/outbox, deterministic offline PWA launch, storage lifecycle and content-size/download policy.
 - `docs/closed/MORSE_PROVENANCE_RECONCILIATION.md` — provenance/doc-reconciliation closeout for the pre-#28 documentation lane.
 
