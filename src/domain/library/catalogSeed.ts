@@ -385,39 +385,208 @@ export function seedLibrary(): Library {
     },
     {
       id: 'scuba-equipment-abbreviations',
-      title: 'Recreational scuba equipment abbreviations',
-      scope: 'Six common recreational-scuba equipment abbreviations — SCUBA, BCD, SPG, LPI, DSMB and DPV — and each term’s core reference function. Test does not cover equipment selection, setup, inspection, maintenance, dive planning or diving procedures.',
+      title: 'Recreational scuba gear shorthand',
+      scope: 'Thirteen common recreational-scuba equipment abbreviations and shorthand — SCUBA, BCD, SPG, LPI, DSMB, DPV, AAS, DV, HP, LP, IP, SMB and DIN — and each term’s core equipment meaning or reference function. Test does not cover equipment selection, assembly, inspection, maintenance, dive planning, emergency technique or diving procedures.',
       track: 'learning',
       items: [
-        { prompt: 'SCUBA', answer: 'Self-contained underwater breathing apparatus — equipment that lets a diver breathe underwater from a carried gas supply.' },
-        { prompt: 'BCD', answer: 'Buoyancy control device — the buoyancy bladder/system that helps a diver control buoyancy and commonly holds the cylinder.' },
-        { prompt: 'SPG', answer: 'Submersible pressure gauge — an instrument that displays the pressure, and therefore remaining gas, in a cylinder.' },
-        { prompt: 'LPI', answer: 'Low-pressure inflator — the hose and fitting that supplies low-pressure gas from a regulator to inflate a BCD.' },
-        { prompt: 'DSMB', answer: 'Delayed surface marker buoy — an inflatable surface-signalling buoy deployed from underwater.' },
-        { prompt: 'DPV', answer: 'Diver propulsion vehicle — a powered device used to propel a diver through the water.' },
+        {
+          id: 'scuba-equipment-abbreviations-item-01',
+          prompt: 'SCUBA',
+          answer: 'Self-contained underwater breathing apparatus — a system that lets a diver breathe underwater from a breathing-gas supply carried by the diver.',
+        },
+        {
+          id: 'scuba-equipment-abbreviations-item-02',
+          prompt: 'BCD',
+          answer: 'Buoyancy control device — an inflatable buoyancy system used to adjust buoyancy; many recreational BCDs also secure the cylinder.',
+        },
+        {
+          id: 'scuba-equipment-abbreviations-item-03',
+          prompt: 'SPG',
+          answer: 'Submersible pressure gauge — a gauge or display used to monitor cylinder pressure and therefore the breathing-gas supply available.',
+        },
+        {
+          id: 'scuba-equipment-abbreviations-item-04',
+          prompt: 'LPI',
+          answer: 'Low-pressure inflator — the BCD inflator connection supplied with low-pressure gas from the regulator first stage.',
+        },
+        {
+          id: 'scuba-equipment-abbreviations-item-05',
+          prompt: 'DSMB',
+          answer: 'Delayed surface marker buoy — a surface-signalling buoy carried deflated and normally sent to the surface from underwater on a line or spool.',
+        },
+        {
+          id: 'scuba-equipment-abbreviations-item-06',
+          prompt: 'DPV',
+          answer: 'Diver propulsion vehicle — a powered device that propels a diver through the water.',
+        },
+        {
+          id: 'scuba-equipment-abbreviations-item-07',
+          prompt: 'AAS',
+          answer: 'Alternate air source — a backup breathing-gas source available for gas sharing; in common recreational open-circuit gear this is often an alternate second stage or “octopus.”',
+        },
+        {
+          id: 'scuba-equipment-abbreviations-item-08',
+          prompt: 'DV',
+          answer: 'Demand valve — another name for a regulator second stage, which supplies breathing gas on demand when the diver inhales.',
+        },
+        {
+          id: 'scuba-equipment-abbreviations-item-09',
+          prompt: 'HP',
+          answer: 'High pressure — the cylinder-pressure side of the regulator system; an HP port can feed a pressure gauge or transmitter.',
+        },
+        {
+          id: 'scuba-equipment-abbreviations-item-10',
+          prompt: 'LP',
+          answer: 'Low pressure — regulator output used for equipment such as second-stage hoses and BCD or dry-suit inflators after the first stage has reduced cylinder pressure.',
+        },
+        {
+          id: 'scuba-equipment-abbreviations-item-11',
+          prompt: 'IP',
+          answer: 'Intermediate pressure — the reduced pressure between the regulator first stage and second stage, above surrounding ambient pressure.',
+        },
+        {
+          id: 'scuba-equipment-abbreviations-item-12',
+          prompt: 'SMB',
+          answer: 'Surface marker buoy — a visible buoy used to mark or signal a diver’s position at the surface; unlike a delayed SMB, an SMB may be deployed or towed for longer during a dive.',
+        },
+        {
+          id: 'scuba-equipment-abbreviations-item-13',
+          prompt: 'DIN',
+          answer: 'DIN connection — a screw-in regulator-to-cylinder-valve connection standard, contrasted with the bracket-style yoke connection.',
+        },
       ],
       learn: {
-        kind: 'concise',
-        overview: 'These abbreviations label common recreational-scuba equipment and accessories. They are a vocabulary boundary only: knowing their expansions and broad functions does not establish that equipment is suitable, correctly assembled, inspected, maintained or safe to use.',
+        kind: 'briefing',
+        overview: 'The useful part of scuba gear vocabulary is not memorizing isolated initials; it is knowing where each label sits in the equipment system. A cylinder holds high-pressure breathing gas. The regulator first stage reduces that pressure and distributes gas to the breathing, buoyancy and pressure-monitoring components. Surface-signalling and propulsion equipment sit outside that breathing-gas path. This topic teaches that system map and its common shorthand only.',
+        sections: [
+          {
+            heading: 'Breathing-gas path',
+            blocks: [
+              {
+                type: 'steps',
+                items: [
+                  'The cylinder and valve hold and release breathing gas at high pressure (HP).',
+                  'The regulator first stage attaches to the cylinder valve and reduces cylinder pressure to intermediate pressure (IP).',
+                  'A primary second stage — also called a demand valve (DV) — reduces that gas to surrounding ambient pressure and supplies it when the diver inhales.',
+                  'An alternate air source (AAS), commonly an alternate second stage or “octopus” in recreational open-circuit setups, provides a second breathing-gas outlet for gas sharing.',
+                  'A submersible pressure gauge (SPG), or an equivalent pressure transmitter/display, reads the cylinder-pressure side so the diver can monitor the remaining gas supply.',
+                  'Low-pressure (LP) outlets also supply devices such as the BCD low-pressure inflator (LPI), and may supply a dry-suit inflator where that equipment is used.',
+                ],
+              },
+            ],
+          },
+          {
+            heading: 'Core recreational kit map',
+            blocks: [
+              {
+                type: 'table',
+                columns: ['Component', 'Reference function'],
+                rows: [
+                  ['Mask', 'Creates a clear, equalizable airspace in front of the eyes and encloses the nose.'],
+                  ['Snorkel', 'Provides a simple way to breathe at the surface without using cylinder gas when conditions and the dive plan make it appropriate.'],
+                  ['Fins', 'Provide efficient propulsion through the water.'],
+                  ['Exposure suit', 'Wetsuits, dry suits or other exposure protection reduce heat loss and may protect the skin from the environment.'],
+                  ['Cylinder / tank', 'Stores compressed breathing gas and presents it to the regulator through the cylinder valve.'],
+                  ['Regulator', 'Reduces high cylinder pressure in stages and supplies breathing gas to the diver at usable pressure.'],
+                  ['BCD / BC', 'Provides adjustable buoyancy; many recreational versions also secure the cylinder and may carry integrated weights.'],
+                  ['Weight system', 'Offsets positive buoyancy from the diver and equipment so correct overall weighting can be established.'],
+                  ['SPG and dive computer', 'The SPG reports cylinder pressure. A dive computer tracks information such as depth and time and applies its decompression model; some computers also display transmitted cylinder pressure.'],
+                  ['Surface-signalling equipment', 'Visual or audible devices such as an SMB/DSMB and whistle help make a diver’s position or need for attention apparent at the surface.'],
+                ],
+              },
+            ],
+          },
+          {
+            heading: 'Buoyancy, signalling and propulsion',
+            blocks: [
+              {
+                type: 'definitions',
+                items: [
+                  {
+                    term: 'BCD / BC',
+                    definition: 'BCD means buoyancy control device. “BC” or “buoyancy compensator” is also common wording. The device provides an inflatable buoyancy volume; many recreational versions also carry the cylinder and may integrate weights.',
+                  },
+                  {
+                    term: 'SMB',
+                    definition: 'A surface marker buoy marks or signals a diver’s position. Usage varies by region, but an SMB may be present from early in the dive or towed for an extended period.',
+                  },
+                  {
+                    term: 'DSMB',
+                    definition: 'A delayed surface marker buoy is carried deflated and deployed later, commonly from underwater before surfacing. It is normally used with a line and reel or spool.',
+                  },
+                  {
+                    term: 'DPV',
+                    definition: 'A diver propulsion vehicle, often called a scooter, provides powered propulsion through the water.',
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            heading: 'Connection and naming shorthand',
+            blocks: [
+              {
+                type: 'bullets',
+                items: [
+                  'DIN describes the screw-in regulator/cylinder-valve connection. The common alternative is a yoke or bracket connection; adapters exist between some configurations.',
+                  '“Regulator” can mean the complete regulator set or, informally, the second stage alone. “Reg” is common shorthand.',
+                  '“Octopus”, “octo” or “occy” commonly refers to an alternate second stage. AAS is the broader functional term: alternate air source.',
+                  '“Tank”, “cylinder” and “bottle” may all be heard. “Cylinder” is the more precise equipment term; none of these names means the cylinder necessarily contains pure oxygen.',
+                ],
+              },
+            ],
+          },
+        ],
         limitations: [
-          'Argus supports memory and rehearsal only. This topic is not diver training, certification, a pre-dive checklist, equipment-maintenance instruction or a substitute for a qualified instructor, dive professional, manufacturer manual or local dive operator.',
-          'Equipment configuration, gas planning, buoyancy skills, emergency response, ascent decisions, servicing intervals and site-specific procedures are outside the Test boundary.',
+          'Argus supports vocabulary, system recognition and memory rehearsal only. This topic is not diver training, certification, an equipment-selection guide, a pre-dive checklist, a maintenance procedure or a substitute for a qualified instructor, dive professional, manufacturer manual or local dive operator.',
+          'Knowing an abbreviation does not establish competence in assembly, inspection, gas management, buoyancy control, emergency response, DSMB deployment, regulator configuration, servicing or ascent decisions. Those require appropriate instruction and current equipment-specific procedures.',
+          'Terminology varies between agencies, regions and equipment configurations. The Learn notes call out common synonyms rather than treating one brand or regional term as universal.',
         ],
         sources: [
           {
-            label: 'PADI — What does SCUBA stand for?',
-            url: 'https://blog.padi.com/what-does-scuba-stand-for/',
-            note: 'Industry training reference for SCUBA, BCD, low-pressure inflator, regulator-system components and alternate-air-source terminology.',
+            label: 'PADI — Scuba Diving Certification FAQ',
+            url: 'https://www.padi.com/help/scuba-certification-faq',
+            note: 'Training-agency overview of the core equipment used in entry-level recreational scuba: mask, snorkel, fins, regulator, BCD, dive computer/planner, cylinder, exposure suit and weight system.',
+          },
+          {
+            label: 'PADI — Regulator',
+            url: 'https://www.padi.com/gear/regulators',
+            note: 'Training-agency reference for first stage, second stage/demand valve, alternate air source, low-pressure BCD inflator, SPG, and DIN-versus-yoke connections.',
+          },
+          {
+            label: 'Divers Alert Network — Breathe In, Breathe Out',
+            url: 'https://dan.org/alert-diver/article/breathe-in-breathe-out/',
+            note: 'DAN explanation of the regulator pressure path from high pressure (HP) through intermediate pressure (IP) to the second stage.',
+          },
+          {
+            label: 'PADI — Buoyancy Control Devices (BCD)',
+            url: 'https://www.padi.com/gear/bcds',
+            note: 'Reference for the BCD expansion, buoyancy function, inflator system and common recreational equipment features.',
           },
           {
             label: 'PADI — SPG (Submersible Pressure Gauges)',
             url: 'https://www.padi.com/gear/spgs',
-            note: 'Reference for the SPG expansion and its cylinder-pressure/remaining-gas role.',
+            note: 'Reference for SPG expansion and cylinder-pressure monitoring.',
           },
           {
-            label: 'BSAC — Annual Diving Incident Report 2024, abbreviations',
-            url: 'https://www.bsac.com/document/bsac-diving-incidents-report-2024/1bsac-annual-incident-report-2024.pdf',
-            note: 'National diving-club reference for BCD, DSMB and DPV expansions.',
+            label: 'PADI — Signaling Devices',
+            url: 'https://www.padi.com/gear/signaling-devices',
+            note: 'Reference for delayed surface marker buoys and their role as surface-signalling equipment.',
+          },
+          {
+            label: 'British Sub-Aqua Club — Safe use of Surface and Delayed Surface Marker Buoys',
+            url: 'https://www.bsac.com/news-and-blog/safe-use-of-surface-and-delayed-surface-marker-buoys/',
+            note: 'Diving-agency cross-check for SMB/DSMB terminology and the distinction between the two marker-buoy concepts.',
+          },
+          {
+            label: 'PADI — Scuba Diving Terms',
+            url: 'https://blog.padi.com/scuba-terminology-say-this-dont-say-that/',
+            note: 'Reference for common BC/BCD, regulator, octopus and demand-valve (DV) terminology.',
+          },
+          {
+            label: 'PADI — Make Your Dive Checks More Effective with Shisa Kanko',
+            url: 'https://blog.padi.com/shisa-kanko-make-your-dive-checks-more-effective/',
+            note: 'PADI usage of AAS for alternate air source.',
           },
         ],
       },
@@ -429,7 +598,7 @@ export function seedLibrary(): Library {
       lastTestedAt: null,
       spotCheckedAt: null,
       history: [],
-    },
+    }
   ]
 
   return {

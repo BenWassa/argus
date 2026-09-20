@@ -130,7 +130,8 @@ export function collisions(report: CatalogReconciliation): string[] {
  * legacy reset/sync state is repaired back to the shipped baseline instead of
  * leaving Argus with no built-in curriculum at all. Changing the meaning of a
  * topic that has already shipped therefore remains an explicit migration
- * decision, of which `absorbSeededMorseBaseline` is the one Argus has made.
+ * decision. Argus has made narrowly scoped migrations for the Morse baseline
+ * and the #121 scuba-equipment expansion rather than generalizing replacement.
  *
  * Deterministic: the same library and `now` always produce the same result, and
  * running it a second time changes nothing.

@@ -520,7 +520,7 @@ Reconciliation only ever appends. A catalog topic already present is left exactl
 
 The Data view names anything added or withheld, so catalog delivery is quiet but never silent.
 
-Changing the meaning of a topic that has already shipped is therefore still an explicit migration decision. `absorbSeededMorseBaseline` remains the only such migration, and reconciliation does not generalize it.
+Changing the meaning of a topic that has already shipped is therefore still an explicit migration decision. The Morse baseline absorption and the #121 scuba-equipment expansion are deliberately narrow examples; reconciliation itself does not generalize them into a repository-wins replacement policy.
 
 ### Ingestion tool
 
