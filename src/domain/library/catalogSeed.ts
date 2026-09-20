@@ -476,6 +476,27 @@ export function seedLibrary(): Library {
             ],
           },
           {
+            heading: 'Core recreational kit map',
+            blocks: [
+              {
+                type: 'table',
+                columns: ['Component', 'Reference function'],
+                rows: [
+                  ['Mask', 'Creates a clear, equalizable airspace in front of the eyes and encloses the nose.'],
+                  ['Snorkel', 'Provides a simple way to breathe at the surface without using cylinder gas when conditions and the dive plan make it appropriate.'],
+                  ['Fins', 'Provide efficient propulsion through the water.'],
+                  ['Exposure suit', 'Wetsuits, dry suits or other exposure protection reduce heat loss and may protect the skin from the environment.'],
+                  ['Cylinder / tank', 'Stores compressed breathing gas and presents it to the regulator through the cylinder valve.'],
+                  ['Regulator', 'Reduces high cylinder pressure in stages and supplies breathing gas to the diver at usable pressure.'],
+                  ['BCD / BC', 'Provides adjustable buoyancy; many recreational versions also secure the cylinder and may carry integrated weights.'],
+                  ['Weight system', 'Offsets positive buoyancy from the diver and equipment so correct overall weighting can be established.'],
+                  ['SPG and dive computer', 'The SPG reports cylinder pressure. A dive computer tracks information such as depth and time and applies its decompression model; some computers also display transmitted cylinder pressure.'],
+                  ['Surface-signalling equipment', 'Visual or audible devices such as an SMB/DSMB and whistle help make a diver’s position or need for attention apparent at the surface.'],
+                ],
+              },
+            ],
+          },
+          {
             heading: 'Buoyancy, signalling and propulsion',
             blocks: [
               {
@@ -522,6 +543,11 @@ export function seedLibrary(): Library {
           'Terminology varies between agencies, regions and equipment configurations. The Learn notes call out common synonyms rather than treating one brand or regional term as universal.',
         ],
         sources: [
+          {
+            label: 'PADI — Scuba Diving Certification FAQ',
+            url: 'https://www.padi.com/help/scuba-certification-faq',
+            note: 'Training-agency overview of the core equipment used in entry-level recreational scuba: mask, snorkel, fins, regulator, BCD, dive computer/planner, cylinder, exposure suit and weight system.',
+          },
           {
             label: 'PADI — Regulator',
             url: 'https://www.padi.com/gear/regulators',
