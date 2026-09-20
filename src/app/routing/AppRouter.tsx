@@ -7,6 +7,7 @@ import { ProfilePage } from '../../features/data-management/ProfilePage'
 import { TestSession } from '../../features/test/TestSession'
 import { LessonRun } from '../../features/morse/lesson/LessonRun'
 import { PracticeRun } from '../../features/practice/PracticeRun'
+import { FluencySurface } from '../../features/morse/fluency/FluencySurface'
 import { MorseReference } from '../../features/morse/reference/MorseReference'
 import {
   ROOT_ROUTE,
@@ -217,6 +218,24 @@ export function AppRouter() {
     // gets its own branch. `restoreRoute`/`liveRoute` already drop a run naming
     // a topic the library no longer holds, which makes the missing case belt
     // and braces — but a non-null assertion would be the wrong way to say so.
+    // Fluency is the post-acquisition surface. Like practice it is formative,
+    // so it rides the `learn` mode rather than introducing a third mode some
+    // future switch could mistake for scored.
+    if (route.mode === 'learn' && route.target?.kind === 'fluency') {
+      return (
+        <div className="app-shell session-shell">
+          <main id="main" tabIndex={-1}>
+            <FluencySurface
+              key={`fluency-${route.topicIds[0]}`}
+              topicId={route.topicIds[0]}
+              initialMode={route.target.mode}
+              onExit={goBack}
+            />
+          </main>
+        </div>
+      )
+    }
+
     if (route.mode === 'learn' && route.target?.kind === 'practice') {
       const practiceTopic = topics.find((candidate) => candidate.id === route.topicIds[0])
       if (!practiceTopic) return null

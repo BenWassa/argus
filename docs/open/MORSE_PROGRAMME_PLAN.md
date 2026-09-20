@@ -394,16 +394,25 @@ repoint old content at new artwork.
 | K | #78 | Early word-application checkpoints after Lessons 4 and 7 | **Implemented in current #78 branch; merge gate pending** |
 | 6 | #29 | Auditory reception / sending / continuous material | **Deferred pending learner validation** |
 | P | #79 | Desktop specialist review | **Parked; not part of #78** |
-| — | #119 | Post-acquisition fluency, haptics and play | **Separate workstream; research proposal awaiting ratification** |
+| — | #119 | Post-acquisition fluency, haptics and play | **Separate workstream; shipped as Fluency** |
 
 #119 is deliberately not a child of this plan's numbering. The A–Z acquisition
-programme it documents is complete; #119 asks what comes after it, and the
-research and design proposal is
-`docs/open/ISSUE_119_MORSE_POST_ACQUISITION_FLUENCY_RESEARCH.md`. Nothing in
-that document is ratified or implemented, and it has no authority over any
-decision recorded here. It does not reopen #29: its proposed Play surface is
-formative throughout and cannot write evidence, so any scored auditory or
-sending claim remains #29's alone.
+programme it documents is complete; #119 asks what comes after it. Its contract
+is `docs/open/MORSE_FLUENCY.md`, with the research behind it in
+`docs/open/ISSUE_119_MORSE_POST_ACQUISITION_FLUENCY_RESEARCH.md`.
+
+Nothing in that workstream changes any decision recorded here. Fluency is
+formative throughout and writes one additive field, `Topic.morseFluency`; it
+cannot write evidence, move a retention clock or qualify a completion, so it
+does not reopen #29 and any scored auditory or sending claim remains #29's
+alone. It pins its own character speed at 20 WPM in a third named timing
+constant; `LEARN_ACQUISITION_MORSE_TIMING` and `DEFAULT_MORSE_TIMING` are
+untouched.
+
+One shared-input change reaches this programme: `MorseKeyInput` gained an
+`advanceToken` so a word can be keyed on one mounted control instead of
+remounting — and reopening an AudioContext — per character. The Lesson
+4/7/10/13 checkpoints inherit that improvement unchanged.
 
 ## Completion boundary
 

@@ -1,10 +1,20 @@
 # Issue #119 — Morse post-acquisition fluency, haptics and play
 
-**Status:** Research and design proposal; awaiting owner ratification
+**Status:** Research complete; implemented as the Fluency surface
 
-**Authority:** None over shipped behavior. Nothing here is implemented, and no
-statement below overrides `MORSE_PROGRAMME_PLAN.md`, `PROGRESS_ARCHITECTURE.md`
-or `MORSE_AUDIO_RUNTIME.md` until it is ratified.
+**Authority:** Research and rationale only. `docs/open/MORSE_FLUENCY.md` is the
+maintained contract for what actually shipped and governs where the two differ.
+`MORSE_PROGRAMME_PLAN.md`, `PROGRESS_ARCHITECTURE.md` and
+`MORSE_AUDIO_RUNTIME.md` are unchanged by this workstream.
+
+> **Implementation note.** Sections 4–9 were written as proposals and are kept
+> in that voice for the reasoning they carry. What shipped follows them with
+> two deliberate changes, both made after this document's own sources were
+> read more closely: the pinned character speed is **20 WPM** (§4.1), and the
+> Farnsworth ladder runs **6 → 13** in single steps rather than the wider
+> spread first sketched, because CW Academy Fundamental's published ladder is
+> calibrated for exactly this learner. Issue **H** (tactile character replay)
+> was not built; §6.5 recommends against it and that recommendation stands.
 
 **Last verified:** 2026-09-19
 

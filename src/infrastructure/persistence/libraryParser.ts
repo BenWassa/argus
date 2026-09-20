@@ -36,6 +36,11 @@ import {
   type LessonSitting,
 } from '../../domain/morse/curriculum/lessonSitting'
 import { morseReviewIsFresh } from '../../domain/morse/curriculum/review'
+import {
+  fluencyIsFresh,
+  parseFluencyProgress,
+  type MorseFluencyProgress,
+} from '../../domain/morse/fluency/progress'
 import { inferredOrigin } from '../../domain/library/catalog'
 
 /**
@@ -582,6 +587,24 @@ function parseLessonSitting(
  * - a history that records nothing normalises back to the absent field, so an
  *   empty history has exactly one representation.
  */
+/**
+ * Post-acquisition Fluency statistics (#119).
+ *
+ * The invariants live in `domain/morse/fluency/progress.ts` beside the type
+ * that holds them, so this is a thin adapter: it owns only the storage-layer
+ * concerns — which versions may carry the field, and normalising an empty
+ * record back to absent.
+ */
+function parseFluency(
+  value: unknown,
+  where: string,
+): { ok: true; value: MorseFluencyProgress | undefined } | { ok: false; error: string } {
+  if (value === undefined || value === null) return { ok: true, value: undefined }
+  const parsed = parseFluencyProgress(value)
+  if (!parsed.ok) return { ok: false, error: `${where} morseFluency ${parsed.error}.` }
+  return { ok: true, value: fluencyIsFresh(parsed.value) ? undefined : parsed.value }
+}
+
 function parseMorseReview(
   value: unknown,
   where: string,
@@ -766,6 +789,16 @@ export function parseLibrary(value: unknown): ParseResult {
     )
     if (!morseReview.ok) return morseReview
 
+    /**
+     * Fluency is validated by the domain module that owns its invariants
+     * rather than by a second copy of them here, and a record that says
+     * nothing is normalised back to absent — the same rule `morseReview`
+     * follows, so "no Fluency yet" has one representation in a stored or
+     * exported library rather than two.
+     */
+    const morseFluency = parseFluency(t.morseFluency, `${where} ("${title}")`)
+    if (!morseFluency.ok) return morseFluency
+
     const track = TRACKS.includes(t.track as never) ? (t.track as Topic['track']) : 'learning'
     let status = STATUSES.includes(t.status as never) ? (t.status as Topic['status']) : 'unstarted'
     const completedAt = typeof t.completedAt === 'string' ? t.completedAt : null
@@ -808,6 +841,7 @@ export function parseLibrary(value: unknown): ParseResult {
       lessonProgress: lessonProgress.value,
       ...(lessonSitting.value ? { lessonSitting: lessonSitting.value } : {}),
       ...(morseReview.value ? { morseReview: morseReview.value } : {}),
+      ...(morseFluency.value ? { morseFluency: morseFluency.value } : {}),
       // Absent on a record written before the anchor existed. The journey layer
       // treats that as "unknown" and falls back to `learningAt`, so an upgrade
       // can never make an already-acquired topic wait longer than it did before.

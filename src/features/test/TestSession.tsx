@@ -33,6 +33,7 @@ import { nextView, type TestPhase, type TestView } from './testView'
 import { TestDone } from './TestDone'
 import { resolveBankedAttempt, type BankedAttempt } from './bankedAttempt'
 import { testCardTextClass } from './textScale'
+import { fire } from '../../shared/haptics'
 import {
   SWIPE_CUE_FULL_PX,
   swipeCommitDistance,
@@ -59,14 +60,6 @@ interface TestSessionProps {
    * than reconstructed afterwards from state that was never stored.
    */
   onPractice?: (topicId: string, itemIds: string[]) => void
-}
-
-function haptic(pattern: number | number[]) {
-  try {
-    navigator.vibrate?.(pattern)
-  } catch {
-    // Haptics are optional feedback and never block a Test.
-  }
 }
 
 export function TestSession({ topicIds, onExit, onPractice }: TestSessionProps) {
@@ -300,7 +293,7 @@ export function TestSession({ topicIds, onExit, onPractice }: TestSessionProps) 
     if (!next) return
     viewRef.current = next
     setView(next)
-    haptic(8)
+    fire('element')
   }
 
   /**
@@ -355,7 +348,7 @@ export function TestSession({ topicIds, onExit, onPractice }: TestSessionProps) 
     // read as the gesture having been let go of.
     setArmed(grade)
     setDragging(false)
-    haptic(grade === 'correct' ? 12 : [10, 24, 10])
+    fire(grade === 'correct' ? 'settle' : 'miss')
     recordGrade(at, grade === 'correct')
 
     viewRef.current = next
@@ -384,7 +377,7 @@ export function TestSession({ topicIds, onExit, onPractice }: TestSessionProps) 
     const current = deck[at]
     const next = nextView(viewRef.current, { kind: 'answer' }, deck.length)
     if (!next || !current) return
-    haptic(answer.correct ? 12 : [10, 24, 10])
+    fire(answer.correct ? 'settle' : 'miss')
     recordGrade(at, answer.correct, noteAnswer(current, answer))
     viewRef.current = next
     setView(next)

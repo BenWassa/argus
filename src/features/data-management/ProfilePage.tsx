@@ -11,6 +11,7 @@ import {
 } from '../../infrastructure/persistence/storageStatus'
 import { collisions } from '../../domain/library/catalog'
 import { Confirm } from '../../shared/ui/Confirm'
+import { hapticsEnabled, hapticsSupported, setHapticsEnabled } from '../../shared/haptics'
 import packageMetadata from '../../../package.json'
 import './ProfilePage.css'
 
@@ -100,6 +101,8 @@ export function ProfilePage({ onBack }: { onBack: () => void }) {
           ? 'Checking local storage…'
           : storageMessage(storage)}
       </p>
+
+      <Haptics />
 
       <h2 className="profile-section-title">Data &amp; backup</h2>
       <p className="lede-text">
@@ -330,4 +333,43 @@ function syncMessage(state: SyncState): string {
     case 'error':
       return `${state.message} The library on this device is unaffected.`
   }
+}
+
+
+/**
+ * The one haptics control.
+ *
+ * Hidden entirely where the browser has no Vibration API rather than shown
+ * disabled, because a disabled switch invites the learner to go looking for
+ * the reason it is off — and on an iPhone the reason is "Safari has never
+ * implemented this", which is not something a settings row can fix. Nothing in
+ * Argus is conveyed by vibration alone, so its absence costs them nothing and
+ * saying so would be noise.
+ */
+function Haptics() {
+  const [supported] = useState(hapticsSupported)
+  const [enabled, setEnabled] = useState(hapticsEnabled)
+
+  if (!supported) return null
+
+  return (
+    <>
+      <h2 className="profile-section-title">Feedback</h2>
+      <p className="lede-text">
+        Short taps confirm a keyed element, a right answer and a wrong one. They
+        never carry information on their own.
+      </p>
+      <label className="profile-toggle">
+        <input
+          type="checkbox"
+          checked={enabled}
+          onChange={(event) => {
+            setHapticsEnabled(event.target.checked)
+            setEnabled(event.target.checked)
+          }}
+        />
+        <span>Vibration</span>
+      </label>
+    </>
+  )
 }

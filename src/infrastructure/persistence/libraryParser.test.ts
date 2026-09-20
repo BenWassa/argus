@@ -768,3 +768,74 @@ describe('formative Morse review history is durable and portable (#90)', () => {
       .toContain('must be an object')
   })
 })
+
+describe('post-acquisition fluency statistics are durable and portable (#119)', () => {
+  function withFluency(morseFluency: unknown): Record<string, unknown> {
+    return { version: 5, topics: [currentTopic({ morseFluency })] }
+  }
+
+  function parsed(morseFluency: unknown) {
+    const result = parseLibrary(withFluency(morseFluency))
+    if (!result.ok) throw new Error(result.error)
+    return result.library.topics[0]
+  }
+
+  function rejection(morseFluency: unknown): string {
+    const result = parseLibrary(withFluency(morseFluency))
+    if (result.ok) throw new Error('Expected the import to be rejected.')
+    return result.error
+  }
+
+  const RECORD = {
+    rung: 9,
+    characters: { E: { heard: 4, correct: 3, recentLatencyMs: [420, 460, 500] } },
+    bests: { sprint: 61 },
+  }
+
+  it('round-trips losslessly', () => {
+    expect(parsed(RECORD).morseFluency).toEqual(RECORD)
+  })
+
+  it('reads an absent field as a learner who has done no fluency', () => {
+    expect(parsed(undefined).morseFluency).toBeUndefined()
+  })
+
+  /**
+   * A record that says nothing normalises back to absent, exactly as
+   * `morseReview` does, so "no fluency yet" has one representation in a stored
+   * or exported library rather than two.
+   */
+  it('normalises an empty record back to absent', () => {
+    expect(parsed({ rung: 6, characters: {}, bests: {} }).morseFluency).toBeUndefined()
+  })
+
+  it('rejects a rung that is not on the ladder', () => {
+    expect(rejection({ rung: 5, characters: {} })).toContain('rung')
+  })
+
+  it('rejects a letter that is not Morse', () => {
+    expect(
+      rejection({ rung: 6, characters: { '4': { heard: 1, correct: 1, recentLatencyMs: [] } } }),
+    ).toContain('unknown letter')
+  })
+
+  it('rejects impossible counters', () => {
+    expect(
+      rejection({ rung: 6, characters: { E: { heard: 1, correct: 4, recentLatencyMs: [] } } }),
+    ).toContain('more correct answers than exposures')
+  })
+
+  it('rejects more latencies than correct answers', () => {
+    expect(
+      rejection({ rung: 6, characters: { E: { heard: 2, correct: 1, recentLatencyMs: [1, 2] } } }),
+    ).toContain('more latencies than correct answers')
+  })
+
+  it('never lets fluency reach evidence, retention or completion', () => {
+    const topic = parsed(RECORD)
+    expect(topic.itemEvidence).toEqual({})
+    expect(topic.lastTestedAt).toBeNull()
+    expect(topic.completedAt).toBeNull()
+    expect(topic.history).toEqual([])
+  })
+})

@@ -156,3 +156,43 @@ describe('restoring a route against the live library', () => {
     expect(restoreRoute(lesson, topics, false)).toEqual(library)
   })
 })
+
+describe('fluency routes', () => {
+  const origin = { kind: 'section', view: 'library' } as const
+  const run = (mode?: 'sprint' | 'ladder' | 'words' | 'groups') => ({
+    kind: 'run' as const,
+    mode: 'learn' as const,
+    topicIds: ['morse'],
+    origin,
+    target: { kind: 'fluency' as const, ...(mode ? { mode } : {}) },
+  })
+
+  it('accepts the home screen and every named mode', () => {
+    expect(isAppRoute(run())).toBe(true)
+    for (const mode of ['sprint', 'ladder', 'words', 'groups'] as const) {
+      expect(isAppRoute(run(mode))).toBe(true)
+    }
+  })
+
+  it('rejects a mode that does not exist', () => {
+    expect(
+      isAppRoute({ ...run(), target: { kind: 'fluency', mode: 'marathon' } }),
+    ).toBe(false)
+  })
+
+  it('treats the home screen and a mode as different places', () => {
+    expect(sameRoute(run(), run('sprint'))).toBe(false)
+    expect(sameRoute(run('sprint'), run('words'))).toBe(false)
+    expect(sameRoute(run('sprint'), run('sprint'))).toBe(true)
+  })
+
+  /**
+   * A Fluency run holds its queue in memory. Restoring the entry would
+   * silently start a fresh run the learner did not ask for, exactly as it
+   * would for replay and the checkpoints.
+   */
+  it('is not resumable and falls back to its origin', () => {
+    const topics = [{ id: 'morse' } as never]
+    expect(restoreRoute(run('sprint'), topics, false)).toEqual(origin)
+  })
+})

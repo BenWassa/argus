@@ -4,6 +4,7 @@ import type {
   MorseLessonSittingProgress,
   MorseReviewProgress,
 } from '../morse/progress'
+import type { MorseFluencyProgress } from '../morse/fluency/progress'
 import type { LearnContent } from '../learning/content'
 
 /**
@@ -115,6 +116,20 @@ export interface Topic {
    * never happened. A learner already past `acquisitionReadyAt` stays ready.
    */
   morseReview?: MorseReviewProgress
+  /**
+   * Post-acquisition Fluency statistics (#119). Additive within v5: absent
+   * means a learner who has done no Fluency, which is the only honest reading
+   * — there is nothing to back-fill, because speed is not derivable from any
+   * other field.
+   *
+   * A fourth formative store, deliberately separate from `morseReview` for the
+   * same reason `lessonProgress` is separate from `itemEvidence`: it answers a
+   * different question. `morseReview` records what the guided lesson covered;
+   * this records how quickly and how stably a character comes back by ear.
+   * Neither can qualify the other, and nothing here reaches Test evidence,
+   * retention state or completion.
+   */
+  morseFluency?: MorseFluencyProgress
   /**
    * When progressive acquisition first became ready — for Morse, when every
    * required item had been produced unaided at least once in Learn (#67).

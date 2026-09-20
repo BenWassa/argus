@@ -1,5 +1,6 @@
 import type { Topic } from '../../domain/library/topic'
 import type { Mode } from '../../domain/study/mode'
+import { FLUENCY_MODES, type FluencyMode } from '../../domain/morse/fluency/session'
 
 /**
  * The route model: what a destination is, whether an unknown value is one, and
@@ -35,6 +36,12 @@ export type ParentRoute =
  * learner state, so a reloaded run entry falling back to its origin loses
  * nothing it was responsible for.
  *
+ * Fluency names no path entry and no items. It is the post-acquisition
+ * surface: absent `mode` is its home screen, and a named mode is one run. A
+ * Fluency run holds its queue in memory and persists only aggregate statistics
+ * at the end, so a reloaded entry falling back to its origin loses at most an
+ * unfinished run — the same trade replay and the checkpoints already make.
+ *
  * Practice names no path entry either, but it may name items. A check's end
  * screen knows exactly what the learner just missed, including for an ordinary
  * topic that keeps no per-item evidence at all, so it hands that set straight
@@ -47,6 +54,7 @@ export type RunTarget =
   | { kind: 'replay'; index: number }
   | { kind: 'checkpoint'; afterLesson: number }
   | { kind: 'practice'; itemIds?: string[] }
+  | { kind: 'fluency'; mode?: FluencyMode }
 
 export type AppRoute =
   | ParentRoute
@@ -78,6 +86,9 @@ function isRunTarget(value: unknown): value is RunTarget {
   if (value.kind === 'lesson') return true
   if (value.kind === 'practice') {
     return value.itemIds === undefined || isIdList(value.itemIds)
+  }
+  if (value.kind === 'fluency') {
+    return value.mode === undefined || FLUENCY_MODES.includes(value.mode as FluencyMode)
   }
   if (value.kind === 'replay') return Number.isInteger(value.index) && (value.index as number) >= 0
   return (
@@ -141,6 +152,10 @@ function sameTarget(left: RunTarget | undefined, right: RunTarget | undefined): 
   if (left.kind === 'replay' && right.kind === 'replay') return left.index === right.index
   if (left.kind === 'checkpoint' && right.kind === 'checkpoint') {
     return left.afterLesson === right.afterLesson
+  }
+  if (left.kind === 'fluency' && right.kind === 'fluency') {
+    // The home screen and a run are different places, and so are two modes.
+    return left.mode === right.mode
   }
   if (left.kind === 'practice' && right.kind === 'practice') {
     // Two practice runs over different item sets are different routes. Without

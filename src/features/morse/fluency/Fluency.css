@@ -1,0 +1,330 @@
+/*
+ * Fluency shares the session chrome with Learn and the checkpoints; what is
+ * here is only what those do not already provide.
+ *
+ * The celebration rule this file implements: feedback weight is proportional
+ * to how rare the event is. A correct character changes a colour and nothing
+ * moves. A personal best is the only thing allowed a full-width moment, and
+ * even that is one line of text and a short fade. Nothing here is bigger than
+ * the thing it is reporting.
+ */
+
+.fluency-home,
+.fluency-run {
+  display: grid;
+  align-content: start;
+  gap: var(--s-lg);
+  padding-bottom: max(var(--s-2xl), env(safe-area-inset-bottom));
+}
+
+.fluency-head {
+  display: grid;
+  gap: var(--s-sm);
+  width: min(100%, 36rem);
+  margin-inline: auto;
+}
+
+.fluency-head h1 {
+  margin: 0;
+  outline: none;
+}
+
+/* ---- the one dial ---------------------------------------------------- */
+
+.fluency-rung {
+  display: grid;
+  gap: var(--s-xs);
+  width: min(100%, 36rem);
+  margin-inline: auto;
+  padding: var(--s-md);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+}
+
+.fluency-rung-label {
+  margin: 0;
+  font-size: var(--t-component);
+}
+
+.fluency-rung .note {
+  margin: 0;
+}
+
+.fluency-rung-controls {
+  display: flex;
+  gap: var(--s-sm);
+  margin-top: var(--s-xs);
+}
+
+/* ---- modes ------------------------------------------------------------ */
+
+.fluency-modes {
+  display: grid;
+  gap: var(--s-sm);
+  width: min(100%, 36rem);
+  margin: 0 auto;
+  padding: 0;
+  list-style: none;
+}
+
+.fluency-mode {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  padding: var(--s-md);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  color: var(--ink);
+  text-align: left;
+  transition: border-color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+}
+
+.fluency-mode:hover {
+  border-color: var(--line-hover);
+  background: var(--surface-2);
+}
+
+.fluency-mode-title {
+  font-size: var(--t-component);
+  font-weight: var(--w-section);
+}
+
+.fluency-mode-purpose {
+  color: var(--muted);
+  font-size: var(--t-small);
+}
+
+.fluency-mode-meta {
+  margin-top: var(--s-xs);
+  color: var(--subtle);
+  font-size: var(--t-label);
+}
+
+/* ---- statistics ------------------------------------------------------- */
+
+.fluency-stats {
+  display: grid;
+  gap: var(--s-sm);
+  width: min(100%, 36rem);
+  margin-inline: auto;
+  padding: var(--s-md);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+}
+
+.fluency-stats-title {
+  margin: 0;
+  font-size: var(--t-label);
+  font-weight: var(--w-section);
+  color: var(--subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.fluency-stat {
+  display: grid;
+  grid-template-columns: minmax(4.5rem, auto) 1fr;
+  gap: var(--s-sm);
+  align-items: baseline;
+  margin: 0;
+}
+
+.fluency-stat-value {
+  font-size: var(--t-readout);
+  font-weight: var(--w-section);
+}
+
+.fluency-stat-label {
+  color: var(--muted);
+  font-size: var(--t-small);
+}
+
+.fluency-empty {
+  width: min(100%, 36rem);
+  margin-inline: auto;
+}
+
+/* ---- the run ---------------------------------------------------------- */
+
+.fluency-target {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-md);
+  width: min(100%, 32rem);
+  margin-inline: auto;
+}
+
+.fluency-target .lesson-task {
+  margin: 0;
+}
+
+.fluency-listen {
+  display: grid;
+  justify-items: center;
+  gap: var(--s-sm);
+}
+
+.fluency-play {
+  min-width: 9rem;
+}
+
+/* How many characters are in this prompt, and which one the key is on.
+   Deliberately dots rather than letters: printing the target would turn a
+   sound-first drill into a reading exercise. */
+.fluency-shape {
+  display: flex;
+  gap: 0.5em;
+  margin: 0;
+  font-size: var(--t-readout);
+  color: var(--line-strong);
+  line-height: 1;
+}
+
+.fluency-shape .is-current {
+  color: var(--accent);
+}
+
+.fluency-audio-error {
+  margin: 0;
+  color: var(--warning);
+  font-size: var(--t-small);
+  text-align: center;
+}
+
+.fluency-answer-area {
+  width: 100%;
+}
+
+/* ---- feedback: scale 1 and scale 2 ------------------------------------ */
+
+.fluency-feedback {
+  display: grid;
+  justify-items: center;
+  gap: var(--s-sm);
+  width: 100%;
+  padding: var(--s-md);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  text-align: center;
+}
+
+.fluency-feedback.is-correct {
+  border-color: var(--ok);
+}
+
+.fluency-feedback.is-wrong {
+  border-color: var(--danger);
+}
+
+.fluency-feedback strong {
+  font-size: var(--t-label);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.fluency-feedback.is-correct strong {
+  color: var(--ok);
+}
+
+.fluency-feedback.is-wrong strong {
+  color: var(--danger-2);
+}
+
+/* The word is the headline of a word result. The character that broke is
+   marked inside it rather than replacing it, so the learner reads the thing
+   they were asked for first and the diagnosis second. */
+.fluency-answer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.06em;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 11vw, 3.4rem);
+  line-height: 1;
+  letter-spacing: 0.04em;
+}
+
+.fluency-answer .is-wrong-char {
+  color: var(--danger-2);
+}
+
+.fluency-pattern {
+  color: var(--muted);
+  font-size: var(--t-small);
+}
+
+/* ---- the end screen --------------------------------------------------- */
+
+.fluency-summary {
+  display: grid;
+  justify-items: center;
+  gap: var(--s-md);
+  width: min(100%, 32rem);
+  margin-inline: auto;
+  text-align: center;
+}
+
+.fluency-summary h1 {
+  margin: 0;
+  outline: none;
+}
+
+.fluency-score {
+  margin: 0;
+  font-size: var(--t-component);
+}
+
+.fluency-metric {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--t-small);
+}
+
+/*
+ * Scale 4, and the only one in the file.
+ *
+ * A personal best is rare by construction — it has to beat every previous run
+ * of that mode — so it is allowed a lit line and a short entrance. It is still
+ * one line of text: the hierarchy works because the ordinary case stayed
+ * quiet, not because this got loud.
+ */
+.fluency-crest {
+  margin: 0;
+  padding: var(--s-xs) var(--s-md);
+  border-radius: var(--r-pill);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: var(--t-small);
+  font-weight: var(--w-section);
+  animation: fluency-crest-in 420ms var(--ease) both;
+}
+
+@keyframes fluency-crest-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/*
+ * Reduced motion removes the entrance and keeps the message. Every celebration
+ * in this file has a non-motion form for exactly this reason: a learner with
+ * reduced motion set, haptics off and the phone muted must still be able to
+ * tell a milestone from an ordinary screen.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .fluency-crest {
+    animation: none;
+  }
+
+  .fluency-mode {
+    transition: none;
+  }
+}
