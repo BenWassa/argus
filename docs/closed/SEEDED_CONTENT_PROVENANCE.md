@@ -230,6 +230,7 @@ The original six stable item IDs are retained so existing evidence remains attac
 A short briefing provides the missing system context without teaching equipment operation:
 
 - **Breathing-gas path:** cylinder/HP → regulator first stage → IP → primary second stage/DV; AAS as the alternate breathing outlet; SPG/transmitter on the high-pressure side; LP outputs to the BCD LPI and, where used, a dry-suit inflator.
+- **Core recreational kit map:** mask, snorkel, fins, exposure protection, cylinder, regulator, BCD, weight system, SPG/dive computer and surface-signalling equipment with one reference function each.
 - **Buoyancy/signalling/propulsion:** BCD/BC wording, SMB versus DSMB, and DPV.
 - **Connection/naming shorthand:** DIN versus yoke; regulator/reg; alternate second stage/octopus/AAS; cylinder/tank/bottle terminology.
 
@@ -241,6 +242,8 @@ Completion means only that the thirteen labels and their core meanings/functions
 
 ### Sources
 
+- PADI, **Scuba Diving Certification FAQ**: https://www.padi.com/help/scuba-certification-faq
+  - Training-agency overview of the core entry-level recreational equipment set.
 - PADI, **Regulator**: https://www.padi.com/gear/regulators
   - First stage, second stage/demand valve, alternate air source, low-pressure BCD inflator, SPG and DIN/yoke connection context.
 - Divers Alert Network, **Breathe In, Breathe Out**: https://dan.org/alert-diver/article/breathe-in-breathe-out/
