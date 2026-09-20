@@ -1,8 +1,8 @@
 # Argus programme — progressive Morse-code learning
 
-> **#90/#92/#96 closeout addendum — 2026-09-15.** The historical programme record below is retained, but status statements that stop at #88/#78 are superseded. `Topic.morseReview` supports item-aware cumulative review, including a formative printed-exposure tie-break; a 10-retrieval sitting introduces at most two new characters and otherwise continues as visibly labelled **Review**. Ordinary return slots are need-selected instead of statically favoring early packet members, while unsettled packet obligations remain intact. Later-sitting printed consolidation, legacy/previously-ready safety and need-balanced formative listening remain unchanged. Listening answer placement now rotates independently of the fixed cadence; distractors remain introduced-only. The checkpoint arc is Lessons **4 / 7 / 10 / 13** with #88 first-unlock handoff. #90 item 8 remains complete through `advancementEligible: false`. Whole-programme simulations cover visual-only/audio learners, repeated early/late misses, listening suppression, bounded completion, late-letter coverage, equal-need review distribution and answer-position balance. Exact same-day spacing copy remains an owner presentation decision under #92; it is not missing scheduler work. #29 stays deferred, #79 stays parked, and #42 remains the separate Pixel acceptance gate.
+> **#90/#92/#96 closeout addendum — 2026-09-15.** The historical programme record below is retained, but status statements that stop at #88/#78 are superseded. `Topic.morseReview` supports item-aware cumulative review, including a formative printed-exposure tie-break; a 10-retrieval sitting introduces at most two new characters and otherwise continues as visibly labelled **Review**. Ordinary return slots are need-selected instead of statically favoring early packet members, while unsettled packet obligations remain intact. Later-sitting printed consolidation, legacy/previously-ready safety and need-balanced formative listening remain unchanged. Listening answer placement now rotates independently of the fixed cadence; distractors remain introduced-only. The checkpoint arc is Lessons **4 / 7 / 10 / 13** with #88 first-unlock handoff. #90 item 8 remains complete through `advancementEligible: false`. Whole-programme simulations cover visual-only/audio learners, repeated early/late misses, listening suppression, bounded completion, late-letter coverage, equal-need review distribution and answer-position balance. Exact same-day spacing copy remains an owner presentation decision under #92; it is not missing scheduler work. #21/#29/#42 are closed after real-phone A–Z completion; #119 owns the next research stage. #79 stays parked.
 
-Parent issue: #21  
+Historical parent issue: #21 (closed 2026-09-19; do not extend)  
 Research baseline: `docs/closed/MORSE_CODE_LEARNING_PRD.md` (PR #22; amended by #42)
 Execution-plan origin: PR #30  
 Current programme state: #75 lesson path/replay; corrected #76 shared A–Z reference; #77 direct Morse key; #78 early word checkpoints; #87 touch-safe shared keyed-response lifecycle; #88 seamless milestone checkpoint handoff
@@ -150,7 +150,7 @@ lesson journey. Checkpoint work remains formative and non-evidentiary.
 | P4 | Default audio rhythm | 20 WPM character, ~9 WPM effective; adjustable | Implemented default | #25 / PR #31 |
 | P5 | Visual asset model | Original generated timing SVG; no borrowed per-letter artwork; secondary to verbal cue | Implemented | #26 / PR #34; role corrected by #42 |
 | P6 | Temporary printed baseline | Absorb in place; retain ids/evidence/history, activate bidirectional semantics | Implemented | #28 |
-| P7 | Mobile Web Audio lifecycle | Direct-play context create/resume; verify running; browser owns lifecycle suspension; explicit cancel/replay; deliberate gain; click-free 2ms element edges | Implemented; physical acceptance pending | #42 / PR #43; keyed first-press path hardened by #77 |
+| P7 | Mobile Web Audio lifecycle | Direct-play context create/resume; verify running; browser owns lifecycle suspension; explicit cancel/replay; deliberate gain; click-free 2ms element edges | Implemented; real-phone A–Z completion accepted 2026-09-19 | #42 / PR #43; keyed first-press path hardened by #77 |
 | P8 | Lesson fade/restore rule | Fade one level per correct retrieval; a miss restores one level below the format used; missed items barred 2 steps and never asked next | Implemented default | #48 |
 | P9 | Packet readiness | Every roster character — novel and returning — `settled`; packet index derived from durable support, never stored | Ratified | #48 |
 | P10 | Learn sitting boundary | 10 answered formative retrievals; correct/wrong both consume one slot; teaching screens do not | Ratified | #51 / PR #54 |
@@ -383,7 +383,7 @@ repoint old content at new artwork.
 | 3 | #26 | SVG grammar + progressive Learn | **Merged** via PR #34; visual role corrected by #42 |
 | 4 | #27 | Progressive Test + cue fading | **Merged** via PR #35; cue channels reconciled by #42/#56 |
 | 5 | #28 | A–Z bidirectional curriculum + mobile acceptance | **Merged** |
-| C | #42 | Rhythmic verbal acquisition + working mobile audio | **Merged** via PR #43; real-device acceptance tracked under #44 |
+| C | #42 | Rhythmic verbal acquisition + working mobile audio | **Closed** after real-phone A–Z completion (2026-09-19) |
 | D | #48 | Guided Learn lesson + separate A–Z reference + mnemonic grammar fix | **Merged** |
 | E | #51 | Fixed finite Learn sittings + finite retrieval budget | **Merged** via PR #54; sitting made durable by #66, `XP` wording retired by #62 |
 | F | #52 | Separate printed recall/listening + no-audio escape | **Merged** |
@@ -391,8 +391,8 @@ repoint old content at new artwork.
 | H | #75 | Visible 13-lesson path + ephemeral replay | **Merged** |
 | I | #76 | Shared compact A–Z reference on Topic page | **Merged**, including owner corrective |
 | J | #77 | Direct auto-grading Morse key + sidetone/first-press hardening | **Merged** |
-| K | #78 | Early word-application checkpoints after Lessons 4 and 7 | **Implemented in current #78 branch; merge gate pending** |
-| 6 | #29 | Auditory reception / sending / continuous material | **Deferred pending learner validation** |
+| K | #78 | Word-application checkpoints | **Closed / shipped**; extended through Lessons 10 and 13 by later closeout work |
+| 6 | #29 | Historical mixed advanced placeholder | **Closed as superseded**; #119 researches the post-A–Z stage before new bounded competency issues |
 | P | #79 | Desktop specialist review | **Parked; not part of #78** |
 
 ## Completion boundary
