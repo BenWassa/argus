@@ -164,7 +164,7 @@ describe('library import migration', () => {
       history: [{ at: timestamp, correct: 6, total: 6, resolvedTo: 'completed' as const }],
       itemEvidence: {
         [oldItems[0].id]: {
-          cue: 'none' as const,
+          cue: 'free' as const,
           directions: {
             'prompt-to-answer': {
               attempts: 2, correct: 2, unassistedCorrect: 2, consecutiveCorrect: 2,
