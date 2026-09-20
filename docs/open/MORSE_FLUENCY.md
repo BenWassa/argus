@@ -22,12 +22,20 @@ Learn teaches the alphabet and stops. Fluency is what a learner does after
 that: the same 26 characters, presented by ear, at a speed too fast to count
 them, with the gaps closing as they improve.
 
-It is reached from the Morse topic page at text weight once
-`acquisitionReadyAt` is set — that is, once every letter has been produced
-unaided at least once in Learn. Gated on acquisition rather than on completion
-deliberately: a learner waiting out a spacing interval before their qualifying
-check has finished learning the alphabet and should not be told there is
-nothing to do.
+It is reached from the Morse topic page at text weight once the alphabet is
+acquired — that is, once every letter has been produced unaided at least once
+in Learn. Gated on acquisition rather than on completion deliberately: a
+learner waiting out a spacing interval before their qualifying check has
+finished learning the alphabet and should not be told there is nothing to do.
+
+The gate reads `journeyFor(topic).acquisition.ready`, **not**
+`topic.acquisitionReadyAt`. The stored anchor postdates the programme, so a
+learner who finished the alphabet before the field existed has every letter
+settled and no timestamp — and an early build of this surface gated on the raw
+field, which hid Fluency from exactly the learner it was built for. `journeyFor`
+already resolves the derived and stored answers into one, and it is the same
+fallback `acquisitionStartedAt` makes for the same records.
+`TopicPage.fluencyEntry.test.tsx` covers that case directly.
 
 ## The one rule
 

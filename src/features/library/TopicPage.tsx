@@ -184,19 +184,27 @@ export function TopicPage({
 
           {/* After the alphabet.
 
-              Gated on `acquisitionReadyAt` rather than on completion, because
-              the two answer different questions. Completion is a statement
-              about scored evidence and a retention gap; acquisition readiness
-              is the fact that every letter has been produced unaided at least
-              once, which is exactly the point at which "you know the alphabet,
-              now get faster" becomes true. A learner waiting out a spacing
+              Gated on acquisition rather than on completion, because the two
+              answer different questions. Completion is a statement about
+              scored evidence and a retention gap; acquisition readiness is the
+              fact that every letter has been produced unaided at least once,
+              which is exactly the point at which "you know the alphabet, now
+              get faster" becomes true. A learner waiting out a spacing
               interval before their qualifying check should not be told there
               is nothing to do.
+
+              It reads `acquisition.ready`, not `topic.acquisitionReadyAt`.
+              The stored field postdates the programme, so a learner who
+              finished the alphabet before it existed has every letter settled
+              and no timestamp — and gating on the raw field hid Fluency from
+              exactly the learner it was built for. `journeyFor` already
+              resolves the derived and stored answers into one, and it is the
+              same fallback `acquisitionStartedAt` makes for the same records.
 
               Text weight, never primary: the recommended action is still
               whatever the journey says, because only a check can earn
               anything and Fluency cannot earn anything at all. */}
-          {course && topic.acquisitionReadyAt && (
+          {course && acquisition.ready && (
             <button
               className="quiet topic-alt"
               type="button"
