@@ -160,10 +160,11 @@ describe('researched seeded library', () => {
     expect(topic.learn?.kind).toBe('briefing')
     expect(topic.learn?.sections?.map((section) => section.heading)).toEqual([
       'Breathing-gas path',
+      'Core recreational kit map',
       'Buoyancy, signalling and propulsion',
       'Connection and naming shorthand',
     ])
     expect(topic.learn?.limitations?.some((note) => note.includes('not diver training'))).toBe(true)
-    expect(topic.learn?.sources?.length).toBeGreaterThanOrEqual(8)
+    expect(topic.learn?.sources?.length).toBeGreaterThanOrEqual(9)
   })
 })
