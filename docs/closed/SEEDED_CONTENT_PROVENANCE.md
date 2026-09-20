@@ -17,7 +17,7 @@ This document records the research decisions behind the topics shipped by `src/d
 | OODA loop | Four stages in order + one core function for each | 4 | Briefing + integrated case |
 | Primary survey | Five ABCDE headings in order only | 5 | Briefing + integrated bounded case + explicit safety limits |
 | Cardinal/intercardinal bearings | Eight named compass points → clockwise degree value from north, with north represented as 0° | 8 | Concise support |
-| Recreational scuba equipment abbreviations | SCUBA, BCD, SPG, LPI, DSMB and DPV → expansion and core reference function | 6 | Concise support + explicit safety limits |
+| Recreational scuba gear shorthand | SCUBA, BCD, SPG, LPI, DSMB, DPV, AAS, DV, HP, LP, IP, SMB and DIN → equipment meaning/reference function | 13 | Briefing + system map + explicit safety limits |
 
 Existing seeded historical attempt totals remain compatible with their decks. #42 adds no durable learner-state field and does not change any scored item.
 
@@ -199,34 +199,64 @@ All eight mappings are present as scored items.
 
 Concise support only: clockwise-from-north convention, 45° spacing, the 0°/360° clarification, and provenance. No case study.
 
-## Recreational scuba equipment abbreviations
+## Recreational scuba gear shorthand
 
 ### Research decision
 
-The inbox request “Scuba gear review and acronyms” is too broad to be a completion claim: equipment choices, set-up, inspection, maintenance and diving practice depend on training, equipment, conditions and local operations. The shipped topic therefore takes only the stable, finite vocabulary boundary: six common abbreviations and their broad reference functions.
+The inbox request **“Scuba gear review and acronyms”** was initially shipped as a six-card vocabulary topic. That first pass was accurate but too narrow: it omitted the regulator pressure path, alternate breathing-source vocabulary, the SMB/DSMB distinction and the common DIN/yoke connection language that make the abbreviations useful as a gear-system review.
+
+Issue #121 therefore strengthens the same finite topic rather than turning it into an equipment-use course. The scored set grows from six to thirteen common labels while Learn explains how the pieces connect. Procedures remain outside the completion claim.
+
+The original six stable item IDs are retained so existing evidence remains attached to the same concepts. A dedicated exact-baseline migration upgrades only the shipped six-card identity. If the old boundary had already been drilled or completed, its historical attempts remain but active mastery is reopened because six cards cannot satisfy the new thirteen-term claim. User-authored or edited collisions are not overwritten.
 
 ### Test boundary
 
-1. **SCUBA** — self-contained underwater breathing apparatus; equipment that lets a diver breathe underwater from a carried gas supply.
-2. **BCD** — buoyancy control device; the buoyancy bladder/system that helps a diver control buoyancy and commonly holds the cylinder.
-3. **SPG** — submersible pressure gauge; an instrument that displays cylinder pressure and therefore remaining gas.
-4. **LPI** — low-pressure inflator; the hose and fitting that supplies low-pressure gas from a regulator to inflate a BCD.
-5. **DSMB** — delayed surface marker buoy; an inflatable surface-signalling buoy deployed from underwater.
-6. **DPV** — diver propulsion vehicle; a powered device used to propel a diver through the water.
+1. **SCUBA** — self-contained underwater breathing apparatus; a carried breathing-gas system for underwater breathing.
+2. **BCD** — buoyancy control device; an inflatable buoyancy system, commonly also used to secure the cylinder.
+3. **SPG** — submersible pressure gauge; cylinder-pressure monitoring used to track available breathing gas.
+4. **LPI** — low-pressure inflator; the BCD inflator connection supplied from the regulator first stage.
+5. **DSMB** — delayed surface marker buoy; a marker carried deflated and normally sent to the surface later from underwater on a line or spool.
+6. **DPV** — diver propulsion vehicle; powered diver propulsion.
+7. **AAS** — alternate air source; a backup breathing-gas source, commonly an alternate second stage/octopus in recreational open-circuit gear.
+8. **DV** — demand valve; another name for a regulator second stage.
+9. **HP** — high pressure; the cylinder-pressure side of the regulator system.
+10. **LP** — low pressure; first-stage output used by second stages and inflators.
+11. **IP** — intermediate pressure; the reduced pressure between regulator first and second stages, above ambient pressure.
+12. **SMB** — surface marker buoy; a buoy used to mark or signal a diver’s position at the surface.
+13. **DIN** — the screw-in regulator-to-cylinder-valve connection standard, contrasted with a yoke/bracket connection.
+
+### Learn treatment
+
+A short briefing provides the missing system context without teaching equipment operation:
+
+- **Breathing-gas path:** cylinder/HP → regulator first stage → IP → primary second stage/DV; AAS as the alternate breathing outlet; SPG/transmitter on the high-pressure side; LP outputs to the BCD LPI and, where used, a dry-suit inflator.
+- **Buoyancy/signalling/propulsion:** BCD/BC wording, SMB versus DSMB, and DPV.
+- **Connection/naming shorthand:** DIN versus yoke; regulator/reg; alternate second stage/octopus/AAS; cylinder/tank/bottle terminology.
+
+This makes the vocabulary coherent enough to review gear conversations and diagrams without implying that recognition equals safe equipment use.
 
 ### Safety boundary
 
-Completion means only that these six abbreviations and reference functions can be recalled. It does not establish equipment selection, assembly, inspection, maintenance, gas planning, buoyancy control, emergency response, ascent judgement or diving competence. The topic directs learners to qualified instruction, manufacturer material and local operator procedures for those matters.
+Completion means only that the thirteen labels and their core meanings/functions can be recalled. It does **not** establish equipment selection, assembly, inspection, maintenance, gas planning, buoyancy control, emergency response, DSMB deployment, regulator configuration, servicing, ascent judgement or diving competence. Those require appropriate instruction, equipment-specific documentation and local procedures.
 
 ### Sources
 
-- PADI, **What does SCUBA stand for?**: https://blog.padi.com/what-does-scuba-stand-for/
+- PADI, **Regulator**: https://www.padi.com/gear/regulators
+  - First stage, second stage/demand valve, alternate air source, low-pressure BCD inflator, SPG and DIN/yoke connection context.
+- Divers Alert Network, **Breathe In, Breathe Out**: https://dan.org/alert-diver/article/breathe-in-breathe-out/
+  - Regulator pressure path and HP/IP terminology.
+- PADI, **Buoyancy Control Devices (BCD)**: https://www.padi.com/gear/bcds
+  - BCD expansion, buoyancy function and inflator context.
 - PADI, **SPG (Submersible Pressure Gauges)**: https://www.padi.com/gear/spgs
-- British Sub-Aqua Club, **Annual Diving Incident Report 2024 — abbreviations**: https://www.bsac.com/document/bsac-diving-incidents-report-2024/1bsac-annual-incident-report-2024.pdf
-
-### Authoritative source
-
-- NOAA, **Navigation Training Manual**: https://repository.library.noaa.gov/view/noaa/42218/noaa_42218_DS1.pdf
+  - SPG expansion and cylinder-pressure monitoring.
+- PADI, **Signaling Devices**: https://www.padi.com/gear/signaling-devices
+  - DSMB as surface-signalling equipment.
+- British Sub-Aqua Club, **Safe use of Surface and Delayed Surface Marker Buoys**: https://www.bsac.com/news-and-blog/safe-use-of-surface-and-delayed-surface-marker-buoys/
+  - SMB/DSMB terminology and distinction.
+- PADI, **Scuba Diving Terms**: https://blog.padi.com/scuba-terminology-say-this-dont-say-that/
+  - BC/BCD, regulator, octopus and demand-valve terminology.
+- PADI, **Make Your Dive Checks More Effective with Shisa Kanko**: https://blog.padi.com/shisa-kanko-make-your-dive-checks-more-effective/
+  - Published PADI usage of AAS for alternate air source.
 
 ## Scope-integrity check
 
