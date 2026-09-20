@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { absorbSeededMorseBaseline } from './libraryMigrations'
+import { absorbSeededMorseBaseline, upgradeSeededScubaEquipment } from './libraryMigrations'
 import { parseLibrary } from './libraryParser'
 import { seedLibrary } from '../../domain/library/catalogSeed'
 
@@ -108,6 +108,89 @@ describe('library import migration', () => {
     expect(upgraded.drilledAt).toBe(timestamp)
     expect(upgraded.itemEvidence).toEqual(forward.itemEvidence)
     expect(upgraded.scope).toBe('Can independently recall all A–Z printed Morse mappings in both directions.')
+  })
+
+  it('upgrades only the exact six-card scuba baseline and reopens its stronger boundary', () => {
+    const oldItems = [
+      {
+        id: 'scuba-equipment-abbreviations-item-01',
+        kind: 'forward' as const,
+        prompt: 'SCUBA',
+        answer: 'Self-contained underwater breathing apparatus — equipment that lets a diver breathe underwater from a carried gas supply.',
+      },
+      {
+        id: 'scuba-equipment-abbreviations-item-02',
+        kind: 'forward' as const,
+        prompt: 'BCD',
+        answer: 'Buoyancy control device — the buoyancy bladder/system that helps a diver control buoyancy and commonly holds the cylinder.',
+      },
+      {
+        id: 'scuba-equipment-abbreviations-item-03',
+        kind: 'forward' as const,
+        prompt: 'SPG',
+        answer: 'Submersible pressure gauge — an instrument that displays the pressure, and therefore remaining gas, in a cylinder.',
+      },
+      {
+        id: 'scuba-equipment-abbreviations-item-04',
+        kind: 'forward' as const,
+        prompt: 'LPI',
+        answer: 'Low-pressure inflator — the hose and fitting that supplies low-pressure gas from a regulator to inflate a BCD.',
+      },
+      {
+        id: 'scuba-equipment-abbreviations-item-05',
+        kind: 'forward' as const,
+        prompt: 'DSMB',
+        answer: 'Delayed surface marker buoy — an inflatable surface-signalling buoy deployed from underwater.',
+      },
+      {
+        id: 'scuba-equipment-abbreviations-item-06',
+        kind: 'forward' as const,
+        prompt: 'DPV',
+        answer: 'Diver propulsion vehicle — a powered device used to propel a diver through the water.',
+      },
+    ]
+    const completed = {
+      ...seedLibrary().topics.find((topic) => topic.id === 'scuba-equipment-abbreviations')!,
+      title: 'Recreational scuba equipment abbreviations',
+      scope: 'Old six-card boundary.',
+      items: oldItems,
+      origin: 'catalog' as const,
+      status: 'completed' as const,
+      learningAt: timestamp,
+      drilledAt: timestamp,
+      completedAt: timestamp,
+      lastTestedAt: timestamp,
+      spotCheckedAt: timestamp,
+      history: [{ at: timestamp, correct: 6, total: 6, resolvedTo: 'completed' as const }],
+      itemEvidence: {
+        [oldItems[0].id]: {
+          cue: 'none' as const,
+          directions: {
+            'prompt-to-answer': {
+              attempts: 2, correct: 2, unassistedCorrect: 2, consecutiveCorrect: 2,
+              lastAt: timestamp, lastLatencyMs: 900,
+            },
+          },
+        },
+      },
+    }
+
+    const first = upgradeSeededScubaEquipment({ version: 5, topics: [completed] })
+    const upgraded = first.topics[0]
+
+    expect(upgraded.title).toBe('Recreational scuba gear shorthand')
+    expect(upgraded.items).toHaveLength(13)
+    expect(upgraded.items.slice(0, 6).map((item) => item.id)).toEqual(oldItems.map((item) => item.id))
+    expect(upgraded.itemEvidence).toEqual(completed.itemEvidence)
+    expect(upgraded.history).toEqual(completed.history)
+    expect(upgraded.status).toBe('learning')
+    expect(upgraded.drilledAt).toBeNull()
+    expect(upgraded.completedAt).toBeNull()
+    expect(upgraded.spotCheckedAt).toBeNull()
+    expect(upgradeSeededScubaEquipment(first)).toEqual(first)
+
+    const userOwned = { ...completed, origin: 'user' as const }
+    expect(upgradeSeededScubaEquipment({ version: 5, topics: [userOwned] }).topics[0]).toEqual(userOwned)
   })
 
   it('maps v2 practice-named timestamps into the v5 runtime model', () => {
