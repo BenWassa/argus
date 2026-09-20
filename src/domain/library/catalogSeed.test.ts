@@ -21,6 +21,7 @@ describe('researched seeded library', () => {
       'ooda-loop',
       'primary-survey',
       'cardinal-bearings',
+      'scuba-equipment-abbreviations',
     ])
 
     for (const topic of library.topics) {
@@ -129,5 +130,21 @@ describe('researched seeded library', () => {
     expect(topic.learn?.caseStudies).toBeUndefined()
     expect(topic.learn?.overview).toContain('360° represents the same direction')
     expect(topic.learn?.sources?.[0].url).toContain('noaa.gov')
+  })
+
+  it('keeps scuba vocabulary to six equipment abbreviations and reference functions', () => {
+    const topic = seededTopic('scuba-equipment-abbreviations')
+
+    expect(rows(topic.items)).toEqual([
+      { prompt: 'SCUBA', answer: 'Self-contained underwater breathing apparatus — equipment that lets a diver breathe underwater from a carried gas supply.' },
+      { prompt: 'BCD', answer: 'Buoyancy control device — the buoyancy bladder/system that helps a diver control buoyancy and commonly holds the cylinder.' },
+      { prompt: 'SPG', answer: 'Submersible pressure gauge — an instrument that displays the pressure, and therefore remaining gas, in a cylinder.' },
+      { prompt: 'LPI', answer: 'Low-pressure inflator — the hose and fitting that supplies low-pressure gas from a regulator to inflate a BCD.' },
+      { prompt: 'DSMB', answer: 'Delayed surface marker buoy — an inflatable surface-signalling buoy deployed from underwater.' },
+      { prompt: 'DPV', answer: 'Diver propulsion vehicle — a powered device used to propel a diver through the water.' },
+    ])
+    expect(topic.scope).toContain('Test does not cover equipment selection')
+    expect(topic.learn?.limitations?.some((note) => note.includes('not diver training'))).toBe(true)
+    expect(topic.learn?.sources).toHaveLength(3)
   })
 })

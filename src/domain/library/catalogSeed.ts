@@ -383,6 +383,53 @@ export function seedLibrary(): Library {
         { at: ago(110), correct: 8, total: 8, resolvedTo: 'completed' },
       ],
     },
+    {
+      id: 'scuba-equipment-abbreviations',
+      title: 'Recreational scuba equipment abbreviations',
+      scope: 'Six common recreational-scuba equipment abbreviations — SCUBA, BCD, SPG, LPI, DSMB and DPV — and each term’s core reference function. Test does not cover equipment selection, setup, inspection, maintenance, dive planning or diving procedures.',
+      track: 'learning',
+      items: [
+        { prompt: 'SCUBA', answer: 'Self-contained underwater breathing apparatus — equipment that lets a diver breathe underwater from a carried gas supply.' },
+        { prompt: 'BCD', answer: 'Buoyancy control device — the buoyancy bladder/system that helps a diver control buoyancy and commonly holds the cylinder.' },
+        { prompt: 'SPG', answer: 'Submersible pressure gauge — an instrument that displays the pressure, and therefore remaining gas, in a cylinder.' },
+        { prompt: 'LPI', answer: 'Low-pressure inflator — the hose and fitting that supplies low-pressure gas from a regulator to inflate a BCD.' },
+        { prompt: 'DSMB', answer: 'Delayed surface marker buoy — an inflatable surface-signalling buoy deployed from underwater.' },
+        { prompt: 'DPV', answer: 'Diver propulsion vehicle — a powered device used to propel a diver through the water.' },
+      ],
+      learn: {
+        kind: 'concise',
+        overview: 'These abbreviations label common recreational-scuba equipment and accessories. They are a vocabulary boundary only: knowing their expansions and broad functions does not establish that equipment is suitable, correctly assembled, inspected, maintained or safe to use.',
+        limitations: [
+          'Argus supports memory and rehearsal only. This topic is not diver training, certification, a pre-dive checklist, equipment-maintenance instruction or a substitute for a qualified instructor, dive professional, manufacturer manual or local dive operator.',
+          'Equipment configuration, gas planning, buoyancy skills, emergency response, ascent decisions, servicing intervals and site-specific procedures are outside the Test boundary.',
+        ],
+        sources: [
+          {
+            label: 'PADI — What does SCUBA stand for?',
+            url: 'https://blog.padi.com/what-does-scuba-stand-for/',
+            note: 'Industry training reference for SCUBA, BCD, low-pressure inflator, regulator-system components and alternate-air-source terminology.',
+          },
+          {
+            label: 'PADI — SPG (Submersible Pressure Gauges)',
+            url: 'https://www.padi.com/gear/spgs',
+            note: 'Reference for the SPG expansion and its cylinder-pressure/remaining-gas role.',
+          },
+          {
+            label: 'BSAC — Annual Diving Incident Report 2024, abbreviations',
+            url: 'https://www.bsac.com/document/bsac-diving-incidents-report-2024/1bsac-annual-incident-report-2024.pdf',
+            note: 'National diving-club reference for BCD, DSMB and DPV expansions.',
+          },
+        ],
+      },
+      status: 'unstarted',
+      createdAt: ago(0),
+      drilledAt: null,
+      learningAt: null,
+      completedAt: null,
+      lastTestedAt: null,
+      spotCheckedAt: null,
+      history: [],
+    },
   ]
 
   return {

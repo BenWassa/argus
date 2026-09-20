@@ -17,6 +17,7 @@ This document records the research decisions behind the topics shipped by `src/d
 | OODA loop | Four stages in order + one core function for each | 4 | Briefing + integrated case |
 | Primary survey | Five ABCDE headings in order only | 5 | Briefing + integrated bounded case + explicit safety limits |
 | Cardinal/intercardinal bearings | Eight named compass points → clockwise degree value from north, with north represented as 0° | 8 | Concise support |
+| Recreational scuba equipment abbreviations | SCUBA, BCD, SPG, LPI, DSMB and DPV → expansion and core reference function | 6 | Concise support + explicit safety limits |
 
 Existing seeded historical attempt totals remain compatible with their decks. #42 adds no durable learner-state field and does not change any scored item.
 
@@ -197,6 +198,31 @@ All eight mappings are present as scored items.
 ### Learn treatment
 
 Concise support only: clockwise-from-north convention, 45° spacing, the 0°/360° clarification, and provenance. No case study.
+
+## Recreational scuba equipment abbreviations
+
+### Research decision
+
+The inbox request “Scuba gear review and acronyms” is too broad to be a completion claim: equipment choices, set-up, inspection, maintenance and diving practice depend on training, equipment, conditions and local operations. The shipped topic therefore takes only the stable, finite vocabulary boundary: six common abbreviations and their broad reference functions.
+
+### Test boundary
+
+1. **SCUBA** — self-contained underwater breathing apparatus; equipment that lets a diver breathe underwater from a carried gas supply.
+2. **BCD** — buoyancy control device; the buoyancy bladder/system that helps a diver control buoyancy and commonly holds the cylinder.
+3. **SPG** — submersible pressure gauge; an instrument that displays cylinder pressure and therefore remaining gas.
+4. **LPI** — low-pressure inflator; the hose and fitting that supplies low-pressure gas from a regulator to inflate a BCD.
+5. **DSMB** — delayed surface marker buoy; an inflatable surface-signalling buoy deployed from underwater.
+6. **DPV** — diver propulsion vehicle; a powered device used to propel a diver through the water.
+
+### Safety boundary
+
+Completion means only that these six abbreviations and reference functions can be recalled. It does not establish equipment selection, assembly, inspection, maintenance, gas planning, buoyancy control, emergency response, ascent judgement or diving competence. The topic directs learners to qualified instruction, manufacturer material and local operator procedures for those matters.
+
+### Sources
+
+- PADI, **What does SCUBA stand for?**: https://blog.padi.com/what-does-scuba-stand-for/
+- PADI, **SPG (Submersible Pressure Gauges)**: https://www.padi.com/gear/spgs
+- British Sub-Aqua Club, **Annual Diving Incident Report 2024 — abbreviations**: https://www.bsac.com/document/bsac-diving-incidents-report-2024/1bsac-annual-incident-report-2024.pdf
 
 ### Authoritative source
 
