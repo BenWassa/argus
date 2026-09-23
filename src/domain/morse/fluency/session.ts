@@ -8,7 +8,7 @@ import {
   weightedSample,
   type WordTier,
 } from './corpus'
-import { fluencyNeed, type MorseFluencyProgress } from './progress'
+import { fluencyNeed, median, type MorseFluencyProgress } from './progress'
 import type { FluencyRung } from './timing'
 
 /**
@@ -222,17 +222,15 @@ export function fluencyOutcome(run: FluencyRun): FluencyOutcome {
     0,
   )
 
-  const latencies = run.answers
-    .filter((answer) => answer.correct && answer.latencyMs !== null)
-    .map((answer) => answer.latencyMs as number)
-    .sort((a, b) => a - b)
-  const middle = Math.floor(latencies.length / 2)
-  const medianLatencyMs =
-    latencies.length === 0
-      ? null
-      : latencies.length % 2 === 1
-        ? latencies[middle]
-        : Math.round((latencies[middle - 1] + latencies[middle]) / 2)
+  // The one median in `./progress`, not a second copy of it. The end screen
+  // and the stored per-character statistics answer the same question — how
+  // long does this usually take — so they must never be able to round or
+  // tie-break it differently.
+  const medianLatencyMs = median(
+    run.answers.flatMap((answer) =>
+      answer.correct && answer.latencyMs !== null ? [answer.latencyMs] : [],
+    ),
+  )
 
   let longestStreak = 0
   let streak = 0

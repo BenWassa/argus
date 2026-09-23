@@ -14,6 +14,7 @@ import { AddMenu } from './AddMenu'
 import { TopicForm, type Draft } from './TopicForm'
 import { TopicPage } from './TopicPage'
 import { CompletionRecord } from './CompletionRecord'
+import { TopicGauge } from './TopicGauge'
 import { CaptureSheet } from './CaptureSheet'
 import { WantToLearn } from './WantToLearn'
 import { useInbox } from '../../services/inbox/useInbox'
@@ -539,9 +540,6 @@ function Row({ entry, onDueShelf, selecting, selected, onOpen, onToggle, onActio
   // Verb, schedule line and progress bar all come from the same journey, so the
   // row cannot say Test while Today says Continue Learn about the same topic.
   const action = journey.actionLabel
-  // The bar is retention only. A topic still being acquired has not entered a
-  // gap, so it shows no gap progress rather than a bar that means something else.
-  const gap = journey.retention.gated ? null : journey.retention.gapProgress
   const schedule = journey.statusLabel
   // Repair reads in warning on Today, so it reads in warning here. Decay is
   // routing information in both places, and it should look the same in both.
@@ -589,11 +587,13 @@ function Row({ entry, onDueShelf, selecting, selected, onOpen, onToggle, onActio
         {journey.phase === 'acquiring' && journey.acquisition.progressive && journey.detail && (
           <span className="lib-acquisition">{journey.detail}</span>
         )}
-        {gap !== null && gap < 1 && (
-          <span className="lib-gap" aria-hidden="true">
-            <span className="lib-gap-fill" style={{ width: `${Math.round(gap * 100)}%` }} />
-          </span>
-        )}
+        {/* The row's one progress reading. It used to be a retention-gap
+            hairline and nothing else, so a topic mid-acquisition — the state a
+            Morse learner is in for weeks — showed no progress at all. The
+            gauge picks whichever measure the topic has actually earned and
+            carries its own accessible reading, which this row previously
+            omitted entirely. */}
+        <TopicGauge topic={topic} journey={journey} variant="row" />
       </button>
 
       {!selecting && (

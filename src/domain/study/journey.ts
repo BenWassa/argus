@@ -41,8 +41,9 @@ import type { Status, Topic } from '../library/topic'
  *
  * ## The one thing it adds: progressive acquisition
  *
- * The pre-Morse model assumed Learn was a single exposure, so `modeFor` could
- * treat `unstarted` as Learn and everything else as Test. Morse acquisition runs
+ * The pre-Morse model assumed Learn was a single exposure, so the scheduler's
+ * mode rule — since deleted — could treat `unstarted` as Learn and everything
+ * else as Test. Morse acquisition runs
  * for many sittings across many days while the status has been `learning` since
  * the first one, so that rule routed a learner who had met eight letters into a
  * 26-item scored Test and called it the required action.
@@ -389,11 +390,6 @@ export function journeyFor(topic: Topic, now: Date = new Date()): TopicJourney {
   }
 }
 
-/** The run mode for actions that actually launch a run. */
-export function modeForAction(action: TopicAction): Mode | null {
-  return action === 'learn' || action === 'test' ? action : null
-}
-
 /**
  * What pressing the recommended action does.
  *
@@ -423,15 +419,12 @@ export function journeysFor(topics: Topic[], now: Date = new Date()): JourneyEnt
   return topics.map((topic) => ({ topic, journey: journeyFor(topic, now) }))
 }
 
-export function journeyOf(entries: JourneyEntry[], topicId: string): TopicJourney | null {
-  return entries.find((entry) => entry.topic.id === topicId)?.journey ?? null
-}
-
 /**
  * Everything that wants doing now, in the order the ladder reads it. Ranked by
  * the scheduler's own `DUE_RANK` so acquisition work sorts alongside ordinary
  * work rather than in a category of its own, and the longest untested goes first
- * within a rank — exactly as `dueTopics` has always ordered the day.
+ * within a rank — the order the day has always been read in, now with only one
+ * implementation of it.
  */
 export function dueEntries(entries: JourneyEntry[]): JourneyEntry[] {
   return entries

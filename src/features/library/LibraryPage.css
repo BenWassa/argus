@@ -170,7 +170,12 @@
  * a bevel, never by a shadow or the accent, both of which stay reserved for the
  * primary action on the page. It fills its grid cell rather than floating as a
  * pill inside it, because the row is two zones and the join between them is the
- * thing that has to read. */
+ * thing that has to read.
+ *
+ * The rest gradient stays spelled out rather than taking --gradient-ghost:
+ * #117's test reads this declaration as the statement of the ghost treatment,
+ * so the literal is the contract. The hover below it, which nothing pins, takes
+ * the token. */
 .lib-action {
   align-self: stretch;
   padding: 0 var(--s-sm);
@@ -188,7 +193,7 @@
 .lib-action:hover {
   color: var(--ink);
   border-color: var(--line-hover);
-  background: linear-gradient(180deg, var(--surface-4), var(--surface-3));
+  background: var(--gradient-ghost-hover);
 }
 
 .lib-action:active {
@@ -234,24 +239,13 @@
   line-height: 1.4;
 }
 
-.lib-gap {
-  display: block;
-  width: 100%;
+/* The row's gauge. Width is capped here rather than in the shared rule: a
+   Library row is a grid cell and the track should not run the full title
+   width, while the topic page deliberately lets it. */
+.index-row .gauge-row {
   max-width: 132px;
-  height: 3px;
   /* The row grid already contributes its 5px gap above this. */
   margin-top: 5px;
-  overflow: hidden;
-  border-radius: var(--r-pill);
-  background: var(--field);
-  box-shadow: var(--engrave);
-}
-
-.lib-gap-fill {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(180deg, var(--muted), var(--line-hover));
 }
 
 .lib-consequence {
@@ -273,10 +267,12 @@
   justify-content: space-between;
   gap: var(--s-md);
   margin-top: var(--s-lg);
+  /* The panel base, worn as a control: it floats over the index it acts on, so
+     it takes the ghost face, the stronger rule and a real lift, and its padding
+     is pulled in on the button side to sit flush around them. */
   padding: var(--s-sm) var(--s-sm) var(--s-sm) var(--s-lg);
-  border: 1px solid var(--line-strong);
-  border-radius: var(--r-lg);
-  background: linear-gradient(180deg, var(--surface-3), var(--surface-2));
+  border-color: var(--line-strong);
+  background: var(--gradient-ghost);
   box-shadow: var(--edge), var(--edge-under), var(--shadow);
 }
 

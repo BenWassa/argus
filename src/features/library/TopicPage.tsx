@@ -5,6 +5,7 @@ import { useLibrary } from '../../services/library/LibraryProvider'
 import { morseLessonPath } from '../../domain/morse/curriculum/lessonPath'
 import { morseWordCheckpointPath } from '../../domain/morse/curriculum/checkpoints'
 import { statusLabel } from '../../shared/ui/StatusTag'
+import { TopicGauge } from './TopicGauge'
 import { LearnSupport } from '../learn/LearnSupport'
 import { MorseBeatGrammarNote } from '../morse/MorsePhrase'
 import { MorsePath } from '../morse/lesson/MorsePath'
@@ -150,6 +151,16 @@ export function TopicPage({
         </p>
 
         {journey.detail && <p className="topic-detail">{journey.detail}</p>}
+
+        {/* The page about one topic used to say nothing about where the
+            learner was in it. Every measure it could have shown was already
+            computed by `journeyFor` and thrown away here.
+
+            One gauge, deliberately not the five-dimension status sheet this
+            header replaced: that sheet went because it made the learner
+            reconcile four numbers that disagreed. The gauge shows the single
+            most specific reading the topic has earned, in its own units. */}
+        <TopicGauge topic={topic} journey={journey} variant="page" />
       </header>
 
       {runnable ? (

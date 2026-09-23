@@ -563,6 +563,122 @@ function parseLessonSitting(
 }
 
 /**
+ * Post-acquisition Fluency statistics (#119).
+ *
+ * The invariants live in `domain/morse/fluency/progress.ts` beside the type
+ * that holds them, so this is a thin adapter: it owns only the storage-layer
+ * concerns — which versions may carry the field, and normalising an empty
+ * record back to absent.
+ */
+function parseFluency(
+  value: unknown,
+  where: string,
+): { ok: true; value: MorseFluencyProgress | undefined } | { ok: false; error: string } {
+  if (value === undefined || value === null) return { ok: true, value: undefined }
+  const parsed = parseFluencyProgress(value)
+  if (!parsed.ok) return { ok: false, error: `${where} morseFluency ${parsed.error}.` }
+  return { ok: true, value: fluencyIsFresh(parsed.value) ? undefined : parsed.value }
+}
+
+/**
+ * One character's review record, checked against the sittings that can
+ * actually have elapsed.
+ *
+ * Its errors name the item and not the topic. The caller owns the `${where}`
+ * prefix and adds it, so this function never has to be told where it is and a
+ * message reads identically whichever topic produced it.
+ */
+function parseMorseReviewItem(
+  itemId: string,
+  raw: unknown,
+  highestOrdinal: number,
+): { ok: true; value: MorseReviewItem } | { ok: false; error: string } {
+  if (!isRecord(raw)) {
+    return { ok: false, error: `morseReview for "${itemId}" must be an object.` }
+  }
+
+  const introducedIn = nonNegativeInteger(raw.introducedIn)
+  const lastSeenIn = nonNegativeInteger(raw.lastSeenIn)
+  const laterCorrect = nonNegativeInteger(raw.laterCorrect)
+  // `printed` was added after the initial #90 review record. Its legacy
+  // default is zero: it grants no success and simply lets future equal-need
+  // selection accumulate fair exposure history.
+  const printed = raw.printed === undefined ? 0 : nonNegativeInteger(raw.printed)
+  const heard = nonNegativeInteger(raw.heard)
+  const heardCorrect = nonNegativeInteger(raw.heardCorrect)
+  // The repair debt is absent for every character that has never been missed,
+  // which is most of them and all of any record written before it existed. A
+  // legacy record therefore reads as "owes nothing", which is the honest
+  // reading: nothing was recording misses, so none can be claimed.
+  const missedIn = raw.missedIn === undefined ? undefined : nonNegativeInteger(raw.missedIn)
+  if (
+    introducedIn === null ||
+    lastSeenIn === null ||
+    laterCorrect === null ||
+    printed === null ||
+    heard === null ||
+    heardCorrect === null ||
+    missedIn === null
+  ) {
+    return {
+      ok: false,
+      error: `morseReview for "${itemId}" needs non-negative integer counters.`,
+    }
+  }
+  if (introducedIn < 1 || introducedIn > highestOrdinal || lastSeenIn > highestOrdinal) {
+    return {
+      ok: false,
+      error: `morseReview for "${itemId}" names a sitting outside this record's history.`,
+    }
+  }
+  if (lastSeenIn < introducedIn) {
+    return {
+      ok: false,
+      error: `morseReview for "${itemId}" was last seen before it was introduced.`,
+    }
+  }
+  if (laterCorrect > Math.max(0, highestOrdinal - introducedIn)) {
+    return {
+      ok: false,
+      error: `morseReview for "${itemId}" records more later-sitting successes than it had sittings to earn them in.`,
+    }
+  }
+  if (raw.printed !== undefined && printed < laterCorrect) {
+    return {
+      ok: false,
+      error: `morseReview for "${itemId}" has more later-sitting successes than printed retrievals.`,
+    }
+  }
+  if (heardCorrect > heard) {
+    return {
+      ok: false,
+      error: `morseReview for "${itemId}" has more correct listening answers than listening retrievals.`,
+    }
+  }
+  if (missedIn !== undefined && (missedIn < introducedIn || missedIn > highestOrdinal)) {
+    return {
+      ok: false,
+      error: `morseReview for "${itemId}" records a miss outside the sittings it existed for.`,
+    }
+  }
+
+  return {
+    ok: true,
+    value: {
+      introducedIn,
+      lastSeenIn,
+      laterCorrect,
+      printed,
+      heard,
+      heardCorrect,
+      // Absent rather than `undefined`, so a repaired character and one that was
+      // never missed have exactly one representation between them.
+      ...(missedIn === undefined ? {} : { missedIn }),
+    },
+  }
+}
+
+/**
  * Formative Morse review history (#90 batch 6).
  *
  * Validated as strictly as the sitting it sits beside, and for the same
@@ -587,24 +703,6 @@ function parseLessonSitting(
  * - a history that records nothing normalises back to the absent field, so an
  *   empty history has exactly one representation.
  */
-/**
- * Post-acquisition Fluency statistics (#119).
- *
- * The invariants live in `domain/morse/fluency/progress.ts` beside the type
- * that holds them, so this is a thin adapter: it owns only the storage-layer
- * concerns — which versions may carry the field, and normalising an empty
- * record back to absent.
- */
-function parseFluency(
-  value: unknown,
-  where: string,
-): { ok: true; value: MorseFluencyProgress | undefined } | { ok: false; error: string } {
-  if (value === undefined || value === null) return { ok: true, value: undefined }
-  const parsed = parseFluencyProgress(value)
-  if (!parsed.ok) return { ok: false, error: `${where} morseFluency ${parsed.error}.` }
-  return { ok: true, value: fluencyIsFresh(parsed.value) ? undefined : parsed.value }
-}
-
 function parseMorseReview(
   value: unknown,
   where: string,
@@ -635,86 +733,9 @@ function parseMorseReview(
     if (!liveIds.has(itemId)) {
       return { ok: false, error: `${where} morseReview references unknown item id "${itemId}".` }
     }
-    if (!isRecord(raw)) {
-      return { ok: false, error: `${where} morseReview for "${itemId}" must be an object.` }
-    }
-
-    const introducedIn = nonNegativeInteger(raw.introducedIn)
-    const lastSeenIn = nonNegativeInteger(raw.lastSeenIn)
-    const laterCorrect = nonNegativeInteger(raw.laterCorrect)
-    // `printed` was added after the initial #90 review record. Its legacy
-    // default is zero: it grants no success and simply lets future equal-need
-    // selection accumulate fair exposure history.
-    const printed = raw.printed === undefined ? 0 : nonNegativeInteger(raw.printed)
-    const heard = nonNegativeInteger(raw.heard)
-    const heardCorrect = nonNegativeInteger(raw.heardCorrect)
-    // The repair debt is absent for every character that has never been missed,
-    // which is most of them and all of any record written before it existed. A
-    // legacy record therefore reads as "owes nothing", which is the honest
-    // reading: nothing was recording misses, so none can be claimed.
-    const missedIn = raw.missedIn === undefined ? undefined : nonNegativeInteger(raw.missedIn)
-    if (
-      introducedIn === null ||
-      lastSeenIn === null ||
-      laterCorrect === null ||
-      printed === null ||
-      heard === null ||
-      heardCorrect === null ||
-      missedIn === null
-    ) {
-      return {
-        ok: false,
-        error: `${where} morseReview for "${itemId}" needs non-negative integer counters.`,
-      }
-    }
-    if (introducedIn < 1 || introducedIn > highestOrdinal || lastSeenIn > highestOrdinal) {
-      return {
-        ok: false,
-        error: `${where} morseReview for "${itemId}" names a sitting outside this record's history.`,
-      }
-    }
-    if (lastSeenIn < introducedIn) {
-      return {
-        ok: false,
-        error: `${where} morseReview for "${itemId}" was last seen before it was introduced.`,
-      }
-    }
-    if (laterCorrect > Math.max(0, highestOrdinal - introducedIn)) {
-      return {
-        ok: false,
-        error: `${where} morseReview for "${itemId}" records more later-sitting successes than it had sittings to earn them in.`,
-      }
-    }
-    if (raw.printed !== undefined && printed < laterCorrect) {
-      return {
-        ok: false,
-        error: `${where} morseReview for "${itemId}" has more later-sitting successes than printed retrievals.`,
-      }
-    }
-    if (heardCorrect > heard) {
-      return {
-        ok: false,
-        error: `${where} morseReview for "${itemId}" has more correct listening answers than listening retrievals.`,
-      }
-    }
-    if (missedIn !== undefined && (missedIn < introducedIn || missedIn > highestOrdinal)) {
-      return {
-        ok: false,
-        error: `${where} morseReview for "${itemId}" records a miss outside the sittings it existed for.`,
-      }
-    }
-
-    parsed[itemId] = {
-      introducedIn,
-      lastSeenIn,
-      laterCorrect,
-      printed,
-      heard,
-      heardCorrect,
-      // Absent rather than `undefined`, so a repaired character and one that was
-      // never missed have exactly one representation between them.
-      ...(missedIn === undefined ? {} : { missedIn }),
-    }
+    const item = parseMorseReviewItem(itemId, raw, highestOrdinal)
+    if (!item.ok) return { ok: false, error: `${where} ${item.error}` }
+    parsed[itemId] = item.value
   }
 
   const review: MorseReviewProgress = { sittings, items: parsed }
@@ -722,92 +743,137 @@ function parseMorseReview(
 }
 
 /**
- * Import validation and migration. An import replaces the whole library, so a
- * structurally plausible but semantically wrong file must be rejected here
- * rather than silently becoming the record. Every accepted input becomes v5.
+ * A topic's attempt log.
+ *
+ * Alone among the durable fields here a malformed entry is dropped rather than
+ * failing the import, and the asymmetry follows what the field is for. Where a
+ * topic sits on the ladder is held by `status` and its four timestamps; the
+ * history is only the account of how it got there. A bad counter in
+ * `itemEvidence` decides what the learner is asked next, so it has to stop the
+ * import — but a bad line in the log can only ever be displayed, and showing a
+ * fabricated result, a test with no date or twenty-seven right out of
+ * twenty-six, is worse than showing one line fewer.
+ *
+ * So every entry is checked in full and only those a real attempt could have
+ * written survive. Nothing is repaired or clamped on the way through, for the
+ * reason this whole file gives: a clamped counter is fabricated learner
+ * progress wearing a plausible shape.
  */
-export function parseLibrary(value: unknown): ParseResult {
-  if (typeof value !== 'object' || value === null) {
-    return { ok: false, error: 'That file is not an Argus export. The top level should be an object.' }
+function parseHistory(value: unknown): Topic['history'] {
+  if (!Array.isArray(value)) return []
+
+  const history: Topic['history'] = []
+  for (const entry of value) {
+    if (!isRecord(entry)) continue
+
+    // A date that does not resolve is worse than no entry at all: the topic's
+    // fold renders this, and an `Invalid Date` in the record reads as a test
+    // that happened at an unknowable time rather than as a line that should
+    // never have been there.
+    const at = optionalText(entry.at)
+    if (!at || Number.isNaN(new Date(at).getTime())) continue
+
+    const { correct, total, resolvedTo } = entry
+    if (typeof correct !== 'number' || !Number.isFinite(correct) || correct < 0) continue
+    if (typeof total !== 'number' || !Number.isFinite(total) || total < 0) continue
+    // More right than were asked is not a score any run could have produced.
+    if (correct > total) continue
+    if (!STATUSES.includes(resolvedTo as never)) continue
+
+    history.push({ at, correct, total, resolvedTo: resolvedTo as Topic['status'] })
   }
-  const raw = value as Record<string, unknown>
-  const version = parseLibraryVersion(raw.version)
-  if (!version.ok) return version
-  if (!Array.isArray(raw.topics)) {
-    return { ok: false, error: 'That file has no "topics" list, so there is nothing to import.' }
+  return history
+}
+
+/**
+ * One topic, validated field by field.
+ *
+ * Lifted out of `parseLibrary` unchanged, so that the orchestration above —
+ * version, topic list, provenance, catalog delivery — reads as the handful of
+ * steps it is rather than being buried under a hundred and fifty lines of one
+ * topic's validation. Every check, message and fallback is the one it was.
+ *
+ * It takes the topic's `index` rather than a prepared prefix because the index
+ * feeds two different things: the `Topic n` its errors name, and the fallback
+ * id an import that carries none is given.
+ */
+function parseTopic(
+  value: unknown,
+  index: number,
+  sourceVersion: 2 | 3 | 4 | 5,
+  now: Date,
+): { ok: true; topic: Topic } | { ok: false; error: string } {
+  const where = `Topic ${index + 1}`
+  if (!isRecord(value)) return { ok: false, error: `${where} is not a topic object.` }
+  const t = value
+
+  const title = optionalText(t.title)
+  if (!title) return { ok: false, error: `${where} has no title.` }
+  const scope = optionalText(t.scope)
+  if (!scope) {
+    return { ok: false, error: `${where} ("${title}") has no scope, so its boundary is undefined. Every Argus topic needs one.` }
   }
 
-  const topics: Topic[] = []
-  for (let i = 0; i < raw.topics.length; i += 1) {
-    const t = raw.topics[i]
-    const where = `Topic ${i + 1}`
-    if (!isRecord(t)) return { ok: false, error: `${where} is not a topic object.` }
+  const topicId = optionalText(t.id) ?? `imported-topic-${index + 1}`
+  const items = parseItems(t.items, `${where} ("${title}")`, topicId, sourceVersion)
+  if (!items.ok) return items
 
-    const title = optionalText(t.title)
-    if (!title) return { ok: false, error: `${where} has no title.` }
-    const scope = optionalText(t.scope)
-    if (!scope) {
-      return { ok: false, error: `${where} ("${title}") has no scope, so its boundary is undefined. Every Argus topic needs one.` }
-    }
+  const learn = parseLearn(t.learn, `${where} ("${title}")`)
+  if (!learn.ok) return learn
 
-    const topicId = optionalText(t.id) ?? `imported-topic-${i + 1}`
-    const items = parseItems(t.items, `${where} ("${title}")`, topicId, version.version)
-    if (!items.ok) return items
+  const itemEvidence = parseItemEvidence(
+    t.itemEvidence,
+    `${where} ("${title}")`,
+    items.items,
+    sourceVersion,
+  )
+  if (!itemEvidence.ok) return itemEvidence
 
-    const learn = parseLearn(t.learn, `${where} ("${title}")`)
-    if (!learn.ok) return learn
+  const lessonProgress = parseLessonProgress(
+    t.lessonProgress,
+    `${where} ("${title}")`,
+    items.items,
+    sourceVersion,
+  )
+  if (!lessonProgress.ok) return lessonProgress
 
-    const itemEvidence = parseItemEvidence(
-      t.itemEvidence,
-      `${where} ("${title}")`,
-      items.items,
-      version.version,
-    )
-    if (!itemEvidence.ok) return itemEvidence
+  const lessonSitting = parseLessonSitting(
+    t.lessonSitting,
+    `${where} ("${title}")`,
+    items.items,
+    sourceVersion,
+  )
+  if (!lessonSitting.ok) return lessonSitting
 
-    const lessonProgress = parseLessonProgress(
-      t.lessonProgress,
-      `${where} ("${title}")`,
-      items.items,
-      version.version,
-    )
-    if (!lessonProgress.ok) return lessonProgress
+  const morseReview = parseMorseReview(
+    t.morseReview,
+    `${where} ("${title}")`,
+    items.items,
+    sourceVersion,
+  )
+  if (!morseReview.ok) return morseReview
 
-    const lessonSitting = parseLessonSitting(
-      t.lessonSitting,
-      `${where} ("${title}")`,
-      items.items,
-      version.version,
-    )
-    if (!lessonSitting.ok) return lessonSitting
+  /**
+   * Fluency is validated by the domain module that owns its invariants
+   * rather than by a second copy of them here, and a record that says
+   * nothing is normalised back to absent — the same rule `morseReview`
+   * follows, so "no Fluency yet" has one representation in a stored or
+   * exported library rather than two.
+   */
+  const morseFluency = parseFluency(t.morseFluency, `${where} ("${title}")`)
+  if (!morseFluency.ok) return morseFluency
 
-    const morseReview = parseMorseReview(
-      t.morseReview,
-      `${where} ("${title}")`,
-      items.items,
-      version.version,
-    )
-    if (!morseReview.ok) return morseReview
+  const track = TRACKS.includes(t.track as never) ? (t.track as Topic['track']) : 'learning'
+  let status = STATUSES.includes(t.status as never) ? (t.status as Topic['status']) : 'unstarted'
+  const completedAt = typeof t.completedAt === 'string' ? t.completedAt : null
+  // A completed or decayed topic without a completion date would be counted
+  // in one place and missing from another. Demote rather than display a
+  // record that does not exist.
+  if (!completedAt && (status === 'completed' || status === 'decayed')) status = 'drilled'
 
-    /**
-     * Fluency is validated by the domain module that owns its invariants
-     * rather than by a second copy of them here, and a record that says
-     * nothing is normalised back to absent — the same rule `morseReview`
-     * follows, so "no Fluency yet" has one representation in a stored or
-     * exported library rather than two.
-     */
-    const morseFluency = parseFluency(t.morseFluency, `${where} ("${title}")`)
-    if (!morseFluency.ok) return morseFluency
-
-    const track = TRACKS.includes(t.track as never) ? (t.track as Topic['track']) : 'learning'
-    let status = STATUSES.includes(t.status as never) ? (t.status as Topic['status']) : 'unstarted'
-    const completedAt = typeof t.completedAt === 'string' ? t.completedAt : null
-    // A completed or decayed topic without a completion date would be counted
-    // in one place and missing from another. Demote rather than display a
-    // record that does not exist.
-    if (!completedAt && (status === 'completed' || status === 'decayed')) status = 'drilled'
-
-    topics.push({
+  return {
+    ok: true,
+    topic: {
       id: topicId,
       title,
       scope,
@@ -815,7 +881,7 @@ export function parseLibrary(value: unknown): ParseResult {
       items: items.items,
       ...(learn.learn ? { learn: learn.learn } : {}),
       status,
-      createdAt: typeof t.createdAt === 'string' ? t.createdAt : new Date().toISOString(),
+      createdAt: typeof t.createdAt === 'string' ? t.createdAt : now.toISOString(),
       drilledAt: typeof t.drilledAt === 'string' ? t.drilledAt : null,
       learningAt:
         typeof t.learningAt === 'string'
@@ -836,7 +902,7 @@ export function parseLibrary(value: unknown): ParseResult {
           : status === 'completed' && typeof t.lastPracticedAt === 'string'
             ? t.lastPracticedAt
             : null,
-      history: Array.isArray(t.history) ? (t.history as Topic['history']) : [],
+      history: parseHistory(t.history),
       itemEvidence: itemEvidence.value,
       lessonProgress: lessonProgress.value,
       ...(lessonSitting.value ? { lessonSitting: lessonSitting.value } : {}),
@@ -851,7 +917,35 @@ export function parseLibrary(value: unknown): ParseResult {
       origin: TOPIC_ORIGINS.includes(t.origin as never)
         ? (t.origin as Topic['origin'])
         : undefined,
-    })
+    },
+  }
+}
+
+/**
+ * Import validation and migration. An import replaces the whole library, so a
+ * structurally plausible but semantically wrong file must be rejected here
+ * rather than silently becoming the record. Every accepted input becomes v5.
+ *
+ * The clock is injected for the reason the scheduler injects it: a record that
+ * arrives without a `createdAt` is given one here, and a parse that reached for
+ * the live clock to do it could not be tested for what it fabricates.
+ */
+export function parseLibrary(value: unknown, now: Date = new Date()): ParseResult {
+  if (typeof value !== 'object' || value === null) {
+    return { ok: false, error: 'That file is not an Argus export. The top level should be an object.' }
+  }
+  const raw = value as Record<string, unknown>
+  const version = parseLibraryVersion(raw.version)
+  if (!version.ok) return version
+  if (!Array.isArray(raw.topics)) {
+    return { ok: false, error: 'That file has no "topics" list, so there is nothing to import.' }
+  }
+
+  const topics: Topic[] = []
+  for (let i = 0; i < raw.topics.length; i += 1) {
+    const parsed = parseTopic(raw.topics[i], i, version.version, now)
+    if (!parsed.ok) return parsed
+    topics.push(parsed.topic)
   }
 
   // Provenance is resolved once, here, so every topic storage hands out has an

@@ -132,7 +132,7 @@
 .signin-mark {
   margin: 0;
   font-family: "Black Ops One", system-ui, sans-serif;
-  font-size: clamp(2rem, 9.5vw, 2.6rem);
+  font-size: var(--t-wordmark);
   font-weight: 400;
   font-style: normal;
   line-height: 1;
@@ -148,7 +148,7 @@
 button.signin-action {
   display: inline-flex;
   width: min(21rem, 100%);
-  min-height: 58px;
+  min-height: var(--control-h-lg);
   align-items: center;
   justify-content: center;
   gap: 11px;
@@ -157,7 +157,7 @@ button.signin-action {
   border-top-color: var(--line-hover);
   border-radius: var(--r-xl);
   color: var(--ink);
-  background: linear-gradient(180deg, var(--surface-3), var(--surface-2));
+  background: var(--gradient-ghost);
   box-shadow: var(--edge), var(--edge-under), var(--shadow-sm);
 }
 
@@ -193,9 +193,11 @@ button.signin-action:disabled {
   animation: signin-spin 720ms linear infinite;
 }
 
+/* Holds the sign-in control's own height, so restoring a session never moves
+   the thing the person is waiting on. */
 .signin-restoring {
   display: inline-flex;
-  min-height: 58px;
+  min-height: var(--control-h-lg);
   align-items: center;
   justify-content: center;
   gap: 10px;

@@ -33,6 +33,7 @@ import { nextView, type TestPhase, type TestView } from './testView'
 import { TestDone } from './TestDone'
 import { resolveBankedAttempt, type BankedAttempt } from './bankedAttempt'
 import { testCardTextClass } from './textScale'
+import { cueNoteFor } from './cueNote'
 import { fire } from '../../shared/haptics'
 import {
   SWIPE_CUE_FULL_PX,
@@ -499,6 +500,10 @@ export function TestSession({ topicIds, onExit, onPractice }: TestSessionProps) 
           cardKey={`${card.topicId}-${card.item.id}-${index}`}
           character={card.character}
           rung={rung}
+          // Computed from the evidence this card was built against, so the note
+          // describes the move this very answer causes rather than the state
+          // after it has already been folded in.
+          cueNote={cueNoteFor(card.item, evidenceFor(card))}
           onAnswer={answerProgressive}
         />
       </section>

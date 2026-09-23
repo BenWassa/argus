@@ -436,19 +436,49 @@ function reviewRoster(
   return [...candidates]
     .sort(byRetrievalPriority(review))
     .slice(0, size)
-    .map(({ glyph, character, support }, order) => ({
-      itemId: character.itemId,
-      glyph,
-      pattern: character.pattern,
-      novel: false,
-      support,
-      introduced: true,
-      asked: false,
-      done: false,
-      notBefore: 0,
-      lastAskedAt: null,
-      order,
-    }))
+    .map(({ glyph, character, support }, order) =>
+      makeLessonEntry({ character, glyph, novel: false, support, introduced: true, order }),
+    )
+}
+
+/**
+ * An entry as a run starts, from the parts that actually differ between the
+ * two rosters.
+ *
+ * The four run-state fields are the same for every entry in a fresh run —
+ * nothing asked, nothing done, nothing held back, no last-asked time — and
+ * saying so once means the review roster and the packet roster cannot start a
+ * run in two different states. That is a real failure mode rather than a tidy
+ * one: `notBefore` and `lastAskedAt` are exactly what the spacing rule reads.
+ */
+function makeLessonEntry({
+  character,
+  glyph,
+  novel,
+  support,
+  introduced,
+  order,
+}: {
+  character: AcquisitionCharacter
+  glyph: MorseLetter
+  novel: boolean
+  support: LessonSupport
+  introduced: boolean
+  order: number
+}): LessonEntry {
+  return {
+    itemId: character.itemId,
+    glyph,
+    pattern: character.pattern,
+    novel,
+    support,
+    introduced,
+    asked: false,
+    done: false,
+    notBefore: 0,
+    lastAskedAt: null,
+    order,
+  }
 }
 
 /**
@@ -506,25 +536,30 @@ export function startLesson(topic: Topic, options: StartLessonOptions = {}): Les
   const packet = packets[packetIndex]
   const characters = [...packet.novel, ...ordinaryReviewRoster(byGlyph, store, morseReviewOf(topic), packet)]
   const entries: LessonEntry[] = characters.map((glyph, order) => {
-    const character = byGlyph.get(glyph) as AcquisitionCharacter
+    const character = byGlyph.get(glyph)
+    // The roster is assembled from the packet plan and from `byGlyph`, which
+    // come from two different places, so they can in principle disagree. That
+    // is a construction fault rather than anything the learner did, and it has
+    // to say which character went missing: without this the next line reads
+    // `.itemId` off `undefined` and the run dies as an anonymous TypeError
+    // several frames below where the mismatch actually is.
+    if (!character) {
+      throw new Error(
+        `Morse lesson roster names ${glyph}, which this topic has no acquisition item for.`,
+      )
+    }
     const stored = store[character.itemId]
-    const support = stored ?? 'taught'
-    return {
-      itemId: character.itemId,
+    return makeLessonEntry({
+      character,
       glyph,
-      pattern: character.pattern,
       novel: packet.novel.includes(glyph),
-      support,
+      support: stored ?? 'taught',
       // Anything with a stored support level has been through an introduction.
       // A returning character with no stored level can only come from an
       // edited or imported record; introduce it rather than assume.
       introduced: stored !== undefined,
-      asked: false,
-      done: false,
-      notBefore: 0,
-      lastAskedAt: null,
       order,
-    }
+    })
   })
 
   return {

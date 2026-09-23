@@ -51,17 +51,17 @@
   display: block;
   block-size: 100%;
   border-radius: inherit;
-  background: linear-gradient(180deg, var(--accent-2), var(--accent));
+  background: var(--gradient-primary);
   transition: inline-size 220ms ease;
 }
 
+/* The panel base, given the roomier padding a single dominant task earns, a
+   tone of lift and its bevel: this is the one object on a lesson screen. */
 .lesson-stage {
   display: grid;
   justify-items: start;
   gap: var(--s-sm);
   padding: var(--s-lg);
-  border: 1px solid var(--line);
-  border-radius: var(--r-lg);
   background: var(--surface-2);
   box-shadow: var(--edge);
 }
@@ -307,45 +307,8 @@
   justify-self: start;
 }
 
-.lesson-production {
-  display: grid;
-  gap: var(--s-md);
-}
-
-.lesson-entry {
-  margin: 0;
-  min-height: 2.2em;
-  padding: var(--s-md);
-  border-bottom: 2px solid var(--line-strong);
-  font-family: var(--font-mono);
-  font-size: 1.5rem;
-  letter-spacing: 0.16em;
-  text-align: center;
-  overflow-wrap: anywhere;
-}
-
-.lesson-keys {
-  display: grid;
-  grid-template-columns: 1fr 1fr auto;
-  gap: var(--s-sm);
-  align-items: stretch;
-}
-
-.lesson-key {
-  min-height: 72px;
-  border-radius: var(--r-lg);
-  font-size: 1.8rem;
-  line-height: 1;
-}
-
-.lesson-key-small {
-  min-height: 72px;
-  padding-inline: var(--s-md);
-}
-
-.lesson-submit,
 .lesson-next {
-  min-height: 52px;
+  min-height: var(--control-h-lg);
 }
 
 /* A correction ends on a press, so its control sits at the foot of the card
@@ -355,10 +318,11 @@
   justify-self: stretch;
 }
 
+/* The panel base with the stronger rule a correction is held to: it is read
+   rather than glanced at, so its edge has to survive next to the stage. */
 .lesson-feedback {
   padding: var(--s-lg);
-  border: 1px solid var(--line-strong);
-  border-radius: var(--r-lg);
+  border-color: var(--line-strong);
   background: var(--surface-2);
 }
 
@@ -383,14 +347,6 @@
   color: var(--muted);
 }
 
-.lesson-correction-glyph {
-  font-family: var(--font-display);
-  font-size: 2.2rem;
-  font-weight: var(--w-display);
-  line-height: 1;
-  color: var(--ink);
-}
-
 .lesson-grammar {
   max-width: 46ch;
   margin: 0;
@@ -401,32 +357,6 @@
 .lesson-exits {
   display: grid;
   gap: var(--s-sm);
-}
-
-/*
- * The #88 milestone invitation. One quiet card stating what the activity is
- * and how long it runs — restrained on purpose: no badge, no celebration
- * graphic, nothing that would make skipping it feel like giving something up.
- */
-.checkpoint-invite-card {
-  display: grid;
-  gap: var(--s-sm);
-  padding: var(--s-lg);
-  border: 1px solid var(--line-strong);
-  border-radius: var(--r-lg);
-  background: var(--surface-2);
-  box-shadow: var(--edge);
-  animation: morse-target-in var(--t-base) var(--ease) both;
-}
-
-.checkpoint-invite-card p {
-  margin: 0;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .checkpoint-invite-card {
-    animation: none;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -458,10 +388,6 @@
   display: grid;
   justify-items: start;
   gap: var(--s-xs);
-}
-
-.lesson-feedback.is-correct .lesson-verdict {
-  color: var(--ok);
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -36,14 +36,21 @@ export const MNEMONIC_UNIT = 8
  */
 export const MNEMONIC_RAIL_UNITS = 19
 
-export const MNEMONIC_GLYPH_BOX = 44
-export const MNEMONIC_GUTTER = 14
-export const MNEMONIC_HEIGHT = 52
+/**
+ * The frame the glyph and its rail sit in. Module-internal: every consumer
+ * reads the resolved numbers off `MnemonicGeometry`, so the box can be
+ * re-proportioned here without a caller anywhere having to agree to it. Only
+ * the view box escapes, because an `<svg>` element has to be given one.
+ */
+const MNEMONIC_GLYPH_BOX = 44
+const MNEMONIC_GUTTER = 14
+const MNEMONIC_HEIGHT = 52
 
-export const MNEMONIC_RAIL_START = MNEMONIC_GLYPH_BOX + MNEMONIC_GUTTER
-export const MNEMONIC_RAIL_WIDTH = MNEMONIC_RAIL_UNITS * MNEMONIC_UNIT
-export const MNEMONIC_WIDTH = MNEMONIC_RAIL_START + MNEMONIC_RAIL_WIDTH
-export const MNEMONIC_CENTER_Y = MNEMONIC_HEIGHT / 2
+const MNEMONIC_RAIL_START = MNEMONIC_GLYPH_BOX + MNEMONIC_GUTTER
+const MNEMONIC_RAIL_WIDTH = MNEMONIC_RAIL_UNITS * MNEMONIC_UNIT
+const MNEMONIC_WIDTH = MNEMONIC_RAIL_START + MNEMONIC_RAIL_WIDTH
+const MNEMONIC_CENTER_Y = MNEMONIC_HEIGHT / 2
+
 export const MNEMONIC_VIEW_BOX = `0 0 ${MNEMONIC_WIDTH} ${MNEMONIC_HEIGHT}`
 
 export type MnemonicElementKind = 'dit' | 'dah'

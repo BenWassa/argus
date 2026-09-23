@@ -69,7 +69,6 @@ export const FLUENCY_RUNGS = [6, 7, 8, 9, 10, 11, 12, 13] as const
 export type FluencyRung = (typeof FLUENCY_RUNGS)[number]
 
 export const FIRST_FLUENCY_RUNG: FluencyRung = FLUENCY_RUNGS[0]
-export const TOP_FLUENCY_RUNG: FluencyRung = FLUENCY_RUNGS[FLUENCY_RUNGS.length - 1]
 
 export function isFluencyRung(value: unknown): value is FluencyRung {
   return FLUENCY_RUNGS.includes(value as FluencyRung)

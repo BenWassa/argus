@@ -151,7 +151,7 @@ Every major surface should be able to obtain from the same journey derivation:
 
 ## Progressive-acquisition readiness
 
-The generic pre-Morse model assumed that Learn was a one-time exposure step. Therefore `modeFor(topic)` could safely treat only `unstarted` as Learn and every later status as Test.
+The generic pre-Morse model assumed that Learn was a one-time exposure step. Therefore a single status-to-mode rule (the since-removed `modeFor(topic)`) could safely treat only `unstarted` as Learn and every later status as Test.
 
 That assumption is invalid for progressive acquisition.
 
@@ -336,7 +336,7 @@ It must:
 - place topics in shelves that agree with that action;
 - distinguish acquisition-in-progress from retention waiting;
 - keep schedule/waiting bars semantically tied to retention only;
-- avoid raw `status` or raw `modeFor()` becoming a second interpretation.
+- avoid raw `status` or any status-to-mode shortcut becoming a second interpretation.
 
 ### Topic
 

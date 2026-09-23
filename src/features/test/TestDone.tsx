@@ -1,5 +1,7 @@
+import { useEffect } from 'react'
 import { statusLabel } from '../../shared/ui/StatusTag'
 import { targetsForItems } from '../../domain/study/practiceTargets'
+import { fire } from '../../shared/haptics'
 import type { BankedAttempt } from './bankedAttempt'
 
 export function TestDone({
@@ -26,6 +28,17 @@ export function TestDone({
     .map((entry) => entry.resolution)
   const completed = moved.filter((resolution) => resolution.completed)
   const decayed = moved.filter((resolution) => resolution.decayed)
+
+  // `crest` is the pattern's own definition of what it is for: "stage advance,
+  // personal best, session complete." A completion banking is exactly that
+  // event and, until now, was the one occurrence in that list with no haptic
+  // and no entrance behind it — the plate simply appeared fully formed, same
+  // as every ordinary transition line below it. Depends only on the length so
+  // it cannot re-fire on a re-render this screen never causes.
+  useEffect(() => {
+    if (completed.length > 0) fire('crest')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [completed.length])
   const changed = moved.filter(
     (resolution) => !resolution.completed && !resolution.decayed && resolution.to !== resolution.from,
   )

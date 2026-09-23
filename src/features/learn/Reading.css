@@ -9,51 +9,6 @@
    A page of a reference manual: a stated boundary, then the set itself as a
    numbered index. Scannable in any order, nothing concealed. */
 
-.learn-sheet {
-  padding-bottom: calc(var(--s-3xl) + env(safe-area-inset-bottom));
-}
-
-.sheet-topic + .sheet-topic {
-  margin-top: var(--s-3xl);
-}
-
-.sheet-topic-head {
-  padding-bottom: var(--s-md);
-  border-bottom: 2px solid var(--line-strong);
-}
-
-.sheet-title {
-  margin-top: var(--s-xs);
-  font-size: var(--t-display);
-  font-weight: var(--w-display);
-  line-height: 1.02;
-  letter-spacing: -0.022em;
-  text-wrap: balance;
-  /* A long single word in a title must wrap rather than push the page sideways
-     once text is scaled up. */
-  overflow-wrap: break-word;
-}
-
-/* The boundary is the product's whole premise, so on the reading surface it
-   is set as a standfirst rather than buried as metadata. */
-.sheet-scope {
-  max-width: 46ch;
-  margin-top: var(--s-md);
-  font-family: var(--font-display);
-  font-size: var(--t-lede);
-  line-height: 1.45;
-  color: var(--muted);
-}
-
-.sheet-count {
-  margin-top: var(--s-md);
-  font-size: var(--t-label);
-  font-weight: var(--w-label);
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: var(--subtle);
-}
-
 /* Optional explanatory support stays editorial rather than card-shaped. The
    hierarchy is carried by rules, type and spacing so Learn never resembles a
    hidden-answer Test surface. */
@@ -280,17 +235,6 @@
   color: var(--subtle);
 }
 
-.sheet-reference-title {
-  margin-top: var(--s-2xl);
-  padding-top: var(--s-lg);
-  border-top: 2px solid var(--line-strong);
-  font-size: var(--t-label);
-  font-weight: var(--w-label);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--subtle);
-}
-
 .sheet-items {
   margin-top: var(--s-sm);
 }
@@ -333,17 +277,6 @@
   overflow-wrap: anywhere;
 }
 
-.sheet-foot {
-  margin-top: var(--s-2xl);
-  padding-top: var(--s-lg);
-  border-top: 1px solid var(--line);
-}
-
-.sheet-foot-note {
-  margin-bottom: var(--s-md);
-  color: var(--muted);
-}
-
 /* Wide enough for the set to read as two columns: the prompt becomes a true
    left column instead of a label stacked over its answer. */
 @media (min-width: 620px) {
@@ -384,13 +317,12 @@
   list-style: none;
 }
 
+/* The panel base, lifted one tone and given its bevel: a packet card is the
+   thing being worked on, so it sits on the reading surface rather than in it. */
 .morse-card {
   display: grid;
   gap: var(--s-sm);
   justify-items: start;
-  padding: var(--s-md);
-  border: 1px solid var(--line);
-  border-radius: var(--r-lg);
   background: var(--surface-2);
   box-shadow: var(--edge);
 }
@@ -417,6 +349,9 @@
   height: auto;
 }
 
+/* The one px size that is not a CSS pixel: this text is inside the mnemonic's
+   viewBox, so 34 is a user unit and the glyph scales with the drawing. The
+   drawing's own width is set in em, so it still grows with the page's text. */
 .morse-mnemonic-glyph {
   font-family: var(--font-display);
   font-size: 34px;

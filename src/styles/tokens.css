@@ -101,6 +101,10 @@
   /* Scale. Real contrast between adjacent steps, and a display step that is
      allowed to be genuinely large. */
   --t-display: clamp(2.5rem, 9vw, 3.6rem);
+  /* The nameplate. The wordmark is stamped at one size and it appears on two
+     screens that share nothing else — Today and the sign-in — so the clamp is
+     named here rather than respelled in both and drifting apart. */
+  --t-wordmark: clamp(2rem, 9.5vw, 2.6rem);
   --t-page: 2.15rem;
   --t-section: 1.45rem;
   --t-component: 1.05rem;
@@ -141,6 +145,16 @@
   --shadow: 0 16px 42px rgb(0 0 0 / 42%);
   --shadow-lift: 0 26px 60px rgb(0 0 0 / 54%);
 
+  /* Control faces. A raised control is lit from the top, and the system has
+     exactly two of them: the polished inlay the primary action is cut from, and
+     the milled face of the ghost. Both were respelled at every call site, which
+     is how the ghost on one screen ends up a tonal step off the one on the
+     next. Hovering the ghost moves it up one step rather than tinting it — the
+     face catches more light, it does not change material. */
+  --gradient-primary: linear-gradient(180deg, var(--accent-2), var(--accent));
+  --gradient-ghost: linear-gradient(180deg, var(--surface-3), var(--surface-2));
+  --gradient-ghost-hover: linear-gradient(180deg, var(--surface-4), var(--surface-3));
+
   /* Texture. Three fixed, non-animated layers so the dark greys read as metal
      instead of as an empty fill: grain for tooth, machining for the brushed
      direction, convexity for the light falling on it from above. Alpha is baked
@@ -160,6 +174,14 @@
   --t-flip: 460ms;
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-flip: cubic-bezier(0.32, 0.72, 0.24, 1);
+
+  /* Control heights. The floor is what every tap target is held to; the large
+     step is for the one control a screen is actually asking to be pressed, which
+     gets a deeper face so the thumb lands on it without aiming. The 52, 58 and
+     60px spellings this replaces were all reaching for that second size by eye
+     and arriving somewhere slightly different each time. */
+  --control-h: 44px;
+  --control-h-lg: 56px;
 
   /* Layout */
   --rail: 236px;

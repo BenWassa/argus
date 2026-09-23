@@ -1,4 +1,3 @@
-import type { Mode } from './mode'
 import type { Status, Topic } from '../library/topic'
 
 /** A topic reaches `drilled` only on a clean session. No partial credit. */
@@ -61,10 +60,6 @@ export function dueState(topic: Topic, now: Date = new Date()): DueReason {
   }
 }
 
-export function isDue(topic: Topic, now: Date = new Date()): boolean {
-  return dueState(topic, now).due
-}
-
 /**
  * Repair first, then the delayed tests that can actually bank a completion, then
  * unfinished work. Exported so the journey layer ranks the day's work the same
@@ -76,27 +71,6 @@ export const DUE_RANK: Record<Status, number> = {
   learning: 2,
   unstarted: 3,
   completed: 4,
-}
-
-export function dueTopics(topics: Topic[], now: Date = new Date()): Topic[] {
-  const rank = DUE_RANK
-  return topics
-    .filter((t) => isDue(t, now) && t.items.length > 0)
-    .sort((a, b) => {
-      const byRank = rank[a.status] - rank[b.status]
-      if (byRank !== 0) return byRank
-      return (a.lastTestedAt ?? '').localeCompare(b.lastTestedAt ?? '')
-    })
-}
-
-/**
- * Which mode a topic is actually asking for. The ladder already knows: a rung
- * the user has never seen wants reading, and every other rung wants proving.
- * Voluntary early Tests use the same interaction; evidence policy is enforced
- * when the result resolves rather than by exposing another mode.
- */
-export function modeFor(topic: Topic): Mode {
-  return topic.status === 'unstarted' ? 'learn' : 'test'
 }
 
 /**
@@ -115,53 +89,6 @@ export function gapProgress(topic: Topic, now: Date = new Date()): number | null
   if (!from) return null
 
   return Math.min(1, Math.max(0, daysBetween(from, now) / span))
-}
-
-export type ShelfId = 'due' | 'active' | 'completed' | 'unfinished'
-
-export interface Shelf {
-  id: ShelfId
-  label: string
-  topics: Topic[]
-}
-
-/**
- * The library ordered the way the schedule reads it rather than the way the
- * alphabet does. Title order never changes and never decides anything; which
- * shelf a topic sits on answers "what can I do right now" without opening it.
- * Topics with no items are an authoring job, not a testing one, so they are
- * held apart rather than left dimmed in the middle of the list.
- */
-export function shelves(topics: Topic[], now: Date = new Date()): Shelf[] {
-  const due = dueTopics(topics, now)
-  const claimed = new Set(due.map((t) => t.id))
-  const rest = topics.filter((t) => !claimed.has(t.id))
-  const waiting = rest.filter((t) => t.items.length > 0)
-
-  const byTitle = (a: Topic, b: Topic) => a.title.localeCompare(b.title)
-  const bySoonest = (a: Topic, b: Topic) =>
-    dueState(a, now).waitDays - dueState(b, now).waitDays || byTitle(a, b)
-
-  const all: Shelf[] = [
-    { id: 'due', label: 'Due now', topics: due },
-    {
-      id: 'active',
-      label: 'In progress',
-      topics: waiting.filter((t) => t.status !== 'completed').sort(bySoonest),
-    },
-    {
-      id: 'completed',
-      label: 'Completed',
-      topics: waiting.filter((t) => t.status === 'completed').sort(bySoonest),
-    },
-    {
-      id: 'unfinished',
-      label: 'Needs items',
-      topics: rest.filter((t) => t.items.length === 0).sort(byTitle),
-    },
-  ]
-
-  return all.filter((shelf) => shelf.topics.length > 0)
 }
 
 /**

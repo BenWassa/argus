@@ -839,3 +839,94 @@ describe('post-acquisition fluency statistics are durable and portable (#119)', 
     expect(topic.history).toEqual([])
   })
 })
+
+/**
+ * The attempt log, validated like every other durable field.
+ *
+ * It used to be cast straight out of the file, which meant an edited or
+ * corrupted export could put anything at all into the record the topic page
+ * renders as the learner's test history. It is validated now, and a malformed
+ * entry is dropped rather than repaired: dropping loses a line of the account,
+ * clamping invents a test result that never happened.
+ */
+describe('the attempt log is validated rather than trusted', () => {
+  const attempt = { at: timestamp, correct: 2, total: 2, resolvedTo: 'drilled' as const }
+  const later = { at: '2026-09-01T00:00:00.000Z', correct: 1, total: 2, resolvedTo: 'learning' as const }
+
+  function historyOf(history: unknown) {
+    const topic = currentTopic()
+    if (history === undefined) delete topic.history
+    else topic.history = history
+    const result = parseLibrary({ version: 5, topics: [topic] })
+    expect(result.ok).toBe(true)
+    if (!result.ok) throw new Error(result.error)
+    return result.library.topics[0].history
+  }
+
+  it('round-trips a real attempt losslessly', () => {
+    expect(historyOf([attempt, later])).toEqual([attempt, later])
+  })
+
+  it('reads a missing history field as a topic that has never been tested', () => {
+    expect(historyOf(undefined)).toEqual([])
+  })
+
+  it('reads a history that is not a list as no attempts at all', () => {
+    expect(historyOf('two attempts')).toEqual([])
+  })
+
+  it('drops a malformed entry and keeps the sound ones around it', () => {
+    // The middle entry has a date and nothing else, which is what a truncated
+    // or hand-edited export produces.
+    expect(historyOf([attempt, { at: timestamp }, later])).toEqual([attempt, later])
+  })
+
+  it('drops an entry whose counters are text rather than numbers', () => {
+    expect(historyOf([{ ...attempt, correct: '2' }])).toEqual([])
+  })
+
+  it('never fabricates a counter to keep an entry', () => {
+    // The failure this guards against is a clamp: a zeroed `correct` would read
+    // as a test the learner sat and failed.
+    const kept = historyOf([{ at: timestamp, total: 2, resolvedTo: 'drilled' }])
+    expect(kept).toEqual([])
+  })
+
+  it('drops a score no run could have produced', () => {
+    expect(historyOf([{ ...attempt, correct: 3, total: 2 }])).toEqual([])
+    expect(historyOf([{ ...attempt, correct: -1 }])).toEqual([])
+    expect(historyOf([{ ...attempt, total: Number.NaN }])).toEqual([])
+  })
+
+  it('drops an entry whose date does not resolve', () => {
+    // An `Invalid Date` in the fold reads as a test that happened at an
+    // unknowable time, which is worse than one line fewer.
+    expect(historyOf([{ ...attempt, at: 'last Tuesday' }])).toEqual([])
+    expect(historyOf([{ ...attempt, at: '' }])).toEqual([])
+  })
+
+  it('drops an entry that resolved to a rung the ladder does not have', () => {
+    expect(historyOf([{ ...attempt, resolvedTo: 'mastered' }])).toEqual([])
+  })
+})
+
+describe('parsing is deterministic', () => {
+  const fixed = new Date('2027-03-04T05:06:07.000Z')
+
+  it('stamps a record with no createdAt from the clock it was given', () => {
+    // `parseLibrary` fabricates this one field, so it has to be told what
+    // "now" is rather than reaching for it — otherwise the one place the
+    // parser invents a value is the one place it cannot be tested.
+    const topic = currentTopic()
+    delete topic.createdAt
+    const result = parseLibrary({ version: 5, topics: [topic] }, fixed)
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.library.topics[0].createdAt).toBe('2027-03-04T05:06:07.000Z')
+  })
+
+  it('leaves a record that already has one untouched', () => {
+    const result = parseLibrary({ version: 5, topics: [currentTopic()] }, fixed)
+    expect(result.ok && result.library.topics[0].createdAt).toBe(timestamp)
+  })
+})

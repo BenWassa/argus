@@ -10,7 +10,8 @@ import {
   readInboxConfig,
 } from './inboxConfig'
 import { INBOX_UNCONFIGURED, describeInboxError, unavailableBackend } from './inboxBackend'
-import { dueTopics, isDue, resolveAttempt, shelves } from '../../domain/study/scheduling'
+import { resolveAttempt } from '../../domain/study/scheduling'
+import { dueEntries, journeyShelves, journeysFor } from '../../domain/study/journey'
 import { parseLibrary } from '../../infrastructure/persistence/libraryParser'
 import { TRACKS } from '../../domain/library/topic'
 
@@ -67,8 +68,8 @@ describe('the inbox does not touch the learning model', () => {
     const forbidden = [
       'resolveAttempt',
       'resolveStudy',
-      'dueTopics',
-      'shelves',
+      'dueEntries',
+      'journeyShelves',
       'seedLibrary',
       'parseLibrary',
       'saveLibrary',
@@ -168,9 +169,10 @@ describe('a pending request can never become learning state', () => {
     if (!parsed.ok) return
 
     const { topics } = parsed.library
+    const entries = journeysFor(topics)
     const before = {
-      due: dueTopics(topics).map((topic) => topic.id),
-      shelves: shelves(topics).map((shelf) => `${shelf.id}:${shelf.topics.length}`),
+      due: dueEntries(entries).map((entry) => entry.topic.id),
+      shelves: journeyShelves(entries).map((shelf) => `${shelf.id}:${shelf.entries.length}`),
       resolved: resolveAttempt(topics[0], 1, 1).to,
     }
 
@@ -179,7 +181,6 @@ describe('a pending request can never become learning state', () => {
     expect(before.due).toEqual(['nato-phonetic'])
     expect(before.shelves).toEqual(['due:1'])
     expect(before.resolved).toBe('learning')
-    expect(topics.every((topic) => isDue(topic) || !isDue(topic))).toBe(true)
   })
 })
 

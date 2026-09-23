@@ -50,7 +50,7 @@
 .morse-key,
 .morse-key:hover {
   border-color: var(--accent);
-  background: linear-gradient(180deg, var(--accent-2), var(--accent));
+  background: var(--gradient-primary);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -75,7 +75,7 @@
   display: block;
   inline-size: clamp(3.5rem, 24vw, 6.5rem);
   block-size: 0.55rem;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   background: currentColor;
   opacity: 0.38;
 }
@@ -108,13 +108,13 @@
   opacity: 0;
 }
 
+/* Short landscape has no height to spend: the key keeps a usable face and the
+   instruction on it goes, because by then the learner has read it. */
 @media (orientation: landscape) and (max-height: 560px) {
   .morse-key-legend {
     display: none;
   }
-}
 
-@media (orientation: landscape) and (max-height: 560px) {
   .morse-key {
     min-height: 64px;
   }

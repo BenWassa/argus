@@ -263,7 +263,7 @@ button.flip-card:active {
 }
 
 .recall-actions button {
-  min-height: 56px;
+  min-height: var(--control-h-lg);
 }
 
 .recall-miss {
@@ -277,7 +277,7 @@ button.flip-card:active {
   position: relative;
   display: grid;
   align-items: center;
-  min-height: 56px;
+  min-height: var(--control-h-lg);
   margin-top: var(--s-md);
   opacity: 0;
   transform: translateY(6px);
@@ -321,7 +321,7 @@ button.flip-card:active {
   position: absolute;
   left: 50%;
   width: auto;
-  min-height: 44px;
+  min-height: var(--control-h);
   translate: -50% 0;
   clip-path: inset(50%);
   white-space: nowrap;
@@ -338,27 +338,6 @@ button.flip-card:active {
   font-size: var(--t-label);
   color: var(--subtle);
   text-align: center;
-}
-
-/* A Test ending reports evidence and its ladder consequence, so the result is the
-   whole composition rather than a stat tucked beside prose. */
-.score-line {
-  display: flex;
-  align-items: baseline;
-  gap: var(--s-md);
-  font-family: var(--font-display);
-  font-size: 3.2rem;
-  font-weight: var(--w-display);
-  line-height: 1;
-  letter-spacing: -0.03em;
-}
-
-.score-pct {
-  font-family: var(--font);
-  font-size: var(--t-label);
-  font-weight: var(--w-label);
-  letter-spacing: 0.07em;
-  color: var(--subtle);
 }
 
 @media (min-width: 680px) {
@@ -408,7 +387,7 @@ button.flip-card:active {
   /* Short landscape has no room beside the card for a full chip. */
   .grade-cue {
     padding: var(--s-xs) var(--s-sm);
-    font-size: 0.66rem;
+    font-size: var(--t-readout);
   }
 
   .recall-shortcuts {
@@ -615,7 +594,7 @@ button.flip-card:active {
   }
 
   .test-entry-input {
-    min-height: 56px;
+    min-height: var(--control-h-lg);
   }
 }
 
@@ -625,9 +604,10 @@ button.flip-card:active {
   display: grid;
   gap: var(--s-sm);
   margin-block-start: var(--s-sm);
+  /* The panel base, read rather than glanced at: roomier padding and the
+     stronger rule, because this is the last thing said about an answer. */
   padding: var(--s-lg);
-  border: 1px solid var(--line-strong);
-  border-radius: var(--r-lg);
+  border-color: var(--line-strong);
   background: var(--surface-2);
 }
 
@@ -646,6 +626,23 @@ button.flip-card:active {
 
 .test-feedback.is-correct .test-verdict {
   color: var(--ok);
+}
+
+/*
+ * What the cue ladder is about to do, and why.
+ *
+ * The readout voice, not the verdict voice: this is the instrument reporting a
+ * mechanism, and it must not compete with the word above it that says whether
+ * the answer was right. Same treatment on a hit and on a miss, because a
+ * withdrawal is not a reward and a restoration is not a penalty.
+ */
+.test-ladder {
+  margin: 0;
+  color: var(--subtle);
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  letter-spacing: var(--track-readout);
+  line-height: 1.5;
 }
 
 .test-correction {
@@ -691,7 +688,7 @@ button.flip-card:active {
 /* A correction ends on a press, so its control sits at the foot of the card
    with room around it, where the thumb already is after keying an answer. */
 .test-next {
-  min-height: 52px;
+  min-height: var(--control-h-lg);
   margin-block-start: var(--s-sm);
 }
 
@@ -705,9 +702,8 @@ button.flip-card:active {
   display: grid;
   gap: var(--s-sm);
   justify-items: start;
-  padding: var(--s-md);
-  border: 1px solid var(--line);
-  border-radius: var(--r-lg);
+  /* The panel base, lifted a tone and bevelled so it reads as an offer sitting
+     on the end screen rather than as another paragraph of it. */
   background: var(--surface-2);
   box-shadow: var(--edge);
 }

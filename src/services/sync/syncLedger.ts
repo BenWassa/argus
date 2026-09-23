@@ -43,11 +43,3 @@ export function saveLedger(uid: string, ledger: Ledger): void {
     // the same plan from whatever the ledger does hold.
   }
 }
-
-export function clearLedger(uid: string): void {
-  try {
-    localStorage.removeItem(`${KEY}.${uid}`)
-  } catch {
-    // Nothing to do: a ledger that cannot be cleared is still only a cache.
-  }
-}

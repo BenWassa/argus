@@ -8,6 +8,7 @@ import {
   type AcquisitionCharacter,
 } from '../../domain/morse/testing/acquisitionProfile'
 import type { CueRung } from '../../domain/study/cueLadder'
+import type { CueNote } from './cueNote'
 import { MorsePhrase } from '../morse/MorsePhrase'
 import { MorseKeyInput, useKeyedResponse } from '../morse/keyedResponse'
 
@@ -22,6 +23,12 @@ interface ProgressiveCardProps {
   character: AcquisitionCharacter
   rung: CueRung
   onAnswer: (answer: ProgressiveAnswer) => void
+  /**
+   * What the cue ladder will do next, for each outcome, so the card can say it
+   * while the answer that caused it is still on screen. Absent where nothing
+   * moves, which is most cards.
+   */
+  cueNote?: CueNote
   /** Changes whenever a new card is shown, resetting every local state. */
   cardKey: string
   now?: () => number
@@ -67,6 +74,7 @@ export function ProgressiveCard({
   character,
   rung,
   onAnswer,
+  cueNote,
   cardKey,
   now = defaultNow,
 }: ProgressiveCardProps) {
@@ -242,6 +250,7 @@ export function ProgressiveCard({
       {result?.correct && (
         <div className="test-feedback is-correct" role="status" aria-live="polite">
           <p className="test-verdict">Correct</p>
+          {cueNote?.onCorrect && <p className="test-ladder">{cueNote.onCorrect}</p>}
         </div>
       )}
 
@@ -284,6 +293,9 @@ export function ProgressiveCard({
               )}
             </p>
           </div>
+          {/* Said after the correction, never before it: the thing to read
+              first is what the answer actually was. */}
+          {cueNote?.onIncorrect && <p className="test-ladder">{cueNote.onIncorrect}</p>}
           <button
             ref={continueRef}
             className="test-next"

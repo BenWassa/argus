@@ -51,42 +51,9 @@ body::after {
   background-image: var(--machining), var(--convex);
 }
 
-.app-shell,
-.splash {
+.app-shell {
   position: relative;
   z-index: 1;
-}
-
-/* -------------------------------------------------------------- splash -- */
-
-.splash {
-  position: fixed;
-  inset: 0;
-  z-index: 100;
-  display: grid;
-  place-items: center;
-  overflow: hidden;
-  background: var(--bg);
-}
-
-.splash-media {
-  width: 100%;
-  height: 100%;
-  display: block;
-  object-fit: cover;
-}
-
-.splash-skip {
-  position: absolute;
-  right: max(var(--s-lg), env(safe-area-inset-right));
-  bottom: max(var(--s-lg), env(safe-area-inset-bottom));
-  color: var(--ink);
-  background: color-mix(in srgb, var(--bg) 88%, transparent);
-  border-color: var(--line-strong);
-}
-
-.splash-skip:hover {
-  background: var(--surface-2);
 }
 
 h1,
@@ -185,7 +152,11 @@ code {
 
 /* Controls are hardware. At rest they protrude: a light top edge, a dark lower
    lip, a shadow beneath. Held, they drop into the chassis — the surface moves
-   down a pixel and the shadow moves inside it. */
+   down a pixel and the shadow moves inside it.
+
+   The floor is spelled out rather than tokenised here: this is the declaration
+   --control-h is derived from, and stating it twice would let the token and the
+   thing it describes disagree. */
 button {
   min-height: 44px;
   padding: 11px 16px;
@@ -195,7 +166,7 @@ button {
   font-weight: var(--w-component);
   letter-spacing: 0.005em;
   color: var(--accent-ink);
-  background: linear-gradient(180deg, var(--accent-2), var(--accent));
+  background: var(--gradient-primary);
   box-shadow: var(--shadow-sm);
   cursor: pointer;
   transition: background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease),
@@ -220,14 +191,14 @@ button:disabled {
 
 button.ghost {
   color: var(--ink);
-  background: linear-gradient(180deg, var(--surface-3), var(--surface-2));
+  background: var(--gradient-ghost);
   border-color: var(--line-strong);
   border-top-color: var(--line-hover);
   box-shadow: var(--edge), var(--edge-under), var(--shadow-sm);
 }
 
 button.ghost:hover {
-  background: linear-gradient(180deg, var(--surface-4), var(--surface-3));
+  background: var(--gradient-ghost-hover);
   border-color: var(--line-hover);
 }
 
@@ -288,7 +259,7 @@ button.icon {
 
 .field {
   width: 100%;
-  min-height: 44px;
+  min-height: var(--control-h);
   padding: 11px 12px;
   border: 1px solid var(--line-strong);
   border-radius: var(--r-md);
@@ -316,6 +287,121 @@ textarea.field {
 textarea.mono {
   font-family: var(--font-mono);
   font-size: var(--t-small);
+}
+
+/* --------------------------------------------------------------- panels -- */
+
+/*
+ * The bordered card, stated once.
+ *
+ * Fourteen surfaces across the features were respelling the same four
+ * declarations, and each respelling was another chance to drift: panels that
+ * belong to the same screen had already ended up a token apart. The base holds
+ * only what they all agree on — a hairline, a milled corner, one step of
+ * padding and the first surface above the page. Anything that differs stays
+ * with the surface that differs, so a stronger rule or a lifted tone reads as a
+ * decision rather than as a value somebody happened to type.
+ *
+ * `:where()` gives the base no specificity at all, so every feature rule
+ * outranks it without a fight and the differences can live where they belong
+ * instead of being hoisted into this file.
+ *
+ * This is the card, not the row: the library index and the completion record
+ * are separated by hairlines on purpose, and a panel still never nests inside
+ * a panel.
+ */
+:where(
+  .panel,
+  .morse-card,
+  .morse-ref-card,
+  .morse-checkpoint-feedback,
+  .lesson-stage,
+  .lesson-feedback,
+  .test-feedback,
+  .practice-offer,
+  .practice-question,
+  .practice-answer,
+  .practice-feedback,
+  .lib-batch,
+  .fluency-rung,
+  .fluency-stats,
+  .fluency-feedback
+) {
+  padding: var(--s-md);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+}
+
+/* A panel that is itself a control. The element-level button paint outranks a
+   zero-weight base, so the face is restated at element weight — below the
+   button rules, which is the only place it lands. */
+button:where(.panel, .fluency-mode) {
+  padding: var(--s-md);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+}
+
+/* ---------------------------------------------------------------- gauge -- */
+
+/*
+ * One topic's progress, read as an instrument reads it.
+ *
+ * The track is cut into the chassis rather than laid on it — that is what
+ * --field and --engrave are for — and it fills in steel. Never the accent, and
+ * never a semantic colour: DESIGN.md's rule is that lighting one of these
+ * would light up every row, and a red/green fill would turn a schedule into a
+ * scoreboard. Completion is the single exception and it darkens rather than
+ * brightens, to the settled slate that means "no longer in progress".
+ *
+ * It replaced a 3px aria-hidden sliver that appeared only mid-retention-gap.
+ * The height here is the smallest that still reads as a filled quantity at
+ * arm's length on a phone; the reading itself is chosen in topicGauge.ts.
+ */
+
+.gauge {
+  display: block;
+}
+
+.gauge-track {
+  display: block;
+  width: 100%;
+  height: 6px;
+  overflow: hidden;
+  border-radius: var(--r-pill);
+  background: var(--field);
+  box-shadow: var(--engrave);
+}
+
+.gauge-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(180deg, var(--muted), var(--line-hover));
+  transition: width var(--t-base) var(--ease);
+}
+
+/* Settled, not lit. A banked topic has stopped being the thing in motion. */
+.gauge-complete .gauge-fill {
+  background: linear-gradient(180deg, var(--complete), var(--line-hover));
+}
+
+.gauge-page {
+  display: grid;
+  gap: var(--s-xs);
+  margin-top: var(--s-md);
+}
+
+/* The readout voice, because this is the instrument reporting a measurement
+   and not a caption. Units are part of the label, never implied. */
+.gauge-label {
+  margin: 0;
+  color: var(--subtle);
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  letter-spacing: var(--track-readout);
+  text-transform: uppercase;
 }
 
 /* --------------------------------------------------------------- shell -- */
@@ -525,132 +611,6 @@ main:focus {
   color: var(--muted);
 }
 
-/* ------------------------------------------------------------ progress -- */
-
-/* Four states, one vocabulary. Progress is a review surface, so the rows are
-   read rather than pressed: the controls that start work live on Today. There
-   is no counter strip and no percentage — acquisition, retention and completion
-   are different measurements and averaging them would say nothing true. */
-.progress-section {
-  margin-top: var(--s-2xl);
-}
-
-.progress-section h2 {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--s-md);
-  font-family: var(--font-mono);
-  font-size: var(--t-readout);
-  font-weight: var(--w-label);
-  letter-spacing: var(--track-readout);
-  line-height: 1.2;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-.progress-count {
-  color: var(--subtle);
-}
-
-.progress-note {
-  margin-top: var(--s-xs);
-  font-size: var(--t-small);
-  color: var(--subtle);
-}
-
-.progress-list {
-  margin-top: var(--s-md);
-  border-top: 1px solid var(--line);
-}
-
-.progress-list li {
-  display: grid;
-  gap: 5px;
-  padding: var(--s-md) 0;
-  border-bottom: 1px solid var(--line);
-}
-
-.progress-title {
-  font-family: var(--font-display);
-  font-size: var(--t-component);
-  font-weight: var(--w-component);
-  letter-spacing: -0.008em;
-}
-
-.progress-meta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: var(--s-sm) var(--s-md);
-  font-size: var(--t-small);
-}
-
-/* The one thing that is true of this topic now, in the schedule's own words. */
-.progress-state {
-  font-family: var(--font-mono);
-  font-size: var(--t-readout);
-  font-weight: var(--w-label);
-  letter-spacing: var(--track-readout);
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-/* Repair reads in warning on Today and in Library, so it reads in warning here.
-   It routes work; it does not scold. */
-.progress-state.is-repair {
-  color: var(--warning);
-}
-
-/* The concise next-step line: letters settled, packet position, active sitting. */
-.progress-detail {
-  font-size: var(--t-small);
-  line-height: 1.4;
-  color: var(--muted);
-}
-
-/* Retention only, exactly as in Library. A topic still being acquired has not
-   entered a gap and shows no bar.
-
-   The track is cut into the page rather than drawn on it, and the fill sits
-   inside the cut. It stays neutral steel on purpose: spending the accent here
-   would light up every row, and a semantic colour would turn a schedule into a
-   scoreboard. */
-.progress-gap {
-  display: block;
-  width: 100%;
-  max-width: 132px;
-  height: 3px;
-  margin-top: 5px;
-  overflow: hidden;
-  border-radius: var(--r-pill);
-  background: var(--field);
-  box-shadow: var(--engrave);
-}
-
-.progress-gap-fill {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(180deg, var(--muted), var(--line-hover));
-}
-
-.progress-aside {
-  margin-top: var(--s-xl);
-  font-size: var(--t-small);
-  color: var(--subtle);
-}
-
-.progress-record-head {
-  margin-top: var(--s-2xl);
-}
-
-.progress-totals {
-  margin-top: var(--s-md);
-  font-size: var(--t-small);
-  color: var(--muted);
-}
-
 /* The completion record. This is the artifact the product exists to build, so
    it gets composed as one, rather than listed like everything else. */
 .record {
@@ -818,6 +778,23 @@ main:focus {
     var(--sheen),
     linear-gradient(180deg, var(--surface-4), var(--surface-2));
   box-shadow: var(--edge), var(--shadow-lift);
+  /* The plate already carries the product's one accent moment in its fill; it
+     used to arrive fully formed, same as the plain transition lines beneath
+     it. This is the same entrance Fluency's personal-best crest uses — a
+     short settle in, not a bounce — so the rarest event in the product
+     announces itself once rather than blending into the list it heads. */
+  animation: banked-in var(--t-base) var(--ease) both;
+}
+
+@keyframes banked-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 /* A lit plate takes brighter text. Quiet greys that read correctly on the page
@@ -974,7 +951,7 @@ main:focus {
   }
 
   .nav-btn {
-    min-height: 44px;
+    min-height: var(--control-h);
     flex-direction: row;
     justify-content: flex-start;
     gap: 10px;

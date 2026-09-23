@@ -18,13 +18,13 @@
   max-width: 34rem;
 }
 
+/* The panel base, lifted a tone and given the roomier pad: the question is the
+   whole screen in that moment, and the reveal has to match it exactly. */
 .practice-question,
 .practice-answer {
   display: grid;
   gap: var(--s-xs);
   padding: var(--s-lg);
-  border: 1px solid var(--line);
-  border-radius: var(--r-lg);
   background: var(--surface-2);
 }
 
@@ -74,12 +74,10 @@
 .practice-feedback {
   display: grid;
   gap: var(--s-xs);
-  padding: var(--s-md);
   /* A miss is the only thing that stops the run, so this block always reports
      one. It reads in the same warning the rest of the app gives decay: it
-     routes work, it does not scold. */
-  border: 1px solid var(--line-strong);
-  border-radius: var(--r-lg);
+     routes work, it does not scold. The panel base carries the rest. */
+  border-color: var(--line-strong);
   background: var(--surface-2);
   max-width: 34rem;
 }

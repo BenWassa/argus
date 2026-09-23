@@ -36,10 +36,6 @@
   gap: var(--s-xs);
   width: min(100%, 36rem);
   margin-inline: auto;
-  padding: var(--s-md);
-  border: 1px solid var(--line);
-  border-radius: var(--r-lg);
-  background: var(--surface);
 }
 
 .fluency-rung-label {
@@ -68,14 +64,12 @@
   list-style: none;
 }
 
+/* A panel that is also a control, so it takes the panel face from the base
+   rather than the polished primary one the element would otherwise give it. */
 .fluency-mode {
   display: grid;
   gap: 2px;
   width: 100%;
-  padding: var(--s-md);
-  border: 1px solid var(--line);
-  border-radius: var(--r-lg);
-  background: var(--surface);
   color: var(--ink);
   text-align: left;
   transition: border-color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
@@ -109,9 +103,9 @@
   gap: var(--s-sm);
   width: min(100%, 36rem);
   margin-inline: auto;
-  padding: var(--s-md);
-  border: 1px solid var(--line);
-  border-radius: var(--r-lg);
+  /* Outline only. This reports on the modes above it rather than holding
+     anything, so it drops the base's fill and lets the hairline do the work. */
+  background: transparent;
 }
 
 .fluency-stats-title {
@@ -205,9 +199,9 @@
   justify-items: center;
   gap: var(--s-sm);
   width: 100%;
-  padding: var(--s-md);
-  border: 1px solid var(--line);
-  border-radius: var(--r-lg);
+  /* Outline only, like the stat block: the verdict is read against the page,
+     not lifted off it, so the run keeps a single plate on screen. */
+  background: transparent;
   text-align: center;
 }
 
