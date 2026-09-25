@@ -28,6 +28,13 @@ const BEARINGS = [
   ['Northwest', '315°'],
 ] as const
 
+/** ISED RIC-21 §5.3, spellings and hyphenation exactly as printed. */
+const RADIOTELEPHONY_NUMBERS = [
+  ['0', 'ZE-RO'], ['1', 'WUN'], ['2', 'TOO'], ['3', 'TREE'], ['4', 'FOW-er'],
+  ['5', 'FIFE'], ['6', 'SIX'], ['7', 'SEV-en'], ['8', 'AIT'], ['9', 'NIN-er'],
+  ['Decimal', 'DAY-SEE-MAL'], ['Hundred', 'HUN-dred'], ['Thousand', 'TOU-SAND'],
+] as const
+
 const day = 86_400_000
 const ago = (days: number) => new Date(Date.now() - days * day).toISOString()
 
@@ -418,6 +425,52 @@ export function seedLibrary(): Library {
             label: 'BSAC — Annual Diving Incident Report 2024, abbreviations',
             url: 'https://www.bsac.com/document/bsac-diving-incidents-report-2024/1bsac-annual-incident-report-2024.pdf',
             note: 'National diving-club reference for BCD, DSMB and DPV expansions.',
+          },
+        ],
+      },
+      status: 'unstarted',
+      createdAt: ago(0),
+      drilledAt: null,
+      learningAt: null,
+      completedAt: null,
+      lastTestedAt: null,
+      spotCheckedAt: null,
+      history: [],
+    },
+    {
+      id: 'radiotelephony-numbers',
+      title: 'Radiotelephony numbers',
+      scope: 'The spoken forms of the digits 0–9 and of decimal, hundred and thousand, as printed for Canadian aeronautical radio in ISED RIC-21. Tested number → spoken form. How numbers are grouped on air and radio procedure are not scored.',
+      track: 'learning',
+      items: RADIOTELEPHONY_NUMBERS.map(([prompt, answer]) => ({ prompt, answer })),
+      learn: {
+        kind: 'concise',
+        overview: 'Formal radiotelephony gives each digit a fixed spoken form — TREE, FIFE and NIN-er rather than three, five and nine — and set words for the decimal point, hundreds and thousands. These are the forms Innovation, Science and Economic Development Canada prints for aeronautical radio, right after the phonetic alphabet — the same code words as the NATO topic.',
+        sections: [
+          {
+            heading: 'How numbers are said on air',
+            blocks: [
+              {
+                type: 'bullets',
+                items: [
+                  'Every number except a whole thousand is said one digit at a time: 75 is “seven five”, and 5,800 is “five eight zero zero”.',
+                  'A whole thousand is the digits of the thousands followed by “thousand”: 11,000 is “one one thousand”.',
+                  'A decimal point is said as “decimal”: 121.5 is “one two one decimal five”.',
+                  'RIC-21 sets further conventions for altitudes, flight levels, headings, wind, time and aircraft types. Those, and these grouping rules, are not scored here.',
+                ],
+              },
+            ],
+          },
+        ],
+        limitations: [
+          'Completion means you can recall these 13 spoken forms. It is not a radio operator certificate, radio training or permission to transmit.',
+          'The forms are sourced to Canadian aeronautical radiotelephony. Marine, amateur, public-safety and other radio services publish their own procedures, which this topic does not cover.',
+        ],
+        sources: [
+          {
+            label: 'ISED — RIC-21, Study Guide for the Restricted Operator Certificate With Aeronautical Qualification',
+            url: 'https://ised-isde.canada.ca/site/spectrum-management-telecommunications/en/official-publications/information/radiocom-information-circulars-ric/ric-21-study-guide-restricted-operator-certificate-aeronautical-qualification',
+            note: 'Government of Canada study guide (dated 2011-07-12). §5.3 prints the spoken forms of 0–9 and of decimal, hundred and thousand; §5.4 sets how numbers are transmitted.',
           },
         ],
       },

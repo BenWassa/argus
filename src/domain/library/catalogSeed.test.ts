@@ -22,6 +22,7 @@ describe('researched seeded library', () => {
       'primary-survey',
       'cardinal-bearings',
       'scuba-equipment-abbreviations',
+      'radiotelephony-numbers',
     ])
 
     for (const topic of library.topics) {
@@ -146,5 +147,32 @@ describe('researched seeded library', () => {
     expect(topic.scope).toContain('Test does not cover equipment selection')
     expect(topic.learn?.limitations?.some((note) => note.includes('not diver training'))).toBe(true)
     expect(topic.learn?.sources).toHaveLength(3)
+  })
+
+  it('keeps radiotelephony numbers to the 13 RIC-21 spoken forms, number → spoken form', () => {
+    const topic = seededTopic('radiotelephony-numbers')
+
+    expect(rows(topic.items)).toEqual([
+      { prompt: '0', answer: 'ZE-RO' },
+      { prompt: '1', answer: 'WUN' },
+      { prompt: '2', answer: 'TOO' },
+      { prompt: '3', answer: 'TREE' },
+      { prompt: '4', answer: 'FOW-er' },
+      { prompt: '5', answer: 'FIFE' },
+      { prompt: '6', answer: 'SIX' },
+      { prompt: '7', answer: 'SEV-en' },
+      { prompt: '8', answer: 'AIT' },
+      { prompt: '9', answer: 'NIN-er' },
+      { prompt: 'Decimal', answer: 'DAY-SEE-MAL' },
+      { prompt: 'Hundred', answer: 'HUN-dred' },
+      { prompt: 'Thousand', answer: 'TOU-SAND' },
+    ])
+    expect(topic.items.every((item) => item.kind === 'forward')).toBe(true)
+    expect(topic.status).toBe('unstarted')
+    expect(topic.history).toEqual([])
+    expect(topic.scope).toContain('radio procedure are not scored')
+    expect(topic.learn?.kind).toBe('concise')
+    expect(topic.learn?.limitations?.some((note) => note.includes('not a radio operator certificate'))).toBe(true)
+    expect(topic.learn?.sources?.[0].url).toContain('ric-21')
   })
 })

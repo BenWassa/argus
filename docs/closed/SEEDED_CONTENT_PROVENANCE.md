@@ -1,6 +1,6 @@
 # Seeded content provenance and Test boundaries
 
-Issue: #11; Morse baseline: #23; final A–Z curriculum: #28; acquisition/audio correction: #42  
+Issue: #11; Morse baseline: #23; final A–Z curriculum: #28; acquisition/audio correction: #42; first-wave catalog expansion: #104  
 Research baseline: `f2a3112110356f90f469c8c340f9f0ac69fbb2ee`  
 Library format: v5
 
@@ -18,6 +18,7 @@ This document records the research decisions behind the topics shipped by `src/d
 | Primary survey | Five ABCDE headings in order only | 5 | Briefing + integrated bounded case + explicit safety limits |
 | Cardinal/intercardinal bearings | Eight named compass points → clockwise degree value from north, with north represented as 0° | 8 | Concise support |
 | Recreational scuba equipment abbreviations | SCUBA, BCD, SPG, LPI, DSMB and DPV → expansion and core reference function | 6 | Concise support + explicit safety limits |
+| Radiotelephony numbers | Digits 0–9 plus decimal, hundred and thousand → RIC-21 spoken form | 13 | Concise support + explicit limits |
 
 Existing seeded historical attempt totals remain compatible with their decks. #42 adds no durable learner-state field and does not change any scored item.
 
@@ -227,6 +228,38 @@ Completion means only that these six abbreviations and reference functions can b
 ### Authoritative source
 
 - NOAA, **Navigation Training Manual**: https://repository.library.noaa.gov/view/noaa/42218/noaa_42218_DS1.pdf
+
+## #104 first-wave expansion: direction of recall
+
+The #104 research proposed bidirectional recall for several first-wave topics. Only the Morse acquisition ladder asks and records the reverse direction today: an ordinary reveal-and-self-score card always asks prompt → answer and records no per-direction evidence, so a bidirectional item there could never earn reverse evidence and its topic could never pass a retention attempt. Authoring both directions as separate forward cards was also rejected, because the two cards of one mapping disclose each other inside the same run.
+
+Every #104 topic is therefore **forward-only**, and each scope names the one direction it tests. The direction chosen is the one the real-world use needs first. `catalogInvariants.test.ts` refuses a bidirectional topic that the ladder does not drive.
+
+## Radiotelephony numbers
+
+### Research decision
+
+ISED's RIC-21 study guide for the Restricted Operator Certificate with Aeronautical Qualification prints the spoken forms of the ten digits and of the words decimal, hundred and thousand at the end of §5.3, and §5.4 sets how numbers are transmitted. The 13 forms are finite, stable and extend the NATO topic into numbers without new machinery. The topic is scoped to this named Canadian aeronautical source rather than presented as universal radio practice.
+
+The tested direction is number → spoken form, because producing the form is what a speaker needs; hearing “NIN-er” and writing 9 needs no training.
+
+### Test boundary
+
+`0` ZE-RO · `1` WUN · `2` TOO · `3` TREE · `4` FOW-er · `5` FIFE · `6` SIX · `7` SEV-en · `8` AIT · `9` NIN-er · Decimal DAY-SEE-MAL · Hundred HUN-dred · Thousand TOU-SAND — spellings and hyphenation exactly as printed.
+
+### Learn treatment
+
+Concise support: what the fixed forms are and where they are printed, the §5.4 grouping rules (digit by digit, whole thousands, “decimal”) with RIC-21's own examples, and a note that altitude, heading, wind, time and aircraft-type conventions are outside the topic. None of the grouping rules is scored.
+
+### Limits
+
+Completion is recall of 13 forms. It is not a radio operator certificate, radio training or permission to transmit, and it makes no claim about marine, amateur, public-safety or other services.
+
+### Authoritative source
+
+- Innovation, Science and Economic Development Canada, **RIC-21 — Study Guide for the Restricted Operator Certificate With Aeronautical Qualification** (page dated 2011-07-12; checked 2026-09-25): https://ised-isde.canada.ca/site/spectrum-management-telecommunications/en/official-publications/information/radiocom-information-circulars-ric/ric-21-study-guide-restricted-operator-certificate-aeronautical-qualification
+  - §5.3 number pronunciation table (0–9, decimal, hundred, thousand).
+  - §5.4 transmission of numbers.
 
 ## Scope-integrity check
 
