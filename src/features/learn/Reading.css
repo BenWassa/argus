@@ -277,7 +277,9 @@
   font-size: var(--t-small);
   font-weight: var(--w-label);
   letter-spacing: 0.05em;
-  text-transform: uppercase;
+  /* No text-transform: a prompt is content, and its case can be the thing
+     being tested (σ/ς, m/M). Uppercasing turned Greek small letters into
+     capitals in the Recall reference. */
   color: var(--subtle);
 }
 
