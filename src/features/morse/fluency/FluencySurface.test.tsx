@@ -28,6 +28,8 @@ function openHome(progress = undefined as Parameters<typeof FluencyHome>[0]['pro
         progress={progress}
         onProgress={onProgress}
         onStart={() => undefined}
+        onCopy={() => undefined}
+        onFreePlay={() => undefined}
         onExit={() => undefined}
       />
     </LibraryProvider>,

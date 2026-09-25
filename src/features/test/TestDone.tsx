@@ -3,15 +3,27 @@ import { statusLabel } from '../../shared/ui/StatusTag'
 import { targetsForItems } from '../../domain/study/practiceTargets'
 import { fire } from '../../shared/haptics'
 import type { BankedAttempt } from './bankedAttempt'
+import type { Topic } from '../../domain/library/topic'
+
+/** A finished review: scored for the learner, never an attempt. */
+export interface ReviewResult {
+  topic: Topic
+  correct: number
+  total: number
+  /** The journey's own words for when the next scheduled check is. */
+  schedule: string
+}
 
 export function TestDone({
   banked,
+  reviewed = [],
   missed,
   onExit,
   onPractice,
   headingRef,
 }: {
   banked: BankedAttempt[]
+  reviewed?: ReviewResult[]
   /** Item ids answered wrong in this run, per topic. */
   missed: Record<string, string[]>
   onExit: () => void
@@ -61,9 +73,11 @@ export function TestDone({
    * promised twenty and then asked ten would be the screen lying about the
    * work.
    */
-  const practiceOffer = banked
-    .map((entry) => {
-      const topic = entry.resolution.topic
+  const practiceOffer = [
+    ...banked.map((entry) => entry.resolution.topic),
+    ...reviewed.map((entry) => entry.topic),
+  ]
+    .map((topic) => {
       const asked = targetsForItems(topic, missed[topic.id] ?? [])
       // Counted in items, not directions: an item missed both ways is one
       // thing to go and fix.
@@ -75,8 +89,20 @@ export function TestDone({
   return (
     <section className="session session-done">
       <h1 ref={headingRef} tabIndex={-1}>
-        {completed.length > 0 ? 'Banked' : 'Test ended'}
+        {completed.length > 0 ? 'Banked' : banked.length === 0 && reviewed.length > 0 ? 'Review done' : 'Test ended'}
       </h1>
+
+      {reviewed.map((entry) => (
+        <p className="transition" key={entry.topic.id}>
+          <strong>{entry.topic.title}</strong>:{' '}
+          <span className="tabular">
+            {entry.correct} of {entry.total}
+          </span>{' '}
+          with no hints. A review asks your weakest letters and keeps your schedule exactly where it
+          is — {entry.schedule.charAt(0).toLowerCase() + entry.schedule.slice(1)}, and that check asks
+          every letter.
+        </p>
+      ))}
 
       {completed.map((resolution) => (
         <div className="banked" key={resolution.topic.id}>
@@ -133,7 +159,7 @@ export function TestDone({
         </p>
       ))}
 
-      {resolutions.length === 0 && (
+      {resolutions.length === 0 && reviewed.length === 0 && (
         <p className="transition">No topic ran to the end, so nothing changed rung.</p>
       )}
 

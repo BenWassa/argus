@@ -154,6 +154,11 @@ Fade on **N consecutive correct answers at a rung**, with `N = 2`.
   when the rung changes.
 - An error breaks the streak and restores stronger scaffolding by one rung,
   never below the richest rung.
+- **Except once the alphabet is acquired.** For a topic whose guided
+  acquisition is finished, `withBaselineCue(…, 'free')` is a floor: every
+  scored card is uncued and a miss restores nothing. The miss is still
+  recorded, and Practice and reviews act on it. See
+  `MORSE_INTERMEDIATE_PATH.md` §1.
 - Latency is recorded but gates nothing. It cannot silently become a speed or
   WPM completion requirement.
 

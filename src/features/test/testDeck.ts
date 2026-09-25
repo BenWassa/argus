@@ -1,5 +1,6 @@
 import { journeyFor } from '../../domain/study/journey'
 import { morseAcquisitionProfile, type AcquisitionCharacter, type AcquisitionProfile } from '../../domain/morse/testing/acquisitionProfile'
+import { isReviewTopic, reviewItems } from '../../domain/study/review'
 import { isTokenRecallDeck } from './swipeGrade'
 import type { Item, Topic } from '../../domain/library/topic'
 import type { CueState } from '../../domain/study/evidence'
@@ -67,11 +68,25 @@ export function swipeDecks(topics: Topic[]): Set<string> {
   return new Set(topics.filter((topic) => isTokenRecallDeck(topic.items)).map((topic) => topic.id))
 }
 
-export function buildDeck(topics: Topic[], profiles: Map<string, AcquisitionProfile>): Card[] {
+/**
+ * Which topics run as a short review rather than a scored attempt. Decided once
+ * at session start, like everything else here: a run cannot turn from a review
+ * into an attempt halfway through because a clock ticked over.
+ */
+export function reviewTopics(topics: Topic[]): Set<string> {
+  return new Set(topics.filter((topic) => isReviewTopic(topic)).map((topic) => topic.id))
+}
+
+export function buildDeck(
+  topics: Topic[],
+  profiles: Map<string, AcquisitionProfile>,
+  reviews: Set<string> = new Set(),
+): Card[] {
   return topics.flatMap((topic) => {
     const profile = profiles.get(topic.id)
+    const items = reviews.has(topic.id) ? reviewItems(topic) : topic.items
     return shuffle(
-      topic.items.map((item) => ({
+      items.map((item) => ({
         topicId: topic.id,
         topicTitle: topic.title,
         item,

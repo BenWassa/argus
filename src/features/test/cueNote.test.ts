@@ -59,6 +59,13 @@ describe('the ladder reports what it is about to do', () => {
     expect(note.onIncorrect).toBe('The cue comes back on the next ask.')
   })
 
+  it('promises no returning cue once the alphabet is acquired, because none returns', () => {
+    const uncued: ItemCueEvidence = { cue: 'free', directions: {} }
+    expect(cueNoteFor(BIDIRECTIONAL, uncued, 'free').onIncorrect).toBeNull()
+    const afterOne = answer(uncued, true)
+    expect(cueNoteFor(BIDIRECTIONAL, afterOne, 'free').onIncorrect).toBeNull()
+  })
+
   it('names the reverse direction opening as its own event', () => {
     // Walk the ladder until a correct answer is what opens the other
     // direction, then assert the note fires exactly there.

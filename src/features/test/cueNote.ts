@@ -3,9 +3,10 @@ import {
   recordAnswer,
   rungFor,
   rungIndexFor,
+  withBaselineCue,
 } from '../../domain/study/cueLadder'
 import type { Item } from '../../domain/library/topic'
-import type { ItemCueEvidence } from '../../domain/study/evidence'
+import type { CueState, ItemCueEvidence } from '../../domain/study/evidence'
 
 /**
  * What the cue ladder is about to do, said out loud.
@@ -48,17 +49,27 @@ export interface CueNote {
   onIncorrect: string | null
 }
 
-function noteFor(item: Item, evidence: ItemCueEvidence | undefined, correct: boolean): string | null {
+function noteFor(
+  item: Item,
+  evidence: ItemCueEvidence | undefined,
+  correct: boolean,
+  baseline: CueState,
+): string | null {
   const before = rungFor(item, evidence)
   const beforeIndex = rungIndexFor(item, evidence)
 
-  const after = recordAnswer(evidence, {
-    direction: before.direction,
-    correct,
-    assisted: isAssistedRung(before),
-    latencyMs: null,
-    at: PREDICTED_AT,
-  })
+  // The same floor `TestSession` applies, so a finished curriculum is never
+  // told a cue is coming back when it is not.
+  const after = withBaselineCue(
+    recordAnswer(evidence, {
+      direction: before.direction,
+      correct,
+      assisted: isAssistedRung(before),
+      latencyMs: null,
+      at: PREDICTED_AT,
+    }),
+    baseline,
+  )
 
   const afterIndex = rungIndexFor(item, after)
   if (afterIndex === beforeIndex) return null
@@ -72,14 +83,22 @@ function noteFor(item: Item, evidence: ItemCueEvidence | undefined, correct: boo
     return 'Forward recall holds on its own, so the reverse direction opens next.'
   }
 
+  // Moving between the two uncued rungs is a change of direction, not of
+  // support. Calling it a returning cue would announce help that never shows.
+  if (!isAssistedRung(before) && !isAssistedRung(afterRung)) return null
+
   return eased
     ? 'Two clean in a row, so the cue comes off the next ask.'
     : 'The cue comes back on the next ask.'
 }
 
-export function cueNoteFor(item: Item, evidence: ItemCueEvidence | undefined): CueNote {
+export function cueNoteFor(
+  item: Item,
+  evidence: ItemCueEvidence | undefined,
+  baseline: CueState = 'rich',
+): CueNote {
   return {
-    onCorrect: noteFor(item, evidence, true),
-    onIncorrect: noteFor(item, evidence, false),
+    onCorrect: noteFor(item, evidence, true, baseline),
+    onIncorrect: noteFor(item, evidence, false, baseline),
   }
 }

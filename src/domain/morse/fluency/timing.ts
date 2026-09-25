@@ -60,12 +60,16 @@ export const FLUENCY_CHARACTER_WPM = 20
  * recognition, so these are calibrated rungs for this exact learner rather
  * than a guess at a difficulty curve.
  *
- * The ladder stops at 13 deliberately. Past that the honest next step is a
- * scored auditory boundary with a stated criterion, which is a different
- * workstream; extending this ladder to parity with character speed would be
- * promising something the source curriculum treats as beyond its own exit.
+ * Past 13 the ladder continues in bigger steps — 15, 18, 20 — into the range
+ * CW Academy's Intermediate course works in, ending at 20: spacing at parity
+ * with the character, no Farnsworth stretch left, real-speed Morse. It was
+ * first stopped at 13 on the grounds that anything further belonged to a
+ * scored auditory boundary. It does not need to: these rungs are practice,
+ * they still grant nothing, and a learner who has cleared every Copy level at
+ * 13 otherwise has nowhere left to go. The scored boundary (#29) remains
+ * separate and still unbuilt.
  */
-export const FLUENCY_RUNGS = [6, 7, 8, 9, 10, 11, 12, 13] as const
+export const FLUENCY_RUNGS = [6, 7, 8, 9, 10, 11, 12, 13, 15, 18, 20] as const
 export type FluencyRung = (typeof FLUENCY_RUNGS)[number]
 
 export const FIRST_FLUENCY_RUNG: FluencyRung = FLUENCY_RUNGS[0]
@@ -115,5 +119,7 @@ export function rungDescription(rung: FluencyRung): string {
   if (rung <= 7) return 'long gaps between characters'
   if (rung <= 9) return 'comfortable gaps'
   if (rung <= 11) return 'short gaps'
-  return 'barely any gap'
+  if (rung <= 13) return 'barely any gap'
+  if (rung < FLUENCY_CHARACTER_WPM) return 'close to full speed'
+  return 'full speed, nothing stretched'
 }

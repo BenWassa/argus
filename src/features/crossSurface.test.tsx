@@ -436,7 +436,9 @@ describe('acquisition readiness moves every surface together', () => {
 
     expect(libraryVerb(topic)).toBe('Test')
     cleanup()
-    expect(topicPrimary(topic)).toBe('Test')
+    // The page's fuller recommendation between checks: keep learning past the
+    // alphabet. Its Test is still one tap away, as a short review.
+    expect(topicPrimary(topic)).toBe('Keep going')
     cleanup()
     // The anchored one-day gap has not passed, so it is not today's work yet.
     // It still appears under `Coming up`, which is the honest place for it: an

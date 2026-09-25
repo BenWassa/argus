@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { canonicalNotation, spokenRhythm } from '../../../domain/morse/mnemonics'
-import { MORSE_LETTERS, type MorseLetter } from '../../../domain/morse/code'
+import { MORSE_FIGURES, MORSE_LETTERS, MORSE_PUNCTUATION, type MorseLetter } from '../../../domain/morse/code'
 import { verbalMnemonic } from '../../../domain/morse/verbalMnemonics'
 import { MorsePlayButton } from '../MorsePlayButton'
 import { useMorseAudio } from '../useMorseAudio'
@@ -49,6 +49,59 @@ function ReferenceCard({
 
       <MorsePlayButton glyph={glyph} playing={playing} onToggle={onToggle} />
     </li>
+  )
+}
+
+/**
+ * How to hold each figure and mark without a phrase. The figures follow a rule
+ * rather than needing a mnemonic, so the rule is the caption.
+ */
+const EXTRA_CAPTIONS: Record<string, string> = {
+  '1': '1 dit, then dahs',
+  '2': '2 dits, then dahs',
+  '3': '3 dits, then dahs',
+  '4': '4 dits, then a dah',
+  '5': 'five dits',
+  '6': '1 dah, then dits',
+  '7': '2 dahs, then dits',
+  '8': '3 dahs, then dits',
+  '9': '4 dahs, then a dit',
+  '0': 'five dahs',
+  '.': 'full stop: A three times',
+  ',': 'comma: dahs outside',
+  '?': 'question mark: dits outside',
+  '/': 'slash: D and N together',
+}
+
+const EXTRAS = [...Object.entries(MORSE_FIGURES), ...Object.entries(MORSE_PUNCTUATION)]
+
+/**
+ * Figures and the four beginner punctuation marks, met in Copy after the
+ * alphabet. Only on the standalone reference: the topic page's cards are the
+ * course, and the course is A–Z.
+ */
+function MorseFigureCards() {
+  const { sounding, toggle } = useMorseAudio()
+  return (
+    <section className="morse-ref-extras" aria-labelledby="morse-ref-extras-head">
+      <h2 id="morse-ref-extras-head" className="morse-ref-extras-head">Figures and punctuation</h2>
+      <p className="morse-ref-lede">Not part of the A–Z course. Copy introduces them once the alphabet is done.</p>
+      <ul className="morse-ref-list">
+        {EXTRAS.map(([glyph, pattern]) => (
+          <li key={glyph} className={`morse-ref-card is-extra${sounding?.glyph === glyph ? ' is-sounding' : ''}`}>
+            <span className="morse-ref-letter" aria-hidden="true">{glyph}</span>
+            <div className="morse-ref-body">
+              <p className="morse-ref-pattern">
+                <span aria-hidden="true">{canonicalNotation(pattern)}</span>
+                <span className="sr-only">{glyph}: {spokenRhythm(pattern)}</span>
+              </p>
+              <p className="morse-ref-mnemonic">{EXTRA_CAPTIONS[glyph]}</p>
+            </div>
+            <MorsePlayButton glyph={glyph} playing={sounding?.glyph === glyph} onToggle={() => toggle(glyph)} />
+          </li>
+        ))}
+      </ul>
+    </section>
   )
 }
 
@@ -111,6 +164,8 @@ export function MorseReference({ onExit }: { onExit: () => void }) {
       </p>
 
       <MorseReferenceCards />
+
+      <MorseFigureCards />
 
       <p className="morse-ref-foot">
         Play uses your device&apos;s media volume. Recall in both printed directions is proved in Test,

@@ -30,6 +30,53 @@ export const MORSE_LETTERS = {
 export type MorseLetter = keyof typeof MORSE_LETTERS
 export type MorseMark = '.' | '-'
 
+/**
+ * Figures and the four punctuation marks a beginner meets first, per ITU-R
+ * M.1677-1. Kept apart from `MORSE_LETTERS` because the A–Z course, its
+ * completion claim and every per-letter store are defined over exactly the 26
+ * letters; these extend what can be *played*, not what the course teaches.
+ */
+export const MORSE_FIGURES = {
+  '1': '.----',
+  '2': '..---',
+  '3': '...--',
+  '4': '....-',
+  '5': '.....',
+  '6': '-....',
+  '7': '--...',
+  '8': '---..',
+  '9': '----.',
+  '0': '-----',
+} as const
+
+export const MORSE_PUNCTUATION = {
+  '.': '.-.-.-',
+  ',': '--..--',
+  '?': '..--..',
+  '/': '-..-.',
+} as const
+
+export const MORSE_CHARACTERS = {
+  ...MORSE_LETTERS,
+  ...MORSE_FIGURES,
+  ...MORSE_PUNCTUATION,
+} as const
+
+export type MorseCharacter = keyof typeof MORSE_CHARACTERS
+
+export function isMorseCharacter(character: string): character is MorseCharacter {
+  return Object.prototype.hasOwnProperty.call(MORSE_CHARACTERS, character)
+}
+
+const BY_PATTERN = new Map<string, MorseCharacter>(
+  Object.entries(MORSE_CHARACTERS).map(([character, pattern]) => [pattern, character as MorseCharacter]),
+)
+
+/** The character a keyed pattern spells, or null when it spells nothing. */
+export function decodePattern(pattern: string): MorseCharacter | null {
+  return BY_PATTERN.get(pattern) ?? null
+}
+
 export const DEFAULT_MORSE_TIMING = {
   characterWpm: 20,
   effectiveWpm: 9,
@@ -146,9 +193,9 @@ export function morsePattern(character: string): string {
 
 function normalizeText(text: string): string {
   const normalized = text.trim().toUpperCase().replace(/\s+/g, ' ')
-  if (!normalized) throw new RangeError('Morse text must contain at least one A–Z letter.')
+  if (!normalized) throw new RangeError('Morse text must contain at least one character.')
   for (const character of normalized) {
-    if (character !== ' ' && !(character in MORSE_LETTERS)) {
+    if (character !== ' ' && !isMorseCharacter(character)) {
       throw new RangeError(`Unsupported Morse character: ${character}`)
     }
   }
@@ -179,7 +226,7 @@ export function buildMorseSchedule(text: string, options: MorseTimingOptions = {
   const words = normalized.split(' ')
   words.forEach((word, wordIndex) => {
     Array.from(word).forEach((letter, letterIndex) => {
-      const pattern = morsePattern(letter)
+      const pattern: string = MORSE_CHARACTERS[letter as MorseCharacter]
       Array.from(pattern).forEach((mark, markIndex) => {
         const typedMark = mark as MorseMark
         const units = typedMark === '.' ? 1 : 3

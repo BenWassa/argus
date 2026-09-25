@@ -94,7 +94,9 @@ function open(topic: Topic, onStart = vi.fn()) {
   return onStart
 }
 
-const fluency = () => screen.queryByRole('button', { name: /Fluency/ })
+const fluency = () => screen.queryByRole('button', { name: /Copy and speed practice|Keep going/ })
+const keepGoing = () => screen.queryByRole('button', { name: /Keep going/ })
+const quickReview = () => screen.queryByRole('button', { name: /Quick review/ })
 
 beforeEach(() => localStorage.clear())
 afterEach(() => {
@@ -133,11 +135,36 @@ describe('the Fluency entry', () => {
     expect(onStart).toHaveBeenCalledWith('learn', [MORSE_ID], { kind: 'fluency' })
   })
 
-  it('is never the primary action', () => {
+  it('stays text weight while a scheduled check is due, because only the check can earn', () => {
     open(morse({ lessonProgress: allSettled() }))
-    // Only a check can earn anything, so the recommended control keeps its
-    // weight and Fluency stays a text-weight alternative.
     expect(fluency()!.className).toContain('topic-alt')
+    expect(keepGoing()).toBeNull()
+    expect(screen.getByRole('button', { name: /^Test/ }).className).toContain('topic-primary')
+  })
+
+  it('leads between checks, and the Test becomes a quick review of weak letters', () => {
+    // Acquisition finished just now: the one-day gap has not passed, so no
+    // check is due and a full Test could move nothing.
+    const onStart = open(morse({ acquisitionReadyAt: new Date().toISOString() }))
+    expect(keepGoing()!.className).toContain('topic-primary')
+    expect(keepGoing()!.textContent).toContain('Next: letters')
+
+    fireEvent.click(keepGoing()!)
+    expect(onStart).toHaveBeenLastCalledWith('learn', [MORSE_ID], { kind: 'fluency' })
+
+    expect(quickReview()!.className).toContain('topic-alt')
+    fireEvent.click(quickReview()!)
+    expect(onStart).toHaveBeenLastCalledWith('test', [MORSE_ID])
+  })
+
+  it('names the next copy level from the learner\'s own bests', () => {
+    open(
+      morse({
+        acquisitionReadyAt: new Date().toISOString(),
+        morseFluency: { rung: 6, characters: {}, bests: { 'copy:letters': 95, 'copy:common': 91 } },
+      }),
+    )
+    expect(keepGoing()!.textContent).toContain('Next: everyday words')
   })
 
   it('stays absent for a topic that is not the course, even once completed', () => {

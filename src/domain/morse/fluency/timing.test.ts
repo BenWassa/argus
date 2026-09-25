@@ -45,21 +45,28 @@ describe('fluency timing', () => {
         .events.filter((event) => event.kind === 'signal')
         .map((event) => event.durationMs)
 
-    expect(signals(6)).toEqual(signals(13))
+    expect(signals(6)).toEqual(signals(20))
   })
 
   it('walks the ladder and clamps at both ends', () => {
     expect(nextRung(6)).toBe(7)
     expect(previousRung(7)).toBe(6)
     expect(previousRung(6)).toBe(6)
-    expect(nextRung(13)).toBe(13)
+    expect(nextRung(13)).toBe(15)
+    expect(nextRung(20)).toBe(20)
   })
 
   it('snaps stored or supplied values onto a legal rung', () => {
     expect(nearestRung(8.4)).toBe(8)
     expect(nearestRung(-5)).toBe(6)
-    expect(nearestRung(99)).toBe(13)
+    expect(nearestRung(99)).toBe(20)
+    expect(nearestRung(14)).toBe(13)
     expect(nearestRung(Number.NaN)).toBe(6)
+  })
+
+  it('climbs into intermediate speed and stops at parity with the character', () => {
+    expect(FLUENCY_RUNGS[FLUENCY_RUNGS.length - 1]).toBe(FLUENCY_CHARACTER_WPM)
+    expect(buildMorseSchedule('AB', fluencyTiming(20)).farnsworthScale).toBeCloseTo(1)
   })
 
   it('recognises only defined rungs', () => {

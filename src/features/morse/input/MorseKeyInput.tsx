@@ -14,6 +14,9 @@ export const MORSE_HOLD_MS = 300
  */
 const KEYBOARD_POINTER_ID = -1
 
+/** The longest character Argus plays: six elements, the punctuation marks. */
+export const MORSE_MAX_ELEMENTS = 6
+
 export function morseElementForPressDuration(durationMs: number): '.' | '-' {
   return durationMs >= MORSE_HOLD_MS ? '-' : '.'
 }
@@ -23,8 +26,8 @@ export function nextMorseEntry(
   element: '.' | '-',
   expectedLength: number,
 ): { entry: string; complete: boolean } {
-  if (!Number.isInteger(expectedLength) || expectedLength < 1 || expectedLength > 4) {
-    throw new RangeError('expectedLength must be an integer from 1 to 4.')
+  if (!Number.isInteger(expectedLength) || expectedLength < 1 || expectedLength > MORSE_MAX_ELEMENTS) {
+    throw new RangeError(`expectedLength must be an integer from 1 to ${MORSE_MAX_ELEMENTS}.`)
   }
   const entry = current.length < expectedLength ? `${current}${element}` : current
   return { entry, complete: entry.length === expectedLength }
@@ -55,6 +58,12 @@ interface MorseKeyInputProps {
    * no longer the only way to ask the next question.
    */
   advanceToken?: string | number
+  /**
+   * Every change to the entry, as it happens. For an open-ended surface that
+   * decides for itself when a character is finished (free play, on a pause)
+   * rather than grading on a known length.
+   */
+  onEntry?: (entry: string) => void
   now?: () => number
 }
 
@@ -101,6 +110,7 @@ export function MorseKeyInput({
   expectedLength,
   locked = false,
   advanceToken,
+  onEntry,
   now = defaultNow,
 }: MorseKeyInputProps) {
   const [entry, setEntry] = useState('')
@@ -136,6 +146,7 @@ export function MorseKeyInput({
     const next = nextMorseEntry(entryRef.current, element, expectedLength)
     entryRef.current = next.entry
     setEntry(next.entry)
+    onEntry?.(next.entry)
     if (next.complete) {
       lockedRef.current = true
       if (submitTimerRef.current) clearTimeout(submitTimerRef.current)
@@ -144,7 +155,7 @@ export function MorseKeyInput({
         onSubmit(next.entry)
       }, Math.max(0, audioTailMs))
     }
-  }, [expectedLength, onSubmit])
+  }, [expectedLength, onEntry, onSubmit])
 
   const clearReleasedToneTimer = useCallback(() => {
     if (releasedToneTimerRef.current) clearTimeout(releasedToneTimerRef.current)

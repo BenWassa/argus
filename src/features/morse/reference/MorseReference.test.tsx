@@ -26,7 +26,7 @@ describe('the Morse alphabet is complete and alphabetical', () => {
   })
 
   it('gives every letter one card with a large pattern, mnemonic and Play control', () => {
-    expect([...html.matchAll(/<li class="morse-ref-card/g)]).toHaveLength(26)
+    expect([...html.matchAll(/<li class="morse-ref-card"/g)]).toHaveLength(26)
 
     for (const letter of letters) {
       const pattern = MORSE_LETTERS[letter]
@@ -70,6 +70,16 @@ describe('the Morse alphabet is complete and alphabetical', () => {
     expect(html).not.toContain('flip-card')
     expect(html).toContain('changes nothing about your progress')
     expect(html).toContain('proved in Test')
+  })
+})
+
+describe('figures and punctuation follow the alphabet', () => {
+  it('lists all ten figures and four marks after the letters, on the standalone page only', () => {
+    expect([...html.matchAll(/<li class="morse-ref-card is-extra"/g)]).toHaveLength(14)
+    expect(html.indexOf('Figures and punctuation')).toBeGreaterThan(html.indexOf('aria-label="Play Z Morse"'))
+    expect(html).toContain('aria-label="Play 0 Morse"')
+    expect(html).toContain('aria-label="Play ? Morse"')
+    expect(sharedCardsHtml).not.toContain('Figures and punctuation')
   })
 })
 

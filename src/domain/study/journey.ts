@@ -70,6 +70,9 @@ import type { Status, Topic } from '../library/topic'
 /** What the learner should do with this topic now. */
 export type TopicAction = 'author' | 'enroll' | 'learn' | 'test'
 
+/** The Topic page's primary label for a finished course between checks. */
+export const KEEP_GOING = 'Keep going'
+
 export interface AcquisitionView {
   /** True for a topic with a multi-sitting acquisition programme. Morse today. */
   progressive: boolean
@@ -369,6 +372,12 @@ export function journeyFor(topic: Topic, now: Date = new Date()): TopicJourney {
   const phase: JourneyPhase =
     topic.status === 'decayed' ? 'repair' : scheduled.due ? 'due' : 'waiting'
 
+  // After the alphabet and between scheduled checks, a Test can move nothing,
+  // so the fuller recommendation is to keep learning past it — Copy, from
+  // letters up to sentences. The action stays `test`: a row's quick verb still
+  // runs one, and between checks it runs as a short review (`review.ts`).
+  const keepGoing = acquisition.progressive && acquisition.ready && phase === 'waiting'
+
   return {
     topicId: topic.id,
     phase,
@@ -378,7 +387,7 @@ export function journeyFor(topic: Topic, now: Date = new Date()): TopicJourney {
     sitting,
     action: 'test',
     actionLabel: 'Test',
-    primaryLabel: 'Test',
+    primaryLabel: keepGoing ? KEEP_GOING : 'Test',
     statusLabel,
     detail:
       acquisition.progressive && acquisition.ready

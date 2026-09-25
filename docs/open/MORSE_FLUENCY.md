@@ -8,7 +8,10 @@ governs the state boundaries this surface must not cross, and
 `MORSE_AUDIO_RUNTIME.md` still governs every Morse audio entry point including
 this one.
 
-**Last verified:** 2026-09-19
+**Last verified:** 2026-09-25
+
+**Extended by:** `docs/open/MORSE_INTERMEDIATE_PATH.md` — Copy, free play,
+figures and punctuation, and the ladder past 13 WPM.
 
 **Issue:** #119
 
@@ -22,8 +25,9 @@ Learn teaches the alphabet and stops. Fluency is what a learner does after
 that: the same 26 characters, presented by ear, at a speed too fast to count
 them, with the gaps closing as they improve.
 
-It is reached from the Morse topic page at text weight once the alphabet is
-acquired — that is, once every letter has been produced unaided at least once
+It is reached from the Morse topic page once the alphabet is acquired — as the
+primary *Keep going* between scheduled checks, and at text weight beside a due
+check — that is, once every letter has been produced unaided at least once
 in Learn. Gated on acquisition rather than on completion deliberately: a
 learner waiting out a spacing interval before their qualifying check has
 finished learning the alphabet and should not be told there is nothing to do.
@@ -43,8 +47,8 @@ fallback `acquisitionStartedAt` makes for the same records.
 
 `FLUENCY_CHARACTER_WPM` is 20 and is not a learner control. Everything the
 learner can change is Farnsworth spacing: `FLUENCY_RUNGS` runs 6 → 13 WPM
-effective, and `fluencyTiming(rung)` is the only thing that reaches
-`buildMorseSchedule`.
+effective and then 15, 18, 20 (see `MORSE_INTERMEDIATE_PATH.md`), and
+`fluencyTiming(rung)` is the only thing that reaches `buildMorseSchedule`.
 
 This is the whole design and it is worth stating why, because the obvious
 alternative is wrong in a way that is not obvious. Argus's acquisition rate is
@@ -69,9 +73,14 @@ Raising it is a one-line change.
 
 ## Modes
 
-Four, sharing one state machine in `domain/morse/fluency/session.ts`. Four
-bespoke runners would be four places to get the answer gate wrong, and the
-answer gate took #87 to get right once.
+Four speed drills, sharing one state machine in
+`domain/morse/fluency/session.ts`. Four bespoke runners would be four places to
+get the answer gate wrong, and the answer gate took #87 to get right once.
+
+Above them the home screen now leads with **Copy** (hear it, type the text —
+letters up to sentences) and offers **Free play**; both are specified in
+`MORSE_INTERMEDIATE_PATH.md`. The drills keep training recognition time and are
+what to reach for when a Copy level stalls.
 
 | Mode | Asks | Length | Best is |
 | --- | --- | --- | --- |
@@ -258,6 +267,8 @@ share the same input.
 | `src/features/morse/fluency/FluencySurface.tsx` | the feature's only write path |
 | `src/features/morse/fluency/FluencyHome.tsx` | modes, the one dial, the diagnostics |
 | `src/features/morse/fluency/FluencyRun.tsx` | one run, and the latency hygiene |
+| `src/features/morse/fluency/CopyRun.tsx` | one Copy run |
+| `src/features/morse/fluency/FreePlay.tsx` | free keying and listening; writes nothing |
 
 ## Not in scope
 

@@ -17,12 +17,22 @@ import {
   type FluencyRung,
 } from '../../../domain/morse/fluency/timing'
 import { FLUENCY_MODES, fluencyRunLength, type FluencyMode } from '../../../domain/morse/fluency/session'
+import {
+  COPY_LEVELS,
+  COPY_LEVEL_INFO,
+  copyBestKey,
+  copyLevelCleared,
+  nextCopyLevel,
+  type CopyLevel,
+} from '../../../domain/morse/fluency/copy'
 import './Fluency.css'
 
 interface FluencyHomeProps {
   progress: MorseFluencyProgress | undefined
   onProgress: (next: MorseFluencyProgress) => void
   onStart: (mode: FluencyMode) => void
+  onCopy: (level: CopyLevel) => void
+  onFreePlay: () => void
   onExit: () => void
 }
 
@@ -74,9 +84,10 @@ const MODES: Record<FluencyMode, { title: string; purpose: string; best: (value:
  * perceived evidence, which is the same reason the practice offer is a quiet
  * text control rather than a primary action.
  */
-export function FluencyHome({ progress, onProgress, onStart, onExit }: FluencyHomeProps) {
+export function FluencyHome({ progress, onProgress, onStart, onCopy, onFreePlay, onExit }: FluencyHomeProps) {
   const headingRef = useRef<HTMLHeadingElement>(null)
   const store = progress ?? newFluencyProgress()
+  const nextLevel = nextCopyLevel(store)
 
   const stats = useMemo(() => {
     const latencies = allLatencies(store)
@@ -110,13 +121,14 @@ export function FluencyHome({ progress, onProgress, onStart, onExit }: FluencyHo
         </h1>
         <p className="lede-text">
           You know all 26. This is where they stop being something you work out and
-          start being something you just hear. Everything here is practice — none of
-          it changes your progress or your completion.
+          start being something you just hear — first as letters, then words, then
+          sentences. Everything here is practice — none of it changes your progress or
+          your completion.
         </p>
       </header>
 
-      {/* The one dial. Characters always sound at the same speed; this is how
-          much room you get between them. */}
+      {/* The one dial, shared by Copy and the drills. Characters always sound
+          at the same speed; this is how much room you get between them. */}
       <div className="fluency-rung">
         <p className="fluency-rung-label">
           Spacing <span className="tabular">{store.rung} WPM</span>
@@ -144,24 +156,84 @@ export function FluencyHome({ progress, onProgress, onStart, onExit }: FluencyHo
         </div>
       </div>
 
-      <ul className="fluency-modes">
-        {FLUENCY_MODES.map((mode) => {
-          const meta = MODES[mode]
-          const best = store.bests[mode]
-          return (
-            <li key={mode}>
-              <button className="fluency-mode" type="button" onClick={() => onStart(mode)}>
-                <span className="fluency-mode-title">{meta.title}</span>
-                <span className="fluency-mode-purpose">{meta.purpose}</span>
-                <span className="fluency-mode-meta tabular">
-                  {fluencyRunLength(mode)} prompts
-                  {best !== undefined && ` · best ${meta.best(best)}`}
-                </span>
-              </button>
-            </li>
-          )
-        })}
-      </ul>
+      {/* Copy leads because it is the progression: the material grows from
+          letters to sentences, and it is the only mode that asks for the text
+          rather than an echo of the rhythm. The speed drills below it train
+          recognition time and are what to reach for when a level stalls. */}
+      <section className="fluency-section" aria-labelledby="copy-levels-head">
+        <h2 id="copy-levels-head" className="fluency-stats-title">
+          Copy — hear it, write it down
+        </h2>
+        <ol className="fluency-modes">
+          {COPY_LEVELS.map((level) => {
+            const meta = COPY_LEVEL_INFO[level]
+            const best = store.bests[copyBestKey(level)]
+            const isNext = level === nextLevel
+            return (
+              <li key={level}>
+                <button
+                  className={`fluency-mode${isNext ? ' is-next' : ''}`}
+                  type="button"
+                  onClick={() => onCopy(level)}
+                  aria-describedby={isNext ? 'copy-next-label' : undefined}
+                >
+                  <span className="fluency-mode-title">
+                    {meta.title}
+                    {isNext && (
+                      <span id="copy-next-label" className="copy-next-tag">
+                        Next
+                      </span>
+                    )}
+                  </span>
+                  <span className="fluency-mode-purpose">{meta.purpose}</span>
+                  <span className="fluency-mode-meta tabular">
+                    {meta.length} prompts
+                    {best !== undefined && ` · best ${best}%`}
+                    {copyLevelCleared(store, level) && ' · cleared'}
+                  </span>
+                </button>
+              </li>
+            )
+          })}
+        </ol>
+      </section>
+
+      <section className="fluency-section" aria-labelledby="free-play-head">
+        <h2 id="free-play-head" className="fluency-stats-title">
+          Free play — build your own
+        </h2>
+        <button className="fluency-mode" type="button" onClick={onFreePlay}>
+          <span className="fluency-mode-title">Free play</span>
+          <span className="fluency-mode-purpose">
+            Key your own words and sentences and see what they spell, or type anything and hear it.
+          </span>
+          <span className="fluency-mode-meta">No target, no score, nothing saved</span>
+        </button>
+      </section>
+
+      <section className="fluency-section" aria-labelledby="speed-drills-head">
+        <h2 id="speed-drills-head" className="fluency-stats-title">
+          Speed drills — hear it, key it back
+        </h2>
+        <ul className="fluency-modes">
+          {FLUENCY_MODES.map((mode) => {
+            const meta = MODES[mode]
+            const best = store.bests[mode]
+            return (
+              <li key={mode}>
+                <button className="fluency-mode" type="button" onClick={() => onStart(mode)}>
+                  <span className="fluency-mode-title">{meta.title}</span>
+                  <span className="fluency-mode-purpose">{meta.purpose}</span>
+                  <span className="fluency-mode-meta tabular">
+                    {fluencyRunLength(mode)} prompts
+                    {best !== undefined && ` · best ${meta.best(best)}`}
+                  </span>
+                </button>
+              </li>
+            )
+          })}
+        </ul>
+      </section>
 
       {/*
         The diagnostic, and the reason this surface keeps statistics at all.

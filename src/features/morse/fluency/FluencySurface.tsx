@@ -5,6 +5,9 @@ import {
   type MorseFluencyProgress,
 } from '../../../domain/morse/fluency/progress'
 import type { FluencyMode } from '../../../domain/morse/fluency/session'
+import type { CopyLevel } from '../../../domain/morse/fluency/copy'
+import { CopyRun } from './CopyRun'
+import { FreePlay } from './FreePlay'
 import { FluencyHome } from './FluencyHome'
 import { FluencyRun } from './FluencyRun'
 
@@ -33,6 +36,8 @@ export function FluencySurface({ topicId, initialMode, onExit }: FluencySurfaceP
   const { topics, updateTopic } = useLibrary()
   const topic = topics.find((candidate) => candidate.id === topicId)
   const [mode, setMode] = useState<FluencyMode | null>(initialMode ?? null)
+  const [copy, setCopy] = useState<{ level: CopyLevel; run: number } | null>(null)
+  const [free, setFree] = useState(false)
 
   const commit = useCallback(
     (next: MorseFluencyProgress) => {
@@ -44,6 +49,25 @@ export function FluencySurface({ topicId, initialMode, onExit }: FluencySurfaceP
   if (!topic) return null
 
   const progress = topic.morseFluency
+
+  if (free) {
+    return <FreePlay rung={(progress ?? newFluencyProgress()).rung} onExit={() => setFree(false)} />
+  }
+
+  if (copy) {
+    return (
+      <CopyRun
+        // A new key per run, so "Another run" draws fresh material.
+        key={`copy-${copy.level}-${copy.run}`}
+        level={copy.level}
+        rung={(progress ?? newFluencyProgress()).rung}
+        progress={progress ?? newFluencyProgress()}
+        onProgress={commit}
+        onLevel={(level) => setCopy((previous) => ({ level, run: (previous?.run ?? 0) + 1 }))}
+        onExit={() => setCopy(null)}
+      />
+    )
+  }
 
   if (mode) {
     return (
@@ -63,6 +87,8 @@ export function FluencySurface({ topicId, initialMode, onExit }: FluencySurfaceP
       progress={progress}
       onProgress={commit}
       onStart={setMode}
+      onCopy={(level) => setCopy({ level, run: 0 })}
+      onFreePlay={() => setFree(true)}
       onExit={onExit}
     />
   )

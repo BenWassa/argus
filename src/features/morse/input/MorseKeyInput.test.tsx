@@ -28,7 +28,8 @@ describe('one-touch Morse key', () => {
     expect(nextMorseEntry('.', '-', 2)).toEqual({ entry: '.-', complete: true })
     expect(nextMorseEntry('.-', '.', 2)).toEqual({ entry: '.-', complete: true })
     expect(() => nextMorseEntry('', '.', 0)).toThrow(RangeError)
-    expect(() => nextMorseEntry('', '.', 5)).toThrow(RangeError)
+    expect(nextMorseEntry('.-.-.', '-', 6)).toEqual({ entry: '.-.-.-', complete: true })
+    expect(() => nextMorseEntry('', '.', 7)).toThrow(RangeError)
   })
 
   it('renders one uncluttered visible key with no Back or Submit controls', () => {

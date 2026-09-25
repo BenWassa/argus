@@ -159,3 +159,13 @@
     white-space: normal;
   }
 }
+
+.morse-ref-extras {
+  display: grid;
+  gap: var(--s-sm);
+}
+
+.morse-ref-extras-head {
+  margin: var(--s-lg) 0 0;
+  font-size: var(--t-component);
+}

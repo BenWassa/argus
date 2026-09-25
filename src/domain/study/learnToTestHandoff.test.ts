@@ -92,21 +92,55 @@ describe('a finished curriculum hands Test an independent learner', () => {
     expect(Object.values(baselined?.directions ?? {})).toHaveLength(0)
   })
 
-  it('defers to stored evidence the moment the item has been answered once', () => {
+  it('never brings support back onto a scored card once the alphabet is acquired', () => {
     const item = morseTopic().items[0]
-    const answered = recordAnswer(withBaselineCue(undefined, 'free'), {
+    let evidence: ItemCueEvidence | undefined
+    for (let miss = 0; miss < 4; miss += 1) {
+      evidence = recordAnswer(withBaselineCue(evidence, 'free'), {
+        direction: 'prompt-to-answer',
+        correct: false,
+        assisted: false,
+        latencyMs: 900,
+        at: '2026-02-01T00:00:00.000Z',
+      })
+      const rung = rungFor(item, withBaselineCue(evidence, 'free'))
+      expect(isAssistedRung(rung)).toBe(false)
+    }
+    // The misses are still on record: that is what the practice offer reads.
+    expect(evidence?.directions['prompt-to-answer']?.attempts).toBe(4)
+    expect(evidence?.directions['prompt-to-answer']?.consecutiveCorrect).toBe(0)
+  })
+
+  it('lifts a letter already left at a supported rung by an older build', () => {
+    const item = morseTopic().items[0]
+    const legacy: ItemCueEvidence = {
+      cue: 'delayed-choice',
+      directions: {
+        'prompt-to-answer': {
+          attempts: 3,
+          correct: 1,
+          unassistedCorrect: 1,
+          consecutiveCorrect: 0,
+          lastAt: '2026-01-01T00:00:00.000Z',
+          lastLatencyMs: null,
+        },
+      },
+    }
+    expect(isAssistedRung(rungFor(item, withBaselineCue(legacy, 'free')))).toBe(false)
+    // And only the presentation moved: the recorded counts are exactly as stored.
+    expect(withBaselineCue(legacy, 'free')?.directions).toBe(legacy.directions)
+  })
+
+  it('still restores support after a miss for a topic mid-curriculum', () => {
+    const item = morseTopic().items[0]
+    const answered = recordAnswer({ cue: 'free', directions: {} }, {
       direction: 'prompt-to-answer',
       correct: false,
       assisted: false,
       latencyMs: 900,
       at: '2026-02-01T00:00:00.000Z',
     })
-    // A miss restores support in the ordinary way, and the baseline must not
-    // then override that on the next card and hand the support straight back.
-    expect(answered.cue).toBe('reduced')
-    const rung = rungFor(item, withBaselineCue(answered, 'free'))
-    expect(rung.cue).toBe('reduced')
-    expect(isAssistedRung(rung)).toBe(true)
+    expect(isAssistedRung(rungFor(item, withBaselineCue(answered, 'rich')))).toBe(true)
   })
 })
 

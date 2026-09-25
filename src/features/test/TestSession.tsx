@@ -26,11 +26,13 @@ import {
   acquisitionProfiles,
   buildDeck,
   openingBaselines,
+  reviewTopics,
   swipeDecks,
   type Card,
 } from './testDeck'
+import { journeyFor } from '../../domain/study/journey'
 import { nextView, type TestPhase, type TestView } from './testView'
-import { TestDone } from './TestDone'
+import { TestDone, type ReviewResult } from './TestDone'
 import { resolveBankedAttempt, type BankedAttempt } from './bankedAttempt'
 import { testCardTextClass } from './textScale'
 import { cueNoteFor } from './cueNote'
@@ -74,7 +76,8 @@ export function TestSession({ topicIds, onExit, onPractice }: TestSessionProps) 
   const [baselines] = useState(() => openingBaselines(included))
   const [profiles] = useState(() => acquisitionProfiles(included))
   const [swipeTopics] = useState(() => swipeDecks(included))
-  const [deck] = useState(() => buildDeck(included, profiles))
+  const [reviews] = useState(() => reviewTopics(included))
+  const [deck] = useState(() => buildDeck(included, profiles, reviews))
 
   // Cue evidence accrued this session, held apart from the scheduler's tally
   // and merged into the topic separately from any status resolution.
@@ -100,6 +103,7 @@ export function TestSession({ topicIds, onExit, onPractice }: TestSessionProps) 
   const [view, setView] = useState<TestView>({ kind: 'asking', index: 0 })
   const [tally, setTally] = useState<{ correct: number; total: number }>({ correct: 0, total: 0 })
   const [banked, setBanked] = useState<BankedAttempt[]>([])
+  const [reviewed, setReviewed] = useState<ReviewResult[]>([])
   // The library as it stands now, not as it stood when the deck was built. A
   // lesson answer or a sibling write can land while a Test is open, and the
   // attempt should resolve against the topic that exists rather than a snapshot.
@@ -225,6 +229,20 @@ export function TestSession({ topicIds, onExit, onPractice }: TestSessionProps) 
       liveTopics.current.find((candidate) => candidate.id === topicId) ??
       included.find((candidate) => candidate.id === topicId)
     if (!topic) return
+
+    // A review is not an attempt. Its answers are real uncued evidence and are
+    // kept; nothing else about the topic moves, and no history entry claims a
+    // whole-deck run that did not happen.
+    if (reviews.has(topicId)) {
+      updateTopic(topicId, (current) => mergeItemEvidence(current, evidence))
+      const merged = mergeItemEvidence(topic, evidence)
+      setReviewed((previous) => [
+        ...previous,
+        { topic: merged, correct: attempt.correct, total: attempt.total, schedule: journeyFor(merged).statusLabel },
+      ])
+      return
+    }
+
     const entry = resolveBankedAttempt(
       topic,
       attempt,
@@ -268,15 +286,20 @@ export function TestSession({ topicIds, onExit, onPractice }: TestSessionProps) 
     const assisted = isAssistedRung(rung)
     const next = {
       ...topicStore,
-      [itemId]: recordAnswer(evidenceFor(card), {
-        direction: rung.direction,
-        correct: answer.correct,
-        assisted,
-        // Recorded from the first session, and read by nothing that decides
-        // anything. It exists so a threshold can one day be more than a guess.
-        latencyMs: answer.latencyMs,
-        at: new Date().toISOString(),
-      }),
+      // Floored again after folding, so a finished curriculum stores `free`
+      // rather than a restored cue it will never show.
+      [itemId]: withBaselineCue(
+        recordAnswer(evidenceFor(card), {
+          direction: rung.direction,
+          correct: answer.correct,
+          assisted,
+          // Recorded from the first session, and read by nothing that decides
+          // anything. It exists so a threshold can one day be more than a guess.
+          latencyMs: answer.latencyMs,
+          at: new Date().toISOString(),
+        }),
+        baselines.get(card.topicId) ?? 'rich',
+      ) as ItemCueEvidence,
     }
     attemptAnswers.current = {
       ...attemptAnswers.current,
@@ -414,7 +437,10 @@ export function TestSession({ topicIds, onExit, onPractice }: TestSessionProps) 
    * it is written out rather than thrown away with the attempt.
    */
   function exitSession() {
-    const resolved = new Set(banked.map((entry) => entry.resolution.topic.id))
+    const resolved = new Set([
+      ...banked.map((entry) => entry.resolution.topic.id),
+      ...reviewed.map((entry) => entry.topic.id),
+    ])
     for (const [topicId, store] of Object.entries(cueEvidence)) {
       if (resolved.has(topicId)) continue
       updateTopic(topicId, (current) => mergeItemEvidence(current, store))
@@ -443,6 +469,7 @@ export function TestSession({ topicIds, onExit, onPractice }: TestSessionProps) 
     return (
       <TestDone
         banked={banked}
+        reviewed={reviewed}
         missed={missedItems.current}
         onExit={onExit}
         onPractice={onPractice}
@@ -454,19 +481,27 @@ export function TestSession({ topicIds, onExit, onPractice }: TestSessionProps) 
   if (confirmingExit) {
     return (
       <section className="session">
-        <h1>End test</h1>
-        <p>
-          {tally.total} {tally.total === 1 ? 'answer' : 'answers'} on{' '}
-          <strong>{card.topicTitle}</strong> will be discarded, because a topic only counts once
-          every one of its items has been through. Topics you already finished are banked and will
-          not be lost.
-        </p>
+        <h1>{reviews.has(card.topicId) ? 'End review' : 'End test'}</h1>
+        {reviews.has(card.topicId) ? (
+          <p>
+            The {tally.total} {tally.total === 1 ? 'answer' : 'answers'} you gave on{' '}
+            <strong>{card.topicTitle}</strong> are kept. A review never moves your schedule, so
+            stopping early costs nothing.
+          </p>
+        ) : (
+          <p>
+            {tally.total} {tally.total === 1 ? 'answer' : 'answers'} on{' '}
+            <strong>{card.topicTitle}</strong> will be discarded, because a topic only counts once
+            every one of its items has been through. Topics you already finished are banked and will
+            not be lost.
+          </p>
+        )}
         <div className="rate">
           <button className="ghost" type="button" onClick={() => setConfirmingExit(false)}>
             Keep going
           </button>
           <button className="danger" type="button" onClick={exitSession}>
-            End test
+            {reviews.has(card.topicId) ? 'End review' : 'End test'}
           </button>
         </div>
       </section>
@@ -489,7 +524,7 @@ export function TestSession({ topicIds, onExit, onPractice }: TestSessionProps) 
             <span className="session-count-of" aria-hidden="true">/{topicPosition.of}</span>
           </span>
           <button className="ghost small" type="button" onClick={requestExit}>
-            End test
+            {reviews.has(card.topicId) ? 'End review' : 'End test'}
           </button>
         </div>
 
@@ -503,7 +538,7 @@ export function TestSession({ topicIds, onExit, onPractice }: TestSessionProps) 
           // Computed from the evidence this card was built against, so the note
           // describes the move this very answer causes rather than the state
           // after it has already been folded in.
-          cueNote={cueNoteFor(card.item, evidenceFor(card))}
+          cueNote={cueNoteFor(card.item, evidenceFor(card), baselines.get(card.topicId) ?? 'rich')}
           onAnswer={answerProgressive}
         />
       </section>

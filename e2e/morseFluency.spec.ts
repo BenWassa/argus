@@ -61,23 +61,33 @@ const LIBRARY = JSON.stringify({
   catalogDelivered: [...shippedCatalog.topicIds].sort(),
 })
 
-async function openApp(page: Page) {
+async function openApp(page: Page, library = LIBRARY) {
   await page.addInitScript(
-    ([library, storeKey, splashKey]) => {
+    ([stored, storeKey, splashKey]) => {
       window.localStorage.setItem(splashKey, 'true')
-      window.localStorage.setItem(storeKey, library)
+      window.localStorage.setItem(storeKey, stored)
     },
-    [LIBRARY, STORE_KEY, SPLASH_KEY] as const,
+    [library, STORE_KEY, SPLASH_KEY] as const,
   )
   await page.goto('./')
+}
+
+/** The same learner, but their alphabet was finished today: no check is due. */
+function betweenChecks(): string {
+  const now = new Date().toISOString()
+  return JSON.stringify({
+    version: 5,
+    topics: [{ ...morse, learningAt: now, acquisitionReadyAt: now }],
+    catalogDelivered: [...shippedCatalog.topicIds].sort(),
+  })
 }
 
 /**
  * Today's docket row opens the topic directly — the same single tap the
  * learner makes, and the path the other Morse specs already drive.
  */
-async function openTopic(page: Page) {
-  await openApp(page)
+async function openTopic(page: Page, library = LIBRARY) {
+  await openApp(page, library)
   // Today's docket row resumes the curriculum directly, so the topic page is
   // reached through Library — which is also where a learner who has finished
   // the alphabet would go looking.
@@ -88,7 +98,7 @@ async function openTopic(page: Page) {
 
 async function openFluency(page: Page) {
   await openTopic(page)
-  await page.getByRole('button', { name: /Fluency/ }).click()
+  await page.getByRole('button', { name: /Copy and speed practice/ }).click()
   await expect(page.getByRole('heading', { name: 'After the alphabet' })).toBeVisible()
 }
 
@@ -175,9 +185,50 @@ async function runToSummary(page: Page) {
 }
 
 test.describe('fluency', () => {
-  test('is offered once the alphabet is acquired', async ({ page }) => {
+  test('is offered once the alphabet is acquired, beside a due check', async ({ page }) => {
     await openTopic(page)
-    await expect(page.getByRole('button', { name: /Fluency/ })).toBeVisible()
+    await expect(page.getByRole('button', { name: /Copy and speed practice/ })).toBeVisible()
+    await expect(page.locator('.topic-primary-verb')).toHaveText('Test')
+  })
+
+  test('leads between checks, with the Test as a short review', async ({ page }) => {
+    await openTopic(page, betweenChecks())
+    await expect(page.locator('.topic-primary-verb')).toHaveText('Keep going')
+    await expect(page.locator('.topic-primary-note')).toContainText('Next: letters')
+
+    await page.getByRole('button', { name: /Quick review/ }).click()
+    await expect(page.locator('.session-count')).toHaveText('1/10')
+    await expect(page.getByRole('button', { name: 'End review' })).toBeVisible()
+  })
+
+  test('copies letters by ear and records only a copy best', async ({ page }) => {
+    test.setTimeout(120_000)
+    await openTopic(page, betweenChecks())
+    const before = await storedTopic(page)
+    await page.locator('.topic-primary').click()
+    await expect(page.getByRole('heading', { name: 'After the alphabet' })).toBeVisible()
+
+    await page.getByRole('button', { name: /^Letters/ }).click()
+    for (let prompt = 0; prompt < 10; prompt += 1) {
+      const play = page.getByRole('button', { name: /^Play$|Play once more/ })
+      if (prompt === 0) await play.click()
+      await page.getByLabel('What you heard').fill('E')
+      await page.getByRole('button', { name: 'Check' }).click()
+      const cont = page.getByRole('button', { name: 'Continue' })
+      // A right answer moves on by itself; a wrong one waits to be read.
+      await Promise.race([
+        cont.waitFor({ state: 'visible', timeout: 4000 }).then(() => cont.click()).catch(() => undefined),
+        page.locator('.copy-feedback.is-correct').waitFor({ timeout: 4000 }).catch(() => undefined),
+      ])
+      await page.waitForTimeout(1000)
+    }
+
+    await expect(page.getByRole('heading', { name: 'Letters done' })).toBeVisible()
+    const after = await storedTopic(page)
+    expect(after?.morseFluency?.bests['copy:letters']).toBeGreaterThanOrEqual(0)
+    expect(after?.status).toBe(before?.status)
+    expect(after?.itemEvidence).toEqual(before?.itemEvidence)
+    expect(after?.history).toEqual(before?.history)
   })
 
   test('pins the character speed and offers only the spacing', async ({ page }) => {

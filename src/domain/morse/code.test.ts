@@ -2,8 +2,11 @@ import { describe, expect, it } from 'vitest'
 import {
   DEFAULT_MORSE_TIMING,
   LEARN_ACQUISITION_MORSE_TIMING,
+  MORSE_FIGURES,
   MORSE_LETTERS,
+  MORSE_PUNCTUATION,
   buildMorseSchedule,
+  decodePattern,
   farnsworthSpacingScale,
   morsePattern,
 } from './code'
@@ -28,7 +31,33 @@ describe('International Morse data', () => {
 
   it('rejects unsupported characters instead of inventing a mapping', () => {
     expect(() => morsePattern('1')).toThrow(/Unsupported Morse letter/)
-    expect(() => buildMorseSchedule('A?')).toThrow(/Unsupported Morse character/)
+    expect(() => buildMorseSchedule('A!')).toThrow(/Unsupported Morse character/)
+    expect(() => buildMorseSchedule('A@')).toThrow(/Unsupported Morse character/)
+  })
+
+  it('matches the ITU table for figures and the four beginner punctuation marks', () => {
+    expect(MORSE_FIGURES).toEqual({
+      '1': '.----', '2': '..---', '3': '...--', '4': '....-', '5': '.....',
+      '6': '-....', '7': '--...', '8': '---..', '9': '----.', '0': '-----',
+    })
+    expect(MORSE_PUNCTUATION).toEqual({ '.': '.-.-.-', ',': '--..--', '?': '..--..', '/': '-..-.' })
+  })
+
+  it('decodes every pattern it can play, and nothing else', () => {
+    for (const [character, pattern] of Object.entries({ ...MORSE_LETTERS, ...MORSE_FIGURES, ...MORSE_PUNCTUATION })) {
+      expect(decodePattern(pattern)).toBe(character)
+    }
+    expect(decodePattern('........')).toBeNull()
+    expect(decodePattern('')).toBeNull()
+  })
+
+  it('plays figures and punctuation without widening the A–Z letter table', () => {
+    expect(Object.keys(MORSE_LETTERS)).toHaveLength(26)
+    const schedule = buildMorseSchedule('IS IT 5?')
+    const signals = schedule.events.filter((event) => event.kind === 'signal')
+    // I(2) S(3) I(2) T(1) 5(5) ?(6)
+    expect(signals).toHaveLength(19)
+    expect(schedule.events.filter((event) => event.kind === 'gap' && event.gap === 'inter-word')).toHaveLength(2)
   })
 })
 

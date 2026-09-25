@@ -77,7 +77,11 @@ export function FluencyRun({ mode, rung, progress, onProgress, onExit }: Fluency
   const [run, setRun] = useState<FluencyRunState>(() =>
     startFluencyRun(mode, rung, progress, Date.now()),
   )
-  const [feedback, setFeedback] = useState<{ correct: boolean; text: string; marks: boolean[] } | null>(null)
+  // The answered prompt's own patterns travel with the verdict: by the time it
+  // renders the run has advanced, and `prompt` is already the next question.
+  const [feedback, setFeedback] = useState<
+    { correct: boolean; text: string; marks: boolean[]; patterns: string[] } | null
+  >(null)
   const [playing, setPlaying] = useState(false)
   const [audioError, setAudioError] = useState<string | null>(null)
   const [characterIndex, setCharacterIndex] = useState(0)
@@ -187,7 +191,12 @@ export function FluencyRun({ mode, rung, progress, onProgress, onExit }: Fluency
 
     fire(justAnswered.correct ? (target.text.length > 1 ? 'word' : 'settle') : 'miss')
 
-    setFeedback({ correct: justAnswered.correct, text: target.text, marks: justAnswered.marks })
+    setFeedback({
+      correct: justAnswered.correct,
+      text: target.text,
+      marks: justAnswered.marks,
+      patterns: target.patterns,
+    })
     setRun(next)
     replayed.current = false
     interrupted.current = false
@@ -363,7 +372,7 @@ export function FluencyRun({ mode, rung, progress, onProgress, onExit }: Fluency
                   {(() => {
                     const brokeAt = feedback.marks.findIndex((mark) => !mark)
                     const at = brokeAt === -1 ? 0 : brokeAt
-                    return `${feedback.text[at]} is ${canonicalPattern(prompt.patterns[at] ?? '')}`
+                    return `${feedback.text[at]} is ${canonicalPattern(feedback.patterns[at] ?? '')}`
                   })()}
                 </span>
                 <button type="button" className="lesson-next" onClick={acknowledge} disabled={!holding}>

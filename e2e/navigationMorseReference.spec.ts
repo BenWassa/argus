@@ -280,8 +280,10 @@ test('reference cards keep the phone hierarchy without horizontal overflow', asy
   await expect(page.getByRole('heading', { name: 'Morse alphabet', level: 1 })).toBeVisible()
   await expect(page.getByText('Show all 26 items')).toHaveCount(0)
 
-  const cards = page.locator('.morse-ref-card')
+  const cards = page.locator('.morse-ref-card:not(.is-extra)')
   await expect(cards).toHaveCount(26)
+  // Figures and punctuation follow the alphabet on the standalone page.
+  await expect(page.locator('.morse-ref-card.is-extra')).toHaveCount(14)
   await expect(cards.first().locator('.morse-ref-letter')).toHaveText('A')
   await expect(cards.first().locator('.morse-ref-pattern')).toContainText('· —')
   await expect(cards.first().locator('.morse-ref-mnemonic')).toHaveText('A LONG')
@@ -291,7 +293,7 @@ test('reference cards keep the phone hierarchy without horizontal overflow', asy
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
 
   await page.evaluate(() => { document.documentElement.style.fontSize = '200%' })
-  expect(await cards.evaluateAll((elements) => elements.every((card) => {
+  expect(await page.locator('.morse-ref-card').evaluateAll((elements) => elements.every((card) => {
     const bounds = card.getBoundingClientRect()
     return bounds.left >= 0 && bounds.right <= window.innerWidth && card.scrollWidth <= card.clientWidth
   }))).toBe(true)

@@ -68,6 +68,7 @@ The **full offline-first runtime guarantee is active scope in #113**, not yet a 
 - `docs/open/ISSUE_105_MORSE_PLACEMENT_ASSESSMENT.md` — maintained contract for fresh-start Morse placement, bounded confirmation, and evidence-safe progress application.
 - `docs/open/MORSE_AUDIO_RUNTIME.md` — maintained Web Audio lifecycle and first-press regression contract for every Morse audio surface.
 - `docs/open/MORSE_FLUENCY.md` — maintained contract for the post-acquisition Fluency surface: the pinned character speed and Farnsworth ladder, the four modes, the automaticity measures, the haptic vocabulary and the formative-only evidence boundary.
+- `docs/open/MORSE_INTERMEDIATE_PATH.md` — maintained contract for Morse after the alphabet: the uncued Test floor, short reviews between scheduled checks, Copy (letters to sentences, figures and punctuation), free play and the spacing ladder to 20 WPM.
 - `docs/open/ISSUE_119_MORSE_POST_ACQUISITION_FLUENCY_RESEARCH.md` — the sources, architecture audit and rejected options behind `MORSE_FLUENCY.md`.
 - `docs/open/ISSUE_113_OFFLINE_FIRST_RUNTIME.md` — active contract for IndexedDB local authority, durable sync/outbox, deterministic offline PWA launch, storage lifecycle and content-size/download policy.
 - `docs/closed/MORSE_PROVENANCE_RECONCILIATION.md` — provenance/doc-reconciliation closeout for the pre-#28 documentation lane.

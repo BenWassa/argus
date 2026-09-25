@@ -196,15 +196,27 @@ export function hasTestAnswer(evidence: ItemCueEvidence | undefined): boolean {
  *
  * So Learn state chooses the *presentation*, and only the presentation. This
  * writes nothing: `DirectionEvidence` stays at zero until an answer actually
- * happens in Test, a miss lets the ladder restore support in the ordinary way,
- * and a topic that never completed guided acquisition — an import, a legacy
- * library, an ordinary topic — keeps the richer opening it has always had.
+ * happens in Test, and a topic that never completed guided acquisition — an
+ * import, a legacy library, an ordinary topic — keeps the richer opening it has
+ * always had.
+ *
+ * A `free` baseline is also a floor. Once the alphabet is acquired, Test is a
+ * test: a miss is recorded as a miss and sends the letter to Practice, and it
+ * does not bring the rhythm phrase or the element count back onto the next
+ * scored card. Restoring support there used to hand the learner part of the
+ * answer on the very run whose one supported answer then made it unable to
+ * qualify — help and disqualification in the same gesture. Support belongs to
+ * Learn and Practice, where it is formative.
  */
 export function withBaselineCue(
   evidence: ItemCueEvidence | undefined,
   baseline: CueState,
 ): ItemCueEvidence | undefined {
   if (baseline === 'rich') return evidence
+  if (baseline === 'free') {
+    if (evidence?.cue === 'free') return evidence
+    return { cue: 'free', directions: evidence?.directions ?? {} }
+  }
   if (hasTestAnswer(evidence)) return evidence
   return { cue: baseline, directions: evidence?.directions ?? {} }
 }

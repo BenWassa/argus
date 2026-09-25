@@ -96,6 +96,119 @@
   font-size: var(--t-label);
 }
 
+.fluency-mode.is-next {
+  border-color: var(--accent);
+}
+
+/* ---- copy ------------------------------------------------------------- */
+
+.fluency-section {
+  display: grid;
+  gap: var(--s-sm);
+  width: min(100%, 36rem);
+  margin-inline: auto;
+}
+
+.copy-next-tag {
+  margin-left: var(--s-sm);
+  padding: 0 var(--s-xs);
+  border: 1px solid var(--accent);
+  border-radius: var(--r-pill);
+  color: var(--accent);
+  font-size: var(--t-label);
+  font-weight: var(--w-section);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
+.copy-answer {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--s-sm);
+  width: 100%;
+}
+
+.copy-input {
+  font-size: var(--t-component);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.copy-input::placeholder {
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.copy-expected {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.2em 0.45em;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.4rem, 6vw, 2.2rem);
+  line-height: 1.15;
+  letter-spacing: 0.03em;
+}
+
+.copy-expected .is-wrong-char {
+  color: var(--danger-2);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.copy-given {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--t-small);
+  overflow-wrap: anywhere;
+}
+
+.copy-given span {
+  color: var(--ink);
+}
+
+.copy-table {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+  gap: var(--s-sm);
+  width: min(100%, 36rem);
+  margin: 0 auto;
+  padding: 0;
+  list-style: none;
+}
+
+.copy-table-entry {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-sm);
+  width: 100%;
+  min-height: var(--control-h);
+  padding: var(--s-xs) var(--s-md);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.copy-table-glyph {
+  font-size: var(--t-component);
+  font-weight: var(--w-section);
+}
+
+.copy-table-pattern {
+  color: var(--muted);
+  font-size: var(--t-small);
+  white-space: nowrap;
+}
+
+.copy-table-note,
+.copy-start {
+  justify-self: center;
+}
+
 /* ---- statistics ------------------------------------------------------- */
 
 .fluency-stats {
@@ -321,4 +434,75 @@
   .fluency-mode {
     transition: none;
   }
+}
+
+/* ---- free play -------------------------------------------------------- */
+
+.free-play-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-sm);
+  width: min(100%, 36rem);
+  margin-inline: auto;
+}
+
+.free-play-body {
+  display: grid;
+  gap: var(--s-md);
+  width: min(100%, 36rem);
+  margin-inline: auto;
+}
+
+.free-play-body .note,
+.free-play-foot {
+  margin: 0;
+  text-align: center;
+}
+
+/* What was keyed, as text. Wraps like prose, because it is a sentence. */
+.free-play-output {
+  min-height: 3.2em;
+  margin: 0;
+  padding: var(--s-md);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  font-size: clamp(1.4rem, 6vw, 2rem);
+  line-height: 1.3;
+  letter-spacing: 0.05em;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.free-play-placeholder {
+  color: var(--placeholder);
+  font-size: var(--t-component);
+  letter-spacing: 0;
+}
+
+.free-play-unknown {
+  margin-inline: 0.15em;
+  color: var(--danger-2);
+  font-size: 0.6em;
+  vertical-align: middle;
+}
+
+.free-play-cursor {
+  color: var(--accent);
+}
+
+.free-play-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--s-sm);
+}
+
+.free-play-text {
+  font-size: var(--t-component);
+  text-transform: uppercase;
+}
+
+.free-play-text::placeholder {
+  text-transform: none;
 }

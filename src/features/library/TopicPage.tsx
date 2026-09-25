@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef, useState } from 'react'
-import { journeyFor } from '../../domain/study/journey'
+import { KEEP_GOING, journeyFor } from '../../domain/study/journey'
 import { resolveStudy } from '../../domain/study/scheduling'
 import { useLibrary } from '../../services/library/LibraryProvider'
 import { morseLessonPath } from '../../domain/morse/curriculum/lessonPath'
@@ -16,6 +16,8 @@ import { applyMorsePlacement, canOfferMorsePlacement } from '../../domain/morse/
 import '../learn/Reading.css'
 import type { RunTarget } from '../../app/routing/routes'
 import { hasPractice, practiceItemCount } from '../../domain/study/practiceTargets'
+import { REVIEW_LENGTH } from '../../domain/study/review'
+import { COPY_LEVEL_INFO, nextCopyLevel } from '../../domain/morse/fluency/copy'
 import type { Mode } from '../../domain/study/mode'
 import type { Topic } from '../../domain/library/topic'
 import './TopicPage.css'
@@ -100,6 +102,18 @@ export function TopicPage({
   const testing = journey.action === 'test'
   const placementEligible = course && canOfferMorsePlacement(topic)
 
+  // After the alphabet, and between scheduled checks, the useful thing to do is
+  // keep learning — words, then sentences — not re-run a Test that cannot move
+  // anything. The Test is still there, as a short review. When a check is due,
+  // or the topic needs repair, the check leads again: only it can earn anything.
+  const afterAlphabet = course && acquisition.ready
+  const keepGoing = afterAlphabet && journey.primaryLabel === KEEP_GOING
+  const copyNext = afterAlphabet ? nextCopyLevel(topic.morseFluency) : null
+
+  function openFluency() {
+    onStart('learn', [topic.id], { kind: 'fluency' })
+  }
+
   // How many items a check has left outstanding, counted in items rather than
   // in directions: a bidirectional item missed both ways is one thing to go and
   // fix. Zero for any topic that keeps no per-item evidence, which is why an
@@ -165,13 +179,32 @@ export function TopicPage({
 
       {runnable ? (
         <div className="topic-act">
-          <PrimaryAction
-            journey={journey}
-            course={course}
-            onEnroll={startLearning}
-            onLesson={startCurrentMorseLesson}
-            onCheck={startCheck}
-          />
+          {keepGoing ? (
+            <button className="topic-primary" type="button" onClick={openFluency}>
+              <span className="topic-primary-verb">{journey.primaryLabel}</span>
+              <span className="topic-primary-note">
+                {copyNext
+                  ? `Next: ${COPY_LEVEL_INFO[copyNext].title.toLowerCase()}. Hear it, write it down.`
+                  : 'Every copy level cleared. Tighten the spacing and go round again.'}
+              </span>
+            </button>
+          ) : (
+            <PrimaryAction
+              journey={journey}
+              course={course}
+              onEnroll={startLearning}
+              onLesson={startCurrentMorseLesson}
+              onCheck={startCheck}
+            />
+          )}
+
+          {/* The same conditions `isReviewTopic` checks, so this Test runs as
+              the short review it names. */}
+          {keepGoing && (
+            <button className="quiet topic-alt" type="button" onClick={startCheck}>
+              Quick review — {REVIEW_LENGTH} letters, no hints
+            </button>
+          )}
 
           {/* The standing offer to go back over what a check missed (#92 batch
               5). Text weight, never the primary control: the recommended move
@@ -215,13 +248,9 @@ export function TopicPage({
               Text weight, never primary: the recommended action is still
               whatever the journey says, because only a check can earn
               anything and Fluency cannot earn anything at all. */}
-          {course && acquisition.ready && (
-            <button
-              className="quiet topic-alt"
-              type="button"
-              onClick={() => onStart('learn', [topic.id], { kind: 'fluency' })}
-            >
-              Fluency — hear it faster
+          {afterAlphabet && !keepGoing && (
+            <button className="quiet topic-alt" type="button" onClick={openFluency}>
+              Copy and speed practice
             </button>
           )}
 
