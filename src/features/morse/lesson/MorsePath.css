@@ -1,15 +1,14 @@
 /* The curriculum as a table of contents, not a deck of cards.
 
-   The path used to be fifteen identically bordered, individually filled tiles
-   stacked vertically, which is the one composition `DESIGN.md` names as an
-   anti-reference and is also the least legible way to show a fixed sequence: at
-   fifteen repeats the border stops separating anything. It is now a dense index
-   with one continuous spine, which is what a finite curriculum actually is, and
-   it lets the whole thirteen-lesson shape fit a phone screen.
+   One continuous spine down the number column, one line per entry, and the
+   row itself is the control. The path used to end every row in a full-size
+   ghost button, so a finished course read as a column of eighteen identical
+   `Replay` and `Start` buttons; the one row that mattered had to compete with
+   all of them. A row now says what a tap does in one word at text weight.
 
    The One Lit Surface rule is why no row carries a shadow or an edge highlight:
    on this page the lit surface is the primary action in the header. The current
-   row is marked by the accent on its spine, number and status, which the One
+   row is marked by the accent on its spine, number and cue, which the One
    Accent Rule allows as current state rather than as a second action. */
 
 .morse-path {
@@ -21,22 +20,52 @@
 }
 
 .morse-path-item {
+  border-bottom: 1px solid var(--line);
+}
+
+/* The row. A button when it leads somewhere, a plain block when it is locked,
+   and the same grid either way so locked and open rows line up. */
+.morse-path-row,
+.morse-path-fold summary {
   display: grid;
   grid-template-columns: 2.75rem minmax(0, 1fr) auto;
-  grid-template-areas:
-    "number main action"
-    "number status action";
   align-items: center;
   column-gap: var(--s-md);
-  row-gap: 2px;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--line);
+  width: 100%;
+  min-height: 52px;
+  padding: 0 var(--s-sm) 0 0;
+  text-align: left;
+  color: var(--ink);
+}
+
+button.morse-path-row {
+  border: 0;
+  border-radius: 0;
+  font-weight: inherit;
+  letter-spacing: inherit;
+  background: transparent;
+  box-shadow: none;
+}
+
+button.morse-path-row:hover {
+  border-color: transparent;
+  background: var(--surface-2);
+}
+
+button.morse-path-row:active {
+  transform: none;
+  box-shadow: none;
+  background: var(--surface-3);
+}
+
+button.morse-path-row:focus-visible {
+  outline: 2px solid var(--accent-2);
+  outline-offset: -2px;
 }
 
 /* The spine. One continuous rule behind the number column, so the sequence
    reads as one object rather than as N separate ones. */
 .morse-path-number {
-  grid-area: number;
   align-self: stretch;
   display: grid;
   place-items: center;
@@ -50,26 +79,22 @@
 .morse-path-number::after {
   content: "";
   position: absolute;
-  inset-block: -12px;
+  inset-block: 0 -1px;
   inset-inline-end: 0;
   width: 1px;
   background: var(--line);
 }
 
-.morse-path-item:last-child .morse-path-number::after {
-  inset-block-end: 0;
-}
-
 .morse-path-main {
-  grid-area: main;
   display: grid;
-  gap: 2px;
+  gap: 1px;
   min-width: 0;
+  padding-block: 10px;
 }
 
 .morse-path-letters {
   font-family: var(--font-display);
-  font-size: 1.35rem;
+  font-size: 1.2rem;
   font-weight: var(--w-section);
   line-height: 1.1;
   letter-spacing: 0.06em;
@@ -77,142 +102,43 @@
 
 .morse-path-checkpoint-title {
   font-family: var(--font-display);
-  font-size: var(--t-component);
-  font-weight: var(--w-section);
+  font-size: var(--t-small);
+  font-weight: var(--w-component);
   line-height: 1.2;
 }
 
 .morse-path-note {
-  font-size: var(--t-small);
+  font-size: var(--t-label);
   line-height: 1.35;
   color: var(--subtle);
 }
 
-.morse-path-status {
-  grid-area: status;
-  font-family: var(--font-mono);
-  font-size: var(--t-readout);
-  font-weight: var(--w-label);
-  letter-spacing: var(--track-readout);
-  text-transform: uppercase;
-  color: var(--subtle);
-}
-
-.morse-path-action {
-  grid-area: action;
-  justify-self: end;
-  min-width: 5.5rem;
-}
-
-/* A locked entry is stated, never offered. It is not a disabled button, because
-   a disabled control invites a press that will do nothing; it is a word. */
-.morse-path-action.is-locked {
-  align-self: center;
-  min-height: 0;
-  font-family: var(--font-mono);
-  font-size: var(--t-readout);
-  font-weight: var(--w-label);
-  letter-spacing: var(--track-readout);
-  text-transform: uppercase;
-  color: var(--subtle);
-}
-
-/* --------------------------------------------------- the finished run -- */
-
-/* The completed stretch above the current lesson, collapsed so the row the
-   learner came for is the first one on the page. It keeps the spine and the
-   row rhythm, so the fold reads as part of the sequence rather than as a
-   control bolted above it. */
-.morse-path-folded {
-  grid-template-areas: "number main";
-  grid-template-columns: 2.75rem minmax(0, 1fr);
-  align-items: start;
-  padding: 0;
-}
-
-.morse-path-folded > .morse-path-number {
-  padding-block: 12px;
-  color: var(--complete);
-}
-
-.morse-path-fold {
-  grid-area: main;
-  min-width: 0;
-}
-
-.morse-path-fold summary {
-  display: grid;
-  gap: 2px;
-  padding: 12px 0;
+/* What a tap does, in one word. Text weight, never a button shape. */
+.morse-path-cue {
   font-size: var(--t-small);
+  font-weight: var(--w-component);
   color: var(--subtle);
-  cursor: pointer;
+  white-space: nowrap;
 }
 
-.morse-path-fold summary:hover {
-  color: var(--muted);
-}
-
-.morse-path-fold summary:focus-visible {
-  outline: 2px solid var(--accent-2);
-  outline-offset: 2px;
-}
-
-.morse-path-fold-letters {
-  font-family: var(--font-mono);
-  font-size: var(--t-readout);
-  letter-spacing: var(--track-readout);
-  color: var(--muted);
-  overflow-wrap: anywhere;
-}
-
-/* The nested list borrows the row treatment but not the outer spine: it is
-   already inside one. */
-.morse-path-nested {
-  margin: 0 0 var(--s-sm);
-  border-top: 1px solid var(--line);
-}
-
-.morse-path-nested .morse-path-item {
-  grid-template-areas: "number main action";
-  grid-template-columns: 2rem minmax(0, 1fr) auto;
-  padding: 10px 0;
-}
-
-.morse-path-nested .morse-path-number::after {
-  content: none;
-}
-
-.morse-path-nested .morse-path-letters {
-  font-size: 1.1rem;
-}
-
-.morse-path-nested .morse-path-item:last-child {
-  border-bottom: 0;
-}
-
-@media (max-width: 380px) {
-  .morse-path-folded {
-    grid-template-columns: 2.4rem minmax(0, 1fr);
-  }
-
-  .morse-path-nested .morse-path-item {
-    grid-template-areas:
-      "number main"
-      "number action";
-    grid-template-columns: 2rem minmax(0, 1fr);
-  }
+button.morse-path-row:hover .morse-path-cue {
+  color: var(--ink);
 }
 
 /* ------------------------------------------------------------- states -- */
 
-.morse-path-item.is-completed .morse-path-number,
-.morse-path-item.is-completed .morse-path-status {
+.morse-path-item.is-completed .morse-path-number {
   color: var(--complete);
 }
 
-.morse-path-item.is-locked .morse-path-letters {
-  color: var(--muted);
+/* Locked is said by dimming, not by a word where a control would be. */
+.morse-path-item.is-locked .morse-path-letters,
+.morse-path-item.is-locked .morse-path-checkpoint-title {
+  color: var(--subtle);
+}
+
+.morse-path-item.is-locked .morse-path-number {
+  color: color-mix(in srgb, var(--subtle) 60%, transparent);
 }
 
 .morse-path-item.is-current,
@@ -221,8 +147,9 @@
 }
 
 .morse-path-item.is-current .morse-path-number,
-.morse-path-item.is-current .morse-path-status,
-.morse-path-item.is-ready .morse-path-number {
+.morse-path-item.is-current .morse-path-cue,
+.morse-path-item.is-ready .morse-path-number,
+.morse-path-item.is-ready .morse-path-cue {
   color: var(--accent);
 }
 
@@ -231,41 +158,112 @@
   background: var(--accent);
 }
 
-.morse-path-mark {
+/* Checkpoints are optional stops between lessons, so they sit a step quieter
+   than the lessons: smaller type and a shorter row. */
+.morse-path-checkpoint .morse-path-row {
+  min-height: 44px;
+}
+
+.morse-path-checkpoint .morse-path-main {
+  padding-block: 8px;
+}
+
+.morse-path-checkpoint .morse-path-number,
+.morse-path-check .morse-path-number {
   font-size: var(--t-label);
   font-weight: var(--w-label);
   letter-spacing: 0.04em;
-}
-
-/* The two non-lesson entries carry their own mark rather than a number, so the
-   spine still reads as a sequence while the eye can find them. */
-.morse-path-checkpoint .morse-path-number,
-.morse-path-check .morse-path-number {
   color: var(--muted);
 }
 
-.morse-path-checkpoint.is-unlocked .morse-path-number,
-.morse-path-checkpoint.is-unlocked .morse-path-status {
+.morse-path-checkpoint.is-unlocked .morse-path-number {
   color: var(--complete);
+}
+
+.morse-path-check .morse-path-checkpoint-title {
+  font-size: var(--t-component);
 }
 
 /* The check closes the list, so it closes the spine too. */
 .morse-path-check {
   border-bottom: 0;
-  padding-bottom: 0;
+}
+
+.morse-path-check .morse-path-number::after {
+  inset-block-end: 0;
+}
+
+/* --------------------------------------------------- the finished run -- */
+
+/* The completed stretch, collapsed into one row that keeps the spine and the
+   row rhythm, so the fold reads as part of the sequence. */
+.morse-path-fold summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.morse-path-fold summary::-webkit-details-marker {
+  display: none;
+}
+
+.morse-path-fold summary:hover {
+  background: var(--surface-2);
+}
+
+.morse-path-fold summary:focus-visible {
+  outline: 2px solid var(--accent-2);
+  outline-offset: -2px;
+}
+
+.morse-path-folded .morse-path-number {
+  color: var(--complete);
+}
+
+.morse-path-fold-title {
+  font-size: var(--t-small);
+  font-weight: var(--w-component);
+  color: var(--muted);
+}
+
+.morse-path-fold-letters {
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  letter-spacing: var(--track-readout);
+  color: var(--subtle);
+  overflow-wrap: anywhere;
+}
+
+.morse-path-fold-chevron {
+  font-size: 1.1rem;
+  line-height: 1;
+  color: var(--subtle);
+  transition: transform var(--t-fast) var(--ease);
+}
+
+.morse-path-fold[open] .morse-path-fold-chevron {
+  transform: rotate(90deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .morse-path-fold-chevron {
+    transition: none;
+  }
+}
+
+/* The nested list sits inside the fold's spine, so it drops its own top rule
+   and its last divider. */
+.morse-path-nested {
+  margin: 0;
+}
+
+.morse-path-nested .morse-path-item:last-child {
+  border-bottom: 0;
 }
 
 @media (max-width: 380px) {
-  .morse-path-item {
-    grid-template-columns: 2.4rem minmax(0, 1fr);
-    grid-template-areas:
-      "number main"
-      "number status"
-      "number action";
-    row-gap: 6px;
-  }
-
-  .morse-path-action {
-    justify-self: start;
+  .morse-path-row,
+  .morse-path-fold summary {
+    grid-template-columns: 2.4rem minmax(0, 1fr) auto;
+    column-gap: var(--s-sm);
   }
 }

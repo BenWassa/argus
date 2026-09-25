@@ -387,7 +387,7 @@ describe('partially acquired Morse is never routed to Test', () => {
     expect(document.querySelector('.topic-primary-verb')?.textContent).toContain('lesson')
 
     const check = document.querySelector('.morse-path-check')
-    expect(check?.querySelector('.morse-path-action')?.textContent).toBe('Try early')
+    expect(check?.querySelector('.morse-path-cue')?.textContent).toBe('Try early')
     expect(check?.textContent).toContain('does not move the ladder')
   })
 
@@ -650,15 +650,17 @@ describe('opening Morse lands on the curriculum', () => {
   it('shows the whole finite shape from the first sitting, locked entries included', () => {
     renderTopicPage(blank(MORSE_ID))
 
-    const states = [...document.querySelectorAll('.morse-path-lesson')].map((item) =>
-      item.querySelector('.morse-path-status')?.textContent ?? null,
+    const cues = [...document.querySelectorAll('.morse-path-lesson')].map((item) =>
+      item.querySelector('.morse-path-cue')?.textContent ?? null,
     )
-    // Only what the action word cannot say. A locked row states `Locked` where
-    // its control would be, so labelling it twice was noise.
-    expect(states[0]).toBe('Current')
-    expect(states.slice(1).every((state) => state === null)).toBe(true)
+    // The current lesson says what a tap does; a locked one says nothing,
+    // because it is not a control.
+    expect(cues[0]).toBe('Continue')
+    expect(cues.slice(1).every((cue) => cue === null)).toBe(true)
     // A locked entry is stated, never offered as a control that does nothing.
-    expect(document.querySelectorAll('.morse-path-action.is-locked').length).toBeGreaterThan(0)
+    const locked = [...document.querySelectorAll('.morse-path-item.is-locked')]
+    expect(locked.length).toBeGreaterThan(0)
+    expect(locked.every((row) => row.querySelector('button') === null)).toBe(true)
     expect([...document.querySelectorAll('button')].some((b) => b.disabled)).toBe(false)
   })
 })

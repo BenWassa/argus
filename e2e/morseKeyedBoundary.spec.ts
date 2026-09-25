@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url'
 import { expect, test, type Page } from '@playwright/test'
 import { seedLibrary } from '../src/domain/library/catalogSeed'
 import type { Topic } from '../src/domain/library/topic'
+import { openFinishedLessons } from './support'
 
 /**
  * What JSDOM cannot prove about the keyed Morse boundary (#87).
@@ -80,6 +81,7 @@ async function openCheckpoint(page: Page) {
   // reached by opening the topic rather than from inside a Learn run.
   await page.getByRole('button', { name: 'Library', exact: true }).click()
   await page.locator(`[data-row="${MORSE_ID}"]`).click()
+  await openFinishedLessons(page)
   await page.getByRole('button', { name: 'Start word checkpoint after lesson 4' }).click()
   await expect(page.getByText('1/4', { exact: true })).toBeVisible()
 }

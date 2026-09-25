@@ -25,9 +25,9 @@
   max-width: 42ch;
   margin: 0;
   font-family: var(--font-display);
-  font-size: var(--t-section);
+  font-size: var(--t-component);
   font-weight: var(--w-body);
-  line-height: 1.32;
+  line-height: 1.4;
   letter-spacing: -0.006em;
   color: var(--muted);
 }
@@ -172,13 +172,6 @@
   border-top: 2px solid var(--line-strong);
 }
 
-.topic-body-foot {
-  max-width: 56ch;
-  margin-top: var(--s-lg);
-  font-size: var(--t-small);
-  line-height: 1.45;
-  color: var(--subtle);
-}
 
 .topic-earned {
   margin-top: var(--s-lg);
@@ -218,6 +211,14 @@
    the reading measure rather than running the full width of the path above it. */
 .topic-course-notes[open] {
   padding-bottom: var(--s-lg);
+}
+
+.topic-course-rule {
+  max-width: 62ch;
+  margin: 0 0 var(--s-lg);
+  font-size: var(--t-small);
+  line-height: 1.45;
+  color: var(--muted);
 }
 
 .topic-course-notes .learn-support,

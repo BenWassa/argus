@@ -192,3 +192,15 @@ export async function cardNumber(page: Page): Promise<number> {
   const match = /(\d+) of/.exec(label)
   return match ? Number(match[1]) : Number.NaN
 }
+
+/**
+ * Open the folded run of finished lessons on the Morse topic page. A learner
+ * who has finished the alphabet sees the whole run collapsed into one row, so
+ * its replays and checkpoints are one tap further in.
+ */
+export async function openFinishedLessons(page: Page) {
+  const fold = page.locator('.morse-path-fold')
+  await expect(fold).toBeVisible()
+  if ((await fold.getAttribute('open')) === null) await fold.locator('summary').click()
+  await expect(fold).toHaveAttribute('open', '')
+}

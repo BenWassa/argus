@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url'
 import { expect, test, type Page } from '@playwright/test'
 import { seedLibrary } from '../src/domain/library/catalogSeed'
 import type { Topic } from '../src/domain/library/topic'
+import { openFinishedLessons } from './support'
 import { MORSE_TRANSITION_MS } from '../src/domain/morse/response'
 
 /**
@@ -158,6 +159,7 @@ test('a lesson replay reruns the real lesson, writes nothing and returns to the 
 
   const before = await page.evaluate((key) => window.localStorage.getItem(key), STORE_KEY)
   const onTopic = await state(page)
+  await openFinishedLessons(page)
   await page.getByRole('button', { name: 'Replay lesson 1', exact: true }).click()
 
   // #117: the same lesson, not a stripped quiz. The first-exposure
@@ -195,6 +197,7 @@ test('unlocked word checkpoint holds a miss until dismissed and never mutates sa
 
   const before = await page.evaluate((key) => window.localStorage.getItem(key), STORE_KEY)
   const onTopic = await state(page)
+  await openFinishedLessons(page)
   await page.getByRole('button', { name: 'Start word checkpoint after lesson 4' }).click()
 
   await expect(page.getByText('Checkpoint', { exact: true })).toBeVisible()
@@ -240,6 +243,7 @@ test('unlocked word checkpoint holds a miss until dismissed and never mutates sa
 
   await page.getByRole('button', { name: 'Back to lessons' }).click()
   await expect(page.getByRole('heading', { name: morse.title, level: 1 })).toBeFocused()
+  await openFinishedLessons(page)
   await expect(page.getByRole('button', { name: 'Start word checkpoint after lesson 4' })).toBeVisible()
   expect(await page.evaluate((key) => window.localStorage.getItem(key), STORE_KEY)).toBe(before)
   expect(await state(page)).toEqual(onTopic)
@@ -249,6 +253,7 @@ test('word checkpoint remains usable at phone width and 200% text with the whole
   test.skip(!testInfo.project.name.startsWith('phone-'), 'phone-width checkpoint rendering contract')
   await openApp(page)
   await openMorseTopic(page)
+  await openFinishedLessons(page)
   await page.getByRole('button', { name: 'Start word checkpoint after lesson 4' }).click()
   await finishCheckpointWarmups(page)
 

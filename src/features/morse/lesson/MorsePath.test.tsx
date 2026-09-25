@@ -89,10 +89,10 @@ describe('states are distinguishable and reachable', () => {
     renderPath()
     const current = document.querySelector('[aria-current="step"]')
     expect(current?.classList.contains('is-current')).toBe(true)
-    expect(current?.querySelector('.morse-path-action')?.textContent).toBe('Continue')
+    expect(current?.querySelector('.morse-path-cue')?.textContent).toBe('Continue')
     // Named for screen readers, because fifteen controls all reading `Continue`
     // or `Start` are distinguishable by position and by nothing else.
-    expect(current?.querySelector('.morse-path-action')?.getAttribute('aria-label')).toBe(
+    expect(current?.querySelector('button.morse-path-row')?.getAttribute('aria-label')).toBe(
       'Continue lesson 1',
     )
   })
@@ -101,7 +101,9 @@ describe('states are distinguishable and reachable', () => {
     renderPath()
     // A disabled button still invites a press. A word does not.
     expect([...document.querySelectorAll('button')].some((button) => button.disabled)).toBe(false)
-    expect(document.querySelectorAll('.morse-path-action.is-locked').length).toBeGreaterThan(0)
+    const locked = [...document.querySelectorAll('.morse-path-item.is-locked')]
+    expect(locked.length).toBeGreaterThan(0)
+    expect(locked.every((row) => row.querySelector('button') === null)).toBe(true)
   })
 
   it('hands the lesson index and whether it is a replay back to the caller', () => {
@@ -114,7 +116,7 @@ describe('states are distinguishable and reachable', () => {
     const props = renderPath({ ready: false })
     const check = document.querySelector('.morse-path-check') as HTMLElement
     expect(check.textContent).toContain('does not move the ladder')
-    fireEvent.click(check.querySelector('.morse-path-action') as HTMLElement)
+    fireEvent.click(check.querySelector('button.morse-path-row') as HTMLElement)
     expect(props.onCheck).toHaveBeenCalled()
   })
 
@@ -122,7 +124,7 @@ describe('states are distinguishable and reachable', () => {
     renderPath({ ready: true })
     const check = document.querySelector('.morse-path-check') as HTMLElement
     expect(check.classList.contains('is-ready')).toBe(true)
-    expect(check.querySelector('.morse-path-action')?.textContent).toBe('Start')
+    expect(check.querySelector('.morse-path-cue')?.textContent).toBe('Start')
   })
 })
 
@@ -131,6 +133,13 @@ describe('the path stays legible on a phone', () => {
     const css = source('./MorsePath.css')
     expect(css).toContain('@media (max-width: 380px)')
     expect(css).not.toMatch(/font-size:\s*\d+px/)
+  })
+
+  it('makes the row the control rather than ending every row in a button', () => {
+    renderPath()
+    // One control per open entry, and each one is the whole row.
+    const buttons = [...document.querySelectorAll('.morse-path button')]
+    expect(buttons.every((button) => button.classList.contains('morse-path-row'))).toBe(true)
   })
 
   it('carries no per-row card surface, so thirteen rows read as one sequence', () => {

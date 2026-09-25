@@ -6,6 +6,7 @@ import { morseLessonPath } from '../../domain/morse/curriculum/lessonPath'
 import { morseWordCheckpointPath } from '../../domain/morse/curriculum/checkpoints'
 import { statusLabel } from '../../shared/ui/StatusTag'
 import { TopicGauge } from './TopicGauge'
+import { gaugeLabel, gaugeReading } from './gaugeReading'
 import { LearnSupport } from '../learn/LearnSupport'
 import { MorseBeatGrammarNote } from '../morse/MorsePhrase'
 import { MorsePath } from '../morse/lesson/MorsePath'
@@ -99,6 +100,11 @@ export function TopicPage({
   }, [topic.id])
 
   const { acquisition } = journey
+  // The detail line leads with the same count the gauge reads while a lesson
+  // is under way, so the two merge into one caption. Anywhere else they say
+  // different things and both stay.
+  const gaugeText = gaugeLabel(gaugeReading(topic, journey))
+  const showsGauge = Boolean(gaugeText && journey.detail?.startsWith(gaugeText))
   const testing = journey.action === 'test'
   const placementEligible = course && canOfferMorsePlacement(topic)
 
@@ -164,7 +170,10 @@ export function TopicPage({
           </span>
         </p>
 
-        {journey.detail && <p className="topic-detail">{journey.detail}</p>}
+        {/* The detail line and the gauge caption used to say the same count
+            twice, one under the other. When there is a gauge, the detail is
+            its caption; when there is not, it stands on its own. */}
+        {journey.detail && !showsGauge && <p className="topic-detail">{journey.detail}</p>}
 
         {/* The page about one topic used to say nothing about where the
             learner was in it. Every measure it could have shown was already
@@ -174,7 +183,12 @@ export function TopicPage({
             header replaced: that sheet went because it made the learner
             reconcile four numbers that disagreed. The gauge shows the single
             most specific reading the topic has earned, in its own units. */}
-        <TopicGauge topic={topic} journey={journey} variant="page" />
+        <TopicGauge
+          topic={topic}
+          journey={journey}
+          variant="page"
+          caption={showsGauge ? journey.detail : null}
+        />
       </header>
 
       {runnable ? (
@@ -323,11 +337,6 @@ export function TopicPage({
             onCheck={startCheck}
           />
 
-          <p className="topic-body-foot">
-            Replays and word checkpoints run the same lessons and record nothing at all. Test is
-            the only place the A–Z claim is proved.
-          </p>
-
           {/* The course's own explanatory support, which had nowhere to be.
               `LearnSupport` was rendered only in the ordinary-topic branch
               below, so for a curriculum topic the authored overview — what a
@@ -339,10 +348,14 @@ export function TopicPage({
               this page is for, and this is the thing you come back to once,
               when something stops making sense. The mark grammar joins it here,
               because the lesson now explains that only at first meeting. */}
-          {topic.learn && (
+          {course && (
             <details className="fold topic-course-notes">
               <summary>How this course works</summary>
-              <LearnSupport content={topic.learn} />
+              <p className="topic-course-rule">
+                Replays and word checkpoints run the same lessons and record nothing at all. Test
+                is the only place the A–Z claim is proved.
+              </p>
+              {topic.learn && <LearnSupport content={topic.learn} />}
               <MorseBeatGrammarNote className="topic-course-grammar" />
             </details>
           )}

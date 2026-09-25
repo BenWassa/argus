@@ -221,15 +221,19 @@ describe('the curriculum opens on where the learner actually is', () => {
     ).toBeTruthy()
   })
 
-  it('shows everything ahead, and the whole index once the course is finished', () => {
+  it('shows everything ahead, and folds the whole run once the course is finished', () => {
     renderPath(settledThrough(seededTopic(), 5))
     // Seeing the end of a finite curriculum is the premise: nothing ahead folds.
     expect(document.querySelectorAll('.morse-path-item.is-locked').length).toBeGreaterThan(0)
 
     cleanup()
     renderPath(settledThrough(seededTopic(), lessonPackets().length))
-    expect(document.querySelector('.morse-path-fold')).toBeNull()
-    expect(document.querySelectorAll('.morse-path-lesson')).toHaveLength(lessonPackets().length)
+    // Thirteen replay rows are not what a finished learner came for; the Test
+    // is. The full index is still there, one tap into the fold.
+    const fold = document.querySelector('.morse-path-fold') as HTMLDetailsElement
+    expect(fold.open).toBe(false)
+    expect(screen.getByText(`Lessons 1–${lessonPackets().length} done`)).toBeTruthy()
+    expect(fold.querySelectorAll('.morse-path-lesson')).toHaveLength(lessonPackets().length)
   })
 
   it('states the checkpoint’s nature once rather than on all four rows', () => {

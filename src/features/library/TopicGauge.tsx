@@ -22,10 +22,13 @@ export function TopicGauge({
   topic,
   journey,
   variant,
+  caption,
 }: {
   topic: Topic
   journey: TopicJourney
   variant: 'row' | 'page'
+  /** A fuller line in the same units, replacing the reading on the page. */
+  caption?: string | null
 }) {
   const reading = gaugeReading(topic, journey)
   const fill = gaugeFill(reading)
@@ -53,7 +56,7 @@ export function TopicGauge({
   return (
     <div className="gauge gauge-page">
       {track}
-      <p className="gauge-label tabular">{label}</p>
+      <p className="gauge-label tabular">{caption ?? label}</p>
     </div>
   )
 }
