@@ -23,6 +23,7 @@ This document records the research decisions behind the topics shipped by `src/d
 | Greek alphabet | 24 letters, capital and small forms → English name | 24 | Concise support + explicit limits |
 | Hexadecimal digits in binary | 16 hex digits 0–F → four-bit binary pattern | 16 | Concise support + explicit limits |
 | Beaufort wind scale | Forces 0–12 → descriptive term and knot range (force 12: 64 knots or more) | 13 | Concise support (effects table) + explicit limits |
+| Canadian firearm safety — ACTS & PROVE | Four ACTS rules + five PROVE steps, in order, in RCMP CFSC Student Handbook (2014) wording | 9 | Briefing + integrated handoff case + explicit safety limits |
 
 Existing seeded historical attempt totals remain compatible with their decks. #42 adds no durable learner-state field and does not change any scored item.
 
@@ -358,6 +359,51 @@ A memory aid for estimating and describing wind, not a forecast and no substitut
 - Environment and Climate Change Canada, **Beaufort wind scale table** (page dated 2017-09-10; checked 2026-09-25): https://www.canada.ca/en/environment-climate-change/services/general-marine-weather-information/understanding-forecasts/beaufort-wind-scale-table.html
 - World Meteorological Organization, **Manual on Marine Meteorological Services (WMO-No. 558), Volume I**, 2012 edition updated 2018, Part I §2.2.44(c): https://library.wmo.int/records/item/41585-manual-on-marine-meteorological-services-volume-i-global-aspects
 - Met Office, **Beaufort wind force scale** (cross-check of terms and ranges): https://weather.metoffice.gov.uk/guides/coast-and-sea/beaufort-scale
+
+## Canadian firearm safety — ACTS & PROVE
+
+### Research decision
+
+`docs/open/library-research/FIREARM_SAFETY_ACTS_PROVE.md` recommends a course whose completion claim includes applying ACTS/PROVE “across authored firearm-safety scenarios”. The current item shape cannot score that: a self-scored reveal card cannot tell whether a learner chose the safe response in a scene. That claim is **not** made here.
+
+What ships is the recall layer the umbrella paper (`ISSUE_104_FIELD_HUMAN_SKILLS_EXPANSION.md` §8.1 Q and R) scopes separately: the four ACTS rules and five PROVE steps, in order. That boundary is finite, exact and scorable, and it follows the Primary Survey precedent of scoring the headings and order while Learn explains the framework. The scenario layer waits for the capability described in `docs/open/ISSUE_104_SCENARIO_ITEMS.md` and should ship as its own topic, so this completion claim never changes meaning under a learner who already holds it.
+
+The spec required the doctrine wording to be rechecked before shipping, because the RCMP's 2025 Commissioner of Firearms Report announces a new national safety curriculum from 2026. As of 2026-09-25 no replacement wording is published; the current RCMP safety-courses page does not restate ACTS/PROVE; and the Firearms Safety Education Service of Ontario (the Ontario delivery agent) still directs students to the 2014 Student Handbook. The topic therefore pins its wording to that dated edition, says so in scope and Learn, and tells the learner to follow their course if it differs.
+
+Firearm scope follows the research papers exactly: safety memory only. Nothing about shooting, marksmanship, tactics, defensive use or action-specific manipulation is scored or explained.
+
+### Test boundary
+
+1. **ACTS 1 (A)** — Assume every firearm is loaded.
+2. **ACTS 2 (C)** — Control the muzzle direction at all times.
+3. **ACTS 3 (T)** — Trigger finger must be kept off the trigger and out of the trigger guard.
+4. **ACTS 4 (S)** — See that the firearm is unloaded — PROVE it safe.
+5. **PROVE 1 (P)** — Point the firearm in the safest available direction.
+6. **PROVE 2 (R)** — Remove all ammunition.
+7. **PROVE 3 (O)** — Observe the chamber.
+8. **PROVE 4 (V)** — Verify the feeding path.
+9. **PROVE 5 (E)** — Examine the bore for obstructions.
+
+The handbook's introduction prints “Observe the chamber(s)” and “Examine the bore for obstructions (visually or with a rod)”; the scored wording follows the §3.1.7 Table 4 form.
+
+### Learn treatment
+
+Briefing, because the acronyms alone are shallow: how ACTS and PROVE fit together, and four handbook rules — open-and-unloaded passing, the direct-control limit, never relying on a mechanical safety, and seeking a qualified individual rather than improvising. One integrated case (a rifle handed over closed and “already checked”) applies the whole framework and deliberately omits how any action is opened or inspected. None of it is scored.
+
+### Safety boundary
+
+Completion is not the CFSC, does not pass its written or practical tests, does not qualify anyone for a licence and does not show safe handling. Physical handling is taught and tested hands-on by certified instructors. These limits appear in the topic's Learn limitations, not only here.
+
+### Sources
+
+- Royal Canadian Mounted Police, **Canadian Firearms Safety Course — Student Handbook**, 5th edition (2014): https://publications.gc.ca/collections/collection_2015/grc-rcmp/PS99-2-2-1-2014-eng.pdf
+  - p. 21, The Vital Four ACTS of Firearm Safety (including “Pass or accept only open and unloaded firearms”).
+  - §3.1.7, Table 4, PROVE it safe (p. 50), and the direct-control rule beneath it.
+  - §3.1.4: never rely on the safety to prevent firing.
+  - Loading/unloading sections: do not handle a firearm you are uncomfortable handling; seek a qualified individual.
+- RCMP, **Safety courses** (date modified 2024-10-23): https://rcmp.ca/en/firearms/firearms-safety-training-transport-and-storage/safety-courses
+- RCMP, **2025 Commissioner of Firearms Report** (date modified 2026-06-30): https://rcmp.ca/en/corporate-information/publications-and-manuals/2025-commissioner-firearms-report
+- Firearms Safety Education Service of Ontario, **Canadian Firearm Safety Course**: https://fseso.org/course/canadian-firearm-safety-course-cfsc/
 
 ## Scope-integrity check
 

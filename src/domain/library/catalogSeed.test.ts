@@ -27,6 +27,7 @@ describe('researched seeded library', () => {
       'greek-alphabet',
       'hex-digits-binary',
       'beaufort-wind-scale',
+      'firearm-safety-acts-prove',
     ])
 
     for (const topic of library.topics) {
@@ -276,5 +277,38 @@ describe('researched seeded library', () => {
     }
     expect(topic.learn?.limitations?.some((note) => note.includes('not a forecast'))).toBe(true)
     expect(topic.learn?.sources?.[0].url).toContain('canada.ca')
+  })
+
+  it('keeps ACTS & PROVE to the nine handbook rules in order, with firearm limits visible', () => {
+    const topic = seededTopic('firearm-safety-acts-prove')
+
+    expect(rows(topic.items)).toEqual([
+      { prompt: 'ACTS 1 (A)', answer: 'Assume every firearm is loaded.' },
+      { prompt: 'ACTS 2 (C)', answer: 'Control the muzzle direction at all times.' },
+      { prompt: 'ACTS 3 (T)', answer: 'Trigger finger must be kept off the trigger and out of the trigger guard.' },
+      { prompt: 'ACTS 4 (S)', answer: 'See that the firearm is unloaded — PROVE it safe.' },
+      { prompt: 'PROVE 1 (P)', answer: 'Point the firearm in the safest available direction.' },
+      { prompt: 'PROVE 2 (R)', answer: 'Remove all ammunition.' },
+      { prompt: 'PROVE 3 (O)', answer: 'Observe the chamber.' },
+      { prompt: 'PROVE 4 (V)', answer: 'Verify the feeding path.' },
+      { prompt: 'PROVE 5 (E)', answer: 'Examine the bore for obstructions.' },
+    ])
+    // Each prompt's letter is the first letter of its rule, so the acronyms
+    // spell themselves out of the scored items.
+    const letters = topic.items.map((item) => item.prompt.match(/\((\w)\)$/)?.[1])
+    expect(letters.join('')).toBe('ACTSPROVE')
+    topic.items.forEach((item, index) => expect(item.answer[0]).toBe(letters[index]))
+
+    expect(topic.scope).toContain('Student Handbook (2014)')
+    expect(topic.scope).toContain('not handling a firearm')
+    expect(topic.items.every((item) => item.kind === 'forward')).toBe(true)
+    expect(topic.status).toBe('unstarted')
+    expect(topic.learn?.kind).toBe('briefing')
+    expect(topic.learn?.caseStudies).toHaveLength(1)
+    const limits = topic.learn?.limitations ?? []
+    expect(limits.some((note) => note.includes('is not the Canadian Firearms Safety Course'))).toBe(true)
+    expect(limits.some((note) => note.includes('nothing about shooting, tactics or use of force'))).toBe(true)
+    expect(limits.some((note) => note.includes('follow your course'))).toBe(true)
+    expect(topic.learn?.sources?.[0].url).toContain('publications.gc.ca')
   })
 })

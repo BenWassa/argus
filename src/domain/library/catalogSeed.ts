@@ -80,6 +80,22 @@ const BEAUFORT = [
   ['Force 12', 'Hurricane — 64 knots or more'],
 ] as const
 
+/**
+ * RCMP CFSC Student Handbook (5th ed., 2014): ACTS as on p. 21, PROVE as in
+ * §3.1.7 Table 4. Order is the acronym order and is part of the claim.
+ */
+const ACTS_PROVE = [
+  ['ACTS 1 (A)', 'Assume every firearm is loaded.'],
+  ['ACTS 2 (C)', 'Control the muzzle direction at all times.'],
+  ['ACTS 3 (T)', 'Trigger finger must be kept off the trigger and out of the trigger guard.'],
+  ['ACTS 4 (S)', 'See that the firearm is unloaded — PROVE it safe.'],
+  ['PROVE 1 (P)', 'Point the firearm in the safest available direction.'],
+  ['PROVE 2 (R)', 'Remove all ammunition.'],
+  ['PROVE 3 (O)', 'Observe the chamber.'],
+  ['PROVE 4 (V)', 'Verify the feeding path.'],
+  ['PROVE 5 (E)', 'Examine the bore for obstructions.'],
+] as const
+
 const day = 86_400_000
 const ago = (days: number) => new Date(Date.now() - days * day).toISOString()
 
@@ -754,6 +770,99 @@ export function seedLibrary(): Library {
             label: 'Met Office — Beaufort wind force scale',
             url: 'https://weather.metoffice.gov.uk/guides/coast-and-sea/beaufort-scale',
             note: 'National meteorological service cross-check: the same terms and knot ranges, with force 12 as 64 knots or more.',
+          },
+        ],
+      },
+      status: 'unstarted',
+      createdAt: ago(0),
+      drilledAt: null,
+      learningAt: null,
+      completedAt: null,
+      lastTestedAt: null,
+      spotCheckedAt: null,
+      history: [],
+    },
+    {
+      id: 'firearm-safety-acts-prove',
+      title: 'Canadian firearm safety — ACTS & PROVE',
+      scope: 'The Vital Four ACTS rules and the five PROVE it safe steps, in order and in the wording of the RCMP Canadian Firearms Safety Course Student Handbook (2014). Test covers recall of these nine rules only — not handling a firearm, the course, its tests or a licence.',
+      track: 'survival',
+      items: ACTS_PROVE.map(([prompt, answer]) => ({ prompt, answer })),
+      learn: {
+        kind: 'briefing',
+        overview: 'ACTS and PROVE are the safety core of the Canadian Firearms Safety Course. ACTS is four rules applied together, every time a firearm is handled. Its last rule — see that the firearm is unloaded — is carried out by PROVE, five steps in a fixed order. Test asks for the wording and order of all nine; the handbook rules below explain how they work together and are not scored.',
+        sections: [
+          {
+            heading: 'How the two fit together',
+            blocks: [
+              {
+                type: 'bullets',
+                items: [
+                  'The handbook calls ACTS the four rules an instructor returns to time and again, and notes that whenever an incident occurs, at least one of them has been broken.',
+                  'ACTS starts from an assumption, not a check: every firearm is treated as loaded, so the muzzle and trigger rules apply before anyone knows its condition.',
+                  'S is done through PROVE. Both the chamber and the magazine are checked, every time a firearm is handled, for any reason.',
+                ],
+              },
+            ],
+          },
+          {
+            heading: 'Rules the handbook attaches',
+            blocks: [
+              {
+                type: 'bullets',
+                items: [
+                  'Pass or accept only open and unloaded firearms.',
+                  'A firearm is unloaded and safe only until it leaves the direct control of the person who unloaded and PROVEd it safe.',
+                  'Never rely on the safety to prevent firing. A loaded firearm with the safety on could still fire; mechanical devices can fail.',
+                  'Do not handle a firearm unless you can properly PROVE it safe. Do not attempt to handle one you are uncomfortable handling — seek the assistance of a qualified individual.',
+                ],
+              },
+            ],
+          },
+        ],
+        caseStudies: [
+          {
+            title: 'A firearm handed over as “already checked”',
+            scenario: 'At a supervised range, a friend holds out a rifle with the action closed and says it is unloaded — they checked it a minute ago. This case is about the rules only; it deliberately leaves out how any particular action is opened or inspected.',
+            analysis: [
+              {
+                heading: 'Apply the rules as a whole',
+                blocks: [
+                  {
+                    type: 'paragraph',
+                    text: 'ACTS comes first: assume the rifle is loaded, keep its muzzle in the safest available direction and keep your finger off the trigger and out of the trigger guard. The handbook rule is to accept only an open and unloaded firearm, so a closed action is already the first problem. The friend’s check does not transfer to you: the rifle was unloaded and safe only while it stayed in their direct control. Seeing that it is unloaded is now your job, through PROVE, step by step. If you do not know how to open and check this rifle, you do not improvise — you ask the range officer or another qualified person.',
+                  },
+                ],
+              },
+            ],
+            takeaway: 'Safe status is established by the person holding the firearm, through the whole sequence, every time. It is never inherited from someone else’s word.',
+          },
+        ],
+        limitations: [
+          'Argus supports memory and rehearsal only. Completing this topic is not the Canadian Firearms Safety Course, does not pass its written or practical tests, does not qualify you for a firearms licence and does not show that you can handle a firearm safely.',
+          'Handling, loading, unloading and inspecting real firearms is taught and tested hands-on by a certified CFSC instructor. Learn those there, not from a screen. This topic teaches nothing about shooting, tactics or use of force.',
+          'The wording is pinned to the 2014 Student Handbook, which Ontario’s course provider still directs students to as of September 2026. The RCMP is rolling out a new national safety curriculum from 2026; if your course words the rules differently, follow your course.',
+        ],
+        sources: [
+          {
+            label: 'RCMP — Canadian Firearms Safety Course, Student Handbook (5th edition, 2014)',
+            url: 'https://publications.gc.ca/collections/collection_2015/grc-rcmp/PS99-2-2-1-2014-eng.pdf',
+            note: 'Primary doctrine. The Vital Four ACTS (p. 21), PROVE it safe (§3.1.7, Table 4, p. 50), the direct-control rule, the open-and-unloaded passing rule, the warning not to rely on a mechanical safety, and the instruction to seek a qualified individual.',
+          },
+          {
+            label: 'RCMP — Safety courses',
+            url: 'https://rcmp.ca/en/firearms/firearms-safety-training-transport-and-storage/safety-courses',
+            note: 'Current Canadian Firearms Program page: first-time licence applicants take the CFSC, which ends in both a written and a practical test.',
+          },
+          {
+            label: 'RCMP — 2025 Commissioner of Firearms Report',
+            url: 'https://rcmp.ca/en/corporate-information/publications-and-manuals/2025-commissioner-firearms-report',
+            note: 'Announces the national rollout of a new firearms safety curriculum and course materials beginning in 2026 — the reason this topic pins its wording to a dated edition.',
+          },
+          {
+            label: 'Firearms Safety Education Service of Ontario — Canadian Firearm Safety Course',
+            url: 'https://fseso.org/course/canadian-firearm-safety-course-cfsc/',
+            note: 'Ontario delivery agent for the CFSC; as of 2026-09-25 it directs students to the 2014 Student Handbook above.',
           },
         ],
       },
