@@ -287,8 +287,8 @@ Counts are stated in items, not topics alone. Four topics can be eight items or 
 ### Stat strip
 One bordered container divided by hairlines, reading as a single instrument panel. Every figure is a reading, so every figure is mono.
 
-### Completion record
-A numbered descending index of completions, sans titles with mono track labels and mono tabular dates. This is the artifact the product exists to build, so it is composed rather than listed.
+### Library list
+Titles only, with the row gauge where a topic has earned a reading. Started topics come first under one mono `Learning` label, most recent at the top; everything else follows by title with no label. A row opens its topic and carries no action button, status words, item count or track. Search is a single icon control that opens leftwards over the heading.
 
 ### Current destination
 Once the accent is a near-white, a hue shift alone cannot carry "current" against ink that is also near-white. The navigation marks it with a 2px machined bar on the edge the nav is attached to: along the top on the mobile bar, down the left on the desktop rail.

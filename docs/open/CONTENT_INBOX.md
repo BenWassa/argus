@@ -94,7 +94,7 @@ The following decisions are settled for the first implementation.
 6. Firestore generates request document IDs. These IDs are queue identity only and never become Argus topic or item IDs.
 7. Capture uses one primary text field. The value may be a subject, URL, or URL plus note.
 8. Track is optional at capture time and defaults to `Auto`. If supplied it maps only to the existing `learning`, `survival` or `tradecraft` tracks.
-9. Pending requests appear in Library in a compact **Want to learn** section, separate from real topics.
+9. Capture is reached from Library's `+` menu once the inbox is ready. Pending requests are not listed in the app (the Library section that showed them was removed on 2026-09-25); they are reviewed with `npm run inbox`.
 10. Ingestion produces ordinary repository changes and a reviewable pull request. Generated curriculum is never auto-published.
 11. A request becomes `added` only after its resulting topic or topics have actually shipped.
 12. New shipped catalog topics require a general safe catalog-reconciliation mechanism so existing local libraries can receive them without losing learner state.
@@ -484,7 +484,7 @@ All four pieces above are shipped. This section records the decisions the design
 | client configuration contract | `src/services/inbox/inboxConfig.ts`, `.env.example` |
 | backend boundary and unavailable fallback | `src/services/inbox/inboxBackend.ts` |
 | Firebase Auth/Firestore implementation | `src/services/inbox/firebaseInboxBackend.ts` |
-| capture sheet and Want to learn queue | `src/features/library/CaptureSheet.tsx`, `WantToLearn.tsx` |
+| capture sheet | `src/features/library/CaptureSheet.tsx`, `AddMenu.tsx` |
 | Security Rules | `firestore.rules.template`, rendered by `npm run inbox:rules` |
 | rules tests (Firestore emulator) | `firestore/rules.test.ts`, `npm run test:rules` |
 | maintainer ingestion tool | `scripts/inbox/`, `npm run inbox` |

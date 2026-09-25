@@ -1,27 +1,17 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useLibrary } from '../../services/library/LibraryProvider'
-import {
-  journeyShelves,
-  journeysFor,
-  launchFor,
-  TEST_CONSEQUENCE_NOTE,
-  type JourneyEntry,
-} from '../../domain/study/journey'
+import { journeysFor, type JourneyEntry } from '../../domain/study/journey'
+import { libraryGroups } from '../../domain/study/libraryGroups'
 import type { RunTarget } from '../../app/routing/routes'
-import { resolveStudy } from '../../domain/study/scheduling'
 import { Confirm } from '../../shared/ui/Confirm'
 import { AddMenu } from './AddMenu'
 import { TopicForm, type Draft } from './TopicForm'
 import { TopicPage } from './TopicPage'
-import { CompletionRecord } from './CompletionRecord'
 import { TopicGauge } from './TopicGauge'
 import { CaptureSheet } from './CaptureSheet'
-import { WantToLearn } from './WantToLearn'
 import { useInbox } from '../../services/inbox/useInbox'
-import { describeInboxError } from '../../services/inbox/inboxBackend'
-import type { ContentRequest } from '../../services/inbox/inboxModel'
 import type { Mode } from '../../domain/study/mode'
-import { TRACKS, type Topic, type Track } from '../../domain/library/topic'
+import type { Topic } from '../../domain/library/topic'
 import './LibraryPage.css'
 
 interface LibraryProps {
@@ -35,12 +25,6 @@ interface LibraryProps {
   openFormOnMount?: boolean
   /** Current topic identity restored by browser Back/Forward when present. */
   openTopicOnMount?: string | null
-}
-
-const TRACK_LABELS: Record<Track, string> = {
-  learning: 'Learning',
-  survival: 'Survival',
-  tradecraft: 'Tradecraft',
 }
 
 /**
@@ -63,7 +47,7 @@ export function LibraryPage({
   openFormOnMount = false,
   openTopicOnMount = null,
 }: LibraryProps) {
-  const { topics, upsertTopic, removeTopic, updateTopic } = useLibrary()
+  const { topics, upsertTopic, removeTopic } = useLibrary()
 
   const [openId, setOpenId] = useState<string | null>(openTopicOnMount)
   const [editing, setEditing] = useState<Topic | null>(null)
@@ -73,21 +57,19 @@ export function LibraryPage({
   const [pendingDelete, setPendingDelete] = useState<Topic | null>(null)
   const [addMenuOpen, setAddMenuOpen] = useState(false)
 
-  // The inbox is a neighbour of the library, never a part of it. Its requests
-  // are held in their own state and never enter `topics`, so nothing here can
-  // reach the scheduler, a Test run, progress or completion.
+  // The inbox is a neighbour of the library, never a part of it. Capture is
+  // reached from the + button; its requests never enter `topics`, so nothing
+  // here can reach the scheduler, a Test run, progress or completion.
   const inbox = useInbox()
   const [capturing, setCapturing] = useState(false)
-  const [removingRequest, setRemovingRequest] = useState<string | null>(null)
-  const [inboxError, setInboxError] = useState<string | null>(null)
 
   const [query, setQuery] = useState('')
-  const [tracks, setTracks] = useState<Track[]>([])
-  const [selecting, setSelecting] = useState(false)
-  const [selected, setSelected] = useState<string[]>([])
+  const [searchOpen, setSearchOpen] = useState(false)
   const [announcement, setAnnouncement] = useState('')
 
   const searchId = useId()
+  const searchField = useRef<HTMLInputElement>(null)
+  const searchToggle = useRef<HTMLButtonElement>(null)
   const list = useRef<HTMLDivElement>(null)
   /** Set when leaving a topic page, so focus lands back on the row you left from. */
   const returnTo = useRef<string | null>(null)
@@ -99,26 +81,20 @@ export function LibraryPage({
 
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase()
-    return topics.filter((topic) => {
-      if (tracks.length > 0 && !tracks.includes(topic.track)) return false
-      if (!needle) return true
-      return (
-        topic.title.toLowerCase().includes(needle) || topic.scope.toLowerCase().includes(needle)
-      )
-    })
-  }, [topics, query, tracks])
+    if (!needle) return topics
+    return topics.filter(
+      (topic) =>
+        topic.title.toLowerCase().includes(needle) || topic.scope.toLowerCase().includes(needle),
+    )
+  }, [topics, query])
 
-  // Shelf placement and row action are two readings of one derivation, so a row
-  // can no longer sit on `Due now` while its button says something else.
-  const groups = useMemo(() => journeyShelves(journeysFor(filtered)), [filtered])
-  const dueCount = useMemo(
-    () => journeysFor(topics).filter((entry) => entry.journey.due && entry.topic.items.length > 0).length,
-    [topics],
-  )
-  const filtering = query.trim().length > 0 || tracks.length > 0
+  const groups = useMemo(() => libraryGroups(journeysFor(filtered)), [filtered])
+  const filtering = query.trim().length > 0
+  const nothingMatches = groups.learning.length === 0 && groups.rest.length === 0
 
-  const selectable = filtered.filter((t) => t.items.length > 0)
-  const chosen = selected.filter((id) => selectable.some((t) => t.id === id))
+  useEffect(() => {
+    if (searchOpen) searchField.current?.focus()
+  }, [searchOpen])
 
   // Browser Back/Forward owns the durable topic identity. Keep the existing
   // local page state synchronized so filters/dialogs remain local while a
@@ -190,10 +166,10 @@ export function LibraryPage({
     setFormOpen(true)
   }
 
-  // With no inbox in this build there is only one real choice, so the FAB
-  // skips straight to it rather than opening a menu with one option in it.
+  // Capture needs a working inbox. Without one there is only one real choice,
+  // so the FAB skips straight to it rather than opening a menu with one option.
   function openAdd() {
-    if (inbox.status === 'unconfigured') {
+    if (inbox.status !== 'ready') {
       newTopic()
       return
     }
@@ -207,48 +183,11 @@ export function LibraryPage({
     setFormOpen(true)
   }
 
-  function toggleTrack(track: Track) {
-    setTracks((current) =>
-      current.includes(track) ? current.filter((t) => t !== track) : [...current, track],
-    )
-  }
-
-  function toggleSelected(id: string) {
-    setSelected((current) =>
-      current.includes(id) ? current.filter((x) => x !== id) : [...current, id],
-    )
-  }
-
-  function endSelecting() {
-    setSelecting(false)
-    setSelected([])
-  }
-
-  function clearFilters() {
+  function closeSearch() {
     setQuery('')
-    setTracks([])
-  }
-
-  async function signInToInbox() {
-    setInboxError(null)
-    try {
-      await inbox.signIn()
-    } catch (error) {
-      setInboxError(describeInboxError(error))
-    }
-  }
-
-  async function removeRequest(request: ContentRequest) {
-    setInboxError(null)
-    setRemovingRequest(request.id)
-    try {
-      await inbox.deleteRequest(request.id)
-      setAnnouncement('Request removed.')
-    } catch (error) {
-      setInboxError(describeInboxError(error))
-    } finally {
-      setRemovingRequest(null)
-    }
+    setSearchOpen(false)
+    // The field is going away, so focus returns to the control that opened it.
+    requestAnimationFrame(() => searchToggle.current?.focus())
   }
 
   function closeForm() {
@@ -334,9 +273,17 @@ export function LibraryPage({
     )
   }
 
+  const rows = (entries: JourneyEntry[]) => (
+    <ul className="index">
+      {entries.map((entry) => (
+        <Row key={entry.topic.id} entry={entry} onOpen={() => openTopic(entry.topic.id)} />
+      ))}
+    </ul>
+  )
+
   return (
     <>
-      <div className="page-head">
+      <div className="page-head lib-head">
         <div>
           <h1>Library</h1>
           <p className="kicker lib-count tabular">
@@ -344,19 +291,72 @@ export function LibraryPage({
               ? 'Empty'
               : filtering
                 ? `${filtered.length} of ${topics.length} topics`
-                : `${topics.length} ${topics.length === 1 ? 'topic' : 'topics'} · ${dueCount} due`}
+                : `${topics.length} ${topics.length === 1 ? 'topic' : 'topics'}`}
           </p>
         </div>
-      </div>
 
-      <WantToLearn
-        status={inbox.status}
-        requests={inbox.requests}
-        error={inboxError ?? inbox.error}
-        removing={removingRequest}
-        onSignIn={() => void signInToInbox()}
-        onRemove={(request) => void removeRequest(request)}
-      />
+        {/* Search stays a single control until it is wanted, then opens
+            leftwards over the heading. Closing it clears the query, so a
+            filtered list never outlives the field that filtered it. */}
+        {topics.length > 0 && (
+          <div className={`lib-search-box${searchOpen ? ' is-open' : ''}`}>
+            {searchOpen ? (
+              <>
+                <label className="sr-only" htmlFor={searchId}>
+                  Search topics
+                </label>
+                <input
+                  ref={searchField}
+                  id={searchId}
+                  className="field lib-search"
+                  type="search"
+                  value={query}
+                  placeholder="Search titles and scope"
+                  onChange={(e) => setQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Escape') closeSearch()
+                  }}
+                />
+                <button
+                  className="lib-search-toggle"
+                  type="button"
+                  aria-label="Close search"
+                  onClick={closeSearch}
+                >
+                  <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
+                    <path
+                      d="M6 6l12 12M18 6L6 18"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </button>
+              </>
+            ) : (
+              <button
+                ref={searchToggle}
+                className="lib-search-toggle"
+                type="button"
+                aria-label="Search topics"
+                onClick={() => setSearchOpen(true)}
+              >
+                <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
+                  <circle cx="10.5" cy="10.5" r="6" fill="none" stroke="currentColor" strokeWidth="2" />
+                  <path
+                    d="M15 15l5 5"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </button>
+            )}
+          </div>
+        )}
+      </div>
 
       {topics.length === 0 ? (
         <div className="lib-blank">
@@ -374,111 +374,38 @@ export function LibraryPage({
             </button>
           </div>
         </div>
+      ) : nothingMatches ? (
+        <div className="lib-blank">
+          <p>
+            Nothing matches that. The library holds {topics.length}{' '}
+            {topics.length === 1 ? 'topic' : 'topics'} in total.
+          </p>
+          <button className="ghost" type="button" onClick={closeSearch}>
+            Clear search
+          </button>
+        </div>
       ) : (
-        <>
-          <div className="lib-filters">
-            <label className="sr-only" htmlFor={searchId}>
-              Search topics
-            </label>
-            <input
-              id={searchId}
-              className="field lib-search"
-              type="search"
-              value={query}
-              placeholder="Search titles and scope"
-              onChange={(e) => setQuery(e.target.value)}
-            />
-
-            <div className="lib-chips" role="group" aria-label="Filter by track">
-              {TRACKS.map((track) => (
-                <button
-                  key={track}
-                  type="button"
-                  className={`lib-chip lib-chip-${track}`}
-                  aria-pressed={tracks.includes(track)}
-                  onClick={() => toggleTrack(track)}
-                >
-                  {TRACK_LABELS[track]}
-                </button>
-              ))}
-              {/* Stays put once selecting, even if a filter drops the list below
-                  the threshold that offered it. Otherwise the way out vanishes. */}
-              {(selecting || selectable.length > 1) && (
-                <button
-                  className="quiet lib-select-toggle"
-                  type="button"
-                  onClick={() => (selecting ? endSelecting() : setSelecting(true))}
-                >
-                  {selecting ? 'Cancel' : 'Select'}
-                </button>
-              )}
-            </div>
-          </div>
-
-          {groups.length === 0 ? (
-            <div className="lib-blank">
-              <p>
-                Nothing matches that. The library holds {topics.length}{' '}
-                {topics.length === 1 ? 'topic' : 'topics'} in total.
-              </p>
-              <button className="ghost" type="button" onClick={clearFilters}>
-                Clear filters
-              </button>
-            </div>
-          ) : (
-            <div ref={list}>
-              {groups.map((shelf) => (
-                <section className="lib-shelf" key={shelf.id}>
-                  <h2 className={`lib-shelf-head lib-shelf-${shelf.id}`}>
-                    <span className="lib-shelf-label">{shelf.label}</span>
-                    <span className="lib-shelf-count tabular">{shelf.entries.length}</span>
-                  </h2>
-                  <ul className="index">
-                    {shelf.entries.map((entry) => (
-                      <Row
-                        key={entry.topic.id}
-                        entry={entry}
-                        onDueShelf={shelf.id === 'due'}
-                        selecting={selecting}
-                        selected={chosen.includes(entry.topic.id)}
-                        onOpen={() => openTopic(entry.topic.id)}
-                        onToggle={() => toggleSelected(entry.topic.id)}
-                        onAction={() => {
-                          // One derivation decides the verb and where it leads,
-                          // so a row cannot start a topic differently from Today.
-                          const target = launchFor(entry.journey)
-                          if (target.kind === 'author') {
-                            editTopic(entry.topic, true)
-                            return
-                          }
-                          if (target.kind === 'enroll') {
-                            updateTopic(entry.topic.id, (current) => resolveStudy(current))
-                            openTopic(entry.topic.id)
-                            return
-                          }
-                          onStart(
-                            target.mode,
-                            [entry.topic.id],
-                            target.mode === 'learn' ? { kind: 'lesson' } : undefined,
-                          )
-                        }}
-                      />
-                    ))}
-                  </ul>
-                </section>
-              ))}
-
-              <p className="lib-consequence">{TEST_CONSEQUENCE_NOTE}</p>
-            </div>
+        <div ref={list}>
+          {/* Two groups and one heading. What you have started, most recent
+              first, is the part of a library you come back to; everything
+              else is the shelf, by title, and needs no name beyond Library. */}
+          {groups.learning.length > 0 && (
+            <section className="lib-group" aria-labelledby="lib-learning-head">
+              <h2 id="lib-learning-head" className="lib-group-head">
+                Learning
+              </h2>
+              {rows(groups.learning)}
+            </section>
           )}
-
-          {/* The permanent record. It is read, not reached, so it closes the
-              page rather than competing with the shelves. */}
-          <CompletionRecord topics={topics} />
-        </>
+          {groups.rest.length > 0 && (
+            <section className="lib-group lib-group-rest" aria-label="Not started">
+              {rows(groups.rest)}
+            </section>
+          )}
+        </div>
       )}
 
-      {topics.length > 0 && !selecting && (
+      {topics.length > 0 && (
         <button
           className="lib-fab"
           type="button"
@@ -497,19 +424,6 @@ export function LibraryPage({
         </button>
       )}
 
-      {selecting && chosen.length > 0 && (
-        <div className="lib-batch" role="group" aria-label="Run the selected topics">
-          <p className="lib-batch-count tabular">
-            {chosen.length} selected
-          </p>
-          <div className="lib-batch-actions">
-            <button type="button" onClick={() => onStart('test', chosen)}>
-              Test {chosen.length}
-            </button>
-          </div>
-        </div>
-      )}
-
       {overlays}
     </>
   )
@@ -517,90 +431,22 @@ export function LibraryPage({
 
 interface RowProps {
   entry: JourneyEntry
-  /** True on the Due now shelf, where the schedule line stops being a countdown
-   *  and becomes the reason the topic surfaced. */
-  onDueShelf: boolean
-  selecting: boolean
-  selected: boolean
   onOpen: () => void
-  onToggle: () => void
-  onAction: () => void
 }
 
 /**
- * Two zones, separated by a hairline, each with one meaning: the left browses
- * the topic without learner-state effects; the right performs the journey action.
- * The action carries its consequence as a word,
- * because a scored test is the most consequential thing in the product and an
- * icon cannot state a consequence.
+ * A title and, where the topic has earned one, its progress reading. The row
+ * opens the topic and does nothing else: what to do next is the topic page's
+ * one decision, and Today's, rather than a second button on every row here.
  */
-function Row({ entry, onDueShelf, selecting, selected, onOpen, onToggle, onAction }: RowProps) {
+function Row({ entry, onOpen }: RowProps) {
   const { topic, journey } = entry
-  const runnable = topic.items.length > 0
-  // Verb, schedule line and progress bar all come from the same journey, so the
-  // row cannot say Test while Today says Continue Learn about the same topic.
-  const action = journey.actionLabel
-  const schedule = journey.statusLabel
-  // Repair reads in warning on Today, so it reads in warning here. Decay is
-  // routing information in both places, and it should look the same in both.
-  const when = [
-    'lib-when',
-    onDueShelf ? 'is-due' : '',
-    journey.phase === 'repair' ? 'is-repair' : '',
-  ]
-    .filter(Boolean)
-    .join(' ')
-
   return (
-    <li className={`index-entry${selecting ? ' is-selecting' : ''}`}>
-      {selecting && (
-        <input
-          type="checkbox"
-          className="lib-check"
-          checked={selected}
-          disabled={!runnable}
-          aria-label={`Select ${topic.title}`}
-          onChange={onToggle}
-        />
-      )}
-
-      <button
-        type="button"
-        className="index-row"
-        data-row={topic.id}
-        // A topic with no items cannot be run, so it cannot be selected either.
-        // Disabled rather than falling through to onOpen: a tap mid-selection
-        // should not silently exit the batch and navigate away.
-        disabled={selecting && !runnable}
-        onClick={selecting ? onToggle : onOpen}
-      >
+    <li className="index-entry">
+      <button type="button" className="index-row" data-row={topic.id} onClick={onOpen}>
         <span className="index-title">{topic.title}</span>
-        <span className="index-meta">
-          <span className={`track track-${topic.track}`}>{topic.track}</span>
-          <span className="tabular">
-            {topic.items.length} {topic.items.length === 1 ? 'item' : 'items'}
-          </span>
-          <span className={when}>{schedule}</span>
-        </span>
-        {/* Acquisition in progress is not retention waiting, so it is said in
-            words rather than folded into the schedule bar. */}
-        {journey.phase === 'acquiring' && journey.acquisition.progressive && journey.detail && (
-          <span className="lib-acquisition">{journey.detail}</span>
-        )}
-        {/* The row's one progress reading. It used to be a retention-gap
-            hairline and nothing else, so a topic mid-acquisition — the state a
-            Morse learner is in for weeks — showed no progress at all. The
-            gauge picks whichever measure the topic has actually earned and
-            carries its own accessible reading, which this row previously
-            omitted entirely. */}
         <TopicGauge topic={topic} journey={journey} variant="row" />
       </button>
-
-      {!selecting && (
-        <button className="lib-action" type="button" onClick={onAction}>
-          {action}
-        </button>
-      )}
     </li>
   )
 }

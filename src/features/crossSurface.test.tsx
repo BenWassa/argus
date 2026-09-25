@@ -158,14 +158,6 @@ function rowFor(title: string, scope: HTMLElement = document.body): HTMLElement 
   return row
 }
 
-/** Library lists a decayed topic twice on purpose: as work, and in the record. */
-function libraryShelves(): HTMLElement {
-  const work = document.createElement('div')
-  for (const shelf of document.querySelectorAll('.lib-shelf')) {
-    work.appendChild(shelf.cloneNode(true))
-  }
-  return work
-}
 
 /** The docket alone. Today's primary action now names its topic too, and the
  *  docket is where the per-topic verdict is said. */
@@ -189,22 +181,18 @@ function todaySchedule(topic: Topic): string {
   return rowFor(topic.title, todayDocket()).querySelector('.due-reason')?.textContent?.trim() ?? ''
 }
 
-/** What Library's action button says for this topic. */
-function libraryVerb(topic: Topic): string {
+/**
+ * Which Library group holds this topic. Library no longer carries a verb or a
+ * schedule of its own — the row only opens the topic — so the one thing it can
+ * disagree with the other surfaces about is whether the learner has started.
+ */
+function libraryGroup(topic: Topic): string {
   renderLibrary()
-  return rowFor(topic.title, libraryShelves()).querySelector('.lib-action')?.textContent?.trim() ?? ''
-}
-
-function librarySchedule(topic: Topic): string {
-  renderLibrary()
-  return rowFor(topic.title, libraryShelves()).querySelector('.lib-when')?.textContent?.trim() ?? ''
-}
-
-/** Which shelf Library placed this topic on. */
-function libraryShelf(topic: Topic): string {
-  renderLibrary()
-  const shelf = rowFor(topic.title, libraryShelves()).closest('section')
-  return shelf?.querySelector('.lib-shelf-head')?.textContent?.replace(/\d+$/, '').trim() ?? ''
+  const row = rowFor(topic.title)
+  // A row opens its topic and nothing else: no second control to disagree.
+  expect(row.querySelectorAll('button')).toHaveLength(1)
+  const group = row.closest('section')
+  return group?.querySelector('.lib-group-head')?.textContent?.trim() ?? group?.getAttribute('aria-label') ?? ''
 }
 
 /** The Topic page's single primary action. There is only ever one. */
@@ -231,20 +219,20 @@ describe('one learner state, three surfaces, one recommendation', () => {
   interface Scenario {
     name: string
     topic: () => Topic
-    /** Where Library shelves it, for that same state. */
-    shelf: string
+    /** Which Library group holds it, for that same state. */
+    group: 'Learning' | 'Not started'
   }
 
   const scenarios: Scenario[] = [
     {
       name: 'a Morse topic nobody has opened',
       topic: () => blank(MORSE_ID),
-      shelf: 'Due now',
+      group: 'Not started',
     },
     {
       name: 'a Morse topic partway through acquisition',
       topic: () => acquire(resolveStudy(blank(MORSE_ID), new Date(Date.now() - 6 * DAY)), 4),
-      shelf: 'Due now',
+      group: 'Learning',
     },
     {
       name: 'a Morse topic that reached readiness today',
@@ -252,7 +240,7 @@ describe('one learner state, three surfaces, one recommendation', () => {
         ...acquire(resolveStudy(blank(MORSE_ID), new Date(Date.now() - 40 * DAY)), 14),
         acquisitionReadyAt: ago(0),
       }),
-      shelf: 'Waiting',
+      group: 'Learning',
     },
     {
       name: 'a Morse topic ready and past its anchored gap',
@@ -260,28 +248,28 @@ describe('one learner state, three surfaces, one recommendation', () => {
         ...acquire(resolveStudy(blank(MORSE_ID), new Date(Date.now() - 40 * DAY)), 14),
         acquisitionReadyAt: ago(3),
       }),
-      shelf: 'Due now',
+      group: 'Learning',
     },
     {
       name: 'an ordinary topic not yet enrolled',
       topic: () => blank('cardinal-bearings'),
-      shelf: 'Due now',
+      group: 'Not started',
     },
     {
       name: 'an ordinary topic waiting out its delayed test',
       topic: () => blank('cardinal-bearings', { status: 'drilled', drilledAt: ago(4) }),
-      shelf: 'Waiting',
+      group: 'Learning',
     },
     {
       name: 'an ordinary topic ready for its delayed test',
       topic: () =>
         blank('cardinal-bearings', { status: 'drilled', drilledAt: ago(COMPLETION_GAP_DAYS + 1) }),
-      shelf: 'Due now',
+      group: 'Learning',
     },
     {
       name: 'a topic that decayed and needs repair',
       topic: () => blank('cardinal-bearings', { status: 'decayed', completedAt: ago(200) }),
-      shelf: 'Due now',
+      group: 'Learning',
     },
     {
       name: 'a completed topic waiting for its spot check',
@@ -292,7 +280,7 @@ describe('one learner state, three surfaces, one recommendation', () => {
           completedAt: ago(20),
           lastTestedAt: ago(20),
         }),
-      shelf: 'Waiting',
+      group: 'Learning',
     },
   ]
 
@@ -304,11 +292,6 @@ describe('one learner state, three surfaces, one recommendation', () => {
 
       // Every surface describes the same stored topic. Opening Topic is browsing
       // only, so it cannot advance the state underneath later assertions.
-      expect(libraryVerb(topic)).toBe(journey.actionLabel)
-      cleanup()
-      expect(librarySchedule(topic)).toBe(journey.statusLabel)
-      cleanup()
-
       if (journey.due) {
         expect(todayVerb(topic)).toBe(journey.actionLabel)
         cleanup()
@@ -325,10 +308,10 @@ describe('one learner state, three surfaces, one recommendation', () => {
       expect(topicSchedule(topic)).toBe(journey.statusLabel)
       cleanup()
 
-      // Placement. A row on `Due now` whose button says nothing is doable, or a
-      // topic filed under Waiting that Today is asking for, is the same defect.
+      // Placement. Library groups by whether the learner has begun, so a topic
+      // Today treats as in progress must never sit on the untouched shelf.
       install([topic])
-      expect(libraryShelf(topic)).toBe(scenario.shelf)
+      expect(libraryGroup(topic)).toBe(scenario.group)
     })
   }
 })
@@ -344,8 +327,6 @@ describe('partially acquired Morse is never routed to Test', () => {
 
     expect(todayVerb(partial)).toBe('Continue')
     cleanup()
-    expect(libraryVerb(partial)).toBe('Continue')
-    cleanup()
     expect(topicPrimary(partial)).toBe(journeyFor(partial).primaryLabel)
     expect(topicPrimary(partial)).toMatch(/^Continue lesson \d+$/)
   })
@@ -355,8 +336,6 @@ describe('partially acquired Morse is never routed to Test', () => {
     install([fresh])
 
     expect(todayVerb(fresh)).toBe('Start lesson')
-    cleanup()
-    expect(libraryVerb(fresh)).toBe('Start lesson')
     cleanup()
     expect(topicPrimary(fresh)).toBe('Start lesson 1')
   })
@@ -391,15 +370,16 @@ describe('partially acquired Morse is never routed to Test', () => {
     expect(check?.textContent).toContain('does not move the ladder')
   })
 
-  it('shows acquisition progress as words, never as a retention gap bar', () => {
+  it('reads acquisition progress in its own units, never as a retention gap', () => {
     const partial = acquire(resolveStudy(blank(MORSE_ID), new Date(Date.now() - 6 * DAY)), 4)
     install([partial])
 
     renderLibrary()
     const row = rowFor(partial.title)
-    expect(row.querySelector('.lib-acquisition')?.textContent).toContain('letters settled')
+    expect(row.querySelector('.gauge-acquisition')).not.toBeNull()
+    expect(row.querySelector('.gauge-row .sr-only')?.textContent).toContain('letters settled')
     // The gap bar means retention, and this topic has not entered a gap.
-    expect(row.querySelector('.lib-gap')).toBeNull()
+    expect(row.querySelector('.gauge-gap')).toBeNull()
   })
 
   it('carries the active finite sitting through to the surfaces that show it', () => {
@@ -434,8 +414,6 @@ describe('acquisition readiness moves every surface together', () => {
     const topic = ready()
     install([topic])
 
-    expect(libraryVerb(topic)).toBe('Test')
-    cleanup()
     // The page's fuller recommendation between checks: keep learning past the
     // alphabet. Its Test is still one tap away, as a short review.
     expect(topicPrimary(topic)).toBe('Keep going')
@@ -457,9 +435,9 @@ describe('acquisition readiness moves every surface together', () => {
     // First exposure was forty days ago. Under the old rule the topic has read
     // `Ready to drill` for thirty-nine of them.
     expect(topic.learningAt).not.toBeNull()
-    expect(librarySchedule(topic)).toBe('Test in 1 day')
+    expect(topicSchedule(topic)).toBe('Test in 1 day')
     cleanup()
-    expect(libraryShelf(topic)).toBe('Waiting')
+    expect(libraryGroup(topic)).toBe('Learning')
   })
 
   it('becomes due once the anchored gap has actually passed', () => {
@@ -470,12 +448,12 @@ describe('acquisition readiness moves every surface together', () => {
     cleanup()
     expect(todaySchedule(topic)).toBe('Ready to test')
     cleanup()
-    expect(libraryShelf(topic)).toBe('Due now')
+    expect(libraryGroup(topic)).toBe('Learning')
   })
 })
 
-describe('Library absorbed Progress without losing what it said', () => {
-  it('separates live work, waiting and the permanent record', () => {
+describe('Library is a list of titles, grouped by whether you have begun', () => {
+  it('puts every started topic first, most recent at the top, and the rest by title', () => {
     const topics = [
       acquire(resolveStudy(blank(MORSE_ID), new Date(Date.now() - 6 * DAY)), 3),
       blank('cardinal-bearings', { status: 'decayed', completedAt: ago(200) }),
@@ -486,27 +464,30 @@ describe('Library absorbed Progress without losing what it said', () => {
         completedAt: ago(20),
         lastTestedAt: ago(20),
       }),
+      blank('ooda-loop'),
     ]
     install(topics)
     renderLibrary()
-    const headings = [...document.querySelectorAll('.lib-shelf-head')].map((h) =>
-      h.textContent?.replace(/\d+$/, '').trim(),
-    )
-    expect(headings).toEqual(['Due now', 'Waiting'])
 
-    // Repair is not a fourth shelf: a decayed topic is due, and its own row says
-    // so in warning rather than being filed away from the work it needs.
-    const bearings = rowFor('Cardinal and intercardinal bearings', libraryShelves())
-    expect(bearings.querySelector('.lib-when.is-repair')?.textContent).toBe('Needs repair')
+    // One visible heading. There are no schedule shelves, no track filters and
+    // no selection mode any more.
+    const headings = [...document.querySelectorAll('.lib-group-head')].map((h) => h.textContent)
+    expect(headings).toEqual(['Learning'])
+    expect(document.querySelector('.lib-shelf')).toBeNull()
+    expect(screen.queryByRole('group', { name: 'Filter by track' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Select' })).toBeNull()
 
-    // Decay routes work without erasing history: the bearings topic is due for
-    // repair *and* still holds its place in the permanent record, once opened
-    // — the itemized list waits behind its header's disclosure so it does not
-    // compete with the shelves above it.
-    fireEvent.click(screen.getByRole('button', { name: /Completion record/ }))
-    const record = document.querySelector('.record') as HTMLElement
-    expect(within(record).getByText('Cardinal and intercardinal bearings')).toBeTruthy()
-    expect(within(record).getByText('NATO phonetic alphabet')).toBeTruthy()
+    const learning = document.querySelector('.lib-group:not(.lib-group-rest)') as HTMLElement
+    const titles = [...learning.querySelectorAll('.index-title')].map((t) => t.textContent)
+    // Survey drilled 4 days ago, Morse enrolled 6, NATO tested 20, bearings
+    // banked 200.
+    expect(titles).toEqual([topics[2].title, topics[0].title, topics[3].title, topics[1].title])
+    const rest = document.querySelector('.lib-group-rest') as HTMLElement
+    expect(within(rest).getByText(topics[4].title)).toBeTruthy()
+
+    // Rows carry no status words, no item count and no track.
+    expect(document.querySelector('.lib-when')).toBeNull()
+    expect(document.querySelector('.index-meta')).toBeNull()
   })
 
   it('carries no streaks, badges, XP, leaderboard or single progress percentage', () => {
@@ -531,19 +512,14 @@ describe('Library absorbed Progress without losing what it said', () => {
     expect(document.querySelector('.stat-strip')).toBeNull()
   })
 
-  it('shows a fresh install no achievements at all', () => {
+  it('shows a fresh install every shipped topic on the untouched shelf', () => {
     // No stored library: the first-run delivery path.
     renderLibrary()
 
-    expect(document.body.textContent).toContain('No completions yet')
-    expect(document.querySelector('.record')).toBeNull()
-    // Every shipped topic, and every one of them not started.
-    expect(document.querySelectorAll('.lib-shelf .index-entry')).toHaveLength(
+    expect(document.querySelector('.lib-group-head')).toBeNull()
+    expect(document.querySelectorAll('.lib-group-rest .index-entry')).toHaveLength(
       SHIPPED_CATALOG_TOPIC_IDS.length,
     )
-    for (const when of document.querySelectorAll('.lib-when')) {
-      expect(when.textContent).toBe('Not started')
-    }
   })
 
   it('keeps account and data utilities out of the learning Library', () => {
@@ -582,8 +558,6 @@ describe('ordinary topic browsing and enrollment', () => {
     install([fresh])
 
     expect(todayVerb(fresh)).toBe('Start')
-    cleanup()
-    expect(libraryVerb(fresh)).toBe('Start')
     cleanup()
 
     install([fresh])

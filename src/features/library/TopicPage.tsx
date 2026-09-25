@@ -161,7 +161,6 @@ export function TopicPage({
             and still disagree usefully; this is the journey's one sentence about
             all of them. */}
         <p className="topic-state">
-          <span className={`track track-${topic.track}`}>{topic.track}</span>
           <span className="topic-state-meta tabular">
             {topic.items.length} {topic.items.length === 1 ? 'item' : 'items'}
           </span>

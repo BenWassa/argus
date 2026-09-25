@@ -611,52 +611,6 @@ main:focus {
   color: var(--muted);
 }
 
-/* The completion record. This is the artifact the product exists to build, so
-   it gets composed as one, rather than listed like everything else. */
-.record {
-  margin-top: var(--s-md);
-  border-top: 1px solid var(--line);
-}
-
-.record li {
-  display: grid;
-  grid-template-columns: 2.4rem minmax(0, 1fr) auto;
-  align-items: baseline;
-  gap: var(--s-md);
-  padding: var(--s-md) 0;
-  border-bottom: 1px solid var(--line);
-}
-
-.record-number {
-  font-family: var(--font-mono);
-  font-size: var(--t-readout);
-  font-variant-numeric: tabular-nums;
-  color: var(--subtle);
-}
-
-.record-title {
-  display: block;
-  font-family: var(--font-display);
-  font-size: var(--t-component);
-  font-weight: var(--w-component);
-  letter-spacing: -0.008em;
-}
-
-.record-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--s-sm);
-  margin-top: 5px;
-}
-
-.record-date {
-  font-family: var(--font-mono);
-  font-size: var(--t-readout);
-  font-variant-numeric: tabular-nums;
-  color: var(--muted);
-  white-space: nowrap;
-}
-
 /* ------------------------------------------------------------- session -- */
 
 /* `.session` owns the measure and the gutter for every full-screen task, so the

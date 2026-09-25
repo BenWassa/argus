@@ -1,21 +1,42 @@
-/* The library is a manifest: shelves ordered by what the schedule is asking
-   for, rows that say what they will do before they do it. It shares the index
-   row vocabulary with Today, and adds only what a browsable list needs that a
-   docket does not: an action column, a wait indicator, and selection. */
+/* The library is a list of titles. What you have started comes first, most
+   recent at the top; everything else follows by name. A row opens its topic
+   and says nothing else but how far along it is — the next move is the topic
+   page's decision, and Today's, not a column of buttons down this one. */
 
 .lib-count {
   margin-top: 5px;
 }
 
-/* -------------------------------------------------------------- filters -- */
+/* --------------------------------------------------------------- search -- */
 
-.lib-filters {
-  display: grid;
-  gap: var(--s-sm);
-  margin-top: var(--s-lg);
+/* One control until it is wanted. Opened, the field grows leftwards from
+   where the control sat and covers the heading, rather than claiming a
+   permanent band of the screen for something used now and then. */
+.lib-head {
+  position: relative;
+  min-height: 56px;
+}
+
+.lib-search-box {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--s-xs);
+  width: 44px;
+  transform: translateY(-50%);
+  transition: width var(--t-fast) var(--ease);
+}
+
+.lib-search-box.is-open {
+  width: 100%;
+  background: var(--bg);
 }
 
 .lib-search {
+  flex: 1;
+  min-width: 0;
   /* Cancel the platform search decorations rather than restyling them: a
      bespoke clear affordance is a reinvented control nobody asked for. */
   appearance: none;
@@ -25,71 +46,51 @@
   appearance: none;
 }
 
-.lib-chips {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--s-sm);
-}
-
-/* Track filters, so the three inks finally do something. Pressed state is
-   carried by lit type on a recessed surface, never an accent fill: filling
-   them would put three accent slabs on a screen that already has its own. */
-.lib-chip {
-  min-height: 36px;
-  padding: 7px 13px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-pill);
-  font-family: var(--font-mono);
-  font-size: var(--t-readout);
-  font-weight: var(--w-label);
-  letter-spacing: var(--track-readout);
-  text-transform: uppercase;
+.lib-search-toggle {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-md);
   color: var(--muted);
   background: transparent;
   box-shadow: none;
 }
 
-.lib-chip:hover {
+.lib-search-toggle:hover {
   color: var(--ink);
-  border-color: var(--line-hover);
+  border-color: transparent;
   background: var(--surface-2);
 }
 
-/* An engaged filter looks engaged: lit type on a surface that has been pressed
-   into the chassis rather than lifted off it. */
-.lib-chip[aria-pressed='true'] {
-  color: var(--accent-2);
-  border-color: var(--line-hover);
-  background: var(--field);
-  box-shadow: var(--engrave);
+.lib-search-toggle:active {
+  box-shadow: none;
+  background: var(--surface-3);
 }
 
-.lib-chip-learning[aria-pressed='false'] { color: var(--learning); }
-.lib-chip-survival[aria-pressed='false'] { color: var(--survival); }
-.lib-chip-tradecraft[aria-pressed='false'] { color: var(--tradecraft); }
-
-.lib-select-toggle {
-  margin-left: auto;
+@media (min-width: 980px) {
+  .lib-search-box.is-open {
+    width: min(100%, 380px);
+  }
 }
 
-/* --------------------------------------------------------------- shelves -- */
+@media (prefers-reduced-motion: reduce) {
+  .lib-search-box {
+    transition: none;
+  }
+}
 
-.lib-shelf {
+/* --------------------------------------------------------------- groups -- */
+
+.lib-group {
   margin-top: var(--s-xl);
 }
 
-/* The shelf names the rung, so the rows underneath do not have to repeat it.
-   That is what removed the old "LEARNING · LEARNING" collision. */
-.lib-shelf-head {
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--s-md);
-  padding: var(--s-sm) 0;
+.lib-group-head {
+  margin: 0;
   font-family: var(--font-mono);
   font-size: var(--t-readout);
   font-weight: var(--w-label);
@@ -97,198 +98,27 @@
   line-height: 1.2;
   text-transform: uppercase;
   color: var(--subtle);
-  background: var(--bg);
-  border-bottom: 1px solid color-mix(in srgb, var(--accent) 22%, var(--line));
 }
 
-.lib-shelf-count {
-  color: var(--muted);
+.lib-group-head + .index {
+  margin-top: var(--s-sm);
 }
 
-/* A small instrument light rather than another word: dim on a shelf that is
-   only waiting, lit on the one shelf that is actionable now. Glanceable
-   before a single label is read. */
-.lib-shelf-label::before {
-  content: '';
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  margin-right: var(--s-sm);
-  border-radius: var(--r-pill);
-  background: var(--subtle);
-  vertical-align: middle;
+/* The rest of the shelf is set apart by space alone. It needs no name. */
+.lib-group-rest {
+  margin-top: var(--s-2xl);
 }
 
-.lib-shelf-due .lib-shelf-label::before {
-  background: var(--accent-2);
+.lib-group-rest:first-child {
+  margin-top: var(--s-xl);
 }
 
 /* ------------------------------------------------------------------ rows -- */
 
-.index-entry {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 96px;
-  align-items: stretch;
-  border-bottom: 1px solid var(--line);
-}
-
-.index-entry.is-selecting {
-  grid-template-columns: 34px minmax(0, 1fr);
-  align-items: center;
-}
-
-.index-entry .index-row {
-  border-bottom: 0;
-}
-
-/* The chevron is restored here on purpose: in the library the row navigates to
-   the topic, which is exactly what it promises. It is dropped only in select
-   mode, where the row genuinely stops navigating and starts toggling. */
-.index-entry.is-selecting .index-row::after {
-  content: none;
-}
-
-.lib-check {
-  width: 20px;
-  height: 20px;
-  margin: 0;
-  accent-color: var(--accent);
-}
-
-/* One meaning per zone. The left navigates, the right runs.
- *
- * A hairline said they were not the same control; it did not say the right zone
- * was a control at all (#117). Set in muted text on the page ground, the one
- * place in Library where a run actually starts read as a caption on the row —
- * the surface whose whole job is to answer "what can I do with this" was the
- * least legible thing on it.
- *
- * It is now the system's ghost control: a raised face with a top highlight and
- * a lower lip, `--ink` text, and a press that drops it into the row. That is
- * the existing `button.ghost` treatment rather than new chrome, so nothing here
- * is invented and the One Lit Surface rule still holds — the cell is raised by
- * a bevel, never by a shadow or the accent, both of which stay reserved for the
- * primary action on the page. It fills its grid cell rather than floating as a
- * pill inside it, because the row is two zones and the join between them is the
- * thing that has to read.
- *
- * The rest gradient stays spelled out rather than taking --gradient-ghost:
- * #117's test reads this declaration as the statement of the ghost treatment,
- * so the literal is the contract. The hover below it, which nothing pins, takes
- * the token. */
-.lib-action {
-  align-self: stretch;
-  padding: 0 var(--s-sm);
-  border: 0;
-  border-left: 1px solid var(--line-strong);
-  border-radius: 0;
-  font-size: var(--t-small);
-  font-weight: var(--w-component);
-  letter-spacing: 0.01em;
-  color: var(--ink);
-  background: linear-gradient(180deg, var(--surface-3), var(--surface-2));
-  box-shadow: var(--edge), var(--edge-under);
-}
-
-.lib-action:hover {
-  color: var(--ink);
-  border-color: var(--line-hover);
-  background: var(--gradient-ghost-hover);
-}
-
-.lib-action:active {
-  transform: none;
-  background: var(--surface-2);
-  box-shadow: var(--press);
-}
-
-.lib-action:focus-visible {
-  outline-offset: -3px;
-}
-
-/* Why the topic is where it is. The one fact on the row that changes. */
-.lib-when {
-  color: var(--subtle);
-}
-
-.lib-when.is-due {
-  font-family: var(--font-mono);
-  font-size: var(--t-readout);
-  font-weight: var(--w-label);
-  letter-spacing: var(--track-readout);
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-/* Matches Today's treatment of the same fact. Decay routes work in both
-   places, so it must not look like two different things. */
-.lib-when.is-repair {
-  color: var(--warning);
-}
-
-/* The wait, drawn. The row already states it in words; this is so a shelf of
-   thirty can be read at a glance instead of one date at a time. Neutral by
-   design: the accent would spend itself here, and a semantic colour would
-   turn a schedule into a scoreboard. */
-/* Acquisition progress, in words. Deliberately not the gap bar: a programme
-   being learned has not entered a retention gap, and drawing it as one would
-   make two different kinds of progress look like the same measurement. */
-.lib-acquisition {
-  color: var(--muted);
-  font-size: var(--t-small);
-  line-height: 1.4;
-}
-
-/* The row's gauge. Width is capped here rather than in the shared rule: a
-   Library row is a grid cell and the track should not run the full title
-   width, while the topic page deliberately lets it. */
+/* The row's gauge. Width is capped here rather than in the shared rule: the
+   track should not run the full title width, while the topic page lets it. */
 .index-row .gauge-row {
   max-width: 132px;
-  /* The row grid already contributes its 5px gap above this. */
-  margin-top: 5px;
-}
-
-.lib-consequence {
-  margin-top: var(--s-xl);
-  font-size: var(--t-label);
-  color: var(--subtle);
-}
-
-/* ----------------------------------------------------------- batch bar -- */
-
-/* Appears only once something is selected, and states the count before the
-   verb so the number is never a surprise. */
-.lib-batch {
-  position: sticky;
-  bottom: var(--s-md);
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--s-md);
-  margin-top: var(--s-lg);
-  /* The panel base, worn as a control: it floats over the index it acts on, so
-     it takes the ghost face, the stronger rule and a real lift, and its padding
-     is pulled in on the button side to sit flush around them. */
-  padding: var(--s-sm) var(--s-sm) var(--s-sm) var(--s-lg);
-  border-color: var(--line-strong);
-  background: var(--gradient-ghost);
-  box-shadow: var(--edge), var(--edge-under), var(--shadow);
-}
-
-.lib-batch-count {
-  font-family: var(--font-mono);
-  font-size: var(--t-readout);
-  font-weight: var(--w-label);
-  letter-spacing: var(--track-readout);
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-.lib-batch-actions {
-  display: flex;
-  align-items: center;
-  gap: var(--s-sm);
 }
 
 /* --------------------------------------------------------- empty states -- */
@@ -311,33 +141,10 @@
   gap: var(--s-md);
 }
 
-/* -------------------------------------------------------------- desktop -- */
-
-@media (min-width: 980px) {
-  .index-entry {
-    grid-template-columns: minmax(0, 1fr) 112px;
-  }
-
-  .lib-filters {
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
-    gap: var(--s-md);
-  }
-
-  .lib-search {
-    max-width: 320px;
-  }
-
-  .lib-select-toggle {
-    margin-left: var(--s-sm);
-  }
-}
-
 /* --------------------------------------------------------------- add fab -- */
 
 /* The one "+" in the product. Fixed above the thumb, clear of the bottom
-   nav on mobile and of the batch bar when one is showing (the two never
-   appear together — selecting hides this). Circular and lit, because it is
+   nav on mobile. Circular and lit, because it is
    the single most-repeated action on the page and earns the accent — but
    --shadow-lift stays reserved for the completion moment and sheets, so
    this sits at flashcard depth instead. */
@@ -401,189 +208,42 @@
   color: var(--subtle);
 }
 
-/* ------------------------------------------------------- want to learn -- */
+/* ------------------------------------------------------------- add menu -- */
 
-/* The queue is a note to self, not a shelf. It gets a dashed edge and no row
-   chrome at all, so nothing about it reads as a topic that could be run,
-   scheduled or finished. */
-.want {
-  margin-top: var(--s-lg);
-  padding: var(--s-md);
-  border: 1px dashed var(--line-strong);
-  border-radius: var(--r-md);
-  background: var(--surface-2);
-}
-
-.want-head-row {
-  margin: 0;
-}
-
-/* The whole header is the disclosure: closed by default, so the note-to-self
-   queue earns a count in the header rather than a permanent seat ahead of
-   the shelves. */
-.want-head {
-  display: flex;
-  align-items: center;
-  gap: var(--s-sm);
-  width: 100%;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  box-shadow: none;
-  font-family: var(--font-mono);
-  font-size: var(--t-readout);
-  font-weight: var(--w-label);
-  letter-spacing: var(--track-readout);
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-.want-head:hover {
-  color: var(--ink);
-  background: transparent;
-}
-
-.want-disclosure::before {
-  content: '\203A';
-  display: inline-block;
-  transition: transform 180ms;
-}
-
-.want-disclosure.is-open::before {
-  transform: rotate(90deg);
-}
-
-.want-count::before {
-  content: '· ';
-}
-
-.want-count {
-  color: var(--muted);
-}
-
-.want .note {
-  margin: var(--s-sm) 0 0;
-}
-
-.want-setup {
+.add-menu {
   display: grid;
   gap: var(--s-sm);
+}
+
+.add-menu-option {
+  display: grid;
+  gap: 3px;
   justify-items: start;
-}
-
-.want-list {
-  margin: var(--s-sm) 0 0;
-  padding: 0;
-  list-style: none;
-  display: grid;
-  gap: 2px;
-}
-
-.want-entry {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: start;
-  gap: var(--s-sm);
-  padding: var(--s-sm) 0;
-  border-top: 1px solid var(--line);
-}
-
-.want-entry:first-child {
-  border-top: 0;
-}
-
-.want-text {
-  grid-column: 1;
-  margin: 0;
-  /* A capture may be a pasted URL with no spaces in it. */
-  overflow-wrap: anywhere;
-}
-
-.want-meta {
-  grid-column: 1;
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--s-sm);
-}
-
-.want-hint {
-  font-size: var(--t-label);
-  color: var(--muted);
-}
-
-.want-remove {
-  grid-column: 2;
-  grid-row: 1 / span 2;
-  align-self: center;
-}
-
-/* ------------------------------------------------------------- record -- */
-
-/* The permanent record closes the library, because it is the artifact the
-   product exists to build and the only thing the removed Progress destination
-   held that existed nowhere else. The list itself is read, never pressed: no
-   filter, no other control. Its header is the one exception, holding the
-   disclosure that keeps the itemized list from competing with the shelves
-   above it. */
-.lib-record {
-  margin-top: var(--s-3xl);
-  /* Clears the FAB, which floats over the page rather than reserving its own
-     row in the flow: without this the last shelf's rows sit directly under
-     it. */
-  margin-bottom: 96px;
-  padding-top: var(--s-lg);
-  border-top: 1px solid var(--line-strong);
-}
-
-.lib-record-head-row {
-  margin: 0;
-}
-
-/* Sans for the label, because it is a title; mono for the count, because it
-   is a reading. The itemized list waits behind this tap so the record still
-   closes the page without competing with the shelves above it. */
-.lib-record-head {
-  display: flex;
-  align-items: center;
-  gap: var(--s-sm);
-  width: 100%;
-  padding: 0;
-  border: 0;
-  background: transparent;
+  padding: var(--s-md);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  text-align: left;
+  background: var(--surface-2);
   box-shadow: none;
+}
+
+.add-menu-option:hover {
+  border-color: var(--line-hover);
+  background: var(--surface-3);
+}
+
+.add-menu-option:active {
+  box-shadow: var(--press);
+}
+
+.add-menu-option-title {
   font-family: var(--font-display);
-  font-size: var(--t-section);
-  font-weight: var(--w-section);
+  font-size: var(--t-component);
+  font-weight: var(--w-component);
   color: var(--ink);
 }
 
-.lib-record-head:hover {
-  color: var(--ink);
-  background: transparent;
-}
-
-.lib-record-disclosure::before {
-  content: '\203A';
-  display: inline-block;
-  color: var(--subtle);
-  transition: transform 180ms;
-}
-
-.lib-record-disclosure.is-open::before {
-  transform: rotate(90deg);
-}
-
-.lib-record-total {
-  margin-left: auto;
-  font-family: var(--font-mono);
-  font-size: var(--t-readout);
-  font-weight: var(--w-label);
-  letter-spacing: var(--track-readout);
-  color: var(--muted);
-}
-
-.lib-record-totals {
-  margin-top: var(--s-md);
+.add-menu-option-note {
   font-size: var(--t-small);
-  color: var(--muted);
+  color: var(--subtle);
 }

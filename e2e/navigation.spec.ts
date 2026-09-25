@@ -187,16 +187,8 @@ test('runs remember their real Today, Library and Topic origins', async ({ page 
     'page',
   )
 
-  // The deliberate Today start marked it learning, so Library correctly
-  // routes it to Test. This assertion is about preserving the Library origin.
+  // Library rows only open their topic; a run starts from the topic page.
   await openLibrary(page)
-  await page.locator(`[data-row="${TOPIC.id}"]`).locator('..').locator('.lib-action').click()
-  await waitForRouteKind(page, 'run')
-  expect(await navigationState(page)).toMatchObject({
-    route: { kind: 'run', origin: { kind: 'section', view: 'library' } },
-  })
-  await systemBack(page)
-  await expect(page.getByRole('heading', { name: 'Library', level: 1 })).toBeVisible()
 
   // Topic -> Test -> Back = Topic.
   await openTopic(page)
