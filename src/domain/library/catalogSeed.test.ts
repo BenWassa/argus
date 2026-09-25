@@ -24,6 +24,7 @@ describe('researched seeded library', () => {
       'scuba-equipment-abbreviations',
       'radiotelephony-numbers',
       'si-prefixes',
+      'greek-alphabet',
     ])
 
     for (const topic of library.topics) {
@@ -198,5 +199,29 @@ describe('researched seeded library', () => {
     expect(topic.learn?.kind).toBe('concise')
     expect(topic.learn?.limitations?.some((note) => note.includes('binary prefixes'))).toBe(true)
     expect(topic.learn?.sources?.[0].url).toBe('https://www.bipm.org/en/publications/si-brochure')
+  })
+
+  it('keeps the Greek alphabet to 24 Greek-code-point letters, letter → name', () => {
+    const topic = seededTopic('greek-alphabet')
+
+    expect(topic.items.map((item) => item.answer)).toEqual([
+      'Alpha', 'Beta', 'Gamma', 'Delta', 'Epsilon', 'Zeta', 'Eta', 'Theta', 'Iota', 'Kappa',
+      'Lambda', 'Mu', 'Nu', 'Xi', 'Omicron', 'Pi', 'Rho', 'Sigma', 'Tau', 'Upsilon',
+      'Phi', 'Chi', 'Psi', 'Omega',
+    ])
+    // No Latin look-alike may stand in for a Greek capital: every glyph must be
+    // the Greek code point, capital then small, in alphabetical order.
+    const capitals = [...Array(25).keys()].map((i) => 0x391 + i).filter((cp) => cp !== 0x3a2)
+    topic.items.forEach((item, index) => {
+      const [capital, small, final] = item.prompt.split(' ')
+      expect(capital.codePointAt(0)).toBe(capitals[index])
+      expect(small.codePointAt(0)).toBe(capitals[index] + 0x20)
+      expect(final).toBe(item.answer === 'Sigma' ? 'ς' : undefined)
+    })
+    expect(topic.items.every((item) => item.kind === 'forward')).toBe(true)
+    expect(topic.status).toBe('unstarted')
+    expect(topic.learn?.kind).toBe('concise')
+    expect(topic.learn?.limitations?.some((note) => note.includes('not reading, writing or speaking Greek'))).toBe(true)
+    expect(topic.learn?.sources?.[0].url).toBe('https://www.unicode.org/charts/PDF/U0370.pdf')
   })
 })

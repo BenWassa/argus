@@ -20,6 +20,7 @@ This document records the research decisions behind the topics shipped by `src/d
 | Recreational scuba equipment abbreviations | SCUBA, BCD, SPG, LPI, DSMB and DPV → expansion and core reference function | 6 | Concise support + explicit safety limits |
 | Radiotelephony numbers | Digits 0–9 plus decimal, hundred and thousand → RIC-21 spoken form | 13 | Concise support + explicit limits |
 | SI prefixes | 24 powers of ten from 10³⁰ to 10⁻³⁰ → prefix name and symbol | 24 | Concise support + explicit limits |
+| Greek alphabet | 24 letters, capital and small forms → English name | 24 | Concise support + explicit limits |
 
 Existing seeded historical attempt totals remain compatible with their decks. #42 adds no durable learner-state field and does not change any scored item.
 
@@ -284,6 +285,29 @@ Concise support: the 10³ stepping outside hecto–centi, the BIPM case rule, de
   - Chapter 3, Table 7 (SI prefixes) and the case rule directly above it.
   - Chapter 3 note that SI prefixes refer strictly to powers of 10, with the IEC binary prefix names.
   - Appendix 1, 27th CGPM (2022): addition of ronna, ronto, quetta and quecto.
+
+## Greek alphabet
+
+### Research decision
+
+The 24 letters recur throughout mathematics, statistics, science and engineering, where passive recognition decays and look-alike letters (ν/υ, ζ/ξ, η/n, ρ/p) cause real misreadings. The Unicode Greek and Coptic chart encodes the 24 capital and small letters in alphabetical order with their names, so a single durable source fixes the glyphs, the order and the names. Unicode's character names spell lambda as LAMDA; the chart gives lambda as the usual name, and Argus uses it.
+
+The tested direction is letter → name, because reading notation is the everyday need. Each prompt shows the capital and small forms together (sigma also shows final ς), because many capitals are identical in shape to Latin letters and only the small form identifies them. Name → letter is recorded as a limit, not tested (see the forward-only note above).
+
+### Test boundary
+
+Α α Alpha · Β β Beta · Γ γ Gamma · Δ δ Delta · Ε ε Epsilon · Ζ ζ Zeta · Η η Eta · Θ θ Theta · Ι ι Iota · Κ κ Kappa · Λ λ Lambda · Μ μ Mu · Ν ν Nu · Ξ ξ Xi · Ο ο Omicron · Π π Pi · Ρ ρ Rho · Σ σ ς Sigma · Τ τ Tau · Υ υ Upsilon · Φ φ Phi · Χ χ Chi · Ψ ψ Psi · Ω ω Omega. Every glyph is the Greek code point, never a Latin look-alike; the seed test checks the code-point ranges.
+
+### Learn treatment
+
+Concise support: why recognition is the tested direction, the look-alike pairs, and final sigma. Limits say this is not reading, writing or pronouncing Greek. A guided acquisition path was not built: the #104 research asks for ordinary reference + Test to be tried first.
+
+### Authoritative source
+
+- Unicode Consortium, **Greek and Coptic code chart, Unicode 18.0**: https://www.unicode.org/charts/PDF/U0370.pdf
+  - U+0391–U+03A9 capitals and U+03B1–U+03C9 small letters (U+03A2 reserved), in alphabetical order.
+  - U+03C2 GREEK SMALL LETTER FINAL SIGMA.
+  - U+03BB GREEK SMALL LETTER LAMDA, alias “lambda”.
 
 ## Scope-integrity check
 

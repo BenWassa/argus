@@ -45,6 +45,18 @@ const SI_PREFIXES = [
   ['10⁻²¹', 'zepto (z)'], ['10⁻²⁴', 'yocto (y)'], ['10⁻²⁷', 'ronto (r)'], ['10⁻³⁰', 'quecto (q)'],
 ] as const
 
+/**
+ * Unicode Greek and Coptic block, U+0391–U+03A9 and U+03B1–U+03C9 in code-point
+ * (alphabetical) order. Sigma carries its final form, U+03C2.
+ */
+const GREEK_LETTERS = [
+  ['Α α', 'Alpha'], ['Β β', 'Beta'], ['Γ γ', 'Gamma'], ['Δ δ', 'Delta'], ['Ε ε', 'Epsilon'],
+  ['Ζ ζ', 'Zeta'], ['Η η', 'Eta'], ['Θ θ', 'Theta'], ['Ι ι', 'Iota'], ['Κ κ', 'Kappa'],
+  ['Λ λ', 'Lambda'], ['Μ μ', 'Mu'], ['Ν ν', 'Nu'], ['Ξ ξ', 'Xi'], ['Ο ο', 'Omicron'],
+  ['Π π', 'Pi'], ['Ρ ρ', 'Rho'], ['Σ σ ς', 'Sigma'], ['Τ τ', 'Tau'], ['Υ υ', 'Upsilon'],
+  ['Φ φ', 'Phi'], ['Χ χ', 'Chi'], ['Ψ ψ', 'Psi'], ['Ω ω', 'Omega'],
+] as const
+
 const day = 86_400_000
 const ago = (days: number) => new Date(Date.now() - days * day).toISOString()
 
@@ -527,6 +539,52 @@ export function seedLibrary(): Library {
             label: 'BIPM — The International System of Units (SI Brochure), 9th edition',
             url: 'https://www.bipm.org/en/publications/si-brochure',
             note: 'Version 4.01, June 2026. Chapter 3, Table 7 lists the 24 prefixes with names and symbols and states the case rule; Appendix 1 records the 27th CGPM (2022) decision adding ronna, ronto, quetta and quecto.',
+          },
+        ],
+      },
+      status: 'unstarted',
+      createdAt: ago(0),
+      drilledAt: null,
+      learningAt: null,
+      completedAt: null,
+      lastTestedAt: null,
+      spotCheckedAt: null,
+      history: [],
+    },
+    {
+      id: 'greek-alphabet',
+      title: 'Greek alphabet',
+      scope: 'The 24 letters of the Greek alphabet: each letter’s capital and small forms → its English name. Tested letter → name. Writing a letter from its name, pronunciation and reading Greek are not scored.',
+      track: 'learning',
+      items: GREEK_LETTERS.map(([prompt, answer]) => ({ prompt, answer })),
+      learn: {
+        kind: 'concise',
+        overview: 'The Greek alphabet has 24 letters. Mathematics, science and engineering borrow most of them as symbols, usually in the small form — π, λ, σ, μ, Δ — so seeing a letter and naming it is the everyday need. That is the direction this topic tests.',
+        sections: [
+          {
+            heading: 'Where letters are easy to confuse',
+            blocks: [
+              {
+                type: 'bullets',
+                items: [
+                  'Many capitals share their shape with Latin letters — Α, Β, Ε, Ζ, Η, Ι, Κ, Μ, Ν, Ο, Ρ, Τ, Υ, Χ — so the small form is usually what identifies the letter.',
+                  'Some small forms look like Latin letters with other names: η (eta) is not n, ν (nu) is not v, ρ (rho) is not p, χ (chi) is not x, and ω (omega) is not w.',
+                  'ζ (zeta) and ξ (xi) are easily swapped, and so are ν (nu) and υ (upsilon).',
+                  'Sigma has two small forms: σ, and ς, the final sigma written at the end of a word.',
+                ],
+              },
+            ],
+          },
+        ],
+        limitations: [
+          'Completion means you can name each letter when you see it. Writing a letter from its name is not tested, and knowing the letters is not reading, writing or speaking Greek.',
+          'The names are the conventional English ones used in mathematics and science, not a guide to Greek pronunciation. The order below is alphabetical but is not scored.',
+        ],
+        sources: [
+          {
+            label: 'Unicode — Greek and Coptic code chart (Unicode 18.0)',
+            url: 'https://www.unicode.org/charts/PDF/U0370.pdf',
+            note: 'Encodes the 24 capital (U+0391–U+03A9) and small (U+03B1–U+03C9) letters in alphabetical order with their names, including final sigma (U+03C2); gives lambda as the usual name of the character Unicode names LAMDA.',
           },
         ],
       },
