@@ -21,6 +21,7 @@ This document records the research decisions behind the topics shipped by `src/d
 | Radiotelephony numbers | Digits 0–9 plus decimal, hundred and thousand → RIC-21 spoken form | 13 | Concise support + explicit limits |
 | SI prefixes | 24 powers of ten from 10³⁰ to 10⁻³⁰ → prefix name and symbol | 24 | Concise support + explicit limits |
 | Greek alphabet | 24 letters, capital and small forms → English name | 24 | Concise support + explicit limits |
+| Hexadecimal digits in binary | 16 hex digits 0–F → four-bit binary pattern | 16 | Concise support + explicit limits |
 
 Existing seeded historical attempt totals remain compatible with their decks. #42 adds no durable learner-state field and does not change any scored item.
 
@@ -308,6 +309,26 @@ Concise support: why recognition is the tested direction, the look-alike pairs, 
   - U+0391–U+03A9 capitals and U+03B1–U+03C9 small letters (U+03A2 reserved), in alphabetical order.
   - U+03C2 GREEK SMALL LETTER FINAL SIGMA.
   - U+03BB GREEK SMALL LETTER LAMDA, alias “lambda”.
+
+## Hexadecimal digits in binary
+
+### Research decision
+
+One hexadecimal digit represents exactly four bits, giving 16 fixed mappings from 0–F to 0000–1111. The boundary is finite and genuinely completable, unlike a general “learn binary” course, and it pays off whenever bytes, masks, colour values or registers are read in hex. The mapping is mathematical; RFC 4648 §8 is the standards reference that fixes the hex alphabet (values 0–15 → 0–9, A–F) and its four-bits-per-character meaning.
+
+The tested direction is hex → binary, the direction used when reading a hex value as bits.
+
+### Test boundary
+
+0 0000 · 1 0001 · 2 0010 · 3 0011 · 4 0100 · 5 0101 · 6 0110 · 7 0111 · 8 1000 · 9 1001 · A 1010 · B 1011 · C 1100 · D 1101 · E 1110 · F 1111. The seed derives each answer from the digit's value, so no pattern can be mistyped.
+
+### Learn treatment
+
+Concise support: the 8-4-2-1 place values with one worked example, A–F as 10–15, case-insensitivity, and single-bit anchors. Binary → hex, longer numbers and arithmetic are limits, not scored content.
+
+### Authoritative source
+
+- IETF, **RFC 4648 — The Base16, Base32, and Base64 Data Encodings**, §8 Base 16 Encoding: https://www.rfc-editor.org/rfc/rfc4648#section-8
 
 ## Scope-integrity check
 

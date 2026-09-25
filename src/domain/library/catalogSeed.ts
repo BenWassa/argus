@@ -57,6 +57,9 @@ const GREEK_LETTERS = [
   ['Φ φ', 'Phi'], ['Χ χ', 'Chi'], ['Ψ ψ', 'Psi'], ['Ω ω', 'Omega'],
 ] as const
 
+/** RFC 4648 §8: the Base 16 alphabet, each digit standing for one four-bit group. */
+const HEX_DIGITS = '0123456789ABCDEF'
+
 const day = 86_400_000
 const ago = (days: number) => new Date(Date.now() - days * day).toISOString()
 
@@ -585,6 +588,53 @@ export function seedLibrary(): Library {
             label: 'Unicode — Greek and Coptic code chart (Unicode 18.0)',
             url: 'https://www.unicode.org/charts/PDF/U0370.pdf',
             note: 'Encodes the 24 capital (U+0391–U+03A9) and small (U+03B1–U+03C9) letters in alphabetical order with their names, including final sigma (U+03C2); gives lambda as the usual name of the character Unicode names LAMDA.',
+          },
+        ],
+      },
+      status: 'unstarted',
+      createdAt: ago(0),
+      drilledAt: null,
+      learningAt: null,
+      completedAt: null,
+      lastTestedAt: null,
+      spotCheckedAt: null,
+      history: [],
+    },
+    {
+      id: 'hex-digits-binary',
+      title: 'Hexadecimal digits in binary',
+      scope: 'The 16 hexadecimal digits 0–F: each digit → its four-bit binary pattern, 0000 to 1111. Tested hex → binary. Converting longer numbers and binary arithmetic are not scored.',
+      track: 'learning',
+      items: [...HEX_DIGITS].map((digit, value) => ({
+        prompt: digit,
+        answer: value.toString(2).padStart(4, '0'),
+      })),
+      learn: {
+        kind: 'concise',
+        overview: 'One hexadecimal digit stands for exactly four bits, so a byte is always two hex digits: C3 is 1100 0011. Knowing the 16 patterns by heart turns hex dumps, bit masks and colour codes into bits without counting.',
+        sections: [
+          {
+            heading: 'Reading a pattern from its place values',
+            blocks: [
+              {
+                type: 'bullets',
+                items: [
+                  'The four bits are worth 8, 4, 2 and 1 from left to right. Add the places that hold a 1: 1011 is 8 + 2 + 1 = 11, which is B.',
+                  'The letters A to F stand for the values 10 to 15. Upper and lower case mean the same digit.',
+                  'Anchors that make the rest quick: 1, 2, 4 and 8 are the single-bit patterns (0001, 0010, 0100, 1000); 7 is 0111 and F is 1111.',
+                ],
+              },
+            ],
+          },
+        ],
+        limitations: [
+          'Completion means you can give the four-bit pattern for each of the 16 hex digits. Binary → hex, longer numbers, signed representations and binary arithmetic are not tested.',
+        ],
+        sources: [
+          {
+            label: 'IETF — RFC 4648, The Base16, Base32, and Base64 Data Encodings, §8',
+            url: 'https://www.rfc-editor.org/rfc/rfc4648#section-8',
+            note: 'Standard Base 16 (hex) encoding: each character represents 4 bits, and the alphabet maps the values 0–15 to 0–9 and A–F. The four-bit patterns are those values written in binary.',
           },
         ],
       },

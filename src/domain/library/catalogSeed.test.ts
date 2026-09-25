@@ -25,6 +25,7 @@ describe('researched seeded library', () => {
       'radiotelephony-numbers',
       'si-prefixes',
       'greek-alphabet',
+      'hex-digits-binary',
     ])
 
     for (const topic of library.topics) {
@@ -223,5 +224,25 @@ describe('researched seeded library', () => {
     expect(topic.learn?.kind).toBe('concise')
     expect(topic.learn?.limitations?.some((note) => note.includes('not reading, writing or speaking Greek'))).toBe(true)
     expect(topic.learn?.sources?.[0].url).toBe('https://www.unicode.org/charts/PDF/U0370.pdf')
+  })
+
+  it('keeps hexadecimal digits to the 16 four-bit patterns, hex → binary', () => {
+    const topic = seededTopic('hex-digits-binary')
+
+    expect(rows(topic.items)).toEqual([
+      { prompt: '0', answer: '0000' }, { prompt: '1', answer: '0001' },
+      { prompt: '2', answer: '0010' }, { prompt: '3', answer: '0011' },
+      { prompt: '4', answer: '0100' }, { prompt: '5', answer: '0101' },
+      { prompt: '6', answer: '0110' }, { prompt: '7', answer: '0111' },
+      { prompt: '8', answer: '1000' }, { prompt: '9', answer: '1001' },
+      { prompt: 'A', answer: '1010' }, { prompt: 'B', answer: '1011' },
+      { prompt: 'C', answer: '1100' }, { prompt: 'D', answer: '1101' },
+      { prompt: 'E', answer: '1110' }, { prompt: 'F', answer: '1111' },
+    ])
+    expect(topic.items.every((item) => item.kind === 'forward')).toBe(true)
+    expect(topic.status).toBe('unstarted')
+    expect(topic.learn?.kind).toBe('concise')
+    expect(topic.learn?.limitations?.some((note) => note.includes('Binary → hex'))).toBe(true)
+    expect(topic.learn?.sources?.[0].url).toContain('rfc4648')
   })
 })
