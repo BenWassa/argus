@@ -19,6 +19,7 @@ This document records the research decisions behind the topics shipped by `src/d
 | Cardinal/intercardinal bearings | Eight named compass points → clockwise degree value from north, with north represented as 0° | 8 | Concise support |
 | Recreational scuba equipment abbreviations | SCUBA, BCD, SPG, LPI, DSMB and DPV → expansion and core reference function | 6 | Concise support + explicit safety limits |
 | Radiotelephony numbers | Digits 0–9 plus decimal, hundred and thousand → RIC-21 spoken form | 13 | Concise support + explicit limits |
+| SI prefixes | 24 powers of ten from 10³⁰ to 10⁻³⁰ → prefix name and symbol | 24 | Concise support + explicit limits |
 
 Existing seeded historical attempt totals remain compatible with their decks. #42 adds no durable learner-state field and does not change any scored item.
 
@@ -260,6 +261,29 @@ Completion is recall of 13 forms. It is not a radio operator certificate, radio 
 - Innovation, Science and Economic Development Canada, **RIC-21 — Study Guide for the Restricted Operator Certificate With Aeronautical Qualification** (page dated 2011-07-12; checked 2026-09-25): https://ised-isde.canada.ca/site/spectrum-management-telecommunications/en/official-publications/information/radiocom-information-circulars-ric/ric-21-study-guide-restricted-operator-certificate-aeronautical-qualification
   - §5.3 number pronunciation table (0–9, decimal, hundred, thousand).
   - §5.4 transmission of numbers.
+
+## SI prefixes
+
+### Research decision
+
+The BIPM SI Brochure's Table 7 is the complete, authoritative list: 24 prefixes from 10³⁰ to 10⁻³⁰, including ronna, ronto, quetta and quecto, added by the 27th CGPM in 2022. The mapping is finite, stable and useful well beyond science, and the familiar prefixes give false confidence about the rarer ones and about symbol case.
+
+The tested direction is power → name and symbol, as the #104 research example proposed. Producing the symbol exercises the case rule (M/m, P/p, Z/z, Y/y, R/r, Q/q), which is where the confusion cost sits.
+
+### Test boundary
+
+10³⁰ quetta (Q) · 10²⁷ ronna (R) · 10²⁴ yotta (Y) · 10²¹ zetta (Z) · 10¹⁸ exa (E) · 10¹⁵ peta (P) · 10¹² tera (T) · 10⁹ giga (G) · 10⁶ mega (M) · 10³ kilo (k) · 10² hecto (h) · 10¹ deca (da) · 10⁻¹ deci (d) · 10⁻² centi (c) · 10⁻³ milli (m) · 10⁻⁶ micro (µ) · 10⁻⁹ nano (n) · 10⁻¹² pico (p) · 10⁻¹⁵ femto (f) · 10⁻¹⁸ atto (a) · 10⁻²¹ zepto (z) · 10⁻²⁴ yocto (y) · 10⁻²⁷ ronto (r) · 10⁻³⁰ quecto (q).
+
+### Learn treatment
+
+Concise support: the 10³ stepping outside hecto–centi, the BIPM case rule, deca's two-letter symbol, micro's µ and how symbols attach to units. The limitations separate the IEC binary prefixes (kibi, mebi…), which the Brochure itself distinguishes from SI prefixes.
+
+### Authoritative source
+
+- BIPM, **The International System of Units (SI Brochure)**, 9th edition (2019), version 4.01, June 2026: https://www.bipm.org/en/publications/si-brochure
+  - Chapter 3, Table 7 (SI prefixes) and the case rule directly above it.
+  - Chapter 3 note that SI prefixes refer strictly to powers of 10, with the IEC binary prefix names.
+  - Appendix 1, 27th CGPM (2022): addition of ronna, ronto, quetta and quecto.
 
 ## Scope-integrity check
 

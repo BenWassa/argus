@@ -23,6 +23,7 @@ describe('researched seeded library', () => {
       'cardinal-bearings',
       'scuba-equipment-abbreviations',
       'radiotelephony-numbers',
+      'si-prefixes',
     ])
 
     for (const topic of library.topics) {
@@ -174,5 +175,28 @@ describe('researched seeded library', () => {
     expect(topic.learn?.kind).toBe('concise')
     expect(topic.learn?.limitations?.some((note) => note.includes('not a radio operator certificate'))).toBe(true)
     expect(topic.learn?.sources?.[0].url).toContain('ric-21')
+  })
+
+  it('keeps SI prefixes to the 24 BIPM powers of ten, power → name and symbol', () => {
+    const topic = seededTopic('si-prefixes')
+
+    expect(topic.items).toHaveLength(24)
+    expect(rows(topic.items)[0]).toEqual({ prompt: '10³⁰', answer: 'quetta (Q)' })
+    expect(rows(topic.items)[9]).toEqual({ prompt: '10³', answer: 'kilo (k)' })
+    expect(rows(topic.items)[11]).toEqual({ prompt: '10¹', answer: 'deca (da)' })
+    expect(rows(topic.items)[15]).toEqual({ prompt: '10⁻⁶', answer: 'micro (µ)' })
+    expect(rows(topic.items)[23]).toEqual({ prompt: '10⁻³⁰', answer: 'quecto (q)' })
+    // Case is the confusion cost: every paired multiple and sub-multiple symbol
+    // must survive as distinct upper/lower-case letters.
+    const symbols = topic.items.map((item) => item.answer.match(/\((.+)\)$/)?.[1])
+    for (const [upper, lower] of [['M', 'm'], ['P', 'p'], ['Z', 'z'], ['Y', 'y'], ['R', 'r'], ['Q', 'q']]) {
+      expect(symbols).toContain(upper)
+      expect(symbols).toContain(lower)
+    }
+    expect(topic.items.every((item) => item.kind === 'forward')).toBe(true)
+    expect(topic.status).toBe('unstarted')
+    expect(topic.learn?.kind).toBe('concise')
+    expect(topic.learn?.limitations?.some((note) => note.includes('binary prefixes'))).toBe(true)
+    expect(topic.learn?.sources?.[0].url).toBe('https://www.bipm.org/en/publications/si-brochure')
   })
 })

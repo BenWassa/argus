@@ -35,6 +35,16 @@ const RADIOTELEPHONY_NUMBERS = [
   ['Decimal', 'DAY-SEE-MAL'], ['Hundred', 'HUN-dred'], ['Thousand', 'TOU-SAND'],
 ] as const
 
+/** BIPM SI Brochure, 9th ed., Table 7, largest to smallest. Micro is µ as printed. */
+const SI_PREFIXES = [
+  ['10³⁰', 'quetta (Q)'], ['10²⁷', 'ronna (R)'], ['10²⁴', 'yotta (Y)'], ['10²¹', 'zetta (Z)'],
+  ['10¹⁸', 'exa (E)'], ['10¹⁵', 'peta (P)'], ['10¹²', 'tera (T)'], ['10⁹', 'giga (G)'],
+  ['10⁶', 'mega (M)'], ['10³', 'kilo (k)'], ['10²', 'hecto (h)'], ['10¹', 'deca (da)'],
+  ['10⁻¹', 'deci (d)'], ['10⁻²', 'centi (c)'], ['10⁻³', 'milli (m)'], ['10⁻⁶', 'micro (µ)'],
+  ['10⁻⁹', 'nano (n)'], ['10⁻¹²', 'pico (p)'], ['10⁻¹⁵', 'femto (f)'], ['10⁻¹⁸', 'atto (a)'],
+  ['10⁻²¹', 'zepto (z)'], ['10⁻²⁴', 'yocto (y)'], ['10⁻²⁷', 'ronto (r)'], ['10⁻³⁰', 'quecto (q)'],
+] as const
+
 const day = 86_400_000
 const ago = (days: number) => new Date(Date.now() - days * day).toISOString()
 
@@ -471,6 +481,52 @@ export function seedLibrary(): Library {
             label: 'ISED — RIC-21, Study Guide for the Restricted Operator Certificate With Aeronautical Qualification',
             url: 'https://ised-isde.canada.ca/site/spectrum-management-telecommunications/en/official-publications/information/radiocom-information-circulars-ric/ric-21-study-guide-restricted-operator-certificate-aeronautical-qualification',
             note: 'Government of Canada study guide (dated 2011-07-12). §5.3 prints the spoken forms of 0–9 and of decimal, hundred and thousand; §5.4 sets how numbers are transmitted.',
+          },
+        ],
+      },
+      status: 'unstarted',
+      createdAt: ago(0),
+      drilledAt: null,
+      learningAt: null,
+      completedAt: null,
+      lastTestedAt: null,
+      spotCheckedAt: null,
+      history: [],
+    },
+    {
+      id: 'si-prefixes',
+      title: 'SI prefixes',
+      scope: 'All 24 SI prefixes, from 10³⁰ to 10⁻³⁰: each power of ten → the prefix’s name and symbol, as listed in Table 7 of the BIPM SI Brochure. Unit conversion and the rules for writing quantities are not scored.',
+      track: 'learning',
+      items: SI_PREFIXES.map(([prompt, answer]) => ({ prompt, answer })),
+      learn: {
+        kind: 'concise',
+        overview: 'An SI prefix multiplies a unit by a power of ten: a kilometre is 10³ metres and a picosecond is 10⁻¹² seconds. The BIPM lists 24 prefixes, from quetta (10³⁰) down to quecto (10⁻³⁰). The outermost two at each end — ronna and quetta, ronto and quecto — were added in 2022.',
+        sections: [
+          {
+            heading: 'Patterns that carry most of the load',
+            blocks: [
+              {
+                type: 'bullets',
+                items: [
+                  'Above kilo and below milli, each prefix is a step of 10³. Only hecto, deca, deci and centi sit between 10³ and 10⁻³, one power of ten apart.',
+                  'Symbols are case-sensitive. Apart from da, h and k, every multiple has an upper-case symbol and every sub-multiple a lower-case one, so M (mega) and m (milli), P (peta) and p (pico), Z and z, Y and y, R and r, Q and q are different prefixes.',
+                  'Deca is the only two-letter symbol (da). Micro is the Greek letter mu (µ).',
+                  'Prefix names are written in lower case, and a prefix symbol joins its unit symbol with no space: pm, mmol, GΩ, THz.',
+                ],
+              },
+            ],
+          },
+        ],
+        limitations: [
+          'Completion means you can give the name and symbol for each of the 24 powers of ten. The reverse (symbol → power), unit conversion and the SI rules for writing quantities are not tested.',
+          'SI prefixes are strictly powers of ten. The binary prefixes used for computer memory — kibi (Ki) for 2¹⁰, mebi (Mi) for 2²⁰ and so on — are a separate IEC set and are not part of this topic.',
+        ],
+        sources: [
+          {
+            label: 'BIPM — The International System of Units (SI Brochure), 9th edition',
+            url: 'https://www.bipm.org/en/publications/si-brochure',
+            note: 'Version 4.01, June 2026. Chapter 3, Table 7 lists the 24 prefixes with names and symbols and states the case rule; Appendix 1 records the 27th CGPM (2022) decision adding ronna, ronto, quetta and quecto.',
           },
         ],
       },
