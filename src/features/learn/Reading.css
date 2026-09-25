@@ -139,14 +139,28 @@
   width: 30%;
 }
 
-.learn-table th:nth-child(2),
-.learn-table td:nth-child(2) {
+/* The 50/20 split is for three-column tables. A two-column table is a key and
+   its content: without these guards its second column matched both rules, took
+   the later 20% and left the content squeezed into a sliver at phone width. */
+.learn-table th:nth-child(2):not(:last-child),
+.learn-table td:nth-child(2):not(:last-child) {
   width: 50%;
+}
+
+.learn-table th:nth-child(3):last-child,
+.learn-table td:nth-child(3):last-child {
+  width: 20%;
+}
+
+/* The min-width keeps three columns legible and scrolls them inside the
+   wrapper on a narrow phone. Two columns fit a 320px screen without it, and
+   scrolling there only clipped the content column. */
+.learn-table:has(th:nth-child(2):last-child) {
+  min-width: 0;
 }
 
 .learn-table th:last-child,
 .learn-table td:last-child {
-  width: 20%;
   padding-right: 0;
 }
 
