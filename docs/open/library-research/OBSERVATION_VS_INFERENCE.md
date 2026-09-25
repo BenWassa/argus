@@ -4,6 +4,7 @@
 **Branch:** `research/issue-104-practical-skills-expansion`  
 **Status:** deep research / product recommendation  
 **Implementation:** explicitly out of scope  
+**Shipped:** no (checked 2026-09-25) — the completion claim needs scenario practice; see `../ISSUE_104_SCENARIO_ITEMS.md`  
 **Jurisdictional emphasis:** Ontario / Canada  
 **Research date:** 2026-09-17
 

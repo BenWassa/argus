@@ -412,4 +412,6 @@ Completion is not the CFSC, does not pass its written or practical tests, does n
 - The final Morse topic requires both printed directions and does not count verbal-mnemonic recall, SVG use, timing context, audio exposure/support, sending, speed, words, phrases, or operating fluency toward completion.
 - No case-study detail, provenance note, limitation, clinical technique, wider OODA relationship, or contextual explanation is silently counted toward completion.
 - NATO, Morse and bearings remain compact despite using provenance/acquisition support.
+- The six #104 topics (radiotelephony numbers, SI prefixes, Greek alphabet, hexadecimal digits in binary, Beaufort wind scale, ACTS & PROVE) are forward-only, and each scope names its one tested direction. Their effects tables, grouping rules, case-study reasoning and handbook rules are Learn-only.
+- ACTS & PROVE scores recall of the nine rules only. The scenario-application claim in its research spec is not made; see `docs/open/ISSUE_104_SCENARIO_ITEMS.md`.
 - OODA and Primary Survey use the richer Learn model because understanding the framework/procedure requires more than mapping labels.

@@ -4,6 +4,7 @@
 **Issue:** #104  
 **Branch:** `research/issue-104-practical-skills-expansion`  
 **Implementation:** out of scope  
+**Shipped:** no (checked 2026-09-25) — the claim needs scenario practice, and a recall-only version was held back because multi-clause legal answers do not self-score reliably; see `../ISSUE_104_SCENARIO_ITEMS.md` §1. The legal snapshot must be re-checked before any build  
 **Jurisdiction:** Canada; federal law is the authority for the rules researched here. Provincial, territorial, municipal, hunting, range and other laws can add requirements in particular situations.  
 **Legal snapshot:** researched 2026-09-17 against the current Justice Laws consolidations identified below.
 

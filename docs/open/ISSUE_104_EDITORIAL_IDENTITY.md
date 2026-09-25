@@ -2,7 +2,7 @@
 
 **Status:** owner framing / research guidance  
 **Issue:** #104  
-**Implementation:** none
+**Implementation:** guides the #104 first wave (six catalog topics shipped 2026-09-25) and the proposed scenario capability (`ISSUE_104_SCENARIO_ITEMS.md`)
 
 ## Core idea
 

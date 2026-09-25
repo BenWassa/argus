@@ -1,6 +1,7 @@
 # Psychological First Aid — Canada-first research
 
 **Status:** deep research for issue #104; implementation out of scope  
+**Shipped:** no (checked 2026-09-25) — the claim needs scenario practice, and a recall-only Look/Listen/Link/Live deck was held back as too thin; see `../ISSUE_104_SCENARIO_ITEMS.md` §1  
 **Date:** 2026-09-17  
 **Primary authority:** Canadian Red Cross Psychological First Aid (PFA) material  
 **Corroborating authorities:** WHO; International Red Cross and Red Crescent Movement/IFRC; Public Health Agency of Canada; major reviews of the PFA evidence base

@@ -4,7 +4,8 @@
 **Date:** 2026-09-17  
 **Issue:** #104  
 **Branch:** `research/issue-104-practical-skills-expansion`  
-**Implementation:** out of scope
+**Implementation:** out of scope  
+**Shipped:** no (checked 2026-09-25) — the completion claim needs scenario practice; see `../ISSUE_104_SCENARIO_ITEMS.md`  
 
 ## Research question
 

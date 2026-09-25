@@ -4,6 +4,7 @@
 **Date:** 2026-09-17  
 **Issue:** #104  
 **Implementation:** out of scope  
+**Shipped:** recall layer only, 2026-09-25 — catalog topic `firearm-safety-acts-prove` (the nine ACTS/PROVE rules in order, pinned to the 2014 Student Handbook after the §3.3 revalidation). The scenario-application claim is not shipped; see `../ISSUE_104_SCENARIO_ITEMS.md`  
 **Jurisdictional anchor:** Canada, with Ontario delivery context  
 **Primary doctrine:** RCMP Canadian Firearms Safety Course (CFSC) Student Handbook  
 
