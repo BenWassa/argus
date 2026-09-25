@@ -9,6 +9,7 @@
     "radiotelephony-numbers",
     "si-prefixes",
     "greek-alphabet",
-    "hex-digits-binary"
+    "hex-digits-binary",
+    "beaufort-wind-scale"
   ]
 }

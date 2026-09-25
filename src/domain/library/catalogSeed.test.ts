@@ -26,6 +26,7 @@ describe('researched seeded library', () => {
       'si-prefixes',
       'greek-alphabet',
       'hex-digits-binary',
+      'beaufort-wind-scale',
     ])
 
     for (const topic of library.topics) {
@@ -244,5 +245,36 @@ describe('researched seeded library', () => {
     expect(topic.learn?.kind).toBe('concise')
     expect(topic.learn?.limitations?.some((note) => note.includes('Binary → hex'))).toBe(true)
     expect(topic.learn?.sources?.[0].url).toContain('rfc4648')
+  })
+
+  it('keeps Beaufort to forces 0–12 with term and knot range, force 12 unbounded', () => {
+    const topic = seededTopic('beaufort-wind-scale')
+
+    expect(topic.items).toHaveLength(13)
+    expect(topic.items.map((item) => item.prompt)).toEqual(
+      [...Array(13).keys()].map((force) => `Force ${force}`),
+    )
+    expect(rows(topic.items)[0]).toEqual({ prompt: 'Force 0', answer: 'Calm — less than 1 knot' })
+    expect(rows(topic.items)[7]).toEqual({ prompt: 'Force 7', answer: 'Near gale — 28–33 knots' })
+    expect(rows(topic.items)[9]).toEqual({ prompt: 'Force 9', answer: 'Strong gale — 41–47 knots' })
+    expect(rows(topic.items)[12]).toEqual({ prompt: 'Force 12', answer: 'Hurricane — 64 knots or more' })
+
+    // Knot bands are contiguous: each force starts one knot above the last.
+    const lows = topic.items.slice(1, 12).map((item) => Number(item.answer.match(/(\d+)–(\d+)/)?.[1]))
+    const highs = topic.items.slice(1, 12).map((item) => Number(item.answer.match(/(\d+)–(\d+)/)?.[2]))
+    lows.slice(1).forEach((low, index) => expect(low).toBe(highs[index] + 1))
+    expect(highs[10]).toBe(63)
+
+    expect(topic.items.every((item) => item.kind === 'forward')).toBe(true)
+    expect(topic.status).toBe('unstarted')
+    expect(topic.learn?.kind).toBe('concise')
+    // Two two-column tables rather than one three-column table: the effects
+    // have to stay readable at phone width without sideways scrolling.
+    for (const section of topic.learn?.sections?.slice(0, 2) ?? []) {
+      const table = section.blocks[0]
+      expect(table.type === 'table' && [table.columns.length, table.rows.length]).toEqual([2, 13])
+    }
+    expect(topic.learn?.limitations?.some((note) => note.includes('not a forecast'))).toBe(true)
+    expect(topic.learn?.sources?.[0].url).toContain('canada.ca')
   })
 })

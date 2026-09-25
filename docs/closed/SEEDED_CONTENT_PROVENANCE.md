@@ -22,6 +22,7 @@ This document records the research decisions behind the topics shipped by `src/d
 | SI prefixes | 24 powers of ten from 10³⁰ to 10⁻³⁰ → prefix name and symbol | 24 | Concise support + explicit limits |
 | Greek alphabet | 24 letters, capital and small forms → English name | 24 | Concise support + explicit limits |
 | Hexadecimal digits in binary | 16 hex digits 0–F → four-bit binary pattern | 16 | Concise support + explicit limits |
+| Beaufort wind scale | Forces 0–12 → descriptive term and knot range (force 12: 64 knots or more) | 13 | Concise support (effects table) + explicit limits |
 
 Existing seeded historical attempt totals remain compatible with their decks. #42 adds no durable learner-state field and does not change any scored item.
 
@@ -329,6 +330,34 @@ Concise support: the 8-4-2-1 place values with one worked example, A–F as 10�
 ### Authoritative source
 
 - IETF, **RFC 4648 — The Base16, Base32, and Base64 Data Encodings**, §8 Base 16 Encoding: https://www.rfc-editor.org/rfc/rfc4648#section-8
+
+## Beaufort wind scale
+
+### Research decision
+
+The Beaufort scale is the first environment-observation system in the catalog and pairs with bearings: 13 forces, each with a descriptive term, a speed band and visible effects. The #104 research proposed the U.S. National Weather Service table, but the editorial identity asks for Canadian sources where practice varies, and the NWS table differs from the WMO wording at force 9 (“Severe gale”) and gives 0–1 knot for force 0. The topic therefore uses Environment and Climate Change Canada's table, which matches the WMO/Met Office terms.
+
+One deliberate departure: ECCC prints **64–71 knots** for force 12. WMO-No. 558 defines hurricane force as “Beaufort force 12 or over” with no upper bound, and the Met Office gives 64 knots or more, so a capped band would teach a false ceiling. Argus tests force 12 as **64 knots or more** and says why in Learn.
+
+The tested direction is force → term and knot range. Prose effects stay in Learn, as the research recommended, because memorizing them would widen the claim without making it more checkable.
+
+### Test boundary
+
+0 Calm, less than 1 knot · 1 Light air, 1–3 · 2 Light breeze, 4–6 · 3 Gentle breeze, 7–10 · 4 Moderate breeze, 11–16 · 5 Fresh breeze, 17–21 · 6 Strong breeze, 22–27 · 7 Near gale, 28–33 · 8 Gale, 34–40 · 9 Strong gale, 41–47 · 10 Storm, 48–55 · 11 Violent storm, 56–63 · 12 Hurricane, 64 knots or more.
+
+### Learn treatment
+
+Concise support with two tables — ECCC's effects observed at sea, then on land, for each force, quoted — plus a short note on the force-12 ceiling. No case study.
+
+### Safety boundary
+
+A memory aid for estimating and describing wind, not a forecast and no substitute for current marine forecasts, warnings or seamanship judgement.
+
+### Sources
+
+- Environment and Climate Change Canada, **Beaufort wind scale table** (page dated 2017-09-10; checked 2026-09-25): https://www.canada.ca/en/environment-climate-change/services/general-marine-weather-information/understanding-forecasts/beaufort-wind-scale-table.html
+- World Meteorological Organization, **Manual on Marine Meteorological Services (WMO-No. 558), Volume I**, 2012 edition updated 2018, Part I §2.2.44(c): https://library.wmo.int/records/item/41585-manual-on-marine-meteorological-services-volume-i-global-aspects
+- Met Office, **Beaufort wind force scale** (cross-check of terms and ranges): https://weather.metoffice.gov.uk/guides/coast-and-sea/beaufort-scale
 
 ## Scope-integrity check
 

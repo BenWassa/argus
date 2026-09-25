@@ -60,6 +60,26 @@ const GREEK_LETTERS = [
 /** RFC 4648 §8: the Base 16 alphabet, each digit standing for one four-bit group. */
 const HEX_DIGITS = '0123456789ABCDEF'
 
+/**
+ * Environment and Climate Change Canada's Beaufort table, except force 12: ECCC
+ * prints 64–71 knots, but WMO hurricane force is force 12 or over, unbounded.
+ */
+const BEAUFORT = [
+  ['Force 0', 'Calm — less than 1 knot'],
+  ['Force 1', 'Light air — 1–3 knots'],
+  ['Force 2', 'Light breeze — 4–6 knots'],
+  ['Force 3', 'Gentle breeze — 7–10 knots'],
+  ['Force 4', 'Moderate breeze — 11–16 knots'],
+  ['Force 5', 'Fresh breeze — 17–21 knots'],
+  ['Force 6', 'Strong breeze — 22–27 knots'],
+  ['Force 7', 'Near gale — 28–33 knots'],
+  ['Force 8', 'Gale — 34–40 knots'],
+  ['Force 9', 'Strong gale — 41–47 knots'],
+  ['Force 10', 'Storm — 48–55 knots'],
+  ['Force 11', 'Violent storm — 56–63 knots'],
+  ['Force 12', 'Hurricane — 64 knots or more'],
+] as const
+
 const day = 86_400_000
 const ago = (days: number) => new Date(Date.now() - days * day).toISOString()
 
@@ -635,6 +655,105 @@ export function seedLibrary(): Library {
             label: 'IETF — RFC 4648, The Base16, Base32, and Base64 Data Encodings, §8',
             url: 'https://www.rfc-editor.org/rfc/rfc4648#section-8',
             note: 'Standard Base 16 (hex) encoding: each character represents 4 bits, and the alphabet maps the values 0–15 to 0–9 and A–F. The four-bit patterns are those values written in binary.',
+          },
+        ],
+      },
+      status: 'unstarted',
+      createdAt: ago(0),
+      drilledAt: null,
+      learningAt: null,
+      completedAt: null,
+      lastTestedAt: null,
+      spotCheckedAt: null,
+      history: [],
+    },
+    {
+      id: 'beaufort-wind-scale',
+      title: 'Beaufort wind scale',
+      scope: 'Beaufort forces 0 to 12: each force → its descriptive term and wind-speed range in knots, as published by Environment and Climate Change Canada, with force 12 as 64 knots or more. Tested force → term and range. The observed effects at sea and on land are not scored.',
+      track: 'tradecraft',
+      items: BEAUFORT.map(([prompt, answer]) => ({ prompt, answer })),
+      learn: {
+        kind: 'concise',
+        overview: 'The Beaufort scale grades wind from force 0, calm, to force 12, hurricane. Each force has a name, a speed range in knots and effects that can be seen at sea and on land, so wind can be estimated by looking and a forecast speed can be pictured. The name and knot range are what Test asks; the effects below are for estimating.',
+        sections: [
+          {
+            heading: 'What each force looks like at sea',
+            blocks: [
+              {
+                type: 'table',
+                columns: ['Force', 'At sea'],
+                rows: [
+                  ['0', 'Sea surface like a mirror, but not necessarily flat.'],
+                  ['1', 'Ripples with the appearance of scales are formed, but without foam crests.'],
+                  ['2', 'Small wavelets, still short but more pronounced. Crests do not break. When visibility good, horizon line always very clear.'],
+                  ['3', 'Large wavelets. Crests begin to break. Foam of glassy appearance. Perhaps scattered whitecaps.'],
+                  ['4', 'Small waves, becoming longer. Fairly frequent whitecaps.'],
+                  ['5', 'Moderate waves, taking a more pronounced long form. Many whitecaps are formed. Chance of some spray.'],
+                  ['6', 'Large waves begin to form. The white foam crests are more extensive everywhere. Probably some spray.'],
+                  ['7', 'Sea heaps up and white foam from breaking waves begins to be blown in streaks along the direction of the wind.'],
+                  ['8', 'Moderately high waves of greater length. Edges of crests begin to break into the spindrift. The foam is blown in well-marked streaks along the direction of the wind.'],
+                  ['9', 'High waves. Dense streaks of foam along the direction of the wind. Crests of waves begin to topple, tumble and roll over. Spray may affect visibility.'],
+                  ['10', 'Very high waves with long overhanging crests. Dense white streaks of foam. Surface of the sea takes a white appearance. The tumbling of the sea becomes heavy and shock-like. Visibility affected.'],
+                  ['11', 'Exceptionally high waves. Sea completely covered with long white patches of foam. Visibility affected.'],
+                  ['12', 'Air filled with foam and spray. Sea entirely white with foam. Visibility seriously impaired.'],
+                ],
+              },
+            ],
+          },
+          {
+            heading: 'What each force looks like on land',
+            blocks: [
+              {
+                type: 'table',
+                columns: ['Force', 'On land'],
+                rows: [
+                  ['0', 'Smoke rises vertically.'],
+                  ['1', 'Direction of wind shown by smoke drift, but not wind vanes.'],
+                  ['2', 'Wind felt on face. Leaves rustle. Ordinary vane moved by wind.'],
+                  ['3', 'Leaves and small twigs in constant motion. Wind extends light flag.'],
+                  ['4', 'Raises dust and loose paper. Small branches are moved.'],
+                  ['5', 'Small trees with leaves begin to sway. Crested wavelets form on inland waters.'],
+                  ['6', 'Large branches in motion. Whistling heard in telephone wires. Umbrellas used with difficulty.'],
+                  ['7', 'Whole trees in motion. Inconvenience felt in walking against wind.'],
+                  ['8', 'Breaks twigs off trees. Generally impedes progress. Walking into wind almost impossible.'],
+                  ['9', 'Slight structural damage occurs, e.g. roofing shingles may become loose or blow off.'],
+                  ['10', 'Trees uprooted. Considerable structural damage occurs.'],
+                  ['11', 'Widespread damage.'],
+                  ['12', 'Rare. Severe widespread damage to vegetation and significant structural damage possible.'],
+                ],
+              },
+            ],
+          },
+          {
+            heading: 'The top of the scale',
+            blocks: [
+              {
+                type: 'paragraph',
+                text: 'Environment and Climate Change Canada’s table prints 64–71 knots for force 12. The World Meteorological Organization treats hurricane force as Beaufort force 12 or over, with no upper limit, and the Met Office gives 64 knots or more, so Argus tests force 12 as 64 knots or more.',
+              },
+            ],
+          },
+        ],
+        limitations: [
+          'A memory aid for estimating and describing wind. It is not a forecast and is no substitute for current marine forecasts and warnings, or for seamanship judgement.',
+          'Completion means you can give the term and knot range for each force. The observed effects, km/h and other units, wave heights and the reverse (speed → force) are not tested.',
+        ],
+        sources: [
+          {
+            label: 'Environment and Climate Change Canada — Beaufort wind scale table',
+            url: 'https://www.canada.ca/en/environment-climate-change/services/general-marine-weather-information/understanding-forecasts/beaufort-wind-scale-table.html',
+            note: 'Canadian government table of the 13 forces: descriptive terms, knot and km/h ranges, and the effects observed at sea and on land quoted above (page dated 2017-09-10).',
+          },
+          {
+            label: 'WMO — Manual on Marine Meteorological Services (WMO-No. 558), Volume I',
+            url: 'https://library.wmo.int/records/item/41585-manual-on-marine-meteorological-services-volume-i-global-aspects',
+            note: 'International technical regulation. The 2012 edition, updated 2018, Part I §2.2.44 defines the wind-warning categories, with hurricane force as Beaufort force 12 or over.',
+          },
+          {
+            label: 'Met Office — Beaufort wind force scale',
+            url: 'https://weather.metoffice.gov.uk/guides/coast-and-sea/beaufort-scale',
+            note: 'National meteorological service cross-check: the same terms and knot ranges, with force 12 as 64 knots or more.',
           },
         ],
       },
