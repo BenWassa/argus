@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import type { TopicJourney } from '../../domain/study/journey'
 import type { Topic } from '../../domain/library/topic'
 import { gaugeFill, gaugeLabel, gaugeReading } from './gaugeReading'
@@ -12,11 +13,15 @@ import { gaugeFill, gaugeLabel, gaugeReading } from './gaugeReading'
  * scoreboard. Completion is the one state that changes the fill, to the settled
  * slate that means "no longer the thing in progress".
  *
- * `variant` is density, not meaning. A row shows the bar with its reading
- * available to a screen reader, because a row is already carrying four pieces
- * of text and a fifth would crowd the title off a phone. The topic page shows
- * the same reading in words, because that page is about this one topic and has
- * the room to say what it is measuring.
+ * The fill takes the topic's track metal (`--track-hue`), so a row's gauge and
+ * its stud read as the same object. A track is a category, not a grade, so this
+ * colours the schedule without turning it into a scoreboard.
+ *
+ * `variant` is density, not meaning. A row sets the reading beside a short bar,
+ * because a bar with no units on a list of titles is a shape to decode. The
+ * topic page sets it beneath a full-width one, and may replace it with a fuller
+ * caption in the same units. Today's plates are `bare`: the bar alone, its
+ * reading kept for a screen reader, because Today states no quantities.
  */
 export function TopicGauge({
   topic,
@@ -26,7 +31,7 @@ export function TopicGauge({
 }: {
   topic: Topic
   journey: TopicJourney
-  variant: 'row' | 'page'
+  variant: 'row' | 'page' | 'bare'
   /** A fuller line in the same units, replacing the reading on the page. */
   caption?: string | null
 }) {
@@ -38,23 +43,34 @@ export function TopicGauge({
   // that is running at zero, which is a different and false statement.
   if (reading.kind === 'none' || fill === null || label === null) return null
 
+  const hue = { '--track-hue': `var(--${topic.track})` } as CSSProperties
+
   const track = (
     <span className={`gauge-track gauge-${reading.kind}`} aria-hidden="true">
       <span className="gauge-fill" style={{ width: `${Math.round(fill * 100)}%` }} />
     </span>
   )
 
-  if (variant === 'row') {
+  if (variant === 'bare') {
     return (
-      <span className="gauge gauge-row">
+      <span className="gauge gauge-bare" style={hue}>
         {track}
         <span className="sr-only">{label}</span>
       </span>
     )
   }
 
+  if (variant === 'row') {
+    return (
+      <span className="gauge gauge-row" style={hue}>
+        {track}
+        <span className="gauge-label tabular">{label}</span>
+      </span>
+    )
+  }
+
   return (
-    <div className="gauge gauge-page">
+    <div className="gauge gauge-page" style={hue}>
       {track}
       <p className="gauge-label tabular">{caption ?? label}</p>
     </div>

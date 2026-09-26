@@ -71,28 +71,126 @@
   color: var(--subtle);
 }
 
-/* The same index vocabulary the library uses, because these are the same
-   objects. A due topic is a row you can start, not an entry in a manifest.
-   Qualified with .index so the override does not depend on bundle order:
-   feature stylesheets are emitted before global.css. */
+/* Today is a few large plates: the same objects the Library shows, set
+   bigger because there are at most three and each is something you are in the
+   middle of. Qualified with .index so the override does not depend on bundle
+   order: feature stylesheets are emitted before global.css. */
 .index.docket {
+  display: grid;
+  gap: var(--s-md);
   margin-top: var(--s-xl);
+  border-top: 0;
 }
 
-.horizon-head {
-  margin-top: var(--s-2xl);
-  padding-bottom: var(--s-sm);
-  border-bottom: 1px solid color-mix(in srgb, var(--accent) 22%, var(--line));
+.today-note + .index.docket {
+  margin-top: var(--s-lg);
 }
 
-.horizon-head + .today-sub + .index.docket {
-  margin-top: var(--s-md);
+/* Arrival: the plates rise in once, top first, and each gauge fills after
+   its plate lands. Transform and opacity only. */
+.today-entry {
+  animation: today-plate-in 340ms var(--ease) both;
+  animation-delay: calc(var(--order, 0) * 50ms);
 }
 
-/* The disclosure that keeps a catch-up day from reading as a homework list:
-   the lead rows show, the rest wait behind one explicit tap. */
-.docket-more {
-  margin-top: var(--s-sm);
+@keyframes today-plate-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+/* A plate not due today sits flush with the chassis: it is in motion, but it
+   is not what today asks for. The whole plate is the control, so there is no
+   chevron. */
+.index-row.today-plate {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  column-gap: var(--s-md);
+  row-gap: var(--s-md);
+  padding: var(--s-xl) var(--s-xl) var(--s-xl) var(--s-lg);
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  background: var(--surface);
+  transition:
+    background var(--t-fast) var(--ease),
+    border-color var(--t-fast) var(--ease),
+    transform var(--t-fast) var(--ease),
+    box-shadow var(--t-fast) var(--ease);
+}
+
+.index-row.today-plate::after {
+  content: none;
+}
+
+/* Due plates are raised hardware: this is the work. */
+.index-row.today-plate[data-due] {
+  border-color: var(--line-strong);
+  border-top-color: var(--line-hover);
+  background: var(--sheen), var(--gradient-ghost);
+  box-shadow: var(--edge), var(--edge-under), var(--shadow-sm);
+}
+
+/* The first due plate is the day's key, and takes the depth Today reserves
+   for the required action now that no separate button carries it. */
+.index-row.today-plate[data-lead] {
+  box-shadow: var(--edge), var(--edge-under), var(--shadow-key);
+}
+
+.index-row.today-plate[data-repair] {
+  border-color: color-mix(in oklch, var(--warning) 45%, var(--line-strong));
+}
+
+.index-row.today-plate:hover {
+  border-color: var(--line-hover);
+  background: var(--surface-2);
+}
+
+.index-row.today-plate[data-due]:hover {
+  background: var(--sheen), var(--gradient-ghost-hover);
+}
+
+.index-row.today-plate:active {
+  transform: translateY(1px);
+  background: var(--surface-2);
+  box-shadow: var(--press);
+}
+
+.index-row.today-plate:hover .track-stud {
+  transform: scale(1.3);
+}
+
+.today-plate .track-stud {
+  align-self: center;
+  margin-top: 0;
+}
+
+.today-plate-title {
+  font-size: var(--t-section);
+  letter-spacing: -0.018em;
+  line-height: 1.18;
+}
+
+.today-plate .due-reason,
+.today-plate .gauge-bare {
+  grid-column: 1 / -1;
+}
+
+/* The bar closes the plate, set off a little further than the reason above. */
+.today-plate .gauge-bare {
+  margin-top: var(--s-xs);
+}
+
+.today-plate:not([data-due]) .due-reason {
+  color: var(--subtle);
+}
+
+.today-plate .gauge-track {
+  height: 8px;
+}
+
+.today-plate .gauge-fill {
+  --gauge-delay: calc(var(--order, 0) * 50ms + 220ms);
 }
 
 /* Why the topic surfaced today, not which rung it sits on. */
@@ -109,16 +207,6 @@
   color: var(--warning);
 }
 
-/* Where a multi-sitting acquisition programme has actually got to. It sits
-   below the row's own meta line at text weight, because it explains the verb
-   rather than competing with it, and it wraps on a narrow screen instead of
-   squeezing the title. */
-.docket-detail {
-  color: var(--muted);
-  font-size: var(--t-small);
-  line-height: 1.4;
-}
-
 .today-actions {
   display: grid;
   justify-items: stretch;
@@ -126,8 +214,8 @@
   margin-top: var(--s-xl);
 }
 
-/* The one lit surface on Today is the required action itself. A day with
-   nothing due carries no accent and no shadow, because there is no work. */
+/* The primary action on the empty states. On a working day the lead plate
+   carries the key depth instead. */
 .today-go {
   display: grid;
   gap: 2px;
@@ -138,32 +226,15 @@
   box-shadow: var(--edge), var(--shadow-key);
 }
 
-.today-go-verb {
-  font-size: var(--t-component);
-  font-weight: var(--w-component);
-}
+@media (prefers-reduced-motion: reduce) {
+  .today-entry,
+  .today-plate .gauge-fill {
+    animation: none;
+  }
 
-/* Never the whole story on its own line: the count, or which topic this is. */
-.today-go-note {
-  overflow: hidden;
-  font-size: var(--t-label);
-  font-weight: var(--w-body);
-  letter-spacing: 0.01em;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: color-mix(in srgb, var(--accent-ink) 74%, transparent);
-}
-
-.today-alts {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--s-md);
-}
-
-.today-consequence {
-  font-size: var(--t-label);
-  color: var(--subtle);
+  .index-row.today-plate:hover .track-stud {
+    transform: none;
+  }
 }
 
 /* ---------------------------------------------------------------- primer -- */
