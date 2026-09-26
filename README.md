@@ -54,10 +54,11 @@ The **full offline-first runtime guarantee is active scope in #113**, not yet a 
 - `DESIGN.md` / `DESIGN.json` — current visual and interaction system.
 - `docs/open/LEARN_CONTENT_MODEL.md` — structured Learn schema/editorial contract.
 - `docs/open/ISSUE_104_EDITORIAL_IDENTITY.md` — active editorial direction for expanding Argus as an evidence-based practical miscellany.
-- `docs/open/ISSUE_104_LIBRARY_EXPANSION_RESEARCH.md` — first-pass research and admission criteria for compact finite-recall topics.
+- `docs/open/ISSUE_104_LIBRARY_EXPANSION_RESEARCH.md` — first-pass research and admission criteria for compact finite-recall topics; its Batch A shipped as five catalog topics.
 - `docs/open/ISSUE_104_FIELD_HUMAN_SKILLS_EXPANSION.md` — companion research for practical human-systems skills and scenario-based learning; detailed candidate papers live under `docs/open/library-research/`.
+- `docs/open/ISSUE_104_SCENARIO_ITEMS.md` — proposed smallest scenario-item capability that would let the field and human-skills courses score their application claims.
 - `docs/closed/LIBRARY_AUDIT.md` — reconciled shipped-library boundary/content audit.
-- `docs/closed/SEEDED_CONTENT_PROVENANCE.md` — authoritative source record for the original seeded topics.
+- `docs/closed/SEEDED_CONTENT_PROVENANCE.md` — authoritative source record and Test boundary for every shipped catalog topic.
 - `docs/open/CONTENT_INBOX.md` — content-inbox and curated-ingestion architecture, and the Firebase setup it needs.
 - `docs/open/REDESIGN_INPUT_AUDIT.md` — current factual screen, state, issue-reconciliation, acceptance, and redesign-risk input package.
 - `docs/open/TARGETED_PRACTICE.md` — the formative practice run: its evidence boundary, how it selects what to practise, and why it is not called repair.

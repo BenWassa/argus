@@ -22,6 +22,12 @@ describe('researched seeded library', () => {
       'primary-survey',
       'cardinal-bearings',
       'scuba-equipment-abbreviations',
+      'radiotelephony-numbers',
+      'si-prefixes',
+      'greek-alphabet',
+      'hex-digits-binary',
+      'beaufort-wind-scale',
+      'firearm-safety-acts-prove',
     ])
 
     for (const topic of library.topics) {
@@ -146,5 +152,163 @@ describe('researched seeded library', () => {
     expect(topic.scope).toContain('Test does not cover equipment selection')
     expect(topic.learn?.limitations?.some((note) => note.includes('not diver training'))).toBe(true)
     expect(topic.learn?.sources).toHaveLength(3)
+  })
+
+  it('keeps radiotelephony numbers to the 13 RIC-21 spoken forms, number → spoken form', () => {
+    const topic = seededTopic('radiotelephony-numbers')
+
+    expect(rows(topic.items)).toEqual([
+      { prompt: '0', answer: 'ZE-RO' },
+      { prompt: '1', answer: 'WUN' },
+      { prompt: '2', answer: 'TOO' },
+      { prompt: '3', answer: 'TREE' },
+      { prompt: '4', answer: 'FOW-er' },
+      { prompt: '5', answer: 'FIFE' },
+      { prompt: '6', answer: 'SIX' },
+      { prompt: '7', answer: 'SEV-en' },
+      { prompt: '8', answer: 'AIT' },
+      { prompt: '9', answer: 'NIN-er' },
+      { prompt: 'Decimal', answer: 'DAY-SEE-MAL' },
+      { prompt: 'Hundred', answer: 'HUN-dred' },
+      { prompt: 'Thousand', answer: 'TOU-SAND' },
+    ])
+    expect(topic.items.every((item) => item.kind === 'forward')).toBe(true)
+    expect(topic.status).toBe('unstarted')
+    expect(topic.history).toEqual([])
+    expect(topic.scope).toContain('radio procedure are not scored')
+    expect(topic.learn?.kind).toBe('concise')
+    expect(topic.learn?.limitations?.some((note) => note.includes('not a radio operator certificate'))).toBe(true)
+    expect(topic.learn?.sources?.[0].url).toContain('ric-21')
+  })
+
+  it('keeps SI prefixes to the 24 BIPM powers of ten, power → name and symbol', () => {
+    const topic = seededTopic('si-prefixes')
+
+    expect(topic.items).toHaveLength(24)
+    expect(rows(topic.items)[0]).toEqual({ prompt: '10³⁰', answer: 'quetta (Q)' })
+    expect(rows(topic.items)[9]).toEqual({ prompt: '10³', answer: 'kilo (k)' })
+    expect(rows(topic.items)[11]).toEqual({ prompt: '10¹', answer: 'deca (da)' })
+    expect(rows(topic.items)[15]).toEqual({ prompt: '10⁻⁶', answer: 'micro (µ)' })
+    expect(rows(topic.items)[23]).toEqual({ prompt: '10⁻³⁰', answer: 'quecto (q)' })
+    // Case is the confusion cost: every paired multiple and sub-multiple symbol
+    // must survive as distinct upper/lower-case letters.
+    const symbols = topic.items.map((item) => item.answer.match(/\((.+)\)$/)?.[1])
+    for (const [upper, lower] of [['M', 'm'], ['P', 'p'], ['Z', 'z'], ['Y', 'y'], ['R', 'r'], ['Q', 'q']]) {
+      expect(symbols).toContain(upper)
+      expect(symbols).toContain(lower)
+    }
+    expect(topic.items.every((item) => item.kind === 'forward')).toBe(true)
+    expect(topic.status).toBe('unstarted')
+    expect(topic.learn?.kind).toBe('concise')
+    expect(topic.learn?.limitations?.some((note) => note.includes('binary prefixes'))).toBe(true)
+    expect(topic.learn?.sources?.[0].url).toBe('https://www.bipm.org/en/publications/si-brochure')
+  })
+
+  it('keeps the Greek alphabet to 24 Greek-code-point letters, letter → name', () => {
+    const topic = seededTopic('greek-alphabet')
+
+    expect(topic.items.map((item) => item.answer)).toEqual([
+      'Alpha', 'Beta', 'Gamma', 'Delta', 'Epsilon', 'Zeta', 'Eta', 'Theta', 'Iota', 'Kappa',
+      'Lambda', 'Mu', 'Nu', 'Xi', 'Omicron', 'Pi', 'Rho', 'Sigma', 'Tau', 'Upsilon',
+      'Phi', 'Chi', 'Psi', 'Omega',
+    ])
+    // No Latin look-alike may stand in for a Greek capital: every glyph must be
+    // the Greek code point, capital then small, in alphabetical order.
+    const capitals = [...Array(25).keys()].map((i) => 0x391 + i).filter((cp) => cp !== 0x3a2)
+    topic.items.forEach((item, index) => {
+      const [capital, small, final] = item.prompt.split(' ')
+      expect(capital.codePointAt(0)).toBe(capitals[index])
+      expect(small.codePointAt(0)).toBe(capitals[index] + 0x20)
+      expect(final).toBe(item.answer === 'Sigma' ? 'ς' : undefined)
+    })
+    expect(topic.items.every((item) => item.kind === 'forward')).toBe(true)
+    expect(topic.status).toBe('unstarted')
+    expect(topic.learn?.kind).toBe('concise')
+    expect(topic.learn?.limitations?.some((note) => note.includes('not reading, writing or speaking Greek'))).toBe(true)
+    expect(topic.learn?.sources?.[0].url).toBe('https://www.unicode.org/charts/PDF/U0370.pdf')
+  })
+
+  it('keeps hexadecimal digits to the 16 four-bit patterns, hex → binary', () => {
+    const topic = seededTopic('hex-digits-binary')
+
+    expect(rows(topic.items)).toEqual([
+      { prompt: '0', answer: '0000' }, { prompt: '1', answer: '0001' },
+      { prompt: '2', answer: '0010' }, { prompt: '3', answer: '0011' },
+      { prompt: '4', answer: '0100' }, { prompt: '5', answer: '0101' },
+      { prompt: '6', answer: '0110' }, { prompt: '7', answer: '0111' },
+      { prompt: '8', answer: '1000' }, { prompt: '9', answer: '1001' },
+      { prompt: 'A', answer: '1010' }, { prompt: 'B', answer: '1011' },
+      { prompt: 'C', answer: '1100' }, { prompt: 'D', answer: '1101' },
+      { prompt: 'E', answer: '1110' }, { prompt: 'F', answer: '1111' },
+    ])
+    expect(topic.items.every((item) => item.kind === 'forward')).toBe(true)
+    expect(topic.status).toBe('unstarted')
+    expect(topic.learn?.kind).toBe('concise')
+    expect(topic.learn?.limitations?.some((note) => note.includes('Binary → hex'))).toBe(true)
+    expect(topic.learn?.sources?.[0].url).toContain('rfc4648')
+  })
+
+  it('keeps Beaufort to forces 0–12 with term and knot range, force 12 unbounded', () => {
+    const topic = seededTopic('beaufort-wind-scale')
+
+    expect(topic.items).toHaveLength(13)
+    expect(topic.items.map((item) => item.prompt)).toEqual(
+      [...Array(13).keys()].map((force) => `Force ${force}`),
+    )
+    expect(rows(topic.items)[0]).toEqual({ prompt: 'Force 0', answer: 'Calm — less than 1 knot' })
+    expect(rows(topic.items)[7]).toEqual({ prompt: 'Force 7', answer: 'Near gale — 28–33 knots' })
+    expect(rows(topic.items)[9]).toEqual({ prompt: 'Force 9', answer: 'Strong gale — 41–47 knots' })
+    expect(rows(topic.items)[12]).toEqual({ prompt: 'Force 12', answer: 'Hurricane — 64 knots or more' })
+
+    // Knot bands are contiguous: each force starts one knot above the last.
+    const lows = topic.items.slice(1, 12).map((item) => Number(item.answer.match(/(\d+)–(\d+)/)?.[1]))
+    const highs = topic.items.slice(1, 12).map((item) => Number(item.answer.match(/(\d+)–(\d+)/)?.[2]))
+    lows.slice(1).forEach((low, index) => expect(low).toBe(highs[index] + 1))
+    expect(highs[10]).toBe(63)
+
+    expect(topic.items.every((item) => item.kind === 'forward')).toBe(true)
+    expect(topic.status).toBe('unstarted')
+    expect(topic.learn?.kind).toBe('concise')
+    // Two two-column tables rather than one three-column table: the effects
+    // have to stay readable at phone width without sideways scrolling.
+    for (const section of topic.learn?.sections?.slice(0, 2) ?? []) {
+      const table = section.blocks[0]
+      expect(table.type === 'table' && [table.columns.length, table.rows.length]).toEqual([2, 13])
+    }
+    expect(topic.learn?.limitations?.some((note) => note.includes('not a forecast'))).toBe(true)
+    expect(topic.learn?.sources?.[0].url).toContain('canada.ca')
+  })
+
+  it('keeps ACTS & PROVE to the nine handbook rules in order, with firearm limits visible', () => {
+    const topic = seededTopic('firearm-safety-acts-prove')
+
+    expect(rows(topic.items)).toEqual([
+      { prompt: 'ACTS 1 (A)', answer: 'Assume every firearm is loaded.' },
+      { prompt: 'ACTS 2 (C)', answer: 'Control the muzzle direction at all times.' },
+      { prompt: 'ACTS 3 (T)', answer: 'Trigger finger must be kept off the trigger and out of the trigger guard.' },
+      { prompt: 'ACTS 4 (S)', answer: 'See that the firearm is unloaded — PROVE it safe.' },
+      { prompt: 'PROVE 1 (P)', answer: 'Point the firearm in the safest available direction.' },
+      { prompt: 'PROVE 2 (R)', answer: 'Remove all ammunition.' },
+      { prompt: 'PROVE 3 (O)', answer: 'Observe the chamber.' },
+      { prompt: 'PROVE 4 (V)', answer: 'Verify the feeding path.' },
+      { prompt: 'PROVE 5 (E)', answer: 'Examine the bore for obstructions.' },
+    ])
+    // Each prompt's letter is the first letter of its rule, so the acronyms
+    // spell themselves out of the scored items.
+    const letters = topic.items.map((item) => item.prompt.match(/\((\w)\)$/)?.[1])
+    expect(letters.join('')).toBe('ACTSPROVE')
+    topic.items.forEach((item, index) => expect(item.answer[0]).toBe(letters[index]))
+
+    expect(topic.scope).toContain('Student Handbook (2014)')
+    expect(topic.scope).toContain('not handling a firearm')
+    expect(topic.items.every((item) => item.kind === 'forward')).toBe(true)
+    expect(topic.status).toBe('unstarted')
+    expect(topic.learn?.kind).toBe('briefing')
+    expect(topic.learn?.caseStudies).toHaveLength(1)
+    const limits = topic.learn?.limitations ?? []
+    expect(limits.some((note) => note.includes('is not the Canadian Firearms Safety Course'))).toBe(true)
+    expect(limits.some((note) => note.includes('nothing about shooting, tactics or use of force'))).toBe(true)
+    expect(limits.some((note) => note.includes('follow your course'))).toBe(true)
+    expect(topic.learn?.sources?.[0].url).toContain('publications.gc.ca')
   })
 })

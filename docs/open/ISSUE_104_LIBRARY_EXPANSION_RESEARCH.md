@@ -1,9 +1,29 @@
 # Issue #104 — Argus library expansion research
 
-**Status:** research / owner decision only  
-**Date:** 2026-09-16  
+**Status:** research / owner decision — Batch A shipped; Batch B, the visual wave and the curriculum rule remain open  
+**Date:** 2026-09-16 (status updated 2026-09-25)  
 **Issue:** #104  
-**Implementation:** explicitly out of scope
+**Implementation:** Batch A shipped as five catalog topics (see status update below); nothing else in this paper is implemented
+
+## Status update — 2026-09-25
+
+Decision A's default shipped as five ordinary catalog topics. Their sources and boundaries are recorded in `docs/closed/SEEDED_CONTENT_PROVENANCE.md`:
+
+| Topic id | Completion claim | Items |
+|---|---|---:|
+| `radiotelephony-numbers` | Digits 0–9 plus decimal, hundred and thousand → ISED RIC-21 spoken form | 13 |
+| `si-prefixes` | Powers 10³⁰ to 10⁻³⁰ → SI prefix name and symbol (BIPM SI Brochure, Table 7) | 24 |
+| `greek-alphabet` | Capital and small letter → English name (Unicode Greek and Coptic chart) | 24 |
+| `hex-digits-binary` | Hex digit 0–F → four-bit binary pattern (RFC 4648 §8) | 16 |
+| `beaufort-wind-scale` | Force 0–12 → descriptive term and knot range (ECCC; force 12 is 64 knots or more) | 13 |
+
+Where the shipped topics depart from this paper:
+
+- **Every topic is forward-only.** §8.1 assumed the model already supports bidirectional recall for any topic. It does not: only the Morse acquisition ladder asks and records the reverse direction, so a bidirectional ordinary topic could never pass a retention attempt. Each scope names the one direction it tests, and `catalogInvariants.test.ts` now refuses a bidirectional topic without the ladder.
+- **Beaufort is sourced to Environment and Climate Change Canada, not the NWS.** The NWS table's force 9 term differs from the WMO wording. ECCC's own force 12 band (64–71 knots) is overridden to the WMO's open-ended “force 12 or over”.
+- **Radiotelephony procedural words stay held**, as Decision A recommended.
+
+Decisions B (visual portfolio), C (ICS, Cynefin) and D (curriculum rule) are untouched, which is why this paper stays open.
 
 ## Executive decision
 

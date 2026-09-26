@@ -1,6 +1,6 @@
 # Seeded content provenance and Test boundaries
 
-Issue: #11; Morse baseline: #23; final A–Z curriculum: #28; acquisition/audio correction: #42  
+Issue: #11; Morse baseline: #23; final A–Z curriculum: #28; acquisition/audio correction: #42; first-wave catalog expansion: #104  
 Research baseline: `f2a3112110356f90f469c8c340f9f0ac69fbb2ee`  
 Library format: v5
 
@@ -18,6 +18,12 @@ This document records the research decisions behind the topics shipped by `src/d
 | Primary survey | Five ABCDE headings in order only | 5 | Briefing + integrated bounded case + explicit safety limits |
 | Cardinal/intercardinal bearings | Eight named compass points → clockwise degree value from north, with north represented as 0° | 8 | Concise support |
 | Recreational scuba equipment abbreviations | SCUBA, BCD, SPG, LPI, DSMB and DPV → expansion and core reference function | 6 | Concise support + explicit safety limits |
+| Radiotelephony numbers | Digits 0–9 plus decimal, hundred and thousand → RIC-21 spoken form | 13 | Concise support + explicit limits |
+| SI prefixes | 24 powers of ten from 10³⁰ to 10⁻³⁰ → prefix name and symbol | 24 | Concise support + explicit limits |
+| Greek alphabet | 24 letters, capital and small forms → English name | 24 | Concise support + explicit limits |
+| Hexadecimal digits in binary | 16 hex digits 0–F → four-bit binary pattern | 16 | Concise support + explicit limits |
+| Beaufort wind scale | Forces 0–12 → descriptive term and knot range (force 12: 64 knots or more) | 13 | Concise support (effects table) + explicit limits |
+| Canadian firearm safety — ACTS & PROVE | Four ACTS rules + five PROVE steps, in order, in RCMP CFSC Student Handbook (2014) wording | 9 | Briefing + integrated handoff case + explicit safety limits |
 
 Existing seeded historical attempt totals remain compatible with their decks. #42 adds no durable learner-state field and does not change any scored item.
 
@@ -228,6 +234,177 @@ Completion means only that these six abbreviations and reference functions can b
 
 - NOAA, **Navigation Training Manual**: https://repository.library.noaa.gov/view/noaa/42218/noaa_42218_DS1.pdf
 
+## #104 first-wave expansion: direction of recall
+
+The #104 research proposed bidirectional recall for several first-wave topics. Only the Morse acquisition ladder asks and records the reverse direction today: an ordinary reveal-and-self-score card always asks prompt → answer and records no per-direction evidence, so a bidirectional item there could never earn reverse evidence and its topic could never pass a retention attempt. Authoring both directions as separate forward cards was also rejected, because the two cards of one mapping disclose each other inside the same run.
+
+Every #104 topic is therefore **forward-only**, and each scope names the one direction it tests. The direction chosen is the one the real-world use needs first. `catalogInvariants.test.ts` refuses a bidirectional topic that the ladder does not drive.
+
+## Radiotelephony numbers
+
+### Research decision
+
+ISED's RIC-21 study guide for the Restricted Operator Certificate with Aeronautical Qualification prints the spoken forms of the ten digits and of the words decimal, hundred and thousand at the end of §5.3, and §5.4 sets how numbers are transmitted. The 13 forms are finite, stable and extend the NATO topic into numbers without new machinery. The topic is scoped to this named Canadian aeronautical source rather than presented as universal radio practice.
+
+The tested direction is number → spoken form, because producing the form is what a speaker needs; hearing “NIN-er” and writing 9 needs no training.
+
+### Test boundary
+
+`0` ZE-RO · `1` WUN · `2` TOO · `3` TREE · `4` FOW-er · `5` FIFE · `6` SIX · `7` SEV-en · `8` AIT · `9` NIN-er · Decimal DAY-SEE-MAL · Hundred HUN-dred · Thousand TOU-SAND — spellings and hyphenation exactly as printed.
+
+### Learn treatment
+
+Concise support: what the fixed forms are and where they are printed, the §5.4 grouping rules (digit by digit, whole thousands, “decimal”) with RIC-21's own examples, and a note that altitude, heading, wind, time and aircraft-type conventions are outside the topic. None of the grouping rules is scored.
+
+### Limits
+
+Completion is recall of 13 forms. It is not a radio operator certificate, radio training or permission to transmit, and it makes no claim about marine, amateur, public-safety or other services.
+
+### Authoritative source
+
+- Innovation, Science and Economic Development Canada, **RIC-21 — Study Guide for the Restricted Operator Certificate With Aeronautical Qualification** (page dated 2011-07-12; checked 2026-09-25): https://ised-isde.canada.ca/site/spectrum-management-telecommunications/en/official-publications/information/radiocom-information-circulars-ric/ric-21-study-guide-restricted-operator-certificate-aeronautical-qualification
+  - §5.3 number pronunciation table (0–9, decimal, hundred, thousand).
+  - §5.4 transmission of numbers.
+
+## SI prefixes
+
+### Research decision
+
+The BIPM SI Brochure's Table 7 is the complete, authoritative list: 24 prefixes from 10³⁰ to 10⁻³⁰, including ronna, ronto, quetta and quecto, added by the 27th CGPM in 2022. The mapping is finite, stable and useful well beyond science, and the familiar prefixes give false confidence about the rarer ones and about symbol case.
+
+The tested direction is power → name and symbol, as the #104 research example proposed. Producing the symbol exercises the case rule (M/m, P/p, Z/z, Y/y, R/r, Q/q), which is where the confusion cost sits.
+
+### Test boundary
+
+10³⁰ quetta (Q) · 10²⁷ ronna (R) · 10²⁴ yotta (Y) · 10²¹ zetta (Z) · 10¹⁸ exa (E) · 10¹⁵ peta (P) · 10¹² tera (T) · 10⁹ giga (G) · 10⁶ mega (M) · 10³ kilo (k) · 10² hecto (h) · 10¹ deca (da) · 10⁻¹ deci (d) · 10⁻² centi (c) · 10⁻³ milli (m) · 10⁻⁶ micro (µ) · 10⁻⁹ nano (n) · 10⁻¹² pico (p) · 10⁻¹⁵ femto (f) · 10⁻¹⁸ atto (a) · 10⁻²¹ zepto (z) · 10⁻²⁴ yocto (y) · 10⁻²⁷ ronto (r) · 10⁻³⁰ quecto (q).
+
+### Learn treatment
+
+Concise support: the 10³ stepping outside hecto–centi, the BIPM case rule, deca's two-letter symbol, micro's µ and how symbols attach to units. The limitations separate the IEC binary prefixes (kibi, mebi…), which the Brochure itself distinguishes from SI prefixes.
+
+### Authoritative source
+
+- BIPM, **The International System of Units (SI Brochure)**, 9th edition (2019), version 4.01, June 2026: https://www.bipm.org/en/publications/si-brochure
+  - Chapter 3, Table 7 (SI prefixes) and the case rule directly above it.
+  - Chapter 3 note that SI prefixes refer strictly to powers of 10, with the IEC binary prefix names.
+  - Appendix 1, 27th CGPM (2022): addition of ronna, ronto, quetta and quecto.
+
+## Greek alphabet
+
+### Research decision
+
+The 24 letters recur throughout mathematics, statistics, science and engineering, where passive recognition decays and look-alike letters (ν/υ, ζ/ξ, η/n, ρ/p) cause real misreadings. The Unicode Greek and Coptic chart encodes the 24 capital and small letters in alphabetical order with their names, so a single durable source fixes the glyphs, the order and the names. Unicode's character names spell lambda as LAMDA; the chart gives lambda as the usual name, and Argus uses it.
+
+The tested direction is letter → name, because reading notation is the everyday need. Each prompt shows the capital and small forms together (sigma also shows final ς), because many capitals are identical in shape to Latin letters and only the small form identifies them. Name → letter is recorded as a limit, not tested (see the forward-only note above).
+
+### Test boundary
+
+Α α Alpha · Β β Beta · Γ γ Gamma · Δ δ Delta · Ε ε Epsilon · Ζ ζ Zeta · Η η Eta · Θ θ Theta · Ι ι Iota · Κ κ Kappa · Λ λ Lambda · Μ μ Mu · Ν ν Nu · Ξ ξ Xi · Ο ο Omicron · Π π Pi · Ρ ρ Rho · Σ σ ς Sigma · Τ τ Tau · Υ υ Upsilon · Φ φ Phi · Χ χ Chi · Ψ ψ Psi · Ω ω Omega. Every glyph is the Greek code point, never a Latin look-alike; the seed test checks the code-point ranges.
+
+### Learn treatment
+
+Concise support: why recognition is the tested direction, the look-alike pairs, and final sigma. Limits say this is not reading, writing or pronouncing Greek. A guided acquisition path was not built: the #104 research asks for ordinary reference + Test to be tried first.
+
+### Authoritative source
+
+- Unicode Consortium, **Greek and Coptic code chart, Unicode 18.0**: https://www.unicode.org/charts/PDF/U0370.pdf
+  - U+0391–U+03A9 capitals and U+03B1–U+03C9 small letters (U+03A2 reserved), in alphabetical order.
+  - U+03C2 GREEK SMALL LETTER FINAL SIGMA.
+  - U+03BB GREEK SMALL LETTER LAMDA, alias “lambda”.
+
+## Hexadecimal digits in binary
+
+### Research decision
+
+One hexadecimal digit represents exactly four bits, giving 16 fixed mappings from 0–F to 0000–1111. The boundary is finite and genuinely completable, unlike a general “learn binary” course, and it pays off whenever bytes, masks, colour values or registers are read in hex. The mapping is mathematical; RFC 4648 §8 is the standards reference that fixes the hex alphabet (values 0–15 → 0–9, A–F) and its four-bits-per-character meaning.
+
+The tested direction is hex → binary, the direction used when reading a hex value as bits.
+
+### Test boundary
+
+0 0000 · 1 0001 · 2 0010 · 3 0011 · 4 0100 · 5 0101 · 6 0110 · 7 0111 · 8 1000 · 9 1001 · A 1010 · B 1011 · C 1100 · D 1101 · E 1110 · F 1111. The seed derives each answer from the digit's value, so no pattern can be mistyped.
+
+### Learn treatment
+
+Concise support: the 8-4-2-1 place values with one worked example, A–F as 10–15, case-insensitivity, and single-bit anchors. Binary → hex, longer numbers and arithmetic are limits, not scored content.
+
+### Authoritative source
+
+- IETF, **RFC 4648 — The Base16, Base32, and Base64 Data Encodings**, §8 Base 16 Encoding: https://www.rfc-editor.org/rfc/rfc4648#section-8
+
+## Beaufort wind scale
+
+### Research decision
+
+The Beaufort scale is the first environment-observation system in the catalog and pairs with bearings: 13 forces, each with a descriptive term, a speed band and visible effects. The #104 research proposed the U.S. National Weather Service table, but the editorial identity asks for Canadian sources where practice varies, and the NWS table differs from the WMO wording at force 9 (“Severe gale”) and gives 0–1 knot for force 0. The topic therefore uses Environment and Climate Change Canada's table, which matches the WMO/Met Office terms.
+
+One deliberate departure: ECCC prints **64–71 knots** for force 12. WMO-No. 558 defines hurricane force as “Beaufort force 12 or over” with no upper bound, and the Met Office gives 64 knots or more, so a capped band would teach a false ceiling. Argus tests force 12 as **64 knots or more** and says why in Learn.
+
+The tested direction is force → term and knot range. Prose effects stay in Learn, as the research recommended, because memorizing them would widen the claim without making it more checkable.
+
+### Test boundary
+
+0 Calm, less than 1 knot · 1 Light air, 1–3 · 2 Light breeze, 4–6 · 3 Gentle breeze, 7–10 · 4 Moderate breeze, 11–16 · 5 Fresh breeze, 17–21 · 6 Strong breeze, 22–27 · 7 Near gale, 28–33 · 8 Gale, 34–40 · 9 Strong gale, 41–47 · 10 Storm, 48–55 · 11 Violent storm, 56–63 · 12 Hurricane, 64 knots or more.
+
+### Learn treatment
+
+Concise support with two tables — ECCC's effects observed at sea, then on land, for each force, quoted — plus a short note on the force-12 ceiling. No case study.
+
+### Safety boundary
+
+A memory aid for estimating and describing wind, not a forecast and no substitute for current marine forecasts, warnings or seamanship judgement.
+
+### Sources
+
+- Environment and Climate Change Canada, **Beaufort wind scale table** (page dated 2017-09-10; checked 2026-09-25): https://www.canada.ca/en/environment-climate-change/services/general-marine-weather-information/understanding-forecasts/beaufort-wind-scale-table.html
+- World Meteorological Organization, **Manual on Marine Meteorological Services (WMO-No. 558), Volume I**, 2012 edition updated 2018, Part I §2.2.44(c): https://library.wmo.int/records/item/41585-manual-on-marine-meteorological-services-volume-i-global-aspects
+- Met Office, **Beaufort wind force scale** (cross-check of terms and ranges): https://weather.metoffice.gov.uk/guides/coast-and-sea/beaufort-scale
+
+## Canadian firearm safety — ACTS & PROVE
+
+### Research decision
+
+`docs/open/library-research/FIREARM_SAFETY_ACTS_PROVE.md` recommends a course whose completion claim includes applying ACTS/PROVE “across authored firearm-safety scenarios”. The current item shape cannot score that: a self-scored reveal card cannot tell whether a learner chose the safe response in a scene. That claim is **not** made here.
+
+What ships is the recall layer the umbrella paper (`ISSUE_104_FIELD_HUMAN_SKILLS_EXPANSION.md` §8.1 Q and R) scopes separately: the four ACTS rules and five PROVE steps, in order. That boundary is finite, exact and scorable, and it follows the Primary Survey precedent of scoring the headings and order while Learn explains the framework. The scenario layer waits for the capability described in `docs/open/ISSUE_104_SCENARIO_ITEMS.md` and should ship as its own topic, so this completion claim never changes meaning under a learner who already holds it.
+
+The spec required the doctrine wording to be rechecked before shipping, because the RCMP's 2025 Commissioner of Firearms Report announces a new national safety curriculum from 2026. As of 2026-09-25 no replacement wording is published; the current RCMP safety-courses page does not restate ACTS/PROVE; and the Firearms Safety Education Service of Ontario (the Ontario delivery agent) still directs students to the 2014 Student Handbook. The topic therefore pins its wording to that dated edition, says so in scope and Learn, and tells the learner to follow their course if it differs.
+
+Firearm scope follows the research papers exactly: safety memory only. Nothing about shooting, marksmanship, tactics, defensive use or action-specific manipulation is scored or explained.
+
+### Test boundary
+
+1. **ACTS 1 (A)** — Assume every firearm is loaded.
+2. **ACTS 2 (C)** — Control the muzzle direction at all times.
+3. **ACTS 3 (T)** — Trigger finger must be kept off the trigger and out of the trigger guard.
+4. **ACTS 4 (S)** — See that the firearm is unloaded — PROVE it safe.
+5. **PROVE 1 (P)** — Point the firearm in the safest available direction.
+6. **PROVE 2 (R)** — Remove all ammunition.
+7. **PROVE 3 (O)** — Observe the chamber.
+8. **PROVE 4 (V)** — Verify the feeding path.
+9. **PROVE 5 (E)** — Examine the bore for obstructions.
+
+The handbook's introduction prints “Observe the chamber(s)” and “Examine the bore for obstructions (visually or with a rod)”; the scored wording follows the §3.1.7 Table 4 form.
+
+### Learn treatment
+
+Briefing, because the acronyms alone are shallow: how ACTS and PROVE fit together, and four handbook rules — open-and-unloaded passing, the direct-control limit, never relying on a mechanical safety, and seeking a qualified individual rather than improvising. One integrated case (a rifle handed over closed and “already checked”) applies the whole framework and deliberately omits how any action is opened or inspected. None of it is scored.
+
+### Safety boundary
+
+Completion is not the CFSC, does not pass its written or practical tests, does not qualify anyone for a licence and does not show safe handling. Physical handling is taught and tested hands-on by certified instructors. These limits appear in the topic's Learn limitations, not only here.
+
+### Sources
+
+- Royal Canadian Mounted Police, **Canadian Firearms Safety Course — Student Handbook**, 5th edition (2014): https://publications.gc.ca/collections/collection_2015/grc-rcmp/PS99-2-2-1-2014-eng.pdf
+  - p. 21, The Vital Four ACTS of Firearm Safety (including “Pass or accept only open and unloaded firearms”).
+  - §3.1.7, Table 4, PROVE it safe (p. 50), and the direct-control rule beneath it.
+  - §3.1.4: never rely on the safety to prevent firing.
+  - Loading/unloading sections: do not handle a firearm you are uncomfortable handling; seek a qualified individual.
+- RCMP, **Safety courses** (date modified 2024-10-23): https://rcmp.ca/en/firearms/firearms-safety-training-transport-and-storage/safety-courses
+- RCMP, **2025 Commissioner of Firearms Report** (date modified 2026-06-30): https://rcmp.ca/en/corporate-information/publications-and-manuals/2025-commissioner-firearms-report
+- Firearms Safety Education Service of Ontario, **Canadian Firearm Safety Course**: https://fseso.org/course/canadian-firearm-safety-course-cfsc/
+
 ## Scope-integrity check
 
 - Every topic has an explicit finite scope.
@@ -235,4 +412,6 @@ Completion means only that these six abbreviations and reference functions can b
 - The final Morse topic requires both printed directions and does not count verbal-mnemonic recall, SVG use, timing context, audio exposure/support, sending, speed, words, phrases, or operating fluency toward completion.
 - No case-study detail, provenance note, limitation, clinical technique, wider OODA relationship, or contextual explanation is silently counted toward completion.
 - NATO, Morse and bearings remain compact despite using provenance/acquisition support.
+- The six #104 topics (radiotelephony numbers, SI prefixes, Greek alphabet, hexadecimal digits in binary, Beaufort wind scale, ACTS & PROVE) are forward-only, and each scope names its one tested direction. Their effects tables, grouping rules, case-study reasoning and handbook rules are Learn-only.
+- ACTS & PROVE scores recall of the nine rules only. The scenario-application claim in its research spec is not made; see `docs/open/ISSUE_104_SCENARIO_ITEMS.md`.
 - OODA and Primary Survey use the richer Learn model because understanding the framework/procedure requires more than mapping labels.

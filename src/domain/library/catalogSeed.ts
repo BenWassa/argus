@@ -28,6 +28,74 @@ const BEARINGS = [
   ['Northwest', '315°'],
 ] as const
 
+/** ISED RIC-21 §5.3, spellings and hyphenation exactly as printed. */
+const RADIOTELEPHONY_NUMBERS = [
+  ['0', 'ZE-RO'], ['1', 'WUN'], ['2', 'TOO'], ['3', 'TREE'], ['4', 'FOW-er'],
+  ['5', 'FIFE'], ['6', 'SIX'], ['7', 'SEV-en'], ['8', 'AIT'], ['9', 'NIN-er'],
+  ['Decimal', 'DAY-SEE-MAL'], ['Hundred', 'HUN-dred'], ['Thousand', 'TOU-SAND'],
+] as const
+
+/** BIPM SI Brochure, 9th ed., Table 7, largest to smallest. Micro is µ as printed. */
+const SI_PREFIXES = [
+  ['10³⁰', 'quetta (Q)'], ['10²⁷', 'ronna (R)'], ['10²⁴', 'yotta (Y)'], ['10²¹', 'zetta (Z)'],
+  ['10¹⁸', 'exa (E)'], ['10¹⁵', 'peta (P)'], ['10¹²', 'tera (T)'], ['10⁹', 'giga (G)'],
+  ['10⁶', 'mega (M)'], ['10³', 'kilo (k)'], ['10²', 'hecto (h)'], ['10¹', 'deca (da)'],
+  ['10⁻¹', 'deci (d)'], ['10⁻²', 'centi (c)'], ['10⁻³', 'milli (m)'], ['10⁻⁶', 'micro (µ)'],
+  ['10⁻⁹', 'nano (n)'], ['10⁻¹²', 'pico (p)'], ['10⁻¹⁵', 'femto (f)'], ['10⁻¹⁸', 'atto (a)'],
+  ['10⁻²¹', 'zepto (z)'], ['10⁻²⁴', 'yocto (y)'], ['10⁻²⁷', 'ronto (r)'], ['10⁻³⁰', 'quecto (q)'],
+] as const
+
+/**
+ * Unicode Greek and Coptic block, U+0391–U+03A9 and U+03B1–U+03C9 in code-point
+ * (alphabetical) order. Sigma carries its final form, U+03C2.
+ */
+const GREEK_LETTERS = [
+  ['Α α', 'Alpha'], ['Β β', 'Beta'], ['Γ γ', 'Gamma'], ['Δ δ', 'Delta'], ['Ε ε', 'Epsilon'],
+  ['Ζ ζ', 'Zeta'], ['Η η', 'Eta'], ['Θ θ', 'Theta'], ['Ι ι', 'Iota'], ['Κ κ', 'Kappa'],
+  ['Λ λ', 'Lambda'], ['Μ μ', 'Mu'], ['Ν ν', 'Nu'], ['Ξ ξ', 'Xi'], ['Ο ο', 'Omicron'],
+  ['Π π', 'Pi'], ['Ρ ρ', 'Rho'], ['Σ σ ς', 'Sigma'], ['Τ τ', 'Tau'], ['Υ υ', 'Upsilon'],
+  ['Φ φ', 'Phi'], ['Χ χ', 'Chi'], ['Ψ ψ', 'Psi'], ['Ω ω', 'Omega'],
+] as const
+
+/** RFC 4648 §8: the Base 16 alphabet, each digit standing for one four-bit group. */
+const HEX_DIGITS = '0123456789ABCDEF'
+
+/**
+ * Environment and Climate Change Canada's Beaufort table, except force 12: ECCC
+ * prints 64–71 knots, but WMO hurricane force is force 12 or over, unbounded.
+ */
+const BEAUFORT = [
+  ['Force 0', 'Calm — less than 1 knot'],
+  ['Force 1', 'Light air — 1–3 knots'],
+  ['Force 2', 'Light breeze — 4–6 knots'],
+  ['Force 3', 'Gentle breeze — 7–10 knots'],
+  ['Force 4', 'Moderate breeze — 11–16 knots'],
+  ['Force 5', 'Fresh breeze — 17–21 knots'],
+  ['Force 6', 'Strong breeze — 22–27 knots'],
+  ['Force 7', 'Near gale — 28–33 knots'],
+  ['Force 8', 'Gale — 34–40 knots'],
+  ['Force 9', 'Strong gale — 41–47 knots'],
+  ['Force 10', 'Storm — 48–55 knots'],
+  ['Force 11', 'Violent storm — 56–63 knots'],
+  ['Force 12', 'Hurricane — 64 knots or more'],
+] as const
+
+/**
+ * RCMP CFSC Student Handbook (5th ed., 2014): ACTS as on p. 21, PROVE as in
+ * §3.1.7 Table 4. Order is the acronym order and is part of the claim.
+ */
+const ACTS_PROVE = [
+  ['ACTS 1 (A)', 'Assume every firearm is loaded.'],
+  ['ACTS 2 (C)', 'Control the muzzle direction at all times.'],
+  ['ACTS 3 (T)', 'Trigger finger must be kept off the trigger and out of the trigger guard.'],
+  ['ACTS 4 (S)', 'See that the firearm is unloaded — PROVE it safe.'],
+  ['PROVE 1 (P)', 'Point the firearm in the safest available direction.'],
+  ['PROVE 2 (R)', 'Remove all ammunition.'],
+  ['PROVE 3 (O)', 'Observe the chamber.'],
+  ['PROVE 4 (V)', 'Verify the feeding path.'],
+  ['PROVE 5 (E)', 'Examine the bore for obstructions.'],
+] as const
+
 const day = 86_400_000
 const ago = (days: number) => new Date(Date.now() - days * day).toISOString()
 
@@ -418,6 +486,383 @@ export function seedLibrary(): Library {
             label: 'BSAC — Annual Diving Incident Report 2024, abbreviations',
             url: 'https://www.bsac.com/document/bsac-diving-incidents-report-2024/1bsac-annual-incident-report-2024.pdf',
             note: 'National diving-club reference for BCD, DSMB and DPV expansions.',
+          },
+        ],
+      },
+      status: 'unstarted',
+      createdAt: ago(0),
+      drilledAt: null,
+      learningAt: null,
+      completedAt: null,
+      lastTestedAt: null,
+      spotCheckedAt: null,
+      history: [],
+    },
+    {
+      id: 'radiotelephony-numbers',
+      title: 'Radiotelephony numbers',
+      scope: 'The spoken forms of the digits 0–9 and of decimal, hundred and thousand, as printed for Canadian aeronautical radio in ISED RIC-21. Tested number → spoken form. How numbers are grouped on air and radio procedure are not scored.',
+      track: 'learning',
+      items: RADIOTELEPHONY_NUMBERS.map(([prompt, answer]) => ({ prompt, answer })),
+      learn: {
+        kind: 'concise',
+        overview: 'Formal radiotelephony gives each digit a fixed spoken form — TREE, FIFE and NIN-er rather than three, five and nine — and set words for the decimal point, hundreds and thousands. These are the forms Innovation, Science and Economic Development Canada prints for aeronautical radio, right after the phonetic alphabet — the same code words as the NATO topic.',
+        sections: [
+          {
+            heading: 'How numbers are said on air',
+            blocks: [
+              {
+                type: 'bullets',
+                items: [
+                  'Every number except a whole thousand is said one digit at a time: 75 is “seven five”, and 5,800 is “five eight zero zero”.',
+                  'A whole thousand is the digits of the thousands followed by “thousand”: 11,000 is “one one thousand”.',
+                  'A decimal point is said as “decimal”: 121.5 is “one two one decimal five”.',
+                  'RIC-21 sets further conventions for altitudes, flight levels, headings, wind, time and aircraft types. Those, and these grouping rules, are not scored here.',
+                ],
+              },
+            ],
+          },
+        ],
+        limitations: [
+          'Completion means you can recall these 13 spoken forms. It is not a radio operator certificate, radio training or permission to transmit.',
+          'The forms are sourced to Canadian aeronautical radiotelephony. Marine, amateur, public-safety and other radio services publish their own procedures, which this topic does not cover.',
+        ],
+        sources: [
+          {
+            label: 'ISED — RIC-21, Study Guide for the Restricted Operator Certificate With Aeronautical Qualification',
+            url: 'https://ised-isde.canada.ca/site/spectrum-management-telecommunications/en/official-publications/information/radiocom-information-circulars-ric/ric-21-study-guide-restricted-operator-certificate-aeronautical-qualification',
+            note: 'Government of Canada study guide (dated 2011-07-12). §5.3 prints the spoken forms of 0–9 and of decimal, hundred and thousand; §5.4 sets how numbers are transmitted.',
+          },
+        ],
+      },
+      status: 'unstarted',
+      createdAt: ago(0),
+      drilledAt: null,
+      learningAt: null,
+      completedAt: null,
+      lastTestedAt: null,
+      spotCheckedAt: null,
+      history: [],
+    },
+    {
+      id: 'si-prefixes',
+      title: 'SI prefixes',
+      scope: 'All 24 SI prefixes, from 10³⁰ to 10⁻³⁰: each power of ten → the prefix’s name and symbol, as listed in Table 7 of the BIPM SI Brochure. Unit conversion and the rules for writing quantities are not scored.',
+      track: 'learning',
+      items: SI_PREFIXES.map(([prompt, answer]) => ({ prompt, answer })),
+      learn: {
+        kind: 'concise',
+        overview: 'An SI prefix multiplies a unit by a power of ten: a kilometre is 10³ metres and a picosecond is 10⁻¹² seconds. The BIPM lists 24 prefixes, from quetta (10³⁰) down to quecto (10⁻³⁰). The outermost two at each end — ronna and quetta, ronto and quecto — were added in 2022.',
+        sections: [
+          {
+            heading: 'Patterns that carry most of the load',
+            blocks: [
+              {
+                type: 'bullets',
+                items: [
+                  'Above kilo and below milli, each prefix is a step of 10³. Only hecto, deca, deci and centi sit between 10³ and 10⁻³, one power of ten apart.',
+                  'Symbols are case-sensitive. Apart from da, h and k, every multiple has an upper-case symbol and every sub-multiple a lower-case one, so M (mega) and m (milli), P (peta) and p (pico), Z and z, Y and y, R and r, Q and q are different prefixes.',
+                  'Deca is the only two-letter symbol (da). Micro is the Greek letter mu (µ).',
+                  'Prefix names are written in lower case, and a prefix symbol joins its unit symbol with no space: pm, mmol, GΩ, THz.',
+                ],
+              },
+            ],
+          },
+        ],
+        limitations: [
+          'Completion means you can give the name and symbol for each of the 24 powers of ten. The reverse (symbol → power), unit conversion and the SI rules for writing quantities are not tested.',
+          'SI prefixes are strictly powers of ten. The binary prefixes used for computer memory — kibi (Ki) for 2¹⁰, mebi (Mi) for 2²⁰ and so on — are a separate IEC set and are not part of this topic.',
+        ],
+        sources: [
+          {
+            label: 'BIPM — The International System of Units (SI Brochure), 9th edition',
+            url: 'https://www.bipm.org/en/publications/si-brochure',
+            note: 'Version 4.01, June 2026. Chapter 3, Table 7 lists the 24 prefixes with names and symbols and states the case rule; Appendix 1 records the 27th CGPM (2022) decision adding ronna, ronto, quetta and quecto.',
+          },
+        ],
+      },
+      status: 'unstarted',
+      createdAt: ago(0),
+      drilledAt: null,
+      learningAt: null,
+      completedAt: null,
+      lastTestedAt: null,
+      spotCheckedAt: null,
+      history: [],
+    },
+    {
+      id: 'greek-alphabet',
+      title: 'Greek alphabet',
+      scope: 'The 24 letters of the Greek alphabet: each letter’s capital and small forms → its English name. Tested letter → name. Writing a letter from its name, pronunciation and reading Greek are not scored.',
+      track: 'learning',
+      items: GREEK_LETTERS.map(([prompt, answer]) => ({ prompt, answer })),
+      learn: {
+        kind: 'concise',
+        overview: 'The Greek alphabet has 24 letters. Mathematics, science and engineering borrow most of them as symbols, usually in the small form — π, λ, σ, μ, Δ — so seeing a letter and naming it is the everyday need. That is the direction this topic tests.',
+        sections: [
+          {
+            heading: 'Where letters are easy to confuse',
+            blocks: [
+              {
+                type: 'bullets',
+                items: [
+                  'Many capitals share their shape with Latin letters — Α, Β, Ε, Ζ, Η, Ι, Κ, Μ, Ν, Ο, Ρ, Τ, Υ, Χ — so the small form is usually what identifies the letter.',
+                  'Some small forms look like Latin letters with other names: η (eta) is not n, ν (nu) is not v, ρ (rho) is not p, χ (chi) is not x, and ω (omega) is not w.',
+                  'ζ (zeta) and ξ (xi) are easily swapped, and so are ν (nu) and υ (upsilon).',
+                  'Sigma has two small forms: σ, and ς, the final sigma written at the end of a word.',
+                ],
+              },
+            ],
+          },
+        ],
+        limitations: [
+          'Completion means you can name each letter when you see it. Writing a letter from its name is not tested, and knowing the letters is not reading, writing or speaking Greek.',
+          'The names are the conventional English ones used in mathematics and science, not a guide to Greek pronunciation. The order below is alphabetical but is not scored.',
+        ],
+        sources: [
+          {
+            label: 'Unicode — Greek and Coptic code chart (Unicode 18.0)',
+            url: 'https://www.unicode.org/charts/PDF/U0370.pdf',
+            note: 'Encodes the 24 capital (U+0391–U+03A9) and small (U+03B1–U+03C9) letters in alphabetical order with their names, including final sigma (U+03C2); gives lambda as the usual name of the character Unicode names LAMDA.',
+          },
+        ],
+      },
+      status: 'unstarted',
+      createdAt: ago(0),
+      drilledAt: null,
+      learningAt: null,
+      completedAt: null,
+      lastTestedAt: null,
+      spotCheckedAt: null,
+      history: [],
+    },
+    {
+      id: 'hex-digits-binary',
+      title: 'Hexadecimal digits in binary',
+      scope: 'The 16 hexadecimal digits 0–F: each digit → its four-bit binary pattern, 0000 to 1111. Tested hex → binary. Converting longer numbers and binary arithmetic are not scored.',
+      track: 'learning',
+      items: [...HEX_DIGITS].map((digit, value) => ({
+        prompt: digit,
+        answer: value.toString(2).padStart(4, '0'),
+      })),
+      learn: {
+        kind: 'concise',
+        overview: 'One hexadecimal digit stands for exactly four bits, so a byte is always two hex digits: C3 is 1100 0011. Knowing the 16 patterns by heart turns hex dumps, bit masks and colour codes into bits without counting.',
+        sections: [
+          {
+            heading: 'Reading a pattern from its place values',
+            blocks: [
+              {
+                type: 'bullets',
+                items: [
+                  'The four bits are worth 8, 4, 2 and 1 from left to right. Add the places that hold a 1: 1011 is 8 + 2 + 1 = 11, which is B.',
+                  'The letters A to F stand for the values 10 to 15. Upper and lower case mean the same digit.',
+                  'Anchors that make the rest quick: 1, 2, 4 and 8 are the single-bit patterns (0001, 0010, 0100, 1000); 7 is 0111 and F is 1111.',
+                ],
+              },
+            ],
+          },
+        ],
+        limitations: [
+          'Completion means you can give the four-bit pattern for each of the 16 hex digits. Binary → hex, longer numbers, signed representations and binary arithmetic are not tested.',
+        ],
+        sources: [
+          {
+            label: 'IETF — RFC 4648, The Base16, Base32, and Base64 Data Encodings, §8',
+            url: 'https://www.rfc-editor.org/rfc/rfc4648#section-8',
+            note: 'Standard Base 16 (hex) encoding: each character represents 4 bits, and the alphabet maps the values 0–15 to 0–9 and A–F. The four-bit patterns are those values written in binary.',
+          },
+        ],
+      },
+      status: 'unstarted',
+      createdAt: ago(0),
+      drilledAt: null,
+      learningAt: null,
+      completedAt: null,
+      lastTestedAt: null,
+      spotCheckedAt: null,
+      history: [],
+    },
+    {
+      id: 'beaufort-wind-scale',
+      title: 'Beaufort wind scale',
+      scope: 'Beaufort forces 0 to 12: each force → its descriptive term and wind-speed range in knots, as published by Environment and Climate Change Canada, with force 12 as 64 knots or more. Tested force → term and range. The observed effects at sea and on land are not scored.',
+      track: 'tradecraft',
+      items: BEAUFORT.map(([prompt, answer]) => ({ prompt, answer })),
+      learn: {
+        kind: 'concise',
+        overview: 'The Beaufort scale grades wind from force 0, calm, to force 12, hurricane. Each force has a name, a speed range in knots and effects that can be seen at sea and on land, so wind can be estimated by looking and a forecast speed can be pictured. The name and knot range are what Test asks; the effects below are for estimating.',
+        sections: [
+          {
+            heading: 'What each force looks like at sea',
+            blocks: [
+              {
+                type: 'table',
+                columns: ['Force', 'At sea'],
+                rows: [
+                  ['0', 'Sea surface like a mirror, but not necessarily flat.'],
+                  ['1', 'Ripples with the appearance of scales are formed, but without foam crests.'],
+                  ['2', 'Small wavelets, still short but more pronounced. Crests do not break. When visibility good, horizon line always very clear.'],
+                  ['3', 'Large wavelets. Crests begin to break. Foam of glassy appearance. Perhaps scattered whitecaps.'],
+                  ['4', 'Small waves, becoming longer. Fairly frequent whitecaps.'],
+                  ['5', 'Moderate waves, taking a more pronounced long form. Many whitecaps are formed. Chance of some spray.'],
+                  ['6', 'Large waves begin to form. The white foam crests are more extensive everywhere. Probably some spray.'],
+                  ['7', 'Sea heaps up and white foam from breaking waves begins to be blown in streaks along the direction of the wind.'],
+                  ['8', 'Moderately high waves of greater length. Edges of crests begin to break into the spindrift. The foam is blown in well-marked streaks along the direction of the wind.'],
+                  ['9', 'High waves. Dense streaks of foam along the direction of the wind. Crests of waves begin to topple, tumble and roll over. Spray may affect visibility.'],
+                  ['10', 'Very high waves with long overhanging crests. Dense white streaks of foam. Surface of the sea takes a white appearance. The tumbling of the sea becomes heavy and shock-like. Visibility affected.'],
+                  ['11', 'Exceptionally high waves. Sea completely covered with long white patches of foam. Visibility affected.'],
+                  ['12', 'Air filled with foam and spray. Sea entirely white with foam. Visibility seriously impaired.'],
+                ],
+              },
+            ],
+          },
+          {
+            heading: 'What each force looks like on land',
+            blocks: [
+              {
+                type: 'table',
+                columns: ['Force', 'On land'],
+                rows: [
+                  ['0', 'Smoke rises vertically.'],
+                  ['1', 'Direction of wind shown by smoke drift, but not wind vanes.'],
+                  ['2', 'Wind felt on face. Leaves rustle. Ordinary vane moved by wind.'],
+                  ['3', 'Leaves and small twigs in constant motion. Wind extends light flag.'],
+                  ['4', 'Raises dust and loose paper. Small branches are moved.'],
+                  ['5', 'Small trees with leaves begin to sway. Crested wavelets form on inland waters.'],
+                  ['6', 'Large branches in motion. Whistling heard in telephone wires. Umbrellas used with difficulty.'],
+                  ['7', 'Whole trees in motion. Inconvenience felt in walking against wind.'],
+                  ['8', 'Breaks twigs off trees. Generally impedes progress. Walking into wind almost impossible.'],
+                  ['9', 'Slight structural damage occurs, e.g. roofing shingles may become loose or blow off.'],
+                  ['10', 'Trees uprooted. Considerable structural damage occurs.'],
+                  ['11', 'Widespread damage.'],
+                  ['12', 'Rare. Severe widespread damage to vegetation and significant structural damage possible.'],
+                ],
+              },
+            ],
+          },
+          {
+            heading: 'The top of the scale',
+            blocks: [
+              {
+                type: 'paragraph',
+                text: 'Environment and Climate Change Canada’s table prints 64–71 knots for force 12. The World Meteorological Organization treats hurricane force as Beaufort force 12 or over, with no upper limit, and the Met Office gives 64 knots or more, so Argus tests force 12 as 64 knots or more.',
+              },
+            ],
+          },
+        ],
+        limitations: [
+          'A memory aid for estimating and describing wind. It is not a forecast and is no substitute for current marine forecasts and warnings, or for seamanship judgement.',
+          'Completion means you can give the term and knot range for each force. The observed effects, km/h and other units, wave heights and the reverse (speed → force) are not tested.',
+        ],
+        sources: [
+          {
+            label: 'Environment and Climate Change Canada — Beaufort wind scale table',
+            url: 'https://www.canada.ca/en/environment-climate-change/services/general-marine-weather-information/understanding-forecasts/beaufort-wind-scale-table.html',
+            note: 'Canadian government table of the 13 forces: descriptive terms, knot and km/h ranges, and the effects observed at sea and on land quoted above (page dated 2017-09-10).',
+          },
+          {
+            label: 'WMO — Manual on Marine Meteorological Services (WMO-No. 558), Volume I',
+            url: 'https://library.wmo.int/records/item/41585-manual-on-marine-meteorological-services-volume-i-global-aspects',
+            note: 'International technical regulation. The 2012 edition, updated 2018, Part I §2.2.44 defines the wind-warning categories, with hurricane force as Beaufort force 12 or over.',
+          },
+          {
+            label: 'Met Office — Beaufort wind force scale',
+            url: 'https://weather.metoffice.gov.uk/guides/coast-and-sea/beaufort-scale',
+            note: 'National meteorological service cross-check: the same terms and knot ranges, with force 12 as 64 knots or more.',
+          },
+        ],
+      },
+      status: 'unstarted',
+      createdAt: ago(0),
+      drilledAt: null,
+      learningAt: null,
+      completedAt: null,
+      lastTestedAt: null,
+      spotCheckedAt: null,
+      history: [],
+    },
+    {
+      id: 'firearm-safety-acts-prove',
+      title: 'Canadian firearm safety — ACTS & PROVE',
+      scope: 'The Vital Four ACTS rules and the five PROVE it safe steps, in order and in the wording of the RCMP Canadian Firearms Safety Course Student Handbook (2014). Test covers recall of these nine rules only — not handling a firearm, the course, its tests or a licence.',
+      track: 'survival',
+      items: ACTS_PROVE.map(([prompt, answer]) => ({ prompt, answer })),
+      learn: {
+        kind: 'briefing',
+        overview: 'ACTS and PROVE are the safety core of the Canadian Firearms Safety Course. ACTS is four rules applied together, every time a firearm is handled. Its last rule — see that the firearm is unloaded — is carried out by PROVE, five steps in a fixed order. Test asks for the wording and order of all nine; the handbook rules below explain how they work together and are not scored.',
+        sections: [
+          {
+            heading: 'How the two fit together',
+            blocks: [
+              {
+                type: 'bullets',
+                items: [
+                  'The handbook calls ACTS the four rules an instructor returns to time and again, and notes that whenever an incident occurs, at least one of them has been broken.',
+                  'ACTS starts from an assumption, not a check: every firearm is treated as loaded, so the muzzle and trigger rules apply before anyone knows its condition.',
+                  'S is done through PROVE. Both the chamber and the magazine are checked, every time a firearm is handled, for any reason.',
+                ],
+              },
+            ],
+          },
+          {
+            heading: 'Rules the handbook attaches',
+            blocks: [
+              {
+                type: 'bullets',
+                items: [
+                  'Pass or accept only open and unloaded firearms.',
+                  'A firearm is unloaded and safe only until it leaves the direct control of the person who unloaded and PROVEd it safe.',
+                  'Never rely on the safety to prevent firing. A loaded firearm with the safety on could still fire; mechanical devices can fail.',
+                  'Do not handle a firearm unless you can properly PROVE it safe. Do not attempt to handle one you are uncomfortable handling — seek the assistance of a qualified individual.',
+                ],
+              },
+            ],
+          },
+        ],
+        caseStudies: [
+          {
+            title: 'A firearm handed over as “already checked”',
+            scenario: 'At a supervised range, a friend holds out a rifle with the action closed and says it is unloaded — they checked it a minute ago. This case is about the rules only; it deliberately leaves out how any particular action is opened or inspected.',
+            analysis: [
+              {
+                heading: 'Apply the rules as a whole',
+                blocks: [
+                  {
+                    type: 'paragraph',
+                    text: 'ACTS comes first: assume the rifle is loaded, keep its muzzle in the safest available direction and keep your finger off the trigger and out of the trigger guard. The handbook rule is to accept only an open and unloaded firearm, so a closed action is already the first problem. The friend’s check does not transfer to you: the rifle was unloaded and safe only while it stayed in their direct control. Seeing that it is unloaded is now your job, through PROVE, step by step. If you do not know how to open and check this rifle, you do not improvise — you ask the range officer or another qualified person.',
+                  },
+                ],
+              },
+            ],
+            takeaway: 'Safe status is established by the person holding the firearm, through the whole sequence, every time. It is never inherited from someone else’s word.',
+          },
+        ],
+        limitations: [
+          'Argus supports memory and rehearsal only. Completing this topic is not the Canadian Firearms Safety Course, does not pass its written or practical tests, does not qualify you for a firearms licence and does not show that you can handle a firearm safely.',
+          'Handling, loading, unloading and inspecting real firearms is taught and tested hands-on by a certified CFSC instructor. Learn those there, not from a screen. This topic teaches nothing about shooting, tactics or use of force.',
+          'The wording is pinned to the 2014 Student Handbook, which Ontario’s course provider still directs students to as of September 2026. The RCMP is rolling out a new national safety curriculum from 2026; if your course words the rules differently, follow your course.',
+        ],
+        sources: [
+          {
+            label: 'RCMP — Canadian Firearms Safety Course, Student Handbook (5th edition, 2014)',
+            url: 'https://publications.gc.ca/collections/collection_2015/grc-rcmp/PS99-2-2-1-2014-eng.pdf',
+            note: 'Primary doctrine. The Vital Four ACTS (p. 21), PROVE it safe (§3.1.7, Table 4, p. 50), the direct-control rule, the open-and-unloaded passing rule, the warning not to rely on a mechanical safety, and the instruction to seek a qualified individual.',
+          },
+          {
+            label: 'RCMP — Safety courses',
+            url: 'https://rcmp.ca/en/firearms/firearms-safety-training-transport-and-storage/safety-courses',
+            note: 'Current Canadian Firearms Program page: first-time licence applicants take the CFSC, which ends in both a written and a practical test.',
+          },
+          {
+            label: 'RCMP — 2025 Commissioner of Firearms Report',
+            url: 'https://rcmp.ca/en/corporate-information/publications-and-manuals/2025-commissioner-firearms-report',
+            note: 'Announces the national rollout of a new firearms safety curriculum and course materials beginning in 2026 — the reason this topic pins its wording to a dated edition.',
+          },
+          {
+            label: 'Firearms Safety Education Service of Ontario — Canadian Firearm Safety Course',
+            url: 'https://fseso.org/course/canadian-firearm-safety-course-cfsc/',
+            note: 'Ontario delivery agent for the CFSC; as of 2026-09-25 it directs students to the 2014 Student Handbook above.',
           },
         ],
       },
