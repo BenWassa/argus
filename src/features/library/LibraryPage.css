@@ -37,6 +37,8 @@
 .lib-search {
   flex: 1;
   min-width: 0;
+  /* Cancel the platform search decorations rather than restyling them: a
+     bespoke clear affordance is a reinvented control nobody asked for. */
   appearance: none;
 }
 
@@ -102,6 +104,7 @@
   margin-top: var(--s-sm);
 }
 
+/* The rest of the shelf is set apart by space alone. It needs no name. */
 .lib-group-rest {
   margin-top: var(--s-2xl);
 }
@@ -112,6 +115,8 @@
 
 /* ------------------------------------------------------------------ rows -- */
 
+/* The row's gauge. Width is capped here rather than in the shared rule: the
+   track should not run the full title width, while the topic page lets it. */
 .index-row .gauge-row {
   max-width: 132px;
 }
@@ -196,6 +201,11 @@
 
 /* --------------------------------------------------------------- add fab -- */
 
+/* The one "+" in the product. Fixed above the thumb, clear of the bottom
+   nav on mobile. Circular and lit, because it is
+   the single most-repeated action on the page and earns the accent — but
+   --shadow-lift stays reserved for the completion moment and sheets, so
+   this sits at flashcard depth instead. */
 .lib-fab {
   position: fixed;
   right: max(var(--s-lg), env(safe-area-inset-right));
