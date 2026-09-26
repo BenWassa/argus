@@ -143,6 +143,44 @@ describe('loading a library that already exists on the device', () => {
   })
 })
 
+describe('a shipped topic whose title has since been shortened', () => {
+  it('takes the new title and keeps every piece of learner state', () => {
+    const drilled = {
+      ...shipped('nato-phonetic'),
+      title: 'NATO phonetic alphabet',
+      status: 'drilled' as const,
+      drilledAt: '2026-09-01T00:00:00.000Z',
+      history: [{ at: '2026-09-01T00:00:00.000Z', correct: 25, total: 26, resolvedTo: 'drilled' as const }],
+    }
+    stored({ version: 5, topics: [drilled] })
+
+    const nato = loadLibraryWithReport(NOW).library.topics.find((topic) => topic.id === 'nato-phonetic')
+
+    expect(nato?.title).toBe('NATO Alphabet')
+    expect(nato?.status).toBe('drilled')
+    expect(nato?.drilledAt).toBe(drilled.drilledAt)
+    expect(nato?.history).toEqual(drilled.history)
+  })
+
+  it('leaves a title the learner chose alone', () => {
+    stored({ version: 5, topics: [{ ...shipped('nato-phonetic'), title: 'My NATO deck' }] })
+    const nato = loadLibraryWithReport(NOW).library.topics.find((topic) => topic.id === 'nato-phonetic')
+    expect(nato?.title).toBe('My NATO deck')
+  })
+
+  it('leaves a topic the learner edited alone, even under the old title', () => {
+    const edited = {
+      ...shipped('nato-phonetic'),
+      title: 'NATO phonetic alphabet',
+      items: shipped('nato-phonetic').items.slice(0, 3),
+    }
+    delete edited.origin
+    stored({ version: 5, topics: [edited] })
+    const nato = loadLibraryWithReport(NOW).library.topics.find((topic) => topic.id === 'nato-phonetic')
+    expect(nato?.title).toBe('NATO phonetic alphabet')
+  })
+})
+
 describe('the retired sitting sidecar is migrated, then gone (#66)', () => {
   const MORSE = 'international-morse-letters-printed'
 

@@ -120,6 +120,21 @@ describe('a topic both sides changed', () => {
     expect(plan.actions).toEqual([])
   })
 
+  it('adopts rather than reports when both devices arrived at the same record', () => {
+    // Two devices applying the same load migration both change the topic, to
+    // identical JSON. Agreement is not a conflict.
+    const migrated = topic('knots', { title: 'Knots' })
+    const plan = planSync(
+      [migrated],
+      [remote('knots', migrated, 3, 9_000)],
+      ledgerFor('knots', before, 2, 1_000),
+    )
+    expect(plan.conflicts).toEqual([])
+    expect(plan.actions).toEqual([
+      { kind: 'adopt', topicId: 'knots', json: topicJson(migrated), revision: 3 },
+    ])
+  })
+
   it('reports it the same way round when this device wrote later', () => {
     const plan = planSync(
       [mine],

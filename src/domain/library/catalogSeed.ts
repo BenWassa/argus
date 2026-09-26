@@ -103,7 +103,7 @@ export function seedLibrary(): Library {
   const topics: Topic[] = [
     {
       id: 'nato-phonetic',
-      title: 'NATO phonetic alphabet',
+      title: 'NATO Alphabet',
       scope: 'The 26 letters A to Z and their official NATO code words, tested letter → code word.',
       track: 'learning',
       items: NATO.map((word, i) => ({
@@ -135,7 +135,7 @@ export function seedLibrary(): Library {
     },
     {
       id: 'international-morse-letters-printed',
-      title: 'International Morse — Letters (printed)',
+      title: 'International Morse Code',
       scope: 'Can independently recall all A–Z printed Morse mappings in both directions.',
       track: 'learning',
       items: MORSE_A_TO_Z.map(([prompt, answer], index) => ({
@@ -185,7 +185,7 @@ export function seedLibrary(): Library {
     },
     {
       id: 'ooda-loop',
-      title: 'OODA loop',
+      title: 'OODA Loop',
       scope: 'The four OODA stages in order and each stage’s core function. Nothing beyond those four stage/function pairs is scored.',
       track: 'learning',
       items: [
@@ -315,7 +315,7 @@ export function seedLibrary(): Library {
     },
     {
       id: 'primary-survey',
-      title: 'Primary survey',
+      title: 'Primary Survey',
       scope: 'The five ABCDE headings in assessment order — Airway, Breathing, Circulation, Disability, Exposure. Test covers the headings and order only.',
       track: 'survival',
       items: [
@@ -424,7 +424,7 @@ export function seedLibrary(): Library {
     },
     {
       id: 'cardinal-bearings',
-      title: 'Cardinal and intercardinal bearings',
+      title: 'Compass Bearings',
       scope: 'The eight cardinal/intercardinal compass points as clockwise bearings from north, using 0° for north.',
       track: 'tradecraft',
       items: BEARINGS.map(([prompt, answer]) => ({ prompt, answer })),
@@ -453,7 +453,7 @@ export function seedLibrary(): Library {
     },
     {
       id: 'scuba-equipment-abbreviations',
-      title: 'Recreational scuba equipment abbreviations',
+      title: 'SCUBA Equipment',
       scope: 'Six common recreational-scuba equipment abbreviations — SCUBA, BCD, SPG, LPI, DSMB and DPV — and each term’s core reference function. Test does not cover equipment selection, setup, inspection, maintenance, dive planning or diving procedures.',
       track: 'learning',
       items: [
@@ -500,7 +500,7 @@ export function seedLibrary(): Library {
     },
     {
       id: 'radiotelephony-numbers',
-      title: 'Radiotelephony numbers',
+      title: 'Radio Numbers',
       scope: 'The spoken forms of the digits 0–9 and of decimal, hundred and thousand, as printed for Canadian aeronautical radio in ISED RIC-21. Tested number → spoken form. How numbers are grouped on air and radio procedure are not scored.',
       track: 'learning',
       items: RADIOTELEPHONY_NUMBERS.map(([prompt, answer]) => ({ prompt, answer })),
@@ -546,7 +546,7 @@ export function seedLibrary(): Library {
     },
     {
       id: 'si-prefixes',
-      title: 'SI prefixes',
+      title: 'SI Prefixes',
       scope: 'All 24 SI prefixes, from 10³⁰ to 10⁻³⁰: each power of ten → the prefix’s name and symbol, as listed in Table 7 of the BIPM SI Brochure. Unit conversion and the rules for writing quantities are not scored.',
       track: 'learning',
       items: SI_PREFIXES.map(([prompt, answer]) => ({ prompt, answer })),
@@ -592,7 +592,7 @@ export function seedLibrary(): Library {
     },
     {
       id: 'greek-alphabet',
-      title: 'Greek alphabet',
+      title: 'Greek Alphabet',
       scope: 'The 24 letters of the Greek alphabet: each letter’s capital and small forms → its English name. Tested letter → name. Writing a letter from its name, pronunciation and reading Greek are not scored.',
       track: 'learning',
       items: GREEK_LETTERS.map(([prompt, answer]) => ({ prompt, answer })),
@@ -638,7 +638,7 @@ export function seedLibrary(): Library {
     },
     {
       id: 'hex-digits-binary',
-      title: 'Hexadecimal digits in binary',
+      title: 'Hex to Binary',
       scope: 'The 16 hexadecimal digits 0–F: each digit → its four-bit binary pattern, 0000 to 1111. Tested hex → binary. Converting longer numbers and binary arithmetic are not scored.',
       track: 'learning',
       items: [...HEX_DIGITS].map((digit, value) => ({
@@ -685,7 +685,7 @@ export function seedLibrary(): Library {
     },
     {
       id: 'beaufort-wind-scale',
-      title: 'Beaufort wind scale',
+      title: 'Beaufort Scale',
       scope: 'Beaufort forces 0 to 12: each force → its descriptive term and wind-speed range in knots, as published by Environment and Climate Change Canada, with force 12 as 64 knots or more. Tested force → term and range. The observed effects at sea and on land are not scored.',
       track: 'tradecraft',
       items: BEAUFORT.map(([prompt, answer]) => ({ prompt, answer })),
@@ -784,7 +784,7 @@ export function seedLibrary(): Library {
     },
     {
       id: 'firearm-safety-acts-prove',
-      title: 'Canadian firearm safety — ACTS & PROVE',
+      title: 'Firearm Safety',
       scope: 'The Vital Four ACTS rules and the five PROVE it safe steps, in order and in the wording of the RCMP Canadian Firearms Safety Course Student Handbook (2014). Test covers recall of these nine rules only — not handling a firearm, the course, its tests or a licence.',
       track: 'survival',
       items: ACTS_PROVE.map(([prompt, answer]) => ({ prompt, answer })),
