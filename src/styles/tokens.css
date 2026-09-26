@@ -43,15 +43,17 @@
   --accent-ink: #0b0d10;
   --accent-wash: rgb(233 237 243 / 10%);
 
-  /* Track semantics. Metadata and typographic accents, never a surface. Low
-     chroma, so they read as tinted metal rather than as three crayons — and
-     none of them is copper, because copper means decay. Survival sat at a
-     124° hue and still read as sage/olive drab against the cool chassis, so
-     it is pushed toward 185° — the same low chroma, but cyan-leaning rather
-     than yellow-leaning, so it reads as tinted steel rather than fatigues. */
-  --learning: #8aa8c8;
-  --survival: #92a9ab;
-  --tradecraft: #a79ac0;
+  /* Track semantics: the three metals a topic is made of. Labels, studs and
+     gauge fills, never a surface, button or border stripe. They were first set
+     at ~0.03 chroma and read as three more greys, which left the chassis with
+     no colour at all outside decay; at ~0.08 they read as anodised steel,
+     verdigris and pewter-violet while staying well under crayon. Lightness is
+     matched so no track outranks another, and none of them is copper, because
+     copper means decay. Survival leans cyan (205°) rather than yellow, so it
+     reads as oxidised metal rather than fatigues, and stays clear of --ok. */
+  --learning: oklch(0.76 0.085 250);
+  --survival: oklch(0.77 0.075 205);
+  --tradecraft: oklch(0.75 0.085 300);
 
   /* Status */
   --danger: #d98078;

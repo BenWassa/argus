@@ -36,13 +36,20 @@ const LIBRARY = JSON.stringify({
   catalogDelivered: [...shippedCatalog.topicIds].sort(),
 })
 
+/** The same topic, enrolled long enough ago to be due, so Today holds it. */
+const ENROLLED_LIBRARY = JSON.stringify({
+  version: 5,
+  topics: [{ ...TOPIC, status: 'learning', learningAt: '2026-09-06T12:00:00.000Z' }],
+  catalogDelivered: [...shippedCatalog.topicIds].sort(),
+})
+
 interface NavigationState {
   argusNavigation: number
   index: number
   route: Record<string, unknown>
 }
 
-async function installLibrary(page: Page, initialState: unknown = null) {
+async function installLibrary(page: Page, initialState: unknown = null, library = LIBRARY) {
   await page.addInitScript(
     ([library, storeKey, splashKey, state]) => {
       // The same init script can be present when a root-Back test returns to a
@@ -55,12 +62,12 @@ async function installLibrary(page: Page, initialState: unknown = null) {
         if (state !== null) window.history.replaceState(state, '')
       }
     },
-    [LIBRARY, STORE_KEY, SPLASH_KEY, initialState] as const,
+    [library, STORE_KEY, SPLASH_KEY, initialState] as const,
   )
 }
 
-async function openApp(page: Page, initialState: unknown = null) {
-  await installLibrary(page, initialState)
+async function openApp(page: Page, initialState: unknown = null, library = LIBRARY) {
+  await installLibrary(page, initialState, library)
   await page.goto('./')
 }
 
@@ -171,15 +178,15 @@ test('Back unwinds Topic and Library, and Forward restores the Topic without dup
 })
 
 test('runs remember their real Today, Library and Topic origins', async ({ page }) => {
-  await openApp(page)
+  await openApp(page, null, ENROLLED_LIBRARY)
 
-  // Today -> Topic -> Back = Today. A fresh docket row is the deliberate
-  // Start action: it enrolls, opens the reference, and adds one history stop.
+  // Today -> Test -> Back = Today. Today holds only started topics, and a due
+  // plate starts its work directly, adding one history stop.
   await page.locator('.docket .index-row').click()
-  await expect(page.getByRole('heading', { name: TOPIC.title, level: 1 })).toBeVisible()
+  await expect(page.locator('.flip-card')).toBeVisible()
   expect(await navigationState(page)).toMatchObject({
     index: 1,
-    route: { kind: 'topic', topicId: TOPIC.id },
+    route: { kind: 'run', mode: 'test', origin: { kind: 'section', view: 'today' } },
   })
   await systemBack(page)
   await expect(page.getByRole('button', { name: 'Today', exact: true })).toHaveAttribute(

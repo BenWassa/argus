@@ -17,9 +17,9 @@ colors:
   accent: "#e9edf3"
   accent-2: "#ffffff"
   accent-ink: "#0b0d10"
-  learning: "#8aa8c8"
-  survival: "#92a9ab"
-  tradecraft: "#a79ac0"
+  learning: "#88b6e6"
+  survival: "#78c2cb"
+  tradecraft: "#b6a2dc"
   danger: "#d98078"
   ok: "#92b5ae"
   complete: "#8c98a5"
@@ -117,6 +117,12 @@ components:
     backgroundColor: "transparent"
     rounded: "0"
     padding: "15px 2px"
+  library-plate:
+    background: "{colors.surface}"
+    raised: "linear-gradient(180deg, {colors.surface-3}, {colors.surface-2})"
+    rounded: "{rounded.lg}"
+    padding: "14px 18px 14px 14px"
+    gap: "8px"
   sheet:
     background: "linear-gradient(180deg, {colors.surface-2}, {colors.surface})"
     rounded: "16px 16px 0 0"
@@ -142,7 +148,7 @@ This replaced an earlier warm, serif-led field-journal pass. The information arc
 - Depth from bevel and engraving (lit top edge, dark lower lip, inset tracks), not from stacked drop shadows
 - Exactly one warm colour in the product, and it means a skill has decayed
 - Dense index rows over card grids; a topic list reads like a table of contents
-- Motion is state feedback plus one piece of card physics; nothing else moves
+- Motion is state feedback, one piece of card physics, and a short arrival for the Library list and its gauges; nothing moves for its own sake
 
 ## 2. Colors
 
@@ -166,14 +172,14 @@ A restrained strategy: cool near-black neutrals carry almost the entire surface,
 - **Settled** (`#8c98a5`): a completed step. Cool slate — done, and no longer the thing in progress.
 
 ### Track semantics
-**Steel Blue — Learning** (`#8aa8c8`), **Verdigris — Survival** (`#92a9ab`), **Pewter — Tradecraft** (`#a79ac0`). Low chroma, so they read as tinted metal rather than as three crayons. None of them is copper, because copper means decay and the two appear on the same row.
+**Steel Blue — Learning** (`oklch(0.76 0.085 250)`, `#88b6e6`), **Verdigris — Survival** (`oklch(0.77 0.075 205)`, `#78c2cb`), **Pewter — Tradecraft** (`oklch(0.75 0.085 300)`, `#b6a2dc`). Lightness is matched so no track outranks another, and chroma sits near 0.08: enough to read as anodised metal, well short of crayon. They were first set near 0.03 and read as three more greys, which left the product with no colour outside decay. None of them is copper, because copper means decay and the two appear on the same row.
 
 ### Named Rules
 **The One Accent Rule.** The polish appears only on the primary action, the current selection, and active state. Two polished elements on one screen means one of them is wrong. The single exception is the completion moment, where the polish marks the event rather than an action.
 
 **The One Warm Colour Rule.** Tarnish is the only warm colour in the product and it means exactly one thing: this skill has decayed and needs repair. On a screen that is otherwise entirely grey and white it cannot be missed, and it cannot be confused with anything else. Spending it anywhere else destroys the only pre-attentive signal the system has.
 
-**The No Track-as-Background Rule.** Track colors are set as small-caps typographic labels. They never fill a surface, a button, or a border stripe.
+**The No Track-as-Background Rule.** Track colors are set as small-caps typographic labels, as the stud that leads a Library row, and as the fill inside an engraved gauge. They never fill a surface, a button, or a border stripe.
 
 ## 3. Typography
 
@@ -215,7 +221,7 @@ Depth is then built from four things, in this order: **tonal layering**; an **ed
 - **`--shadow-lift`**: the completion moment, and the sheet.
 
 ### Named Rules
-**One Lit Surface Rule.** At most one surface per view is lit. In a session it is the card. On Today it is the required action itself, so a day with nothing due carries no polish and no shadow anywhere, because there is no work. Everything else sits flush with a bevel at most.
+**One Lit Surface Rule.** At most one surface per view is lit. In a session it is the card. On Today it is the required action itself, the first due plate, so a day with nothing due carries no key shadow anywhere, because there is no work. Everything else sits flush with a bevel at most.
 
 The rule says *at most*, not *exactly*. A view with nothing to light is allowed to stay dark. Learn briefings are editorial flow, not raised surfaces, so they do not create a second lit object.
 
@@ -257,7 +263,7 @@ Controls are hardware. At rest they protrude: a lit top edge, a dark lower lip, 
 ### Engraved tracks
 Every progress indicator is a track cut into the surface (`--field` plus `--engrave`) with the fill sitting inside the cut. Two kinds, and the difference is deliberate:
 
-- **Neutral tracks** — the retention gap on a library or progress row — fill in steel, never the accent. Lighting one would light up every row, and a semantic colour would turn a schedule into a scoreboard.
+- **Topic tracks** — the gap, evidence or acquisition reading on a Library row or topic page — fill in the topic's track metal, never the accent and never a red/green status colour. Lighting one would light up every row, and a graded colour would turn a schedule into a scoreboard; a track is a category, so it colours without grading. A banked topic fills in Settled slate. The fill grows in once when the gauge appears (transform only), and not under reduced motion.
 - **The lit track** — the lesson sitting meter — fills in the polish, because closing that finite boundary is the thing the screen is asking for. It is the only meter in the product whose fill is the accent.
 
 ### Flip card
@@ -274,21 +280,31 @@ The richer Learn layer is a compact reference briefing, not an article template 
 - Tables wrap content aggressively and may scroll inside their own focusable wrapper at extreme text scaling. The page itself must not overflow horizontally at 200% text scaling.
 - No animation is needed for briefing comprehension; reduced-motion behavior is therefore inherited without special alternative content.
 
-### Topic rows (not cards)
-The library is a dense index. Each row: no radius, full-width bottom hairline, sans title, mono readout metadata. One trailing action button per row, and it launches the mode the ladder is asking for.
+### Topic rows
+Today's docket is a dense index: no radius, full-width bottom hairline, sans title, mono readout metadata, and a chevron.
 
-Rows, not cards, is a deliberate rejection of the obvious gunmetal move. A card per topic with a bezelled icon looks like hardware and costs roughly half the rows that fit a phone screen; the index is both denser and more minimal, which is what the material is actually for.
+Library rows are **plates** instead (see Library list). Ruled rows were a deliberate rejection of the obvious gunmetal move, a card per topic, and they are still right where density is the job. On the Library the owner found hairline rows flat and the chevrons unwanted, so each topic became its own stamped plate: one object per topic, the whole plate the control, no chevron, no icon, no nested surface.
 
 ### The docket
-Today uses the same index rows, because a due topic and a library topic are the same object. The whole row is the control and it starts that topic alone, so a five-minute window never has to take the whole batch. The row's metadata is the **reason** the topic surfaced today (`dueState().label`) and its item count, never its rung: the rung is a fact about the topic, the reason is a fact about today. Below the docket, one primary action runs the batch the top-ranked topic belongs to.
+Today is a few large **plates** (at most three) for topics already in motion: started, and either due or waiting out a gap. A topic nobody has started is Library's to offer, and a banked topic resting between spot checks stays in Library until its check comes due. Due plates come first in the schedule's own ranking, then waiting ones, soonest first.
 
-Counts are stated in items, not topics alone. Four topics can be eight items or forty-five, and the difference is the entire question of whether there is time.
+Each plate is the same object as a Library plate, set bigger: section-size title, a stud in its track metal, one mono line, and the bare gauge (no label, its reading kept for a screen reader). A due plate's line is the schedule's own reason (`Ready to test`, `Lesson in progress`, `Needs repair` in tarnish), and pressing it does that work. A plate that is not due says `Not due yet`, sits flush, and opens its topic rather than starting an early Test, because the topic page is where that Test's consequence is stated.
+
+**Today states no quantities**: no item counts, no topic counts, no sitting counts, no batch button, no `Test the other` link and no standing note about scoring. The first due plate carries `--shadow-key`, the depth Today reserves for the required action; nothing else on the page is lit. Plates rise in 50ms apart and their gauges fill after them; all of it is off under reduced motion.
+
+`docs/open/ISSUE_127_TODAY_REDESIGN_CONCEPTS.md` (#127) holds the redesign directions this interim layout is expected to be replaced by.
 
 ### Stat strip
 One bordered container divided by hairlines, reading as a single instrument panel. Every figure is a reading, so every figure is mono.
 
 ### Library list
-Titles only, with the row gauge where a topic has earned a reading. Started topics come first under one mono `Learning` label, most recent at the top; everything else follows by title with no label. A row opens its topic and carries no action button, status words, item count or track. Search is a single icon control that opens leftwards over the heading.
+Two named shelves, each a mono label with its count on the same line: `Started` (started topics, most recent at the top) and `Not started`. The first was `Learning` until the unstarted shelf was split by track, since Learning is also a track and would then have headed both. `Not started` is set out **by track**, in the canonical order, each run under a mono subheading in its own metal with a hairline of the same metal running to the edge: the track colour is named where it is used.
+
+Each topic is its own **plate**, 8px apart, 12px radius, with no chevron because the plate is the control. A started topic's plate is raised (ghost face, sheen, both bevels, `--shadow-sm`); a not-started one sits flush (`--surface`, hairline, no bevel), so the shelves differ in depth. A decayed topic's plate takes tarnish in its full hairline, never a side stripe. Held, a plate drops a pixel into the chassis with `--press`.
+
+A started plate leads with a **stud**: a 9px lit, bevelled bead of the topic's track metal on the title's first line. An unstarted plate carries none, because its track subheading already names the metal. A started plate carries exactly one reading under the title, spanning the full plate width: its gauge, with the gauge's label beneath in its own units (`27 days of the gap to go`, `Banked`), or, where there is no measure yet, the schedule's own sentence (`Ready to drill`). A decayed topic says `Needs repair` in tarnish behind a small diamond, so decay is never colour alone. A not-started row carries the title only. No row carries an action button, item count or track name. Search is a single icon control that opens leftwards over the heading.
+
+The list arrives once: rows rise 8px and fade in, 24ms apart and capped at twelve, with each gauge filling just after its row lands. Hover lifts the plate one tonal step and grows the stud. All of it is transform and opacity, and all of it is off under reduced motion.
 
 ### Current destination
 Once the accent is a near-white, a hue shift alone cannot carry "current" against ink that is also near-white. The navigation marks it with a 2px machined bar on the edge the nav is attached to: along the top on the mobile bar, down the left on the desktop rail.

@@ -349,11 +349,12 @@ button:where(.panel, .fluency-mode) {
  * One topic's progress, read as an instrument reads it.
  *
  * The track is cut into the chassis rather than laid on it — that is what
- * --field and --engrave are for — and it fills in steel. Never the accent, and
- * never a semantic colour: DESIGN.md's rule is that lighting one of these
- * would light up every row, and a red/green fill would turn a schedule into a
- * scoreboard. Completion is the single exception and it darkens rather than
- * brightens, to the settled slate that means "no longer in progress".
+ * --field and --engrave are for — and it fills in the topic's track metal.
+ * Never the accent, and never a red/green status colour: lighting one of these
+ * would light up every row, and a graded fill would turn a schedule into a
+ * scoreboard. A track is a category, so it colours without grading.
+ * Completion is the single exception and it darkens rather than brightens, to
+ * the settled slate that means "no longer in progress".
  *
  * It replaced a 3px aria-hidden sliver that appeared only mid-retention-gap.
  * The height here is the smallest that still reads as a filled quantity at
@@ -374,12 +375,34 @@ button:where(.panel, .fluency-mode) {
   box-shadow: var(--engrave);
 }
 
+/* Filled in the topic's track metal where the caller names one, steel where it
+   does not. The fill grows in from the left once, when the gauge appears: the
+   reading arriving, not decoration, and transform-only so nothing reflows. */
 .gauge-fill {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(180deg, var(--muted), var(--line-hover));
+  background: linear-gradient(
+    180deg,
+    var(--track-hue, var(--muted)),
+    color-mix(in oklch, var(--track-hue, var(--muted)) 55%, var(--line-hover))
+  );
+  transform-origin: left center;
   transition: width var(--t-base) var(--ease);
+  animation: gauge-fill-in 640ms var(--ease) both;
+  animation-delay: var(--gauge-delay, 120ms);
+}
+
+@keyframes gauge-fill-in {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gauge-fill {
+    animation: none;
+  }
 }
 
 /* Settled, not lit. A banked topic has stopped being the thing in motion. */
@@ -402,6 +425,28 @@ button:where(.panel, .fluency-mode) {
   font-size: var(--t-readout);
   letter-spacing: var(--track-readout);
   text-transform: uppercase;
+}
+
+/* ---------------------------------------------------------------- stud -- */
+
+/* The stud: a lit, bevelled bead of a started topic's track metal, set on
+   the title's first line wherever a topic is a plate (Library, Today). The
+   caller sets --track-hue; an unstarted Library plate carries none, because it
+   already sits under a heading in its track's metal. */
+.track-stud {
+  width: 9px;
+  height: 9px;
+  /* Centred on the title's first line box (size x 1.3 leading, halved). */
+  margin-top: calc(var(--t-component) * 0.65 - 2.5px);
+  border-radius: var(--r-pill);
+  background: radial-gradient(
+    circle at 38% 30%,
+    color-mix(in oklch, var(--track-hue) 55%, var(--accent)),
+    var(--track-hue) 55%,
+    color-mix(in oklch, var(--track-hue) 50%, var(--bg))
+  );
+  box-shadow: var(--edge-under), var(--shadow-sm);
+  transition: transform var(--t-base) var(--ease);
 }
 
 /* --------------------------------------------------------------- shell -- */
@@ -540,6 +585,15 @@ main:focus {
   top: 50%;
   transform: translateY(-50%);
   color: var(--subtle);
+  transition:
+    transform var(--t-base) var(--ease),
+    color var(--t-fast) var(--ease);
+}
+
+/* The chevron leans toward where the row goes. */
+.index-row:hover::after {
+  transform: translate(3px, -50%);
+  color: var(--ink);
 }
 
 .index-row.static {

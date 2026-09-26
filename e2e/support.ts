@@ -41,7 +41,8 @@ export async function openNatoTest(page: Page) {
     [LIBRARY, STORE_KEY, SPLASH_KEY] as const,
   )
   await page.goto('./')
-  await page.getByRole('button', { name: /^Test one topic/ }).click()
+  // Today's plate is the control: a due topic's plate starts its Test.
+  await page.locator('.docket .index-row').first().click()
   await expect(page.locator('.flip-card')).toBeVisible()
 }
 

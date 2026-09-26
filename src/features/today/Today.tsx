@@ -1,15 +1,16 @@
-import { useState } from 'react'
+import type { CSSProperties } from 'react'
 import { useLibrary } from '../../services/library/LibraryProvider'
 import {
   dueEntries,
   journeysFor,
   launchFor,
-  TEST_CONSEQUENCE_NOTE,
   type JourneyEntry,
 } from '../../domain/study/journey'
+import { hasStarted } from '../../domain/study/libraryGroups'
 import type { RunTarget } from '../../app/routing/routes'
 import { resolveStudy } from '../../domain/study/scheduling'
 import type { Mode } from '../../domain/study/mode'
+import { TopicGauge } from '../library/TopicGauge'
 import './Today.css'
 
 const WORDS = [
@@ -17,11 +18,9 @@ const WORDS = [
   'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve',
 ]
 
-/** How many due rows show before the docket collapses behind a disclosure.
- *  A busy catch-up day should still read as "the one thing" at a glance,
- *  not as a homework list — see the "Coming up" horizon, which caps at
- *  the same number for the same reason. */
-const DOCKET_VISIBLE = 5
+/** How many plates Today shows. Today is the few things already in motion,
+ *  not the library again; everything else is one tap away in Library. */
+const TODAY_VISIBLE = 3
 
 /** Small counts read as prose. Past twelve the numeral is clearer than the word. */
 function count(n: number): string {
@@ -30,14 +29,6 @@ function count(n: number): string {
 
 function topicCount(n: number): string {
   return `${count(n)} ${n === 1 ? 'topic' : 'topics'}`
-}
-
-function itemsIn(entries: JourneyEntry[]): number {
-  return entries.reduce((n, entry) => n + entry.topic.items.length, 0)
-}
-
-function idsIn(entries: JourneyEntry[]): string[] {
-  return entries.map((entry) => entry.topic.id)
 }
 
 function sentence(s: string): string {
@@ -49,19 +40,39 @@ function militaryDate(date: Date): string {
   return `${String(date.getDate()).padStart(2, '0')} ${months[date.getMonth()]} ${date.getFullYear()}`
 }
 
+/**
+ * What Today holds: topics the learner has already started and that are still
+ * in motion. Due ones first, in the schedule's own ranking, then the ones
+ * waiting out a gap, soonest first. A banked topic resting between spot checks
+ * is not in motion and stays in Library until its check comes due; a topic
+ * nobody has started is Library's to offer, not Today's.
+ */
+export function inProgress(entries: JourneyEntry[]): JourneyEntry[] {
+  const started = entries.filter((entry) => entry.topic.items.length > 0 && hasStarted(entry))
+  const due = dueEntries(started)
+  const dueIds = new Set(due.map((entry) => entry.topic.id))
+  const waiting = started
+    .filter((entry) => !dueIds.has(entry.topic.id) && entry.topic.status !== 'completed')
+    .sort(
+      (a, b) =>
+        a.journey.waitDays - b.journey.waitDays || a.topic.title.localeCompare(b.topic.title),
+    )
+  return [...due, ...waiting]
+}
+
 /** Mirrors the seeded library, so the empty state teaches the shape of a topic
  *  rather than restating the rule in the abstract. */
 const PRIMER = [
   {
-    title: 'NATO phonetic alphabet',
+    title: 'NATO Alphabet',
     scope: 'The 26 letters A to Z and their code words. Nothing else.',
   },
   {
-    title: 'Primary survey',
+    title: 'Primary Survey',
     scope: 'The five ABCDE steps in assessment order.',
   },
   {
-    title: 'Cardinal and intercardinal bearings',
+    title: 'Compass Bearings',
     scope: 'The eight compass points and their degree values.',
   },
 ]
@@ -75,7 +86,6 @@ interface TodayProps {
 
 export function Today({ onStart, onOpenTopic, onGoToLibrary, onOpenProfile }: TodayProps) {
   const { topics, updateTopic } = useLibrary()
-  const [showAllDue, setShowAllDue] = useState(false)
   const stamp = militaryDate(new Date())
 
   // One derivation for the whole page. Today asks the journey layer what each
@@ -84,7 +94,6 @@ export function Today({ onStart, onOpenTopic, onGoToLibrary, onOpenProfile }: To
   // happen to agree.
   const entries = journeysFor(topics)
   const practicable = entries.filter((entry) => entry.topic.items.length > 0)
-  const due = dueEntries(entries)
 
   // Nothing authored yet. Teach the entry gate rather than showing a blank.
   if (topics.length === 0) {
@@ -134,57 +143,39 @@ export function Today({ onStart, onOpenTopic, onGoToLibrary, onOpenProfile }: To
     )
   }
 
-  if (due.length === 0) {
-    // The most common day. Show the shape of the schedule instead of a dead end:
-    // every one of these is reachable now as a voluntary early Test.
-    const horizon = [...practicable]
-      .sort((a, b) => a.journey.waitDays - b.journey.waitDays)
-      .slice(0, 5)
+  const active = inProgress(entries)
 
+  // Nothing in motion. Either nothing has been started, which Library is for,
+  // or everything started is banked and resting until a spot check is due.
+  if (active.length === 0) {
+    const anyStarted = practicable.some(hasStarted)
     return (
       <>
         <Head stamp={stamp} onProfile={onOpenProfile} />
         <p className="today-note">
-          Recall needs the gap to mean anything, so the schedule is holding.
+          {anyStarted
+            ? 'Everything you have started is banked. A topic comes back here when its spot check is due.'
+            : 'Nothing started yet. Start a topic in the Library and it will be here while you learn it.'}
         </p>
-
-        <h2 className="horizon-head">Coming up</h2>
-        <p className="today-sub">
-          Test any topic now. The score is recorded, but required gaps and clocks do not move early.
-        </p>
-        <ul className="index docket">
-          {horizon.map((entry) => (
-            <DocketRow
-              key={entry.topic.id}
-              entry={entry}
-              onLaunch={() => onStart('test', [entry.topic.id])}
-            />
-          ))}
-        </ul>
-
-        <div className="today-actions">
-          <button
-            className="ghost"
-            type="button"
-            onClick={() => onStart('test', idsIn(practicable))}
-          >
-            Test everything · {itemsIn(practicable)} items
-          </button>
-        </div>
+        {!anyStarted && (
+          <div className="today-actions">
+            <button className="ghost" type="button" onClick={onGoToLibrary}>
+              Open Library
+            </button>
+          </div>
+        )}
       </>
     )
   }
 
-  // The journey decides the action, and `launchFor` decides what that action
-  // does. A fresh ordinary topic is explicitly started here before its reference
-  // opens; passive reference browsing happens only by navigating to the topic.
-  // A guided lesson is a bounded run and Test is scored. `dueEntries` already
-  // ranks the day, so the one primary action follows the top-ranked topic.
-  const toTest = due.filter((entry) => entry.journey.action === 'test')
-  const lead = due[0]
-  const leadsWithTest = lead.journey.action === 'test'
-
-  function launch(entry: JourneyEntry) {
+  // A due plate does its work; the journey decides the action and `launchFor`
+  // what it does. A plate that is not due opens its topic instead: an early
+  // Test is scored, and the topic page is where that consequence is stated.
+  function press(entry: JourneyEntry) {
+    if (!entry.journey.due) {
+      onOpenTopic(entry.topic.id)
+      return
+    }
     const target = launchFor(entry.journey)
     if (target.kind === 'author') {
       onOpenTopic(entry.topic.id)
@@ -202,72 +193,30 @@ export function Today({ onStart, onOpenTopic, onGoToLibrary, onOpenProfile }: To
     )
   }
 
-  // A catch-up day should still read as "the one thing," not as a list to
-  // work through. The docket shows the lead rows and holds the rest behind
-  // an explicit disclosure rather than presenting every due topic as an
-  // equally-weighted choice.
-  const visibleDue = showAllDue ? due : due.slice(0, DOCKET_VISIBLE)
-  const hiddenDue = due.length - visibleDue.length
+  const visible = active.slice(0, TODAY_VISIBLE)
+  const leadId = visible[0].journey.due ? visible[0].topic.id : null
 
   return (
     <>
       <Head stamp={stamp} onProfile={onOpenProfile} />
 
-      <ul className="index docket">
-        {visibleDue.map((entry) => (
-          <DocketRow key={entry.topic.id} entry={entry} onLaunch={() => launch(entry)} />
-        ))}
-      </ul>
-
-      {hiddenDue > 0 && (
-        <button
-          className="quiet docket-more"
-          type="button"
-          onClick={() => setShowAllDue(true)}
-        >
-          +{count(hiddenDue)} more due
-        </button>
+      {!leadId && (
+        <p className="today-note">Recall needs the gap to mean anything, so the schedule is holding.</p>
       )}
 
-      <div className="today-actions">
-        {/* Batching is for proving, not for enrollment or browsing. A scored
-            run over several topics is one task; starting several unrelated topics
-            or reading several references is not. */}
-        {/* Verb first, context underneath. A single line would have to carry a
-            verb, a count and sometimes a topic title, and a primary action that
-            wraps to three lines on a phone is not a primary action. */}
-        {leadsWithTest ? (
-          <button
-            className="today-go"
-            type="button"
-            onClick={() => onStart('test', idsIn(toTest))}
-          >
-            <span className="today-go-verb">Test {topicCount(toTest.length)}</span>
-            <span className="today-go-note tabular">{itemsIn(toTest)} items</span>
-          </button>
-        ) : (
-          <button className="today-go" type="button" onClick={() => launch(lead)}>
-            <span className="today-go-verb">{lead.journey.primaryLabel}</span>
-            <span className="today-go-note">{lead.topic.title}</span>
-          </button>
-        )}
-
-        <div className="today-alts">
-          {!leadsWithTest && toTest.length > 0 && (
-            <button
-              className="quiet"
-              type="button"
-              onClick={() => onStart('test', idsIn(toTest))}
-            >
-              Test the other {count(toTest.length)}
-            </button>
-          )}
-        </div>
-
-        {/* Said where a scored run is actually on offer, and nowhere else. A
-            day of lessons or new starts should not carry a note about Test. */}
-        {toTest.length > 0 && <p className="today-consequence">{TEST_CONSEQUENCE_NOTE}</p>}
-      </div>
+      {/* A few large plates and nothing else: no batch button, no counts. The
+          plate is the control, and the first due plate is the day's key. */}
+      <ul className="index docket">
+        {visible.map((entry, order) => (
+          <TodayPlate
+            key={entry.topic.id}
+            entry={entry}
+            order={order}
+            lead={entry.topic.id === leadId}
+            onPress={() => press(entry)}
+          />
+        ))}
+      </ul>
     </>
   )
 }
@@ -305,30 +254,42 @@ function Head({
 }
 
 /**
- * One due topic, and tapping it starts exactly that topic. The row carries the
- * reason it surfaced today rather than the rung it sits on: the rung is a fact
- * about the topic, the reason is a fact about today.
+ * One topic in motion, as a plate. It says why it is here in the schedule's
+ * own words when it is due, and only that it is waiting when it is not: the
+ * gauge shows how far along it is, and Today states no quantities.
  */
-function DocketRow({ entry, onLaunch }: { entry: JourneyEntry; onLaunch: () => void }) {
+function TodayPlate({
+  entry,
+  order,
+  lead,
+  onPress,
+}: {
+  entry: JourneyEntry
+  order: number
+  lead: boolean
+  onPress: () => void
+}) {
   const { topic, journey } = entry
+  const repair = journey.phase === 'repair'
+  const style = { '--track-hue': `var(--${topic.track})`, '--order': order } as CSSProperties
+
   return (
-    <li>
-      <button type="button" className="index-row" onClick={onLaunch}>
-        <span className="sr-only">{journey.actionLabel}: </span>
-        <span className="index-title">{topic.title}</span>
-        <span className="index-meta">
-          <span className={`due-reason${journey.phase === 'repair' ? ' is-repair' : ''}`}>
-            {journey.statusLabel}
-          </span>
-          <span className="tabular">
-            {topic.items.length} {topic.items.length === 1 ? 'item' : 'items'}
-          </span>
+    <li className="today-entry" style={style}>
+      <button
+        type="button"
+        className="index-row today-plate"
+        data-due={journey.due || undefined}
+        data-lead={lead || undefined}
+        data-repair={repair || undefined}
+        onClick={onPress}
+      >
+        <span className="sr-only">{journey.due ? journey.actionLabel : 'Open'}: </span>
+        <span className="track-stud" aria-hidden="true" />
+        <span className="index-title today-plate-title">{topic.title}</span>
+        <span className={`due-reason${repair ? ' is-repair' : ''}`}>
+          {journey.due ? journey.statusLabel : 'Not due yet'}
         </span>
-        {/* Acquisition progress is the reason a Morse row keeps saying Learn, so
-            the row carries it rather than making the learner open the topic. */}
-        {journey.phase === 'acquiring' && journey.acquisition.progressive && journey.detail && (
-          <span className="docket-detail">{journey.detail}</span>
-        )}
+        <TopicGauge topic={topic} journey={journey} variant="bare" />
       </button>
     </li>
   )

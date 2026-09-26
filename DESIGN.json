@@ -142,46 +142,46 @@
       "learning": {
         "role": "track",
         "displayName": "Steel Blue",
-        "canonical": "#8aa8c8",
+        "canonical": "#88b6e6",
         "tonalRamp": [
-          "#1e252c",
-          "#374350",
-          "#506174",
-          "#6c839c",
-          "#8aa8c8",
-          "#a7bed6",
-          "#c4d4e4",
-          "#dee7f0"
+          "#192532",
+          "#314458",
+          "#4b6682",
+          "#688db3",
+          "#88b6e6",
+          "#a8cbf1",
+          "#c3defa",
+          "#dbeeff"
         ]
       },
       "survival": {
         "role": "track",
         "displayName": "Verdigris",
-        "canonical": "#92a9ab",
+        "canonical": "#78c2cb",
         "tonalRamp": [
-          "#202526",
-          "#3a4444",
-          "#556263",
-          "#728485",
-          "#92a9ab",
-          "#adbfc0",
-          "#c9d4d5",
-          "#e1e7e8"
+          "#14282a",
+          "#29484c",
+          "#406c71",
+          "#5a949b",
+          "#78c2cb",
+          "#9bd3d9",
+          "#bbe3e8",
+          "#d5f1f5"
         ]
       },
       "tradecraft": {
         "role": "track",
         "displayName": "Pewter",
-        "canonical": "#a79ac0",
+        "canonical": "#b6a2dc",
         "tonalRamp": [
-          "#25222a",
-          "#433e4d",
-          "#61596f",
-          "#827896",
-          "#a79ac0",
-          "#bdb3d0",
-          "#d3cce0",
-          "#e6e3ed"
+          "#262130",
+          "#463d56",
+          "#685c7f",
+          "#8f80ae",
+          "#b6a2dc",
+          "#cdbeec",
+          "#dfd4f7",
+          "#eee7ff"
         ]
       },
       "danger": {
@@ -393,7 +393,7 @@
       "Depth from bevel and engraving, not from stacked drop shadows",
       "Exactly one warm colour in the product, and it means a skill has decayed",
       "Dense index rows over card grids; a topic list reads like a table of contents",
-      "Motion is state feedback plus one piece of card physics; nothing else moves"
+      "Motion is state feedback, one piece of card physics, and a short arrival for the Library list and its gauges; nothing moves for its own sake"
     ],
     "rules": [
       {
@@ -403,7 +403,7 @@
       },
       {
         "name": "The No Track-as-Background Rule",
-        "body": "Learning/Survival/Tradecraft colors label metadata (a tag, a dot) and are never used as a card background, button fill, or large surface area, that would tip the product toward the tactical/game aesthetic it explicitly rejects.",
+        "body": "Learning/Survival/Tradecraft colors label metadata (a tag, the stud leading a Library row, the fill inside an engraved gauge) and are never used as a card background, button fill, border stripe or large surface area; that would tip the product toward the tactical/game aesthetic it explicitly rejects.",
         "section": "colors"
       },
       {
