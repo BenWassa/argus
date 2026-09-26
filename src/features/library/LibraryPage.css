@@ -259,6 +259,23 @@
   line-height: 1.2;
 }
 
+/* Shipped topics have a recognition glyph beside the title. The reading
+   still spans the full plate width beneath both columns. */
+.index-row.lib-row.has-topic-icon {
+  grid-template-columns: 28px minmax(0, 1fr);
+  align-items: center;
+}
+
+.index-row.lib-row.has-topic-icon .index-title {
+  min-width: 0;
+}
+
+.index-row.lib-row .topic-icon {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
 /* The row's gauge: a full-width track with its reading beneath, in its units.
    The stagger carries on into the fill, so each bar fills just after its plate
    lands. */

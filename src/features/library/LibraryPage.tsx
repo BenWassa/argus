@@ -14,6 +14,7 @@ import { CaptureSheet } from './CaptureSheet'
 import { useInbox } from '../../services/inbox/useInbox'
 import type { Mode } from '../../domain/study/mode'
 import { TRACKS, type Topic } from '../../domain/library/topic'
+import { topicIcon } from './topicIcon'
 import './LibraryPage.css'
 
 interface LibraryProps {
@@ -502,6 +503,7 @@ function Row({ entry, order, started, onOpen }: RowProps) {
   // A started topic with no measure yet still has a sentence: the schedule's
   // own, the same words Today and the topic page use for it.
   const measured = gaugeLabel(gaugeReading(topic, journey)) !== null
+  const icon = topicIcon(topic.id)
   const style = {
     '--track-hue': `var(--${topic.track})`,
     '--order': Math.min(order, 12),
@@ -511,12 +513,13 @@ function Row({ entry, order, started, onOpen }: RowProps) {
     <li className="index-entry lib-entry" style={style}>
       <button
         type="button"
-        className="index-row lib-row"
+        className={`index-row lib-row${icon ? ' has-topic-icon' : ''}`}
         data-row={topic.id}
         data-started={started || undefined}
         data-repair={repair || undefined}
         onClick={onOpen}
       >
+        {icon && <img className="topic-icon" src={icon} alt="" aria-hidden="true" />}
         <span className="index-title">{topic.title}</span>
         {repair ? (
           <span className="lib-row-reading lib-repair">Needs repair</span>
