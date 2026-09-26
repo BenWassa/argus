@@ -3,6 +3,7 @@ import { useLibrary } from '../../services/library/LibraryProvider'
 import { dueEntries, journeysFor, type JourneyEntry } from '../../domain/study/journey'
 import { hasStarted } from '../../domain/study/libraryGroups'
 import { TopicGauge } from '../library/TopicGauge'
+import { topicIcon } from '../library/topicIcon'
 import './Today.css'
 
 const WORDS = [
@@ -239,19 +240,20 @@ function TodayPlate({
 }) {
   const { topic, journey } = entry
   const repair = journey.phase === 'repair'
+  const icon = topicIcon(topic.id)
   const style = { '--track-hue': `var(--${topic.track})`, '--order': order } as CSSProperties
 
   return (
     <li className="today-entry" style={style}>
       <button
         type="button"
-        className="index-row today-plate"
+        className={`index-row today-plate${icon ? ' has-topic-icon' : ''}`}
         data-due={journey.due || undefined}
         data-lead={lead || undefined}
         data-repair={repair || undefined}
         onClick={onPress}
       >
-        <span className="track-stud" aria-hidden="true" />
+        {icon && <img className="topic-icon" src={icon} alt="" aria-hidden="true" />}
         <span className="index-title today-plate-title">{topic.title}</span>
         <span className={`due-reason${repair ? ' is-repair' : ''}`}>
           {journey.due ? journey.statusLabel : 'Not due yet'}

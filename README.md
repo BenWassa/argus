@@ -52,6 +52,7 @@ The **full offline-first runtime guarantee is active scope in #113**, not yet a 
 - `docs/README.md` — documentation lifecycle and open/closed housekeeping.
 - `PRODUCT.md` — current implemented product contract and design principles.
 - `DESIGN.md` / `DESIGN.json` — current visual and interaction system.
+- `docs/open/LIBRARY_TOPIC_ICONS.md` — active visual and asset contract for shipped topic icons on Library and Today.
 - `docs/open/LEARN_CONTENT_MODEL.md` — structured Learn schema/editorial contract.
 - `docs/open/ISSUE_104_EDITORIAL_IDENTITY.md` — active editorial direction for expanding Argus as an evidence-based practical miscellany.
 - `docs/open/ISSUE_104_LIBRARY_EXPANSION_RESEARCH.md` — first-pass research and admission criteria for compact finite-recall topics; its Batch A shipped as five catalog topics.
