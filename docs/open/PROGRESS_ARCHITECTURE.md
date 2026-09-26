@@ -764,7 +764,8 @@ absorbed each one.
 `launchFor(journey)` says *where* the recommended action happens, because an
 ordinary topic's reference is now the topic page rather than a separate route;
 `learn` for such a topic opens the topic, and `learn` for a progressive topic is
-still a run. Labels moved from mode names to actions: `Read`, `Start lesson N`,
+still a run. (Removed on 2026-09-26: Today was its only caller, and Today plates
+now always open the topic page, which chooses the action itself.) Labels moved from mode names to actions: `Read`, `Start lesson N`,
 `Continue`, `Test`. The derivation, the phases and `advancementEligible` are
 unchanged.
 

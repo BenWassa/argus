@@ -104,21 +104,28 @@ async function finishCheckpointWarmups(page: Page) {
 test('the alphabet returns to the lesson it was opened from, not past it', async ({ page }) => {
   await openApp(page)
 
-  // The docket resumes the curriculum directly.
+  // The docket plate opens the topic, whose one action resumes the curriculum.
   await page.locator('.docket .index-row').click()
+  await expect(page.getByRole('heading', { name: morse.title, level: 1 })).toBeVisible()
+  expect(await state(page)).toMatchObject({ index: 1, route: { kind: 'topic', topicId: MORSE_ID } })
+  await page.locator('.topic-primary').click()
   await expect(page.locator('.morse-lesson')).toBeVisible()
-  expect(await state(page)).toMatchObject({ index: 1, route: { kind: 'run', mode: 'learn' } })
+  expect(await state(page)).toMatchObject({ index: 2, route: { kind: 'run', mode: 'learn' } })
 
   await page.getByRole('button', { name: 'Morse alphabet' }).click()
   await expect(page.getByRole('heading', { name: 'Morse alphabet', level: 1 })).toBeVisible()
-  expect(await state(page)).toMatchObject({ index: 2, route: { kind: 'reference', topicId: MORSE_ID } })
+  expect(await state(page)).toMatchObject({ index: 3, route: { kind: 'reference', topicId: MORSE_ID } })
 
   // The change this replaces: Back used to abandon the lesson and land on the
   // Topic page, which is why App had to rewrite the run entry into a Topic entry
   // on the way in. The sitting is durable, so Back now returns to the lesson.
   await page.evaluate(() => window.history.back())
   await expect(page.locator('.morse-lesson')).toBeVisible()
-  expect(await state(page)).toMatchObject({ index: 1, route: { kind: 'run', mode: 'learn' } })
+  expect(await state(page)).toMatchObject({ index: 2, route: { kind: 'run', mode: 'learn' } })
+
+  await page.evaluate(() => window.history.back())
+  await expect(page.getByRole('heading', { name: morse.title, level: 1 })).toBeVisible()
+  expect((await state(page)).index).toBe(1)
 
   await page.evaluate(() => window.history.back())
   await expect(page.getByRole('button', { name: 'Today', exact: true })).toHaveAttribute(

@@ -6,7 +6,6 @@ import {
   lessonSittingOf,
 } from '../morse/curriculum/lessonSitting'
 import { DUE_RANK, dueState, gapProgress } from './scheduling'
-import type { Mode } from './mode'
 import type { Status, Topic } from '../library/topic'
 
 /**
@@ -397,26 +396,6 @@ export function journeyFor(topic: Topic, now: Date = new Date()): TopicJourney {
     waitDays: scheduled.waitDays,
     advancementEligible: true,
   }
-}
-
-/**
- * What pressing the recommended action does.
- *
- * Browsing is not represented here: opening a topic's left/navigation surface
- * is always read-only. A fresh ordinary topic instead exposes an explicit
- * enrollment action; its caller records `resolveStudy` and may then open the
- * reference. Curriculum Learn and Test remain real runs.
- */
-export type TopicLaunch =
-  | { kind: 'enroll' }
-  | { kind: 'run'; mode: Mode }
-  | { kind: 'author' }
-
-export function launchFor(journey: TopicJourney): TopicLaunch {
-  if (journey.action === 'author') return { kind: 'author' }
-  if (journey.action === 'enroll') return { kind: 'enroll' }
-  if (journey.action === 'test') return { kind: 'run', mode: 'test' }
-  return { kind: 'run', mode: 'learn' }
 }
 
 export interface JourneyEntry {

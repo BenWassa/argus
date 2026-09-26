@@ -288,7 +288,9 @@ Library rows are **plates** instead (see Library list). Ruled rows were a delibe
 ### The docket
 Today is a few large **plates** (at most three) for topics already in motion: started, and either due or waiting out a gap. A topic nobody has started is Library's to offer, and a banked topic resting between spot checks stays in Library until its check comes due. Due plates come first in the schedule's own ranking, then waiting ones, soonest first.
 
-Each plate is the same object as a Library plate, set bigger: section-size title, a stud in its track metal, one mono line, and the bare gauge (no label, its reading kept for a screen reader). A due plate's line is the schedule's own reason (`Ready to test`, `Lesson in progress`, `Needs repair` in tarnish), and pressing it does that work. A plate that is not due says `Not due yet`, sits flush, and opens its topic rather than starting an early Test, because the topic page is where that Test's consequence is stated.
+Each plate is the same object as a Library plate, set bigger: section-size title, a stud in its track metal, one mono line, and the bare gauge (no label, its reading kept for a screen reader). A due plate's line is the schedule's own reason (`Ready to test`, `Lesson in progress`, `Needs repair` in tarnish); a plate that is not due says `Not due yet` and sits flush.
+
+**Every plate opens its topic**, due or not: the same topic page a Library plate opens. Today starts no run itself, so a topic is always entered one way, and its action is always chosen on the topic page, where a Test's consequence is stated. This reverses the earlier one-tap rule, under which a due plate started its Test or lesson directly (owner decision, 2026-09-26).
 
 **Today states no quantities**: no item counts, no topic counts, no sitting counts, no batch button, no `Test the other` link and no standing note about scoring. The first due plate carries `--shadow-key`, the depth Today reserves for the required action; nothing else on the page is lit. Plates rise in 50ms apart and their gauges fill after them; all of it is off under reduced motion.
 

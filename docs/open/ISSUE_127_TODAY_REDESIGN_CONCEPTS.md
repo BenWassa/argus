@@ -30,7 +30,7 @@ Observed on the layout this change replaced:
 - Each plate is larger than a Library plate: section-size title, a stud in its track metal, one mono line and a **bare gauge** (no label; the reading stays available to screen readers).
 - **No quantities** anywhere on the page. No batch button, no `Test the other`, no scoring note.
 - The first due plate carries the key shadow; due plates are raised, waiting plates sit flush.
-- A due plate starts its work. A waiting plate says `Not due yet` and **opens the topic** rather than starting an early Test, because the topic page is where an early Test's consequence is stated.
+- **Every plate opens its topic**, due or not, the same page a Library plate opens. A waiting plate says `Not due yet`. (As first shipped, a due plate started its work directly; the owner reversed that on 2026-09-26 so a topic is always entered the same way.)
 
 It fixes 1–3. It does not fix 4–6, and three plates are still a list.
 
@@ -42,6 +42,7 @@ It fixes 1–3. It does not fix 4–6, and three plates are still a list.
 - **Decay is routing, not punishment.** Tarnish stays reserved for `Needs repair`.
 - **An early Test's consequence is stated** before it runs.
 - **The owner's standing asks:** containers rather than ruled rows, no chevrons, fewer items, and no quantities on Today.
+- **Today opens topics; it starts no run** (owner, 2026-09-26). A concept below that sets a verb in a plate (A) or starts a composed run from Today (B) predates this and would need reworking to open the topic instead.
 - WCAG 2.1 AA, 44px targets, 200% text without horizontal overflow, and full reduced-motion support.
 
 ## 4. Concepts

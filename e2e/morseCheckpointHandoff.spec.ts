@@ -72,10 +72,10 @@ async function openLessonFour(page: Page) {
     [library(), STORE_KEY, SPLASH_KEY] as const,
   )
   await page.goto('./')
-  // The docket row resumes the curriculum directly. There is no intervening
-  // menu: the path is the topic page's body, and Today already knows which
-  // lesson is current.
+  // The docket plate opens the topic, and the topic page's one action resumes
+  // whichever lesson is current. There is no intervening menu.
   await page.locator('.docket .index-row').click()
+  await page.locator('.topic-primary').click()
 }
 
 /**
@@ -166,8 +166,8 @@ test('the checkpoint remains available on the path after the automatic invitatio
   await page.getByRole('button', { name: 'Close' }).click()
 
   // Skipping is non-gating and leaves the checkpoint on the curriculum, which
-  // is the topic page's body rather than a screen inside the run.
-  await page.getByRole('button', { name: 'Library', exact: true }).click()
-  await page.locator(`[data-row="${MORSE_ID}"]`).click()
+  // is the topic page's body rather than a screen inside the run. The lesson
+  // was started from that page, so closing it lands back on it.
+  await expect(page.getByRole('heading', { name: source!.title, level: 1 })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Start word checkpoint after lesson 4' })).toBeVisible()
 })

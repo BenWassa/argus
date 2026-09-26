@@ -1,15 +1,7 @@
 import type { CSSProperties } from 'react'
 import { useLibrary } from '../../services/library/LibraryProvider'
-import {
-  dueEntries,
-  journeysFor,
-  launchFor,
-  type JourneyEntry,
-} from '../../domain/study/journey'
+import { dueEntries, journeysFor, type JourneyEntry } from '../../domain/study/journey'
 import { hasStarted } from '../../domain/study/libraryGroups'
-import type { RunTarget } from '../../app/routing/routes'
-import { resolveStudy } from '../../domain/study/scheduling'
-import type { Mode } from '../../domain/study/mode'
 import { TopicGauge } from '../library/TopicGauge'
 import './Today.css'
 
@@ -78,20 +70,19 @@ const PRIMER = [
 ]
 
 interface TodayProps {
-  onStart: (mode: Mode, topicIds: string[], target?: RunTarget) => void
   onOpenTopic: (topicId: string) => void
   onGoToLibrary: () => void
   onOpenProfile: () => void
 }
 
-export function Today({ onStart, onOpenTopic, onGoToLibrary, onOpenProfile }: TodayProps) {
-  const { topics, updateTopic } = useLibrary()
+export function Today({ onOpenTopic, onGoToLibrary, onOpenProfile }: TodayProps) {
+  const { topics } = useLibrary()
   const stamp = militaryDate(new Date())
 
   // One derivation for the whole page. Today asks the journey layer what each
   // topic needs rather than reading status and reaching its own conclusion, so
-  // the verb here and the verb in Library are the same value, not two rules that
-  // happen to agree.
+  // the reason on a plate here and the one on the topic page are the same value,
+  // not two rules that happen to agree.
   const entries = journeysFor(topics)
   const practicable = entries.filter((entry) => entry.topic.items.length > 0)
 
@@ -168,31 +159,6 @@ export function Today({ onStart, onOpenTopic, onGoToLibrary, onOpenProfile }: To
     )
   }
 
-  // A due plate does its work; the journey decides the action and `launchFor`
-  // what it does. A plate that is not due opens its topic instead: an early
-  // Test is scored, and the topic page is where that consequence is stated.
-  function press(entry: JourneyEntry) {
-    if (!entry.journey.due) {
-      onOpenTopic(entry.topic.id)
-      return
-    }
-    const target = launchFor(entry.journey)
-    if (target.kind === 'author') {
-      onOpenTopic(entry.topic.id)
-      return
-    }
-    if (target.kind === 'enroll') {
-      updateTopic(entry.topic.id, (current) => resolveStudy(current))
-      onOpenTopic(entry.topic.id)
-      return
-    }
-    onStart(
-      target.mode,
-      [entry.topic.id],
-      target.mode === 'learn' ? { kind: 'lesson' } : undefined,
-    )
-  }
-
   const visible = active.slice(0, TODAY_VISIBLE)
   const leadId = visible[0].journey.due ? visible[0].topic.id : null
 
@@ -204,8 +170,10 @@ export function Today({ onStart, onOpenTopic, onGoToLibrary, onOpenProfile }: To
         <p className="today-note">Recall needs the gap to mean anything, so the schedule is holding.</p>
       )}
 
-      {/* A few large plates and nothing else: no batch button, no counts. The
-          plate is the control, and the first due plate is the day's key. */}
+      {/* A few large plates and nothing else: no batch button, no counts. Every
+          plate opens its topic, the same page a Library plate opens, so a topic
+          is always entered the same way and its action is always chosen there.
+          The first due plate is the day's key. */}
       <ul className="index docket">
         {visible.map((entry, order) => (
           <TodayPlate
@@ -213,7 +181,7 @@ export function Today({ onStart, onOpenTopic, onGoToLibrary, onOpenProfile }: To
             entry={entry}
             order={order}
             lead={entry.topic.id === leadId}
-            onPress={() => press(entry)}
+            onPress={() => onOpenTopic(entry.topic.id)}
           />
         ))}
       </ul>
@@ -283,7 +251,6 @@ function TodayPlate({
         data-repair={repair || undefined}
         onClick={onPress}
       >
-        <span className="sr-only">{journey.due ? journey.actionLabel : 'Open'}: </span>
         <span className="track-stud" aria-hidden="true" />
         <span className="index-title today-plate-title">{topic.title}</span>
         <span className={`due-reason${repair ? ' is-repair' : ''}`}>
