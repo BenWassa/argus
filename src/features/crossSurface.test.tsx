@@ -176,6 +176,13 @@ function todayVerb(topic: Topic): string {
   return verb.replace(/:\s*$/, '').trim()
 }
 
+/** Whether Today shows this topic at all. It holds only topics in motion. */
+function onToday(topic: Topic): boolean {
+  renderToday()
+  const docket = document.querySelector('.docket')
+  return !!docket && within(docket as HTMLElement).queryByText(topic.title) !== null
+}
+
 function todaySchedule(topic: Topic): string {
   renderToday()
   return rowFor(topic.title, todayDocket()).querySelector('.due-reason')?.textContent?.trim() ?? ''
@@ -192,7 +199,7 @@ function libraryGroup(topic: Topic): string {
   // A row opens its topic and nothing else: no second control to disagree.
   expect(row.querySelectorAll('button')).toHaveLength(1)
   const group = row.closest('section')
-  return group?.querySelector('.lib-group-head')?.textContent?.trim() ?? group?.getAttribute('aria-label') ?? ''
+  return group?.querySelector('.lib-group-head')?.textContent?.trim() ?? ''
 }
 
 /** The Topic page's single primary action. There is only ever one. */
@@ -220,7 +227,7 @@ describe('one learner state, three surfaces, one recommendation', () => {
     name: string
     topic: () => Topic
     /** Which Library group holds it, for that same state. */
-    group: 'Learning' | 'Not started'
+    group: 'Started' | 'Not started'
   }
 
   const scenarios: Scenario[] = [
@@ -232,7 +239,7 @@ describe('one learner state, three surfaces, one recommendation', () => {
     {
       name: 'a Morse topic partway through acquisition',
       topic: () => acquire(resolveStudy(blank(MORSE_ID), new Date(Date.now() - 6 * DAY)), 4),
-      group: 'Learning',
+      group: 'Started',
     },
     {
       name: 'a Morse topic that reached readiness today',
@@ -240,7 +247,7 @@ describe('one learner state, three surfaces, one recommendation', () => {
         ...acquire(resolveStudy(blank(MORSE_ID), new Date(Date.now() - 40 * DAY)), 14),
         acquisitionReadyAt: ago(0),
       }),
-      group: 'Learning',
+      group: 'Started',
     },
     {
       name: 'a Morse topic ready and past its anchored gap',
@@ -248,7 +255,7 @@ describe('one learner state, three surfaces, one recommendation', () => {
         ...acquire(resolveStudy(blank(MORSE_ID), new Date(Date.now() - 40 * DAY)), 14),
         acquisitionReadyAt: ago(3),
       }),
-      group: 'Learning',
+      group: 'Started',
     },
     {
       name: 'an ordinary topic not yet enrolled',
@@ -258,18 +265,18 @@ describe('one learner state, three surfaces, one recommendation', () => {
     {
       name: 'an ordinary topic waiting out its delayed test',
       topic: () => blank('cardinal-bearings', { status: 'drilled', drilledAt: ago(4) }),
-      group: 'Learning',
+      group: 'Started',
     },
     {
       name: 'an ordinary topic ready for its delayed test',
       topic: () =>
         blank('cardinal-bearings', { status: 'drilled', drilledAt: ago(COMPLETION_GAP_DAYS + 1) }),
-      group: 'Learning',
+      group: 'Started',
     },
     {
       name: 'a topic that decayed and needs repair',
       topic: () => blank('cardinal-bearings', { status: 'decayed', completedAt: ago(200) }),
-      group: 'Learning',
+      group: 'Started',
     },
     {
       name: 'a completed topic waiting for its spot check',
@@ -280,7 +287,7 @@ describe('one learner state, three surfaces, one recommendation', () => {
           completedAt: ago(20),
           lastTestedAt: ago(20),
         }),
-      group: 'Learning',
+      group: 'Started',
     },
   ]
 
@@ -292,7 +299,12 @@ describe('one learner state, three surfaces, one recommendation', () => {
 
       // Every surface describes the same stored topic. Opening Topic is browsing
       // only, so it cannot advance the state underneath later assertions.
-      if (journey.due) {
+      // Today holds only started topics, so an unstarted one is Library's to
+      // offer even when the schedule would call it available.
+      if (scenario.group === 'Not started') {
+        expect(onToday(topic)).toBe(false)
+        cleanup()
+      } else if (journey.due) {
         expect(todayVerb(topic)).toBe(journey.actionLabel)
         cleanup()
         expect(todaySchedule(topic)).toBe(journey.statusLabel)
@@ -335,7 +347,8 @@ describe('partially acquired Morse is never routed to Test', () => {
     const fresh = blank(MORSE_ID)
     install([fresh])
 
-    expect(todayVerb(fresh)).toBe('Start lesson')
+    // Not started, so not on Today; the topic page is where it begins.
+    expect(onToday(fresh)).toBe(false)
     cleanup()
     expect(topicPrimary(fresh)).toBe('Start lesson 1')
   })
@@ -344,14 +357,15 @@ describe('partially acquired Morse is never routed to Test', () => {
     const partial = acquire(resolveStudy(blank(MORSE_ID), new Date(Date.now() - 6 * DAY)), 3)
     install([partial])
 
+    // The plate is Today's only control. With only an acquiring topic in
+    // motion, pressing it continues the lesson, and no batch Test is offered.
+    expect(todayVerb(partial)).toBe('Continue')
+    cleanup()
     renderToday()
-    // Today's primary control is the lead group's button. With only an acquiring
-    // topic due, it must be the lesson, and the generic `Test everything` batch
-    // must not be reachable as the day's required action.
-    const primary = document.querySelector('.today-go')
-    expect(primary?.textContent).toContain('lesson')
-    expect(primary?.textContent).not.toContain('Test')
-    expect(document.body.textContent).not.toContain('Test everything')
+    expect(document.querySelector('.today-go')).toBeNull()
+    for (const button of document.querySelectorAll('button')) {
+      expect(button.textContent).not.toMatch(/^Test/)
+    }
   })
 
   it('offers Test on the Topic page only as an explicitly non-advancing path entry', () => {
@@ -377,7 +391,7 @@ describe('partially acquired Morse is never routed to Test', () => {
     renderLibrary()
     const row = rowFor(partial.title)
     expect(row.querySelector('.gauge-acquisition')).not.toBeNull()
-    expect(row.querySelector('.gauge-row .sr-only')?.textContent).toContain('letters settled')
+    expect(row.querySelector('.gauge-row .gauge-label')?.textContent).toContain('letters')
     // The gap bar means retention, and this topic has not entered a gap.
     expect(row.querySelector('.gauge-gap')).toBeNull()
   })
@@ -393,9 +407,8 @@ describe('partially acquired Morse is never routed to Test', () => {
     expect(todayVerb(resumed)).toBe('Continue')
     cleanup()
     renderToday()
-    expect(rowFor(resumed.title, todayDocket()).textContent).toContain(
-      '6 retrievals this sitting',
-    )
+    // Today states no quantities; the sitting's count is the topic page's.
+    expect(rowFor(resumed.title, todayDocket()).textContent).not.toContain('retrievals')
     cleanup()
     renderTopicPage(resumed)
     expect(document.body.textContent).toContain('6 retrievals')
@@ -416,16 +429,16 @@ describe('acquisition readiness moves every surface together', () => {
 
     // The page's fuller recommendation between checks: keep learning past the
     // alphabet. Its Test is still one tap away, as a short review.
-    expect(topicPrimary(topic)).toBe('Keep going')
+    expect(topicPrimary(topic)).toBe('Test')
     cleanup()
     // The anchored one-day gap has not passed, so it is not today's work yet.
-    // It still appears under `Coming up`, which is the honest place for it: an
-    // early Test stays reachable, it simply is not what today asks for.
+    // It is still in motion, so Today shows it as waiting, and pressing it opens
+    // the topic, where an early Test and its consequence are both stated.
     renderToday()
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('ARGUS')
-    expect(rowFor(topic.title, todayDocket()).querySelector('.sr-only')?.textContent).toContain(
-      'Test',
-    )
+    const row = rowFor(topic.title, todayDocket())
+    expect(row.querySelector('.sr-only')?.textContent).toContain('Test')
+    expect(row.querySelector('.due-reason')?.textContent).toBe('Ready to test')
   })
 
   it('starts the delayed-test clock at readiness rather than at first exposure', () => {
@@ -435,9 +448,9 @@ describe('acquisition readiness moves every surface together', () => {
     // First exposure was forty days ago. Under the old rule the topic has read
     // `Ready to drill` for thirty-nine of them.
     expect(topic.learningAt).not.toBeNull()
-    expect(topicSchedule(topic)).toBe('Test in 1 day')
+    expect(topicSchedule(topic)).toBe('Ready to test')
     cleanup()
-    expect(libraryGroup(topic)).toBe('Learning')
+    expect(libraryGroup(topic)).toBe('Started')
   })
 
   it('becomes due once the anchored gap has actually passed', () => {
@@ -448,7 +461,7 @@ describe('acquisition readiness moves every surface together', () => {
     cleanup()
     expect(todaySchedule(topic)).toBe('Ready to test')
     cleanup()
-    expect(libraryGroup(topic)).toBe('Learning')
+    expect(libraryGroup(topic)).toBe('Started')
   })
 })
 
@@ -469,10 +482,10 @@ describe('Library is a list of titles, grouped by whether you have begun', () =>
     install(topics)
     renderLibrary()
 
-    // One visible heading. There are no schedule shelves, no track filters and
+    // Two named shelves. There are no schedule shelves, no track filters and
     // no selection mode any more.
     const headings = [...document.querySelectorAll('.lib-group-head')].map((h) => h.textContent)
-    expect(headings).toEqual(['Learning'])
+    expect(headings).toEqual(['Started', 'Not started'])
     expect(document.querySelector('.lib-shelf')).toBeNull()
     expect(screen.queryByRole('group', { name: 'Filter by track' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Select' })).toBeNull()
@@ -485,9 +498,14 @@ describe('Library is a list of titles, grouped by whether you have begun', () =>
     const rest = document.querySelector('.lib-group-rest') as HTMLElement
     expect(within(rest).getByText(topics[4].title)).toBeTruthy()
 
-    // Rows carry no status words, no item count and no track.
+    // A row carries one reading at most, and never an item count or a verb.
     expect(document.querySelector('.lib-when')).toBeNull()
     expect(document.querySelector('.index-meta')).toBeNull()
+    for (const row of document.querySelectorAll('.lib-row')) {
+      expect(row.querySelectorAll('.gauge-label, .lib-row-reading').length).toBeLessThanOrEqual(1)
+    }
+    // An untouched topic has nothing to report.
+    expect(rest.querySelector('.gauge-label, .lib-row-reading')).toBeNull()
   })
 
   it('carries no streaks, badges, XP, leaderboard or single progress percentage', () => {
@@ -516,7 +534,8 @@ describe('Library is a list of titles, grouped by whether you have begun', () =>
     // No stored library: the first-run delivery path.
     renderLibrary()
 
-    expect(document.querySelector('.lib-group-head')).toBeNull()
+    const headings = [...document.querySelectorAll('.lib-group-head')].map((h) => h.textContent)
+    expect(headings).toEqual(['Not started'])
     expect(document.querySelectorAll('.lib-group-rest .index-entry')).toHaveLength(
       SHIPPED_CATALOG_TOPIC_IDS.length,
     )
@@ -557,7 +576,7 @@ describe('ordinary topic browsing and enrollment', () => {
     const fresh = blank('primary-survey')
     install([fresh])
 
-    expect(todayVerb(fresh)).toBe('Start')
+    expect(onToday(fresh)).toBe(false)
     cleanup()
 
     install([fresh])

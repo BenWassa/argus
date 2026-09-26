@@ -109,8 +109,7 @@ export function TestDone({
           <span className="kicker">Completed</span>
           <p className="banked-title">{resolution.topic.title}</p>
           <p className="banked-note">
-            Recalled cleanly {resolution.gapDays} days after it was last drilled. It is now part of
-            your permanent record.
+            Recalled perfectly twice. It is now part of your permanent record.
           </p>
         </div>
       ))}
@@ -131,7 +130,7 @@ export function TestDone({
           <strong>{resolution.topic.title}</strong>: {statusLabel(resolution.from).toLowerCase()} to{' '}
           {statusLabel(resolution.to).toLowerCase()}.
           {resolution.from === 'drilled' && resolution.to === 'learning' && (
-            <> The delayed test starts again once it is drilled clean.</>
+            <> Another perfect test can complete it.</>
           )}
         </p>
       ))}
@@ -146,7 +145,7 @@ export function TestDone({
         <p className="transition" key={entry.resolution.topic.id}>
           <strong>{entry.resolution.topic.title}</strong>: the lesson has not been through every
           letter yet, so this run is recorded but does not move the ladder. Finish the lesson and
-          the delayed test starts counting from there.
+          then two perfect tests can complete it.
         </p>
       ))}
 

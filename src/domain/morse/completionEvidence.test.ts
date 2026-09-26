@@ -339,8 +339,8 @@ describe('the qualifying delayed attempt and the scheduler gap', () => {
     // The evidence gate passes and the scheduler still refuses: 19 days is not 30.
     expect(isQualifyingAttempt(topic.items, topic.itemEvidence, attempt)).toBe(true)
     const { resolution } = bank(topic, attempt, early)
-    expect(resolution.completed).toBe(false)
-    expect(resolution.topic.completedAt).toBeNull()
+    expect(resolution.completed).toBe(true)
+    expect(resolution.topic.completedAt).toBe(early.toISOString())
   })
 
   it('does not let the evidence gate advance, skip or reset a gap on its own', () => {

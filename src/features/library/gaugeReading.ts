@@ -71,7 +71,7 @@ export function gaugeReading(topic: Topic, journey: TopicJourney): GaugeReading 
 
   // Acquisition first, because while it is running it is the only thing the
   // learner can act on — the retention ladder is gated behind it anyway.
-  if (acquisition.progressive && !acquisition.ready && acquisition.total > 0) {
+  if (acquisition.progressive && acquisition.total > 0) {
     return { kind: 'acquisition', done: acquisition.settled, total: acquisition.total }
   }
 
@@ -102,13 +102,11 @@ export function gaugeLabel(reading: GaugeReading): string | null {
     case 'complete':
       return 'Banked'
     case 'acquisition':
-      return `${reading.done} of ${reading.total} letters settled`
+      return `${reading.done} of ${reading.total} letters`
     case 'evidence':
-      return `${reading.done} of ${reading.total} recalled both ways`
+      return `${reading.done} of ${reading.total} items`
     case 'gap':
-      return reading.waitDays > 0
-        ? `${reading.waitDays} ${reading.waitDays === 1 ? 'day' : 'days'} of the gap to go`
-        : 'Gap served'
+      return null
   }
 }
 

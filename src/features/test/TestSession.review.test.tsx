@@ -21,7 +21,8 @@ function acquiredMorse(): Topic {
   const now = new Date().toISOString()
   return {
     ...seeded,
-    status: 'learning',
+    status: 'completed',
+    completedAt: now,
     learningAt: now,
     acquisitionReadyAt: now,
     history: [],

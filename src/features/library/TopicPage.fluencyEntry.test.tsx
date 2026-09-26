@@ -145,7 +145,7 @@ describe('the Fluency entry', () => {
   it('leads between checks, and the Test becomes a quick review of weak letters', () => {
     // Acquisition finished just now: the one-day gap has not passed, so no
     // check is due and a full Test could move nothing.
-    const onStart = open(morse({ acquisitionReadyAt: new Date().toISOString() }))
+    const onStart = open(morse({ status: 'completed', completedAt: new Date().toISOString(), acquisitionReadyAt: new Date().toISOString() }))
     expect(keepGoing()!.className).toContain('topic-primary')
     expect(keepGoing()!.textContent).toContain('Next: letters')
 
@@ -160,6 +160,7 @@ describe('the Fluency entry', () => {
   it('names the next copy level from the learner\'s own bests', () => {
     open(
       morse({
+        status: 'completed', completedAt: new Date().toISOString(),
         acquisitionReadyAt: new Date().toISOString(),
         morseFluency: { rung: 6, characters: {}, bests: { 'copy:letters': 95, 'copy:common': 91 } },
       }),

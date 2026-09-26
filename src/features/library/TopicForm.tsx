@@ -1,5 +1,6 @@
 import { useEffect, useId, useMemo, useState } from 'react'
 import { Dialog } from '../../shared/ui/Dialog'
+import { TRACK_LABELS } from '../../shared/ui/trackLabels'
 import {
   pruneItemEvidence,
   reconcileAuthoredItems,
@@ -30,12 +31,6 @@ interface TopicFormProps {
   draft?: Draft | null
   /** Open with the items field focused, for a topic that exists but is empty. */
   focusItems?: boolean
-}
-
-const TRACK_LABELS: Record<Track, string> = {
-  learning: 'Learning',
-  survival: 'Survival',
-  tradecraft: 'Tradecraft',
 }
 
 /** One item per line, prompt and answer split on the first pipe. */

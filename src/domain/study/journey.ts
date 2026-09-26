@@ -292,7 +292,7 @@ export function journeyFor(topic: Topic, now: Date = new Date()): TopicJourney {
     // topic due — and it stays the recommended action on every surface until the
     // programme's own endpoint is reached.
     const parts = [
-      `${acquisition.settled} of ${acquisition.total} letters settled`,
+      `${acquisition.settled} of ${acquisition.total} letters`,
       `lesson ${acquisition.packet} of ${acquisition.packetCount}`,
     ]
     if (sitting?.active) {
@@ -391,7 +391,7 @@ export function journeyFor(topic: Topic, now: Date = new Date()): TopicJourney {
     statusLabel,
     detail:
       acquisition.progressive && acquisition.ready
-        ? `${acquisition.settled} of ${acquisition.total} letters settled in Learn`
+        ? `${acquisition.settled} of ${acquisition.total} letters`
         : null,
     due: scheduled.due,
     waitDays: scheduled.waitDays,

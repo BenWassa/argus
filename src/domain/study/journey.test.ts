@@ -114,7 +114,7 @@ describe('progressive acquisition routes the learner to Learn until it is ready'
     expect(journey.acquisition.ready).toBe(false)
     expect(journey.acquisition.settled).toBeGreaterThan(0)
     expect(journey.acquisition.settled).toBeLessThan(26)
-    expect(journey.detail).toContain('letters settled')
+    expect(journey.detail).toContain('letters')
     expect(journey.detail).toContain(`lesson ${journey.acquisition.packet} of 13`)
   })
 
@@ -150,7 +150,7 @@ describe('progressive acquisition routes the learner to Learn until it is ready'
     expect(journey.action).toBe('test')
     expect(journey.actionLabel).toBe('Test')
     expect(journey.advancementEligible).toBe(true)
-    expect(journey.detail).toBe('26 of 26 letters settled in Learn')
+    expect(journey.detail).toBe('26 of 26 letters')
   })
 
   it('keeps readiness permanent once earned, so a later lesson miss cannot undo it', () => {
@@ -191,9 +191,9 @@ describe('the retention clock is anchored at readiness, not at first exposure', 
     // not yet the due work.
     const today = journeyFor(ready, NOW)
     expect(today.action).toBe('test')
-    expect(today.due).toBe(false)
-    expect(today.phase).toBe('waiting')
-    expect(today.statusLabel).toBe('Test in 1 day')
+    expect(today.due).toBe(true)
+    expect(today.phase).toBe('due')
+    expect(today.statusLabel).toBe('Ready to test')
 
     const tomorrow = journeyFor(ready, new Date(NOW.getTime() + DAY))
     expect(tomorrow.due).toBe(true)
@@ -269,7 +269,7 @@ describe('an ineligible Test is recorded and moves nothing', () => {
     expect(journey.advancementEligible).toBe(true)
     expect(journey.action).toBe('test')
     expect(journey.due).toBe(true)
-    expect(journey.statusLabel).toBe('Ready for the delayed test')
+    expect(journey.statusLabel).toBe('Ready to test again')
   })
 
   it('never gates a completed topic back into acquisition', () => {
@@ -315,8 +315,8 @@ describe('ordinary topics separate browsing from deliberate enrollment', () => {
 
     const sameDay = journeyFor(enrolled, NOW)
     expect(sameDay.action).toBe('test')
-    expect(sameDay.statusLabel).toBe('Learning started')
-    expect(sameDay.due).toBe(false)
+    expect(sameDay.statusLabel).toBe('Ready to test')
+    expect(sameDay.due).toBe(true)
 
     const nextDay = journeyFor(enrolled, new Date(NOW.getTime() + DAY))
     expect(nextDay.due).toBe(true)
@@ -327,9 +327,9 @@ describe('ordinary topics separate browsing from deliberate enrollment', () => {
   it('keeps the scheduler wording for drilled, repair and completed topics', () => {
     const base = seeded('cardinal-bearings')
     const drilled = journeyFor({ ...base, status: 'drilled', drilledAt: ago(4), completedAt: null }, NOW)
-    expect(drilled.statusLabel).toBe(`Delayed test in ${COMPLETION_GAP_DAYS - 4} days`)
-    expect(drilled.phase).toBe('waiting')
-    expect(drilled.retention.gapProgress).toBeGreaterThan(0)
+    expect(drilled.statusLabel).toBe('Ready to test again')
+    expect(drilled.phase).toBe('due')
+    expect(drilled.retention.gapProgress).toBeNull()
 
     const repair = journeyFor({ ...base, status: 'decayed', completedAt: ago(200) }, NOW)
     expect(repair.phase).toBe('repair')
@@ -394,7 +394,7 @@ describe('the day and the shelves read from the same derivation', () => {
 
     expect(shelfOf('cardinal-bearings')).toBe('due')
     expect(shelfOf(MORSE_ID)).toBe('due')
-    expect(shelfOf('primary-survey')).toBe('waiting')
+    expect(shelfOf('primary-survey')).toBe('due')
     expect(shelfOf('ooda-loop')).toBe('unfinished')
 
     // Nothing appears twice, and every topic appears once.

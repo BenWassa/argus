@@ -3,14 +3,14 @@ import type { Status, Topic } from '../library/topic'
 /** A topic reaches `drilled` only on a clean session. No partial credit. */
 export const PASS_THRESHOLD = 1
 
-/** Recall has to survive a real gap before it counts as retention. */
-export const COMPLETION_GAP_DAYS = 30
+/** Two perfect scored attempts establish completion, with no time gate. */
+export const COMPLETION_GAP_DAYS = 0
 
 /** Completed topics come back for a spot check on this cadence. */
 export const SPOT_CHECK_DAYS = 90
 
-/** While learning, a topic returns the next day. */
-export const LEARNING_GAP_DAYS = 1
+/** A second attempt may follow the first immediately. */
+export const LEARNING_GAP_DAYS = 0
 
 export function daysBetween(from: string, to: Date = new Date()): number {
   const ms = to.getTime() - new Date(from).getTime()
@@ -34,19 +34,11 @@ export function dueState(topic: Topic, now: Date = new Date()): DueReason {
       return { due: true, label: 'Needs repair', waitDays: 0 }
 
     case 'learning': {
-      const since = topic.learningAt ? daysBetween(topic.learningAt, now) : Infinity
-      const wait = LEARNING_GAP_DAYS - since
-      return wait <= 0
-        ? { due: true, label: 'Ready to drill', waitDays: 0 }
-        : { due: false, label: 'Drilled today', waitDays: wait }
+      return { due: true, label: 'Ready to test', waitDays: 0 }
     }
 
     case 'drilled': {
-      const since = topic.drilledAt ? daysBetween(topic.drilledAt, now) : 0
-      const wait = COMPLETION_GAP_DAYS - since
-      return wait <= 0
-        ? { due: true, label: 'Ready for the delayed test', waitDays: 0 }
-        : { due: false, label: `Delayed test in ${wait} ${wait === 1 ? 'day' : 'days'}`, waitDays: wait }
+      return { due: true, label: 'Ready to test again', waitDays: 0 }
     }
 
     case 'completed': {
@@ -83,7 +75,7 @@ export function gapProgress(topic: Topic, now: Date = new Date()): number | null
     topic.status === 'drilled' ? COMPLETION_GAP_DAYS
     : topic.status === 'completed' ? SPOT_CHECK_DAYS
     : null
-  if (span === null) return null
+  if (span === null || span === 0) return null
 
   const from = topic.status === 'drilled' ? topic.drilledAt : topic.spotCheckedAt ?? topic.completedAt
   if (!from) return null
@@ -181,14 +173,11 @@ export function resolveAttempt(
       decayed = true
     }
   } else if (from === 'drilled') {
-    const gap = topic.drilledAt ? daysBetween(topic.drilledAt, now) : 0
-    if (clean && gap >= COMPLETION_GAP_DAYS) {
+    if (clean) {
       next.status = 'completed'
       next.completedAt = topic.completedAt ?? at
       completed = true
-      gapDays = gap
-    } else if (clean) {
-      next.status = 'drilled'
+      gapDays = topic.drilledAt ? daysBetween(topic.drilledAt, now) : 0
     } else {
       next.status = 'learning'
       next.drilledAt = null
@@ -197,8 +186,15 @@ export function resolveAttempt(
   } else {
     // learning, decayed
     if (clean) {
-      next.status = 'drilled'
-      next.drilledAt = at
+      const priorPerfect = topic.history.some((attempt) => attempt.total > 0 && attempt.correct === attempt.total)
+      if (from === 'learning' && priorPerfect) {
+        next.status = 'completed'
+        next.completedAt = topic.completedAt ?? at
+        completed = true
+      } else {
+        next.status = 'drilled'
+        next.drilledAt = at
+      }
     } else {
       next.status = 'learning'
       next.learningAt = at

@@ -26,6 +26,19 @@ function topic(status: Status, overrides: Partial<Topic> = {}): Topic {
 }
 
 describe('early Test evidence policy', () => {
+  it('completes after two perfect attempts on the same day', () => {
+    const first = resolveAttempt(topic('unstarted'), 1, 1, now)
+    const second = resolveAttempt(first.topic, 1, 1, now)
+    expect(second.to).toBe('completed')
+    expect(second.completed).toBe(true)
+  })
+
+  it('does not count a failed first attempt as mastery', () => {
+    const first = resolveAttempt(topic('unstarted'), 0, 1, now)
+    const second = resolveAttempt(first.topic, 1, 1, now)
+    expect(second.to).toBe('drilled')
+  })
+
   it('cannot bypass first exposure and the learning gap', () => {
     const result = resolveAttempt(topic('unstarted'), 1, 1, now)
     expect(result.to).toBe('learning')
@@ -35,7 +48,7 @@ describe('early Test evidence policy', () => {
   it('records an early learning Test without advancing or postponing its gap', () => {
     const learningAt = ago(0)
     const result = resolveAttempt(topic('learning', { learningAt }), 1, 1, now)
-    expect(result.to).toBe('learning')
+    expect(result.to).toBe('drilled')
     expect(result.topic.learningAt).toBe(learningAt)
     expect(result.topic.history).toHaveLength(1)
   })
@@ -43,9 +56,9 @@ describe('early Test evidence policy', () => {
   it('does not bank completion or reset drilledAt before 30 days', () => {
     const drilledAt = ago(10)
     const result = resolveAttempt(topic('drilled', { drilledAt }), 1, 1, now)
-    expect(result.to).toBe('drilled')
+    expect(result.to).toBe('completed')
     expect(result.topic.drilledAt).toBe(drilledAt)
-    expect(result.completed).toBe(false)
+    expect(result.completed).toBe(true)
   })
 
   it('does not reset the completed-topic spot-check clock early', () => {

@@ -67,10 +67,7 @@ describe('the gauge reads an ordinary topic honestly', () => {
     }
 
     const result = reading(topic)
-    expect(result.kind).toBe('gap')
-    if (result.kind !== 'gap') return
-    expect(result.progress).toBeGreaterThan(0)
-    expect(gaugeFill(result)).toBeLessThanOrEqual(1)
+    expect(result.kind).toBe('none')
   })
 })
 
@@ -148,19 +145,19 @@ describe('every reading names its own units', () => {
   it('labels each kind in the units it was measured in', () => {
     expect(gaugeLabel({ kind: 'complete' })).toBe('Banked')
     expect(gaugeLabel({ kind: 'acquisition', done: 18, total: 26 })).toBe(
-      '18 of 26 letters settled',
+      '18 of 26 letters',
     )
     expect(gaugeLabel({ kind: 'evidence', done: 9, total: 26 })).toBe(
-      '9 of 26 recalled both ways',
+      '9 of 26 items',
     )
     expect(gaugeLabel({ kind: 'gap', progress: 0.5, waitDays: 6 })).toBe(
-      '6 days of the gap to go',
+      null,
     )
   })
 
   it('says day in the singular, and names a served gap rather than zero days', () => {
-    expect(gaugeLabel({ kind: 'gap', progress: 0.9, waitDays: 1 })).toBe('1 day of the gap to go')
-    expect(gaugeLabel({ kind: 'gap', progress: 1, waitDays: 0 })).toBe('Gap served')
+    expect(gaugeLabel({ kind: 'gap', progress: 0.9, waitDays: 1 })).toBe(null)
+    expect(gaugeLabel({ kind: 'gap', progress: 1, waitDays: 0 })).toBe(null)
   })
 
   it('clamps a fill that the source measure overshot', () => {

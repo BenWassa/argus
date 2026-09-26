@@ -290,7 +290,7 @@ export function TopicPage({
               {journey.action === 'enroll'
                 ? 'Browse freely. Starting learning records enrollment, not a score or evidence.'
                 : journey.advancementEligible
-                  ? 'Scored, every item once. The ladder moves only when the required gap is satisfied.'
+                  ? 'Scored, every item once. Two perfect tests complete the topic.'
                   : 'Scored and recorded, but the ladder does not move until acquisition is finished.'}
             </p>
           )}
