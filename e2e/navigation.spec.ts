@@ -177,24 +177,25 @@ test('Back unwinds Topic and Library, and Forward restores the Topic without dup
   expect((await navigationState(page)).index).toBe(2)
 })
 
-test('runs remember their real Today, Library and Topic origins', async ({ page }) => {
+test('Today plates open their topic, and runs remember the topic they started from', async ({ page }) => {
   await openApp(page, null, ENROLLED_LIBRARY)
 
-  // Today -> Test -> Back = Today. Today holds only started topics, and a due
-  // plate starts its work directly, adding one history stop.
+  // Today -> Topic -> Back = Today. Today holds only started topics, and even a
+  // due plate opens its topic rather than starting the work, adding one stop.
   await page.locator('.docket .index-row').click()
-  await expect(page.locator('.flip-card')).toBeVisible()
+  await expect(page.getByRole('heading', { name: TOPIC.title, level: 1 })).toBeVisible()
   expect(await navigationState(page)).toMatchObject({
     index: 1,
-    route: { kind: 'run', mode: 'test', origin: { kind: 'section', view: 'today' } },
+    route: { kind: 'topic', topicId: TOPIC.id },
   })
+  await expect(page.locator('.flip-card')).toHaveCount(0)
   await systemBack(page)
   await expect(page.getByRole('button', { name: 'Today', exact: true })).toHaveAttribute(
     'aria-current',
     'page',
   )
 
-  // Library rows only open their topic; a run starts from the topic page.
+  // Library plates open their topic too; every run starts from the topic page.
   await openLibrary(page)
 
   // Topic -> Test -> Back = Topic.

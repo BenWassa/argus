@@ -1,5 +1,11 @@
 # Argus learning-experience design decision
 
+> **Today plates open their topic — 2026-09-26.** Pressing a Today plate now
+> always opens that topic's page, the same page a Library plate opens, whether or
+> not the topic is due. Today starts no run itself. This supersedes the one-tap
+> claims in journeys **J2** and **J4** (§6): a due Test or a resumed lesson is now
+> two taps from cold open, plate then the topic page's primary action.
+
 > **#109 navigation addendum — 2026-09-17.** The two primary destinations remain
 > **Today** and **Library**, but the utility ownership recorded below has changed.
 > **Profile** is now a Today child reached from the Today header and owns account,

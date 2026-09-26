@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest'
 import {
   dueEntries,
   journeyFor,
-  launchFor,
   journeyShelves,
   journeysFor,
   retentionAnchor,
@@ -303,7 +302,6 @@ describe('ordinary topics separate browsing from deliberate enrollment', () => {
     expect(fresh.detail).toBe('Reference browsing does not start progress.')
     expect(fresh.due).toBe(true)
     expect(fresh.advancementEligible).toBe(true)
-    expect(launchFor(fresh)).toEqual({ kind: 'enroll' })
 
     // Explicit enrollment changes only the scheduler-owned learning state. It
     // invents no attempt, score or formal evidence.

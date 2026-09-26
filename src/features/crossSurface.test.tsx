@@ -102,12 +102,11 @@ function install(topics: Topic[]): void {
   )
 }
 
-function renderToday() {
+function renderToday(onOpenTopic: (topicId: string) => void = () => undefined) {
   return render(
     <LibraryProvider>
       <Today
-        onStart={() => undefined}
-        onOpenTopic={() => undefined}
+        onOpenTopic={onOpenTopic}
         onGoToLibrary={() => undefined}
         onOpenProfile={() => undefined}
       />
@@ -167,13 +166,18 @@ function todayDocket(): HTMLElement {
   return docket as HTMLElement
 }
 
-/** What Today tells the learner to do with this topic. */
-function todayVerb(topic: Topic): string {
-  renderToday()
-  const row = rowFor(topic.title, todayDocket())
-  // The verb is the row's screen-reader prefix: the row *is* the control.
-  const verb = row.querySelector('.sr-only')?.textContent ?? ''
-  return verb.replace(/:\s*$/, '').trim()
+/**
+ * Which topic pressing this topic's Today plate opens. Today names no action of
+ * its own: every plate opens its topic, the same page a Library plate opens, and
+ * the topic page is where the action is chosen.
+ */
+function todayOpens(topic: Topic): string | null {
+  let opened: string | null = null
+  renderToday((topicId) => {
+    opened = topicId
+  })
+  fireEvent.click(within(rowFor(topic.title, todayDocket())).getByRole('button'))
+  return opened
 }
 
 /** Whether Today shows this topic at all. It holds only topics in motion. */
@@ -305,7 +309,7 @@ describe('one learner state, three surfaces, one recommendation', () => {
         expect(onToday(topic)).toBe(false)
         cleanup()
       } else if (journey.due) {
-        expect(todayVerb(topic)).toBe(journey.actionLabel)
+        expect(todayOpens(topic)).toBe(topic.id)
         cleanup()
         expect(todaySchedule(topic)).toBe(journey.statusLabel)
         cleanup()
@@ -337,7 +341,9 @@ describe('partially acquired Morse is never routed to Test', () => {
     expect(morseAcquisitionPosition(partial)?.ready).toBe(false)
     install([partial])
 
-    expect(todayVerb(partial)).toBe('Continue')
+    // Today chooses no run: its plate opens the topic, whose one action is the
+    // lesson.
+    expect(todayOpens(partial)).toBe(partial.id)
     cleanup()
     expect(topicPrimary(partial)).toBe(journeyFor(partial).primaryLabel)
     expect(topicPrimary(partial)).toMatch(/^Continue lesson \d+$/)
@@ -358,8 +364,8 @@ describe('partially acquired Morse is never routed to Test', () => {
     install([partial])
 
     // The plate is Today's only control. With only an acquiring topic in
-    // motion, pressing it continues the lesson, and no batch Test is offered.
-    expect(todayVerb(partial)).toBe('Continue')
+    // motion, pressing it opens that topic, and no batch Test is offered.
+    expect(todayOpens(partial)).toBe(partial.id)
     cleanup()
     renderToday()
     expect(document.querySelector('.today-go')).toBeNull()
@@ -404,7 +410,7 @@ describe('partially acquired Morse is never routed to Test', () => {
     }
     install([resumed])
 
-    expect(todayVerb(resumed)).toBe('Continue')
+    expect(todayOpens(resumed)).toBe(resumed.id)
     cleanup()
     renderToday()
     // Today states no quantities; the sitting's count is the topic page's.
@@ -437,8 +443,9 @@ describe('acquisition readiness moves every surface together', () => {
     renderToday()
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('ARGUS')
     const row = rowFor(topic.title, todayDocket())
-    expect(row.querySelector('.sr-only')?.textContent).toContain('Test')
     expect(row.querySelector('.due-reason')?.textContent).toBe('Ready to test')
+    cleanup()
+    expect(todayOpens(topic)).toBe(topic.id)
   })
 
   it('starts the delayed-test clock at readiness rather than at first exposure', () => {
@@ -457,7 +464,7 @@ describe('acquisition readiness moves every surface together', () => {
     const topic = { ...ready(), acquisitionReadyAt: ago(3) }
     install([topic])
 
-    expect(todayVerb(topic)).toBe('Test')
+    expect(todayOpens(topic)).toBe(topic.id)
     cleanup()
     expect(todaySchedule(topic)).toBe('Ready to test')
     cleanup()

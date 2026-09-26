@@ -83,14 +83,11 @@ function betweenChecks(): string {
 }
 
 /**
- * Today's docket row opens the topic directly — the same single tap the
- * learner makes, and the path the other Morse specs already drive.
+ * The Morse topic page, reached through Library — which is where a learner who
+ * has finished the alphabet would go looking.
  */
 async function openTopic(page: Page, library = LIBRARY) {
   await openApp(page, library)
-  // Today's docket row resumes the curriculum directly, so the topic page is
-  // reached through Library — which is also where a learner who has finished
-  // the alphabet would go looking.
   await page.locator('.nav-btn', { hasText: 'Library' }).click()
   await page.locator('.index-row').first().click()
   await expect(page.locator('.topic-title')).toBeVisible()
