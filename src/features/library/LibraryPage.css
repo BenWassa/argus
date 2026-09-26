@@ -121,6 +121,64 @@
   max-width: 132px;
 }
 
+/* Shipped topics get one small recognition glyph. User-authored rows retain
+   the original layout rather than inheriting a meaningless generic badge. */
+.index-row:is(
+  [data-row='nato-phonetic'],
+  [data-row='international-morse-letters-printed'],
+  [data-row='ooda-loop'],
+  [data-row='primary-survey'],
+  [data-row='cardinal-bearings'],
+  [data-row='scuba-equipment-abbreviations'],
+  [data-row='radiotelephony-numbers'],
+  [data-row='si-prefixes'],
+  [data-row='greek-alphabet'],
+  [data-row='hex-digits-binary'],
+  [data-row='beaufort-wind-scale'],
+  [data-row='firearm-safety-acts-prove']
+) {
+  padding-left: 38px;
+}
+
+.index-row:is(
+  [data-row='nato-phonetic'],
+  [data-row='international-morse-letters-printed'],
+  [data-row='ooda-loop'],
+  [data-row='primary-survey'],
+  [data-row='cardinal-bearings'],
+  [data-row='scuba-equipment-abbreviations'],
+  [data-row='radiotelephony-numbers'],
+  [data-row='si-prefixes'],
+  [data-row='greek-alphabet'],
+  [data-row='hex-digits-binary'],
+  [data-row='beaufort-wind-scale'],
+  [data-row='firearm-safety-acts-prove']
+)::before {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 50%;
+  width: 26px;
+  height: 26px;
+  transform: translateY(-50%);
+  background: var(--library-topic-icon) center / contain no-repeat;
+  opacity: 0.96;
+  pointer-events: none;
+}
+
+.index-row[data-row='nato-phonetic'] { --library-topic-icon: url('../../assets/library-icons/nato-phonetic.svg'); }
+.index-row[data-row='international-morse-letters-printed'] { --library-topic-icon: url('../../assets/library-icons/international-morse-letters-printed.svg'); }
+.index-row[data-row='ooda-loop'] { --library-topic-icon: url('../../assets/library-icons/ooda-loop.svg'); }
+.index-row[data-row='primary-survey'] { --library-topic-icon: url('../../assets/library-icons/primary-survey.svg'); }
+.index-row[data-row='cardinal-bearings'] { --library-topic-icon: url('../../assets/library-icons/cardinal-bearings.svg'); }
+.index-row[data-row='scuba-equipment-abbreviations'] { --library-topic-icon: url('../../assets/library-icons/scuba-equipment-abbreviations.svg'); }
+.index-row[data-row='radiotelephony-numbers'] { --library-topic-icon: url('../../assets/library-icons/radiotelephony-numbers.svg'); }
+.index-row[data-row='si-prefixes'] { --library-topic-icon: url('../../assets/library-icons/si-prefixes.svg'); }
+.index-row[data-row='greek-alphabet'] { --library-topic-icon: url('../../assets/library-icons/greek-alphabet.svg'); }
+.index-row[data-row='hex-digits-binary'] { --library-topic-icon: url('../../assets/library-icons/hex-digits-binary.svg'); }
+.index-row[data-row='beaufort-wind-scale'] { --library-topic-icon: url('../../assets/library-icons/beaufort-wind-scale.svg'); }
+.index-row[data-row='firearm-safety-acts-prove'] { --library-topic-icon: url('../../assets/library-icons/firearm-safety-acts-prove.svg'); }
+
 /* --------------------------------------------------------- empty states -- */
 
 .lib-blank {
