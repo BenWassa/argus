@@ -4,9 +4,11 @@ import { readLessonSittingSidecar } from '../../domain/morse/curriculum/lessonSi
 import { seedLibrary } from '../../domain/library/catalogSeed'
 import {
   SHIPPED_CATALOG_TOPIC_IDS,
+  catalogDefinition,
   catalogDefinitions,
   freshCatalogTopic,
   reconcileCatalog,
+  topicOrigin,
   type CatalogReconciliation,
 } from '../../domain/library/catalog'
 import { parseLibrary } from './libraryParser'
@@ -15,9 +17,10 @@ import { parseLibrary } from './libraryParser'
  * Where a library comes from when there is not one yet, and what a valid
  * record goes through before it becomes the live one.
  *
- * Both migrations here are append- or migration-only: the Morse baseline
- * absorption and the retired sitting sidecar adoption may settle provenance or
- * take over bookkeeping, but neither may rewrite unrelated learner state.
+ * Every migration here is append- or migration-only: the Morse baseline
+ * absorption, the shipped-title renames and the retired sitting sidecar
+ * adoption may settle provenance, rename or take over bookkeeping, but none may
+ * rewrite unrelated learner state.
  */
 /** A library holding nothing, and expecting nothing. Reset means reset. */
 export function emptyLibrary(): CurrentLibrary {
@@ -86,6 +89,48 @@ export function absorbSeededMorseBaseline(library: CurrentLibrary): CurrentLibra
   return { ...library, topics }
 }
 
+/**
+ * Titles the catalog has shipped before, by topic id. Catalog delivery never
+ * rewrites a topic a library already holds, so a shorter shipped name reaches
+ * an existing library only through this explicit list.
+ */
+const PREVIOUS_SHIPPED_TITLES: Readonly<Record<string, readonly string[]>> = {
+  'nato-phonetic': ['NATO phonetic alphabet'],
+  'international-morse-letters-printed': ['International Morse — Letters (printed)'],
+  'ooda-loop': ['OODA loop'],
+  'primary-survey': ['Primary survey'],
+  'cardinal-bearings': ['Cardinal and intercardinal bearings'],
+  'scuba-equipment-abbreviations': ['Recreational scuba equipment abbreviations'],
+  'radiotelephony-numbers': ['Radiotelephony numbers'],
+  'si-prefixes': ['SI prefixes'],
+  'greek-alphabet': ['Greek alphabet'],
+  'hex-digits-binary': ['Hexadecimal digits in binary'],
+  'beaufort-wind-scale': ['Beaufort wind scale'],
+  'firearm-safety-acts-prove': ['Canadian firearm safety — ACTS & PROVE'],
+}
+
+/**
+ * Carry a renamed shipped title into a library that already holds the topic.
+ *
+ * A title is presentation, not evidence, so this touches nothing else. It only
+ * applies to a topic the catalog still owns whose title is exactly one the
+ * catalog once shipped: a learner who renamed or edited the topic keeps what
+ * they wrote. Idempotent, so every device that loads the library arrives at the
+ * same record, which sync then sees as agreement rather than a conflict.
+ */
+export function renameShippedTitles(library: CurrentLibrary): CurrentLibrary {
+  let changed = false
+  const topics = library.topics.map((topic) => {
+    const previous = PREVIOUS_SHIPPED_TITLES[topic.id]
+    if (!previous?.includes(topic.title) || topicOrigin(topic) !== 'catalog') return topic
+    const definition = catalogDefinition(topic.id)
+    if (!definition || definition.title === topic.title) return topic
+    changed = true
+    return { ...topic, title: definition.title }
+  })
+  return changed ? { ...library, topics } : library
+}
+
 function freshSeedLibraryUnreconciled(): CurrentLibrary {
   const parsed = parseLibrary(seedLibrary())
   return parsed.ok ? parsed.library : { version: 5, topics: [] }
@@ -93,15 +138,15 @@ function freshSeedLibraryUnreconciled(): CurrentLibrary {
 
 /**
  * Everything a stored or imported library goes through before it becomes the
- * live record: the one explicit Morse migration, then delivery of shipped
- * catalog topics this library has never been offered. Both are append- or
- * migration-only; neither may rewrite unrelated learner state.
+ * live record: the one explicit Morse migration, the shipped-title renames,
+ * then delivery of shipped catalog topics this library has never been offered.
+ * All are append- or migration-only; none may rewrite unrelated learner state.
  */
 export function reconcileLoadedLibrary(
   library: CurrentLibrary,
   now: Date = new Date(),
 ): { library: CurrentLibrary; report: CatalogReconciliation } {
-  return reconcileCatalog(absorbSeededMorseBaseline(library), now)
+  return reconcileCatalog(renameShippedTitles(absorbSeededMorseBaseline(library)), now)
 }
 
 /**

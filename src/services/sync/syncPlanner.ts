@@ -246,6 +246,14 @@ export function planSync(
       continue
     }
 
+    // Both moved, but to the same record: two devices applying the same
+    // migration arrive here. There is nothing to settle, so take the server's
+    // revision rather than report agreement as a conflict.
+    if (json === record.json) {
+      actions.push({ kind: 'adopt', topicId: id, json: record.json, revision: record.revision })
+      continue
+    }
+
     // Both moved since this device last agreed with the server. Either copy
     // might hold work the other does not, and nothing here can tell which, so
     // neither is touched and the person is told which topic it was.

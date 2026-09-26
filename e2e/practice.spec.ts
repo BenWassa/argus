@@ -105,7 +105,7 @@ async function runDeck(page: Page, wrongCount: number) {
 }
 
 async function startCheck(page: Page) {
-  await page.getByRole('button', { name: /NATO phonetic alphabet/ }).first().click()
+  await page.getByRole('button', { name: /NATO Alphabet/ }).first().click()
   await expect(page.locator('.flip-card')).toBeVisible()
 }
 
