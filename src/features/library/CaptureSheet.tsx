@@ -1,5 +1,6 @@
 import { useId, useState } from 'react'
 import { Dialog } from '../../shared/ui/Dialog'
+import { TRACK_LABELS } from '../../shared/ui/trackLabels'
 import {
   EMPTY_CAPTURE,
   beginSubmit,
@@ -22,12 +23,6 @@ interface CaptureSheetProps {
   onSubmit: (draft: CaptureDraft) => Promise<void>
   onClose: () => void
   onCaptured: () => void
-}
-
-const TRACK_HINT_LABELS: Record<TrackHint, string> = {
-  learning: 'Learning',
-  survival: 'Survival',
-  tradecraft: 'Tradecraft',
 }
 
 /**
@@ -111,7 +106,7 @@ export function CaptureSheet({ onSubmit, onClose, onCaptured }: CaptureSheetProp
             <option value="auto">Auto</option>
             {TRACK_HINTS.map((hint) => (
               <option key={hint} value={hint}>
-                {TRACK_HINT_LABELS[hint]}
+                {TRACK_LABELS[hint]}
               </option>
             ))}
           </select>

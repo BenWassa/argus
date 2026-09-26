@@ -21,7 +21,8 @@ function seeded(id: string): Topic {
 function acquired(overrides: Partial<Topic> = {}): Topic {
   return {
     ...seeded(MORSE_ID),
-    status: 'learning',
+    status: 'completed',
+    completedAt: '2026-09-25T08:00:00.000Z',
     learningAt: '2026-09-25T08:00:00.000Z',
     acquisitionReadyAt: '2026-09-25T08:00:00.000Z',
     history: [],
@@ -63,7 +64,7 @@ describe('when a Test runs as a review', () => {
   })
 
   it('runs the full deck when a scheduled check is due', () => {
-    const due = acquired({ learningAt: '2026-09-01T00:00:00.000Z', acquisitionReadyAt: '2026-09-01T00:00:00.000Z' })
+    const due = acquired({ completedAt: '2026-01-01T00:00:00.000Z' })
     expect(isReviewTopic(due, NOW)).toBe(false)
   })
 
@@ -108,10 +109,10 @@ describe('what a review asks', () => {
   it('builds a short deck for a review and the whole deck when a check is due', () => {
     // `reviewTopics` reads the live clock, so these are anchored to the real present.
     const now = new Date().toISOString()
-    const waiting = acquired({ learningAt: now, acquisitionReadyAt: now })
+    const waiting = acquired({ completedAt: now })
     expect(buildDeck([waiting], new Map(), reviewTopics([waiting]))).toHaveLength(REVIEW_LENGTH)
 
-    const due = acquired({ learningAt: '2020-01-01T00:00:00.000Z', acquisitionReadyAt: '2020-01-01T00:00:00.000Z' })
+    const due = acquired({ completedAt: '2020-01-01T00:00:00.000Z' })
     expect(reviewTopics([due]).size).toBe(0)
     expect(buildDeck([due], new Map(), reviewTopics([due]))).toHaveLength(due.items.length)
   })

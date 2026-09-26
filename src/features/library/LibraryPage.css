@@ -1,7 +1,8 @@
-/* The library is a list of titles. What you have started comes first, most
-   recent at the top; everything else follows by name. A row opens its topic
-   and says nothing else but how far along it is — the next move is the topic
-   page's decision, and Today's, not a column of buttons down this one. */
+/* The library is a list of titles on two named shelves. What you have started
+   comes first, most recent at the top; what you have not follows by name. A
+   row opens its topic and says nothing else but how far along it is — the
+   next move is the topic page's decision, and Today's, not a column of buttons
+   down this one. */
 
 .lib-count {
   margin-top: 5px;
@@ -89,22 +90,8 @@
   margin-top: var(--s-xl);
 }
 
-.lib-group-head {
-  margin: 0;
-  font-family: var(--font-mono);
-  font-size: var(--t-readout);
-  font-weight: var(--w-label);
-  letter-spacing: var(--track-readout);
-  line-height: 1.2;
-  text-transform: uppercase;
-  color: var(--subtle);
-}
-
-.lib-group-head + .index {
-  margin-top: var(--s-sm);
-}
-
-/* The rest of the shelf is set apart by space alone. It needs no name. */
+/* The rest of the shelf sits further off than the gap inside a shelf, so the
+   two groups read as two, and its own heading says what it holds. */
 .lib-group-rest {
   margin-top: var(--s-2xl);
 }
@@ -113,12 +100,213 @@
   margin-top: var(--s-xl);
 }
 
+/* Heading and count sit on one engraved baseline, the way a drawer label
+   reads its contents. */
+.lib-group-bar {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-md);
+  padding-inline: 2px;
+}
+
+.lib-group-head {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  font-weight: var(--w-label);
+  letter-spacing: var(--track-readout);
+  line-height: 1.2;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.lib-group-count {
+  font-size: var(--t-readout);
+  font-weight: var(--w-label);
+  letter-spacing: var(--track-readout);
+  color: var(--subtle);
+}
+
+/* Plates rather than ruled lines: a gap between them instead of a hairline
+   above the first, so each topic is its own object. */
+.lib-group .index {
+  display: grid;
+  gap: var(--s-sm);
+  margin-top: var(--s-sm);
+  border-top: 0;
+}
+
+/* The unstarted shelf, by track. Each run is headed by its track's name in
+   its own metal, with a hairline of the same metal running out to the edge:
+   the colour is named where it is used, and nowhere is it a surface. */
+.lib-track + .lib-track {
+  margin-top: var(--s-lg);
+}
+
+.lib-track-head {
+  display: flex;
+  align-items: center;
+  gap: var(--s-sm);
+  margin: var(--s-md) 0 0;
+  padding-inline: 2px;
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  font-weight: var(--w-label);
+  letter-spacing: var(--track-readout);
+  line-height: 1.2;
+  text-transform: uppercase;
+  color: var(--track-hue);
+}
+
+.lib-track-head::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: color-mix(in oklch, var(--track-hue) 28%, transparent);
+}
+
+.lib-track-head + .index {
+  margin-top: var(--s-sm);
+}
+
 /* ------------------------------------------------------------------ rows -- */
 
-/* The row's gauge. Width is capped here rather than in the shared rule: the
-   track should not run the full title width, while the topic page lets it. */
-.index-row .gauge-row {
-  max-width: 132px;
+/* Arrival. The list rises into place once, top first, so opening Library
+   reads as a drawer sliding out rather than a page swapping. Transform and
+   opacity only; the stagger is capped so a long library is never waited on. */
+.lib-entry {
+  animation: lib-row-in 300ms var(--ease) both;
+  animation-delay: calc(var(--order, 0) * 24ms);
+}
+
+@keyframes lib-row-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+/* Each topic is a stamped plate. A started topic's plate is raised, bevelled
+   top and bottom; one not yet started sits flush with the chassis. The whole
+   plate is the control, so there is no chevron: a plate already says "press". */
+.index-row.lib-row {
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  column-gap: var(--s-md);
+  row-gap: 12px;
+  padding: var(--s-md) var(--s-lg) var(--s-md) var(--s-md);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  transition:
+    background var(--t-fast) var(--ease),
+    border-color var(--t-fast) var(--ease),
+    transform var(--t-fast) var(--ease),
+    box-shadow var(--t-fast) var(--ease);
+}
+
+.index-row.lib-row::after {
+  content: none;
+}
+
+.index-row.lib-row[data-started] {
+  border-color: var(--line-strong);
+  border-top-color: var(--line-hover);
+  background: var(--sheen), var(--gradient-ghost);
+  box-shadow: var(--edge), var(--edge-under), var(--shadow-sm);
+}
+
+/* Decay is the one thing tarnish means, so a plate that needs repair takes it
+   in its full hairline as well as its reading. */
+.index-row.lib-row[data-repair] {
+  border-color: color-mix(in oklch, var(--warning) 45%, var(--line-strong));
+}
+
+.index-row.lib-row:hover {
+  border-color: var(--line-hover);
+  background: var(--surface-2);
+}
+
+.index-row.lib-row[data-started]:hover {
+  background: var(--sheen), var(--gradient-ghost-hover);
+}
+
+/* Held, the plate drops into the chassis like every other control. */
+.index-row.lib-row:active,
+.index-row.lib-row[data-started]:active {
+  transform: translateY(1px);
+  background: var(--surface-2);
+  box-shadow: var(--press);
+}
+
+/* The reading spans the whole plate under the title, stud column included,
+   so the gauge runs the full width of the row. */
+.index-row.lib-row > .gauge-row,
+.index-row.lib-row > .lib-row-reading {
+  grid-column: 1 / -1;
+}
+
+/* An unstarted plate is the title alone. */
+.index-row.lib-row:not([data-started]) {
+  grid-template-columns: minmax(0, 1fr);
+  padding-left: var(--s-lg);
+}
+
+.index-row.lib-row .index-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+/* The row's gauge: a full-width track with its reading beneath, in its units.
+   The stagger carries on into the fill, so each bar fills just after its plate
+   lands. */
+.index-row.lib-row .gauge-row {
+  display: grid;
+  gap: 7px;
+  --gauge-delay: calc(var(--order, 0) * 24ms + 180ms);
+}
+
+.index-row.lib-row .gauge-label,
+.lib-row-reading {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: var(--track-readout);
+  line-height: 1.3;
+  text-transform: uppercase;
+  color: var(--subtle);
+}
+
+/* Tarnish, and only here: the one warm colour, spent on the one state it
+   means. A small diamond leads it so it is not colour alone. */
+.lib-repair {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--warning);
+}
+
+.lib-repair::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  background: var(--warning);
+  transform: rotate(45deg);
+}
+
+/* The global rule shortens durations but not delays, and a staggered row held
+   at its `from` frame is an invisible row. Arrival is simply off. */
+@media (prefers-reduced-motion: reduce) {
+  .lib-entry,
+  .index-row.lib-row .gauge-fill {
+    animation: none;
+  }
+
+  .lib-fab:hover svg {
+    transform: none;
+  }
 }
 
 /* --------------------------------------------------------- empty states -- */
@@ -160,52 +348,30 @@
   place-items: center;
   border-radius: var(--r-pill);
   box-shadow: var(--edge), var(--edge-under), var(--shadow);
+  transition:
+    transform var(--t-fast) var(--ease),
+    background var(--t-fast) var(--ease);
+}
+
+.lib-fab svg {
+  transition: transform var(--t-base) var(--ease);
+}
+
+.lib-fab:hover svg {
+  transform: rotate(90deg);
+}
+
+/* Held, the plate sinks rather than slides: a round control reads a press as
+   depth, not as a one-pixel drop. */
+.lib-fab:active {
+  transform: scale(0.94);
+  box-shadow: var(--edge), var(--press-lit), var(--shadow-sm);
 }
 
 @media (min-width: 980px) {
   .lib-fab {
     bottom: var(--s-2xl);
   }
-}
-
-/* ------------------------------------------------------------- add menu -- */
-
-.add-menu {
-  display: grid;
-  gap: var(--s-sm);
-}
-
-.add-menu-option {
-  display: grid;
-  gap: 3px;
-  justify-items: start;
-  padding: var(--s-md);
-  border: 1px solid var(--line);
-  border-radius: var(--r-md);
-  text-align: left;
-  background: var(--surface-2);
-  box-shadow: none;
-}
-
-.add-menu-option:hover {
-  border-color: var(--line-hover);
-  background: var(--surface-3);
-}
-
-.add-menu-option:active {
-  box-shadow: var(--press);
-}
-
-.add-menu-option-title {
-  font-family: var(--font-display);
-  font-size: var(--t-component);
-  font-weight: var(--w-component);
-  color: var(--ink);
-}
-
-.add-menu-option-note {
-  font-size: var(--t-small);
-  color: var(--subtle);
 }
 
 /* ------------------------------------------------------------- add menu -- */

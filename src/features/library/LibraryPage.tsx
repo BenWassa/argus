@@ -1,17 +1,19 @@
-import { useEffect, useId, useMemo, useRef, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { useLibrary } from '../../services/library/LibraryProvider'
 import { journeysFor, type JourneyEntry } from '../../domain/study/journey'
 import { libraryGroups } from '../../domain/study/libraryGroups'
 import type { RunTarget } from '../../app/routing/routes'
 import { Confirm } from '../../shared/ui/Confirm'
+import { TRACK_LABELS } from '../../shared/ui/trackLabels'
 import { AddMenu } from './AddMenu'
 import { TopicForm, type Draft } from './TopicForm'
 import { TopicPage } from './TopicPage'
 import { TopicGauge } from './TopicGauge'
+import { gaugeLabel, gaugeReading } from './gaugeReading'
 import { CaptureSheet } from './CaptureSheet'
 import { useInbox } from '../../services/inbox/useInbox'
 import type { Mode } from '../../domain/study/mode'
-import type { Topic } from '../../domain/library/topic'
+import { TRACKS, type Topic } from '../../domain/library/topic'
 import './LibraryPage.css'
 
 interface LibraryProps {
@@ -25,6 +27,19 @@ interface LibraryProps {
   openFormOnMount?: boolean
   /** Current topic identity restored by browser Back/Forward when present. */
   openTopicOnMount?: string | null
+}
+
+/** The unstarted shelf split by track, in the canonical track order, each run
+ *  carrying where it starts in the whole list for the arrival stagger. */
+function byTrack(entries: JourneyEntry[]) {
+  let offset = 0
+  return TRACKS.flatMap((track) => {
+    const run = entries.filter((entry) => entry.topic.track === track)
+    if (run.length === 0) return []
+    const group = { track, entries: run, offset }
+    offset += run.length
+    return [group]
+  })
 }
 
 /**
@@ -273,10 +288,18 @@ export function LibraryPage({
     )
   }
 
-  const rows = (entries: JourneyEntry[]) => (
+  // The stagger index runs across both shelves, so the list arrives as one
+  // sequence from the top rather than restarting at the second heading.
+  const rows = (entries: JourneyEntry[], offset: number, started: boolean) => (
     <ul className="index">
-      {entries.map((entry) => (
-        <Row key={entry.topic.id} entry={entry} onOpen={() => openTopic(entry.topic.id)} />
+      {entries.map((entry, i) => (
+        <Row
+          key={entry.topic.id}
+          entry={entry}
+          order={offset + i}
+          started={started}
+          onOpen={() => openTopic(entry.topic.id)}
+        />
       ))}
     </ul>
   )
@@ -386,20 +409,44 @@ export function LibraryPage({
         </div>
       ) : (
         <div ref={list}>
-          {/* Two groups and one heading. What you have started, most recent
-              first, is the part of a library you come back to; everything
-              else is the shelf, by title, and needs no name beyond Library. */}
+          {/* Two shelves, both named. What you have started, most recent
+              first, is the part of a library you come back to; the rest is
+              everything you have not begun, set out by track under a heading
+              in that track's metal, so the colour is named where it is used.
+              `Started` names progress; `Knowledge` names the subject track. */}
           {groups.learning.length > 0 && (
-            <section className="lib-group" aria-labelledby="lib-learning-head">
-              <h2 id="lib-learning-head" className="lib-group-head">
-                Learning
-              </h2>
-              {rows(groups.learning)}
+            <section className="lib-group" aria-labelledby="lib-started-head">
+              <div className="lib-group-bar">
+                <h2 id="lib-started-head" className="lib-group-head">
+                  Started
+                </h2>
+                <span className="lib-group-count tabular" aria-hidden="true">
+                  {groups.learning.length}
+                </span>
+              </div>
+              {rows(groups.learning, 0, true)}
             </section>
           )}
           {groups.rest.length > 0 && (
-            <section className="lib-group lib-group-rest" aria-label="Not started">
-              {rows(groups.rest)}
+            <section className="lib-group lib-group-rest" aria-labelledby="lib-rest-head">
+              <div className="lib-group-bar">
+                <h2 id="lib-rest-head" className="lib-group-head">
+                  Not started
+                </h2>
+                <span className="lib-group-count tabular" aria-hidden="true">
+                  {groups.rest.length}
+                </span>
+              </div>
+              {byTrack(groups.rest).map(({ track, entries, offset }) => (
+                <div
+                  key={track}
+                  className="lib-track"
+                  style={{ '--track-hue': `var(--${track})` } as CSSProperties}
+                >
+                  <h3 className="lib-track-head">{TRACK_LABELS[track]}</h3>
+                  {rows(entries, groups.learning.length + offset, false)}
+                </div>
+              ))}
             </section>
           )}
         </div>
@@ -431,21 +478,53 @@ export function LibraryPage({
 
 interface RowProps {
   entry: JourneyEntry
+  /** Position in the whole list, for the arrival stagger. */
+  order: number
+  started: boolean
   onOpen: () => void
 }
 
 /**
- * A title and, where the topic has earned one, its progress reading. The row
- * opens the topic and does nothing else: what to do next is the topic page's
- * one decision, and Today's, rather than a second button on every row here.
+ * One plate per topic: a title and, once the topic has been started, one
+ * reading of where it is. The plate is the whole control, so it needs no
+ * chevron to say it opens.
+ * The row opens the topic and does nothing else: what to do next is the topic
+ * page's one decision, and Today's, rather than a second button on every row.
+ *
+ * A started plate leads with a stud in its track's metal; an unstarted one
+ * needs none, because it already sits under a heading in that metal. The reading is the gauge's own, in its units, or the schedule's
+ * sentence where there is no measure yet; a decayed topic says `Needs repair`
+ * in tarnish instead, the one warm note in the product.
  */
-function Row({ entry, onOpen }: RowProps) {
+function Row({ entry, order, started, onOpen }: RowProps) {
   const { topic, journey } = entry
+  const repair = journey.phase === 'repair'
+  // A started topic with no measure yet still has a sentence: the schedule's
+  // own, the same words Today and the topic page use for it.
+  const measured = gaugeLabel(gaugeReading(topic, journey)) !== null
+  const style = {
+    '--track-hue': `var(--${topic.track})`,
+    '--order': Math.min(order, 12),
+  } as CSSProperties
+
   return (
-    <li className="index-entry">
-      <button type="button" className="index-row" data-row={topic.id} onClick={onOpen}>
+    <li className="index-entry lib-entry" style={style}>
+      <button
+        type="button"
+        className="index-row lib-row"
+        data-row={topic.id}
+        data-started={started || undefined}
+        data-repair={repair || undefined}
+        onClick={onOpen}
+      >
         <span className="index-title">{topic.title}</span>
-        <TopicGauge topic={topic} journey={journey} variant="row" />
+        {repair ? (
+          <span className="lib-row-reading lib-repair">Needs repair</span>
+        ) : !started ? null : measured ? (
+          <TopicGauge topic={topic} journey={journey} variant="row" />
+        ) : (
+          <span className="lib-row-reading">{journey.statusLabel}</span>
+        )}
       </button>
     </li>
   )
