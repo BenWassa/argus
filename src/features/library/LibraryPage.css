@@ -37,8 +37,6 @@
 .lib-search {
   flex: 1;
   min-width: 0;
-  /* Cancel the platform search decorations rather than restyling them: a
-     bespoke clear affordance is a reinvented control nobody asked for. */
   appearance: none;
 }
 
@@ -104,7 +102,6 @@
   margin-top: var(--s-sm);
 }
 
-/* The rest of the shelf is set apart by space alone. It needs no name. */
 .lib-group-rest {
   margin-top: var(--s-2xl);
 }
@@ -115,11 +112,67 @@
 
 /* ------------------------------------------------------------------ rows -- */
 
-/* The row's gauge. Width is capped here rather than in the shared rule: the
-   track should not run the full title width, while the topic page lets it. */
 .index-row .gauge-row {
   max-width: 132px;
 }
+
+/* Shipped topics get one small recognition glyph. User-authored rows retain
+   the original layout rather than inheriting a meaningless generic badge. */
+.index-row:is(
+  [data-row='nato-phonetic'],
+  [data-row='international-morse-letters-printed'],
+  [data-row='ooda-loop'],
+  [data-row='primary-survey'],
+  [data-row='cardinal-bearings'],
+  [data-row='scuba-equipment-abbreviations'],
+  [data-row='radiotelephony-numbers'],
+  [data-row='si-prefixes'],
+  [data-row='greek-alphabet'],
+  [data-row='hex-digits-binary'],
+  [data-row='beaufort-wind-scale'],
+  [data-row='firearm-safety-acts-prove']
+) {
+  padding-left: 38px;
+}
+
+.index-row:is(
+  [data-row='nato-phonetic'],
+  [data-row='international-morse-letters-printed'],
+  [data-row='ooda-loop'],
+  [data-row='primary-survey'],
+  [data-row='cardinal-bearings'],
+  [data-row='scuba-equipment-abbreviations'],
+  [data-row='radiotelephony-numbers'],
+  [data-row='si-prefixes'],
+  [data-row='greek-alphabet'],
+  [data-row='hex-digits-binary'],
+  [data-row='beaufort-wind-scale'],
+  [data-row='firearm-safety-acts-prove']
+)::before {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 50%;
+  width: 26px;
+  height: 26px;
+  transform: translateY(-50%);
+  background: var(--library-topic-icon) center / contain no-repeat;
+  opacity: 0.96;
+  pointer-events: none;
+}
+
+.index-row[data-row='nato-phonetic'] { --library-topic-icon: url('../../assets/library-icons/nato-phonetic.svg'); }
+.index-row[data-row='international-morse-letters-printed'] { --library-topic-icon: url('../../assets/library-icons/international-morse-letters-printed.svg'); }
+.index-row[data-row='ooda-loop'] { --library-topic-icon: url('../../assets/library-icons/ooda-loop.svg'); }
+.index-row[data-row='primary-survey'] { --library-topic-icon: url('../../assets/library-icons/primary-survey.svg'); }
+.index-row[data-row='cardinal-bearings'] { --library-topic-icon: url('../../assets/library-icons/cardinal-bearings.svg'); }
+.index-row[data-row='scuba-equipment-abbreviations'] { --library-topic-icon: url('../../assets/library-icons/scuba-equipment-abbreviations.svg'); }
+.index-row[data-row='radiotelephony-numbers'] { --library-topic-icon: url('../../assets/library-icons/radiotelephony-numbers.svg'); }
+.index-row[data-row='si-prefixes'] { --library-topic-icon: url('../../assets/library-icons/si-prefixes.svg'); }
+.index-row[data-row='greek-alphabet'] { --library-topic-icon: url('../../assets/library-icons/greek-alphabet.svg'); }
+.index-row[data-row='hex-digits-binary'] { --library-topic-icon: url('../../assets/library-icons/hex-digits-binary.svg'); }
+.index-row[data-row='beaufort-wind-scale'] { --library-topic-icon: url('../../assets/library-icons/beaufort-wind-scale.svg'); }
+.index-row[data-row='firearm-safety-acts-prove'] { --library-topic-icon: url('../../assets/library-icons/firearm-safety-acts-prove.svg'); }
 
 /* --------------------------------------------------------- empty states -- */
 
@@ -143,11 +196,6 @@
 
 /* --------------------------------------------------------------- add fab -- */
 
-/* The one "+" in the product. Fixed above the thumb, clear of the bottom
-   nav on mobile. Circular and lit, because it is
-   the single most-repeated action on the page and earns the accent — but
-   --shadow-lift stays reserved for the completion moment and sheets, so
-   this sits at flashcard depth instead. */
 .lib-fab {
   position: fixed;
   right: max(var(--s-lg), env(safe-area-inset-right));
