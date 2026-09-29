@@ -27,21 +27,21 @@ The artwork contains no Beaufort labels or explanatory text. Essential informati
 
 ## Asset contract
 
-Production-ready web assets are staged at:
+Implementation-ready web assets are staged at:
 
-- `public/media/beaufort/beaufort-0-3.webp`
-- `public/media/beaufort/beaufort-4-6.webp`
-- `public/media/beaufort/beaufort-7-9.webp`
-- `public/media/beaufort/beaufort-10-12.webp`
+- `public/media/beaufort/beaufort-0-3.avif`
+- `public/media/beaufort/beaufort-4-6.avif`
+- `public/media/beaufort/beaufort-7-9.avif`
+- `public/media/beaufort/beaufort-10-12.avif`
 
-All four assets are 1400 × 600 WebP images with the same aspect ratio.
+All four assets are 700 × 300 AVIF images with the same 7:3 aspect ratio. They are optimized for the mobile-first carousel and remain suitable up to roughly 700 CSS px display width. Do not upscale them beyond their intrinsic width in implementation.
 
 | Range | SHA-256 |
 | --- | --- |
-| 0–3 | `83ff778bbcf2db07c5ac90abba18475f327a64c9d50f217aa774c66dbdf7a53a` |
-| 4–6 | `660864817e1fdbe32ac1ca06aefd0947e923d3a712be96f7dd5e40b0f8640592` |
-| 7–9 | `9ee3ed7ce8cab95f232463a6b685010cf31250db62cbc94682f72107d9ca16fa` |
-| 10–12 | `6aee05ef179997e85289e2a1b446cc711e7bb76ae6edf43e8c1aad1e5214c0d6` |
+| 0–3 | `a126f372456856aae29e5ea8249b954fcf42545f272df83be9093667e2cc7d3a` |
+| 4–6 | `61d56c190d95851aee6dfe61a22c40e56e929334cbf9309354aebc52070cd287` |
+| 7–9 | `a6c72fc33c8a96f96435a6e7fa72ebca55bd2ba616d2768ebb2781500a6828dc` |
+| 10–12 | `6cb9518a7256d3701c00ef2b81325a09a18278b5409aa504689f5055e28b2a9c` |
 
 Do not regenerate these merely because older #129 wording described artwork as out of scope. That was the pre-approval state. Replace an asset only after an explicit visual review decision.
 
@@ -96,7 +96,7 @@ Treat the guide as an interactive field-guide element, not four ordinary content
 
 ### Larger screens
 
-- Keep the photograph dominant, approximately 16:9-or-wider in feel using the supplied 7:3 artwork.
+- Keep the photograph dominant while respecting its 700 px intrinsic width; center the carousel rather than upscaling the asset.
 - Provide previous/next controls and keyboard arrow navigation.
 - Avoid surrounding the whole section with a heavy bordered card.
 - A restrained range/title treatment may sit near the image, but essential content remains accessible HTML rather than baked into the image.
@@ -120,6 +120,6 @@ The active node/range receives emphasis. Colour should be restrained and applied
 
 ## Implementation boundary
 
-This asset commit does **not** implement the carousel. The implementation agent should integrate this contract with the #128 Beaufort layout work and the existing Learn content model.
+This asset work does **not** implement the carousel. The implementation agent should integrate this contract with the #128 Beaufort layout work and the existing Learn content model.
 
 The images are visual intuition, not a claim that one still photograph can precisely diagnose a Beaufort force. Exact force names and knot ranges remain authoritative in the detailed reference and scored mapping.
