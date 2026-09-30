@@ -5,7 +5,9 @@ import { unconfiguredSyncBackend, type SyncBackend, type SyncUser } from './sync
 import { loadLedger, saveLedger } from './syncLedger'
 import { forgetSignedIn, hasSignedIn, rememberSignedIn } from './syncSession'
 import {
+  libraryMetaJson,
   nextLedger,
+  parseLibraryMeta,
   planSync,
   topicJson,
   type Ledger,
@@ -34,7 +36,15 @@ export interface SyncableStore {
   topics: Topic[]
   upsertTopic: (topic: Topic) => void
   removeTopic: (id: string) => void
+  /** The account the local library belongs to; see `LibraryProvider`. */
+  owner: string | null
+  bindOwner: (uid: string) => void
+  catalogDelivered: readonly string[] | undefined
+  mergeCatalogDelivered: (ids: readonly string[]) => void
 }
+
+/** What a remote library-meta document holds, as the backend reports it. */
+type RemoteMeta = { json: string; revision: number } | null
 
 /**
  * A topic arriving from another device goes through the same v5 parse boundary
@@ -42,13 +52,17 @@ export interface SyncableStore {
  * have been loaded from disk, so sync cannot widen what a topic is allowed to
  * be — which is the whole reason the record travels as its own JSON.
  */
-export function parseSyncedTopic(json: string): Topic | null {
+export function parseSyncedTopic(json: string, topicId?: string): Topic | null {
   try {
     const parsed: unknown = JSON.parse(json)
     if (!parsed || typeof parsed !== 'object') return null
     const result = parseLibrary({ version: 5, topics: [parsed] })
     if (!result.ok || result.library.topics.length !== 1) return null
-    return result.library.topics[0]
+    const topic = result.library.topics[0]
+    // A document filed under one topic that holds another is damaged, and
+    // taking it would overwrite the wrong topic.
+    if (topicId !== undefined && topic.id !== topicId) return null
+    return topic
   } catch {
     return null
   }
@@ -81,8 +95,14 @@ export function useSync(store: SyncableStore, injected?: SyncBackend) {
     if (!backend.configured) return { kind: 'unconfigured' }
     return hasSignedIn() ? { kind: 'restoring' } : { kind: 'signedOut' }
   })
+  /** `undefined` until the meta document has been heard from at all. */
+  const [meta, setMeta] = useState<RemoteMeta | undefined>(undefined)
   const ledger = useRef<Ledger>({})
   const applying = useRef(false)
+  const pushedMeta = useRef<string | null>(null)
+  // The user subscription outlives any one render of the store it binds.
+  const storeRef = useRef(store)
+  storeRef.current = store
   /**
    * Firebase is not loaded, and Google is not contacted, until there is a
    * reason. A device that has never signed in has no reason on load, and the
@@ -93,7 +113,27 @@ export function useSync(store: SyncableStore, injected?: SyncBackend) {
   useEffect(() => {
     if (!backend.configured || !watching) return
     return backend.observeUser((next) => {
-      if (next) rememberSignedIn()
+      if (next) {
+        try {
+          // Before anything is shown or synced, the library on this device must
+          // be this account's. A library another account left here is parked,
+          // never pushed into this account's cloud copy (#93).
+          storeRef.current.bindOwner(next.uid)
+        } catch {
+          setUser(null)
+          setRecords(null)
+          ledger.current = {}
+          setState({
+            kind: 'error',
+            user: null,
+            message:
+              'This device could not set aside the library another account left here, so it will not open this one. Free some storage and sign in again.',
+          })
+          return
+        }
+        rememberSignedIn()
+      }
+      pushedMeta.current = null
       setUser(next)
       setRecords(null)
       ledger.current = next ? loadLedger(next.uid) : {}
@@ -111,7 +151,38 @@ export function useSync(store: SyncableStore, injected?: SyncBackend) {
   }, [backend, user])
 
   useEffect(() => {
-    if (!user || records === null || applying.current) return
+    if (!user) return
+    setMeta(undefined)
+    return backend.observeMeta(
+      user.uid,
+      setMeta,
+      (message) => setState({ kind: 'error', user, message }),
+    )
+  }, [backend, user])
+
+  useEffect(() => {
+    if (!user || meta === undefined || store.owner !== user.uid) return
+    const remote = meta ? parseLibraryMeta(meta.json) : []
+    // Unreadable library-level state is left alone for a build that can read it.
+    if (remote === null) return
+    store.mergeCatalogDelivered(remote)
+    const canonical = libraryMetaJson([...(store.catalogDelivered ?? []), ...remote])
+    if (meta?.json === canonical || pushedMeta.current === canonical) return
+    pushedMeta.current = canonical
+    backend.pushMeta(user.uid, canonical, (meta?.revision ?? 0) + 1).catch((error: unknown) => {
+      pushedMeta.current = null
+      setState({
+        kind: 'error',
+        user,
+        message: error instanceof Error ? error.message : 'Sync failed.',
+      })
+    })
+  }, [backend, user, meta, store])
+
+  useEffect(() => {
+    // Wait for the library on screen to be this account's before comparing it
+    // with this account's cloud copy.
+    if (!user || records === null || applying.current || store.owner !== user.uid) return
     const plan = planSync(store.topics, records, ledger.current)
     if (plan.actions.length === 0) {
       setState({ kind: 'synced', user, at: new Date(), conflicts: plan.conflicts })
@@ -141,7 +212,7 @@ export function useSync(store: SyncableStore, injected?: SyncBackend) {
             // A record this device cannot parse is left alone rather than
             // dropped: refusing it keeps the local copy, and the ledger is not
             // advanced, so a later build that understands it can still take it.
-            const topic = parseSyncedTopic(action.json)
+            const topic = parseSyncedTopic(action.json, action.topicId)
             if (!topic) break
             store.upsertTopic(topic)
             applied.push({ ...action, json: topicJson(topic) })
@@ -186,8 +257,8 @@ export function useSync(store: SyncableStore, injected?: SyncBackend) {
   }, [backend])
 
   const signOut = useCallback(async () => {
-    // The local library is untouched by signing out. It was never the copy that
-    // depended on an account.
+    // The local library stays, still bound to this account. If a different
+    // account signs in next, `bindOwner` parks it before anything else happens.
     await backend.signOut()
     forgetSignedIn()
   }, [backend])

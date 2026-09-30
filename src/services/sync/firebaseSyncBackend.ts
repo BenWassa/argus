@@ -156,7 +156,11 @@ export function firebaseSyncBackend(config: FirebaseWebConfig): SyncBackend {
           dbApi.doc(db, libraryMetaPath(uid)),
           (snapshot) => {
             const data = snapshot.data()
-            onMeta(data && typeof data.json === 'string' ? data.json : null)
+            onMeta(
+              data && typeof data.json === 'string'
+                ? { json: data.json, revision: typeof data.revision === 'number' ? data.revision : 0 }
+                : null,
+            )
           },
           (error) => onError(message(error)),
         )

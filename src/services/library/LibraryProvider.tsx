@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from 'react'
@@ -13,8 +14,10 @@ import {
 } from '../../infrastructure/persistence/libraryMigrations'
 import {
   clearLibrary,
+  libraryOwner,
   loadLibraryWithReport,
   saveLibrary,
+  switchLibraryOwner,
 } from '../../infrastructure/persistence/localLibraryRepository'
 import type { CatalogReconciliation } from '../../domain/library/catalog'
 import { clearAllLessonSittings } from '../../domain/morse/curriculum/lessonSittingStorage'
@@ -53,6 +56,20 @@ interface LibraryStore {
   removeTopic: (id: string) => void
   replaceLibrary: (library: CurrentLibrary) => void
   resetLibrary: () => void
+  /** Catalog topics this library has been offered, for sync's library-level record. */
+  catalogDelivered: readonly string[] | undefined
+  /** The account this library belongs to, or null before any has signed in. */
+  owner: string | null
+  /**
+   * Make the library on screen the signed-in account's own, parking another
+   * account's. Throws when that cannot be done safely; see `switchLibraryOwner`.
+   */
+  bindOwner: (uid: string) => void
+  /**
+   * Record catalog topics another device has already delivered. The set only
+   * grows, so taking the union is the whole merge.
+   */
+  mergeCatalogDelivered: (ids: readonly string[]) => void
 }
 
 const Ctx = createContext<LibraryStore | null>(null)
@@ -61,6 +78,11 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
   const [loaded] = useState(loadLibraryWithReport)
   const [library, setLibrary] = useState<CurrentLibrary>(loaded.library)
   const [catalogReport, setCatalogReport] = useState<CatalogReconciliation>(loaded.report)
+  const [owner, setOwner] = useState<string | null>(libraryOwner)
+  // The switch must park exactly the library that is on screen, including a
+  // write that has not re-rendered yet.
+  const current = useRef(library)
+  current.current = library
 
   useEffect(() => {
     saveLibrary(library)
@@ -110,6 +132,26 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
     setCatalogReport(reset.report)
   }, [])
 
+  const bindOwner = useCallback((uid: string) => {
+    const switched = switchLibraryOwner(uid, current.current)
+    if (switched) {
+      // A sitting in progress belongs to the account that started it.
+      clearAllLessonSittings()
+      current.current = switched.library
+      setLibrary(switched.library)
+      setCatalogReport(switched.report)
+    }
+    setOwner(uid)
+  }, [])
+
+  const mergeCatalogDelivered = useCallback((ids: readonly string[]) => {
+    setLibrary((prev) => {
+      const known = new Set(prev.catalogDelivered ?? [])
+      if (ids.every((id) => known.has(id))) return prev
+      return { ...prev, catalogDelivered: [...new Set([...known, ...ids])].sort() }
+    })
+  }, [])
+
   const value = useMemo(
     () => ({
       topics: library.topics,
@@ -120,8 +162,23 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
       removeTopic,
       replaceLibrary,
       resetLibrary,
+      catalogDelivered: library.catalogDelivered,
+      owner,
+      bindOwner,
+      mergeCatalogDelivered,
     }),
-    [library, catalogReport, upsertTopic, updateTopic, removeTopic, replaceLibrary, resetLibrary],
+    [
+      library,
+      catalogReport,
+      upsertTopic,
+      updateTopic,
+      removeTopic,
+      replaceLibrary,
+      resetLibrary,
+      owner,
+      bindOwner,
+      mergeCatalogDelivered,
+    ],
   )
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>

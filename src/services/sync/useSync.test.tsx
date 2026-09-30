@@ -4,7 +4,7 @@ import { act, cleanup, renderHook, waitFor as rawWaitFor } from '@testing-librar
 import { parseSyncedTopic, useSync, type SyncableStore } from './useSync'
 import { rememberSignedIn } from './syncSession'
 import { unconfiguredSyncBackend, type SyncBackend, type SyncUser } from './syncBackend'
-import { topicJson, type RemoteRecord } from './syncPlanner'
+import { libraryMetaJson, topicJson, type RemoteRecord } from './syncPlanner'
 import { seedLibrary } from '../../domain/library/catalogSeed'
 import type { Topic } from '../../domain/library/topic'
 
@@ -43,16 +43,30 @@ function realTopic(): Topic {
   return seedLibrary().topics[0]
 }
 
-function fakeStore(topics: Topic[]): SyncableStore & { upserted: Topic[]; removed: string[] } {
+function fakeStore(
+  topics: Topic[],
+  catalogDelivered?: string[],
+): SyncableStore & { upserted: Topic[]; removed: string[]; merged: string[][] } {
   const upserted: Topic[] = []
   const removed: string[] = []
-  return {
+  const merged: string[][] = []
+  const store: SyncableStore & { upserted: Topic[]; removed: string[]; merged: string[][] } = {
     topics,
     upserted,
     removed,
+    merged,
     upsertTopic: (topic) => upserted.push(topic),
     removeTopic: (id) => removed.push(id),
+    owner: null,
+    bindOwner: (uid) => {
+      store.owner = uid
+    },
+    catalogDelivered,
+    mergeCatalogDelivered: (ids) => {
+      merged.push([...ids])
+    },
   }
+  return store
 }
 
 function fakeBackend(overrides: Partial<SyncBackend> = {}): SyncBackend & {
@@ -60,17 +74,23 @@ function fakeBackend(overrides: Partial<SyncBackend> = {}): SyncBackend & {
   deleted: string[]
   emitUser: (user: SyncUser | null) => void
   emitRecords: (records: RemoteRecord[]) => void
+  emitMeta: (meta: { json: string; revision: number } | null) => void
+  metaPushed: { json: string; revision: number }[]
 } {
   const pushed: { topicId: string; json: string; revision: number }[] = []
   const deleted: string[] = []
+  const metaPushed: { json: string; revision: number }[] = []
   let userListener: (user: SyncUser | null) => void = () => {}
   let recordListener: (records: RemoteRecord[]) => void = () => {}
+  let metaListener: (meta: { json: string; revision: number } | null) => void = () => {}
   return {
     configured: true,
     pushed,
     deleted,
+    metaPushed,
     emitUser: (user) => userListener(user),
     emitRecords: (records) => recordListener(records),
+    emitMeta: (meta) => metaListener(meta),
     observeUser: (listener) => {
       userListener = listener
       return () => {}
@@ -87,8 +107,13 @@ function fakeBackend(overrides: Partial<SyncBackend> = {}): SyncBackend & {
     deleteTopic: async (_uid, topicId) => {
       deleted.push(topicId)
     },
-    observeMeta: () => () => {},
-    pushMeta: async () => {},
+    observeMeta: (_uid, onMeta) => {
+      metaListener = onMeta
+      return () => {}
+    },
+    pushMeta: async (_uid, json, revision) => {
+      metaPushed.push({ json, revision })
+    },
     ...overrides,
   }
 }
@@ -272,5 +297,101 @@ describe('a device that has never signed in', () => {
     })
     renderHook(() => useSync(fakeStore([]), backend))
     expect(observed).toBe(true)
+  })
+})
+
+describe('whose library is being synced', () => {
+  it('binds the library to the account before comparing it with that account\'s cloud copy', async () => {
+    const topic = realTopic()
+    const backend = fakeBackend()
+    const store = fakeStore([topic])
+    renderHook(() => useSync(store, backend))
+
+    act(() => backend.emitUser(OWNER))
+    expect(store.owner).toBe(OWNER.uid)
+    act(() => backend.emitRecords([]))
+    await waitFor(() => expect(backend.pushed).toHaveLength(1))
+  })
+
+  it('opens nothing and syncs nothing when another account\'s library cannot be set aside', async () => {
+    const backend = fakeBackend()
+    const store = fakeStore([realTopic()])
+    store.bindOwner = () => {
+      throw new Error('QuotaExceededError')
+    }
+    const { result } = renderHook(() => useSync(store, backend))
+
+    act(() => backend.emitUser(OWNER))
+    await waitFor(() => expect(result.current.state).toMatchObject({ kind: 'error', user: null }))
+    act(() => backend.emitRecords([]))
+    await act(async () => {})
+    expect(backend.pushed).toHaveLength(0)
+  })
+
+  it('refuses a document filed under one topic that holds another', async () => {
+    const topic = realTopic()
+    const backend = fakeBackend()
+    const store = fakeStore([])
+    renderHook(() => useSync(store, backend))
+
+    act(() => backend.emitUser(OWNER))
+    act(() => backend.emitRecords([
+      { topicId: 'some-other-topic', json: JSON.stringify(topic), revision: 1, updatedAtMs: 1 },
+    ]))
+    await act(async () => {})
+    expect(store.upserted).toHaveLength(0)
+  })
+})
+
+describe('library-level state', () => {
+  it('takes the union of what each side has delivered, and sends the union up', async () => {
+    const backend = fakeBackend()
+    const store = fakeStore([], ['nato-phonetic'])
+    renderHook(() => useSync(store, backend))
+
+    act(() => backend.emitUser(OWNER))
+    act(() => backend.emitMeta({ json: libraryMetaJson(['ooda-loop']), revision: 3 }))
+
+    await waitFor(() => expect(backend.metaPushed).toHaveLength(1))
+    expect(store.merged).toContainEqual(['ooda-loop'])
+    expect(backend.metaPushed[0]).toEqual({
+      json: libraryMetaJson(['nato-phonetic', 'ooda-loop']),
+      revision: 4,
+    })
+  })
+
+  it('writes the first record when the account has none', async () => {
+    const backend = fakeBackend()
+    const store = fakeStore([], ['nato-phonetic'])
+    renderHook(() => useSync(store, backend))
+
+    act(() => backend.emitUser(OWNER))
+    act(() => backend.emitMeta(null))
+    await waitFor(() => expect(backend.metaPushed).toEqual([
+      { json: libraryMetaJson(['nato-phonetic']), revision: 1 },
+    ]))
+  })
+
+  it('sends nothing when both sides already agree', async () => {
+    const backend = fakeBackend()
+    const store = fakeStore([], ['nato-phonetic'])
+    renderHook(() => useSync(store, backend))
+
+    act(() => backend.emitUser(OWNER))
+    act(() => backend.emitMeta({ json: libraryMetaJson(['nato-phonetic']), revision: 2 }))
+    await act(async () => {})
+    expect(backend.metaPushed).toHaveLength(0)
+  })
+
+  it('leaves a record it cannot read alone', async () => {
+    const backend = fakeBackend()
+    const store = fakeStore([], ['nato-phonetic'])
+    renderHook(() => useSync(store, backend))
+
+    act(() => backend.emitUser(OWNER))
+    act(() => backend.emitMeta({ json: '{ from a later build', revision: 9 }))
+    await act(async () => {})
+    expect(backend.metaPushed).toHaveLength(0)
+    expect(store.merged).toHaveLength(0)
   })
 })

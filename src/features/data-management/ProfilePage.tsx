@@ -3,7 +3,10 @@ import { useLibrary } from '../../services/library/LibraryProvider'
 import { useSyncState } from '../../services/sync/SyncProvider'
 import type { SyncState } from '../../services/sync/useSync'
 import { parseLibrary } from '../../infrastructure/persistence/libraryParser'
-import { exportFilename } from '../../infrastructure/persistence/localLibraryRepository'
+import {
+  exportFilename,
+  recoveryEntries,
+} from '../../infrastructure/persistence/localLibraryRepository'
 import {
   formatStorageBytes,
   inspectStorage,
@@ -28,6 +31,7 @@ export function ProfilePage({ onBack }: { onBack: () => void }) {
   const [pendingImport, setPendingImport] = useState<{ file: File; count: number } | null>(null)
   const [online, setOnline] = useState(() => navigator.onLine)
   const [storage, setStorage] = useState<StorageStatus | null>(null)
+  const [recovered] = useState(recoveryEntries)
 
   useEffect(() => {
     const updateOnline = () => setOnline(navigator.onLine)
@@ -39,6 +43,17 @@ export function ProfilePage({ onBack }: { onBack: () => void }) {
       window.removeEventListener('offline', updateOnline)
     }
   }, [])
+
+  function downloadRecovered() {
+    // Exactly what was stored, for a person or a later build to repair.
+    const blob = new Blob([JSON.stringify(recovered, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `argus-unreadable-${new Date().toISOString().slice(0, 10)}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
 
   function exportLibrary() {
     // The whole durable record, not just the topics: catalog delivery history
@@ -140,6 +155,18 @@ export function ProfilePage({ onBack }: { onBack: () => void }) {
       </p>
 
       <CatalogNotice added={catalogReport.added} withheld={collisions(catalogReport)} />
+
+      {recovered.length > 0 && (
+        <div className="profile-recovered">
+          <p className="note">
+            A stored library this version could not read was kept, not overwritten
+            {' '}(last on {new Date(recovered[recovered.length - 1].at).toLocaleDateString()}).
+          </p>
+          <button className="ghost" type="button" onClick={downloadRecovered}>
+            Download unreadable copy
+          </button>
+        </div>
+      )}
 
       <h3 className="profile-subsection-title">Reset learning data</h3>
       <p className="lede-text">

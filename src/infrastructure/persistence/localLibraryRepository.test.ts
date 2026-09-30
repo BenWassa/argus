@@ -3,8 +3,11 @@ import { catalogDefinition, collisions } from '../../domain/library/catalog'
 import { emptyLibrary } from './libraryMigrations'
 import {
   clearLibrary,
+  libraryOwner,
   loadLibraryWithReport,
+  recoveryEntries,
   saveLibrary,
+  switchLibraryOwner,
 } from './localLibraryRepository'
 import { LEGACY_LESSON_SITTING_KEY } from '../../domain/morse/curriculum/lessonSittingStorage'
 import { SHIPPED_CATALOG_TOPIC_IDS } from '../../domain/library/catalog'
@@ -332,5 +335,96 @@ describe('a fresh install claims nothing the learner did not earn (#71)', () => 
     expect(kept?.status).toBe('completed')
     expect(kept?.completedAt).toBe('2025-03-05T00:00:00.000Z')
     expect(kept?.history).toHaveLength(1)
+  })
+})
+
+describe('a stored library this build cannot read', () => {
+  it('is kept for recovery before the fresh library replaces it', () => {
+    localStorage.setItem(KEY, '{ not json')
+    const { library } = loadLibraryWithReport(NOW)
+    expect(library.topics.length).toBeGreaterThan(0)
+    const kept = recoveryEntries()
+    expect(kept).toHaveLength(1)
+    expect(kept[0]).toMatchObject({ key: KEY, raw: '{ not json', at: NOW.toISOString() })
+  })
+
+  it('records why a well-formed but invalid record was refused', () => {
+    const raw = JSON.stringify({ version: 5, topics: [{ id: 'x' }] })
+    localStorage.setItem(KEY, raw)
+    loadLibraryWithReport(NOW)
+    const [entry] = recoveryEntries()
+    expect(entry.raw).toBe(raw)
+    expect(entry.reason.length).toBeGreaterThan(0)
+  })
+
+  it('does not keep the same record twice, and keeps at most five', () => {
+    localStorage.setItem(KEY, '{ one')
+    loadLibraryWithReport(NOW)
+    localStorage.setItem(KEY, '{ one')
+    loadLibraryWithReport(NOW)
+    expect(recoveryEntries()).toHaveLength(1)
+    for (let i = 0; i < 7; i++) {
+      localStorage.setItem(KEY, `{ broken ${i}`)
+      loadLibraryWithReport(NOW)
+    }
+    const kept = recoveryEntries()
+    expect(kept).toHaveLength(5)
+    expect(kept.at(-1)?.raw).toBe('{ broken 6')
+  })
+})
+
+describe('which account the library on this device belongs to', () => {
+  function worked(): CurrentLibrary {
+    const topic: Topic = {
+      ...shipped('nato-phonetic'),
+      status: 'drilled',
+      drilledAt: '2026-09-01T00:00:00.000Z',
+      history: [{ at: '2026-09-01T00:00:00.000Z', correct: 26, total: 26, resolvedTo: 'drilled' }],
+    }
+    return { version: 5, topics: [topic], catalogDelivered: ['nato-phonetic'] }
+  }
+
+  it('lets the first account to sign in claim the library already here', () => {
+    const library = worked()
+    stored(library)
+    expect(switchLibraryOwner('a', library, NOW)).toBeNull()
+    expect(libraryOwner()).toBe('a')
+    expect(switchLibraryOwner('a', library, NOW)).toBeNull()
+  })
+
+  it('parks one account\'s library when another signs in, and gives it back', () => {
+    const mine = worked()
+    stored(mine)
+    switchLibraryOwner('a', mine, NOW)
+
+    const other = switchLibraryOwner('b', mine, NOW)
+    expect(other).not.toBeNull()
+    expect(libraryOwner()).toBe('b')
+    // B starts from a fresh seed, holding none of A's attempts.
+    expect(other!.library.topics.every((topic) => topic.history.length === 0)).toBe(true)
+    expect(JSON.parse(localStorage.getItem(KEY)!).topics.every((topic: Topic) => topic.history.length === 0)).toBe(true)
+
+    const back = switchLibraryOwner('a', other!.library, NOW)
+    expect(libraryOwner()).toBe('a')
+    const nato = back!.library.topics.find((topic) => topic.id === 'nato-phonetic')
+    expect(nato?.history).toHaveLength(1)
+  })
+
+  it('refuses the switch, changing nothing, when the other library cannot be parked', () => {
+    const mine = worked()
+    stored(mine)
+    switchLibraryOwner('a', mine, NOW)
+    const storage = localStorage as unknown as { setItem: (key: string, value: string) => void }
+    const setItem = storage.setItem
+    storage.setItem = () => {
+      throw new Error('QuotaExceededError')
+    }
+    try {
+      expect(() => switchLibraryOwner('b', mine, NOW)).toThrow()
+    } finally {
+      storage.setItem = setItem
+    }
+    expect(libraryOwner()).toBe('a')
+    expect(JSON.parse(localStorage.getItem(KEY)!).topics[0].history).toHaveLength(1)
   })
 })
