@@ -82,3 +82,32 @@
 .figure-hub {
   fill: var(--ink);
 }
+
+.figure-guide {
+  stroke: var(--line-strong);
+  stroke-width: 1;
+  stroke-dasharray: 2 4;
+}
+
+.figure-arc {
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 1.5;
+}
+
+/* Three norths: true solid, magnetic dashed, grid dotted. Line style carries the
+   distinction so it survives greyscale and colour-vision differences. */
+.figure-north-ray {
+  stroke: var(--ink);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+
+.figure-north-ray.is-M {
+  stroke-dasharray: 9 5;
+}
+
+.figure-north-ray.is-G {
+  stroke-dasharray: 1 6;
+  stroke-width: 3.5;
+}
