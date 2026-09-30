@@ -85,6 +85,7 @@ Supported kinds:
 | Kind | Params | Notes |
 | --- | --- | --- |
 | `angle-dial` | `pointers: { bearing: 0–359 (whole degrees); label?: ≤12 chars }[]` (1–4); optional `reference: 'T'\|'M'\|'G'`, `quadrantGuides`, `arc` | Ring, N/E/S/W marks, labelled pointers clockwise from north. Shipped with #146 as the reference kind; `reference`, `quadrantGuides` and `arc` were added by #149. |
+| `vessel-plan`, `light-stack`, `day-shape-stack` | see `docs/open/ISSUE_147_MARITIME_LIGHTS_DAY_SHAPES.md` | Added by #147: a top-down vessel with optional observer, sector arcs and lights; all-round light stacks; black day-shape stacks. |
 | `north-reference` | `rays: { ref: 'T'\|'M'\|'G'; angle: −35…35 (whole degrees); label?: ≤12 chars }[]` (2–3) | Added by #149. Exactly one upright ray at 0; rays ≥8° apart; each north drawn once. True solid, magnetic dashed, grid dotted. |
 
 Adding a kind is a code change with its own validation and tests. #147 (lights, day shapes) and #148 (flags) register theirs here. There is no expression, path, markup or component-name data anywhere in a spec.

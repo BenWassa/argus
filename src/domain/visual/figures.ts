@@ -60,9 +60,51 @@ export interface NorthReferenceFigure {
   rays: NorthRay[]
 }
 
-export type FigureSpec = AngleDialFigure | NorthReferenceFigure
+/**
+ * A top-down vessel, bow up, for navigation-light questions (#147). Every part
+ * is optional data: the lights marked on the hull, an observer standing at a
+ * bearing around it, the Rule 21 sector arcs and the orientation labels.
+ */
+export interface VesselPlanFigure {
+  kind: 'vessel-plan'
+  /** Sector lights marked on the hull. */
+  lights?: PlanLightId[]
+  /** An observer at this bearing, clockwise from the bow. */
+  observer?: number
+  /** Draw the four Rule 21 sector arcs. Learn-only; scored items leave it off. */
+  sectors?: boolean
+  /** Label bow, stern, port and starboard and the centreline. */
+  labels?: boolean
+}
 
-export const FIGURE_KIND_NAMES = ['angle-dial', 'north-reference'] as const
+export type PlanLightId = 'masthead' | 'port-sidelight' | 'starboard-sidelight' | 'sternlight'
+
+/** All-round lights in a vertical line, top first. */
+export interface LightStackFigure {
+  kind: 'light-stack'
+  lights: ('white' | 'red' | 'green')[]
+}
+
+/** Black day shapes in a vertical line, top first. */
+export interface DayShapeStackFigure {
+  kind: 'day-shape-stack'
+  shapes: ('ball' | 'diamond' | 'cone-apex-up' | 'cone-apex-down')[]
+}
+
+export type FigureSpec =
+  | AngleDialFigure
+  | NorthReferenceFigure
+  | VesselPlanFigure
+  | LightStackFigure
+  | DayShapeStackFigure
+
+export const FIGURE_KIND_NAMES = [
+  'angle-dial',
+  'north-reference',
+  'vessel-plan',
+  'light-stack',
+  'day-shape-stack',
+] as const
 export type FigureKindName = (typeof FIGURE_KIND_NAMES)[number]
 
 export const MAX_DIAL_POINTERS = 4
@@ -180,9 +222,71 @@ export function parseFigure(value: unknown, where: string): FigureParse {
   }
   if (value.kind === 'angle-dial') return parseAngleDial(value, where)
   if (value.kind === 'north-reference') return parseNorthReference(value, where)
+  if (value.kind === 'vessel-plan') return parseVesselPlan(value, where)
+  if (value.kind === 'light-stack') return parseLightStack(value, where)
+  if (value.kind === 'day-shape-stack') return parseDayShapeStack(value, where)
   return {
     ok: false,
     error: `${where} uses unsupported figure kind "${value.kind}". Figures must be one of: ${FIGURE_KIND_NAMES.join(', ')}.`,
+  }
+}
+
+const PLAN_LIGHT_IDS: readonly PlanLightId[] = ['masthead', 'port-sidelight', 'starboard-sidelight', 'sternlight']
+const STACK_COLOURS = ['white', 'red', 'green'] as const
+const SHAPE_KINDS = ['ball', 'diamond', 'cone-apex-up', 'cone-apex-down'] as const
+export const MAX_STACK_LENGTH = 4
+
+function parseVesselPlan(raw: Raw, where: string): FigureParse {
+  const figure: VesselPlanFigure = { kind: 'vessel-plan' }
+  if (raw.lights !== undefined) {
+    if (!Array.isArray(raw.lights) || raw.lights.length === 0 || raw.lights.length > PLAN_LIGHT_IDS.length) {
+      return { ok: false, error: `${where} vessel-plan lights must be a short list of light ids.` }
+    }
+    const lights: PlanLightId[] = []
+    for (const light of raw.lights) {
+      if (!PLAN_LIGHT_IDS.includes(light as PlanLightId) || lights.includes(light as PlanLightId)) {
+        return { ok: false, error: `${where} vessel-plan lights must be distinct and from: ${PLAN_LIGHT_IDS.join(', ')}.` }
+      }
+      lights.push(light as PlanLightId)
+    }
+    figure.lights = lights
+  }
+  if (raw.observer !== undefined) {
+    if (typeof raw.observer !== 'number' || !Number.isInteger(raw.observer) || raw.observer < 0 || raw.observer > 359) {
+      return { ok: false, error: `${where} vessel-plan observer needs a whole-degree bearing from 0 to 359.` }
+    }
+    figure.observer = raw.observer
+  }
+  for (const flag of ['sectors', 'labels'] as const) {
+    if (raw[flag] === undefined) continue
+    if (typeof raw[flag] !== 'boolean') {
+      return { ok: false, error: `${where} vessel-plan ${flag} must be true or false.` }
+    }
+    if (raw[flag]) figure[flag] = true
+  }
+  return { ok: true, figure }
+}
+
+function parseLightStack(raw: Raw, where: string): FigureParse {
+  if (!Array.isArray(raw.lights) || raw.lights.length === 0 || raw.lights.length > MAX_STACK_LENGTH) {
+    return { ok: false, error: `${where} light-stack needs 1–${MAX_STACK_LENGTH} lights.` }
+  }
+  if (!raw.lights.every((light) => STACK_COLOURS.includes(light as never))) {
+    return { ok: false, error: `${where} light-stack colours must be from: ${STACK_COLOURS.join(', ')}.` }
+  }
+  return { ok: true, figure: { kind: 'light-stack', lights: [...raw.lights] as LightStackFigure['lights'] } }
+}
+
+function parseDayShapeStack(raw: Raw, where: string): FigureParse {
+  if (!Array.isArray(raw.shapes) || raw.shapes.length === 0 || raw.shapes.length > MAX_STACK_LENGTH) {
+    return { ok: false, error: `${where} day-shape-stack needs 1–${MAX_STACK_LENGTH} shapes.` }
+  }
+  if (!raw.shapes.every((shape) => SHAPE_KINDS.includes(shape as never))) {
+    return { ok: false, error: `${where} day-shape-stack shapes must be from: ${SHAPE_KINDS.join(', ')}.` }
+  }
+  return {
+    ok: true,
+    figure: { kind: 'day-shape-stack', shapes: [...raw.shapes] as DayShapeStackFigure['shapes'] },
   }
 }
 

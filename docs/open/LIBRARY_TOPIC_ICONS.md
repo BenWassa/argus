@@ -52,6 +52,8 @@ Topic icons are compact recognition aids beside shipped topic titles on Library 
 | `reciprocal-bearings` | one line with arrowheads at both ends inside a circle |
 | `north-references-declination` | upright north line, a dashed line leaning from it, and the angle between them |
 | `grid-north-map-bearings` | map grid square with a bearing line and arrowhead |
+| `navigation-lights` | top-down vessel outline with its masthead, side and stern lights |
+| `vessel-day-shapes` | stacked ball, diamond and ball |
 
 ## Design boundary
 
