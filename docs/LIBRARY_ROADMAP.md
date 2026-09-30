@@ -44,9 +44,9 @@ Research approval is not implementation approval. Research must finish with exac
 
 | Priority | Family / candidate | Current state | Owner issue | Intended medium | Decision / note |
 | --- | --- | --- | --- | --- | --- |
-| **P0** | Maritime — vessel orientation & terminology | Research approved | #138 | HTML + diagram/SVG + visual drill | Prerequisite vocabulary should exist only where it supports later visual decoding. |
-| **P0** | Maritime — navigation lights & day shapes | Research approved | #138 | deterministic diagram/SVG + visual drill | Strong visual-learning candidate; viewing angle/orientation matters more than memorizing one picture. |
-| **P0** | Maritime — International Code of Signals flags | Research approved | #138 | sourced/redrawn flag assets + recall/recognition | Prioritize useful single-letter signals; do not memorize the full system without a use case. |
+| **P0** | Maritime — vessel orientation & terminology | Research complete — revise into prerequisite | #138 | HTML + deterministic orientation diagram | Do not create a standalone scored topic; keep the minimum vocabulary as Learn support for navigation-light reasoning. |
+| **P0** | Maritime — navigation lights & day shapes | Research complete — build recommended | #138 | deterministic SVG/React + visual drill | First boundary: 16 light/aspect items + 5 day shapes. Advanced/context-sensitive configurations are deferred. |
+| **P0** | Maritime — International Code of Signals flags | Research complete — build recommended | #138 | deterministic/redrawn SVG + visual recognition | First boundary: 12 safety/action signals — A, B, D, F, J, L, M, O, U, V, W, Y. Full code deferred. |
 | **P0** | Communications — radio procedure | Research approved | #139 | HTML + finite recall + structured interaction | Extend existing NATO/radiotelephony knowledge into source-scoped procedures. |
 | **P0** | Communications — audio listening/copy drills | Feasibility research approved | #139 | generated audio + transcript + interactive drill | Audio is promising; generated audio is presentation, never factual authority. |
 | **P0** | Environment — cloud & weather recognition | Research approved | #141 | sourced imagery first + HTML + visual drill | Ten WMO genera are the likely foundation; weather inference must remain narrower than forecasting. |
@@ -68,15 +68,15 @@ Research approval is not implementation approval. Research must finish with exac
 
 ### Maritime
 
-Provisional progression:
+Research under #138 fixes the first progression as:
 
-1. minimum vessel orientation/terminology;
-2. navigation lights and aspect/viewing logic;
-3. selected day shapes;
-4. selected International Code of Signals flags;
-5. consider sound signals only after the visual foundation is scoped.
+1. minimum vessel orientation/terminology as **Learn-only prerequisite**;
+2. 16 scored navigation-light items covering aspect logic and selected status signatures;
+3. 5 scored day-shape recognition items;
+4. 12 scored International Code of Signals safety/action flags;
+5. defer advanced light/shape cases and the full signal code until the first programme proves useful.
 
-The target competence is **decoding standardized vessel information**, not recreational-boating certification or navigation qualification.
+The target competence is **decoding standardized vessel information**, not recreational-boating certification or navigation qualification. The first programme needs a small generic visual-stimulus capability, but that capability should be reconciled with #140 and #141 before implementation rather than designed from Maritime alone.
 
 ### Communications
 
@@ -131,11 +131,11 @@ Do not use one perpetual umbrella issue for successive generations of library wo
 
 ## Current execution order
 
-The four research lanes can run in parallel because they own distinct domains:
+The research lanes are distinct and can run independently:
 
-- **#138 Maritime**
-- **#139 Radio communications/audio**
-- **#140 Compass/bearings + topo spike**
-- **#141 Cloud/weather**
+- **#138 Maritime — research complete; implementation handoff waits for cross-lane visual-capability comparison**
+- **#139 Radio communications/audio — research active**
+- **#140 Compass/bearings + topo spike — research active**
+- **#141 Cloud/weather — research active**
 
-After those return, compare them together before opening implementation work. Prefer shared product primitives only where at least two approved topics genuinely need them; do not pre-build a generic media framework from speculation.
+After the active lanes return, compare them together before opening implementation work. Prefer shared product primitives only where at least two approved topics genuinely need them; do not pre-build a generic media framework from speculation.
