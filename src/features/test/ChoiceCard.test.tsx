@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { useLayoutEffect } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { ChoiceCard } from './ChoiceCard'
@@ -76,6 +77,36 @@ describe('ChoiceCard', () => {
     fireEvent.click(screen.getByRole('button', { name: 'South' }))
     for (const option of item.choice!.options) {
       expect((screen.getByRole('button', { name: option }) as HTMLButtonElement).disabled).toBe(true)
+    }
+  })
+})
+
+describe('swapping to the next card', () => {
+  /**
+   * `rerender` flushes passive effects inside `act`, so looking only afterwards
+   * cannot see a stale first frame. This probe records the DOM at every commit,
+   * before any passive effect has had a chance to reset state.
+   */
+  function Probe({ card, cardKey, seen }: { card: Item; cardKey: string; seen: boolean[] }) {
+    useLayoutEffect(() => {
+      seen.push(document.querySelector('.test-feedback') !== null)
+    })
+    return <ChoiceCard item={card} cardKey={cardKey} onAnswer={() => undefined} />
+  }
+
+  it('never shows the previous answer’s feedback under the next question, not even for one frame', () => {
+    const other: Item = { ...item, id: 'item-2', prompt: 'And this one?', answer: 'South' }
+    const seen: boolean[] = []
+    const { rerender } = render(<Probe card={item} cardKey="one" seen={seen} />)
+    fireEvent.click(screen.getByRole('button', { name: 'West' }))
+    expect(screen.getByText('Not that one')).toBeTruthy()
+
+    seen.length = 0
+    rerender(<Probe card={other} cardKey="two" seen={seen} />)
+    expect(seen[0]).toBe(false)
+    expect(screen.queryByText('Not that one')).toBeNull()
+    for (const option of other.choice!.options) {
+      expect((screen.getByRole('button', { name: option }) as HTMLButtonElement).className).not.toMatch(/is-(answer|wrong)/)
     }
   })
 })
