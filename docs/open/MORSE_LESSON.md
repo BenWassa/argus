@@ -1,5 +1,7 @@
 # Morse Learn: guided acquisition, finite sittings, listening, path, and reference
 
+**Status:** implemented; maintained contract for Morse Learn. The dated correction block below supersedes older statements where they conflict.
+
 > **Current correction, repair-review and chrome contract — 2026-09-19.** This
 > maintained contract supersedes the correction-dwell, review-marking and
 > session-chrome statements below where they conflict.

@@ -1,5 +1,7 @@
 # Structured Learn content model
 
+**Status:** maintained contract for the structured Learn content model. Library format is now v5; the block list in `src/domain/learning/content.ts` is authoritative where this text lags.
+
 Issue: #9  
 Library format: v4
 

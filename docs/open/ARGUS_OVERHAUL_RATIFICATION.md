@@ -1,5 +1,7 @@
 # Argus learning-experience overhaul — ratification package (#92)
 
+**Status:** ratified and substantially implemented (#92, closed 2026-09-15); retained as the programme-level decision package. The dated addenda below govern where the original text is stale.
+
 > **#109 navigation addendum — 2026-09-17.** Profile now owns account, sync,
 > export, import, reset, and catalog-delivery status as a Today child. It is not
 > a primary navigation destination. This supersedes historical statements below
