@@ -196,3 +196,32 @@
 .learn-entry .visual {
   max-width: 14rem;
 }
+
+/* Signal flags. The five flag colours are the meaning, so they are fixed values
+   rather than theme tokens. Every flag is also told apart by pattern and shape. */
+.figure-signal-flag {
+  --flag-white: #f4f6f9;
+  --flag-blue: #1f4fbf;
+  --flag-red: #d8352c;
+  --flag-yellow: #f2c81c;
+  --flag-black: #0b0d10;
+}
+
+.flag-fill.is-white { fill: var(--flag-white); }
+.flag-fill.is-blue { fill: var(--flag-blue); }
+.flag-fill.is-red { fill: var(--flag-red); }
+.flag-fill.is-yellow { fill: var(--flag-yellow); }
+.flag-fill.is-black { fill: var(--flag-black); }
+
+.flag-stroke.is-white { stroke: var(--flag-white); }
+.flag-stroke.is-blue { stroke: var(--flag-blue); }
+.flag-stroke.is-red { stroke: var(--flag-red); }
+.flag-stroke.is-yellow { stroke: var(--flag-yellow); }
+.flag-stroke.is-black { stroke: var(--flag-black); }
+
+.flag-outline {
+  fill: none;
+  stroke: var(--line-hover);
+  stroke-width: 1;
+  stroke-linejoin: round;
+}

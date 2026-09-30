@@ -13,6 +13,7 @@ import primarySurvey from '../../assets/library-icons/primary-survey.svg'
 import reciprocalBearings from '../../assets/library-icons/reciprocal-bearings.svg'
 import radiotelephonyNumbers from '../../assets/library-icons/radiotelephony-numbers.svg'
 import scubaEquipmentAbbreviations from '../../assets/library-icons/scuba-equipment-abbreviations.svg'
+import signalFlags from '../../assets/library-icons/signal-flags.svg'
 import siPrefixes from '../../assets/library-icons/si-prefixes.svg'
 import vesselDayShapes from '../../assets/library-icons/vessel-day-shapes.svg'
 import wholeCircleBearings from '../../assets/library-icons/whole-circle-bearings.svg'
@@ -33,6 +34,7 @@ const icons: Record<string, string> = {
   'radiotelephony-numbers': radiotelephonyNumbers,
   'reciprocal-bearings': reciprocalBearings,
   'scuba-equipment-abbreviations': scubaEquipmentAbbreviations,
+  'signal-flags': signalFlags,
   'si-prefixes': siPrefixes,
   'vessel-day-shapes': vesselDayShapes,
   'whole-circle-bearings': wholeCircleBearings,

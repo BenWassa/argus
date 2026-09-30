@@ -54,6 +54,7 @@ Topic icons are compact recognition aids beside shipped topic titles on Library 
 | `grid-north-map-bearings` | map grid square with a bearing line and arrowhead |
 | `navigation-lights` | top-down vessel outline with its masthead, side and stern lights |
 | `vessel-day-shapes` | stacked ball, diamond and ball |
+| `signal-flags` | swallow-tailed signal flag on a staff, split down the middle |
 
 ## Design boundary
 

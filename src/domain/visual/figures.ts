@@ -1,3 +1,5 @@
+import { FLAG_LETTERS, type FlagLetter } from '../maritime/flags'
+
 /**
  * The finite figure registry (#146).
  *
@@ -91,7 +93,14 @@ export interface DayShapeStackFigure {
   shapes: ('ball' | 'diamond' | 'cone-apex-up' | 'cone-apex-down')[]
 }
 
+/** One of the twelve selected International Code of Signals flags (#148). */
+export interface SignalFlagFigure {
+  kind: 'signal-flag'
+  letter: FlagLetter
+}
+
 export type FigureSpec =
+  | SignalFlagFigure
   | AngleDialFigure
   | NorthReferenceFigure
   | VesselPlanFigure
@@ -104,6 +113,7 @@ export const FIGURE_KIND_NAMES = [
   'vessel-plan',
   'light-stack',
   'day-shape-stack',
+  'signal-flag',
 ] as const
 export type FigureKindName = (typeof FIGURE_KIND_NAMES)[number]
 
@@ -225,6 +235,7 @@ export function parseFigure(value: unknown, where: string): FigureParse {
   if (value.kind === 'vessel-plan') return parseVesselPlan(value, where)
   if (value.kind === 'light-stack') return parseLightStack(value, where)
   if (value.kind === 'day-shape-stack') return parseDayShapeStack(value, where)
+  if (value.kind === 'signal-flag') return parseSignalFlag(value, where)
   return {
     ok: false,
     error: `${where} uses unsupported figure kind "${value.kind}". Figures must be one of: ${FIGURE_KIND_NAMES.join(', ')}.`,
@@ -265,6 +276,13 @@ function parseVesselPlan(raw: Raw, where: string): FigureParse {
     if (raw[flag]) figure[flag] = true
   }
   return { ok: true, figure }
+}
+
+function parseSignalFlag(raw: Raw, where: string): FigureParse {
+  if (!FLAG_LETTERS.includes(raw.letter as FlagLetter)) {
+    return { ok: false, error: `${where} signal-flag letter must be one of: ${FLAG_LETTERS.join(', ')}.` }
+  }
+  return { ok: true, figure: { kind: 'signal-flag', letter: raw.letter as FlagLetter } }
 }
 
 function parseLightStack(raw: Raw, where: string): FigureParse {
