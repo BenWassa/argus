@@ -49,7 +49,7 @@ Research approval does not itself authorize implementation. A build issue exists
 | **P0** | Maritime — selected International Code of Signals flags | **Implementation queued** | #148 | deterministic/redrawn SVG + visual recognition | 12 signals: A, B, D, F, J, L, M, O, U, V, W, Y. Depends on #146. |
 | **P0** | Communications — Canadian radio procedure + marine VHF | **Blocked on primary sources** | #150 | HTML + finite recall / structured sequence | Canadian general substrate from ISED RIC-22; marine procedure from CCG RAMN 2026. Scored wording must come from those texts, which were not reachable when this was attempted; see the note for how to unblock. |
 | **P0** | Communications — prerecorded listening/copy drills | **Implementation queued; production blocked** | #151 | local prerecorded speech + transcript + objective drill | Runtime capability is buildable now; production scripts depend on #150 and the TTS bake-off needs model access and human listening QA. No microphone/ASR in first release. |
-| **P0** | Environment — WMO cloud genera visual field guide | **UI primitive ready; asset sourcing blocked** | #131 | sourced real imagery + HTML Learn guide | #146's Learn visual primitive exists. The ten real photographs need Commons/WMO access or a supplied vetted set; see the note. Scored photographic recognition remains deferred. |
+| **P0** | Environment — WMO cloud genera visual field guide | **Hero images sourced** | #131 | sourced real imagery + HTML Learn guide | Ten CC BY-SA hero images sourced, QA'd and packaged under `public/media/clouds/` (2026-09-30); UI integration uses #146. Scored photographic recognition remains deferred. |
 | **P0** | Navigation — compass & bearing skills | **Implementation queued** | #149 | deterministic SVG/React + calculations | Existing eight-point topic remains prerequisite; four follow-on topics from #140. Depends on #146. |
 | **P1** | Navigation — topographic map literacy | **Later, research completed** | #140 research | synthetic deterministic contours / later real-map transfer | Valid beginner subset exists, but defer until #149 proves the shared visual-exercise system and cartographic QA is available. |
 | **P2** | Rigging / mechanical advantage | Parked | — | deterministic diagrams + calculations | Principles may fit; physical knot/rigging execution does not. |
@@ -60,7 +60,7 @@ Research approval does not itself authorize implementation. A build issue exists
 | Issue | Relationship |
 | --- | --- |
 | #129 — Beaufort visual guide | Existing environment visual-reference implementation; may reuse #146's Learn-media primitive if it fits without widening #146. |
-| #131 — WMO cloud genera visual field guide | Active implementation issue after completed #141 research. Asset acquisition/QA can proceed before #146; app integration follows #146. |
+| #131 — WMO cloud genera visual field guide | Active implementation issue after completed #141 research. Hero images and provenance are done; app integration follows #146. |
 | #132 — SCUBA equipment visual reference set | Existing visual-reference production work; useful for asset QA patterns but outside this expansion batch. |
 | #138 — Maritime research | Completed research authority for #147/#148. |
 | #139 — Radio communications/audio research | Completed research authority for #150/#151. |

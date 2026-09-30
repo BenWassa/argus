@@ -18,6 +18,7 @@ import '../learn/Reading.css'
 import type { RunTarget } from '../../app/routing/routes'
 import { hasPractice, practiceItemCount } from '../../domain/study/practiceTargets'
 import { REVIEW_LENGTH, isReviewTopic } from '../../domain/study/review'
+import { morseFocusLetters } from '../../domain/morse/fluency/focus'
 import { COPY_LEVEL_INFO, nextCopyLevel } from '../../domain/morse/fluency/copy'
 import type { Mode } from '../../domain/study/mode'
 import type { Topic } from '../../domain/library/topic'
@@ -144,7 +145,17 @@ export function TopicPage({
       setPlacementOpen(true)
       return
     }
+    // After the thirteen lessons, "the lesson" is going over what the course
+    // still owes; lesson 13 again could not confirm it.
+    if (acquisition.afterCourse && acquisition.owed.length > 0 && !acquisition.ready) {
+      startGoingOver()
+      return
+    }
     onStart('learn', [topic.id], { kind: 'lesson' })
+  }
+
+  function startGoingOver() {
+    onStart('learn', [topic.id], { kind: 'after-course' })
   }
 
   return (
@@ -244,9 +255,20 @@ export function TopicPage({
             <button
               className="quiet topic-alt"
               type="button"
-              onClick={() => onStart('learn', [topic.id], { kind: 'practice' })}
+              onClick={() =>
+                course
+                  ? // Keyed and by ear, over just the letters missed.
+                    onStart('learn', [topic.id], {
+                      kind: 'fluency',
+                      mode: 'sprint',
+                      letters: morseFocusLetters(topic),
+                    })
+                  : onStart('learn', [topic.id], { kind: 'practice' })
+              }
             >
-              Practise the {practiceCount} {practiceCount === 1 ? 'item' : 'items'} you missed
+              {course
+                ? `Practise the letters you missed — ${morseFocusLetters(topic).join(' ')}`
+                : `Practise the ${practiceCount} ${practiceCount === 1 ? 'item' : 'items'} you missed`}
             </button>
           )}
 
@@ -344,6 +366,8 @@ export function TopicPage({
               })
             }
             onCheck={startCheck}
+            owed={acquisition.owed}
+            onGoOver={startGoingOver}
           />
 
           {/* The course's own explanatory support, which had nowhere to be.
@@ -486,9 +510,11 @@ function PrimaryAction({
             number on screen three times inside four lines. The note says the
             one thing neither of them does: what pressing it is like. */}
         <span className="topic-primary-note">
-          {sitting?.active
-            ? `Resume after ${sitting.retrievals} retrievals.`
-            : 'Two new letters, then retrieval.'}
+          {journey.acquisition.afterCourse && journey.acquisition.owed.length > 0
+            ? 'Keyed, no new letters. Then the Test.'
+            : sitting?.active
+              ? `Resume after ${sitting.retrievals} retrievals.`
+              : 'Two new letters, then retrieval.'}
         </span>
       </button>
     )

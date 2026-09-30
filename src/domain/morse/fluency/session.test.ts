@@ -225,3 +225,20 @@ describe('corpus', () => {
     }
   })
 })
+
+describe('practising just the letters missed', () => {
+  it('asks only those letters in single-letter and group runs', () => {
+    for (const mode of ['sprint', 'ladder', 'groups'] as const) {
+      const run = startFluencyRun(mode, 6, FRESH, 7, new Set(), ['B', 'Q'])
+      const asked = new Set(run.prompts.flatMap((prompt) => Array.from(prompt.text)))
+      expect([...asked].sort()).toEqual(['B', 'Q'])
+    }
+  })
+
+  it('weights, but does not restrict, the whole alphabet when only a focus is given', () => {
+    const run = startFluencyRun('sprint', 6, FRESH, 7, new Set(['Q'] as const))
+    const asked = run.prompts.map((prompt) => prompt.text)
+    expect(asked).toContain('Q')
+    expect(new Set(asked).size).toBeGreaterThan(1)
+  })
+})
