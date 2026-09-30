@@ -52,12 +52,18 @@ The **full offline-first runtime guarantee is active scope in #113**, not yet a 
 - `docs/README.md` — documentation lifecycle and open/closed housekeeping.
 - `PRODUCT.md` — current implemented product contract and design principles.
 - `DESIGN.md` / `DESIGN.json` — current visual and interaction system.
+- `docs/LIBRARY_ROADMAP.md` — authoritative library-expansion priorities, families, issue ownership and execution order.
+- `docs/LIBRARY_RESEARCH_METHOD.md` — authoritative method for source hierarchy, completion claims, media choice, claim traceability, QA and implementation handoff for new library topics.
 - `docs/open/LIBRARY_TOPIC_ICONS.md` — active visual and asset contract for shipped topic icons on Library and Today.
 - `docs/open/LEARN_CONTENT_MODEL.md` — structured Learn schema/editorial contract.
-- `docs/open/ISSUE_104_EDITORIAL_IDENTITY.md` — active editorial direction for expanding Argus as an evidence-based practical miscellany.
-- `docs/open/ISSUE_104_LIBRARY_EXPANSION_RESEARCH.md` — first-pass research and admission criteria for compact finite-recall topics; its Batch A shipped as five catalog topics.
-- `docs/open/ISSUE_104_FIELD_HUMAN_SKILLS_EXPANSION.md` — companion research for practical human-systems skills and scenario-based learning; detailed candidate papers live under `docs/open/library-research/`.
-- `docs/open/ISSUE_104_SCENARIO_ITEMS.md` — proposed smallest scenario-item capability that would let the field and human-skills courses score their application claims.
+- `docs/closed/ISSUE_104_EDITORIAL_IDENTITY.md` — historical editorial framing from the completed #104 expansion programme.
+- `docs/closed/ISSUE_104_LIBRARY_EXPANSION_RESEARCH.md` — historical first-pass library research; its Batch A shipped as five catalog topics.
+- `docs/closed/ISSUE_104_FIELD_HUMAN_SKILLS_EXPANSION.md` — historical practical human-systems research; detailed candidate papers remain under `docs/open/library-research/` as source material.
+- `docs/closed/ISSUE_104_SCENARIO_ITEMS.md` — historical proposal for generic authored scenario items.
+- `docs/open/ISSUE_138_MARITIME_VISUAL_LITERACY.md` — active P0 research brief for vessel orientation, navigation lights/day shapes and signal flags.
+- `docs/open/ISSUE_139_RADIO_COMMUNICATIONS_AUDIO.md` — active P0 research brief for source-scoped radio procedure and audio drills.
+- `docs/open/ISSUE_140_COMPASS_BEARINGS_TOPO.md` — active P0 compass/bearings research plus the P1 topographic-map spike.
+- `docs/open/ISSUE_141_CLOUD_WEATHER_RECOGNITION.md` — active P0 cloud/weather recognition research; #131 remains downstream.
 - `docs/open/ISSUE_127_TODAY_REDESIGN_CONCEPTS.md` — proposed concepts for what Today holds and how it behaves (#127), companion to the visual-styling exploration in #126.
 - `docs/closed/LIBRARY_AUDIT.md` — reconciled shipped-library boundary/content audit.
 - `docs/closed/SEEDED_CONTENT_PROVENANCE.md` — authoritative source record and Test boundary for every shipped catalog topic.
