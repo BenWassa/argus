@@ -62,6 +62,16 @@ type LearnBlock =
   | { type: 'steps'; items: string[] }
   | { type: 'definitions'; items: { term: string; definition: string }[] }
   | { type: 'table'; columns: string[]; rows: string[][] }
+  | { type: 'entries'; entries: LearnEntry[] }
+  | { type: 'morse-character-packet'; characters: MorseCharacterLearnItem[] }
+
+interface LearnEntry {
+  marker: string   // the number or code the entry is known by
+  title: string    // what it names
+  meta?: string    // one line of factual metadata
+  fields: { label: string; text: string }[]
+  note?: string    // a qualification that belongs to this entry only
+}
 
 interface LearnCaseStudy {
   title: string
@@ -169,9 +179,9 @@ The parser normalizes whitespace but does not rewrite substantive content.
 Learn renders in this order for a rich topic:
 
 1. track/title/scope and finite item count;
-2. optional explanatory support;
-3. a visibly separate **Recall reference** containing the complete scored `items` set;
-4. the existing transition into Test.
+2. optional explanatory support (overview, sections, case studies);
+3. a visibly separate **What to remember** containing the complete scored `items` set (named **Recall reference** before #128);
+4. Limitations and Sources.
 
 Reference-only topics skip steps 2 and the extra separator label so their existing compact treatment remains intact.
 
@@ -180,6 +190,26 @@ Structured content uses native semantics: headings, paragraphs, lists, definitio
 Sources and limitations stay visible on the page. They are visually subordinate to the explanatory body, never hidden behind an interaction.
 
 No Learn structure uses concealed-answer or flip-card styling.
+
+### The `entries` block (#128)
+
+An entries block is a repeated reference whose natural unit is the entry, not a
+table row. The Beaufort scale is the first user: one entry per force, holding
+its term, knot range and the sea and land cues together, so the learner never
+joins the same force across two tables.
+
+It renders as an ordered list. Each entry has a heading made of its marker (the
+heaviest element) and title, then a mono meta line, then its labelled fields as
+a stacked definition list, then an optional note. Fields never sit in columns,
+so nothing scrolls sideways at any width. Every string is required and trimmed.
+An entry may have no fields; it may not have an empty label or text.
+
+### What to remember
+
+Where a topic has Learn content, the topic page sets its complete scored set,
+titled **What to remember**, after the explanation and before Limitations and
+Sources (`LearnSupport`'s `recall` slot). A reference-only topic keeps it as
+**The complete set**.
 
 ### The `morse-character-packet` block
 

@@ -80,6 +80,43 @@ const BEAUFORT = [
   ['Force 12', 'Hurricane — 64 knots or more'],
 ] as const
 
+/** ECCC's observed effects at sea, forces 0–12. Supporting cues; not scored. */
+const BEAUFORT_AT_SEA = [
+  'Sea surface like a mirror, but not necessarily flat.',
+  'Ripples with the appearance of scales are formed, but without foam crests.',
+  'Small wavelets, still short but more pronounced. Crests do not break. When visibility good, horizon line always very clear.',
+  'Large wavelets. Crests begin to break. Foam of glassy appearance. Perhaps scattered whitecaps.',
+  'Small waves, becoming longer. Fairly frequent whitecaps.',
+  'Moderate waves, taking a more pronounced long form. Many whitecaps are formed. Chance of some spray.',
+  'Large waves begin to form. The white foam crests are more extensive everywhere. Probably some spray.',
+  'Sea heaps up and white foam from breaking waves begins to be blown in streaks along the direction of the wind.',
+  'Moderately high waves of greater length. Edges of crests begin to break into the spindrift. The foam is blown in well-marked streaks along the direction of the wind.',
+  'High waves. Dense streaks of foam along the direction of the wind. Crests of waves begin to topple, tumble and roll over. Spray may affect visibility.',
+  'Very high waves with long overhanging crests. Dense white streaks of foam. Surface of the sea takes a white appearance. The tumbling of the sea becomes heavy and shock-like. Visibility affected.',
+  'Exceptionally high waves. Sea completely covered with long white patches of foam. Visibility affected.',
+  'Air filled with foam and spray. Sea entirely white with foam. Visibility seriously impaired.',
+] as const
+
+/** ECCC's observed effects on land, forces 0–12. Supporting cues; not scored. */
+const BEAUFORT_ON_LAND = [
+  'Smoke rises vertically.',
+  'Direction of wind shown by smoke drift, but not wind vanes.',
+  'Wind felt on face. Leaves rustle. Ordinary vane moved by wind.',
+  'Leaves and small twigs in constant motion. Wind extends light flag.',
+  'Raises dust and loose paper. Small branches are moved.',
+  'Small trees with leaves begin to sway. Crested wavelets form on inland waters.',
+  'Large branches in motion. Whistling heard in telephone wires. Umbrellas used with difficulty.',
+  'Whole trees in motion. Inconvenience felt in walking against wind.',
+  'Breaks twigs off trees. Generally impedes progress. Walking into wind almost impossible.',
+  'Slight structural damage occurs, e.g. roofing shingles may become loose or blow off.',
+  'Trees uprooted. Considerable structural damage occurs.',
+  'Widespread damage.',
+  'Rare. Severe widespread damage to vegetation and significant structural damage possible.',
+] as const
+
+const BEAUFORT_FORCE_12_NOTE =
+  'Environment and Climate Change Canada’s table prints 64–71 knots for force 12. The World Meteorological Organization treats hurricane force as Beaufort force 12 or over, with no upper limit, and the Met Office gives 64 knots or more, so Argus tests force 12 as 64 knots or more.'
+
 /**
  * RCMP CFSC Student Handbook (5th ed., 2014): ACTS as on p. 21, PROVE as in
  * §3.1.7 Table 4. Order is the acronym order and is part of the claim.
@@ -692,61 +729,28 @@ export function seedLibrary(): Library {
       learn: {
         kind: 'concise',
         overview: 'The Beaufort scale grades wind from force 0, calm, to force 12, hurricane. Each force has a name, a speed range in knots and effects that can be seen at sea and on land, so wind can be estimated by looking and a forecast speed can be pictured. The name and knot range are what Test asks; the effects below are for estimating.',
+        // #129 reserves the first position, straight after the overview, for
+        // the visual guide. It is a separate section when it lands; nothing
+        // here depends on it.
         sections: [
           {
-            heading: 'What each force looks like at sea',
+            heading: 'The scale',
             blocks: [
               {
-                type: 'table',
-                columns: ['Force', 'At sea'],
-                rows: [
-                  ['0', 'Sea surface like a mirror, but not necessarily flat.'],
-                  ['1', 'Ripples with the appearance of scales are formed, but without foam crests.'],
-                  ['2', 'Small wavelets, still short but more pronounced. Crests do not break. When visibility good, horizon line always very clear.'],
-                  ['3', 'Large wavelets. Crests begin to break. Foam of glassy appearance. Perhaps scattered whitecaps.'],
-                  ['4', 'Small waves, becoming longer. Fairly frequent whitecaps.'],
-                  ['5', 'Moderate waves, taking a more pronounced long form. Many whitecaps are formed. Chance of some spray.'],
-                  ['6', 'Large waves begin to form. The white foam crests are more extensive everywhere. Probably some spray.'],
-                  ['7', 'Sea heaps up and white foam from breaking waves begins to be blown in streaks along the direction of the wind.'],
-                  ['8', 'Moderately high waves of greater length. Edges of crests begin to break into the spindrift. The foam is blown in well-marked streaks along the direction of the wind.'],
-                  ['9', 'High waves. Dense streaks of foam along the direction of the wind. Crests of waves begin to topple, tumble and roll over. Spray may affect visibility.'],
-                  ['10', 'Very high waves with long overhanging crests. Dense white streaks of foam. Surface of the sea takes a white appearance. The tumbling of the sea becomes heavy and shock-like. Visibility affected.'],
-                  ['11', 'Exceptionally high waves. Sea completely covered with long white patches of foam. Visibility affected.'],
-                  ['12', 'Air filled with foam and spray. Sea entirely white with foam. Visibility seriously impaired.'],
-                ],
-              },
-            ],
-          },
-          {
-            heading: 'What each force looks like on land',
-            blocks: [
-              {
-                type: 'table',
-                columns: ['Force', 'On land'],
-                rows: [
-                  ['0', 'Smoke rises vertically.'],
-                  ['1', 'Direction of wind shown by smoke drift, but not wind vanes.'],
-                  ['2', 'Wind felt on face. Leaves rustle. Ordinary vane moved by wind.'],
-                  ['3', 'Leaves and small twigs in constant motion. Wind extends light flag.'],
-                  ['4', 'Raises dust and loose paper. Small branches are moved.'],
-                  ['5', 'Small trees with leaves begin to sway. Crested wavelets form on inland waters.'],
-                  ['6', 'Large branches in motion. Whistling heard in telephone wires. Umbrellas used with difficulty.'],
-                  ['7', 'Whole trees in motion. Inconvenience felt in walking against wind.'],
-                  ['8', 'Breaks twigs off trees. Generally impedes progress. Walking into wind almost impossible.'],
-                  ['9', 'Slight structural damage occurs, e.g. roofing shingles may become loose or blow off.'],
-                  ['10', 'Trees uprooted. Considerable structural damage occurs.'],
-                  ['11', 'Widespread damage.'],
-                  ['12', 'Rare. Severe widespread damage to vegetation and significant structural damage possible.'],
-                ],
-              },
-            ],
-          },
-          {
-            heading: 'The top of the scale',
-            blocks: [
-              {
-                type: 'paragraph',
-                text: 'Environment and Climate Change Canada’s table prints 64–71 knots for force 12. The World Meteorological Organization treats hurricane force as Beaufort force 12 or over, with no upper limit, and the Met Office gives 64 knots or more, so Argus tests force 12 as 64 knots or more.',
+                type: 'entries',
+                entries: BEAUFORT.map(([prompt, answer], force) => {
+                  const [term, range] = answer.split(' — ')
+                  return {
+                    marker: prompt.replace('Force ', ''),
+                    title: term,
+                    meta: range,
+                    fields: [
+                      { label: 'At sea', text: BEAUFORT_AT_SEA[force] },
+                      { label: 'On land', text: BEAUFORT_ON_LAND[force] },
+                    ],
+                    ...(force === 12 ? { note: BEAUFORT_FORCE_12_NOTE } : {}),
+                  }
+                }),
               },
             ],
           },

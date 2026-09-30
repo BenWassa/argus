@@ -98,6 +98,87 @@
   overflow-wrap: anywhere;
 }
 
+/* Entries: one unit per item of a repeated reference. The marker carries the
+   most weight, the title second, the metadata is a quiet mono line, and the
+   labelled fields stack beneath — never columns, so nothing scrolls sideways. */
+.learn-entries {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.learn-entry {
+  display: grid;
+  gap: var(--s-xs);
+  padding: var(--s-md) 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.learn-entry:last-child {
+  border-bottom: 0;
+}
+
+.learn-entry-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-sm);
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: var(--w-section);
+  line-height: 1.15;
+}
+
+.learn-entry-marker {
+  min-width: 2ch;
+  font-size: var(--t-page);
+  color: var(--ink);
+}
+
+.learn-entry-title {
+  font-size: var(--t-component);
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.learn-entry-meta {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--t-small);
+  color: var(--muted);
+}
+
+.learn-entry-fields {
+  display: grid;
+  gap: var(--s-xs);
+  margin: var(--s-xs) 0 0;
+}
+
+.learn-entry-fields dt {
+  font-size: var(--t-label);
+  font-weight: var(--w-label);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--subtle);
+}
+
+.learn-entry-fields dd {
+  margin: 0;
+  max-width: 68ch;
+  color: var(--muted);
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.learn-entry-note {
+  margin: var(--s-xs) 0 0;
+  max-width: 68ch;
+  font-size: var(--t-small);
+  line-height: 1.55;
+  color: var(--subtle);
+}
+
 /* Tables keep enough typographic width for words to remain words. At normal
    phone text sizes the 21.5em floor fits the reading column; as text scales up,
    that floor scales with it and the focusable wrapper becomes the local
@@ -279,7 +360,7 @@
   letter-spacing: 0.05em;
   /* No text-transform: a prompt is content, and its case can be the thing
      being tested (σ/ς, m/M). Uppercasing turned Greek small letters into
-     capitals in the Recall reference. */
+     capitals in What to remember. */
   color: var(--subtle);
 }
 

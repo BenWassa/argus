@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import type { LearnBlock, LearnContent, LearnSection } from '../../domain/learning/content'
 import { MorseCharacterPacket } from '../morse/MorseCharacterPacket'
 
@@ -47,6 +48,31 @@ function LearnBlockView({ block }: { block: LearnBlock }) {
           </table>
         </div>
       )
+    case 'entries':
+      return (
+        <ol className="learn-entries">
+          {block.entries.map((entry, i) => (
+            <li className="learn-entry" key={`${entry.marker}-${i}`}>
+              <h4 className="learn-entry-head">
+                <span className="learn-entry-marker tabular">{entry.marker}</span>
+                <span className="learn-entry-title">{entry.title}</span>
+              </h4>
+              {entry.meta && <p className="learn-entry-meta tabular">{entry.meta}</p>}
+              {entry.fields.length > 0 && (
+                <dl className="learn-entry-fields">
+                  {entry.fields.map((field, f) => (
+                    <div key={`${field.label}-${f}`}>
+                      <dt>{field.label}</dt>
+                      <dd>{field.text}</dd>
+                    </div>
+                  ))}
+                </dl>
+              )}
+              {entry.note && <p className="learn-entry-note">{entry.note}</p>}
+            </li>
+          ))}
+        </ol>
+      )
     case 'morse-character-packet':
       return <MorseCharacterPacket characters={block.characters} />
   }
@@ -72,7 +98,12 @@ function LearnSections({ sections, inCase = false }: { sections: LearnSection[];
   )
 }
 
-export function LearnSupport({ content }: { content: LearnContent }) {
+/**
+ * `recall` is the topic's scored set, set by the topic page. It sits after the
+ * explanation and before Limitations and Sources, so the page reads explanation,
+ * then what to remember, then provenance.
+ */
+export function LearnSupport({ content, recall }: { content: LearnContent; recall?: ReactNode }) {
   const hasNotes = Boolean(content.limitations?.length || content.sources?.length)
 
   return (
@@ -94,6 +125,8 @@ export function LearnSupport({ content }: { content: LearnContent }) {
           )}
         </section>
       ))}
+
+      {recall}
 
       {hasNotes && (
         <div className="learn-notes">

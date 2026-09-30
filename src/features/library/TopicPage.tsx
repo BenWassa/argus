@@ -363,21 +363,14 @@ export function TopicPage({
         /* The reference, as reading rather than as a fold. A card shape promises
            a concealed answer; this conceals nothing, so it is set as a list. */
         <section className="topic-body" aria-labelledby="topic-reference-head">
-          {topic.learn && <LearnSupport content={topic.learn} />}
-
-          <h2 id="topic-reference-head" className="topic-reference-head">
-            {topic.learn ? 'Recall reference' : 'The complete set'}
-          </h2>
-
-          <ol className="sheet-items">
-            {topic.items.map((item, i) => (
-              <li key={item.id ?? `${item.prompt}-${i}`}>
-                <span className="sheet-num tabular">{String(i + 1).padStart(2, '0')}</span>
-                <span className="sheet-prompt">{item.prompt}</span>
-                <span className="sheet-answer">{item.answer}</span>
-              </li>
-            ))}
-          </ol>
+          {topic.learn ? (
+            <LearnSupport
+              content={topic.learn}
+              recall={<RecallReference topic={topic} heading="What to remember" />}
+            />
+          ) : (
+            <RecallReference topic={topic} heading="The complete set" />
+          )}
         </section>
       ) : null}
 
@@ -503,5 +496,23 @@ function PrimaryAction({
           : 'Every item, once, scored by you.'}
       </span>
     </button>
+  )
+}
+
+/** The complete scored set, as reading. */
+function RecallReference({ topic, heading }: { topic: Topic; heading: string }) {
+  return (
+    <div className="topic-reference">
+      <h2 id="topic-reference-head" className="topic-reference-head">{heading}</h2>
+      <ol className="sheet-items">
+        {topic.items.map((item, i) => (
+          <li key={item.id ?? `${item.prompt}-${i}`}>
+            <span className="sheet-num tabular">{String(i + 1).padStart(2, '0')}</span>
+            <span className="sheet-prompt">{item.prompt}</span>
+            <span className="sheet-answer">{item.answer}</span>
+          </li>
+        ))}
+      </ol>
+    </div>
   )
 }
