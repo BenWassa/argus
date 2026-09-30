@@ -1,6 +1,13 @@
 # Morse Learn: guided acquisition, finite sittings, listening, path, and reference
 
-**Status:** implemented; maintained contract for Morse Learn. The dated correction block below supersedes older statements where they conflict.
+**Status:** implemented; maintained contract for Morse Learn. The dated correction blocks below supersede older statements where they conflict.
+
+> **After the course — 2026-09-30.** The thirteen lessons alone could not make a real learner ready. Readiness needs every letter produced correctly in a sitting after the one that taught it. Q and Y are taught in the last lesson, and the confusable-separation rule keeps B and Z (and, for a clean learner, C and J) out of the rosters that follow. A whole-programme simulation confirmed that every learner with lesson history ended with `ready = false` and no way forward. `lesson.ts` adds two functions:
+>
+> - **`owedLetters(topic)`** returns the letters still unconfirmed (before readiness), plus any unrepaired miss.
+> - **`startAfterCourse(topic)`** returns a keyed, review-only run over those letters. The owed letters come first, the roster is filled to five by priority, and no confusable filter is applied. It is available once every letter has been met.
+>
+> The run opens in a sitting of its own (`LessonRun` closes any sitting still open), so its correct answers confirm. The journey names it **Go over missed letters** when the course is done but not ready, and the path shows **Go over Y · Q**. The end screen names what is still owed and offers another round, or the Test once nothing is. Learn still writes no ladder state. The simulation now asserts readiness within three after-course sittings, and that B, Q, Y and Z are repaired.
 
 > **Current correction, repair-review and chrome contract — 2026-09-19.** This
 > maintained contract supersedes the correction-dwell, review-marking and
