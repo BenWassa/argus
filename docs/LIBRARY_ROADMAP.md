@@ -10,10 +10,10 @@ This file is the single current answer to:
 
 - which Argus library families are being expanded;
 - which candidates are priority, exploratory, parked, or shipped;
-- which GitHub issue owns the next decision;
+- which GitHub issue owns the next decision or implementation;
 - which work is research versus implementation.
 
-Detailed evidence belongs in issue-specific research notes under `docs/open/`. Completed issue notes belong under `docs/closed/`. Historical research can remain available, but it does not override this roadmap.
+Detailed evidence belongs in issue-specific notes under `docs/open/`. Completed or superseded work belongs under `docs/closed/`. Historical research remains available for rationale but does not override this roadmap.
 
 ## Product rule
 
@@ -33,25 +33,25 @@ Do not build a subject merely because it sounds practical, military, survival-or
 
 ## Priority definitions
 
-- **P0 — active expansion:** approved for research now; likely implementation if the evidence supports the proposed boundary.
-- **P1 — research spike:** worth investigating, but scope/cost/medium fit is not yet proven.
-- **P2 — backlog:** plausible Argus material but not worth active research while higher-value families remain open.
+- **P0 — active expansion:** approved for implementation or immediate enabling work.
+- **P1 — later / research spike:** worthwhile, but not the next implementation priority.
+- **P2 — backlog:** plausible Argus material but not worth active work while higher-value families remain open.
 - **Shipped:** current catalog/product capability; may still have enhancement issues.
 
-Research approval is not implementation approval. Research must finish with exact completion claims and implementation handoffs before build issues are opened.
+Research approval does not itself authorize implementation. A build issue exists only after the research fixes the completion claim, source boundary, medium and QA approach.
 
 ## Current programme
 
 | Priority | Family / candidate | Current state | Owner issue | Intended medium | Decision / note |
 | --- | --- | --- | --- | --- | --- |
-| **P0** | Maritime — vessel orientation & terminology | Research complete — revise into prerequisite | #138 | HTML + deterministic orientation diagram | Do not create a standalone scored topic; keep the minimum vocabulary as Learn support for navigation-light reasoning. |
-| **P0** | Maritime — navigation lights & day shapes | Research complete — build recommended | #138 | deterministic SVG/React + visual drill | First boundary: 16 light/aspect items + 5 day shapes. Advanced/context-sensitive configurations are deferred. |
-| **P0** | Maritime — International Code of Signals flags | Research complete — build recommended | #138 | deterministic/redrawn SVG + visual recognition | First boundary: 12 safety/action signals — A, B, D, F, J, L, M, O, U, V, W, Y. Full code deferred. |
-| **P0** | Communications — radio procedure | Research approved | #139 | HTML + finite recall + structured interaction | Extend existing NATO/radiotelephony knowledge into source-scoped procedures. |
-| **P0** | Communications — audio listening/copy drills | Feasibility research approved | #139 | generated audio + transcript + interactive drill | Audio is promising; generated audio is presentation, never factual authority. |
-| **P0** | Environment — cloud & weather recognition | Research approved | #141 | sourced imagery first + HTML + visual drill | Ten WMO genera are the likely foundation; weather inference must remain narrower than forecasting. |
-| **P0** | Navigation — compass & bearing skills | Research approved | #140 | deterministic SVG/React + calculations | Bearings, reciprocal bearings, north references and declination are the likely core. |
-| **P1** | Navigation — topographic map literacy | Research spike | #140 | topo excerpts/synthetic deterministic diagrams + interaction | Scope, authoring difficulty and honest app-assessable competence are not yet known. |
+| **P0** | Shared visual content primitives | **Implementation ready** | #146 | Learn media + deterministic visual-choice item | Small reusable dependency justified by Maritime, Compass and Clouds; avoid a generic CMS/drawing language. |
+| **P0** | Maritime — vessel orientation, navigation lights & day shapes | **Implementation queued** | #147 | HTML + deterministic SVG/React + objective visual choice | Learn-only orientation prerequisite; 16 light/aspect items + 5 day shapes. Depends on #146. |
+| **P0** | Maritime — selected International Code of Signals flags | **Implementation queued** | #148 | deterministic/redrawn SVG + visual recognition | 12 signals: A, B, D, F, J, L, M, O, U, V, W, Y. Depends on #146. |
+| **P0** | Communications — Canadian radio procedure + marine VHF | **Implementation ready** | #150 | HTML + finite recall / structured sequence | Canadian general substrate from ISED RIC-22; marine procedure from CCG RAMN 2026. Can start independently. |
+| **P0** | Communications — prerecorded listening/copy drills | **Implementation queued** | #151 | local prerecorded speech + transcript + objective drill | Architecture can start; production scripts/assets depend on #150. No microphone/ASR in first release. |
+| **P0** | Environment — WMO cloud genera visual field guide | **Implementation/assets ready** | #131 | sourced real imagery + HTML Learn guide | Source/QA hero images can start now; UI integration uses #146. Scored photographic recognition remains deferred. |
+| **P0** | Navigation — compass & bearing skills | **Implementation queued** | #149 | deterministic SVG/React + calculations | Existing eight-point topic remains prerequisite; four follow-on topics from #140. Depends on #146. |
+| **P1** | Navigation — topographic map literacy | **Later, research completed** | #140 research | synthetic deterministic contours / later real-map transfer | Valid beginner subset exists, but defer until #149 proves the shared visual-exercise system and cartographic QA is available. |
 | **P2** | Rigging / mechanical advantage | Parked | — | deterministic diagrams + calculations | Principles may fit; physical knot/rigging execution does not. |
 | **P2** | Hazard symbols / placards | Parked | — | official pictograms + recognition | Strong phone fit but lower owner priority than current families. |
 
@@ -59,36 +59,55 @@ Research approval is not implementation approval. Research must finish with exac
 
 | Issue | Relationship |
 | --- | --- |
-| #129 — Beaufort visual guide | Existing environment visual-reference work; informs visual asset/layout practices. |
-| #131 — WMO cloud genera visual guide | Narrow downstream implementation/design issue. #141 now owns the broader research sequence and must determine whether #131 proceeds unchanged, is revised, or is superseded. |
-| #132 — SCUBA equipment visual reference set | Existing visual-reference production work; useful for asset QA patterns but not part of this expansion programme. |
-| #104 — practical skills / library expansion research | Historical research umbrella. Superseded as the current priority authority by this roadmap and #138–#141. |
+| #129 — Beaufort visual guide | Existing environment visual-reference implementation; may reuse #146's Learn-media primitive if it fits without widening #146. |
+| #131 — WMO cloud genera visual field guide | Active implementation issue after completed #141 research. Asset acquisition/QA can proceed before #146; app integration follows #146. |
+| #132 — SCUBA equipment visual reference set | Existing visual-reference production work; useful for asset QA patterns but outside this expansion batch. |
+| #138 — Maritime research | Completed research authority for #147/#148. |
+| #139 — Radio communications/audio research | Completed research authority for #150/#151. |
+| #140 — Compass/bearings + topo research | Completed research authority for #149; topo deferred. |
+| #141 — Cloud/weather research | Completed research authority for #131; fronts/maps deferred. |
+| #104 — practical skills / library expansion research | Historical research umbrella; superseded as priority authority by this roadmap. |
 
 ## Coherent capability families
 
 ### Maritime
 
-Research under #138 fixes the first progression as:
+The first programme is locked as:
 
 1. minimum vessel orientation/terminology as **Learn-only prerequisite**;
 2. 16 scored navigation-light items covering aspect logic and selected status signatures;
 3. 5 scored day-shape recognition items;
 4. 12 scored International Code of Signals safety/action flags;
-5. defer advanced light/shape cases and the full signal code until the first programme proves useful.
+5. advanced light/shape cases and the full signal code deferred until the first programme proves useful.
 
-The target competence is **decoding standardized vessel information**, not recreational-boating certification or navigation qualification. The first programme needs a small generic visual-stimulus capability, but that capability should be reconciled with #140 and #141 before implementation rather than designed from Maritime alone.
+The target competence is **decoding standardized vessel information**, not recreational-boating certification, collision-avoidance competence or navigation qualification.
 
 ### Communications
 
-Current shipped adjacency includes NATO phonetics, radiotelephony numbers and Morse. The next programme should determine whether a small source-scoped radio procedure curriculum plus audio listening/copy drills can deepen this into practical communications literacy.
+Current shipped adjacency includes NATO phonetics, radiotelephony numbers and Morse.
 
-Avoid treating marine, aeronautical, amateur and military phraseology as interchangeable.
+The next programme is explicitly Canadian and service-scoped:
 
-### Navigation & environment
+1. reconcile the existing phonetic/number foundations without changing their scored claims;
+2. Canadian general radio procedure from ISED RIC-22;
+3. Canadian marine VHF routine and priority communication from CCG RAMN 2026;
+4. clean prerecorded listening/copy as a separate evidence dimension.
 
-Compass/bearings and cloud/weather recognition are active P0 directions. Topographic map literacy is intentionally a P1 spike because the domain may require greater subject expertise, content generation and custom interaction than ordinary Argus topics.
+Aeronautical and amateur procedure remain separate future programmes. Military/tactical communications remain out of scope.
 
-Beaufort remains a useful shipped environmental reference and should not be duplicated inside weather research.
+### Navigation
+
+The existing eight-point bearings topic remains prerequisite. #149 adds whole-circle bearings, reciprocals, true/magnetic/grid references, supplied declination/convergence relationships and combined deterministic exercises.
+
+Topographic-map literacy is a valid later domain but intentionally deferred. Do not add live GIS, GPS or sensor dependencies to the first programme.
+
+### Environment
+
+Clouds proceed as a real-image-first WMO genus field guide. Natural variation is part of the lesson, so source-controlled photography is preferred over generated imagery.
+
+The first cloud release is Learn/reference only. Scored photo recognition requires the later dataset and held-out-image gate defined by #141. Weather associations remain narrower than forecasting. Fronts/weather-map literacy is a separate future topic.
+
+Beaufort remains a useful shipped environmental reference and should not be duplicated inside cloud work.
 
 ## Admission gate for a proposed topic
 
@@ -124,18 +143,34 @@ Do not bake essential labels or explanations into image assets.
 2. One scoped research issue owns the evidence and specification.
 3. Research follows `LIBRARY_RESEARCH_METHOD.md` and writes one durable note under `docs/open/`.
 4. Owner/research decision is **build / revise / defer**.
-5. Only then open bounded implementation issues. Prefer reusable capability issues when several approved topics need the same primitive.
-6. On completion, move issue-specific notes to `docs/closed/` and update this roadmap in the same PR or immediate follow-up.
+5. Only then open bounded implementation issues. Prefer reusable capability issues when several approved topics genuinely need the same primitive.
+6. Implementation issues keep lightweight status notes under `docs/open/`.
+7. On completion, move completed issue notes to `docs/closed/` and update this roadmap in the same PR or immediate follow-up.
 
 Do not use one perpetual umbrella issue for successive generations of library work.
 
 ## Current execution order
 
-The research lanes are distinct and can run independently:
+### Start now
 
-- **#138 Maritime — research complete; implementation handoff waits for cross-lane visual-capability comparison**
-- **#139 Radio communications/audio — research active**
-- **#140 Compass/bearings + topo spike — research active**
-- **#141 Cloud/weather — research active**
+1. **#146 — shared visual Learn + objective visual-choice primitives.** This is the critical dependency for #147, #148 and #149, and for #131's app integration.
+2. **#150 — Canadian radio procedure / marine VHF text programme.** Independent of #146 and safe to run in parallel.
+3. **#131 — cloud asset sourcing and QA.** Can run in parallel with #146 because real-image acquisition/provenance does not depend on the final Learn renderer.
 
-After the active lanes return, compare them together before opening implementation work. Prefer shared product primitives only where at least two approved topics genuinely need them; do not pre-build a generic media framework from speculation.
+### After #146
+
+4. **#147 — Maritime I: orientation, navigation lights and day shapes.**
+5. **#148 — Maritime II: selected signal flags.**
+6. **#149 — Compass & Bearings.**
+7. Integrate **#131** cloud assets/copy into the shared visual Learn primitive.
+8. Reconcile **#129** Beaufort with #146 only where the generic Learn-media primitive cleanly replaces bespoke work.
+
+### Radio follow-on
+
+9. **#151 — prerecorded speech drills.** Architecture may be explored alongside #150, but production scripts/audio must follow the landed #150 authority and wording.
+
+### Later
+
+- Topographic map literacy after #149 proves the shared visual exercise path and a cartographic QA approach is available.
+- Fronts/weather-map literacy as a separate future research/build topic.
+- Rigging and hazard placards remain parked P2 candidates.
