@@ -38,7 +38,12 @@ function defaultNow(): number {
  * answer.
  */
 export function ChoiceCard({ item, onAnswer, cardKey, now = defaultNow }: ChoiceCardProps) {
-  const [chosen, setChosen] = useState<string | null>(null)
+  // The chosen option is stamped with the card it was chosen on, so a new card
+  // reads as unanswered in the same render rather than after an effect has reset
+  // it. Otherwise the previous answer's feedback would show under the next
+  // question for one committed frame.
+  const [choice, setChoice] = useState<{ key: string; option: string } | null>(null)
+  const chosen = choice && choice.key === cardKey ? choice.option : null
   const startedAt = useRef(now())
   const continueRef = useRef<HTMLButtonElement>(null)
   const pending = useRef<ChoiceAnswer | null>(null)
@@ -56,7 +61,6 @@ export function ChoiceCard({ item, onAnswer, cardKey, now = defaultNow }: Choice
   const options = useMemo(() => shuffledOptions(item), [cardKey])
 
   useEffect(() => {
-    setChosen(null)
     startedAt.current = now()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cardKey])
@@ -75,7 +79,7 @@ export function ChoiceCard({ item, onAnswer, cardKey, now = defaultNow }: Choice
       response: option,
     }
     pending.current = answer
-    setChosen(option)
+    setChoice({ key: cardKey, option })
     answered(answer.correct)
   }
 
