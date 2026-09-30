@@ -1,6 +1,15 @@
 # Issue #93 — Firebase-authenticated learner progress sync
 
-Status: **mostly implemented — 2026-09-18.** The authenticated Firebase mirror, Security Rules, per-topic conflict planner and sign-in entry boundary are built and tested. **Issue #113 now owns the offline-runtime/storage follow-up**: IndexedDB local authority, atomic local write + sync intent, durable retry/outbox, production cold-launch caching, provisioned-device offline startup, storage lifecycle and sizing/download policy. #93 remains authority for cloud recovery, owner isolation, remote record shape and conservative cross-device conflict behavior.
+> **Progress-safety closeout — 2026-09-29.** The four gaps the 2026-09-18 audit found are settled as follows.
+>
+> 1. **Account switching.** The local library is bound to the account that first signs in on the device (`argus.library.owner.v1`). If a different account signs in, the current library is parked under its owner (`argus.library.parked.v1.<uid>`). The signed-in account gets its own parked library back, or a fresh seed that the first sync meeting fills from the cloud. Planning waits until the library on screen belongs to the signed-in account. If the other library cannot be parked, the switch is refused and the gate stays shut. See `switchLibraryOwner` in `localLibraryRepository.ts` and `bindOwner` in `LibraryProvider`.
+> 2. **Unreadable local state is kept.** A stored record that fails `JSON.parse` or the v5 parser is copied to `argus.library.recovery.v1` (last five, with reason and time) before the fresh library replaces it. Profile says so and offers the copy as a download.
+> 3. **`libraryMeta` syncs.** `catalogDelivered` travels as one canonical JSON text and merges as a set union, which cannot conflict because the set only grows. A meta record this build cannot read is left untouched.
+> 4. **The inbox's separate sign-in stays as is.** It shares the one Firebase session. Its own button and hook are a UI duplication, not a data-safety gap, and fall under the inbox's own contract.
+>
+> In addition, a cloud topic record this build cannot read is never pushed over on a first meeting: it is reported as a conflict, because it may be a later build's format. A record filed under one topic id that holds another is refused.
+
+Status: **implemented — 2026-09-29** (mostly implemented 2026-09-18, progress-safety closeout above). The authenticated Firebase mirror, Security Rules, per-topic conflict planner and sign-in entry boundary are built and tested. **Issue #113 now owns the offline-runtime/storage follow-up**: IndexedDB local authority, atomic local write + sync intent, durable retry/outbox, production cold-launch caching, provisioned-device offline startup, storage lifecycle and sizing/download policy. #93 remains authority for cloud recovery, owner isolation, remote record shape and conservative cross-device conflict behavior.
 
 This document is the durable implementation scope for GitHub issue #93.
 

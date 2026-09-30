@@ -76,6 +76,29 @@ export function topicJson(topic: Topic): string {
 }
 
 /**
+ * Library-level state as it travels: the record version and the catalog topics
+ * delivered so far, sorted and de-duplicated so two devices holding the same
+ * set write the same text.
+ */
+export function libraryMetaJson(catalogDelivered: readonly string[] | undefined): string {
+  return JSON.stringify({ version: 5, catalogDelivered: [...new Set(catalogDelivered ?? [])].sort() })
+}
+
+/** The delivered catalog ids a remote meta record holds, or null if it cannot be read. */
+export function parseLibraryMeta(json: string): string[] | null {
+  try {
+    const parsed: unknown = JSON.parse(json)
+    if (!parsed || typeof parsed !== 'object') return null
+    const { version, catalogDelivered } = parsed as { version?: unknown; catalogDelivered?: unknown }
+    if (version !== 5 || !Array.isArray(catalogDelivered)) return null
+    if (!catalogDelivered.every((id): id is string => typeof id === 'string' && id.length > 0)) return null
+    return catalogDelivered
+  } catch {
+    return null
+  }
+}
+
+/**
  * Would taking this remote copy lose evidence the local one holds?
  *
  * A learner's history only ever grows: an attempt that happened does not
@@ -162,7 +185,10 @@ export function wouldLoseEvidence(remoteJson: string, local: Topic): boolean {
 function firstMeeting(localJson: string, local: Topic, record: RemoteRecord): SyncAction | null {
   if (localJson === record.json) return null
   const remote = weighJson(record.json)
-  if (!remote) return { kind: 'push', topicId: local.id, json: localJson, revision: record.revision + 1 }
+  // A remote copy this build cannot read is not evidence that it is worth less
+  // than the local one: it may be a later build's format. Pushing over it would
+  // destroy the only copy of whatever it holds, so it is reported instead.
+  if (!remote) return null
   const mine = weigh(local)
   const remoteCovers = covers(remote, mine)
   const localCovers = covers(mine, remote)

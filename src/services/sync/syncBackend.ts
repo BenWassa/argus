@@ -28,7 +28,7 @@ export interface SyncBackend {
   /** Library-level state that belongs to no single topic. */
   observeMeta(
     uid: string,
-    onMeta: (json: string | null) => void,
+    onMeta: (meta: { json: string; revision: number } | null) => void,
     onError: (error: string) => void,
   ): Unsubscribe
   pushMeta(uid: string, json: string, revision: number): Promise<void>

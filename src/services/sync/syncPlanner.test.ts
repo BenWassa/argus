@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
+  libraryMetaJson,
   nextLedger,
+  parseLibraryMeta,
   planSync,
   topicJson,
   wouldLoseEvidence,
@@ -310,5 +312,28 @@ describe('the first sync on a new device', () => {
     const plan = planSync([mine], [remote('knots', theirs, 4)], {})
     expect(plan.actions).toEqual([])
     expect(plan.conflicts).toEqual(['knots'])
+  })
+})
+
+describe('a remote copy this build cannot read', () => {
+  it('is never pushed over on a first meeting, only reported', () => {
+    const local = topic('knots', { history: [{ at: '2026-09-01T00:00:00.000Z', correct: 3, total: 3, resolvedTo: 'drilled' }] })
+    const unreadable: RemoteRecord = { topicId: 'knots', json: '{ from a later build', revision: 4, updatedAtMs: 1_000 }
+    const { actions, conflicts } = planSync([local], [unreadable], {})
+    expect(actions).toEqual([])
+    expect(conflicts).toEqual(['knots'])
+  })
+})
+
+describe('library-level state', () => {
+  it('travels as one canonical text for the same set of delivered topics', () => {
+    expect(libraryMetaJson(['b', 'a', 'b'])).toBe(libraryMetaJson(['a', 'b']))
+    expect(parseLibraryMeta(libraryMetaJson(['b', 'a']))).toEqual(['a', 'b'])
+  })
+
+  it('refuses a record it cannot read rather than guessing at it', () => {
+    expect(parseLibraryMeta('{ nope')).toBeNull()
+    expect(parseLibraryMeta(JSON.stringify({ version: 6, catalogDelivered: [] }))).toBeNull()
+    expect(parseLibraryMeta(JSON.stringify({ version: 5, catalogDelivered: [1] }))).toBeNull()
   })
 })

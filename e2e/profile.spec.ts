@@ -108,3 +108,23 @@ test('confirming Profile reset restores only fresh shipped topics', async ({ pag
     )
     .toBe(true)
 })
+
+test('a stored library this version cannot read is kept, and Profile offers it back', async ({ page }) => {
+  await page.addInitScript(
+    ([storeKey, splashKey]) => {
+      window.localStorage.setItem(splashKey, 'true')
+      // Only the first load finds the damaged record; a reload must not
+      // re-plant it over the fresh library.
+      if (window.localStorage.getItem('argus.library.recovery.v1') === null) {
+        window.localStorage.setItem(storeKey, '{ "version": 5, "topics": [ damaged')
+      }
+    },
+    [STORE_KEY, SPLASH_KEY] as const,
+  )
+  await page.goto('./')
+  await page.getByRole('button', { name: 'Open profile' }).click()
+  await expect(page.getByText(/could not read was kept, not overwritten/)).toBeVisible()
+  const download = page.waitForEvent('download')
+  await page.getByRole('button', { name: 'Download unreadable copy' }).click()
+  expect((await download).suggestedFilename()).toMatch(/^argus-unreadable-\d{4}-\d{2}-\d{2}\.json$/)
+})
