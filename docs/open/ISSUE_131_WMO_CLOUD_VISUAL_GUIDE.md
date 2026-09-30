@@ -1,65 +1,87 @@
-# Issue #131 — WMO cloud genera visual guide
+# Issue #131 — WMO cloud genera visual field guide
 
-**Status:** downstream / hold final asset production pending #141  
+**Status:** implementation ready; asset sourcing can proceed, UI integration depends on #146  
 **Issue:** #131  
-**Upstream research:** #141 and `docs/open/ISSUE_141_CLOUD_WEATHER_RECOGNITION.md`  
+**Research authority:** #141 and `docs/open/ISSUE_141_CLOUD_WEATHER_RECOGNITION.md`  
+**Shared UI dependency:** #146  
 **Roadmap:** `docs/LIBRARY_ROADMAP.md`
 
-## Decision
+## Locked first phase
 
-Keep the ten WMO cloud genera as the likely first visual-reference topic after Beaufort, but do not lock the final production dataset until #141 resolves source hierarchy, licensing, exemplar diversity, AI fallback and QA.
+Build a **Learn/reference field guide** for the ten WMO cloud genera. Do not add scored photographic recognition in this issue.
 
-This first phase remains a **Learn/reference guide**, not a visual-recognition Test. One exemplar can introduce a genus, but it cannot prove that a learner can recognize the category across different real clouds.
+Use the WMO level allocation as the factual frame:
 
-## Information architecture
+- **High:** Cirrus, Cirrocumulus, Cirrostratus
+- **Middle:** Altocumulus, Altostratus, Nimbostratus
+- **Low-base:** Stratus, Stratocumulus, Cumulus, Cumulonimbus
 
-Provisional grouping:
+Explain that Nimbostratus commonly extends into other levels and that Cumulus/Cumulonimbus have low bases but may develop far upward. “Vertical development” may remain a descriptive teaching cue, not a fourth WMO altitude level.
 
-1. **High** — Cirrus, Cirrostratus, Cirrocumulus
-2. **Middle** — Altostratus, Altocumulus
-3. **Low** — Stratus, Stratocumulus, Nimbostratus
-4. **Vertical development** — Cumulus, Cumulonimbus
+## Learn structure
 
-#141 must verify the authoritative teaching boundary and whether this grouping needs qualification before production.
+Teach relationships rather than ten isolated cards:
 
-The app renders genus names and explanatory copy as HTML. Artwork contains no essential labels.
+1. what a cloud genus is and the ten-genus boundary;
+2. WMO level framework;
+3. one strong real-world hero image per genus with concise HTML cues;
+4. comparison sections for Cc/Ac/Sc, Cs/As/Ns, St/Sc and Cu/Cb;
+5. “what clouds can and cannot tell you” with the forecasting boundary stated plainly.
 
-## First asset set
+Essential names/cues/explanations remain HTML.
 
-Provisional target: ten individual realistic sky images, one clear introductory exemplar per genus.
+## Asset policy
 
-Prefer correctly identified, reusable real-world imagery where practical. AI-generated imagery is a fallback, not the factual authority.
+Prefer real correctly identified photography in this order:
 
-The images do not need to form a continuous panorama. They should instead prioritize representative diagnostic form and believable atmospheric appearance.
+1. Wikimedia Commons with clear reusable rights and independently verified identity;
+2. government/agency imagery with clear item-level reuse terms and identification;
+3. direct permission where a useful gap remains;
+4. AI-generated imagery only as a strict unscored fallback.
 
-## Production rules
+WMO Atlas imagery is classification/QA authority, not a default production library; do not copy an Atlas image without the required reuse rights.
 
-- follow `docs/LIBRARY_RESEARCH_METHOD.md` and the asset/licensing decision from #141;
-- realistic natural sky imagery rather than stylized weather art;
-- no baked-in essential labels;
-- no dramatic treatment that obscures diagnostic form;
-- each asset independently reviewed against authoritative identification guidance before acceptance;
-- avoid near-duplicate exemplars that make adjacent genera harder to distinguish;
-- retain source, license/attribution and QA notes for every accepted sourced asset;
-- generated assets require explicit QA and never substitute for the source authority.
+Store optimized local derivatives rather than hotlinking.
 
-## App presentation
+Every accepted image needs a durable provenance record covering at least:
 
-Preferred first treatment remains a mobile carousel or grouped visual strip with one genus per card and the altitude/development grouping visible as section context, subject to #141.
+- Argus asset ID and intended genus;
+- role/use in Learn;
+- source/file URL and creator/organization;
+- exact licence/public-domain basis and required attribution;
+- crop/derivative notes;
+- packaged SHA-256;
+- classification evidence / WMO cues used in QA;
+- represented confusion set or diagnostic cue;
+- QA disposition and review date.
 
-The visual guide should sit before detailed textual/reference material if the topic ships.
+## Scored recognition gate
 
-## Future recognition phase
+One hero photograph per genus is orientation material, not evidence of robust recognition.
 
-Do not build a scored visual Test from the first ten images. Robust category recognition requires multiple varied exemplars per genus, with acquisition and Test images separated so the learner is not simply memorizing photographs. #141 owns the minimum exemplar-diversity recommendation.
+Do not build a photographic Test here. #141 sets the current Argus product gate for any later scored genus-recognition programme at **at least 8 independent real photographs per genus (80 total), with 5 held out per genus**, plus a suitable visual-Test capability and independent QA.
 
-## Completion for this issue
+Treat that number as an Argus QA threshold, not a universal scientific minimum.
 
-Proceed after #141 produces a build recommendation and the following are resolved:
+## Weather boundary
 
-- source hierarchy and cloud-identification boundary;
-- asset acquisition/licensing strategy;
-- ten hero assets pass category QA;
-- grouped mobile layout is defined;
-- asset provenance is recorded;
-- Learn copy is scoped without expanding into unsupported forecasting, cloud species or varieties.
+Teach only source-backed observable/definitional associations that support identification or describe present conditions. Do not add deterministic future-weather rules based on one photograph.
+
+Fronts/weather-map literacy, cloud species/varieties and advanced meteorology remain separate future work.
+
+## Implementation sequence
+
+1. Source and QA the ten hero images plus provenance records — can proceed now.
+2. Prepare concise genus/comparison Learn copy directly from #141's researched cues.
+3. After #146 lands, implement the visual/media guide using the shared Learn primitive.
+4. Validate at phone widths and keep all essential text accessible.
+
+## Completion
+
+- ten WMO genera represented by independently QA'd real hero images where feasible;
+- authoritative grouping/exceptions are correct;
+- confusion-set teaching is present;
+- every asset has complete rights + classification provenance and packaged hash;
+- guide uses the shared #146 Learn visual primitive;
+- no scored photographic recognition or deterministic forecasting claim ships;
+- relevant browser/accessibility checks pass.
