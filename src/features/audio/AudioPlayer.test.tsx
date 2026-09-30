@@ -88,6 +88,8 @@ describe('AudioPlayer', () => {
     fireEvent(audioElement(), new Event('error'))
     expect(onUnavailable).toHaveBeenCalledTimes(1)
     expect(screen.getByRole('button').textContent).toMatch(/Unavailable/)
+    // A disabled, failed control is not described to a screen reader as a replay.
+    expect(screen.getByRole('button', { name: 'Recording unavailable: x' })).toBeTruthy()
   })
 
   it('stops on unmount and when the page is hidden', () => {

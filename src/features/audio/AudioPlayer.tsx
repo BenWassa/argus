@@ -104,7 +104,7 @@ export function AudioPlayer({ src, label, onPlay, onUnavailable }: AudioPlayerPr
         type="button"
         className="audio-play"
         disabled={state === 'error'}
-        aria-label={`${verb} recording: ${label}`}
+        aria-label={state === 'error' ? `Recording unavailable: ${label}` : `${verb} recording: ${label}`}
         onClick={press}
       >
         <span className="audio-play-mark" aria-hidden="true">
