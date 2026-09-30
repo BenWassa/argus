@@ -26,7 +26,7 @@ function seeded(id: string): Topic {
   return topic
 }
 
-const reading = (topic: Topic) => gaugeReading(topic, journeyFor(topic, NOW))
+const reading = (topic: Topic) => gaugeReading(topic, journeyFor(topic))
 
 describe('the gauge reads an ordinary topic honestly', () => {
   /**
@@ -48,7 +48,7 @@ describe('the gauge reads an ordinary topic honestly', () => {
       itemEvidence: {},
     }
 
-    const journey = journeyFor(topic, NOW)
+    const journey = journeyFor(topic)
     // The trap is real: the underlying view genuinely reports zero coverage.
     expect(journey.evidence.covered).toBe(0)
     expect(journey.evidence.total).toBe(26)
@@ -74,12 +74,12 @@ describe('the gauge reads an ordinary topic honestly', () => {
 describe('the gauge picks the most specific earned reading', () => {
   it('reports acquisition while a curriculum is still introducing its roster', () => {
     const topic = seeded(MORSE_ID)
-    const result = gaugeReading(topic, journeyFor(topic, NOW))
+    const result = gaugeReading(topic, journeyFor(topic))
 
-    if (journeyFor(topic, NOW).acquisition.ready) {
+    if (journeyFor(topic).acquisition.ready) {
       // The shipped seed is already past acquisition; the branch is covered by
       // the explicit unready case below rather than by the seed's own state.
-      expect(['evidence', 'gap', 'complete', 'none']).toContain(result.kind)
+      expect(['evidence', 'complete', 'none']).toContain(result.kind)
       return
     }
 
@@ -150,19 +150,10 @@ describe('every reading names its own units', () => {
     expect(gaugeLabel({ kind: 'evidence', done: 9, total: 26 })).toBe(
       '9 of 26 items',
     )
-    expect(gaugeLabel({ kind: 'gap', progress: 0.5, waitDays: 6 })).toBe(
-      null,
-    )
-  })
-
-  it('says day in the singular, and names a served gap rather than zero days', () => {
-    expect(gaugeLabel({ kind: 'gap', progress: 0.9, waitDays: 1 })).toBe(null)
-    expect(gaugeLabel({ kind: 'gap', progress: 1, waitDays: 0 })).toBe(null)
   })
 
   it('clamps a fill that the source measure overshot', () => {
-    expect(gaugeFill({ kind: 'gap', progress: 1.4, waitDays: 0 })).toBe(1)
-    expect(gaugeFill({ kind: 'gap', progress: -0.2, waitDays: 9 })).toBe(0)
+    expect(gaugeFill({ kind: 'evidence', done: 30, total: 26 })).toBe(1)
     expect(gaugeFill({ kind: 'evidence', done: 13, total: 26 })).toBe(0.5)
   })
 

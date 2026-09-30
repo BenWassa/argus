@@ -51,6 +51,8 @@ export type ParentRoute =
  */
 export type RunTarget =
   | { kind: 'lesson' }
+  /** A Test run the learner chose as the short unscored review (`review.ts`). */
+  | { kind: 'review' }
   | { kind: 'replay'; index: number }
   | { kind: 'checkpoint'; afterLesson: number }
   | { kind: 'practice'; itemIds?: string[] }
@@ -83,7 +85,7 @@ function isMode(value: unknown): value is Mode {
 
 function isRunTarget(value: unknown): value is RunTarget {
   if (!isRecord(value)) return false
-  if (value.kind === 'lesson') return true
+  if (value.kind === 'lesson' || value.kind === 'review') return true
   if (value.kind === 'practice') {
     return value.itemIds === undefined || isIdList(value.itemIds)
   }

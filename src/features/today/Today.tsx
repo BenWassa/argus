@@ -35,22 +35,13 @@ function militaryDate(date: Date): string {
 
 /**
  * What Today holds: topics the learner has already started and that are still
- * in motion. Due ones first, in the schedule's own ranking, then the ones
- * waiting out a gap, soonest first. A banked topic resting between spot checks
- * is not in motion and stays in Library until its check comes due; a topic
- * nobody has started is Library's to offer, not Today's.
+ * in motion, in the ladder's own ranking. Nothing waits on a clock, so every
+ * started topic that is not banked is here. A banked topic rests in Library,
+ * where it can be checked whenever the learner chooses; a topic nobody has
+ * started is Library's to offer, not Today's.
  */
 export function inProgress(entries: JourneyEntry[]): JourneyEntry[] {
-  const started = entries.filter((entry) => entry.topic.items.length > 0 && hasStarted(entry))
-  const due = dueEntries(started)
-  const dueIds = new Set(due.map((entry) => entry.topic.id))
-  const waiting = started
-    .filter((entry) => !dueIds.has(entry.topic.id) && entry.topic.status !== 'completed')
-    .sort(
-      (a, b) =>
-        a.journey.waitDays - b.journey.waitDays || a.topic.title.localeCompare(b.topic.title),
-    )
-  return [...due, ...waiting]
+  return dueEntries(entries.filter((entry) => entry.topic.items.length > 0 && hasStarted(entry)))
 }
 
 /** Mirrors the seeded library, so the empty state teaches the shape of a topic
@@ -138,7 +129,7 @@ export function Today({ onOpenTopic, onGoToLibrary, onOpenProfile }: TodayProps)
   const active = inProgress(entries)
 
   // Nothing in motion. Either nothing has been started, which Library is for,
-  // or everything started is banked and resting until a spot check is due.
+  // or everything started is banked.
   if (active.length === 0) {
     const anyStarted = practicable.some(hasStarted)
     return (
@@ -146,7 +137,7 @@ export function Today({ onOpenTopic, onGoToLibrary, onOpenProfile }: TodayProps)
         <Head stamp={stamp} onProfile={onOpenProfile} />
         <p className="today-note">
           {anyStarted
-            ? 'Everything you have started is banked. A topic comes back here when its spot check is due.'
+            ? 'Everything you have started is banked. Check any of it from the Library whenever you like.'
             : 'Nothing started yet. Start a topic in the Library and it will be here while you learn it.'}
         </p>
         {!anyStarted && (
@@ -161,15 +152,12 @@ export function Today({ onOpenTopic, onGoToLibrary, onOpenProfile }: TodayProps)
   }
 
   const visible = active.slice(0, TODAY_VISIBLE)
-  const leadId = visible[0].journey.due ? visible[0].topic.id : null
+  // Everything on Today is in motion, so the first plate is always the key.
+  const leadId = visible[0].topic.id
 
   return (
     <>
       <Head stamp={stamp} onProfile={onOpenProfile} />
-
-      {!leadId && (
-        <p className="today-note">Recall needs the gap to mean anything, so the schedule is holding.</p>
-      )}
 
       {/* A few large plates and nothing else: no batch button, no counts. Every
           plate opens its topic, the same page a Library plate opens, so a topic
@@ -223,9 +211,8 @@ function Head({
 }
 
 /**
- * One topic in motion, as a plate. It says why it is here in the schedule's
- * own words when it is due, and only that it is waiting when it is not: the
- * gauge shows how far along it is, and Today states no quantities.
+ * One topic in motion, as a plate. It says why it is here in the ladder's own
+ * words; the gauge shows how far along it is, and Today states no quantities.
  */
 function TodayPlate({
   entry,
@@ -256,7 +243,7 @@ function TodayPlate({
         {icon && <img className="topic-icon" src={icon} alt="" aria-hidden="true" />}
         <span className="index-title today-plate-title">{topic.title}</span>
         <span className={`due-reason${repair ? ' is-repair' : ''}`}>
-          {journey.due ? journey.statusLabel : 'Not due yet'}
+          {journey.statusLabel}
         </span>
         <TopicGauge topic={topic} journey={journey} variant="bare" />
       </button>

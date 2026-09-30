@@ -13,7 +13,7 @@ import {
   retentionCorrectCount,
   type AttemptAnswer,
 } from '../library/items'
-import { COMPLETION_GAP_DAYS, resolveAttempt } from '../study/scheduling'
+import { resolveAttempt } from '../study/scheduling'
 import { parseLibrary } from '../../infrastructure/persistence/libraryParser'
 import { seedLibrary } from '../library/catalogSeed'
 import type { IdentifiedItem, Topic } from '../library/topic'
@@ -317,7 +317,7 @@ describe('the qualifying delayed attempt and the words "both directions"', () =>
 describe('the qualifying delayed attempt and the scheduler gap', () => {
   const independent = () => bothDirections({ unassistedCorrect: 2 }, { unassistedCorrect: 2 })
 
-  it('banks a completion for a full clean independent bidirectional run after the gap', () => {
+  it('banks a completion for a full clean independent bidirectional run', () => {
     const topic = drilledTopic(storeFor(morseTopic(), independent))
     const attempt = attemptOf(topic, () => UNCUED_REVERSE)
 
@@ -328,22 +328,21 @@ describe('the qualifying delayed attempt and the scheduler gap', () => {
     expect(graded).toBe(26)
     expect(resolution.completed).toBe(true)
     expect(resolution.to).toBe('completed')
-    expect(resolution.gapDays).toBeGreaterThanOrEqual(COMPLETION_GAP_DAYS)
   })
 
-  it('leaves the gap itself the scheduler’s business: an early clean run cannot complete', () => {
+  it('banks a clean run whenever it is taken: no clock stands between drilled and completed', () => {
     const topic = drilledTopic(storeFor(morseTopic(), independent))
     const attempt = attemptOf(topic, () => UNCUED_REVERSE)
     const early = new Date('2026-01-20T00:00:00.000Z')
 
-    // The evidence gate passes and the scheduler still refuses: 19 days is not 30.
+    // The evidence gate passes, and nothing waits on elapsed time.
     expect(isQualifyingAttempt(topic.items, topic.itemEvidence, attempt)).toBe(true)
     const { resolution } = bank(topic, attempt, early)
     expect(resolution.completed).toBe(true)
     expect(resolution.topic.completedAt).toBe(early.toISOString())
   })
 
-  it('does not let the evidence gate advance, skip or reset a gap on its own', () => {
+  it('does not let the evidence gate advance the ladder on its own', () => {
     const topic = drilledTopic(storeFor(morseTopic(), independent))
     const attempt = attemptOf(topic, () => UNCUED_REVERSE)
     expect(isQualifyingAttempt(topic.items, topic.itemEvidence, attempt)).toBe(true)
@@ -597,7 +596,7 @@ describe('the whole journey, end to end', () => {
       }
 
       // Wait exactly as long as the scheduler says, so no gap is skipped.
-      day += before.status === 'drilled' ? COMPLETION_GAP_DAYS : 1
+      day += 1
     }
 
     expect(completed).toBe(true)
@@ -634,7 +633,7 @@ describe('the whole journey, end to end', () => {
       )
       topic = played.topic
       expect(played.resolution.completed).toBe(false)
-      day += before.status === 'drilled' ? COMPLETION_GAP_DAYS : 1
+      day += 1
     }
 
     expect(topic.completedAt).toBeNull()

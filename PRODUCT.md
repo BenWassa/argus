@@ -94,7 +94,7 @@ Turning a request into curriculum is editorial work that happens in the reposito
 
 ## Product Purpose
 
-Argus is a personal skill library built entirely from topics that can be genuinely finished: a fixed alphabet, a named framework with a known number of parts, a defined protocol. Every topic states its own boundary (`scope`) at authoring time; topics without an edge are rejected, not managed later. Completion requires recall after a gap, not exposure, and remains a durable, permanent record — decay routes a topic back to drilling without erasing that it was once completed.
+Argus is a personal skill library built entirely from topics that can be genuinely finished: a fixed alphabet, a named framework with a known number of parts, a defined protocol. Every topic states its own boundary (`scope`) at authoring time; topics without an edge are rejected, not managed later. Completion requires two clean scored Tests, not exposure, and remains a durable, permanent record — a failed check routes a topic back to repair without erasing that it was once completed. Nothing in the ladder reads a clock: the learner chooses when to Test, whether they open Argus five days in a row or five times a year (owner, 2026-09-29).
 
 Success, twelve months in: 40–60 completed topics that the owner can still recall cold, weeks after last opening the app.
 
@@ -121,7 +121,7 @@ The tradecraft and survival tracks pull hard toward military, prepper, or tactic
 
 1. **Finishability is the entry gate.** Every topic must state a hard boundary before it can exist in the library; the UI enforces this at authoring time rather than relying on discipline later.
 2. **Task-first over showcase-first.** The interface opens to "what's due" and "start Test," not to a summary or a pitch. Marketing-page instincts (heroes, slogans, eyebrows) are actively rejected on functional screens.
-3. **Retention over exposure, decay as routing not punishment.** Completion means recall survives a gap. Surfacing decay is diagnostic information, framed the same way as any other status, never as a failure state.
+3. **Retention over exposure, decay as routing not punishment.** Completion means recall held across two clean scored Tests, and a banked topic can be checked whenever the learner chooses; a failed check is decay. No rung, availability or label waits on elapsed time. Surfacing decay is diagnostic information, framed the same way as any other status, never as a failure state.
 4. **Portable and owner-owned.** Full JSON export/import is a first-class feature, not a settings-page afterthought — including optional structured Learn support. The interface should never make data feel trapped.
 5. **Restraint reads as competence.** One accent color, minimal chrome, and native typography carry the "capable and deliberate" tone. Restraint is not the same as flatness: the interface earns its calm through material, real typographic hierarchy, and one lit surface per view, not by removing contrast until everything sits at the same pitch.
 6. **The form must not lie about the content.** A card shape promises a concealed answer; a list promises scannability. Matching the surface to the actual task is a correctness requirement, not a style choice. Learn support therefore uses editorial structure, never concealed-answer styling.

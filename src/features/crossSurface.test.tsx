@@ -15,7 +15,7 @@ import {
   withLessonProgress,
   type LessonRun,
 } from '../domain/morse/curriculum/lesson'
-import { COMPLETION_GAP_DAYS, resolveStudy } from '../domain/study/scheduling'
+import { resolveStudy } from '../domain/study/scheduling'
 import { seedLibrary } from '../domain/library/catalogSeed'
 import { parseLibrary } from '../infrastructure/persistence/libraryParser'
 import type { Topic } from '../domain/library/topic'
@@ -267,14 +267,14 @@ describe('one learner state, three surfaces, one recommendation', () => {
       group: 'Not started',
     },
     {
-      name: 'an ordinary topic waiting out its delayed test',
+      name: 'an ordinary topic drilled days ago',
       topic: () => blank('cardinal-bearings', { status: 'drilled', drilledAt: ago(4) }),
       group: 'Started',
     },
     {
-      name: 'an ordinary topic ready for its delayed test',
+      name: 'an ordinary topic drilled yesterday',
       topic: () =>
-        blank('cardinal-bearings', { status: 'drilled', drilledAt: ago(COMPLETION_GAP_DAYS + 1) }),
+        blank('cardinal-bearings', { status: 'drilled', drilledAt: ago(1) }),
       group: 'Started',
     },
     {
@@ -283,7 +283,7 @@ describe('one learner state, three surfaces, one recommendation', () => {
       group: 'Started',
     },
     {
-      name: 'a completed topic waiting for its spot check',
+      name: 'a completed topic, banked',
       topic: () =>
         blank('cardinal-bearings', {
           status: 'completed',
@@ -437,9 +437,8 @@ describe('acquisition readiness moves every surface together', () => {
     // alphabet. Its Test is still one tap away, as a short review.
     expect(topicPrimary(topic)).toBe('Test')
     cleanup()
-    // The anchored one-day gap has not passed, so it is not today's work yet.
-    // It is still in motion, so Today shows it as waiting, and pressing it opens
-    // the topic, where an early Test and its consequence are both stated.
+    // It is in motion, so Today shows it with its ladder label, and pressing
+    // it opens the topic.
     renderToday()
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('ARGUS')
     const row = rowFor(topic.title, todayDocket())

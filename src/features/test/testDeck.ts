@@ -69,9 +69,9 @@ export function swipeDecks(topics: Topic[]): Set<string> {
 }
 
 /**
- * Which topics run as a short review rather than a scored attempt. Decided once
- * at session start, like everything else here: a run cannot turn from a review
- * into an attempt halfway through because a clock ticked over.
+ * Which of a review run's topics can actually run as one. Asked only when the
+ * learner chose the review; decided once at session start, like everything
+ * else here, so a run cannot change kind halfway through.
  */
 export function reviewTopics(topics: Topic[]): Set<string> {
   return new Set(topics.filter((topic) => isReviewTopic(topic)).map((topic) => topic.id))

@@ -3,57 +3,39 @@ import type { Status, Topic } from '../library/topic'
 /** A topic reaches `drilled` only on a clean session. No partial credit. */
 export const PASS_THRESHOLD = 1
 
-/** Two perfect scored attempts establish completion, with no time gate. */
-export const COMPLETION_GAP_DAYS = 0
-
-/** Completed topics come back for a spot check on this cadence. */
-export const SPOT_CHECK_DAYS = 90
-
-/** A second attempt may follow the first immediately. */
-export const LEARNING_GAP_DAYS = 0
-
-export function daysBetween(from: string, to: Date = new Date()): number {
-  const ms = to.getTime() - new Date(from).getTime()
-  return Math.floor(ms / 86_400_000)
-}
-
+/**
+ * Where a topic stands on the ladder, in the learner's words.
+ *
+ * Nothing here reads a clock (owner, 2026-09-29). A learner may use Argus five
+ * days running or five times a year, so no rung, availability or label waits on
+ * elapsed time: every topic can be Tested whenever the learner chooses. "Due"
+ * means *in motion* — started and not yet banked, or needing repair — which is
+ * what Today holds. A banked topic is not due, and can still be checked at any
+ * time.
+ */
 export interface DueReason {
   due: boolean
-  /** Shown to the user so the schedule is never a black box. */
+  /** Shown to the user so the ladder is never a black box. */
   label: string
-  /** Days remaining until due. Zero or negative when due now. */
-  waitDays: number
 }
 
-export function dueState(topic: Topic, now: Date = new Date()): DueReason {
+export function dueState(topic: Topic): DueReason {
   switch (topic.status) {
     case 'unstarted':
-      return { due: true, label: 'Not started', waitDays: 0 }
-
+      return { due: true, label: 'Not started' }
     case 'decayed':
-      return { due: true, label: 'Needs repair', waitDays: 0 }
-
-    case 'learning': {
-      return { due: true, label: 'Ready to test', waitDays: 0 }
-    }
-
-    case 'drilled': {
-      return { due: true, label: 'Ready to test again', waitDays: 0 }
-    }
-
-    case 'completed': {
-      const anchor = topic.spotCheckedAt ?? topic.completedAt
-      const since = anchor ? daysBetween(anchor, now) : 0
-      const wait = SPOT_CHECK_DAYS - since
-      return wait <= 0
-        ? { due: true, label: 'Spot check ready', waitDays: 0 }
-        : { due: false, label: `Spot check in ${wait} ${wait === 1 ? 'day' : 'days'}`, waitDays: wait }
-    }
+      return { due: true, label: 'Needs repair' }
+    case 'learning':
+      return { due: true, label: 'Ready to test' }
+    case 'drilled':
+      return { due: true, label: 'Ready to test again' }
+    case 'completed':
+      return { due: false, label: 'Banked' }
   }
 }
 
 /**
- * Repair first, then the delayed tests that can actually bank a completion, then
+ * Repair first, then the tests that can actually bank a completion, then
  * unfinished work. Exported so the journey layer ranks the day's work the same
  * way rather than inventing a second order for the same ladder.
  */
@@ -66,31 +48,13 @@ export const DUE_RANK: Record<Status, number> = {
 }
 
 /**
- * How far a waiting topic has travelled through its gap, 0 to 1, or null when
- * it is not waiting on one. The row already states the wait in words; this lets
- * a long shelf be scanned without reading every one of them.
- */
-export function gapProgress(topic: Topic, now: Date = new Date()): number | null {
-  const span =
-    topic.status === 'drilled' ? COMPLETION_GAP_DAYS
-    : topic.status === 'completed' ? SPOT_CHECK_DAYS
-    : null
-  if (span === null || span === 0) return null
-
-  const from = topic.status === 'drilled' ? topic.drilledAt : topic.spotCheckedAt ?? topic.completedAt
-  if (!from) return null
-
-  return Math.min(1, Math.max(0, daysBetween(from, now) / span))
-}
-
-/**
  * Deliberately starting acquisition moves a topic off `unstarted`. For an
  * ordinary topic this is explicit enrollment (`Start learning`); for a
  * progressive topic it is the canonical lesson start. Merely browsing a
  * reference must never call this function.
  *
- * No attempt or evidence is recorded: nothing was scored. The timestamp starts
- * the existing one-day learning gap.
+ * No attempt or evidence is recorded: nothing was scored. The timestamp records
+ * when learning began.
  */
 export function resolveStudy(topic: Topic, now: Date = new Date()): Topic {
   if (topic.status !== 'unstarted') return topic
@@ -105,8 +69,6 @@ export interface Resolution {
   completed: boolean
   /** True when a previously completed topic fell back for repair. */
   decayed: boolean
-  /** Gap in days that qualified a completion. */
-  gapDays: number | null
 }
 
 export interface AttemptOptions {
@@ -119,9 +81,8 @@ export interface AttemptOptions {
    * is decided by the journey layer, which does, and is handed here as one
    * boolean. `true` is the default and is every ordinary topic's answer.
    *
-   * An ineligible attempt is recorded exactly like a voluntary early Test —
-   * scored, kept in history, `lastTestedAt` updated — and moves no status and no
-   * clock in either direction. It cannot advance a rung it has not earned, and
+   * An ineligible attempt is scored, kept in history and updates
+   * `lastTestedAt`, and moves no status in either direction. It cannot advance a rung it has not earned, and
    * equally it cannot demote one: refusing to bank a result is not a failure.
    */
   advancementEligible?: boolean
@@ -146,25 +107,20 @@ export function resolveAttempt(
 
   let completed = false
   let decayed = false
-  let gapDays: number | null = null
 
   const eligible = options.advancementEligible ?? true
-  const due = dueState(topic, now).due
 
   if (!eligible) {
     // Recorded, and nothing else. See `AttemptOptions.advancementEligible`.
   } else if (from === 'unstarted') {
     // A first Test is itself a deliberate learning/check action, so it enrolls
-    // the topic, but it cannot also prove retention. Start the learning gap
-    // regardless of score.
+    // the topic, but it cannot also prove retention, whatever the score.
     next.status = 'learning'
     next.learningAt = at
-  } else if (!due && from !== 'decayed') {
-    // An early Test is recorded in history but cannot qualify a rung or reset
-    // the learning, completion, or spot-check evidence clocks.
   } else if (from === 'completed') {
-    // A spot check. Passing keeps the record; failing routes back to drilling
-    // without erasing that the topic was completed.
+    // A check, whenever the learner chooses to take one. Passing keeps the
+    // record; failing routes back to repair without erasing that the topic was
+    // completed.
     if (clean) {
       next.status = 'completed'
       next.spotCheckedAt = at
@@ -177,7 +133,6 @@ export function resolveAttempt(
       next.status = 'completed'
       next.completedAt = topic.completedAt ?? at
       completed = true
-      gapDays = topic.drilledAt ? daysBetween(topic.drilledAt, now) : 0
     } else {
       next.status = 'learning'
       next.drilledAt = null
@@ -203,7 +158,7 @@ export function resolveAttempt(
 
   next.history = [...topic.history, { at, correct, total, resolvedTo: next.status }]
 
-  return { topic: next, from, to: next.status, completed, decayed, gapDays }
+  return { topic: next, from, to: next.status, completed, decayed }
 }
 
 /**

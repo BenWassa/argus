@@ -46,7 +46,7 @@ export interface DirectionEvidence {
 
 /**
  * Learning state: deliberately a sibling of scheduler history. Cue progression
- * can use this evidence but cannot qualify, skip or reset a retention gap.
+ * can use this evidence but cannot move the retention ladder.
  */
 export interface ItemCueEvidence {
   cue: CueState

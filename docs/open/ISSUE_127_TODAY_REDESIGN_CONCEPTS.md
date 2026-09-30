@@ -1,6 +1,12 @@
 # Issue #127 — Today redesign concepts
 
 **Status:** concept proposal / owner decision — not implemented, apart from the interim plate layout in §2
+
+> **No-clock note — 2026-09-29.** The owner removed time-based scheduling, which changes this paper's premises in three places:
+>
+> - A started topic is never "waiting", so the `Not due yet` plate in §2 is gone.
+> - Question 5 is answered: nothing waits, so A matters more, and D's rungs are Start · Drill · Recall · Banked with no time between them.
+> - Concept E's clear day now means "everything started is banked".
 **Date:** 2026-09-25
 **Issue:** #127
 **Relationship:** companion to #126. #126 explores how Today *looks* through owner-reviewed mockups and keeps Today's content and behaviour fixed. This paper is about what Today *holds* and how it *behaves*; its concepts are inputs #126's mockups can dress. Scheduling semantics stay with `PROGRESS_ARCHITECTURE.md`.

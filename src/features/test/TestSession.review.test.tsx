@@ -77,11 +77,11 @@ afterEach(() => {
   localStorage.clear()
 })
 
-describe('a Test between scheduled checks', () => {
+describe('a Test the learner chose as a review', () => {
   it(`asks ${REVIEW_LENGTH} letters with no hints, and says it is a review`, () => {
     render(
       <LibraryProvider>
-        <TestSession topicIds={[MORSE_ID]} onExit={() => undefined} />
+        <TestSession topicIds={[MORSE_ID]} review onExit={() => undefined} />
       </LibraryProvider>,
     )
     expect(position()).toBe(`1/${REVIEW_LENGTH}`)
@@ -95,7 +95,7 @@ describe('a Test between scheduled checks', () => {
     const before = storedMorse()
     render(
       <LibraryProvider>
-        <TestSession topicIds={[MORSE_ID]} onExit={() => undefined} />
+        <TestSession topicIds={[MORSE_ID]} review onExit={() => undefined} />
       </LibraryProvider>,
     )
 
@@ -115,6 +115,6 @@ describe('a Test between scheduled checks', () => {
     // And nothing was put back on a cue after a miss.
     for (const evidence of Object.values(after.itemEvidence ?? {})) expect(evidence.cue).toBe('free')
 
-    expect(document.body.textContent).toContain('keeps your schedule exactly where it is')
+    expect(document.body.textContent).toContain('moves nothing on the ladder')
   }, 60000)
 })

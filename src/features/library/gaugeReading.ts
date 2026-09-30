@@ -4,10 +4,10 @@ import type { Topic } from '../../domain/library/topic'
 /**
  * Which progress reading a topic is entitled to show, and in what units.
  *
- * `journeyFor` already computes four independent progress ratios — acquisition
- * settlement, formal evidence coverage, the retention gap and the lesson
- * sitting — and until now the interface rendered essentially none of them. The
- * Library row carried a three-pixel `aria-hidden` sliver of the third, and the
+ * `journeyFor` already computes independent progress ratios — acquisition
+ * settlement, formal evidence coverage and the lesson sitting — and until now
+ * the interface rendered essentially none of them. The Library row carried a
+ * three-pixel `aria-hidden` sliver of a retention gap (since removed), and the
  * topic page, which is the page *about one topic*, carried no progress at all.
  * Nothing here computes a new measure. It chooses which existing one is the
  * true thing to say and hands over its units.
@@ -42,8 +42,6 @@ export type GaugeReading =
   | { kind: 'acquisition'; done: number; total: number }
   /** Independent evidence in every direction the content requires. */
   | { kind: 'evidence'; done: number; total: number }
-  /** Evidence is in; the required retention gap is elapsing. */
-  | { kind: 'gap'; progress: number; waitDays: number }
 
 /**
  * Whether this topic records per-item evidence at all.
@@ -67,7 +65,7 @@ export function gaugeReading(topic: Topic, journey: TopicJourney): GaugeReading 
   // and its live reading is the truthful one to show.
   if (journey.retention.status === 'completed') return { kind: 'complete' }
 
-  const { acquisition, evidence, retention } = journey
+  const { acquisition, evidence } = journey
 
   // Acquisition first, because while it is running it is the only thing the
   // learner can act on — the retention ladder is gated behind it anyway.
@@ -77,12 +75,6 @@ export function gaugeReading(topic: Topic, journey: TopicJourney): GaugeReading 
 
   if (keepsItemEvidence(topic) && evidence.total > 0 && !evidence.complete) {
     return { kind: 'evidence', done: evidence.covered, total: evidence.total }
-  }
-
-  // `gated` means acquisition is still holding retention back, so the gap has
-  // not started and its progress would describe a clock that is not running.
-  if (!retention.gated && retention.gapProgress !== null) {
-    return { kind: 'gap', progress: retention.gapProgress, waitDays: retention.waitDays }
   }
 
   return { kind: 'none' }
@@ -105,8 +97,6 @@ export function gaugeLabel(reading: GaugeReading): string | null {
       return `${reading.done} of ${reading.total} letters`
     case 'evidence':
       return `${reading.done} of ${reading.total} items`
-    case 'gap':
-      return null
   }
 }
 
@@ -120,7 +110,5 @@ export function gaugeFill(reading: GaugeReading): number | null {
     case 'acquisition':
     case 'evidence':
       return reading.total > 0 ? Math.min(1, Math.max(0, reading.done / reading.total)) : null
-    case 'gap':
-      return Math.min(1, Math.max(0, reading.progress))
   }
 }

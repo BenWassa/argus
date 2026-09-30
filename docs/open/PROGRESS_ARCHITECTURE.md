@@ -1,5 +1,16 @@
 # Argus progress architecture
 
+> **No-clock addendum — 2026-09-29.** The owner removed time-based scheduling. This supersedes every gap, spot-check and "waiting" statement below.
+>
+> - `scheduling.ts` has no gap constants, `daysBetween`, `gapProgress` or `waitDays`.
+> - `dueState(topic)` is a pure status reading: `unstarted`, `learning`, `drilled` and `decayed` are due, meaning in motion. `completed` is **Banked** and not due.
+> - `resolveAttempt` has no early-Test branch. A clean run advances whenever it is taken, two clean scored Tests bank a completion, and a Test on a banked topic is a check: pass keeps it and stamps `spotCheckedAt`; fail marks it `decayed` with `completedAt` kept.
+> - `advancementEligible: false` still holds a Morse Test back while acquisition is unfinished. That gate is about readiness, not time.
+> - The journey phase `waiting` is now `banked`, and the Library shelf `waiting` is now `banked`.
+> - Today holds every started topic that is in motion.
+> - `spotCheckedAt` stays in the v5 schema, so no migration is needed.
+> - Morse sitting ordinals ("a later sitting") are not a clock and are unchanged.
+
 > **Current Morse pacing update — 2026-09-18.** The maintained [Morse lesson contract](MORSE_LESSON.md) supersedes references below to a mandatory ten-answer sitting. Sitting counters retain actual attempts, including retries beyond ten; roster completion ends the lesson early without review filler. Durable acquisition, listening, and formal retention evidence remain separate.
 
 > **Repair-debt addendum — 2026-09-19.** `MorseReviewItem` gains one optional

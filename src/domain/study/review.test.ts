@@ -7,7 +7,6 @@ import { REVIEW_LENGTH, isReviewTopic, reviewItems } from './review'
 import { buildDeck, reviewTopics } from '../../features/test/testDeck'
 
 const MORSE_ID = 'international-morse-letters-printed'
-const NOW = new Date('2026-09-25T12:00:00.000Z')
 
 function seeded(id: string): Topic {
   const parsed = parseLibrary(seedLibrary())
@@ -60,22 +59,21 @@ function allHeld(topic: Topic, lastAt = '2026-09-01T00:00:00.000Z'): Record<stri
 
 describe('when a Test runs as a review', () => {
   it('reviews an acquired topic between scheduled checks', () => {
-    expect(isReviewTopic(acquired(), NOW)).toBe(true)
+    expect(isReviewTopic(acquired())).toBe(true)
   })
 
-  it('runs the full deck when a scheduled check is due', () => {
-    const due = acquired({ completedAt: '2026-01-01T00:00:00.000Z' })
-    expect(isReviewTopic(due, NOW)).toBe(false)
+  it('can review a banked course however long ago it was banked', () => {
+    expect(isReviewTopic(acquired({ completedAt: '2020-01-01T00:00:00.000Z' }))).toBe(true)
   })
 
   it('runs the full deck for repair, which is always due', () => {
-    expect(isReviewTopic(acquired({ status: 'decayed', completedAt: '2026-01-01T00:00:00.000Z' }), NOW)).toBe(false)
+    expect(isReviewTopic(acquired({ status: 'decayed', completedAt: '2026-01-01T00:00:00.000Z' }))).toBe(false)
   })
 
   it('never reviews mid-curriculum or an ordinary topic', () => {
-    expect(isReviewTopic(acquired({ acquisitionReadyAt: undefined, lessonProgress: {} }), NOW)).toBe(false)
+    expect(isReviewTopic(acquired({ acquisitionReadyAt: undefined, lessonProgress: {} }))).toBe(false)
     const nato: Topic = { ...seeded('nato-phonetic'), status: 'drilled', drilledAt: '2026-09-24T00:00:00.000Z' }
-    expect(isReviewTopic(nato, NOW)).toBe(false)
+    expect(isReviewTopic(nato)).toBe(false)
   })
 })
 
@@ -106,14 +104,13 @@ describe('what a review asks', () => {
     expect(asked.slice(0, 3)).toEqual(['B', 'D', 'F'])
   })
 
-  it('builds a short deck for a review and the whole deck when a check is due', () => {
-    // `reviewTopics` reads the live clock, so these are anchored to the real present.
-    const now = new Date().toISOString()
-    const waiting = acquired({ completedAt: now })
-    expect(buildDeck([waiting], new Map(), reviewTopics([waiting]))).toHaveLength(REVIEW_LENGTH)
+  it('builds a short deck for a review and the whole deck for a check', () => {
+    const banked = acquired({ completedAt: '2020-01-01T00:00:00.000Z' })
+    expect(buildDeck([banked], new Map(), reviewTopics([banked]))).toHaveLength(REVIEW_LENGTH)
+    // Whether a run is a review is the learner's choice; a check passes none.
+    expect(buildDeck([banked], new Map(), new Set())).toHaveLength(banked.items.length)
 
-    const due = acquired({ completedAt: '2020-01-01T00:00:00.000Z' })
-    expect(reviewTopics([due]).size).toBe(0)
-    expect(buildDeck([due], new Map(), reviewTopics([due]))).toHaveLength(due.items.length)
+    const repair = acquired({ status: 'decayed', completedAt: '2020-01-01T00:00:00.000Z' })
+    expect(reviewTopics([repair]).size).toBe(0)
   })
 })

@@ -5,7 +5,7 @@ import {
   lessonSittingIsFresh,
   lessonSittingOf,
 } from '../morse/curriculum/lessonSitting'
-import { DUE_RANK, dueState, gapProgress } from './scheduling'
+import { DUE_RANK, dueState } from './scheduling'
 import type { Status, Topic } from '../library/topic'
 
 /**
@@ -17,7 +17,7 @@ import type { Status, Topic } from '../library/topic'
  * ```text
  * acquisition   can I retrieve this without the teaching support I am using?
  * evidence      have I demonstrated the directions the scored boundary requires?
- * retention     has demonstrated recall survived the required gap?
+ * retention     has demonstrated recall held across two clean scored Tests?
  * sitting       where am I in the finite task I am doing right now?
  * ```
  *
@@ -30,8 +30,8 @@ import type { Status, Topic } from '../library/topic'
  *
  * This module is that interpretation, and it is deliberately:
  *
- * - **pure** — `(topic, now) => TopicJourney`, no storage, no writes, no clock of
- *   its own, so a surface cannot get a different answer than a test does;
+ * - **pure** — `topic => TopicJourney`, no storage, no writes and no clock at
+ *   all, so a surface cannot get a different answer than a test does;
  * - **derived** — it holds nothing. Every value here is computed from durable
  *   fields owned by somebody else. There is no fifth progress database;
  * - **not a second scheduler** — `scheduling.ts` remains the retention
@@ -69,7 +69,7 @@ import type { Status, Topic } from '../library/topic'
 /** What the learner should do with this topic now. */
 export type TopicAction = 'author' | 'enroll' | 'learn' | 'test'
 
-/** The Topic page's primary label for a finished course between checks. */
+/** The Topic page's primary label for a banked course. */
 export const KEEP_GOING = 'Keep going'
 
 export interface AcquisitionView {
@@ -103,10 +103,6 @@ export interface RetentionView {
   /** The scheduler's own words, or the progressive wording where it differs. */
   label: string
   due: boolean
-  waitDays: number
-  gapProgress: number | null
-  /** The timestamp the current gap is measured from, after readiness anchoring. */
-  anchorAt: string | null
   /** True while progressive acquisition is holding retention back. */
   gated: boolean
 }
@@ -122,7 +118,8 @@ export interface SittingView {
   listeningSuppressed: boolean
 }
 
-export type JourneyPhase = 'authoring' | 'acquiring' | 'due' | 'waiting' | 'repair'
+/** `banked` is a completed topic: not in motion, and checkable at any time. */
+export type JourneyPhase = 'authoring' | 'acquiring' | 'due' | 'banked' | 'repair'
 
 export interface TopicJourney {
   topicId: string
@@ -148,7 +145,6 @@ export interface TopicJourney {
   /** One concise supporting line, or null when the status line says it all. */
   detail: string | null
   due: boolean
-  waitDays: number
   /** Whether a scored attempt may move this topic along the retention ladder. */
   advancementEligible: boolean
 }
@@ -162,10 +158,6 @@ const NOT_PROGRESSIVE: AcquisitionView = {
   packet: 0,
   packetCount: 0,
   readyAt: null,
-}
-
-function days(n: number): string {
-  return `${n} ${n === 1 ? 'day' : 'days'}`
 }
 
 function acquisitionView(topic: Topic): AcquisitionView {
@@ -210,41 +202,7 @@ function sittingView(topic: Topic, acquisition: AcquisitionView): SittingView | 
   }
 }
 
-/**
- * The timestamp the qualifying `learning → drilled` gap is measured from.
- *
- * For an ordinary topic this is deliberate enrollment (`Start learning`), not
- * a reference-page visit. Browsing has no retention anchor.
- *
- * For a progressive topic it is the moment acquisition became ready, which is
- * the whole point of #62's clock policy: a programme that runs for six weeks
- * must not arrive at its first scored Test having "waited" five weeks and six
- * days of that on a clock started while the learner was still on packet 1.
- *
- * A topic whose acquisition is complete but which carries no `acquisitionReadyAt`
- * was written before the field existed. It falls back to `learningAt`, which is
- * the pre-#62 behaviour: never stricter than what that learner already had.
- */
-export function retentionAnchor(topic: Topic, acquisition: AcquisitionView): string | null {
-  if (!acquisition.progressive) return topic.learningAt
-  if (!acquisition.ready) return null
-  return topic.acquisitionReadyAt ?? topic.learningAt
-}
-
-/**
- * The topic as the retention scheduler should read it.
- *
- * Only `learningAt` can differ, and only for a progressive topic. Handing the
- * scheduler an anchored copy keeps it the single implementation of every gap,
- * threshold and label rather than reimplementing `dueState` with one branch
- * changed.
- */
-function retentionTopic(topic: Topic, acquisition: AcquisitionView): Topic {
-  const anchor = retentionAnchor(topic, acquisition)
-  return anchor === topic.learningAt ? topic : { ...topic, learningAt: anchor }
-}
-
-export function journeyFor(topic: Topic, now: Date = new Date()): TopicJourney {
+export function journeyFor(topic: Topic): TopicJourney {
   const acquisition = acquisitionView(topic)
   const evidence = evidenceView(topic)
   const sitting = sittingView(topic, acquisition)
@@ -256,14 +214,11 @@ export function journeyFor(topic: Topic, now: Date = new Date()): TopicJourney {
     !acquisition.ready &&
     (topic.status === 'unstarted' || topic.status === 'learning')
 
-  const scheduled = dueState(retentionTopic(topic, acquisition), now)
+  const scheduled = dueState(topic)
   const retention: RetentionView = {
     status: topic.status,
     label: scheduled.label,
     due: scheduled.due,
-    waitDays: scheduled.waitDays,
-    gapProgress: gapProgress(topic, now),
-    anchorAt: retentionAnchor(topic, acquisition),
     gated,
   }
 
@@ -273,7 +228,7 @@ export function journeyFor(topic: Topic, now: Date = new Date()): TopicJourney {
       phase: 'authoring',
       acquisition,
       evidence,
-      retention: { ...retention, label: 'Needs items', due: false, waitDays: 0 },
+      retention: { ...retention, label: 'Needs items', due: false },
       sitting,
       action: 'author',
       actionLabel: 'Add items',
@@ -281,7 +236,6 @@ export function journeyFor(topic: Topic, now: Date = new Date()): TopicJourney {
       statusLabel: 'Needs items',
       detail: 'No prompts and answers yet, so there is nothing to read or test.',
       due: false,
-      waitDays: 0,
       advancementEligible: false,
     }
   }
@@ -306,8 +260,6 @@ export function journeyFor(topic: Topic, now: Date = new Date()): TopicJourney {
         ...retention,
         label: 'Not yet drilling',
         due: false,
-        waitDays: 0,
-        gapProgress: null,
       },
       sitting,
       action: 'learn',
@@ -318,7 +270,6 @@ export function journeyFor(topic: Topic, now: Date = new Date()): TopicJourney {
         ? parts.join(' · ')
         : `Guided lesson, ${acquisition.packetCount} lessons, ${acquisition.total} letters.`,
       due: true,
-      waitDays: 0,
       advancementEligible: false,
     }
   }
@@ -344,38 +295,20 @@ export function journeyFor(topic: Topic, now: Date = new Date()): TopicJourney {
       statusLabel: retention.label,
       detail: acquisition.progressive ? null : 'Reference browsing does not start progress.',
       due: true,
-      waitDays: 0,
       advancementEligible: true,
     }
   }
 
-  // A progressive topic waiting out its anchored learning gap is not "drilled
-  // today" — nothing drilled it. Say what is actually true of it.
-  //
-  // The same is true for an ordinary topic that has been deliberately enrolled
-  // but has no scored history yet. Enrollment starts the existing learning gap;
-  // it is not itself a drill and it is never inferred from reference browsing.
-  const progressiveLearning = acquisition.progressive && topic.status === 'learning'
-  const enrolledNotDrilled =
-    !acquisition.progressive && topic.status === 'learning' && topic.history.length === 0
-  const statusLabel = progressiveLearning
-    ? scheduled.due
-      ? 'Ready to test'
-      : `Test in ${days(scheduled.waitDays)}`
-    : enrolledNotDrilled
-      ? scheduled.due
-        ? 'Ready to test'
-        : 'Learning started'
-      : scheduled.label
+  const statusLabel = scheduled.label
 
   const phase: JourneyPhase =
-    topic.status === 'decayed' ? 'repair' : scheduled.due ? 'due' : 'waiting'
+    topic.status === 'decayed' ? 'repair' : scheduled.due ? 'due' : 'banked'
 
-  // After the alphabet and between scheduled checks, a Test can move nothing,
-  // so the fuller recommendation is to keep learning past it — Copy, from
-  // letters up to sentences. The action stays `test`: a row's quick verb still
-  // runs one, and between checks it runs as a short review (`review.ts`).
-  const keepGoing = acquisition.progressive && acquisition.ready && phase === 'waiting'
+  // Once a course is banked, the fuller recommendation is to keep learning past
+  // it — Copy, from letters up to sentences. The action stays `test`: a banked
+  // course can be checked whenever the learner chooses, and the topic page
+  // offers that check beside a short unscored review.
+  const keepGoing = acquisition.progressive && acquisition.ready && phase === 'banked'
 
   return {
     topicId: topic.id,
@@ -393,7 +326,6 @@ export function journeyFor(topic: Topic, now: Date = new Date()): TopicJourney {
         ? `${acquisition.settled} of ${acquisition.total} letters`
         : null,
     due: scheduled.due,
-    waitDays: scheduled.waitDays,
     advancementEligible: true,
   }
 }
@@ -403,8 +335,8 @@ export interface JourneyEntry {
   journey: TopicJourney
 }
 
-export function journeysFor(topics: Topic[], now: Date = new Date()): JourneyEntry[] {
-  return topics.map((topic) => ({ topic, journey: journeyFor(topic, now) }))
+export function journeysFor(topics: Topic[]): JourneyEntry[] {
+  return topics.map((topic) => ({ topic, journey: journeyFor(topic) }))
 }
 
 /**
@@ -427,9 +359,9 @@ export function dueEntries(entries: JourneyEntry[]): JourneyEntry[] {
 /** Shown wherever a Test action is offered, so Today and Library never drift
  *  into stating this consequence two different ways. */
 export const TEST_CONSEQUENCE_NOTE =
-  'Tests are scored. The ladder moves only when its required evidence gap is satisfied.'
+  'Tests are scored. Two perfect tests bank a topic, and a banked topic can be checked at any time.'
 
-export type ShelfId = 'due' | 'waiting' | 'unfinished'
+export type ShelfId = 'due' | 'banked' | 'unfinished'
 
 export interface JourneyShelf {
   id: ShelfId
@@ -442,29 +374,27 @@ export interface JourneyShelf {
  * journey rather than raw status, so the shelf a topic sits on and the verb on
  * its action button are two readings of one derivation and cannot disagree.
  *
- * Three shelves, because there are three answers to "can I do this now": yes,
- * not yet, and not until it has items. Repair is not a fourth shelf — a decayed
- * topic is due, and its row already says `Needs repair` in warning, so pulling
- * it out would split the docket to restate what the row states.
+ * Three shelves: in motion, banked, and not until it has items. Repair is not
+ * a fourth shelf — a decayed topic is in motion, and its row already says
+ * `Needs repair` in warning, so pulling it out would split the docket to
+ * restate what the row states.
  *
- * A completed topic resting between spot checks sits in `waiting` and appears
- * again in the completion record below. That is deliberate and not duplication:
- * the shelf says where it is now, the record says what was earned, and decay
- * changes the first without touching the second.
+ * A banked topic sits in `banked` and appears again in the completion record.
+ * That is deliberate and not duplication: the shelf says where it is now, the
+ * record says what was earned, and decay changes the first without touching
+ * the second.
  */
 export function journeyShelves(entries: JourneyEntry[]): JourneyShelf[] {
   const due = dueEntries(entries)
   const claimed = new Set(due.map((entry) => entry.topic.id))
   const rest = entries.filter((entry) => !claimed.has(entry.topic.id))
-  const waiting = rest.filter((entry) => entry.topic.items.length > 0)
+  const banked = rest.filter((entry) => entry.topic.items.length > 0)
 
   const byTitle = (a: JourneyEntry, b: JourneyEntry) => a.topic.title.localeCompare(b.topic.title)
-  const bySoonest = (a: JourneyEntry, b: JourneyEntry) =>
-    a.journey.waitDays - b.journey.waitDays || byTitle(a, b)
 
   const all: JourneyShelf[] = [
     { id: 'due', label: 'Due now', entries: due },
-    { id: 'waiting', label: 'Waiting', entries: waiting.sort(bySoonest) },
+    { id: 'banked', label: 'Banked', entries: banked.sort(byTitle) },
     {
       id: 'unfinished',
       label: 'Needs items',
@@ -480,7 +410,7 @@ export function journeyShelves(entries: JourneyEntry[]): JourneyShelf[] {
  *
  * Written by Learn, through the same functional topic update that persists the
  * lesson answer which achieved it, so the anchor and the support level that
- * earned it land together and the retention clock cannot start late.
+ * earned it land together.
  *
  * Set once and never cleared, for the same reason `completedAt` is never
  * cleared: reaching the acquisition boundary is a historical fact about the
