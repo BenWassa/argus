@@ -1,5 +1,7 @@
 # The acquisition ladder inside Test
 
+**Status:** implemented (#27, corrected by #42 and #56); maintained contract for the Test cue ladder.
+
 Workstream 4 (#27), corrected by #42 and #56. Implements **D3 (ratified)** and
 **P3 (default)** from `docs/open/MORSE_PROGRAMME_PLAN.md` while preserving #28's
 bidirectional completion boundary.

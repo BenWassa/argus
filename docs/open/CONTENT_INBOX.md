@@ -19,6 +19,8 @@
 
 # Content Inbox and Curated Ingestion
 
+**Status:** implemented; maintained design record for the content inbox. The superseded notes above correct two premises of the text below.
+
 Status: implemented for issue #39. This document is the product/architecture
 authority; the **As implemented** section near the end records where the shipped
 code makes a decision the design left open, and the external Firebase setup the

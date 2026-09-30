@@ -1,5 +1,7 @@
 # Argus programme — progressive Morse-code learning
 
+**Status:** maintained programme record (#21). Workstream documents own their own contracts; the dated addendum below supersedes stale status lines.
+
 > **#90/#92/#96 closeout addendum — 2026-09-15.** The historical programme record below is retained, but status statements that stop at #88/#78 are superseded. `Topic.morseReview` supports item-aware cumulative review, including a formative printed-exposure tie-break; a 10-retrieval sitting introduces at most two new characters and otherwise continues as visibly labelled **Review**. Ordinary return slots are need-selected instead of statically favoring early packet members, while unsettled packet obligations remain intact. Later-sitting printed consolidation, legacy/previously-ready safety and need-balanced formative listening remain unchanged. Listening answer placement now rotates independently of the fixed cadence; distractors remain introduced-only. The checkpoint arc is Lessons **4 / 7 / 10 / 13** with #88 first-unlock handoff. #90 item 8 remains complete through `advancementEligible: false`. Whole-programme simulations cover visual-only/audio learners, repeated early/late misses, listening suppression, bounded completion, late-letter coverage, equal-need review distribution and answer-position balance. Exact same-day spacing copy remains an owner presentation decision under #92; it is not missing scheduler work. #29 stays deferred, #79 stays parked, and #42 remains the separate Pixel acceptance gate.
 
 Parent issue: #21  
@@ -399,7 +401,7 @@ repoint old content at new artwork.
 #119 is deliberately not a child of this plan's numbering. The A–Z acquisition
 programme it documents is complete; #119 asks what comes after it. Its contract
 is `docs/open/MORSE_FLUENCY.md`, with the research behind it in
-`docs/open/ISSUE_119_MORSE_POST_ACQUISITION_FLUENCY_RESEARCH.md`.
+`docs/closed/ISSUE_119_MORSE_POST_ACQUISITION_FLUENCY_RESEARCH.md`.
 
 Nothing in that workstream changes any decision recorded here. Fluency is
 formative throughout and writes one additive field, `Topic.morseFluency`; it

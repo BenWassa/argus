@@ -105,7 +105,9 @@ async function runDeck(page: Page, wrongCount: number) {
 }
 
 async function startCheck(page: Page) {
+  // A Today plate opens its topic; the check starts from the topic page.
   await page.getByRole('button', { name: /NATO Alphabet/ }).first().click()
+  await page.locator('.topic-primary').click()
   await expect(page.locator('.flip-card')).toBeVisible()
 }
 

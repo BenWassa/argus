@@ -15,7 +15,7 @@ figures and punctuation, and the ladder past 13 WPM.
 
 **Issue:** #119
 
-**Research:** `docs/open/ISSUE_119_MORSE_POST_ACQUISITION_FLUENCY_RESEARCH.md`
+**Research:** `docs/closed/ISSUE_119_MORSE_POST_ACQUISITION_FLUENCY_RESEARCH.md`
 holds the sources, the architecture audit and the rejected options. This
 document records what was built.
 

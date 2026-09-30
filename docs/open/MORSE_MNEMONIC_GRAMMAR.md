@@ -1,5 +1,7 @@
 # The Argus Morse visual rhythm grammar
 
+**Status:** implemented (#26, repositioned by #42); maintained contract for the visual rhythm grammar.
+
 Workstream 3 (#26), repositioned by #42. The SVG system remains the one
 canonical visual representation of Morse timing, but it is now explicitly a
 **secondary visual scaffold** under the rhythmic verbal mnemonic described in

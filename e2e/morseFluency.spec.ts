@@ -77,7 +77,16 @@ function betweenChecks(): string {
   const now = new Date().toISOString()
   return JSON.stringify({
     version: 5,
-    topics: [{ ...morse, learningAt: now, acquisitionReadyAt: now }],
+    // Banked moments ago, so no check is due: the state between checks.
+    topics: [{
+      ...morse,
+      status: 'completed',
+      learningAt: now,
+      acquisitionReadyAt: now,
+      drilledAt: now,
+      completedAt: now,
+      lastTestedAt: now,
+    }],
     catalogDelivered: [...shippedCatalog.topicIds].sort(),
   })
 }

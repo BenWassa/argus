@@ -1,5 +1,7 @@
 # Argus learning-experience design decision
 
+**Status:** ratified design decision (#92); maintained, with dated addenda superseding earlier journey claims.
+
 > **Today plates open their topic — 2026-09-26.** Pressing a Today plate now
 > always opens that topic's page, the same page a Library plate opens, whether or
 > not the topic is due. Today starts no run itself. This supersedes the one-tap
