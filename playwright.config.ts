@@ -8,6 +8,11 @@ import { defineConfig, devices } from '@playwright/test'
  * The viewports are the ones the issue names — the smallest phone still
  * supported, a current phone, short landscape, and a desktop pointer.
  */
+// Another local project's preview server on the default port would otherwise be
+// silently reused (`reuseExistingServer`) and tested in Argus's place.
+const port = Number(process.env.ARGUS_E2E_PORT ?? 4173)
+const origin = `http://127.0.0.1:${port}/`
+
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
@@ -16,7 +21,7 @@ export default defineConfig({
   workers: process.env.CI ? 2 : undefined,
   reporter: process.env.CI ? [['github'], ['list'], ['html', { open: 'never' }]] : [['list']],
   use: {
-    baseURL: 'http://127.0.0.1:4173/',
+    baseURL: origin,
     trace: 'on-first-retry',
     // CI installs the browser Playwright asks for. Sandboxes that already ship
     // a Chromium can point at it instead of downloading a second one.
@@ -51,8 +56,8 @@ export default defineConfig({
     // local-only configuration the repository has always supported, rather than
     // the gate being disabled by a test-only flag. The gate itself is covered
     // in `src/app/gate/AuthGate.test.tsx`.
-    command: 'npm run build:e2e && npx vite preview --port 4173 --host 127.0.0.1',
-    url: 'http://127.0.0.1:4173/',
+    command: `npm run build:e2e && npx vite preview --port ${port} --strictPort --host 127.0.0.1`,
+    url: origin,
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,
   },
