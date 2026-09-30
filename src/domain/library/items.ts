@@ -26,6 +26,8 @@ export function identifiedItem(item: Item, idFactory: () => string = newItemId):
     kind: item.kind ?? 'forward',
     prompt: item.prompt,
     answer: item.answer,
+    ...(item.choice ? { choice: item.choice } : {}),
+    ...(item.stimulus ? { stimulus: item.stimulus } : {}),
   }
 }
 
@@ -54,10 +56,19 @@ export function reconcileAuthoredItems(
     if (matches.length !== 1) return false
     const match = matches[0]
     used.add(match.index)
+    const { choice, stimulus, ...plain } = match.item
+    const answer = drafts[draftIndex].answer
+    // A visual/choice item keeps its choice and picture only while its answer
+    // key still names one of the options. Editing the answer text away from
+    // them turns it back into an ordinary reveal item rather than leaving an
+    // objective item whose key can never be selected.
+    const keepsChoice = choice !== undefined && choice.options.includes(answer)
     result[draftIndex] = {
-      ...match.item,
+      ...plain,
       prompt: drafts[draftIndex].prompt,
-      answer: drafts[draftIndex].answer,
+      answer,
+      ...(keepsChoice ? { choice } : {}),
+      ...(keepsChoice && stimulus ? { stimulus } : {}),
     }
     return true
   }

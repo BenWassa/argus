@@ -157,3 +157,30 @@ describe('typed directional coverage', () => {
     expect(retentionCorrectCount([existing[0]], undefined, 1)).toBe(1)
   })
 })
+
+describe('visual-choice items in plain-text authoring (#146)', () => {
+  const visual: IdentifiedItem = {
+    id: 'item-v',
+    kind: 'forward',
+    prompt: 'Which cardinal?',
+    answer: 'East',
+    choice: { options: ['North', 'East'] },
+    stimulus: { source: { kind: 'figure', figure: { kind: 'angle-dial', pointers: [{ bearing: 90 }] } }, alt: 'A dial.' },
+  }
+
+  it('keeps the choice and picture across a prompt edit or a reorder', () => {
+    const edited = reconcileAuthoredItems([visual], [{ prompt: 'Which way?', answer: 'East' }], () => 'new')
+    expect(edited[0]).toEqual({ ...visual, prompt: 'Which way?' })
+  })
+
+  it('turns the item back into a plain reveal item if its answer leaves the options', () => {
+    const edited = reconcileAuthoredItems([visual], [{ prompt: 'Which cardinal?', answer: 'Due east' }], () => 'new')
+    expect(edited[0]).toEqual({ id: 'item-v', kind: 'forward', prompt: 'Which cardinal?', answer: 'Due east' })
+  })
+
+  it('keeps an edited answer that is still one of the options', () => {
+    const edited = reconcileAuthoredItems([visual], [{ prompt: 'Which cardinal?', answer: 'North' }], () => 'new')
+    expect(edited[0].choice).toEqual(visual.choice)
+    expect(edited[0].answer).toBe('North')
+  })
+})

@@ -712,3 +712,58 @@ button.flip-card:active {
   margin: 0;
   color: var(--muted);
 }
+
+/*
+ * The objectively graded choice card (#146). It shares the progressive card's
+ * column and feedback layer; only the prompt scale and the options are its own.
+ * The prompt is a sentence, not a glyph, so it is set as a heading rather than
+ * as display type, and the options are full-width targets with no hover-only
+ * state so a touch press reads the same as a pointer.
+ */
+.choice-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--s-md);
+  min-width: 0;
+}
+
+.test-prompt.is-question {
+  font-size: var(--t-page);
+  line-height: 1.2;
+}
+
+.choice-options {
+  display: grid;
+  gap: var(--s-sm);
+}
+
+.choice-option {
+  display: block;
+  width: 100%;
+  min-height: var(--control-h-lg);
+  padding: var(--s-sm) var(--s-md);
+  text-align: start;
+  overflow-wrap: anywhere;
+}
+
+.choice-option.is-answer {
+  border-color: var(--ok);
+}
+
+.choice-option.is-wrong {
+  border-color: var(--danger-2);
+}
+
+.choice-value {
+  font-size: var(--t-component);
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+}
+
+@media (max-height: 560px) {
+  .choice-card {
+    justify-content: flex-start;
+    gap: var(--s-sm);
+  }
+}

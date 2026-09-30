@@ -43,6 +43,7 @@ import {
   type MorseFluencyProgress,
 } from '../../domain/morse/fluency/progress'
 import { inferredOrigin } from '../../domain/library/catalog'
+import { parseChoice, parseVisual } from './visualParser'
 
 /**
  * The import boundary: unknown JSON in, a valid `CurrentLibrary` or a reason
@@ -203,9 +204,28 @@ function parseBlock(value: unknown, where: string): { ok: true; block: LearnBloc
       }
       const meta = optionalText(raw.meta)
       const note = optionalText(raw.note)
-      entries.push({ marker, title, ...(meta ? { meta } : {}), fields, ...(note ? { note } : {}) })
+      let visual: LearnEntry['visual']
+      if (raw.visual !== undefined) {
+        const parsed = parseVisual(raw.visual, at)
+        if (!parsed.ok) return parsed
+        visual = parsed.value
+      }
+      entries.push({
+        marker,
+        title,
+        ...(meta ? { meta } : {}),
+        fields,
+        ...(note ? { note } : {}),
+        ...(visual ? { visual } : {}),
+      })
     }
     return { ok: true, block: { type: 'entries', entries } }
+  }
+
+  if (value.type === 'visual') {
+    const visual = parseVisual(value.visual, `${where} visual block`)
+    if (!visual.ok) return visual
+    return { ok: true, block: { type: 'visual', visual: visual.value } }
   }
 
   if (value.type === 'morse-character-packet') return parseMorsePacket(value, where)
@@ -372,7 +392,28 @@ function parseItems(
 
     if (ids.has(id)) return { ok: false, error: `${where} repeats item id "${id}".` }
     ids.add(id)
-    items.push({ id, kind, prompt, answer })
+
+    // Additive within v5: present only on a visual/choice item. A stimulus
+    // without a choice has no objective response to attach to, so it is refused
+    // rather than silently dropped.
+    const at = `${where} item ${i + 1}`
+    let choice: IdentifiedItem['choice']
+    let stimulus: IdentifiedItem['stimulus']
+    if (raw.choice !== undefined) {
+      if (kind !== 'forward') {
+        return { ok: false, error: `${at} choice items must be forward items.` }
+      }
+      const parsed = parseChoice(raw.choice, answer, at)
+      if (!parsed.ok) return parsed
+      choice = parsed.value
+    }
+    if (raw.stimulus !== undefined) {
+      if (!choice) return { ok: false, error: `${at} has a stimulus but no choice to answer it with.` }
+      const parsed = parseVisual(raw.stimulus, `${at} stimulus`)
+      if (!parsed.ok) return parsed
+      stimulus = parsed.value
+    }
+    items.push({ id, kind, prompt, answer, ...(choice ? { choice } : {}), ...(stimulus ? { stimulus } : {}) })
   }
   return { ok: true, items }
 }

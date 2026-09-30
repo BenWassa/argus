@@ -8,6 +8,8 @@ import { statusLabel } from '../../shared/ui/StatusTag'
 import { TopicGauge } from './TopicGauge'
 import { gaugeLabel, gaugeReading } from './gaugeReading'
 import { LearnSupport } from '../learn/LearnSupport'
+import { VisualView } from '../visual/VisualView'
+import { isChoiceItem } from '../../domain/visual/choice'
 import { MorseBeatGrammarNote } from '../morse/MorsePhrase'
 import { MorsePath } from '../morse/lesson/MorsePath'
 import { MorsePlacementDialog } from '../morse/MorsePlacementDialog'
@@ -210,6 +212,7 @@ export function TopicPage({
             <PrimaryAction
               journey={journey}
               course={course}
+              graded={topic.items.length > 0 && topic.items.every(isChoiceItem)}
               onEnroll={startLearning}
               onLesson={startCurrentMorseLesson}
               onCheck={startCheck}
@@ -455,12 +458,15 @@ export function TopicPage({
 function PrimaryAction({
   journey,
   course,
+  graded,
   onEnroll,
   onLesson,
   onCheck,
 }: {
   journey: ReturnType<typeof journeyFor>
   course: boolean
+  /** Every item is an objectively graded choice, so nothing is self-scored. */
+  graded: boolean
   onEnroll: () => void
   onLesson: () => void
   onCheck: () => void
@@ -503,7 +509,9 @@ function PrimaryAction({
       <span className="topic-primary-note">
         {course
           ? 'Every letter, both printed directions, no support.'
-          : 'Every item, once, scored by you.'}
+          : graded
+            ? 'Every item, once, graded for you.'
+            : 'Every item, once, scored by you.'}
       </span>
     </button>
   )
@@ -516,8 +524,13 @@ function RecallReference({ topic, heading }: { topic: Topic; heading: string }) 
       <h2 id="topic-reference-head" className="topic-reference-head">{heading}</h2>
       <ol className="sheet-items">
         {topic.items.map((item, i) => (
-          <li key={item.id ?? `${item.prompt}-${i}`}>
+          <li key={item.id ?? `${item.prompt}-${i}`} className={item.stimulus ? 'has-visual' : undefined}>
             <span className="sheet-num tabular">{String(i + 1).padStart(2, '0')}</span>
+            {item.stimulus && (
+              <div className="sheet-visual">
+                <VisualView visual={item.stimulus} compact />
+              </div>
+            )}
             <span className="sheet-prompt">{item.prompt}</span>
             <span className="sheet-answer">{item.answer}</span>
           </li>

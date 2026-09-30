@@ -4,6 +4,8 @@
  * none of it is scored material unless an author adds equivalent recall items
  * to the deck.
  */
+import type { Visual } from '../visual/visual'
+
 /**
  * A narrow Morse Learn block. These fields are content definition: glyph,
  * canonical notation, mnemonic asset reference and the source text from which
@@ -35,6 +37,8 @@ export interface LearnEntry {
   meta?: string
   fields: { label: string; text: string }[]
   note?: string
+  /** Optional picture for this entry (#146). The entry's own text stays HTML. */
+  visual?: Visual
 }
 
 export type LearnBlock =
@@ -44,6 +48,7 @@ export type LearnBlock =
   | { type: 'definitions'; items: { term: string; definition: string }[] }
   | { type: 'table'; columns: string[]; rows: string[][] }
   | { type: 'entries'; entries: LearnEntry[] }
+  | { type: 'visual'; visual: Visual }
   | { type: 'morse-character-packet'; characters: MorseCharacterLearnItem[] }
 
 export interface LearnSection {

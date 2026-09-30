@@ -1059,6 +1059,8 @@ export function seedLibrary(): Library {
         kind: item.kind ?? 'forward',
         prompt: item.prompt,
         answer: item.answer,
+        ...(item.choice ? { choice: item.choice } : {}),
+        ...(item.stimulus ? { stimulus: item.stimulus } : {}),
       })),
       itemEvidence: topic.itemEvidence ?? {},
       lessonProgress: topic.lessonProgress ?? {},

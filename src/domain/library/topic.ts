@@ -6,6 +6,7 @@ import type {
 } from '../morse/progress'
 import type { MorseFluencyProgress } from '../morse/fluency/progress'
 import type { LearnContent } from '../learning/content'
+import type { ItemChoice, Visual } from '../visual/visual'
 
 /**
  * The library model: what a topic is, what it holds, and the ladder it sits on.
@@ -57,6 +58,14 @@ export interface Item {
   kind?: ItemKind
   prompt: string
   answer: string
+  /**
+   * Optional objective single-answer choice (#146). Additive within v5: absent
+   * means the ordinary reveal-and-self-grade item. `answer` stays the key and is
+   * always one of the options.
+   */
+  choice?: ItemChoice
+  /** Optional picture shown with the prompt. Present only alongside `choice`. */
+  stimulus?: Visual
 }
 
 export interface IdentifiedItem extends Item {
