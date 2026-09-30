@@ -1,0 +1,94 @@
+/* One recording with its transcript. The control is large enough to hit on a
+   phone and always says what it will do; nothing here plays by itself. */
+.audio-stimulus {
+  display: grid;
+  gap: var(--s-sm);
+  margin: 0;
+  max-width: 28rem;
+}
+
+.audio-player {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-sm) var(--s-md);
+}
+
+.audio-play {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-sm);
+  min-height: var(--control-h-lg);
+  padding-inline: var(--s-lg);
+}
+
+.audio-play-mark {
+  font-size: 1.1em;
+  line-height: 1;
+}
+
+.audio-status {
+  margin: 0;
+  flex: 1 1 10rem;
+  font-size: var(--t-small);
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+.audio-transcript {
+  display: grid;
+  gap: var(--s-xs);
+  padding: var(--s-md);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+}
+
+.audio-transcript-label {
+  font-size: var(--t-label);
+  font-weight: var(--w-label);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--subtle);
+}
+
+.audio-transcript-text {
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  color: var(--ink);
+}
+
+.audio-reveal {
+  justify-self: start;
+}
+
+.audio-assisted {
+  margin: 0;
+  font-size: var(--t-small);
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+.audio-response {
+  display: grid;
+  gap: var(--s-sm);
+}
+
+.audio-field {
+  display: grid;
+  gap: var(--s-xs);
+}
+
+.audio-label {
+  font-size: var(--t-label);
+  font-weight: var(--w-label);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--subtle);
+}
+
+.audio-input {
+  width: 100%;
+  min-height: var(--control-h-lg);
+  font-size: var(--t-component);
+}

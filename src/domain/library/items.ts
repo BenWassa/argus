@@ -28,6 +28,8 @@ export function identifiedItem(item: Item, idFactory: () => string = newItemId):
     answer: item.answer,
     ...(item.choice ? { choice: item.choice } : {}),
     ...(item.stimulus ? { stimulus: item.stimulus } : {}),
+    ...(item.audio ? { audio: item.audio } : {}),
+    ...(item.response ? { response: item.response } : {}),
   }
 }
 
@@ -56,19 +58,27 @@ export function reconcileAuthoredItems(
     if (matches.length !== 1) return false
     const match = matches[0]
     used.add(match.index)
-    const { choice, stimulus, ...plain } = match.item
+    const { choice, stimulus, audio, response, ...plain } = match.item
     const answer = drafts[draftIndex].answer
     // A visual/choice item keeps its choice and picture only while its answer
     // key still names one of the options. Editing the answer text away from
     // them turns it back into an ordinary reveal item rather than leaving an
     // objective item whose key can never be selected.
-    const keepsChoice = choice !== undefined && choice.options.includes(answer)
+    // An audio item is tied to its recording and canonical transcript, so its
+    // answer is part of that authored pairing: changing it detaches the item from
+    // the recording entirely rather than leaving a key the audio no longer says.
+    const answerUnchanged = answer === match.item.answer
+    const keepsAudio = audio !== undefined && answerUnchanged
+    const keepsChoice = !audio && choice !== undefined && choice.options.includes(answer)
+    const keepsAudioChoice = keepsAudio && choice !== undefined
     result[draftIndex] = {
       ...plain,
       prompt: drafts[draftIndex].prompt,
       answer,
-      ...(keepsChoice ? { choice } : {}),
+      ...(keepsChoice || keepsAudioChoice ? { choice } : {}),
       ...(keepsChoice && stimulus ? { stimulus } : {}),
+      ...(keepsAudio ? { audio } : {}),
+      ...(keepsAudio && response ? { response } : {}),
     }
     return true
   }

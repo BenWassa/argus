@@ -11,6 +11,7 @@ import {
 import type { Topic } from '../../domain/library/topic'
 import { testCardTextClass } from '../test/textScale'
 import { VisualView } from '../visual/VisualView'
+import { AudioStimulusView } from '../audio/AudioStimulusView'
 import './PracticeRun.css'
 
 interface PracticeRunProps {
@@ -25,6 +26,18 @@ interface PracticeRunProps {
   onExit: () => void
   /** Start the scored check. Practice never becomes one on its own. */
   onCheck: () => void
+}
+
+function PracticeAudio({ audio, label }: { audio: NonNullable<Topic['items'][number]['audio']>; label: string }) {
+  const [shown, setShown] = useState(false)
+  return (
+    <AudioStimulusView
+      audio={audio}
+      showTranscript={shown}
+      onRevealTranscript={() => setShown(true)}
+      label={label}
+    />
+  )
 }
 
 /**
@@ -172,6 +185,15 @@ export function PracticeRun({ topic, itemIds, onExit, onCheck }: PracticeRunProp
                 round, the prompt is the answer and the picture would give it away. */}
             {step.target.direction === 'prompt-to-answer' && step.target.item.stimulus && (
               <VisualView visual={step.target.item.stimulus} showCaption={false} />
+            )}
+            {/* Practice is formative and records nothing, so the transcript is
+                free to reveal here; nothing about it touches evidence. */}
+            {step.target.direction === 'prompt-to-answer' && step.target.item.audio && (
+              <PracticeAudio
+                key={`${step.target.item.id}-${state.answered}`}
+                audio={step.target.item.audio}
+                label={step.target.item.prompt}
+              />
             )}
             <span className={`practice-value${testCardTextClass(step.question)}`}>
               {step.question}

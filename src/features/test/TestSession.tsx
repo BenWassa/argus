@@ -23,6 +23,12 @@ import type { Topic } from '../../domain/library/topic'
 import type { ItemCueEvidence, ItemEvidenceStore } from '../../domain/study/evidence'
 import { ProgressiveCard, type ProgressiveAnswer } from './ProgressiveCard'
 import { ChoiceCard, type ChoiceAnswer } from './ChoiceCard'
+import { AudioCard, type AudioAnswer } from '../audio/AudioCard'
+import {
+  mergeAudioEvidence,
+  recordAudioAnswer,
+  type AudioEvidenceStore,
+} from '../../domain/audio/evidence'
 import { isChoiceItem } from '../../domain/visual/choice'
 import {
   acquisitionProfiles,
@@ -52,9 +58,19 @@ const EXIT_OVERSHOOT_PX = 140
 /** Fallback width when nothing has been measured yet, e.g. before first layout. */
 const ASSUMED_CARD_WIDTH = 360
 
+/** A listening card (#151): a recording answered by choice, copy or fields. */
+function isAudioCard(card: Card | undefined): boolean {
+  return card !== undefined && !card.character && card.item.audio !== undefined
+}
+
 /** An objectively graded choice card, which owns its own grading and keys. */
 function isChoiceCard(card: Card | undefined): boolean {
-  return card !== undefined && !card.character && isChoiceItem(card.item)
+  return card !== undefined && !card.character && !card.item.audio && isChoiceItem(card.item)
+}
+
+/** Either kind of objectively graded card owns its own keys and grading. */
+function isObjectiveCard(card: Card | undefined): boolean {
+  return isChoiceCard(card) || isAudioCard(card)
 }
 
 interface TestSessionProps {
@@ -90,6 +106,11 @@ export function TestSession({ topicIds, review = false, onExit, onPractice }: Te
   // Cue evidence accrued this session, held apart from the scheduler's tally
   // and merged into the topic separately from any status resolution.
   const [cueEvidence, setCueEvidence] = useState<Record<string, ItemEvidenceStore>>({})
+  // Listening evidence accrued this session (#151). A ref, not state: it is read
+  // synchronously when a topic banks, and it is a separate record from
+  // `cueEvidence` on purpose — an answer by ear never writes item evidence, and
+  // an item answer never writes here.
+  const audioEvidence = useRef<Record<string, AudioEvidenceStore>>({})
   // What this attempt actually asked and how it was supported, per topic. The
   // merged evidence store cannot answer that: it is a lifetime tally and only
   // ever grows, so read alone it says "has ever" where the completion gate has
@@ -188,7 +209,7 @@ export function TestSession({ topicIds, review = false, onExit, onPractice }: Te
   }, [cardKey])
 
   useEffect(() => {
-    if (deck[index]?.character || isChoiceCard(deck[index])) return
+    if (deck[index]?.character || isObjectiveCard(deck[index])) return
     // A swipe deck keeps focus on the card itself: the card is the control.
     if (view.kind === 'asking') cardRef.current?.focus({ preventScroll: true })
     else if (view.kind === 'revealed' && !swipeFirst) yesRef.current?.focus({ preventScroll: true })
@@ -203,7 +224,7 @@ export function TestSession({ topicIds, review = false, onExit, onPractice }: Te
       if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return
       // A ladder or choice card owns its own keys; reveal/self-score does not
       // apply to it.
-      if (deck[index]?.character || isChoiceCard(deck[index])) return
+      if (deck[index]?.character || isObjectiveCard(deck[index])) return
 
       if (view.kind === 'asking' && (event.key === ' ' || event.key === 'Enter')) {
         event.preventDefault()
@@ -229,6 +250,13 @@ export function TestSession({ topicIds, review = false, onExit, onPractice }: Te
     return { current: index - first + 1, of: cards.length }
   }, [card, deck, index])
 
+  /** Fold this session's listening evidence into a topic, leaving everything else alone. */
+  function withListening(topic: Topic, topicId: string): Topic {
+    const session = audioEvidence.current[topicId]
+    if (!session || Object.keys(session).length === 0) return topic
+    return { ...topic, audioEvidence: mergeAudioEvidence(topic.audioEvidence, session) }
+  }
+
   function bank(
     topicId: string,
     attempt: { correct: number; total: number },
@@ -243,8 +271,8 @@ export function TestSession({ topicIds, review = false, onExit, onPractice }: Te
     // kept; nothing else about the topic moves, and no history entry claims a
     // whole-deck run that did not happen.
     if (reviews.has(topicId)) {
-      updateTopic(topicId, (current) => mergeItemEvidence(current, evidence))
-      const merged = mergeItemEvidence(topic, evidence)
+      updateTopic(topicId, (current) => withListening(mergeItemEvidence(current, evidence), topicId))
+      const merged = withListening(mergeItemEvidence(topic, evidence), topicId)
       setReviewed((previous) => [
         ...previous,
         { topic: merged, correct: attempt.correct, total: attempt.total },
@@ -262,7 +290,7 @@ export function TestSession({ topicIds, review = false, onExit, onPractice }: Te
     // support, the active sitting and anything else earned since the deck was
     // built survive the bank.
     updateTopic(topicId, (current) =>
-      mergeItemEvidence(applyResolution(current, entry.resolution), evidence),
+      withListening(mergeItemEvidence(applyResolution(current, entry.resolution), evidence), topicId),
     )
     setBanked((previous) => [...previous, entry])
   }
@@ -462,6 +490,44 @@ export function TestSession({ topicIds, review = false, onExit, onPractice }: Te
     return next
   }
 
+  /**
+   * A listening answer feeds the same tally as every card, with one difference:
+   * an answer given after the transcript was revealed, or with a recording that
+   * would not play, is graded for the learner's benefit but does **not** count as
+   * correct for the attempt. Such an attempt is practice, not evidence that the
+   * words were heard unaided. The evidence is written to the separate listening
+   * record, never to `itemEvidence`.
+   */
+  function answerAudio(answer: AudioAnswer) {
+    const at = viewRef.current.kind === 'done' ? -1 : viewRef.current.index
+    const current = deck[at]
+    const next = nextView(viewRef.current, { kind: 'answer' }, deck.length)
+    if (!next || !current) return
+    const counted = answer.correct && !answer.assisted
+    fire(counted ? 'settle' : 'miss')
+    const itemId = current.item.id
+    if (itemId) {
+      const topic = included.find((candidate) => candidate.id === current.topicId)
+      const existing =
+        audioEvidence.current[current.topicId]?.[itemId] ?? topic?.audioEvidence?.[itemId]
+      audioEvidence.current = {
+        ...audioEvidence.current,
+        [current.topicId]: {
+          ...(audioEvidence.current[current.topicId] ?? {}),
+          [itemId]: recordAudioAnswer(existing, {
+            correct: answer.correct,
+            assisted: answer.assisted,
+            latencyMs: answer.latencyMs,
+            at: new Date().toISOString(),
+          }),
+        },
+      }
+    }
+    recordGrade(at, counted)
+    viewRef.current = next
+    setView(next)
+  }
+
   function settleDrag(info: PanInfo) {
     setDragging(false)
     if (viewRef.current.kind !== 'revealed') return
@@ -498,7 +564,14 @@ export function TestSession({ topicIds, review = false, onExit, onPractice }: Te
     ])
     for (const [topicId, store] of Object.entries(cueEvidence)) {
       if (resolved.has(topicId)) continue
-      updateTopic(topicId, (current) => mergeItemEvidence(current, store))
+      updateTopic(topicId, (current) => withListening(mergeItemEvidence(current, store), topicId))
+    }
+    // Listening evidence is kept on an early exit too, for the same reason: it is
+    // acquisition state, not retention state. A topic with only audio answers has
+    // no entry above, so it is handled here.
+    for (const topicId of Object.keys(audioEvidence.current)) {
+      if (resolved.has(topicId) || cueEvidence[topicId]) continue
+      updateTopic(topicId, (current) => withListening(current, topicId))
     }
     onExit()
   }
@@ -559,6 +632,30 @@ export function TestSession({ topicIds, review = false, onExit, onPractice }: Te
             {reviews.has(card.topicId) ? 'End review' : 'End test'}
           </button>
         </div>
+      </section>
+    )
+  }
+
+  if (isAudioCard(card)) {
+    return (
+      <section className="session rapid-session is-graded is-progressive">
+        <div className="session-bar">
+          <p>
+            <span className="session-topic">{card.topicTitle}</span>
+          </p>
+          <span className="session-count tabular" aria-label={`Card ${topicPosition.current} of ${topicPosition.of}`}>
+            {topicPosition.current}
+            <span className="session-count-of" aria-hidden="true">/{topicPosition.of}</span>
+          </span>
+          <button className="ghost small" type="button" onClick={requestExit}>
+            {reviews.has(card.topicId) ? 'End review' : 'End test'}
+          </button>
+        </div>
+        <AudioCard
+          cardKey={`${card.topicId}-${card.item.id}-${index}`}
+          item={card.item as typeof card.item & { audio: NonNullable<typeof card.item.audio> }}
+          onAnswer={answerAudio}
+        />
       </section>
     )
   }

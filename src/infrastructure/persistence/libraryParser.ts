@@ -44,6 +44,7 @@ import {
 } from '../../domain/morse/fluency/progress'
 import { inferredOrigin } from '../../domain/library/catalog'
 import { parseChoice, parseVisual } from './visualParser'
+import { parseAudio, parseAudioEvidence, parseResponse } from './audioParser'
 
 /**
  * The import boundary: unknown JSON in, a valid `CurrentLibrary` or a reason
@@ -413,7 +414,39 @@ function parseItems(
       if (!parsed.ok) return parsed
       stimulus = parsed.value
     }
-    items.push({ id, kind, prompt, answer, ...(choice ? { choice } : {}), ...(stimulus ? { stimulus } : {}) })
+
+    // Prerecorded speech (#151): it needs exactly one objective way to answer it,
+    // and only a forward item can have one.
+    let audio: IdentifiedItem['audio']
+    let response: IdentifiedItem['response']
+    if (raw.audio !== undefined) {
+      if (kind !== 'forward') return { ok: false, error: `${at} audio items must be forward items.` }
+      const parsed = parseAudio(raw.audio, at)
+      if (!parsed.ok) return parsed
+      audio = parsed.value
+    }
+    if (raw.response !== undefined) {
+      if (!audio) return { ok: false, error: `${at} has a response mode but no audio to answer.` }
+      const parsed = parseResponse(raw.response, at)
+      if (!parsed.ok) return parsed
+      response = parsed.value
+    }
+    if (audio && Boolean(choice) === Boolean(response)) {
+      return { ok: false, error: `${at} audio needs exactly one of a choice or a response mode.` }
+    }
+    if (audio && stimulus) {
+      return { ok: false, error: `${at} cannot have both a picture and audio stimulus.` }
+    }
+    items.push({
+      id,
+      kind,
+      prompt,
+      answer,
+      ...(choice ? { choice } : {}),
+      ...(stimulus ? { stimulus } : {}),
+      ...(audio ? { audio } : {}),
+      ...(response ? { response } : {}),
+    })
   }
   return { ok: true, items }
 }
@@ -899,6 +932,13 @@ function parseTopic(
   )
   if (!itemEvidence.ok) return itemEvidence
 
+  const audioEvidence = parseAudioEvidence(
+    t.audioEvidence,
+    `${where} ("${title}")`,
+    new Set(items.items.filter((item) => item.audio).map((item) => item.id)),
+  )
+  if (!audioEvidence.ok) return audioEvidence
+
   const lessonProgress = parseLessonProgress(
     t.lessonProgress,
     `${where} ("${title}")`,
@@ -974,6 +1014,7 @@ function parseTopic(
             : null,
       history: parseHistory(t.history),
       itemEvidence: itemEvidence.value,
+      ...(audioEvidence.value ? { audioEvidence: audioEvidence.value } : {}),
       lessonProgress: lessonProgress.value,
       ...(lessonSitting.value ? { lessonSitting: lessonSitting.value } : {}),
       ...(morseReview.value ? { morseReview: morseReview.value } : {}),

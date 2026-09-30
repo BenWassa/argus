@@ -9,7 +9,9 @@ import { TopicGauge } from './TopicGauge'
 import { gaugeLabel, gaugeReading } from './gaugeReading'
 import { LearnSupport } from '../learn/LearnSupport'
 import { VisualView } from '../visual/VisualView'
-import { isChoiceItem } from '../../domain/visual/choice'
+import { isObjectiveItem } from '../../domain/audio/response'
+import { listeningCoverage } from '../../domain/audio/evidence'
+import { AudioReference } from '../audio/AudioReference'
 import { MorseBeatGrammarNote } from '../morse/MorsePhrase'
 import { MorsePath } from '../morse/lesson/MorsePath'
 import { MorsePlacementDialog } from '../morse/MorsePlacementDialog'
@@ -93,6 +95,7 @@ export function TopicPage({
    * stored topic exactly as it stands.
    */
   const journey = journeyFor(topic)
+  const listening = listeningCoverage(topic.items, topic.audioEvidence)
 
   // Restore the page heading before the browser paints the traversed entry.
   // A passive effect can lose a race with Playwright/browser focus handling
@@ -176,6 +179,14 @@ export function TopicPage({
           </span>
         </p>
 
+        {/* Listening is its own claim (#151): read only from the separate audio
+            record, so text or choice evidence can never complete it. */}
+        {listening.total > 0 && (
+          <p className="topic-detail topic-listening">
+            Listening: {listening.unaided} of {listening.total} answered by ear, unaided
+          </p>
+        )}
+
         {/* The detail line and the gauge caption used to say the same count
             twice, one under the other. When there is a gauge, the detail is
             its caption; when there is not, it stands on its own. */}
@@ -212,7 +223,7 @@ export function TopicPage({
             <PrimaryAction
               journey={journey}
               course={course}
-              graded={topic.items.length > 0 && topic.items.every(isChoiceItem)}
+              graded={topic.items.length > 0 && topic.items.every(isObjectiveItem)}
               onEnroll={startLearning}
               onLesson={startCurrentMorseLesson}
               onCheck={startCheck}
@@ -524,11 +535,16 @@ function RecallReference({ topic, heading }: { topic: Topic; heading: string }) 
       <h2 id="topic-reference-head" className="topic-reference-head">{heading}</h2>
       <ol className="sheet-items">
         {topic.items.map((item, i) => (
-          <li key={item.id ?? `${item.prompt}-${i}`} className={item.stimulus ? 'has-visual' : undefined}>
+          <li key={item.id ?? `${item.prompt}-${i}`} className={item.stimulus || item.audio ? 'has-visual' : undefined}>
             <span className="sheet-num tabular">{String(i + 1).padStart(2, '0')}</span>
             {item.stimulus && (
               <div className="sheet-visual">
                 <VisualView visual={item.stimulus} compact />
+              </div>
+            )}
+            {item.audio && (
+              <div className="sheet-visual">
+                <AudioReference item={item as typeof item & { audio: NonNullable<typeof item.audio> }} />
               </div>
             )}
             <span className="sheet-prompt">{item.prompt}</span>
