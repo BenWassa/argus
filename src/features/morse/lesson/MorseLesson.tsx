@@ -7,6 +7,8 @@ import {
   introduceLesson,
   introducedGlyphs,
   lessonProgressCount,
+  owedLetters,
+  startAfterCourse,
   startLesson,
   type LessonRun,
 } from '../../../domain/morse/curriculum/lesson'
@@ -378,12 +380,16 @@ export function MorseLesson({
     // "the next lesson" would hand back wherever acquisition actually stands.
     // The end of the curriculum is an exit rather than a new screen — the
     // replay has no claim to make, and the path it returns to says the rest.
+    const closed = withMorseReview(topicRef.current, completeSitting(morseReviewOf(topicRef.current)))
     const next = replay
       ? nextReplayLesson(topicRef.current, run.packetIndex)
-      : // Select review against the next sitting ordinal, matching the durable close.
-        startLesson(withMorseReview(topicRef.current, completeSitting(morseReviewOf(topicRef.current))))
+      : run.afterCourse
+        ? // Another round goes over what is still owed, in the next sitting.
+          startAfterCourse(closed)
+        : // Select review against the next sitting ordinal, matching the durable close.
+          startLesson(closed)
     if (!next) {
-      if (replay) onExit()
+      if (replay || run.afterCourse) onExit()
       return
     }
     stop()
@@ -419,12 +425,13 @@ export function MorseLesson({
   const bar = (
     <div className="session-bar">
       <p>
-        <span className="session-topic">{run.finished ? 'Morse' : 'Lesson'}</span>
+        <span className="session-topic">{run.finished || run.afterCourse ? 'Morse' : 'Lesson'}</span>
         {/* Its own element with real whitespace around it, so the line reads as
             two facts to a screen reader too rather than as `LessonReplay`. */}
         {replay && <> <span className="session-mode">Replay</span></>}
+        {run.afterCourse && <> <span className="session-mode">Going over</span></>}
       </p>
-      {!run.finished && (
+      {!run.finished && !run.afterCourse && (
         <span className="session-count tabular" aria-label={`Lesson ${run.packetIndex + 1} of ${run.packetCount}`}>
           {run.packetIndex + 1}
           <span className="session-count-of" aria-hidden="true">/{run.packetCount}</span>
@@ -480,6 +487,39 @@ export function MorseLesson({
     )
   }
 
+  if (run.complete && run.afterCourse) {
+    // What this sitting settled is already recorded, so what is left is read
+    // straight off the topic as it stands now.
+    const still = owedLetters(topicRef.current)
+    return (
+      <section className="session morse-lesson">
+        {bar}
+        <h1 ref={headingRef} tabIndex={-1} className="lesson-title">
+          {still.length === 0 ? 'Every letter confirmed' : 'Letters gone over'}
+        </h1>
+        <p className="lesson-lede">
+          {still.length === 0
+            ? 'The course is ready for its Test.'
+            : `Still to confirm: ${still.join(' ')}. Another round counts as a new sitting.`}
+        </p>
+        <div className="lesson-exits" inert={!armed}>
+          {still.length === 0 ? (
+            <>
+              <button type="button" onClick={onTest}>Test me</button>
+              <button className="ghost" type="button" onClick={onExit}>Done</button>
+            </>
+          ) : (
+            <>
+              <button type="button" onClick={nextPacket}>Another round</button>
+              <button className="ghost" type="button" onClick={onExit}>Stop here</button>
+            </>
+          )}
+        </div>
+        <p className="lesson-foot">Nothing in Learn is scored.</p>
+      </section>
+    )
+  }
+
   if (run.complete) {
     const last = run.packetIndex + 1 >= run.packetCount
     return (
@@ -518,7 +558,9 @@ export function MorseLesson({
       data-step={!hasFeedback && step ? step.kind : undefined}
     >
       {bar}
-      <h1 ref={headingRef} tabIndex={-1} className="sr-only">Morse lesson, packet {run.packetIndex + 1} of {run.packetCount}</h1>
+      <h1 ref={headingRef} tabIndex={-1} className="sr-only">
+        {run.afterCourse ? 'Morse, going over missed letters' : `Morse lesson, packet ${run.packetIndex + 1} of ${run.packetCount}`}
+      </h1>
       {/* The one piece of progress worth showing inside a lesson, shown rather
           than spelled out. `Lesson progress: 2 of 5 settled` was a sentence
           carrying two numbers that mattered less than the bar does. */}
