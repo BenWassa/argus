@@ -17,7 +17,7 @@ import { applyMorsePlacement, canOfferMorsePlacement } from '../../domain/morse/
 import '../learn/Reading.css'
 import type { RunTarget } from '../../app/routing/routes'
 import { hasPractice, practiceItemCount } from '../../domain/study/practiceTargets'
-import { REVIEW_LENGTH } from '../../domain/study/review'
+import { REVIEW_LENGTH, isReviewTopic } from '../../domain/study/review'
 import { COPY_LEVEL_INFO, nextCopyLevel } from '../../domain/morse/fluency/copy'
 import type { Mode } from '../../domain/study/mode'
 import type { Topic } from '../../domain/library/topic'
@@ -108,12 +108,13 @@ export function TopicPage({
   const testing = journey.action === 'test'
   const placementEligible = course && canOfferMorsePlacement(topic)
 
-  // After the alphabet, and between scheduled checks, the useful thing to do is
-  // keep learning — words, then sentences — not re-run a Test that cannot move
-  // anything. The Test is still there, as a short review. When a check is due,
-  // or the topic needs repair, the check leads again: only it can earn anything.
+  // Once the course is banked, the useful thing to do is keep learning — words,
+  // then sentences. The full check and a short review sit beside it, and the
+  // learner chooses: nothing waits on a clock. While the ladder is still moving,
+  // or the topic needs repair, the check leads: only it can earn anything.
   const afterAlphabet = course && acquisition.ready
   const keepGoing = afterAlphabet && journey.primaryLabel === KEEP_GOING
+  const reviewable = isReviewTopic(topic)
   const copyNext = afterAlphabet ? nextCopyLevel(topic.morseFluency) : null
 
   function openFluency() {
@@ -132,6 +133,10 @@ export function TopicPage({
 
   function startCheck() {
     onStart('test', [topic.id])
+  }
+
+  function startReview() {
+    onStart('test', [topic.id], { kind: 'review' })
   }
 
   function startCurrentMorseLesson() {
@@ -211,10 +216,16 @@ export function TopicPage({
             />
           )}
 
-          {/* The same conditions `isReviewTopic` checks, so this Test runs as
-              the short review it names. */}
+          {/* A banked course is checked when the learner chooses. The full
+              check is scored and can send the topic to repair; the review asks
+              the weakest letters and moves nothing. */}
           {keepGoing && (
             <button className="quiet topic-alt" type="button" onClick={startCheck}>
+              Full test — all {topic.items.length} letters, scored
+            </button>
+          )}
+          {reviewable && (
+            <button className="quiet topic-alt" type="button" onClick={startReview}>
               Quick review — {REVIEW_LENGTH} letters, no hints
             </button>
           )}
@@ -243,12 +254,11 @@ export function TopicPage({
 
               Gated on acquisition rather than on completion, because the two
               answer different questions. Completion is a statement about
-              scored evidence and a retention gap; acquisition readiness is the
+              two clean scored Tests; acquisition readiness is the
               fact that every letter has been produced unaided at least once,
               which is exactly the point at which "you know the alphabet, now
-              get faster" becomes true. A learner waiting out a spacing
-              interval before their qualifying check should not be told there
-              is nothing to do.
+              get faster" becomes true. A learner between their first and
+              second clean check should not be told there is nothing to do.
 
               It reads `acquisition.ready`, not `topic.acquisitionReadyAt`.
               The stored field postdates the programme, so a learner who

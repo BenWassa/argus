@@ -92,7 +92,7 @@ export interface Topic {
   completedAt: string | null
   /** Most recent scored Test, whether scheduled or voluntary. */
   lastTestedAt: string | null
-  /** Most recent due completed-topic Test. Starts the spot-check clock. */
+  /** Most recent passed check of a completed topic. No clock reads it. */
   spotCheckedAt: string | null
   history: Attempt[]
   /** v5 acquisition evidence. Optional only for legacy/internal Topic fixtures. */

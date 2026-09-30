@@ -26,8 +26,8 @@ that: the same 26 characters, presented by ear, at a speed too fast to count
 them, with the gaps closing as they improve.
 
 It is reached from the Morse topic page once the alphabet is acquired — as the
-primary *Keep going* between scheduled checks, and at text weight beside a due
-check — that is, once every letter has been produced unaided at least once
+primary *Keep going* once the course is banked, and at text weight beside the
+check while the ladder is still moving — that is, once every letter has been produced unaided at least once
 in Learn. Gated on acquisition rather than on completion deliberately: a
 learner waiting out a spacing interval before their qualifying check has
 finished learning the alphabet and should not be told there is nothing to do.

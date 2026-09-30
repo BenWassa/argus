@@ -1,5 +1,7 @@
 # Argus learning-experience design decision
 
+> **No-clock addendum — 2026-09-29.** The owner removed time-based scheduling. This supersedes the delayed-test, spot-check and gap language in the journeys and tables below (for example J2's "delayed test", the 90-day spot check and "Spot check in N days"). The learner chooses when to Test, a banked topic can be checked at any time, and a failed check is repair. See `PROGRESS_ARCHITECTURE.md`'s no-clock addendum.
+
 **Status:** ratified design decision (#92); maintained, with dated addenda superseding earlier journey claims.
 
 > **Today plates open their topic — 2026-09-26.** Pressing a Today plate now

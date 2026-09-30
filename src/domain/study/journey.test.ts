@@ -4,7 +4,6 @@ import {
   journeyFor,
   journeyShelves,
   journeysFor,
-  retentionAnchor,
   withAcquisitionReadiness,
 } from './journey'
 import {
@@ -18,7 +17,7 @@ import {
   withLessonProgress,
   type LessonRun,
 } from '../morse/curriculum/lesson'
-import { COMPLETION_GAP_DAYS, resolveAttempt, resolveStudy } from './scheduling'
+import { resolveAttempt, resolveStudy } from './scheduling'
 import { parseLibrary } from '../../infrastructure/persistence/libraryParser'
 import { seedLibrary } from '../library/catalogSeed'
 import type { Topic } from '../library/topic'
@@ -83,7 +82,7 @@ function acquiredMorse(): Topic {
 
 describe('progressive acquisition routes the learner to Learn until it is ready', () => {
   it('sends a fresh Morse topic to its lesson, and calls it starting rather than continuing', () => {
-    const journey = journeyFor(freshMorse(), NOW)
+    const journey = journeyFor(freshMorse())
 
     expect(journey.phase).toBe('acquiring')
     expect(journey.action).toBe('learn')
@@ -104,7 +103,7 @@ describe('progressive acquisition routes the learner to Learn until it is ready'
     const partial = acquire(resolveStudy(freshMorse(), new Date(NOW.getTime() - 3 * DAY)), 4)
     expect(partial.status).toBe('learning')
 
-    const journey = journeyFor(partial, NOW)
+    const journey = journeyFor(partial)
     expect(journey.phase).toBe('acquiring')
     expect(journey.action).toBe('learn')
     expect(journey.actionLabel).toBe('Continue')
@@ -124,7 +123,7 @@ describe('progressive acquisition routes the learner to Learn until it is ready'
       lessonSitting: { retrievals: 6, correct: 5, revisitItemIds: [partial.items[3].id as string] },
     }
 
-    const journey = journeyFor(resumed, NOW)
+    const journey = journeyFor(resumed)
     expect(journey.sitting).toEqual({
       retrievals: 6,
       target: 10,
@@ -143,7 +142,7 @@ describe('progressive acquisition routes the learner to Learn until it is ready'
   it('switches to Test the moment acquisition reaches its endpoint', () => {
     const ready = withAcquisitionReadiness(acquiredMorse(), NOW)
 
-    const journey = journeyFor(ready, NOW)
+    const journey = journeyFor(ready)
     expect(journey.acquisition.ready).toBe(true)
     expect(journey.acquisition.settled).toBe(26)
     expect(journey.action).toBe('test')
@@ -159,54 +158,49 @@ describe('progressive acquisition routes the learner to Learn until it is ready'
 
     expect(morseAcquisitionPosition(slipped)?.ready).toBe(false)
     // ...but the learner did produce all 26 unaided, and that is a fact.
-    expect(journeyFor(slipped, NOW).acquisition.ready).toBe(true)
-    expect(journeyFor(slipped, NOW).action).toBe('test')
+    expect(journeyFor(slipped).acquisition.ready).toBe(true)
+    expect(journeyFor(slipped).action).toBe('test')
     expect(withAcquisitionReadiness(slipped, NOW).acquisitionReadyAt).toBe(ready.acquisitionReadyAt)
   })
 })
 
-describe('the retention clock is anchored at readiness, not at first exposure', () => {
-  it('does not run the learning gap while acquisition is still in progress', () => {
-    // Forty days of lessons. Under the old rule the one-day gap expired on day
-    // two and the topic has read "Ready to drill" ever since.
+describe('acquisition gates the ladder, and no clock does', () => {
+  it('keeps a curriculum in its lessons while acquisition is still in progress', () => {
+    // Forty days of lessons. Elapsed time alone never makes it a Test.
     const partial = acquire(resolveStudy(freshMorse(), new Date(NOW.getTime() - 40 * DAY)), 3)
 
-    const journey = journeyFor(partial, NOW)
-    expect(retentionAnchor(partial, journey.acquisition)).toBeNull()
+    const journey = journeyFor(partial)
     expect(journey.retention.gated).toBe(true)
     expect(journey.retention.label).toBe('Not yet drilling')
     expect(journey.statusLabel).toBe('Lesson in progress')
     expect(journey.action).toBe('learn')
   })
 
-  it('starts the qualifying gap from the readiness anchor', () => {
+  it('offers the Test as soon as acquisition is ready', () => {
     const ready: Topic = {
       ...acquiredMorse(),
       learningAt: ago(40),
       acquisitionReadyAt: ago(0),
     }
 
-    // Ready today: the one-day gap has not passed, so Test is the action but
-    // not yet the due work.
-    const today = journeyFor(ready, NOW)
+    // Ready today, and there is nothing to wait for.
+    const today = journeyFor(ready)
     expect(today.action).toBe('test')
     expect(today.due).toBe(true)
     expect(today.phase).toBe('due')
     expect(today.statusLabel).toBe('Ready to test')
 
-    const tomorrow = journeyFor(ready, new Date(NOW.getTime() + DAY))
+    const tomorrow = journeyFor(ready)
     expect(tomorrow.due).toBe(true)
     expect(tomorrow.phase).toBe('due')
     expect(tomorrow.statusLabel).toBe('Ready to test')
   })
 
-  it('falls back to learningAt for a record written before the anchor existed', () => {
+  it('treats a record written before the readiness anchor existed the same way', () => {
     const legacy: Topic = { ...acquiredMorse(), learningAt: ago(40) }
     expect(legacy.acquisitionReadyAt).toBeUndefined()
 
-    const journey = journeyFor(legacy, NOW)
-    // Never stricter than the behaviour that learner already had.
-    expect(retentionAnchor(legacy, journey.acquisition)).toBe(ago(40))
+    const journey = journeyFor(legacy)
     expect(journey.due).toBe(true)
     expect(journey.action).toBe('test')
   })
@@ -224,7 +218,7 @@ describe('the retention clock is anchored at readiness, not at first exposure', 
 describe('an ineligible Test is recorded and moves nothing', () => {
   it('cannot drill a topic whose acquisition is incomplete', () => {
     const partial = acquire(resolveStudy(freshMorse(), new Date(NOW.getTime() - 5 * DAY)), 2)
-    const journey = journeyFor(partial, NOW)
+    const journey = journeyFor(partial)
     expect(journey.advancementEligible).toBe(false)
 
     const resolution = resolveAttempt(partial, 26, 26, NOW, {
@@ -259,11 +253,11 @@ describe('an ineligible Test is recorded and moves nothing', () => {
       ...freshMorse(),
       status: 'drilled',
       learningAt: ago(60),
-      drilledAt: ago(COMPLETION_GAP_DAYS + 1),
-      lastTestedAt: ago(COMPLETION_GAP_DAYS + 1),
+      drilledAt: ago(1),
+      lastTestedAt: ago(1),
     }
 
-    const journey = journeyFor(drilled, NOW)
+    const journey = journeyFor(drilled)
     expect(journey.acquisition.ready).toBe(false)
     expect(journey.advancementEligible).toBe(true)
     expect(journey.action).toBe('test')
@@ -281,11 +275,12 @@ describe('an ineligible Test is recorded and moves nothing', () => {
       lastTestedAt: ago(30),
     }
 
-    const journey = journeyFor(completed, NOW)
+    const journey = journeyFor(completed)
     expect(journey.action).toBe('test')
-    expect(journey.phase).toBe('waiting')
+    expect(journey.phase).toBe('banked')
+    expect(journey.due).toBe(false)
     expect(journey.advancementEligible).toBe(true)
-    expect(journey.statusLabel).toContain('Spot check in')
+    expect(journey.statusLabel).toBe('Banked')
   })
 })
 
@@ -293,7 +288,7 @@ describe('ordinary topics separate browsing from deliberate enrollment', () => {
   it('keeps a fresh ordinary topic unenrolled until Start, then preserves Test scheduling', () => {
     const bearings = { ...seeded('cardinal-bearings'), status: 'unstarted' as const, completedAt: null, history: [] }
 
-    const fresh = journeyFor(bearings, NOW)
+    const fresh = journeyFor(bearings)
     expect(fresh.acquisition.progressive).toBe(false)
     expect(fresh.action).toBe('enroll')
     expect(fresh.actionLabel).toBe('Start')
@@ -311,12 +306,12 @@ describe('ordinary topics separate browsing from deliberate enrollment', () => {
     expect(enrolled.history).toEqual([])
     expect(enrolled.itemEvidence).toEqual(bearings.itemEvidence)
 
-    const sameDay = journeyFor(enrolled, NOW)
+    const sameDay = journeyFor(enrolled)
     expect(sameDay.action).toBe('test')
     expect(sameDay.statusLabel).toBe('Ready to test')
     expect(sameDay.due).toBe(true)
 
-    const nextDay = journeyFor(enrolled, new Date(NOW.getTime() + DAY))
+    const nextDay = journeyFor(enrolled)
     expect(nextDay.due).toBe(true)
     expect(nextDay.statusLabel).toBe('Ready to test')
     expect(nextDay.advancementEligible).toBe(true)
@@ -324,12 +319,11 @@ describe('ordinary topics separate browsing from deliberate enrollment', () => {
 
   it('keeps the scheduler wording for drilled, repair and completed topics', () => {
     const base = seeded('cardinal-bearings')
-    const drilled = journeyFor({ ...base, status: 'drilled', drilledAt: ago(4), completedAt: null }, NOW)
+    const drilled = journeyFor({ ...base, status: 'drilled', drilledAt: ago(4), completedAt: null })
     expect(drilled.statusLabel).toBe('Ready to test again')
     expect(drilled.phase).toBe('due')
-    expect(drilled.retention.gapProgress).toBeNull()
 
-    const repair = journeyFor({ ...base, status: 'decayed', completedAt: ago(200) }, NOW)
+    const repair = journeyFor({ ...base, status: 'decayed', completedAt: ago(200) })
     expect(repair.phase).toBe('repair')
     expect(repair.statusLabel).toBe('Needs repair')
     expect(repair.due).toBe(true)
@@ -339,7 +333,7 @@ describe('ordinary topics separate browsing from deliberate enrollment', () => {
   it('holds a topic with no items apart as an authoring job', () => {
     const empty: Topic = { ...seeded('cardinal-bearings'), items: [], status: 'unstarted' }
 
-    const journey = journeyFor(empty, NOW)
+    const journey = journeyFor(empty)
     expect(journey.phase).toBe('authoring')
     expect(journey.action).toBe('author')
     expect(journey.actionLabel).toBe('Add items')
@@ -351,7 +345,7 @@ describe('ordinary topics separate browsing from deliberate enrollment', () => {
 describe('formal evidence stays its own dimension', () => {
   it('reports directional coverage separately from acquisition and retention', () => {
     const morse = acquiredMorse()
-    const journey = journeyFor(morse, NOW)
+    const journey = journeyFor(morse)
 
     expect(journey.evidence.bidirectional).toBe(true)
     expect(journey.evidence.total).toBe(26)
@@ -363,7 +357,7 @@ describe('formal evidence stays its own dimension', () => {
   })
 
   it('does not claim bidirectional evidence for an ordinary forward deck', () => {
-    const journey = journeyFor(seeded('cardinal-bearings'), NOW)
+    const journey = journeyFor(seeded('cardinal-bearings'))
     expect(journey.evidence.bidirectional).toBe(false)
   })
 })
@@ -377,7 +371,7 @@ describe('the day and the shelves read from the same derivation', () => {
   ]
 
   it('ranks repair first and puts acquisition work on the due shelf', () => {
-    const entries = journeysFor(topics(), NOW)
+    const entries = journeysFor(topics())
     const due = dueEntries(entries)
 
     expect(due[0].topic.id).toBe('cardinal-bearings')
@@ -387,7 +381,7 @@ describe('the day and the shelves read from the same derivation', () => {
   })
 
   it('places every topic on the shelf its own action agrees with', () => {
-    const shelves = journeyShelves(journeysFor(topics(), NOW))
+    const shelves = journeyShelves(journeysFor(topics()))
     const shelfOf = (id: string) => shelves.find((shelf) => shelf.entries.some((e) => e.topic.id === id))?.id
 
     expect(shelfOf('cardinal-bearings')).toBe('due')

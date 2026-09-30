@@ -2,8 +2,16 @@
 
 **Status:** Implemented
 
+> **No-clock addendum — 2026-09-29.** Time-based scheduling is gone. A banked
+> course is never "due": its topic page leads with **Keep going**, and offers
+> **Full test** (the scored check, which can send the topic to repair) and
+> **Quick review** side by side, for the learner to choose. A review is now
+> the learner's explicit choice, carried on the run route as
+> `{ kind: 'review' }`, not something inferred from "not due". §2 and §3 below
+> describe the review and the page under this rule.
+
 **Authority:** Current for shipped behaviour after A–Z acquisition: the uncued
-Test floor, reviews between scheduled checks, Copy, figures and punctuation,
+Test floor, reviews the learner chooses, Copy, figures and punctuation,
 free play and the extended spacing ladder. `MORSE_FLUENCY.md` still governs
 the Fluency surface this extends; `MORSE_CUE_LADDER.md` still governs the
 ladder for anyone mid-curriculum; `PROGRESS_ARCHITECTURE.md` still governs the
@@ -52,12 +60,12 @@ re-floors after folding each answer so the stored cue stays `free`.
 Support after the alphabet lives where it is formative: Practice, Learn
 replays, and Copy's feedback.
 
-## 2. Reviews between scheduled checks
+## 2. Reviews, when the learner chooses one
 
 `src/domain/study/review.ts`.
 
-A Test on a topic that is progressive, acquired, and **not due** runs as a
-review: `REVIEW_LENGTH` (10) items, uncued, chosen weakest first —
+A review is offered on a topic that is progressive and acquired, and not in
+repair, and runs when the learner picks **Quick review**: `REVIEW_LENGTH` (10) items, uncued, chosen weakest first —
 
 1. letters missed most recently (any required direction);
 2. letters never answered in Test;
@@ -69,19 +77,19 @@ A review is **not an attempt.** It merges its answers into `itemEvidence`
 (they are genuine uncued answers) and nothing else: no `resolveAttempt`, no
 history entry, no `lastTestedAt`, no status or clock. The scheduled check keeps
 its whole-deck contract unchanged, and a decayed topic — always due — still
-runs the full deck for repair. The end screen says what happened, including
-when the next full check is, and offers Practice for anything missed.
+runs the full deck for repair. The end screen says what happened and offers
+Practice for anything missed.
 
 Decided once at session start (`reviewTopics`), like the deck itself.
 
 ## 3. The topic page after the alphabet
 
-`journeyFor` gives an acquired progressive topic in the `waiting` phase the
+`journeyFor` gives an acquired progressive topic in the `banked` phase the
 primary label **Keep going**, which opens Fluency and names the next Copy
-level. Its action stays `test`, so Library and Today rows still offer Test —
-which, between checks, is the review. When a check is due, or the topic needs
-repair, Test leads again, because only the check can earn anything; Copy and
-speed practice sit beside it at text weight.
+level, with **Full test** and **Quick review** beside it. While the ladder is
+still moving (learning, drilled) or the topic needs repair, Test leads,
+because only the check can earn anything; Copy and speed practice and the
+review sit beside it at text weight.
 
 ## 4. Copy — hear it, write it down
 

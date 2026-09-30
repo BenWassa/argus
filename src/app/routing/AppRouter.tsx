@@ -269,8 +269,9 @@ export function AppRouter() {
             />
           ) : (
             <TestSession
-              key={`${route.mode}-${route.topicIds.join()}`}
+              key={`${route.mode}-${route.target?.kind ?? 'check'}-${route.topicIds.join()}`}
               topicIds={route.topicIds}
+              review={route.target?.kind === 'review'}
               onExit={goBack}
               // Replaces the finished check in history rather than stacking on
               // top of it: Back from practice should reach whatever launched

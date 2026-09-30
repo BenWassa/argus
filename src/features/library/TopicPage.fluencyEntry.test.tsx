@@ -142,9 +142,7 @@ describe('the Fluency entry', () => {
     expect(screen.getByRole('button', { name: /^Test/ }).className).toContain('topic-primary')
   })
 
-  it('leads between checks, and the Test becomes a quick review of weak letters', () => {
-    // Acquisition finished just now: the one-day gap has not passed, so no
-    // check is due and a full Test could move nothing.
+  it('leads a banked course, beside a full scored check and a quick review of weak letters', () => {
     const onStart = open(morse({ status: 'completed', completedAt: new Date().toISOString(), acquisitionReadyAt: new Date().toISOString() }))
     expect(keepGoing()!.className).toContain('topic-primary')
     expect(keepGoing()!.textContent).toContain('Next: letters')
@@ -154,6 +152,11 @@ describe('the Fluency entry', () => {
 
     expect(quickReview()!.className).toContain('topic-alt')
     fireEvent.click(quickReview()!)
+    expect(onStart).toHaveBeenLastCalledWith('test', [MORSE_ID], { kind: 'review' })
+
+    const fullTest = screen.getByRole('button', { name: /Full test/ })
+    expect(fullTest.className).toContain('topic-alt')
+    fireEvent.click(fullTest)
     expect(onStart).toHaveBeenLastCalledWith('test', [MORSE_ID])
   })
 

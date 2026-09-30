@@ -30,7 +30,6 @@ import {
   swipeDecks,
   type Card,
 } from './testDeck'
-import { journeyFor } from '../../domain/study/journey'
 import { nextView, type TestPhase, type TestView } from './testView'
 import { TestDone, type ReviewResult } from './TestDone'
 import { resolveBankedAttempt, type BankedAttempt } from './bankedAttempt'
@@ -53,6 +52,8 @@ const ASSUMED_CARD_WIDTH = 360
 
 interface TestSessionProps {
   topicIds: string[]
+  /** The learner asked for the short review rather than the full check. */
+  review?: boolean
   onExit: () => void
   /**
    * Start a formative practice run over exactly what this check missed.
@@ -65,7 +66,7 @@ interface TestSessionProps {
   onPractice?: (topicId: string, itemIds: string[]) => void
 }
 
-export function TestSession({ topicIds, onExit, onPractice }: TestSessionProps) {
+export function TestSession({ topicIds, review = false, onExit, onPractice }: TestSessionProps) {
   const { topics, updateTopic } = useLibrary()
 
   // Snapshot the topics and deck at session start. A bankable attempt always
@@ -76,7 +77,7 @@ export function TestSession({ topicIds, onExit, onPractice }: TestSessionProps) 
   const [baselines] = useState(() => openingBaselines(included))
   const [profiles] = useState(() => acquisitionProfiles(included))
   const [swipeTopics] = useState(() => swipeDecks(included))
-  const [reviews] = useState(() => reviewTopics(included))
+  const [reviews] = useState(() => (review ? reviewTopics(included) : new Set<string>()))
   const [deck] = useState(() => buildDeck(included, profiles, reviews))
 
   // Cue evidence accrued this session, held apart from the scheduler's tally
@@ -238,7 +239,7 @@ export function TestSession({ topicIds, onExit, onPractice }: TestSessionProps) 
       const merged = mergeItemEvidence(topic, evidence)
       setReviewed((previous) => [
         ...previous,
-        { topic: merged, correct: attempt.correct, total: attempt.total, schedule: journeyFor(merged).statusLabel },
+        { topic: merged, correct: attempt.correct, total: attempt.total },
       ])
       return
     }

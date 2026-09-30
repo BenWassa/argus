@@ -10,8 +10,6 @@ export interface ReviewResult {
   topic: Topic
   correct: number
   total: number
-  /** The journey's own words for when the next scheduled check is. */
-  schedule: string
 }
 
 export function TestDone({
@@ -98,9 +96,8 @@ export function TestDone({
           <span className="tabular">
             {entry.correct} of {entry.total}
           </span>{' '}
-          with no hints. A review asks your weakest letters and keeps your schedule exactly where it
-          is — {entry.schedule.charAt(0).toLowerCase() + entry.schedule.slice(1)}, and that check asks
-          every letter.
+          with no hints. A review asks your weakest letters and moves nothing on the ladder. A full
+          test asks every letter, whenever you choose to take one.
         </p>
       ))}
 
@@ -116,7 +113,7 @@ export function TestDone({
 
       {decayed.map((resolution) => (
         <p className="transition" key={resolution.topic.id}>
-          <strong>{resolution.topic.title}</strong> did not survive its spot check, so it goes back
+          <strong>{resolution.topic.title}</strong> did not survive this check, so it goes back
           to drilling. Your completion from{' '}
           {resolution.topic.completedAt
             ? new Date(resolution.topic.completedAt).toLocaleDateString()

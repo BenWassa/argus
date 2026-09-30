@@ -4,36 +4,33 @@ import type { ItemCueEvidence } from './evidence'
 import { journeyFor } from './journey'
 
 /**
- * A short review between scheduled checks.
+ * A short review, chosen by the learner beside the full check.
  *
- * Once the alphabet is acquired, the topic's recommended action is always a
- * Test — but most days it is not *due*, and a Test that is not due cannot move
- * a rung or a clock in either direction (`resolveAttempt`'s early branch). So
- * asking all twenty-six letters on those days spent a learner's time on a run
- * that could change nothing, over letters they mostly already hold.
+ * Once the alphabet is acquired, a full check asks all twenty-six letters and
+ * can move the ladder. Some days the learner wants a few minutes over the
+ * letters they hold least firmly instead, so the topic page offers both and the
+ * learner picks (owner, 2026-09-29: the learner chooses when to test).
  *
  * A review asks `REVIEW_LENGTH` letters, weakest first, uncued, and records the
  * answers as the per-item evidence they are. It is not an attempt: it resolves
- * nothing, appends no history and touches no scheduler field, so the scheduled
- * check keeps its whole-deck contract exactly as before.
+ * nothing, appends no history and touches no scheduler field, so the full check
+ * keeps its whole-deck contract exactly as before.
  */
 export const REVIEW_LENGTH = 10
 
 /**
- * True when a Test on this topic should run as a review.
- *
- * Only a progressive topic whose acquisition is finished — where every answer
- * is uncued and per-item evidence exists to choose from — and only when no
- * scheduled check is due. A decayed topic is always due, so repair still runs
- * the full deck.
+ * True when this topic can run a review at all: a progressive topic whose
+ * acquisition is finished, where every answer is uncued and per-item evidence
+ * exists to choose from. Whether a run *is* a review is the learner's choice,
+ * carried on the route; a topic needing repair is offered only the full check.
  */
-export function isReviewTopic(topic: Topic, now: Date = new Date()): boolean {
-  const journey = journeyFor(topic, now)
+export function isReviewTopic(topic: Topic): boolean {
+  const journey = journeyFor(topic)
   return (
     journey.acquisition.progressive &&
     journey.acquisition.ready &&
     journey.action === 'test' &&
-    !journey.due &&
+    journey.phase !== 'repair' &&
     topic.items.length > 0
   )
 }

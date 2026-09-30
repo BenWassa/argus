@@ -77,7 +77,7 @@ function betweenChecks(): string {
   const now = new Date().toISOString()
   return JSON.stringify({
     version: 5,
-    // Banked moments ago, so no check is due: the state between checks.
+    // Banked: the course is finished, and checked whenever the learner chooses.
     topics: [{
       ...morse,
       status: 'completed',

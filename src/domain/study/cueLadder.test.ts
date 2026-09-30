@@ -219,7 +219,6 @@ describe('cue state stays separate from retention state', () => {
     const cued = resolveAttempt(withItemEvidence(topic, forward.id, run(forward, Array(20).fill(true))!), 2, 2)
     expect(cued.to).toBe(bare.to)
     expect(cued.completed).toBe(bare.completed)
-    expect(cued.gapDays).toBe(bare.gapDays)
     const now = new Date('2026-01-03T00:00:00.000Z')
     const { itemEvidence: _plain, ...plainStudy } = resolveStudy(
       { ...topic, status: 'unstarted' },

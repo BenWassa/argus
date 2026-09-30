@@ -287,7 +287,7 @@ Today's docket is a dense index: no radius, full-width bottom hairline, sans tit
 Library rows are **plates** instead (see Library list). Ruled rows were a deliberate rejection of the obvious gunmetal move, a card per topic, and they are still right where density is the job. On the Library the owner found hairline rows flat and the chevrons unwanted, so each topic became its own stamped plate: one object per topic, the whole plate the control, no chevron or nested surface. Shipped topics carry small recognition icons beside their titles.
 
 ### The docket
-Today is a few large **plates** (at most three) for topics already in motion: started, and either due or waiting out a gap. A topic nobody has started is Library's to offer, and a banked topic resting between spot checks stays in Library until its check comes due. Due plates come first in the schedule's own ranking, then waiting ones, soonest first.
+Today is a few large **plates** (at most three) for topics already in motion: started and not yet banked, or needing repair. A topic nobody has started is Library's to offer, and a banked topic rests in Library, where it can be checked whenever the learner chooses. Nothing waits on a clock, so there is no "not due yet" plate; plates come in the ladder's own ranking.
 
 Each plate is the same object as a Library plate, set bigger: section-size title, a neutral recognition icon for shipped topics, one mono line, and the bare gauge (no label, its reading kept for a screen reader). User-authored topics have no placeholder icon. A due plate's line is the schedule's own reason (`Ready to test`, `Lesson in progress`, `Needs repair` in tarnish); a plate that is not due says `Not due yet` and sits flush.
 
