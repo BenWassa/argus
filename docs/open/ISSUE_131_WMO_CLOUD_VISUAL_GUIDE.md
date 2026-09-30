@@ -85,3 +85,15 @@ Fronts/weather-map literacy, cloud species/varieties and advanced meteorology re
 - guide uses the shared #146 Learn visual primitive;
 - no scored photographic recognition or deterministic forecasting claim ships;
 - relevant browser/accessibility checks pass.
+
+## Implementation status — asset sourcing blocked; UI integration unblocked (2026-09-30)
+
+**Sourcing/QA not started.** The preferred source order starts with item-level verification on Wikimedia Commons and classification cross-checks against the WMO Cloud Atlas. Both `commons.wikimedia.org` / `upload.wikimedia.org` and `cloudatlas.wmo.int` / `www.wmo.int` (and NOAA) were refused by the sandbox egress policy, so no real photograph could be fetched, licence-checked or classification-checked. No image was substituted: AI generation is permitted only as a strict unscored fallback, and using it merely because sourcing was unavailable would sidestep the asset policy.
+
+### To unblock
+
+Allow the agent network policy to reach `commons.wikimedia.org`, `upload.wikimedia.org`, `cloudatlas.wmo.int` and optionally `www.noaa.gov`, or supply a vetted set of ten photographs with their licence and classification evidence.
+
+### What is ready
+
+The shared Learn visual primitive this issue depends on exists (#146, PR #152): `LearnEntry.visual` carries a local `/media/` image with required alt text, visible caption and credit line, and an `assetId` for the provenance record, and a failed image falls back to its text. The guide can therefore be written as one `entries` block of ten genera with no further UI work. The remaining work is the ten images, the provenance records and the copy from #141.
