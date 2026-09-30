@@ -1,6 +1,13 @@
 # Issue #128 — Beaufort Scale reference layout redesign
 
-Status: **Design locked; implementation pending**
+Status: **Implemented — 2026-09-29.**
+
+The design below is implemented as specified, with these details:
+
+- The generic `entries` Learn block (`LearnEntry` in `src/domain/learning/content.ts`) is `{ marker, title, meta?, fields: {label, text}[], note? }`.
+- The topic page's scored recall list now sits before Limitations and Sources for **every** topic with Learn content, titled **What to remember**. This is the compact reference, without repeating the list.
+- The carousel slot is the first section position, straight after the overview (#129).
+- Existing libraries receive the new Learn through `refreshShippedLearn` in `libraryMigrations.ts`. It applies only to a catalog-owned Beaufort whose 13 scored items are the shipped ones.
 
 GitHub issue: #128 — Redesign Beaufort Scale reference layout around force levels
 

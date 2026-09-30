@@ -18,7 +18,8 @@ import { parseLibrary } from './libraryParser'
  * record goes through before it becomes the live one.
  *
  * Every migration here is append- or migration-only: the Morse baseline
- * absorption, the shipped-title renames and the retired sitting sidecar
+ * absorption, the shipped-title renames, the shipped-Learn refresh and the
+ * retired sitting sidecar
  * adoption may settle provenance, rename or take over bookkeeping, but none may
  * rewrite unrelated learner state.
  */
@@ -131,6 +132,39 @@ export function renameShippedTitles(library: CurrentLibrary): CurrentLibrary {
   return changed ? { ...library, topics } : library
 }
 
+/**
+ * Shipped topics whose Learn content has been rewritten since first shipping.
+ * Delivery never rewrites a topic a library already holds, so new explanatory
+ * content reaches an existing library only through this list.
+ */
+const REFRESHED_LEARN_TOPIC_IDS: readonly string[] = [
+  // #128: sea and land tables became one entry per force.
+  'beaufort-wind-scale',
+]
+
+/**
+ * Bring a rewritten shipped Learn into a library that already holds the topic.
+ *
+ * Learn is explanation, not evidence, so nothing else is touched. It applies
+ * only to a topic the catalog still owns whose scored items are exactly the
+ * shipped ones: a topic whose boundary was edited is somebody's own now.
+ * Idempotent, so two devices arrive at the same record and sync sees agreement.
+ */
+export function refreshShippedLearn(library: CurrentLibrary): CurrentLibrary {
+  let changed = false
+  const topics = library.topics.map((topic) => {
+    if (!REFRESHED_LEARN_TOPIC_IDS.includes(topic.id) || topicOrigin(topic) !== 'catalog') return topic
+    const definition = catalogDefinition(topic.id)
+    if (!definition?.learn || topic.items.length !== definition.items.length) return topic
+    const sameItems = topic.items.every((item, index) =>
+      item.prompt === definition.items[index].prompt && item.answer === definition.items[index].answer)
+    if (!sameItems || JSON.stringify(topic.learn) === JSON.stringify(definition.learn)) return topic
+    changed = true
+    return { ...topic, learn: definition.learn }
+  })
+  return changed ? { ...library, topics } : library
+}
+
 function freshSeedLibraryUnreconciled(): CurrentLibrary {
   const parsed = parseLibrary(seedLibrary())
   return parsed.ok ? parsed.library : { version: 5, topics: [] }
@@ -138,15 +172,18 @@ function freshSeedLibraryUnreconciled(): CurrentLibrary {
 
 /**
  * Everything a stored or imported library goes through before it becomes the
- * live record: the one explicit Morse migration, the shipped-title renames,
- * then delivery of shipped catalog topics this library has never been offered.
+ * live record: the one explicit Morse migration, the shipped-title renames
+ * and Learn refreshes, then delivery of shipped catalog topics this library has never been offered.
  * All are append- or migration-only; none may rewrite unrelated learner state.
  */
 export function reconcileLoadedLibrary(
   library: CurrentLibrary,
   now: Date = new Date(),
 ): { library: CurrentLibrary; report: CatalogReconciliation } {
-  return reconcileCatalog(renameShippedTitles(absorbSeededMorseBaseline(library)), now)
+  return reconcileCatalog(
+    refreshShippedLearn(renameShippedTitles(absorbSeededMorseBaseline(library))),
+    now,
+  )
 }
 
 /**

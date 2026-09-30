@@ -23,12 +23,27 @@ export interface MorseCharacterLearnItem {
  * remains `scope` + `items`; none of these blocks are Test material unless an
  * author explicitly adds equivalent finite recall items to the deck.
  */
+/**
+ * One unit of a repeated reference: a marker (a number, a code), what it names,
+ * a line of factual metadata, and labelled supporting fields that belong with
+ * it. For content whose natural unit is the entry, not a table row — so the
+ * learner never has to join the same unit across two tables.
+ */
+export interface LearnEntry {
+  marker: string
+  title: string
+  meta?: string
+  fields: { label: string; text: string }[]
+  note?: string
+}
+
 export type LearnBlock =
   | { type: 'paragraph'; text: string }
   | { type: 'bullets'; items: string[] }
   | { type: 'steps'; items: string[] }
   | { type: 'definitions'; items: { term: string; definition: string }[] }
   | { type: 'table'; columns: string[]; rows: string[][] }
+  | { type: 'entries'; entries: LearnEntry[] }
   | { type: 'morse-character-packet'; characters: MorseCharacterLearnItem[] }
 
 export interface LearnSection {

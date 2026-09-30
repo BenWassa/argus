@@ -3,6 +3,7 @@ import {
   type LearnBlock,
   type LearnCaseStudy,
   type LearnContent,
+  type LearnEntry,
   type LearnSection,
   type LearnSource,
   type MorseCharacterLearnItem,
@@ -177,6 +178,34 @@ function parseBlock(value: unknown, where: string): { ok: true; block: LearnBloc
       rows.push(row.value)
     }
     return { ok: true, block: { type: 'table', columns: columns.value, rows } }
+  }
+
+  if (value.type === 'entries') {
+    if (!Array.isArray(value.entries) || value.entries.length === 0) {
+      return { ok: false, error: `${where} entries must contain at least one entry.` }
+    }
+    const entries: LearnEntry[] = []
+    for (let i = 0; i < value.entries.length; i += 1) {
+      const raw = value.entries[i]
+      const at = `${where} entry ${i + 1}`
+      if (!isRecord(raw)) return { ok: false, error: `${at} is not an entry.` }
+      const marker = optionalText(raw.marker)
+      const title = optionalText(raw.title)
+      if (!marker || !title) return { ok: false, error: `${at} needs both a marker and a title.` }
+      if (!Array.isArray(raw.fields)) return { ok: false, error: `${at} fields must be a list.` }
+      const fields: LearnEntry['fields'] = []
+      for (let f = 0; f < raw.fields.length; f += 1) {
+        const field = raw.fields[f]
+        const label = isRecord(field) ? optionalText(field.label) : undefined
+        const text = isRecord(field) ? optionalText(field.text) : undefined
+        if (!label || !text) return { ok: false, error: `${at} field ${f + 1} needs both a label and text.` }
+        fields.push({ label, text })
+      }
+      const meta = optionalText(raw.meta)
+      const note = optionalText(raw.note)
+      entries.push({ marker, title, ...(meta ? { meta } : {}), fields, ...(note ? { note } : {}) })
+    }
+    return { ok: true, block: { type: 'entries', entries } }
   }
 
   if (value.type === 'morse-character-packet') return parseMorsePacket(value, where)

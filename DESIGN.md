@@ -238,12 +238,12 @@ reaches them, because it is the only one with a consequence to state.
 | **Learn** | The topic page itself for an ordinary topic: the finite prompt/answer reference in full, preceded by optional concise or briefing support, concealing nothing. A guided lesson for a curriculum topic. | Moves `unstarted` → `learning`. No score. |
 | **Test** | Flashcards with a 3D flip, every scored item once, self-scored | Records the attempt; moves the ladder only when scheduled evidence conditions are met |
 
-Learn has three valid visual outcomes. A **reference-only** topic keeps the compact title/scope/count + numbered set with no additional scaffolding. **Concise support** adds only the small amount of explanation/provenance/limitation the topic needs. A **briefing** may add short sections, lists, definitions, compact tables and integrated case studies before a visibly separate `Recall reference` section. The extra structure is never mandatory simply because the renderer supports it.
+Learn has three valid visual outcomes. A **reference-only** topic keeps the compact title/scope/count + numbered set with no additional scaffolding. **Concise support** adds only the small amount of explanation/provenance/limitation the topic needs. A **briefing** may add short sections, lists, definitions, compact tables and integrated case studies before a visibly separate `What to remember` section. The extra structure is never mandatory simply because the renderer supports it.
 
 ### Named Rules
 **Flashcards Must Conceal.** A card shape promises a hidden answer. If both sides are visible at once it is not a card, it is a list, and it should be set as one. Learn is therefore never card-shaped, and Test never shows the answer before the flip.
 
-**Support Does Not Score.** The Learn briefing is explanatory. The `Recall reference` is the visible rendering of the finite Test deck. Their separation must be legible in the page hierarchy so richer explanation cannot imply that every sentence is a completion requirement.
+**Support Does Not Score.** The Learn briefing is explanatory. `What to remember` is the visible rendering of the finite Test deck. Their separation must be legible in the page hierarchy so richer explanation cannot imply that every sentence is a completion requirement.
 
 **Consequence Is Stated, Not Implied.** Voluntary early Tests state that the score is recorded while required evidence clocks do not move early.
 
@@ -275,7 +275,8 @@ The richer Learn layer is a compact reference briefing, not an article template 
 - Maximum prose measure stays near 68ch; overview copy may use a slightly larger reading size (`--t-lede`), while longer explanatory body copy uses the normal body voice.
 - Structure is native and visible: headings, paragraphs, unordered/ordered lists, definition lists and compact tables.
 - Whole-framework/procedure case studies are continuous sections separated with rules and spacing. They are not one card per stage or one panel per term.
-- The finite recall set follows rich support under a strong hairline and `Recall reference` metadata label.
+- The finite recall set follows rich support under a strong hairline and `What to remember` metadata label, before Limitations and Sources (#128).
+- A repeated reference whose unit is the entry (Beaufort's forces) uses the `entries` block: the marker is the heaviest element, then the title, a mono meta line, and labelled fields stacked beneath, never in columns.
 - Sources and limitations remain in normal document flow, set smaller/muted but not collapsed or hidden.
 - Tables wrap content aggressively and may scroll inside their own focusable wrapper at extreme text scaling. The page itself must not overflow horizontally at 200% text scaling.
 - No animation is needed for briefing comprehension; reduced-motion behavior is therefore inherited without special alternative content.

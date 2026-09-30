@@ -585,6 +585,35 @@ describe('structured Learn import and export shape', () => {
     expect(parsed.error).toContain('not arbitrary HTML')
   })
 
+  it('round-trips entries and refuses one missing its marker, title or field text', () => {
+    const entries = {
+      type: 'entries',
+      entries: [
+        { marker: '7', title: 'Near gale', meta: '28–33 knots', fields: [{ label: 'At sea', text: 'Sea heaps up.' }] },
+        { marker: '12', title: 'Hurricane', fields: [], note: 'No upper limit.' },
+      ],
+    }
+    const ok = parseLibrary({
+      version: 4,
+      topics: [legacyTopic({ learn: { kind: 'concise', sections: [{ heading: 'The scale', blocks: [entries] }] } })],
+    })
+    expect(ok.ok).toBe(true)
+    if (!ok.ok) return
+    expect(ok.library.topics[0].learn?.sections?.[0].blocks[0]).toEqual(entries)
+
+    for (const broken of [
+      { marker: '', title: 'Calm', fields: [] },
+      { marker: '0', title: 'Calm', fields: [{ label: 'At sea', text: '' }] },
+      { marker: '0', title: 'Calm' },
+    ]) {
+      const parsed = parseLibrary({
+        version: 4,
+        topics: [legacyTopic({ learn: { kind: 'concise', sections: [{ heading: 'S', blocks: [{ type: 'entries', entries: [broken] }] }] } })],
+      })
+      expect(parsed.ok).toBe(false)
+    }
+  })
+
   it('rejects malformed tables rather than silently losing comparison structure', () => {
     const parsed = parseLibrary({
       version: 4,

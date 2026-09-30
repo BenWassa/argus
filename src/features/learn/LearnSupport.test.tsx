@@ -76,4 +76,36 @@ describe('structured Learn rendering', () => {
     expect(html).not.toContain('dangerouslySetInnerHTML')
     expect(html).not.toContain('flip-card')
   })
+
+  it('keeps each entry together, and sets the recall slot before Limitations and Sources', () => {
+    const content: LearnContent = {
+      kind: 'concise',
+      sections: [{
+        heading: 'The scale',
+        blocks: [{
+          type: 'entries',
+          entries: [{
+            marker: '7',
+            title: 'Near gale',
+            meta: '28–33 knots',
+            fields: [{ label: 'At sea', text: 'Sea heaps up.' }, { label: 'On land', text: 'Whole trees in motion.' }],
+            note: 'An inline note.',
+          }],
+        }],
+      }],
+      limitations: ['Memory support only.'],
+      sources: [{ label: 'Reference' }],
+    }
+
+    const html = renderToStaticMarkup(
+      <LearnSupport content={content} recall={<h2 className="recall-slot">What to remember</h2>} />,
+    )
+    expect(html).toContain('<h4 class="learn-entry-head"><span class="learn-entry-marker tabular">7</span><span class="learn-entry-title">Near gale</span></h4>')
+    expect(html).toContain('<dt>At sea</dt><dd>Sea heaps up.</dd>')
+    expect(html).toContain('<dt>On land</dt><dd>Whole trees in motion.</dd>')
+    expect(html).toContain('An inline note.')
+    expect(html).not.toContain('<table')
+    expect(html.indexOf('recall-slot')).toBeGreaterThan(html.indexOf('Near gale'))
+    expect(html.indexOf('recall-slot')).toBeLessThan(html.indexOf('<h3>Limitations</h3>'))
+  })
 })

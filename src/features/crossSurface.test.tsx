@@ -575,7 +575,7 @@ describe('ordinary topic browsing and enrollment', () => {
     renderTopicPage(briefed)
 
     expect(document.querySelector('.learn-support')).not.toBeNull()
-    expect(screen.getByRole('heading', { name: 'Recall reference', level: 2 })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'What to remember', level: 2 })).toBeTruthy()
     expect(document.querySelectorAll('.sheet-items li')).toHaveLength(briefed.items.length)
   })
 

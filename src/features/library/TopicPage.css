@@ -166,7 +166,7 @@
 
 /* Structured support comes first and needs air before the finite set begins,
    so the boundary between explanation and scored material stays legible. */
-.topic-body .learn-support + .topic-reference-head {
+.topic-body .learn-support .topic-reference {
   margin-top: var(--s-2xl);
   padding-top: var(--s-lg);
   border-top: 2px solid var(--line-strong);

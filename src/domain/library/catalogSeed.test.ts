@@ -269,12 +269,24 @@ describe('researched seeded library', () => {
     expect(topic.items.every((item) => item.kind === 'forward')).toBe(true)
     expect(topic.status).toBe('unstarted')
     expect(topic.learn?.kind).toBe('concise')
-    // Two two-column tables rather than one three-column table: the effects
-    // have to stay readable at phone width without sideways scrolling.
-    for (const section of topic.learn?.sections?.slice(0, 2) ?? []) {
-      const table = section.blocks[0]
-      expect(table.type === 'table' && [table.columns.length, table.rows.length]).toEqual([2, 13])
-    }
+    // One entry per force (#128): number, term, knots, and the sea and land
+    // cues kept together, rather than the same force split across two tables.
+    const sections = topic.learn?.sections ?? []
+    expect(sections.map((section) => section.heading)).toEqual(['The scale'])
+    expect(sections.flatMap((section) => section.blocks).some((block) => block.type === 'table')).toBe(false)
+    const block = sections[0].blocks[0]
+    if (block.type !== 'entries') throw new Error('The scale should be force entries.')
+    expect(block.entries).toHaveLength(13)
+    block.entries.forEach((entry, force) => {
+      expect(entry.marker).toBe(String(force))
+      expect(`${entry.title} — ${entry.meta}`).toBe(topic.items[force].answer)
+      expect(entry.fields.map((field) => field.label)).toEqual(['At sea', 'On land'])
+      expect(entry.fields.every((field) => field.text.length > 0)).toBe(true)
+    })
+    expect(block.entries[7]).toMatchObject({ title: 'Near gale', meta: '28–33 knots' })
+    // The force 12 rationale belongs to force 12, and only there.
+    expect(block.entries[12].note).toMatch(/64–71 knots.*64 knots or more/)
+    expect(block.entries.slice(0, 12).every((entry) => entry.note === undefined)).toBe(true)
     expect(topic.learn?.limitations?.some((note) => note.includes('not a forecast'))).toBe(true)
     expect(topic.learn?.sources?.[0].url).toContain('canada.ca')
   })
