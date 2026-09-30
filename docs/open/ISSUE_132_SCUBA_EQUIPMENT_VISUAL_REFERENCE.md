@@ -1,6 +1,6 @@
 # Issue #132 — Scuba equipment visual reference set
 
-**Status:** design / asset planning  
+**Status:** design / asset planning. **Scope needs re-deciding (2026-09-29):** #121 expanded the topic from 6 to 13 scored terms (AAS, DV, HP, LP, IP, SMB and DIN were added). The six assets below now cover only part of it, and HP/LP/IP are pressure concepts rather than objects. Decide whether the set stays at the six physical components, grows to the new physical items (AAS, DV/second stage, SMB, DIN/yoke), or becomes one annotated kit diagram.  
 **Issue:** #132  
 **Topic:** Recreational scuba equipment abbreviations
 

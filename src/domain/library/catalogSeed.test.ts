@@ -138,20 +138,32 @@ describe('researched seeded library', () => {
     expect(topic.learn?.sources?.[0].url).toContain('noaa.gov')
   })
 
-  it('keeps scuba vocabulary to six equipment abbreviations and reference functions', () => {
+  it('keeps scuba gear shorthand to thirteen finite equipment terms with system context (#121)', () => {
     const topic = seededTopic('scuba-equipment-abbreviations')
 
-    expect(rows(topic.items)).toEqual([
-      { prompt: 'SCUBA', answer: 'Self-contained underwater breathing apparatus — equipment that lets a diver breathe underwater from a carried gas supply.' },
-      { prompt: 'BCD', answer: 'Buoyancy control device — the buoyancy bladder/system that helps a diver control buoyancy and commonly holds the cylinder.' },
-      { prompt: 'SPG', answer: 'Submersible pressure gauge — an instrument that displays the pressure, and therefore remaining gas, in a cylinder.' },
-      { prompt: 'LPI', answer: 'Low-pressure inflator — the hose and fitting that supplies low-pressure gas from a regulator to inflate a BCD.' },
-      { prompt: 'DSMB', answer: 'Delayed surface marker buoy — an inflatable surface-signalling buoy deployed from underwater.' },
-      { prompt: 'DPV', answer: 'Diver propulsion vehicle — a powered device used to propel a diver through the water.' },
+    expect(topic.title).toBe('SCUBA Equipment')
+    expect(topic.items.map((item) => item.prompt)).toEqual([
+      'SCUBA', 'BCD', 'SPG', 'LPI', 'DSMB', 'DPV', 'AAS', 'DV', 'HP', 'LP', 'IP', 'SMB', 'DIN',
     ])
+    // The six original ids stay put, so evidence for vocabulary a learner
+    // already knew survives the expansion.
+    expect(topic.items.map((item) => item.id)).toEqual(
+      Array.from({ length: 13 }, (_, index) =>
+        `scuba-equipment-abbreviations-item-${String(index + 1).padStart(2, '0')}`,
+      ),
+    )
+    expect(topic.items.every((item) => item.answer.includes(' — ') || item.prompt === 'DIN')).toBe(true)
+    expect(topic.scope).toContain('Thirteen common recreational-scuba equipment abbreviations and shorthand')
     expect(topic.scope).toContain('Test does not cover equipment selection')
+    expect(topic.learn?.kind).toBe('briefing')
+    expect(topic.learn?.sections?.map((section) => section.heading)).toEqual([
+      'Breathing-gas path',
+      'Core recreational kit map',
+      'Buoyancy, signalling and propulsion',
+      'Connection and naming shorthand',
+    ])
     expect(topic.learn?.limitations?.some((note) => note.includes('not diver training'))).toBe(true)
-    expect(topic.learn?.sources).toHaveLength(3)
+    expect(topic.learn?.sources?.length).toBeGreaterThanOrEqual(9)
   })
 
   it('keeps radiotelephony numbers to the 13 RIC-21 spoken forms, number → spoken form', () => {
