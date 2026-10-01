@@ -48,6 +48,10 @@ Topic icons are compact recognition aids beside shipped topic titles on Library 
 | `hex-digits-binary` | hexagonal digital bit pattern |
 | `beaufort-wind-scale` | windsock + wind lines |
 | `firearm-safety-acts-prove` | safety shield + simplified firearm handling cue |
+| `whole-circle-bearings` | compass circle with a ray and clockwise arc from north |
+| `reciprocal-bearings` | one line with arrowheads at both ends inside a circle |
+| `north-references-declination` | upright north line, a dashed line leaning from it, and the angle between them |
+| `grid-north-map-bearings` | map grid square with a bearing line and arrowhead |
 
 ## Design boundary
 

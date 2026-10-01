@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { angleDialGeometry, dialPoint, FIGURE_KIND_NAMES, parseFigure } from './figures'
+import { angleDialGeometry, dialPoint, FIGURE_KIND_NAMES, northReferenceGeometry, parseFigure } from './figures'
 import type { AngleDialFigure } from './figures'
 
 describe('parseFigure', () => {
@@ -76,5 +76,78 @@ describe('pointer labels', () => {
         expect(Math.hypot(labelAt.x - cardinal.x, labelAt.y - cardinal.y)).toBeGreaterThan(20)
       }
     }
+  })
+})
+
+describe('angle-dial options (#149)', () => {
+  it('accepts a reference, quadrant guides and an arc, and labels north by reference', () => {
+    const parsed = parseFigure(
+      { kind: 'angle-dial', reference: 'M', quadrantGuides: true, arc: true, pointers: [{ bearing: 120 }] },
+      'x',
+    )
+    expect(parsed.ok).toBe(true)
+    if (!parsed.ok || parsed.figure.kind !== 'angle-dial') return
+    const geometry = angleDialGeometry(parsed.figure)
+    expect(geometry.cardinals[0].label).toBe('MN')
+    expect(geometry.guides).toHaveLength(2)
+    expect(geometry.arcPath).toMatch(/^M 100 \d+(\.\d+)? A 26 26 0 0 1 /)
+  })
+
+  it('draws no guides or arc unless asked, and keeps plain N', () => {
+    const geometry = angleDialGeometry({ kind: 'angle-dial', pointers: [{ bearing: 30 }] })
+    expect(geometry.guides).toEqual([])
+    expect(geometry.arcPath).toBeNull()
+    expect(geometry.cardinals[0].label).toBe('N')
+  })
+
+  it('uses the large-arc flag beyond 180° and draws no arc for a north pointer', () => {
+    const big = angleDialGeometry({ kind: 'angle-dial', arc: true, pointers: [{ bearing: 250 }] })
+    expect(big.arcPath).toContain(' 0 1 1 ')
+    expect(angleDialGeometry({ kind: 'angle-dial', arc: true, pointers: [{ bearing: 0 }] }).arcPath).toBeNull()
+  })
+
+  it.each([
+    ['an unknown reference', { kind: 'angle-dial', reference: 'X', pointers: [{ bearing: 1 }] }],
+    ['a non-boolean flag', { kind: 'angle-dial', arc: 'yes', pointers: [{ bearing: 1 }] }],
+  ])('rejects %s', (_name, value) => {
+    expect(parseFigure(value, 'x').ok).toBe(false)
+  })
+})
+
+describe('north-reference figure (#149)', () => {
+  const valid = {
+    kind: 'north-reference',
+    rays: [{ ref: 'T', angle: 0 }, { ref: 'M', angle: 14 }, { ref: 'G', angle: -12, label: 'GN 2°W' }],
+  }
+
+  it('accepts a three-north schematic and keeps only what the kind defines', () => {
+    const parsed = parseFigure({ ...valid, extra: 1 }, 'x')
+    expect(parsed).toEqual({ ok: true, figure: valid })
+  })
+
+  it.each([
+    ['one ray only', { kind: 'north-reference', rays: [{ ref: 'T', angle: 0 }] }],
+    ['no upright ray', { kind: 'north-reference', rays: [{ ref: 'T', angle: 10 }, { ref: 'M', angle: -10 }] }],
+    ['two upright rays', { kind: 'north-reference', rays: [{ ref: 'T', angle: 0 }, { ref: 'M', angle: 0 }] }],
+    ['a repeated north', { kind: 'north-reference', rays: [{ ref: 'T', angle: 0 }, { ref: 'T', angle: 20 }] }],
+    ['rays too close together', { kind: 'north-reference', rays: [{ ref: 'T', angle: 0 }, { ref: 'M', angle: 5 }] }],
+    ['an angle beyond the frame', { kind: 'north-reference', rays: [{ ref: 'T', angle: 0 }, { ref: 'M', angle: 60 }] }],
+    ['a fractional angle', { kind: 'north-reference', rays: [{ ref: 'T', angle: 0 }, { ref: 'M', angle: 10.5 }] }],
+    ['an unknown north', { kind: 'north-reference', rays: [{ ref: 'T', angle: 0 }, { ref: 'Q', angle: 10 }] }],
+  ])('rejects %s', (_name, value) => {
+    expect(parseFigure(value, 'x').ok).toBe(false)
+  })
+
+  it('draws the upright ray straight up and east clockwise of it', () => {
+    const parsed = parseFigure(valid, 'x')
+    if (!parsed.ok || parsed.figure.kind !== 'north-reference') throw new Error('unparsed')
+    const { vertex, rays } = northReferenceGeometry(parsed.figure)
+    const [upright, east, west] = rays
+    expect(upright.tip.x).toBe(vertex.x)
+    expect(upright.tip.y).toBeLessThan(vertex.y)
+    expect(east.tip.x).toBeGreaterThan(vertex.x)
+    expect(west.tip.x).toBeLessThan(vertex.x)
+    expect(upright.label).toBe('TN')
+    expect(west.label).toBe('GN 2°W')
   })
 })
