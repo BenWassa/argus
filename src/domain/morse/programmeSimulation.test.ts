@@ -6,6 +6,9 @@ import {
   introduceLesson,
   lessonPackets,
   lessonProgressOf,
+  morseAcquisitionPosition,
+  owedLetters,
+  startAfterCourse,
   startLesson,
   withLessonProgress,
   type LessonRun,
@@ -34,6 +37,8 @@ import {
   withMorseReview,
 } from './curriculum/review'
 import { ALL_MORSE_LETTERS } from './curriculum/packetOrder'
+import { journeyFor } from '../study/journey'
+import { resolveStudy } from '../study/scheduling'
 import { parseLibrary } from '../../infrastructure/persistence/libraryParser'
 import { seedLibrary } from '../library/catalogSeed'
 import type { MorseLetter } from './code'
@@ -385,7 +390,8 @@ describe('review is chosen by what the learner actually missed', () => {
    * owes (Rothkopf 1958, and `confusion.ts` owns the relation). A character
    * missed in the last lesson has no later lesson at all. So `B`, `Q`, `Y` and
    * `Z` cannot be repaired inside the thirteen, and this says so out loud
-   * rather than letting it read as the term failing.
+   * rather than letting it read as the term failing. The after-course runs
+   * below are where they are repaired (`startAfterCourse`).
    */
   it('names the stumbles the course has no room to repair', () => {
     const improved = ALL_MORSE_LETTERS.filter((glyph) => {
@@ -413,5 +419,92 @@ describe('review is chosen by what the learner actually missed', () => {
     const trace = runProgramme()
     const counts = ALL_MORSE_LETTERS.map((glyph) => trace.printed.get(glyph) ?? 0)
     expect(Math.max(...counts) - Math.min(...counts)).toBeLessThanOrEqual(3)
+  })
+})
+
+/**
+ * After-course sittings (`startAfterCourse`), driven the way `MorseLesson` runs
+ * one: answer every check, record the printed retrieval, close the sitting.
+ * Returns the topic and how many sittings it took to owe nothing.
+ */
+function runAfterCourse(start: Topic, alwaysMiss = new Set<MorseLetter>()): { topic: Topic; sittings: number } {
+  let topic = start
+  let sittings = 0
+  while (sittings < 20) {
+    let run: LessonRun | null = startAfterCourse(topic)
+    if (!run) break
+    for (let guard = 0; guard < 100; guard += 1) {
+      const step = currentStep(run)
+      if (!step) break
+      if (step.kind === 'introduce') throw new Error('An after-course run must introduce nothing.')
+      const entry = step.entry
+      const correct = !alwaysMiss.has(entry.glyph)
+      const answered = answerLesson(run, entry.itemId, correct ? entry.pattern : 'x')
+      if (answered === run || !answered.feedback) break
+      topic = withMorseReview(
+        withLessonProgress(topic, lessonProgressOf(answered)),
+        recordPrintedRetrieval(morseReviewOf(topic), entry.itemId, correct),
+      )
+      run = advanceLesson(answered)
+    }
+    topic = withMorseReview(topic, completeSitting(morseReviewOf(topic)))
+    sittings += 1
+  }
+  return { topic, sittings }
+}
+
+describe('the course ends somewhere: after the thirteen lessons', () => {
+  it('leaves a real learner short of readiness at the last lesson, which is why after-course runs exist', () => {
+    const trace = runProgramme()
+    expect(startLesson(trace.topic)?.finished).toBe(true)
+    // The lessons alone cannot confirm the letters taught last or kept apart.
+    expect(morseAcquisitionPosition(trace.topic)?.ready).toBe(false)
+    expect(owedLetters(trace.topic)).toEqual(expect.arrayContaining(['Q', 'Y']))
+  })
+
+  it('offers going over the owed letters, not lesson 13 again, and then the Test', () => {
+    // Opening the first lesson enrols the topic, as `LessonRun` does.
+    const finished = resolveStudy(runProgramme().topic)
+    const before = journeyFor(finished)
+    expect(before.action).toBe('learn')
+    expect(before.primaryLabel).toBe('Go over missed letters')
+    expect(before.acquisition.owed).toEqual(owedLetters(finished))
+
+    const after = journeyFor(runAfterCourse(finished).topic)
+    expect(after.acquisition.ready).toBe(true)
+    expect(after.action).toBe('test')
+    expect(after.advancementEligible).toBe(true)
+  })
+
+  it('reaches readiness in a few after-course sittings, for a clean learner and a stumbling one', () => {
+    for (const options of [{}, { missOnce: new Set(ALL_MORSE_LETTERS) }] as Options[]) {
+      const { topic, sittings } = runAfterCourse(runProgramme(options).topic)
+      expect(owedLetters(topic)).toEqual([])
+      expect(morseAcquisitionPosition(topic)?.ready).toBe(true)
+      expect(sittings).toBeGreaterThan(0)
+      expect(sittings).toBeLessThanOrEqual(3)
+      expect(startAfterCourse(topic)).toBeNull()
+    }
+  })
+
+  it('repairs the late letters the course had no room for', () => {
+    for (const glyph of ['B', 'Q', 'Y', 'Z'] as MorseLetter[]) {
+      const finished = runProgramme({ missOnce: new Set([glyph]) }).topic
+      const { topic } = runAfterCourse(finished)
+      expect(owedLetters(topic)).not.toContain(glyph)
+    }
+  })
+
+  it('never introduces a letter, and never runs before the course is finished', () => {
+    expect(startAfterCourse(morseTopic())).toBeNull()
+    const run = startAfterCourse(runProgramme().topic)
+    expect(run?.afterCourse).toBe(true)
+    expect(run?.entries.every((entry) => entry.introduced && !entry.novel)).toBe(true)
+  })
+
+  it('keeps asking a letter the learner still cannot produce', () => {
+    const { topic } = runAfterCourse(runProgramme().topic, new Set(['Q'] as MorseLetter[]))
+    expect(owedLetters(topic)).toContain('Q')
+    expect(startAfterCourse(topic)?.entries.map((entry) => entry.glyph)).toContain('Q')
   })
 })

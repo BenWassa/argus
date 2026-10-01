@@ -1,5 +1,16 @@
 import { useEffect, useState } from 'react'
-import { startLesson, type LessonRun as GuidedRun } from '../../../domain/morse/curriculum/lesson'
+import {
+  startAfterCourse,
+  startLesson,
+  type LessonRun as GuidedRun,
+} from '../../../domain/morse/curriculum/lesson'
+import {
+  lessonSittingIsFresh,
+  lessonSittingOf,
+  withoutLessonSitting,
+} from '../../../domain/morse/curriculum/lessonSitting'
+import { completeSitting, morseReviewOf, withMorseReview } from '../../../domain/morse/curriculum/review'
+import type { Topic } from '../../../domain/library/topic'
 import { morseLessonPath, startReplayLesson } from '../../../domain/morse/curriculum/lessonPath'
 import { morseWordCheckpointPath } from '../../../domain/morse/curriculum/checkpoints'
 import { resolveStudy } from '../../../domain/study/scheduling'
@@ -13,6 +24,19 @@ import type { RunTarget } from '../../../app/routing/routes'
 import { MorseCheckpoint } from './MorseCheckpoint'
 import { MorseLesson } from './MorseLesson'
 import { MorsePlacementDialog } from '../MorsePlacementDialog'
+
+/**
+ * The topic as an after-course run must see it: in a sitting of its own.
+ *
+ * A letter is confirmed only by a correct answer in a sitting after the one
+ * that taught or missed it. A learner who left lesson 13 with "Stop here"
+ * never closed that sitting, so coming back to go over the missed letters is
+ * the return the rule is waiting for, and it closes the old sitting first.
+ */
+function inNewSitting(topic: Topic): Topic {
+  if (lessonSittingIsFresh(lessonSittingOf(topic))) return topic
+  return withMorseReview(withoutLessonSitting(topic), completeSitting(morseReviewOf(topic)))
+}
 
 interface LessonRunProps {
   topicId: string
@@ -63,8 +87,19 @@ export function LessonRun({ topicId, target, onExit, onCheck, onReference }: Les
     if (!topic || placementRequired) return null
     if (target.kind === 'replay') return startReplayLesson(topic, target.index)
     if (target.kind === 'checkpoint') return null
+    // Nothing owed any more (another device got there first) falls back to
+    // wherever the lesson stands, rather than an empty run.
+    if (target.kind === 'after-course') return startAfterCourse(inNewSitting(topic)) ?? startLesson(topic)
     return startLesson(topic)
   })
+
+  // Persist the sitting close the run was built against, once.
+  useEffect(() => {
+    if (!topic || target.kind !== 'after-course') return
+    if (!lessonSittingIsFresh(lessonSittingOf(topic))) updateTopic(topicId, (current) => inNewSitting(current))
+    // Once, at open: the run was built against exactly this close.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const [checkpoint] = useState(() => {
     if (!topic || target.kind !== 'checkpoint') return null
