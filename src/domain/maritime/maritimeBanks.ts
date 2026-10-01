@@ -108,7 +108,7 @@ export function lightSignatureItems(): BankItem[] {
         : describeLightStack(arrangement.lights)
     const wrong = LIGHT_CONFUSIONS[status.id].map((id) => statusById(id).state)
     return {
-      prompt: `Light signal ${index + 1} of ${VESSEL_STATUSES.length} — which vessel state does this light arrangement show?`,
+      prompt: `Light signal ${index + 1} — which vessel state does this light arrangement show?`,
       answer: status.state,
       choice: { options: options(status.state, wrong) },
       stimulus: fig(figure, alt),
@@ -142,7 +142,7 @@ export function dayShapeItems(): BankItem[] {
     const answer = shapeState(id)
     const wrong = SHAPE_CONFUSIONS[id].map(shapeState)
     return {
-      prompt: `Day shape ${index + 1} of ${DAY_SHAPE_STATUS_ORDER.length} — which vessel state does this arrangement of black shapes show?`,
+      prompt: `Day shape ${index + 1} — which vessel state does this arrangement of black shapes show?`,
       answer,
       choice: { options: options(answer, wrong) },
       stimulus: fig({ kind: 'day-shape-stack', shapes }, describeShapeStack(shapes)),

@@ -1,6 +1,6 @@
 # Issue #149 — Compass & Bearings implementation
 
-**Status:** implemented on the feature branch, in review; closes #149 when merged. Stacked on #146 (PR #152), so it merges after it.  
+**Status:** shipped (PR #153, merged 2026-09-30).  
 **Issue:** #149  
 **Depends on:** #146  
 **Research authority:** `docs/open/ISSUE_140_COMPASS_BEARINGS_TOPO.md`  

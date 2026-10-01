@@ -77,6 +77,22 @@ describe('pointer labels', () => {
       }
     }
   })
+
+  it('turn away from each other when two labelled pointers are close, and stay inside the ring', () => {
+    const geometry = angleDialGeometry({
+      kind: 'angle-dial',
+      pointers: [{ bearing: 5, label: '005°' }, { bearing: 355, label: '355°' }],
+    })
+    const [east, west] = geometry.pointers.map((pointer) => pointer.labelAt)
+    // 005° labels to the right of north, 355° to the left: wide enough apart
+    // that two four-character labels cannot overlap.
+    expect(east.x).toBeGreaterThan(geometry.centre.x)
+    expect(west.x).toBeLessThan(geometry.centre.x)
+    expect(east.x - west.x).toBeGreaterThan(30)
+    for (const { x, y } of [east, west]) {
+      expect(Math.hypot(x - geometry.centre.x, y - geometry.centre.y)).toBeLessThan(geometry.ringRadius)
+    }
+  })
 })
 
 describe('angle-dial options (#149)', () => {
