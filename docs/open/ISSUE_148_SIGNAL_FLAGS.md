@@ -1,6 +1,6 @@
 # Issue #148 — Maritime II: selected signal flags
 
-**Status:** implemented on the feature branch as a **draft**; **blocked on one human verification step** (below) before it should merge. Stacked on #147 → #149 → #146 (PRs #154, #153, #152).  
+**Status:** implemented on the feature branch as a **draft**. A cross-check against the standard depictions found and fixed two flags (2026-09-30, below); the comparison with NGA Pub. 102 / the IMO Code is still the owner's call before merging. Its base PRs (#152, #153, #154) have merged.  
 **Issue:** #148  
 **Depends on:** #146  
 **Research authority:** `docs/open/ISSUE_138_MARITIME_VISUAL_LITERACY.md` §3D  
@@ -35,11 +35,19 @@ A reviewer should compare each flag with Pub. 102 (and the current IMO depiction
 | J | blue / white / blue, equal thirds | **band proportions** |
 | L | quarters: yellow top-hoist, black top-fly, black bottom-hoist, yellow bottom-fly | quarter colour placement |
 | M | blue with a white saltire | saltire band width |
-| O | diagonal upper-hoist → lower-fly; **red lower-left, yellow upper-right** | **which triangle is which colour** |
+| O | diagonal upper-hoist → lower-fly; **yellow lower-left, red upper-right** (corrected) | **which triangle is which colour** |
 | U | quarters: red top-hoist, white top-fly, white bottom-hoist, red bottom-fly | quarter colour placement |
 | V | white with a red saltire | saltire band width |
-| W | red, white, blue nested rectangles | nested proportions |
+| W | **blue, white, red** nested rectangles, each ring a fifth (corrected) | nested proportions |
 | Y | diagonal yellow and red stripes, running lower-hoist to upper-fly, five red bands | **stripe direction, count and width** |
+
+### Cross-check, 2026-09-30
+
+Each design was compared with the Wikimedia Commons International Code of Signals redraws (`File:ICS_<Name>.svg`, read as SVG geometry). These are community redraws of the Code, not Pub. 102; NGA's site refused automated access, so the authoritative comparison is still open and every manifest `review` stays `null`.
+
+- **Fixed.** Oscar had its colours swapped: the Code has yellow in the lower hoist triangle and red in the upper fly. Whiskey was inverted: the Code is blue outside, then white, then red at the centre, each ring a fifth of the flag.
+- **Matched:** A, B, F, J, L, M, U, V and Y, including Yankee's stripe direction (lower hoist to upper fly) with a yellow corner at the upper hoist, Lima's and Uniform's quarter placement, the swallow-tail depth (about a quarter of the length) and the saltire widths.
+- **Proportion only:** Delta's blue band is half the flag here and three-fifths in the Commons drawing. Both read as "wider blue band"; the Code's own depiction should settle it.
 
 Also confirm the rectangular aspect (drawn 3:2) and that the swallow-tail notch depth is reasonable. If a design changes, edit it in `flags.ts`, re-run, and re-pin its `designSha256`. The meanings themselves come from the research note and need no separate check beyond the IMO errata the note already cites.
 

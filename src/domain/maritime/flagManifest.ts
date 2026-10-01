@@ -13,8 +13,10 @@ import type { FlagLetter } from './flags'
  *
  * `review` is deliberately `null` for every flag. The authoritative depictions
  * (the IMO International Code of Signals and NGA Pub. 102) could not be reached
- * from the environment that produced these redraws, so no flag has been compared
- * against them. The catalog topic should not ship until a reviewer has done that
+ * from the environments that produced and checked these redraws, so no flag has
+ * been compared against them. A cross-check against the Wikimedia Commons
+ * redraws (2026-09-30) found and fixed Oscar and Whiskey; it is recorded in the
+ * issue note and is not a substitute for that review. The catalog topic should not ship until a reviewer has done that
  * comparison and filled this in; `docs/open/ISSUE_148_SIGNAL_FLAGS.md` lists what
  * to check.
  */
@@ -42,10 +44,10 @@ export const FLAG_DESIGN_SHA256: Record<FlagLetter, string> = {
   J: '94225215f12c4b8afb792abaa4f4422c61f32a9fb7f126ec4f1e57ba2704e8af',
   L: 'fd449624e1774bbb5be77d5a2501f3132ae2fd1c4e7d9dd6b44143a209895f76',
   M: '161c25f5c850a4ad946646ff188fead1003069dcd723f755ebacad543ae16808',
-  O: '239dfd75addbede07a6cc87985c92129c7f9c1edb96a7c5ae55d93fe1df587b7',
+  O: 'a1993181911f34b34ca76a76632a969be9c3009c6fb4e749c0369651ad4ca655',
   U: 'a2428febb402805015d7018410aed8605c70f8ba01e27e95623fdaaf9d75c080',
   V: 'f0028fd8b4e6e20ba47c4a579adeba10d2483309a19a75bb7e78761a61299b7a',
-  W: '7e2351fa9686017ddacb9c34d657a67741d577eef99073d947490ed3a7acb7e5',
+  W: '1253844ae9e7ee0348364461d05b9b3bc2f573e8d6cd498eccc9dce44e805dee',
   Y: 'e29c7739b830ca44f7482e8d98046650a63530848d5ebf2b9ad243232bb475a0',
 }
 

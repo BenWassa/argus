@@ -170,10 +170,10 @@ export const SIGNAL_FLAGS: readonly SignalFlag[] = [
     group: 'state',
     design: {
       shape: 'rectangle',
-      background: 'yellow',
-      primitives: [{ type: 'polygon', points: [[0, 0], [W, H], [0, H]], fill: 'red' }],
+      background: 'red',
+      primitives: [{ type: 'polygon', points: [[0, 0], [W, H], [0, H]], fill: 'yellow' }],
     },
-    description: 'A rectangular flag divided by a diagonal from its upper hoist corner to its lower fly corner: red in the lower-left triangle, yellow in the upper-right triangle.',
+    description: 'A rectangular flag divided by a diagonal from its upper hoist corner to its lower fly corner: yellow in the lower-left triangle, red in the upper-right triangle.',
   },
   {
     letter: 'U',
@@ -212,13 +212,14 @@ export const SIGNAL_FLAGS: readonly SignalFlag[] = [
     group: 'assistance',
     design: {
       shape: 'rectangle',
-      background: 'red',
+      background: 'blue',
+      // Each ring is a fifth of the flag, as in the Code's depiction.
       primitives: [
-        { type: 'rect', x: 25, y: 17, width: 100, height: 66, fill: 'white' },
-        { type: 'rect', x: 50, y: 33, width: 50, height: 34, fill: 'blue' },
+        { type: 'rect', x: 30, y: 20, width: 90, height: 60, fill: 'white' },
+        { type: 'rect', x: 60, y: 40, width: 30, height: 20, fill: 'red' },
       ],
     },
-    description: 'A rectangular flag of three nested rectangles: red outside, then white, then a blue rectangle in the centre.',
+    description: 'A rectangular flag of three nested rectangles: blue outside, then white, then a red rectangle in the centre.',
   },
   {
     letter: 'Y',
