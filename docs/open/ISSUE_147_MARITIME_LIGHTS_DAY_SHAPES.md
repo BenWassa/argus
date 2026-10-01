@@ -55,6 +55,12 @@ Unit: Rule 21 sector data and cut-offs immediately inside/outside 112.5° and 24
 
 The research note asks for a domain-informed second reviewer of the final light and day-shape answer-key fixtures, and for every light configuration to receive a second pass against the controlling rule. That review is a production QA step, not something this PR can self-certify. The Collision Regulations page could not be reached from the sandbox that built this, so the rule values were taken from the research note's Rule 21 text, and the Learn-only statements beyond it (for example Rule 3 "underway", Rule 25(b)/(c) alternatives, the 50 m anchor-light distinction) are from general knowledge of the same Regulations and should be checked against the current consolidation.
 
+### Cross-check, 2026-09-30
+
+Before merge, every scored key was read against the Collision Regulations' rule text: Rule 21 arcs (masthead 225° white, sidelights 112.5° red and green, sternlight 135°) and the eight aspects they produce, and the light and shape signatures of Rules 23, 25(a), 26(b)/(c), 27(a)/(b) and 30(a)/(d). All matched. Port is drawn on the left with the bow up, so red and green cannot swap. One simplification is worth the reviewer's eye: aground is drawn as a single white-red-red stack, though Rule 30(d) does not put the anchor light in the same vertical line as the two reds.
+
+This was a code reviewer's check from the rule text, not the domain-informed second review above, which is still owed.
+
 ## Icons
 
 Hand-built SVGs to the icon contract, checked at 28 px: a top-down hull with four light dots, and a stacked ball–diamond–ball.

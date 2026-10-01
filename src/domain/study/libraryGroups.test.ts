@@ -37,6 +37,44 @@ describe('Library groups', () => {
     expect(titles(rest)).toEqual([...titles(rest)].sort((a, b) => a.localeCompare(b)))
   })
 
+  it('keeps a sequence together on the shelf, under its first topic, in learning order', () => {
+    const ids = [
+      'grid-north-map-bearings',
+      'nato-phonetic',
+      'whole-circle-bearings',
+      'cardinal-bearings',
+      'reciprocal-bearings',
+      'north-references-declination',
+      'vessel-day-shapes',
+      'navigation-lights',
+      'ooda-loop',
+    ]
+    const { rest } = libraryGroups(journeysFor(ids.map((id) => seeded(id))))
+    expect(rest.map((entry) => entry.topic.id)).toEqual([
+      'cardinal-bearings',
+      'whole-circle-bearings',
+      'reciprocal-bearings',
+      'north-references-declination',
+      'grid-north-map-bearings',
+      'nato-phonetic',
+      'navigation-lights',
+      'vessel-day-shapes',
+      'ooda-loop',
+    ])
+  })
+
+  it('files the rest of a sequence under its next topic once the first is started', () => {
+    const topics = [
+      seeded('cardinal-bearings', { status: 'learning', learningAt: '2026-09-01T00:00:00.000Z' }),
+      seeded('whole-circle-bearings'),
+      seeded('reciprocal-bearings'),
+      seeded('ooda-loop'),
+    ]
+    const { rest } = libraryGroups(journeysFor(topics))
+    // Whole-Circle Bearings now heads the sequence, so it and Reciprocal sit at W.
+    expect(rest.map((entry) => entry.topic.id)).toEqual(['ooda-loop', 'whole-circle-bearings', 'reciprocal-bearings'])
+  })
+
   it('counts any started topic as learning, including banked and decayed ones', () => {
     const topics = [
       seeded('nato-phonetic', { status: 'completed', completedAt: '2026-05-01T00:00:00.000Z' }),
