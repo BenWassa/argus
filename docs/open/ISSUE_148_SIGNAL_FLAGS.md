@@ -1,26 +1,63 @@
 # Issue #148 — Maritime II: selected signal flags
 
-**Status:** implementation ready after #146  
+**Status:** implemented on the feature branch as a **draft**. A cross-check against the standard depictions found and fixed two flags (2026-09-30, below); the comparison with NGA Pub. 102 / the IMO Code is still the owner's call before merging. Its base PRs (#152, #153, #154) have merged.  
 **Issue:** #148  
 **Depends on:** #146  
-**Research authority:** `docs/open/ISSUE_138_MARITIME_VISUAL_LITERACY.md`
+**Research authority:** `docs/open/ISSUE_138_MARITIME_VISUAL_LITERACY.md` §3D  
+**Code:** `src/domain/maritime/flags.ts` (designs, meanings), `flagBank.ts`, `flagTopic.ts`, `flagManifest.ts`, `flagHash.ts`; figure kind `signal-flag`
 
-## Locked boundary
+## Locked boundary (met)
 
-Twelve selected International Code of Signals single-letter flags only:
+Twelve selected International Code of Signals single-letter flags only: A, B, D, F, J, L, M, O, U, V, W, Y. Completion is visual recognition of the flag, letter and retained practical single-letter meaning. This is an Argus-selected subset, not an official sub-code.
 
-A, B, D, F, J, L, M, O, U, V, W, Y.
+## Shipped
 
-Completion is visual recognition of the flag, letter and retained practical single-letter meaning. This is an Argus-selected subset, not an official sub-code.
+One catalog topic, `signal-flags` ("Signal Flags"), `tradecraft`, 12 forward objective-choice items (`signal-flags-item-01…12`). Each shows a flag and asks which flag it is and what it means; the answer is `A (Alfa) — Diver down; keep well clear and proceed slowly` and so on, with the meanings exactly as retained in #138 §3D.
 
-## Asset rules
+- **Deterministic, no generated art.** Each flag is a finite design (shape, background, a few rects/polygons/lines in a 150 × 100 frame) drawn by `signal-flag` in the #146 registry. No AI imagery, no emoji or OS flag glyphs, no third-party SVG.
+- **Distractors are the designed confusion sets** — D/F/M, U/V/W, B/J, L/M, A/O — siblings first, then near neighbours. Tests assert every flag's siblings are offered.
+- **Learn** groups the flags by use (warnings to others, vessel state, assistance) rather than alphabetically, names the confusable pairs, and ends with an alphabetical reference table. Letter, name, meaning and a design description are text beside each picture. Every flag is told apart by pattern and shape, not hue alone.
+- **Scored stimulus alt text** describes the pattern and colours and never names the letter, the name or the meaning (tested).
+- **Manifest.** `flagManifest.ts` is the 12-row asset manifest the research note requires (meaning source, design authority, authoring method, renderer id, licence, design hash, review). `designSha256` pins each drawn design, so an accidental change fails a test until deliberately re-pinned.
 
-- deterministic/redrawn SVG from authoritative references;
-- no AI-generated flag artwork;
-- letter/meaning remain accessible HTML;
-- retain source/provenance and QA notes per asset;
-- design practice around the researched confusion sets without widening the scored boundary.
+## The verification gate (why this is a draft)
 
-## Handoff status
+The authoritative flag depictions — the IMO *International Code of Signals* and NGA Pub. 102 — could not be reached from the environment that produced these redraws, and no reusable reference set was available from the registries that could be reached. The designs were drawn from memory of the standard flags. **No flag has been compared against an authoritative depiction**, so every manifest row has `review: null`, and a test documents that honestly.
 
-Blocked only on #146's objective visual-choice contract. Can then run independently of #147.
+A reviewer should compare each flag with Pub. 102 (and the current IMO depiction where available), then fill in `review` for that row. Details most worth checking:
+
+| Flag | Drawn as | Check |
+| --- | --- | --- |
+| A | swallow-tailed; white hoist half, blue fly half | split direction; swallow-tail proportions |
+| B | swallow-tailed, plain red | swallow-tail proportions |
+| D | yellow / blue / yellow horizontal bands, blue twice as wide | **band proportions** |
+| F | white with a red diamond touching the mid-edges | diamond size |
+| J | blue / white / blue, equal thirds | **band proportions** |
+| L | quarters: yellow top-hoist, black top-fly, black bottom-hoist, yellow bottom-fly | quarter colour placement |
+| M | blue with a white saltire | saltire band width |
+| O | diagonal upper-hoist → lower-fly; **yellow lower-left, red upper-right** (corrected) | **which triangle is which colour** |
+| U | quarters: red top-hoist, white top-fly, white bottom-hoist, red bottom-fly | quarter colour placement |
+| V | white with a red saltire | saltire band width |
+| W | **blue, white, red** nested rectangles, each ring a fifth (corrected) | nested proportions |
+| Y | diagonal yellow and red stripes, running lower-hoist to upper-fly, five red bands | **stripe direction, count and width** |
+
+### Cross-check, 2026-09-30
+
+Each design was compared with the Wikimedia Commons International Code of Signals redraws (`File:ICS_<Name>.svg`, read as SVG geometry). These are community redraws of the Code, not Pub. 102; NGA's site refused automated access, so the authoritative comparison is still open and every manifest `review` stays `null`.
+
+- **Fixed.** Oscar had its colours swapped: the Code has yellow in the lower hoist triangle and red in the upper fly. Whiskey was inverted: the Code is blue outside, then white, then red at the centre, each ring a fifth of the flag.
+- **Matched:** A, B, F, J, L, M, U, V and Y, including Yankee's stripe direction (lower hoist to upper fly) with a yellow corner at the upper hoist, Lima's and Uniform's quarter placement, the swallow-tail depth (about a quarter of the length) and the saltire widths.
+- **Rendering fixed:** Yankee's stripes ended in square butts inside the flag, leaving yellow notches along the top and bottom edges; they now overshoot and are cut by the outline clip.
+- **Proportion only:** Delta's blue band is half the flag here and three-fifths in the Commons drawing. Both read as "wider blue band"; the Code's own depiction should settle it.
+
+Also confirm the rectangular aspect (drawn 3:2) and that the swallow-tail notch depth is reasonable. If a design changes, edit it in `flags.ts`, re-run, and re-pin its `designSha256`. The meanings themselves come from the research note and need no separate check beyond the IMO errata the note already cites.
+
+Learner-facing text says the flags are "drawn by Argus from the International Code's designs" and that the published Code governs. It does not claim an official check; the verification status lives here, in the manifest and in the PR.
+
+## Not built
+
+Numeral pennants, substitutes, the answering pennant, the two-letter general signal code, the three-letter medical code, the remaining single letters (C, N, E, I, S, G, H, P, Q, T, Z, K, X), signalling procedure, and sound or light signalling.
+
+## Validation
+
+Unit: the twelve letters, names and retained meanings against the research note; palette and frame bounds; distinct designs; swallow-tail only for A and B; alt text that never names letter or meaning; item keys, distractors and confusion-set coverage; manifest rows and design hashes; topic structure and grouping. Browser (`e2e/signalFlags.spec.ts`, 320/390/landscape/desktop): Learn groups the twelve flags with their text and pictures without sideways scroll; all twelve flags are answered end to end from their text alternatives against keys typed from the note and bank a clean run.

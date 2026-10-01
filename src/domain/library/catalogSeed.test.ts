@@ -27,6 +27,7 @@ describe('researched seeded library', () => {
       'grid-north-map-bearings',
       'navigation-lights',
       'vessel-day-shapes',
+      'signal-flags',
       'scuba-equipment-abbreviations',
       'radiotelephony-numbers',
       'si-prefixes',

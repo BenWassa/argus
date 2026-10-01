@@ -1,14 +1,84 @@
+import { useId } from 'react'
 import {
   angleDialGeometry,
   DIAL_VIEWBOX,
   northReferenceGeometry,
   type FigureSpec,
 } from '../../domain/visual/figures'
+import { flagByLetter, flagOutline, FLAG_HEIGHT, FLAG_WIDTH } from '../../domain/maritime/flags'
 import {
   dayShapeStackGeometry,
   lightStackGeometry,
   vesselPlanGeometry,
 } from '../../domain/maritime/geometry'
+
+function pointsOf(points: [number, number][]): string {
+  return points.map(([x, y]) => `${x},${y}`).join(' ')
+}
+
+/**
+ * A signal flag drawn from its design. The outline clips every primitive, so a
+ * diagonal band never spills past the flag, and each flag instance gets its own
+ * clip id so several on one page cannot share or shadow one.
+ */
+function SignalFlagView({ letter }: { letter: Parameters<typeof flagByLetter>[0] }) {
+  const flag = flagByLetter(letter)
+  const { design } = flag
+  const clipId = useId()
+  const outline = pointsOf(flagOutline(design.shape))
+  return (
+    <svg
+      className="figure figure-signal-flag"
+      viewBox={`-6 -6 ${FLAG_WIDTH + 12} ${FLAG_HEIGHT + 12}`}
+      aria-hidden="true"
+      focusable="false"
+    >
+      <defs>
+        <clipPath id={clipId}>
+          <polygon points={outline} />
+        </clipPath>
+      </defs>
+      <g clipPath={`url(#${clipId})`}>
+        <rect
+          className={`flag-fill is-${design.background}`}
+          x="0"
+          y="0"
+          width={FLAG_WIDTH}
+          height={FLAG_HEIGHT}
+        />
+        {design.primitives.map((primitive, index) => {
+          if (primitive.type === 'rect') {
+            return (
+              <rect
+                className={`flag-fill is-${primitive.fill}`}
+                key={index}
+                x={primitive.x}
+                y={primitive.y}
+                width={primitive.width}
+                height={primitive.height}
+              />
+            )
+          }
+          if (primitive.type === 'polygon') {
+            return <polygon className={`flag-fill is-${primitive.fill}`} key={index} points={pointsOf(primitive.points)} />
+          }
+          return (
+            <line
+              className={`flag-stroke is-${primitive.stroke}`}
+              key={index}
+              x1={primitive.from[0]}
+              y1={primitive.from[1]}
+              x2={primitive.to[0]}
+              y2={primitive.to[1]}
+              strokeWidth={primitive.width}
+            />
+          )
+        })}
+      </g>
+      <polygon className="flag-outline" points={outline} />
+    </svg>
+  )
+}
 
 /**
  * Deterministic rendering of a registry figure (#146). One function per kind,
@@ -224,5 +294,7 @@ export function FigureView({ figure }: { figure: FigureSpec }) {
         </svg>
       )
     }
+    case 'signal-flag':
+      return <SignalFlagView letter={figure.letter} />
   }
 }
