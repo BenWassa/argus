@@ -48,7 +48,7 @@ export const FLAG_DESIGN_SHA256: Record<FlagLetter, string> = {
   U: 'a2428febb402805015d7018410aed8605c70f8ba01e27e95623fdaaf9d75c080',
   V: 'f0028fd8b4e6e20ba47c4a579adeba10d2483309a19a75bb7e78761a61299b7a',
   W: '1253844ae9e7ee0348364461d05b9b3bc2f573e8d6cd498eccc9dce44e805dee',
-  Y: 'e29c7739b830ca44f7482e8d98046650a63530848d5ebf2b9ad243232bb475a0',
+  Y: 'bf00c1417fcba7e75dc501d454ed200d7cc6a2213b0e3b2b3a96f1d4877b065c',
 }
 
 export const FLAG_MANIFEST: readonly FlagManifestEntry[] = (

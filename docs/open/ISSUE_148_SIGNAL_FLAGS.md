@@ -47,6 +47,7 @@ Each design was compared with the Wikimedia Commons International Code of Signal
 
 - **Fixed.** Oscar had its colours swapped: the Code has yellow in the lower hoist triangle and red in the upper fly. Whiskey was inverted: the Code is blue outside, then white, then red at the centre, each ring a fifth of the flag.
 - **Matched:** A, B, F, J, L, M, U, V and Y, including Yankee's stripe direction (lower hoist to upper fly) with a yellow corner at the upper hoist, Lima's and Uniform's quarter placement, the swallow-tail depth (about a quarter of the length) and the saltire widths.
+- **Rendering fixed:** Yankee's stripes ended in square butts inside the flag, leaving yellow notches along the top and bottom edges; they now overshoot and are cut by the outline clip.
 - **Proportion only:** Delta's blue band is half the flag here and three-fifths in the Commons drawing. Both read as "wider blue band"; the Code's own depiction should settle it.
 
 Also confirm the rectangular aspect (drawn 3:2) and that the swallow-tail notch depth is reasonable. If a design changes, edit it in `flags.ts`, re-run, and re-pin its `designSha256`. The meanings themselves come from the research note and need no separate check beyond the IMO errata the note already cites.

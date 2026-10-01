@@ -53,6 +53,8 @@ export interface SignalFlag {
 const W = FLAG_WIDTH
 const H = FLAG_HEIGHT
 
+const OVERSHOOT = 20
+
 /** Diagonal bands for Yankee: parallel stripes across the flag, red on yellow. */
 function yankeeStripes(): FlagPrimitive[] {
   const stripes: FlagPrimitive[] = []
@@ -61,10 +63,13 @@ function yankeeStripes(): FlagPrimitive[] {
   const step = (W + H) / count
   for (let i = 0; i < count; i += 1) {
     const offset = i * step + step / 2
+    // Each line overshoots the frame by `OVERSHOOT` at both ends. The outline
+    // clips it, so a stripe meets the edge cleanly instead of ending in a square
+    // butt that leaves a notch of yellow along the top and bottom.
     stripes.push({
       type: 'line',
-      from: [offset - H, H],
-      to: [offset, 0],
+      from: [offset - H - OVERSHOOT, H + OVERSHOOT],
+      to: [offset + OVERSHOOT, -OVERSHOOT],
       // Equal red and yellow bands: the spacing along x + y is `step`, so the
       // perpendicular width of a band that covers half of it is step / (2√2).
       width: Math.round((step / (2 * Math.SQRT2)) * 100) / 100,
