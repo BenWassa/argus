@@ -73,7 +73,10 @@ function scoredIdentity(items: Topic['items']): string {
   return JSON.stringify(
     items.map((item) => {
       const identified = item as Partial<IdentifiedItem>
-      return [identified.id ?? '', identified.kind ?? '', item.prompt, item.answer]
+      const base = [identified.id ?? '', identified.kind ?? '', item.prompt, item.answer]
+      // Visual/choice content is part of what the catalog ships (#146). Appended
+      // only when present so every plain item keeps its existing identity.
+      return item.choice ? [...base, item.choice, item.stimulus ?? null] : base
     }),
   )
 }

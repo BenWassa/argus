@@ -56,6 +56,7 @@ The **full offline-first runtime guarantee is active scope in #113**, not yet a 
 - `docs/LIBRARY_RESEARCH_METHOD.md` — authoritative method for source hierarchy, completion claims, media choice, claim traceability, QA and implementation handoff for new library topics.
 - `docs/open/LIBRARY_TOPIC_ICONS.md` — active visual and asset contract for shipped topic icons on Library and Today.
 - `docs/open/LEARN_CONTENT_MODEL.md` — structured Learn schema/editorial contract.
+- `docs/open/ISSUE_146_VISUAL_CONTENT_PRIMITIVES.md` — maintained contract for the shared visual Learn block, visual-choice items and the finite figure registry.
 - `docs/closed/ISSUE_104_EDITORIAL_IDENTITY.md` — historical editorial framing from the completed #104 expansion programme.
 - `docs/closed/ISSUE_104_LIBRARY_EXPANSION_RESEARCH.md` — historical first-pass library research; its Batch A shipped as five catalog topics.
 - `docs/closed/ISSUE_104_FIELD_HUMAN_SKILLS_EXPANSION.md` — historical practical human-systems research; detailed candidate papers remain under `docs/open/library-research/` as source material.

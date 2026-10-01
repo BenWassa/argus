@@ -1,0 +1,84 @@
+/* One picture with its caption. Always sized by its own box so a slow or
+   missing image never shifts the text around it, and never wider than the
+   reading column. */
+.visual {
+  display: grid;
+  gap: var(--s-sm);
+  margin: 0;
+  max-width: 28rem;
+}
+
+.visual.is-compact {
+  max-width: 11rem;
+}
+
+.visual-frame {
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+}
+
+.visual-image {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.visual-missing {
+  margin: 0;
+  padding: var(--s-md);
+  font-size: var(--t-small);
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.visual-caption {
+  display: grid;
+  gap: var(--s-xs);
+  font-size: var(--t-small);
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.visual-credit {
+  font-size: var(--t-label);
+  color: var(--subtle);
+}
+
+/* Figures draw from tokens, so they follow the theme and never carry colour
+   the page does not. Meaning is carried by geometry and labels, not hue. */
+.figure {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.figure-ring {
+  fill: none;
+  stroke: var(--line-hover);
+  stroke-width: 1.5;
+}
+
+.figure-cardinal {
+  fill: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.figure-pointer {
+  stroke: var(--ink);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+
+.figure-pointer-label {
+  fill: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+
+.figure-hub {
+  fill: var(--ink);
+}

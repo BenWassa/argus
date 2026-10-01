@@ -428,3 +428,47 @@ describe('which account the library on this device belongs to', () => {
     expect(JSON.parse(localStorage.getItem(KEY)!).topics[0].history).toHaveLength(1)
   })
 })
+
+describe('visual-choice content survives storage (#146)', () => {
+  it('reloads a topic with a Learn visual and a visual-choice item unchanged', () => {
+    const visual = {
+      source: { kind: 'figure' as const, figure: { kind: 'angle-dial' as const, pointers: [{ bearing: 90, label: 'A' }] } },
+      alt: 'A dial with one pointer.',
+      caption: 'Pointer A.',
+    }
+    const mine: Topic = {
+      id: 'my-visual',
+      title: 'My visual topic',
+      scope: 'One picture question.',
+      track: 'learning',
+      items: [
+        {
+          id: 'mine-1',
+          kind: 'forward',
+          prompt: 'Which cardinal?',
+          answer: 'East',
+          choice: { options: ['North', 'East'] },
+          stimulus: visual,
+        },
+      ],
+      learn: { kind: 'concise', sections: [{ heading: 'See it', blocks: [{ type: 'visual', visual }] }] },
+      status: 'learning',
+      createdAt: '2026-09-01T00:00:00.000Z',
+      drilledAt: null,
+      learningAt: '2026-09-02T00:00:00.000Z',
+      completedAt: null,
+      lastTestedAt: null,
+      spotCheckedAt: null,
+      history: [],
+      itemEvidence: {},
+      lessonProgress: {},
+      origin: 'user',
+    }
+    saveLibrary({ version: 5, topics: [mine], catalogDelivered: [] })
+
+    const { library } = loadLibraryWithReport(NOW)
+    const loaded = library.topics.find((topic) => topic.id === 'my-visual')
+    expect(loaded?.items).toEqual(mine.items)
+    expect(loaded?.learn).toEqual(mine.learn)
+  })
+})

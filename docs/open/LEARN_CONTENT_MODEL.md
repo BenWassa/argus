@@ -63,6 +63,7 @@ type LearnBlock =
   | { type: 'definitions'; items: { term: string; definition: string }[] }
   | { type: 'table'; columns: string[]; rows: string[][] }
   | { type: 'entries'; entries: LearnEntry[] }
+  | { type: 'visual'; visual: Visual }   // #146
   | { type: 'morse-character-packet'; characters: MorseCharacterLearnItem[] }
 
 interface LearnEntry {
@@ -71,6 +72,7 @@ interface LearnEntry {
   meta?: string    // one line of factual metadata
   fields: { label: string; text: string }[]
   note?: string    // a qualification that belongs to this entry only
+  visual?: Visual  // #146: an optional picture for this entry
 }
 
 interface LearnCaseStudy {
@@ -203,6 +205,10 @@ heaviest element) and title, then a mono meta line, then its labelled fields as
 a stacked definition list, then an optional note. Fields never sit in columns,
 so nothing scrolls sideways at any width. Every string is required and trimmed.
 An entry may have no fields; it may not have an empty label or text.
+
+### The `visual` block and entry visuals (#146)
+
+A `visual` block renders one picture — a deterministic figure from the finite registry or a local `/media/` image — with its caption as HTML text. The same `Visual` may sit on a `LearnEntry`. Every visual has required alt text; essential explanation stays in surrounding HTML, never in image pixels. The shapes, validation, figure registry and the scored-item companions (`Item.choice`/`Item.stimulus`) are specified in `docs/open/ISSUE_146_VISUAL_CONTENT_PRIMITIVES.md`.
 
 ### What to remember
 

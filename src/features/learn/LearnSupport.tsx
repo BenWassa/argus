@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import type { LearnBlock, LearnContent, LearnSection } from '../../domain/learning/content'
 import { MorseCharacterPacket } from '../morse/MorseCharacterPacket'
+import { VisualView } from '../visual/VisualView'
 
 function LearnBlockView({ block }: { block: LearnBlock }) {
   switch (block.type) {
@@ -57,6 +58,7 @@ function LearnBlockView({ block }: { block: LearnBlock }) {
                 <span className="learn-entry-marker tabular">{entry.marker}</span>
                 <span className="learn-entry-title">{entry.title}</span>
               </h4>
+              {entry.visual && <VisualView visual={entry.visual} />}
               {entry.meta && <p className="learn-entry-meta tabular">{entry.meta}</p>}
               {entry.fields.length > 0 && (
                 <dl className="learn-entry-fields">
@@ -73,6 +75,8 @@ function LearnBlockView({ block }: { block: LearnBlock }) {
           ))}
         </ol>
       )
+    case 'visual':
+      return <VisualView visual={block.visual} />
     case 'morse-character-packet':
       return <MorseCharacterPacket characters={block.characters} />
   }

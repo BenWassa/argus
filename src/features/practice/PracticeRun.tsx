@@ -10,6 +10,7 @@ import {
 } from '../../domain/study/practiceSession'
 import type { Topic } from '../../domain/library/topic'
 import { testCardTextClass } from '../test/textScale'
+import { VisualView } from '../visual/VisualView'
 import './PracticeRun.css'
 
 interface PracticeRunProps {
@@ -167,6 +168,11 @@ export function PracticeRun({ topic, itemIds, onExit, onCheck }: PracticeRunProp
             <span className="practice-label">
               {step.target.reason === 'missed' ? 'Missed last check' : 'Not yet tested'}
             </span>
+            {/* The picture belongs to the prompt side only. Asked the other way
+                round, the prompt is the answer and the picture would give it away. */}
+            {step.target.direction === 'prompt-to-answer' && step.target.item.stimulus && (
+              <VisualView visual={step.target.item.stimulus} showCaption={false} />
+            )}
             <span className={`practice-value${testCardTextClass(step.question)}`}>
               {step.question}
             </span>

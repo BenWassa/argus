@@ -345,6 +345,18 @@
   border-bottom: 1px solid var(--line);
 }
 
+.sheet-items li.has-visual {
+  grid-template-areas:
+    'num visual'
+    'num prompt'
+    'num answer';
+}
+
+.sheet-visual {
+  grid-area: visual;
+  margin-bottom: var(--s-xs);
+}
+
 .sheet-num {
   grid-area: num;
   align-self: start;
@@ -384,6 +396,12 @@
     grid-template-areas: 'num prompt answer';
     align-items: baseline;
     gap: var(--s-lg);
+  }
+
+  .sheet-items li.has-visual {
+    grid-template-areas:
+      'num prompt answer'
+      'num visual visual';
   }
 
   .sheet-prompt {

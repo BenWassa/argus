@@ -44,7 +44,7 @@ Research approval does not itself authorize implementation. A build issue exists
 
 | Priority | Family / candidate | Current state | Owner issue | Intended medium | Decision / note |
 | --- | --- | --- | --- | --- | --- |
-| **P0** | Shared visual content primitives | **Implementation ready** | #146 | Learn media + deterministic visual-choice item | Small reusable dependency justified by Maritime, Compass and Clouds; avoid a generic CMS/drawing language. |
+| **P0** | Shared visual content primitives | **Implemented; in review** | #146 | Learn media + deterministic visual-choice item | Shipped shapes recorded in `docs/open/ISSUE_146_VISUAL_CONTENT_PRIMITIVES.md`. Unblocks #147/#148/#149 and #131's UI integration once merged. |
 | **P0** | Maritime — vessel orientation, navigation lights & day shapes | **Implementation queued** | #147 | HTML + deterministic SVG/React + objective visual choice | Learn-only orientation prerequisite; 16 light/aspect items + 5 day shapes. Depends on #146. |
 | **P0** | Maritime — selected International Code of Signals flags | **Implementation queued** | #148 | deterministic/redrawn SVG + visual recognition | 12 signals: A, B, D, F, J, L, M, O, U, V, W, Y. Depends on #146. |
 | **P0** | Communications — Canadian radio procedure + marine VHF | **Blocked on primary sources** | #150 | HTML + finite recall / structured sequence | Canadian general substrate from ISED RIC-22; marine procedure from CCG RAMN 2026. Scored wording must come from those texts, which were not reachable when this was attempted; see the note for how to unblock. |

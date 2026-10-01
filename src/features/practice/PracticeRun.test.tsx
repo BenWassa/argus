@@ -168,3 +168,32 @@ describe('the end of a run', () => {
     )
   })
 })
+
+describe('practising a visual-choice item (#146)', () => {
+  const visualTopic = {
+    ...NATO,
+    id: 'visual-practice',
+    title: 'Visual practice',
+    items: [
+      {
+        id: 'v-1',
+        kind: 'forward',
+        prompt: 'Which cardinal?',
+        answer: 'East',
+        choice: { options: ['North', 'East'] },
+        stimulus: {
+          source: { kind: 'figure', figure: { kind: 'angle-dial', pointers: [{ bearing: 90 }] } },
+          alt: 'A dial with one pointer.',
+          caption: 'Hidden caption.',
+        },
+      },
+    ],
+  } as Topic
+
+  it('shows the picture with the question, without its caption, and keeps the answer concealed', () => {
+    open(visualTopic, ['v-1'])
+    expect(screen.getByRole('img', { name: 'A dial with one pointer.' })).toBeTruthy()
+    expect(screen.queryByText('Hidden caption.')).toBeNull()
+    expect(document.querySelector('.practice-answer')).toBeNull()
+  })
+})

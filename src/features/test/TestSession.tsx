@@ -22,6 +22,8 @@ import { registerBackBlocker } from '../../app/routing/history'
 import type { Topic } from '../../domain/library/topic'
 import type { ItemCueEvidence, ItemEvidenceStore } from '../../domain/study/evidence'
 import { ProgressiveCard, type ProgressiveAnswer } from './ProgressiveCard'
+import { ChoiceCard, type ChoiceAnswer } from './ChoiceCard'
+import { isChoiceItem } from '../../domain/visual/choice'
 import {
   acquisitionProfiles,
   buildDeck,
@@ -49,6 +51,11 @@ const EXIT_OVERSHOOT_PX = 140
 
 /** Fallback width when nothing has been measured yet, e.g. before first layout. */
 const ASSUMED_CARD_WIDTH = 360
+
+/** An objectively graded choice card, which owns its own grading and keys. */
+function isChoiceCard(card: Card | undefined): boolean {
+  return card !== undefined && !card.character && isChoiceItem(card.item)
+}
 
 interface TestSessionProps {
   topicIds: string[]
@@ -181,7 +188,7 @@ export function TestSession({ topicIds, review = false, onExit, onPractice }: Te
   }, [cardKey])
 
   useEffect(() => {
-    if (deck[index]?.character) return
+    if (deck[index]?.character || isChoiceCard(deck[index])) return
     // A swipe deck keeps focus on the card itself: the card is the control.
     if (view.kind === 'asking') cardRef.current?.focus({ preventScroll: true })
     else if (view.kind === 'revealed' && !swipeFirst) yesRef.current?.focus({ preventScroll: true })
@@ -194,8 +201,9 @@ export function TestSession({ topicIds, review = false, onExit, onPractice }: Te
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return
-      // A ladder card owns its own keys; reveal/self-score does not apply to it.
-      if (deck[index]?.character) return
+      // A ladder or choice card owns its own keys; reveal/self-score does not
+      // apply to it.
+      if (deck[index]?.character || isChoiceCard(deck[index])) return
 
       if (view.kind === 'asking' && (event.key === ' ' || event.key === 'Enter')) {
         event.preventDefault()
@@ -408,6 +416,52 @@ export function TestSession({ topicIds, review = false, onExit, onPractice }: Te
     setView(next)
   }
 
+  /**
+   * A choice answer is graded against the item's own key and feeds the same
+   * tally as every other card. Its evidence is recorded as assisted: the options
+   * are on screen, so a correct choice is real recognition but is never counted
+   * as independent recall, which can only withhold a claim that reads
+   * `unassistedCorrect`, never fabricate one.
+   */
+  function answerChoice(answer: ChoiceAnswer) {
+    const at = viewRef.current.kind === 'done' ? -1 : viewRef.current.index
+    const current = deck[at]
+    const next = nextView(viewRef.current, { kind: 'answer' }, deck.length)
+    if (!next || !current) return
+    fire(answer.correct ? 'settle' : 'miss')
+    recordGrade(at, answer.correct, noteChoiceAnswer(current, answer))
+    viewRef.current = next
+    setView(next)
+  }
+
+  function noteChoiceAnswer(card: Card, answer: ChoiceAnswer): ItemEvidenceStore {
+    const topicStore = cueEvidence[card.topicId] ?? {}
+    const itemId = card.item.id
+    if (!itemId) return topicStore
+
+    const topic = included.find((candidate) => candidate.id === card.topicId)
+    const stored = topicStore[itemId] ?? topic?.itemEvidence?.[itemId]
+    const next = {
+      ...topicStore,
+      [itemId]: recordAnswer(stored, {
+        direction: 'prompt-to-answer',
+        correct: answer.correct,
+        assisted: true,
+        latencyMs: answer.latencyMs,
+        at: new Date().toISOString(),
+      }),
+    }
+    attemptAnswers.current = {
+      ...attemptAnswers.current,
+      [card.topicId]: [
+        ...(attemptAnswers.current[card.topicId] ?? []),
+        { itemId, direction: 'prompt-to-answer', correct: answer.correct, assisted: true },
+      ],
+    }
+    setCueEvidence((previous) => ({ ...previous, [card.topicId]: next }))
+    return next
+  }
+
   function settleDrag(info: PanInfo) {
     setDragging(false)
     if (viewRef.current.kind !== 'revealed') return
@@ -505,6 +559,32 @@ export function TestSession({ topicIds, review = false, onExit, onPractice }: Te
             {reviews.has(card.topicId) ? 'End review' : 'End test'}
           </button>
         </div>
+      </section>
+    )
+  }
+
+  if (isChoiceCard(card)) {
+    return (
+      <section className="session rapid-session is-graded is-progressive">
+        <div className="session-bar">
+          <p>
+            <span className="session-topic">{card.topicTitle}</span>
+          </p>
+          <span className="session-count tabular" aria-label={`Card ${topicPosition.current} of ${topicPosition.of}`}>
+            {topicPosition.current}
+            <span className="session-count-of" aria-hidden="true">/{topicPosition.of}</span>
+          </span>
+          <button className="ghost small" type="button" onClick={requestExit}>
+            {reviews.has(card.topicId) ? 'End review' : 'End test'}
+          </button>
+        </div>
+        {/* Not keyed per card, for the same reason as the ladder card: the
+            response gate has to survive the swap between questions. */}
+        <ChoiceCard
+          cardKey={`${card.topicId}-${card.item.id}-${index}`}
+          item={card.item}
+          onAnswer={answerChoice}
+        />
       </section>
     )
   }
