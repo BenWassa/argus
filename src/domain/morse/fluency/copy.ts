@@ -1,4 +1,4 @@
-import { isMorseCharacter } from '../code'
+import { isMorseCharacter, type MorseLetter } from '../code'
 import { MORSE_ALPHABET, fluencyWords, seededRandom, weightedSample } from './corpus'
 import { fluencyNeed, type MorseFluencyProgress } from './progress'
 import { generateMixed, generateNumbers, generatePhrases, generateSentences } from './sentences'
@@ -118,6 +118,7 @@ export function copyPrompts(
   level: CopyLevel,
   progress: MorseFluencyProgress,
   seed: number,
+  focus: ReadonlySet<MorseLetter> = new Set(),
 ): string[] {
   const random = seededRandom(seed)
   const { length } = COPY_LEVEL_INFO[level]
@@ -126,7 +127,7 @@ export function copyPrompts(
   switch (level) {
     case 'letters': {
       const needOrdered = [...MORSE_ALPHABET].sort(
-        (a, b) => fluencyNeed(progress, b) - fluencyNeed(progress, a) || a.localeCompare(b),
+        (a, b) => fluencyNeed(progress, b, focus) - fluencyNeed(progress, a, focus) || a.localeCompare(b),
       )
       prompts = weightedSample(needOrdered, length, random)
       break

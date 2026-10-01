@@ -9,6 +9,7 @@ import { LessonRun } from '../../features/morse/lesson/LessonRun'
 import { PracticeRun } from '../../features/practice/PracticeRun'
 import { FluencySurface } from '../../features/morse/fluency/FluencySurface'
 import { MorseReference } from '../../features/morse/reference/MorseReference'
+import { morseLessonPath } from '../../domain/morse/curriculum/lessonPath'
 import {
   ROOT_ROUTE,
   liveRoute,
@@ -229,6 +230,7 @@ export function AppRouter() {
               key={`fluency-${route.topicIds[0]}`}
               topicId={route.topicIds[0]}
               initialMode={route.target.mode}
+              letters={route.target.letters}
               onExit={goBack}
             />
           </main>
@@ -276,9 +278,20 @@ export function AppRouter() {
               // Replaces the finished check in history rather than stacking on
               // top of it: Back from practice should reach whatever launched
               // the check, not a completed run that would restart on entry.
-              onPractice={(topicId, itemIds) =>
+              onPractice={(topicId, itemIds) => {
+                // Morse is practised keyed and by ear: the missed letters go to
+                // a Fluency sprint over just those letters, not to the
+                // reveal-and-self-grade practice run.
+                const topic = topics.find((candidate) => candidate.id === topicId)
+                if (topic && morseLessonPath(topic)) {
+                  const letters = topic.items
+                    .filter((item) => item.id && itemIds.includes(item.id))
+                    .map((item) => item.prompt)
+                  start('learn', [topicId], { kind: 'fluency', mode: 'sprint', ...(letters.length ? { letters } : {}) }, true)
+                  return
+                }
                 start('learn', [topicId], { kind: 'practice', itemIds }, true)
-              }
+              }}
             />
           )}
         </main>

@@ -291,9 +291,19 @@ export function elementCountRatio(progress: MorseFluencyProgress): number | null
  * because it answers the same kind of question and a second unrelated
  * selection policy would be a second thing to keep honest.
  */
-export function fluencyNeed(progress: MorseFluencyProgress, glyph: MorseLetter): number {
+/** What a letter the learner is currently missing adds (`morseFocusLetters`). */
+export const FOCUS_NEED = 150
+
+export function fluencyNeed(
+  progress: MorseFluencyProgress,
+  glyph: MorseLetter,
+  focus: ReadonlySet<MorseLetter> = new Set(),
+): number {
+  // A letter missed in a lesson or a Test comes round more often. Bounded like
+  // every other term, so it leads without crowding the rest out of a run.
+  const focused = focus.has(glyph) ? FOCUS_NEED : 0
   const character = progress.characters[glyph]
-  if (!character || character.heard === 0) return 1000
+  if (!character || character.heard === 0) return 1000 + focused
 
   const latency = medianLatency(progress, glyph)
   // Bounded so one pathological character cannot monopolise a whole run.
@@ -304,7 +314,7 @@ export function fluencyNeed(progress: MorseFluencyProgress, glyph: MorseLetter):
   // first pass over the roster.
   const exposure = -Math.min(character.heard, 20) * 2
 
-  return slowness + inaccuracy + exposure
+  return slowness + inaccuracy + exposure + focused
 }
 
 /**

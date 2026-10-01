@@ -1,5 +1,5 @@
 import { hasCompleteDirectionalCoverage, itemKind } from '../library/items'
-import { morseAcquisitionPosition } from '../morse/curriculum/lesson'
+import { morseAcquisitionPosition, owedLetters } from '../morse/curriculum/lesson'
 import {
   LESSON_RETRIEVAL_TARGET,
   lessonSittingIsFresh,
@@ -87,6 +87,10 @@ export interface AcquisitionView {
   packetCount: number
   /** When readiness was first reached. Null when not yet, or not recorded. */
   readyAt: string | null
+  /** True once every letter has been met: the thirteen lessons have run. */
+  afterCourse: boolean
+  /** Letters the finished course still owes (`owedLetters`), in course order. */
+  owed: string[]
 }
 
 export interface FormalEvidenceView {
@@ -158,6 +162,8 @@ const NOT_PROGRESSIVE: AcquisitionView = {
   packet: 0,
   packetCount: 0,
   readyAt: null,
+  afterCourse: false,
+  owed: [],
 }
 
 function acquisitionView(topic: Topic): AcquisitionView {
@@ -173,6 +179,8 @@ function acquisitionView(topic: Topic): AcquisitionView {
     packet: position.packet,
     packetCount: position.packetCount,
     readyAt: topic.acquisitionReadyAt ?? null,
+    afterCourse: position.metAll,
+    owed: position.metAll ? owedLetters(topic) : [],
   }
 }
 
@@ -236,6 +244,28 @@ export function journeyFor(topic: Topic): TopicJourney {
       statusLabel: 'Needs items',
       detail: 'No prompts and answers yet, so there is nothing to read or test.',
       due: false,
+      advancementEligible: false,
+    }
+  }
+
+  if (gated && acquisition.afterCourse && acquisition.owed.length > 0) {
+    // The thirteen lessons have run, and some letters still need a later
+    // sitting before the course is ready for its Test (`startAfterCourse`).
+    // Without this the learner was offered lesson 13 again, which is finished
+    // and cannot confirm them.
+    return {
+      topicId: topic.id,
+      phase: 'acquiring',
+      acquisition,
+      evidence,
+      retention: { ...retention, label: 'Not yet drilling', due: false },
+      sitting,
+      action: 'learn',
+      actionLabel: 'Continue',
+      primaryLabel: 'Go over missed letters',
+      statusLabel: 'Lessons done',
+      detail: `Still to confirm: ${acquisition.owed.join(' ')}`,
+      due: true,
       advancementEligible: false,
     }
   }
