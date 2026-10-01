@@ -56,7 +56,13 @@ export type RunTarget =
   | { kind: 'replay'; index: number }
   | { kind: 'checkpoint'; afterLesson: number }
   | { kind: 'practice'; itemIds?: string[] }
-  | { kind: 'fluency'; mode?: FluencyMode }
+  /**
+   * Fluency, optionally over just these letters — the keyed way to practise
+   * what a check or a lesson missed. Letters absent means the whole alphabet.
+   */
+  | { kind: 'fluency'; mode?: FluencyMode; letters?: string[] }
+  /** A keyed review of the letters the finished course still owes (`startAfterCourse`). */
+  | { kind: 'after-course' }
 
 export type AppRoute =
   | ParentRoute
@@ -85,12 +91,15 @@ function isMode(value: unknown): value is Mode {
 
 function isRunTarget(value: unknown): value is RunTarget {
   if (!isRecord(value)) return false
-  if (value.kind === 'lesson' || value.kind === 'review') return true
+  if (value.kind === 'lesson' || value.kind === 'review' || value.kind === 'after-course') return true
   if (value.kind === 'practice') {
     return value.itemIds === undefined || isIdList(value.itemIds)
   }
   if (value.kind === 'fluency') {
-    return value.mode === undefined || FLUENCY_MODES.includes(value.mode as FluencyMode)
+    return (
+      (value.mode === undefined || FLUENCY_MODES.includes(value.mode as FluencyMode)) &&
+      (value.letters === undefined || isIdList(value.letters))
+    )
   }
   if (value.kind === 'replay') return Number.isInteger(value.index) && (value.index as number) >= 0
   return (
@@ -156,8 +165,9 @@ function sameTarget(left: RunTarget | undefined, right: RunTarget | undefined): 
     return left.afterLesson === right.afterLesson
   }
   if (left.kind === 'fluency' && right.kind === 'fluency') {
-    // The home screen and a run are different places, and so are two modes.
-    return left.mode === right.mode
+    // The home screen and a run are different places, and so are two modes,
+    // and so are two letter sets.
+    return left.mode === right.mode && (left.letters ?? []).join() === (right.letters ?? []).join()
   }
   if (left.kind === 'practice' && right.kind === 'practice') {
     // Two practice runs over different item sets are different routes. Without

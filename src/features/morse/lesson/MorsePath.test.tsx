@@ -150,3 +150,20 @@ describe('the path stays legible on a phone', () => {
     expect(css).not.toMatch(/\.morse-path-item\s*\{[^}]*box-shadow/)
   })
 })
+
+describe('after the thirteen lessons', () => {
+  it('names the letters still owed and goes over them, before the Test', () => {
+    const onGoOver = vi.fn()
+    renderPath({ owed: ['B', 'Q', 'Y', 'Z'], onGoOver })
+    const row = screen.getByRole('button', { name: 'Go over B, Q, Y, Z' })
+    fireEvent.click(row)
+    expect(onGoOver).toHaveBeenCalledTimes(1)
+    const test = screen.getByRole('button', { name: /A to Z test/ })
+    expect(row.compareDocumentPosition(test) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  it('shows no such row while nothing is owed', () => {
+    renderPath({ owed: [], onGoOver: vi.fn() })
+    expect(screen.queryByRole('button', { name: /^Go over/ })).toBeNull()
+  })
+})

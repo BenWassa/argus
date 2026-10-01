@@ -6,6 +6,8 @@ import {
 } from '../../../domain/morse/fluency/progress'
 import type { FluencyMode } from '../../../domain/morse/fluency/session'
 import type { CopyLevel } from '../../../domain/morse/fluency/copy'
+import { morseFocusLetters } from '../../../domain/morse/fluency/focus'
+import type { MorseLetter } from '../../../domain/morse/code'
 import { CopyRun } from './CopyRun'
 import { FreePlay } from './FreePlay'
 import { FluencyHome } from './FluencyHome'
@@ -15,6 +17,8 @@ interface FluencySurfaceProps {
   topicId: string
   /** Set when the route named a mode directly. */
   initialMode?: FluencyMode
+  /** Set when the route asked to practise just these letters. */
+  letters?: string[]
   onExit: () => void
 }
 
@@ -32,9 +36,15 @@ interface FluencySurfaceProps {
  * write path, so an edit that reaches for `useLibrary` inside one of them
  * fails the suite rather than quietly widening what Fluency can touch.
  */
-export function FluencySurface({ topicId, initialMode, onExit }: FluencySurfaceProps) {
+export function FluencySurface({ topicId, initialMode, letters, onExit }: FluencySurfaceProps) {
   const { topics, updateTopic } = useLibrary()
   const topic = topics.find((candidate) => candidate.id === topicId)
+  // Read once, when Fluency opens: what the learner is missing weights every
+  // run, and a practise-missed entry asks only those letters, in its first run.
+  const [focus] = useState<ReadonlySet<MorseLetter>>(() => new Set(topic ? morseFocusLetters(topic) : []))
+  const [only, setOnly] = useState<MorseLetter[]>(() =>
+    (letters ?? []).filter((letter): letter is MorseLetter => /^[A-Z]$/.test(letter)),
+  )
   const [mode, setMode] = useState<FluencyMode | null>(initialMode ?? null)
   const [copy, setCopy] = useState<{ level: CopyLevel; run: number } | null>(null)
   const [free, setFree] = useState(false)
@@ -62,6 +72,7 @@ export function FluencySurface({ topicId, initialMode, onExit }: FluencySurfaceP
         level={copy.level}
         rung={(progress ?? newFluencyProgress()).rung}
         progress={progress ?? newFluencyProgress()}
+        focus={focus}
         onProgress={commit}
         onLevel={(level) => setCopy((previous) => ({ level, run: (previous?.run ?? 0) + 1 }))}
         onExit={() => setCopy(null)}
@@ -76,8 +87,15 @@ export function FluencySurface({ topicId, initialMode, onExit }: FluencySurfaceP
         mode={mode}
         rung={(progress ?? newFluencyProgress()).rung}
         progress={progress ?? newFluencyProgress()}
+        focus={focus}
+        only={only}
         onProgress={commit}
-        onExit={() => setMode(null)}
+        onExit={() => {
+          // The letters were for the run the learner came to practise; Fluency
+          // after it is the whole alphabet again.
+          setOnly([])
+          setMode(null)
+        }}
       />
     )
   }

@@ -160,6 +160,28 @@ describe('the Fluency entry', () => {
     expect(onStart).toHaveBeenLastCalledWith('test', [MORSE_ID])
   })
 
+  it('practises a banked course\'s missed letters keyed, over just those letters', () => {
+    const q = seededMorse().items.find((item) => item.prompt === 'Q')!
+    const onStart = open(morse({
+      status: 'completed',
+      completedAt: new Date().toISOString(),
+      acquisitionReadyAt: new Date().toISOString(),
+      itemEvidence: {
+        [q.id!]: {
+          cue: 'free',
+          directions: {
+            'prompt-to-answer': {
+              attempts: 1, correct: 0, unassistedCorrect: 0, consecutiveCorrect: 0,
+              lastAt: '2026-09-01T00:00:00.000Z', lastLatencyMs: 900,
+            },
+          },
+        },
+      },
+    }))
+    fireEvent.click(screen.getByRole('button', { name: /Practise the letters you missed — Q/ }))
+    expect(onStart).toHaveBeenLastCalledWith('learn', [MORSE_ID], { kind: 'fluency', mode: 'sprint', letters: ['Q'] })
+  })
+
   it('names the next copy level from the learner\'s own bests', () => {
     open(
       morse({

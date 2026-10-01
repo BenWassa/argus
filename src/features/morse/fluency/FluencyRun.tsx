@@ -30,6 +30,10 @@ interface FluencyRunProps {
   mode: FluencyMode
   rung: FluencyRung
   progress: MorseFluencyProgress
+  /** Letters the learner is missing, weighted up (`morseFocusLetters`). */
+  focus?: ReadonlySet<MorseLetter>
+  /** When non-empty, the only letters this run asks. */
+  only?: readonly MorseLetter[]
   /**
    * The single durable write path, handed in rather than reached for.
    *
@@ -73,9 +77,9 @@ const MODE_TITLES: Record<FluencyMode, string> = {
  *  - a miss records no latency at all. A wrong answer's response time mixes a
  *    fast guess with a long failed search and means neither.
  */
-export function FluencyRun({ mode, rung, progress, onProgress, onExit }: FluencyRunProps) {
+export function FluencyRun({ mode, rung, progress, focus, only, onProgress, onExit }: FluencyRunProps) {
   const [run, setRun] = useState<FluencyRunState>(() =>
-    startFluencyRun(mode, rung, progress, Date.now()),
+    startFluencyRun(mode, rung, progress, Date.now(), focus, only),
   )
   // The answered prompt's own patterns travel with the verdict: by the time it
   // renders the run has advanced, and `prompt` is already the next question.

@@ -11,6 +11,9 @@ interface MorsePathProps {
   onLesson: (index: number, replay: boolean) => void
   onCheckpoint: (checkpoint: MorseWordCheckpointPathItem) => void
   onCheck: () => void
+  /** Letters the finished course still owes; empty hides the row. */
+  owed?: string[]
+  onGoOver?: () => void
 }
 
 /**
@@ -172,6 +175,8 @@ export function MorsePath({
   onLesson,
   onCheckpoint,
   onCheck,
+  owed = [],
+  onGoOver,
 }: MorsePathProps) {
   const checkpointAfter = new Map<number, MorseWordCheckpointPathItem>(
     checkpoints.map((checkpoint) => [checkpoint.afterLesson, checkpoint]),
@@ -248,6 +253,21 @@ export function MorsePath({
       )}
 
       {shown.map((lesson) => withCheckpoint(lesson))}
+
+      {/* After the thirteen lessons: the letters the course still owes, named,
+          so the learner can see exactly what one more sitting is for. */}
+      {owed.length > 0 && onGoOver && (
+        <PathRow
+          className="morse-path-go-over"
+          mark="↺"
+          title={<strong className="morse-path-checkpoint-title">Go over {owed.join(' · ')}</strong>}
+          note={ready ? 'Missed since. Keyed, no new letters' : 'Confirms the last letters before the Test'}
+          cue="Start"
+          label={`Go over ${owed.join(', ')}`}
+          onPress={onGoOver}
+          current={!ready}
+        />
+      )}
 
       {/* The check closes the curriculum, and is tappable from the first day.
           Its position describes the order of the work, never an unlock: an early
