@@ -60,7 +60,7 @@ Research approval does not itself authorize implementation. A build issue exists
 | Issue | Relationship |
 | --- | --- |
 | #129 — Beaufort visual guide | Existing environment visual-reference implementation; may reuse #146's Learn-media primitive if it fits without widening #146. |
-| #131 — WMO cloud genera visual field guide | Active implementation issue after completed #141 research. Asset acquisition/QA can proceed before #146; app integration follows #146. |
+| #131 — WMO cloud genera visual field guide | Active implementation issue after completed #141 research. Hero images and provenance are done; app integration follows #146. |
 | #132 — SCUBA equipment visual reference set | Existing visual-reference production work; useful for asset QA patterns but outside this expansion batch. |
 | #138 — Maritime research | Completed research authority for #147/#148. |
 | #139 — Radio communications/audio research | Completed research authority for #150/#151. |
