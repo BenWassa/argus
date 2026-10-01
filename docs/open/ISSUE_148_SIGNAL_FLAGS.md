@@ -1,6 +1,6 @@
 # Issue #148 — Maritime II: selected signal flags
 
-**Status:** implemented on the feature branch as a **draft**. A cross-check against the standard depictions found and fixed two flags (2026-09-30, below); the comparison with NGA Pub. 102 / the IMO Code is still the owner's call before merging. Its base PRs (#152, #153, #154) have merged.  
+**Status:** shipped in v1.3.2 (PR #155, merged 2026-10-01). The owner merged it on the strength of the cross-check below, which found and fixed two flags; the comparison with NGA Pub. 102 / the IMO Code is still open, so every manifest `review` stays `null`.  
 **Issue:** #148  
 **Depends on:** #146  
 **Research authority:** `docs/open/ISSUE_138_MARITIME_VISUAL_LITERACY.md` §3D  
@@ -20,7 +20,7 @@ One catalog topic, `signal-flags` ("Signal Flags"), `tradecraft`, 12 forward obj
 - **Scored stimulus alt text** describes the pattern and colours and never names the letter, the name or the meaning (tested).
 - **Manifest.** `flagManifest.ts` is the 12-row asset manifest the research note requires (meaning source, design authority, authoring method, renderer id, licence, design hash, review). `designSha256` pins each drawn design, so an accidental change fails a test until deliberately re-pinned.
 
-## The verification gate (why this is a draft)
+## The verification gate (still open)
 
 The authoritative flag depictions — the IMO *International Code of Signals* and NGA Pub. 102 — could not be reached from the environment that produced these redraws, and no reusable reference set was available from the registries that could be reached. The designs were drawn from memory of the standard flags. **No flag has been compared against an authoritative depiction**, so every manifest row has `review: null`, and a test documents that honestly.
 
