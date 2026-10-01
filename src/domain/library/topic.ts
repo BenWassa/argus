@@ -7,6 +7,8 @@ import type {
 import type { MorseFluencyProgress } from '../morse/fluency/progress'
 import type { LearnContent } from '../learning/content'
 import type { ItemChoice, Visual } from '../visual/visual'
+import type { AudioStimulus, ItemResponse } from '../audio/audio'
+import type { AudioEvidenceStore } from '../audio/evidence'
 
 /**
  * The library model: what a topic is, what it holds, and the ladder it sits on.
@@ -66,6 +68,13 @@ export interface Item {
   choice?: ItemChoice
   /** Optional picture shown with the prompt. Present only alongside `choice`. */
   stimulus?: Visual
+  /**
+   * Optional prerecorded speech (#151). Answered by `choice` or by `response`,
+   * exactly one of which it must have. Additive within v5.
+   */
+  audio?: AudioStimulus
+  /** How an audio item is answered when it is not a choice. Requires `audio`. */
+  response?: ItemResponse
 }
 
 export interface IdentifiedItem extends Item {
@@ -106,6 +115,12 @@ export interface Topic {
   history: Attempt[]
   /** v5 acquisition evidence. Optional only for legacy/internal Topic fixtures. */
   itemEvidence?: ItemEvidenceStore
+  /**
+   * Listening evidence (#151): a separate record of answers given by ear, so text
+   * or choice evidence can never qualify a listening claim. Additive within v5:
+   * absent means none.
+   */
+  audioEvidence?: AudioEvidenceStore
   /**
    * Formative Learn-lesson per-item support (#48). Additive within v5: absent
    * means this learner has no item support progress yet.

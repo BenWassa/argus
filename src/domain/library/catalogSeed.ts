@@ -1065,6 +1065,8 @@ export function seedLibrary(): Library {
         answer: item.answer,
         ...(item.choice ? { choice: item.choice } : {}),
         ...(item.stimulus ? { stimulus: item.stimulus } : {}),
+        ...(item.audio ? { audio: item.audio } : {}),
+        ...(item.response ? { response: item.response } : {}),
       })),
       itemEvidence: topic.itemEvidence ?? {},
       lessonProgress: topic.lessonProgress ?? {},

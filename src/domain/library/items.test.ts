@@ -184,3 +184,41 @@ describe('visual-choice items in plain-text authoring (#146)', () => {
     expect(edited[0].answer).toBe('North')
   })
 })
+
+describe('audio items in plain-text authoring (#151)', () => {
+  const heard: IdentifiedItem = {
+    id: 'item-a',
+    kind: 'forward',
+    prompt: 'Copy what you hear',
+    answer: 'A12',
+    audio: { assetId: 'a1', src: '/media/audio/a1.mp3', transcript: 'Alfa WUN TOO', drill: 'token-copy' },
+    response: { mode: 'copy', normalizer: 'compact' },
+  }
+
+  it('keeps the recording and response across a prompt edit', () => {
+    const edited = reconcileAuthoredItems([heard], [{ prompt: 'Write it down', answer: 'A12' }], () => 'new')
+    expect(edited[0]).toEqual({ ...heard, prompt: 'Write it down' })
+  })
+
+  it('detaches the item from its recording if its answer is edited, since the pairing is authoritative', () => {
+    const edited = reconcileAuthoredItems([heard], [{ prompt: 'Copy what you hear', answer: 'A13' }], () => 'new')
+    expect(edited[0]).toEqual({ id: 'item-a', kind: 'forward', prompt: 'Copy what you hear', answer: 'A13' })
+  })
+
+  it('keeps an audio choice item only while its answer is unchanged', () => {
+    const choice: IdentifiedItem = {
+      ...heard,
+      answer: 'Message received',
+      response: undefined,
+      choice: { options: ['Message received', 'Repeat your message'] },
+    }
+    const { response: _r, ...withoutResponse } = choice
+    const kept = reconcileAuthoredItems([withoutResponse], [{ prompt: 'p2', answer: 'Message received' }], () => 'n')
+    expect(kept[0].audio).toBeDefined()
+    expect(kept[0].choice).toBeDefined()
+    // Even another of its options is not allowed: the recording says one thing.
+    const swapped = reconcileAuthoredItems([withoutResponse], [{ prompt: 'p2', answer: 'Repeat your message' }], () => 'n')
+    expect(swapped[0].audio).toBeUndefined()
+    expect(swapped[0].choice).toBeUndefined()
+  })
+})

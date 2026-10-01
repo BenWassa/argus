@@ -76,7 +76,9 @@ function scoredIdentity(items: Topic['items']): string {
       const base = [identified.id ?? '', identified.kind ?? '', item.prompt, item.answer]
       // Visual/choice content is part of what the catalog ships (#146). Appended
       // only when present so every plain item keeps its existing identity.
-      return item.choice ? [...base, item.choice, item.stimulus ?? null] : base
+      return item.choice || item.audio
+        ? [...base, item.choice ?? null, item.stimulus ?? null, item.audio ?? null, item.response ?? null]
+        : base
     }),
   )
 }

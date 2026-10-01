@@ -472,3 +472,60 @@ describe('visual-choice content survives storage (#146)', () => {
     expect(loaded?.learn).toEqual(mine.learn)
   })
 })
+
+describe('listening content and evidence survive storage (#151)', () => {
+  it('reloads a topic with audio items and its listening evidence unchanged', () => {
+    const mine: Topic = {
+      id: 'my-listening',
+      title: 'My listening topic',
+      scope: 'Two heard items.',
+      track: 'learning',
+      items: [
+        {
+          id: 'mine-1',
+          kind: 'forward',
+          prompt: 'Copy what you hear',
+          answer: 'A12',
+          audio: { assetId: 'mine-1', src: '/media/audio/mine-1.mp3', transcript: 'Alfa WUN TOO', drill: 'token-copy' },
+          response: { mode: 'copy', normalizer: 'compact' },
+        },
+        {
+          id: 'mine-2',
+          kind: 'forward',
+          prompt: 'What does it mean?',
+          answer: 'Message received',
+          audio: { assetId: 'mine-2', src: '/media/audio/mine-2.mp3', transcript: 'Roger', drill: 'proword' },
+          choice: { options: ['Message received', 'Repeat your message'] },
+        },
+      ],
+      status: 'learning',
+      createdAt: '2026-09-01T00:00:00.000Z',
+      drilledAt: null,
+      learningAt: '2026-09-02T00:00:00.000Z',
+      completedAt: null,
+      lastTestedAt: null,
+      spotCheckedAt: null,
+      history: [],
+      itemEvidence: {},
+      audioEvidence: {
+        'mine-1': {
+          attempts: 2,
+          correct: 1,
+          unassistedCorrect: 1,
+          assistedAttempts: 0,
+          lastAt: '2026-09-03T00:00:00.000Z',
+          lastLatencyMs: 1200,
+        },
+      },
+      lessonProgress: {},
+      origin: 'user',
+    }
+    saveLibrary({ version: 5, topics: [mine], catalogDelivered: [] })
+
+    const loaded = loadLibraryWithReport(NOW).library.topics.find((topic) => topic.id === 'my-listening')
+    expect(loaded?.items).toEqual(mine.items)
+    expect(loaded?.audioEvidence).toEqual(mine.audioEvidence)
+    // Listening evidence is its own record: nothing leaked into item evidence.
+    expect(loaded?.itemEvidence).toEqual({})
+  })
+})

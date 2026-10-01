@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
@@ -57,6 +57,8 @@ function runToEnd(limit = 40) {
 
 beforeEach(() => {
   localStorage.clear()
+  // jsdom has no media playback; the player is never pressed in these tests.
+  vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation((() => undefined) as never)
 })
 
 afterEach(() => {
@@ -195,5 +197,35 @@ describe('practising a visual-choice item (#146)', () => {
     expect(screen.getByRole('img', { name: 'A dial with one pointer.' })).toBeTruthy()
     expect(screen.queryByText('Hidden caption.')).toBeNull()
     expect(document.querySelector('.practice-answer')).toBeNull()
+  })
+})
+
+describe('practising a listening item (#151)', () => {
+  const heardTopic = {
+    ...NATO,
+    id: 'listening-practice',
+    title: 'Listening practice',
+    items: [
+      {
+        id: 'h-1',
+        kind: 'forward',
+        prompt: 'Copy what you hear',
+        answer: 'A12',
+        audio: { assetId: 'h-1', src: '/media/audio/h-1.mp3', transcript: 'Alfa WUN TOO', drill: 'token-copy' },
+        response: { mode: 'copy', normalizer: 'compact' },
+      },
+    ],
+  } as Topic
+
+  it('offers the recording, conceals the transcript and the answer until asked, and records nothing', () => {
+    open(heardTopic, ['h-1'])
+    expect(screen.getByRole('button', { name: /Play recording/ })).toBeTruthy()
+    expect(screen.queryByText('Alfa WUN TOO')).toBeNull()
+    expect(document.querySelector('.practice-answer')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Show transcript' }))
+    expect(screen.getByText('Alfa WUN TOO')).toBeTruthy()
+    // Practice writes no evidence of either kind.
+    const stored = JSON.parse(localStorage.getItem(STORE_KEY) ?? '{"topics":[]}').topics as Topic[]
+    expect(stored.some((topic) => topic.audioEvidence !== undefined)).toBe(false)
   })
 })
