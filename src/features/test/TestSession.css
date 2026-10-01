@@ -729,8 +729,15 @@ button.flip-card:active {
 }
 
 .test-prompt.is-question {
-  font-size: var(--t-page);
-  line-height: 1.2;
+  font-size: var(--t-section);
+  line-height: 1.3;
+  letter-spacing: 0;
+}
+
+/* The picture is the stimulus, not the page: capped so the question and every
+   option stay on screen together on a phone. */
+.choice-card .visual {
+  max-width: min(100%, 13rem);
 }
 
 .choice-options {

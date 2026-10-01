@@ -82,3 +82,119 @@
 .figure-hub {
   fill: var(--ink);
 }
+
+.figure-guide {
+  stroke: var(--line-strong);
+  stroke-width: 1;
+  stroke-dasharray: 2 4;
+}
+
+.figure-arc {
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 1.5;
+}
+
+/* Three norths: true solid, magnetic dashed, grid dotted. Line style carries the
+   distinction so it survives greyscale and colour-vision differences. */
+.figure-north-ray {
+  stroke: var(--ink);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+
+.figure-north-ray.is-M {
+  stroke-dasharray: 9 5;
+}
+
+.figure-north-ray.is-G {
+  stroke-dasharray: 1 6;
+  stroke-width: 3.5;
+}
+
+/* Maritime figures. Light colours are the figure's own: white, red and green are
+   the meaning, so they are fixed values rather than theme tokens, and each is
+   distinguishable by position, arc and label as well as by hue. */
+.figure {
+  --light-white: #f4f6f9;
+  --light-red: #ef5a52;
+  --light-green: #34c58a;
+}
+
+.figure-hull {
+  fill: var(--surface-3);
+  stroke: var(--line-hover);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+
+.figure-light {
+  stroke: var(--bg);
+  stroke-width: 1.5;
+}
+
+.figure-light.is-white {
+  fill: var(--light-white);
+}
+
+.figure-light.is-red {
+  fill: var(--light-red);
+}
+
+.figure-light.is-green {
+  fill: var(--light-green);
+}
+
+.figure-sector {
+  fill: none;
+  stroke-width: 4;
+  stroke-linecap: butt;
+}
+
+.figure-sector.is-white {
+  stroke: var(--light-white);
+}
+
+.figure-sector.is-red {
+  stroke: var(--light-red);
+}
+
+.figure-sector.is-green {
+  stroke: var(--light-green);
+}
+
+.figure-sector-label {
+  fill: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+}
+
+/* A ring, never a filled disc: a pale filled circle beside the hull reads as a
+   white all-round light, which is exactly what an aspect question asks about. */
+.figure-observer {
+  fill: var(--bg);
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
+.figure-observer-line {
+  stroke: var(--accent);
+  stroke-width: 1.5;
+  stroke-dasharray: 3 3;
+}
+
+.figure-day-ground {
+  fill: var(--accent);
+}
+
+.figure-day-shape {
+  fill: var(--accent-ink);
+}
+
+/* A picture inside a reference entry stays beside its own text rather than
+   filling the column, so a long list of entries does not become a long list of
+   full-width squares. */
+.learn-entry .visual {
+  max-width: 14rem;
+}

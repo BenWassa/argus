@@ -28,11 +28,83 @@ export interface AngleDialPointer {
 export interface AngleDialFigure {
   kind: 'angle-dial'
   pointers: AngleDialPointer[]
+  /**
+   * Which north the dial is drawn against. Names the north mark `TN`/`MN`/`GN`
+   * so a bearing never silently changes its reference between figures.
+   */
+  reference?: DialReference
+  /** Faint 90° axes through the centre, for quadrant sanity checks. */
+  quadrantGuides?: boolean
+  /** A clockwise arc from north to the first pointer. */
+  arc?: boolean
 }
 
-export type FigureSpec = AngleDialFigure
+export type DialReference = 'T' | 'M' | 'G'
 
-export const FIGURE_KIND_NAMES = ['angle-dial'] as const
+/** One ray of a three-north diagram, at a signed clockwise angle from the upright ray. */
+export interface NorthRay {
+  ref: DialReference
+  /** Whole degrees, clockwise positive. Exactly one ray is 0: the upright one. */
+  angle: number
+  /** Replaces the default `TN`/`MN`/`GN` text. */
+  label?: string
+}
+
+/**
+ * A schematic of how true, magnetic and grid north sit relative to one another.
+ * The drawn angles are the figure's own data and may be exaggerated for
+ * legibility; the prompt that uses it carries the numbers and says so.
+ */
+export interface NorthReferenceFigure {
+  kind: 'north-reference'
+  rays: NorthRay[]
+}
+
+/**
+ * A top-down vessel, bow up, for navigation-light questions (#147). Every part
+ * is optional data: the lights marked on the hull, an observer standing at a
+ * bearing around it, the Rule 21 sector arcs and the orientation labels.
+ */
+export interface VesselPlanFigure {
+  kind: 'vessel-plan'
+  /** Sector lights marked on the hull. */
+  lights?: PlanLightId[]
+  /** An observer at this bearing, clockwise from the bow. */
+  observer?: number
+  /** Draw the four Rule 21 sector arcs. Learn-only; scored items leave it off. */
+  sectors?: boolean
+  /** Label bow, stern, port and starboard and the centreline. */
+  labels?: boolean
+}
+
+export type PlanLightId = 'masthead' | 'port-sidelight' | 'starboard-sidelight' | 'sternlight'
+
+/** All-round lights in a vertical line, top first. */
+export interface LightStackFigure {
+  kind: 'light-stack'
+  lights: ('white' | 'red' | 'green')[]
+}
+
+/** Black day shapes in a vertical line, top first. */
+export interface DayShapeStackFigure {
+  kind: 'day-shape-stack'
+  shapes: ('ball' | 'diamond' | 'cone-apex-up' | 'cone-apex-down')[]
+}
+
+export type FigureSpec =
+  | AngleDialFigure
+  | NorthReferenceFigure
+  | VesselPlanFigure
+  | LightStackFigure
+  | DayShapeStackFigure
+
+export const FIGURE_KIND_NAMES = [
+  'angle-dial',
+  'north-reference',
+  'vessel-plan',
+  'light-stack',
+  'day-shape-stack',
+] as const
 export type FigureKindName = (typeof FIGURE_KIND_NAMES)[number]
 
 export const MAX_DIAL_POINTERS = 4
@@ -73,7 +145,71 @@ function parseAngleDial(raw: Raw, where: string): FigureParse {
       pointers.push({ bearing })
     }
   }
-  return { ok: true, figure: { kind: 'angle-dial', pointers } }
+  const figure: AngleDialFigure = { kind: 'angle-dial', pointers }
+  if (raw.reference !== undefined) {
+    if (!DIAL_REFERENCES.includes(raw.reference as DialReference)) {
+      return { ok: false, error: `${where} angle-dial reference must be T, M or G.` }
+    }
+    figure.reference = raw.reference as DialReference
+  }
+  for (const flag of ['quadrantGuides', 'arc'] as const) {
+    if (raw[flag] === undefined) continue
+    if (typeof raw[flag] !== 'boolean') {
+      return { ok: false, error: `${where} angle-dial ${flag} must be true or false.` }
+    }
+    if (raw[flag]) figure[flag] = true
+  }
+  return { ok: true, figure }
+}
+
+const DIAL_REFERENCES: readonly DialReference[] = ['T', 'M', 'G']
+export const MAX_NORTH_RAY_ANGLE = 35
+export const MIN_NORTH_RAY_SEPARATION = 8
+
+function parseNorthReference(raw: Raw, where: string): FigureParse {
+  if (!Array.isArray(raw.rays) || raw.rays.length < 2 || raw.rays.length > 3) {
+    return { ok: false, error: `${where} north-reference needs two or three rays.` }
+  }
+  const rays: NorthRay[] = []
+  for (let i = 0; i < raw.rays.length; i += 1) {
+    const ray = raw.rays[i]
+    if (!isRecord(ray)) return { ok: false, error: `${where} ray ${i + 1} is not a ray.` }
+    if (!DIAL_REFERENCES.includes(ray.ref as DialReference)) {
+      return { ok: false, error: `${where} ray ${i + 1} ref must be T, M or G.` }
+    }
+    const { angle, label } = ray
+    if (
+      typeof angle !== 'number' ||
+      !Number.isInteger(angle) ||
+      Math.abs(angle) > MAX_NORTH_RAY_ANGLE
+    ) {
+      return {
+        ok: false,
+        error: `${where} ray ${i + 1} needs a whole-degree angle within ±${MAX_NORTH_RAY_ANGLE}.`,
+      }
+    }
+    if (label !== undefined && (typeof label !== 'string' || !label.trim() || label.trim().length > MAX_POINTER_LABEL_LENGTH)) {
+      return { ok: false, error: `${where} ray ${i + 1} label must be 1–${MAX_POINTER_LABEL_LENGTH} characters of text.` }
+    }
+    rays.push({ ref: ray.ref as DialReference, angle, ...(typeof label === 'string' ? { label: label.trim() } : {}) })
+  }
+  if (new Set(rays.map((ray) => ray.ref)).size !== rays.length) {
+    return { ok: false, error: `${where} north-reference draws each north once.` }
+  }
+  if (rays.filter((ray) => ray.angle === 0).length !== 1) {
+    return { ok: false, error: `${where} north-reference needs exactly one upright ray at angle 0.` }
+  }
+  for (let i = 0; i < rays.length; i += 1) {
+    for (let j = i + 1; j < rays.length; j += 1) {
+      if (Math.abs(rays[i].angle - rays[j].angle) < MIN_NORTH_RAY_SEPARATION) {
+        return {
+          ok: false,
+          error: `${where} north-reference rays must be at least ${MIN_NORTH_RAY_SEPARATION}° apart so they stay distinguishable.`,
+        }
+      }
+    }
+  }
+  return { ok: true, figure: { kind: 'north-reference', rays } }
 }
 
 /**
@@ -85,9 +221,72 @@ export function parseFigure(value: unknown, where: string): FigureParse {
     return { ok: false, error: `${where} figure needs a kind.` }
   }
   if (value.kind === 'angle-dial') return parseAngleDial(value, where)
+  if (value.kind === 'north-reference') return parseNorthReference(value, where)
+  if (value.kind === 'vessel-plan') return parseVesselPlan(value, where)
+  if (value.kind === 'light-stack') return parseLightStack(value, where)
+  if (value.kind === 'day-shape-stack') return parseDayShapeStack(value, where)
   return {
     ok: false,
     error: `${where} uses unsupported figure kind "${value.kind}". Figures must be one of: ${FIGURE_KIND_NAMES.join(', ')}.`,
+  }
+}
+
+const PLAN_LIGHT_IDS: readonly PlanLightId[] = ['masthead', 'port-sidelight', 'starboard-sidelight', 'sternlight']
+const STACK_COLOURS = ['white', 'red', 'green'] as const
+const SHAPE_KINDS = ['ball', 'diamond', 'cone-apex-up', 'cone-apex-down'] as const
+export const MAX_STACK_LENGTH = 4
+
+function parseVesselPlan(raw: Raw, where: string): FigureParse {
+  const figure: VesselPlanFigure = { kind: 'vessel-plan' }
+  if (raw.lights !== undefined) {
+    if (!Array.isArray(raw.lights) || raw.lights.length === 0 || raw.lights.length > PLAN_LIGHT_IDS.length) {
+      return { ok: false, error: `${where} vessel-plan lights must be a short list of light ids.` }
+    }
+    const lights: PlanLightId[] = []
+    for (const light of raw.lights) {
+      if (!PLAN_LIGHT_IDS.includes(light as PlanLightId) || lights.includes(light as PlanLightId)) {
+        return { ok: false, error: `${where} vessel-plan lights must be distinct and from: ${PLAN_LIGHT_IDS.join(', ')}.` }
+      }
+      lights.push(light as PlanLightId)
+    }
+    figure.lights = lights
+  }
+  if (raw.observer !== undefined) {
+    if (typeof raw.observer !== 'number' || !Number.isInteger(raw.observer) || raw.observer < 0 || raw.observer > 359) {
+      return { ok: false, error: `${where} vessel-plan observer needs a whole-degree bearing from 0 to 359.` }
+    }
+    figure.observer = raw.observer
+  }
+  for (const flag of ['sectors', 'labels'] as const) {
+    if (raw[flag] === undefined) continue
+    if (typeof raw[flag] !== 'boolean') {
+      return { ok: false, error: `${where} vessel-plan ${flag} must be true or false.` }
+    }
+    if (raw[flag]) figure[flag] = true
+  }
+  return { ok: true, figure }
+}
+
+function parseLightStack(raw: Raw, where: string): FigureParse {
+  if (!Array.isArray(raw.lights) || raw.lights.length === 0 || raw.lights.length > MAX_STACK_LENGTH) {
+    return { ok: false, error: `${where} light-stack needs 1–${MAX_STACK_LENGTH} lights.` }
+  }
+  if (!raw.lights.every((light) => STACK_COLOURS.includes(light as never))) {
+    return { ok: false, error: `${where} light-stack colours must be from: ${STACK_COLOURS.join(', ')}.` }
+  }
+  return { ok: true, figure: { kind: 'light-stack', lights: [...raw.lights] as LightStackFigure['lights'] } }
+}
+
+function parseDayShapeStack(raw: Raw, where: string): FigureParse {
+  if (!Array.isArray(raw.shapes) || raw.shapes.length === 0 || raw.shapes.length > MAX_STACK_LENGTH) {
+    return { ok: false, error: `${where} day-shape-stack needs 1–${MAX_STACK_LENGTH} shapes.` }
+  }
+  if (!raw.shapes.every((shape) => SHAPE_KINDS.includes(shape as never))) {
+    return { ok: false, error: `${where} day-shape-stack shapes must be from: ${SHAPE_KINDS.join(', ')}.` }
+  }
+  return {
+    ok: true,
+    figure: { kind: 'day-shape-stack', shapes: [...raw.shapes] as DayShapeStackFigure['shapes'] },
   }
 }
 
@@ -97,16 +296,43 @@ const CENTRE = DIAL_VIEWBOX / 2
 const RING_RADIUS = 78
 const POINTER_LENGTH = 70
 const LABEL_RADIUS = 52
-/** How far a pointer label sits to its clockwise side, clear of the line. */
+/** How far a pointer label sits to one side, clear of the line. */
 const LABEL_OFFSET = 9
+/**
+ * Two labelled pointers closer than this (005° and 355°, say) would print their
+ * labels over each other, so each label turns away from its neighbour and sits
+ * further out.
+ */
+const CROWDED_DEGREES = 30
+const CROWDED_LABEL_OFFSET = 17
 
-/** A pointer label beside the pointer, inside the ring, so it never meets a cardinal mark. */
-function labelPoint(bearing: number): { x: number; y: number } {
+const ARC_RADIUS = 26
+
+/** A clockwise arc from north to `bearing`, as an SVG path. */
+function arcPath(bearing: number): string {
+  const start = dialPoint(0, ARC_RADIUS)
+  const end = dialPoint(bearing, ARC_RADIUS)
+  return `M ${start.x} ${start.y} A ${ARC_RADIUS} ${ARC_RADIUS} 0 ${bearing > 180 ? 1 : 0} 1 ${end.x} ${end.y}`
+}
+
+/**
+ * A pointer label beside the pointer, inside the ring, so it never meets a
+ * cardinal mark. It sits on the clockwise side unless the nearest other
+ * labelled pointer is close on that side, in which case it turns away from it.
+ */
+function labelPoint(bearing: number, others: number[] = []): { x: number; y: number } {
   const along = dialPoint(bearing, LABEL_RADIUS)
   const radians = (bearing * Math.PI) / 180
+  // Signed clockwise distance to each neighbour, in (-180, 180].
+  const nearest = others
+    .map((other) => ((((other - bearing) % 360) + 540) % 360) - 180)
+    .filter((delta) => delta !== 0 && Math.abs(delta) < CROWDED_DEGREES)
+    .sort((a, b) => Math.abs(a) - Math.abs(b))[0]
+  const side = nearest !== undefined && nearest > 0 ? -1 : 1
+  const offset = nearest === undefined ? LABEL_OFFSET : CROWDED_LABEL_OFFSET
   return {
-    x: round(along.x + LABEL_OFFSET * Math.cos(radians)),
-    y: round(along.y + LABEL_OFFSET * Math.sin(radians)),
+    x: round(along.x + side * offset * Math.cos(radians)),
+    y: round(along.y + side * offset * Math.sin(radians)),
   }
 }
 
@@ -123,17 +349,32 @@ export function dialPoint(bearing: number, radius: number): { x: number; y: numb
 export interface AngleDialGeometry {
   centre: { x: number; y: number }
   ringRadius: number
+  /** Axis end points when quadrant guides are on, else none. */
+  guides: { from: { x: number; y: number }; to: { x: number; y: number } }[]
+  /** SVG path of the clockwise arc from north to the first pointer, when on. */
+  arcPath: string | null
   cardinals: { label: string; bearing: number; x: number; y: number }[]
   pointers: { bearing: number; label?: string; tip: { x: number; y: number }; labelAt: { x: number; y: number } }[]
 }
 
 /** Every coordinate the dial is drawn from. Pure, so it is unit-testable. */
 export function angleDialGeometry(figure: AngleDialFigure): AngleDialGeometry {
+  const first = figure.pointers[0]
   return {
     centre: { x: CENTRE, y: CENTRE },
     ringRadius: RING_RADIUS,
+    guides: figure.quadrantGuides
+      ? [
+          { from: dialPoint(0, RING_RADIUS), to: dialPoint(180, RING_RADIUS) },
+          { from: dialPoint(90, RING_RADIUS), to: dialPoint(270, RING_RADIUS) },
+        ]
+      : [],
+    arcPath:
+      figure.arc && first.bearing > 0
+        ? arcPath(first.bearing)
+        : null,
     cardinals: [
-      { label: 'N', bearing: 0 },
+      { label: figure.reference ? `${figure.reference}N` : 'N', bearing: 0 },
       { label: 'E', bearing: 90 },
       { label: 'S', bearing: 180 },
       { label: 'W', bearing: 270 },
@@ -142,7 +383,43 @@ export function angleDialGeometry(figure: AngleDialFigure): AngleDialGeometry {
       bearing: pointer.bearing,
       ...(pointer.label ? { label: pointer.label } : {}),
       tip: dialPoint(pointer.bearing, POINTER_LENGTH),
-      labelAt: labelPoint(pointer.bearing),
+      labelAt: labelPoint(
+        pointer.bearing,
+        figure.pointers.filter((other) => other !== pointer && other.label).map((other) => other.bearing),
+      ),
+    })),
+  }
+}
+
+const VERTEX = { x: DIAL_VIEWBOX / 2, y: 165 }
+const NORTH_RAY_LENGTH = 105
+const NORTH_LABEL_RADIUS = 122
+
+export interface NorthReferenceGeometry {
+  vertex: { x: number; y: number }
+  rays: {
+    ref: DialReference
+    angle: number
+    label: string
+    tip: { x: number; y: number }
+    labelAt: { x: number; y: number }
+  }[]
+}
+
+/** Every coordinate of the three-north schematic. Pure, so it is unit-testable. */
+export function northReferenceGeometry(figure: NorthReferenceFigure): NorthReferenceGeometry {
+  const at = (angle: number, radius: number) => {
+    const radians = (angle * Math.PI) / 180
+    return { x: round(VERTEX.x + radius * Math.sin(radians)), y: round(VERTEX.y - radius * Math.cos(radians)) }
+  }
+  return {
+    vertex: VERTEX,
+    rays: figure.rays.map((ray) => ({
+      ref: ray.ref,
+      angle: ray.angle,
+      label: ray.label ?? `${ray.ref}N`,
+      tip: at(ray.angle, NORTH_RAY_LENGTH),
+      labelAt: at(ray.angle, NORTH_LABEL_RADIUS),
     })),
   }
 }

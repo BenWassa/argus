@@ -98,3 +98,10 @@ bump the version.
   Hosting had already been deployed and verified earlier in the session with
   functionally identical code (only `package.json`'s version string differs, and
   nothing in the app reads it), so this release did not require a fresh deploy.
+- v1.3.0 (2026-09-30): minor bump for shared visual Learn and objective choice items
+  (#146), four Compass & Bearings topics (#149), Navigation Lights & Aspect and Vessel
+  Day Shapes (#147), the post-course Morse review (#158), cloud hero images (#159) and
+  a UI pass on the new topics (#161). Gate: 1350 unit tests + build + 288 browser
+  tests, all green, no flake. Hosting deployed and verified (bundle served as
+  `text/javascript`, new topics present). No rules change since v1.2.0, so no
+  `rules:deploy`.
