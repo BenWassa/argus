@@ -296,8 +296,15 @@ const CENTRE = DIAL_VIEWBOX / 2
 const RING_RADIUS = 78
 const POINTER_LENGTH = 70
 const LABEL_RADIUS = 52
-/** How far a pointer label sits to its clockwise side, clear of the line. */
+/** How far a pointer label sits to one side, clear of the line. */
 const LABEL_OFFSET = 9
+/**
+ * Two labelled pointers closer than this (005° and 355°, say) would print their
+ * labels over each other, so each label turns away from its neighbour and sits
+ * further out.
+ */
+const CROWDED_DEGREES = 30
+const CROWDED_LABEL_OFFSET = 17
 
 const ARC_RADIUS = 26
 
@@ -308,13 +315,24 @@ function arcPath(bearing: number): string {
   return `M ${start.x} ${start.y} A ${ARC_RADIUS} ${ARC_RADIUS} 0 ${bearing > 180 ? 1 : 0} 1 ${end.x} ${end.y}`
 }
 
-/** A pointer label beside the pointer, inside the ring, so it never meets a cardinal mark. */
-function labelPoint(bearing: number): { x: number; y: number } {
+/**
+ * A pointer label beside the pointer, inside the ring, so it never meets a
+ * cardinal mark. It sits on the clockwise side unless the nearest other
+ * labelled pointer is close on that side, in which case it turns away from it.
+ */
+function labelPoint(bearing: number, others: number[] = []): { x: number; y: number } {
   const along = dialPoint(bearing, LABEL_RADIUS)
   const radians = (bearing * Math.PI) / 180
+  // Signed clockwise distance to each neighbour, in (-180, 180].
+  const nearest = others
+    .map((other) => ((((other - bearing) % 360) + 540) % 360) - 180)
+    .filter((delta) => delta !== 0 && Math.abs(delta) < CROWDED_DEGREES)
+    .sort((a, b) => Math.abs(a) - Math.abs(b))[0]
+  const side = nearest !== undefined && nearest > 0 ? -1 : 1
+  const offset = nearest === undefined ? LABEL_OFFSET : CROWDED_LABEL_OFFSET
   return {
-    x: round(along.x + LABEL_OFFSET * Math.cos(radians)),
-    y: round(along.y + LABEL_OFFSET * Math.sin(radians)),
+    x: round(along.x + side * offset * Math.cos(radians)),
+    y: round(along.y + side * offset * Math.sin(radians)),
   }
 }
 
@@ -365,7 +383,10 @@ export function angleDialGeometry(figure: AngleDialFigure): AngleDialGeometry {
       bearing: pointer.bearing,
       ...(pointer.label ? { label: pointer.label } : {}),
       tip: dialPoint(pointer.bearing, POINTER_LENGTH),
-      labelAt: labelPoint(pointer.bearing),
+      labelAt: labelPoint(
+        pointer.bearing,
+        figure.pointers.filter((other) => other !== pointer && other.label).map((other) => other.bearing),
+      ),
     })),
   }
 }

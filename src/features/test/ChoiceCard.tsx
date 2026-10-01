@@ -46,6 +46,7 @@ export function ChoiceCard({ item, onAnswer, cardKey, now = defaultNow }: Choice
   const chosen = choice && choice.key === cardKey ? choice.option : null
   const startedAt = useRef(now())
   const continueRef = useRef<HTMLButtonElement>(null)
+  const feedbackRef = useRef<HTMLDivElement>(null)
   const pending = useRef<ChoiceAnswer | null>(null)
   const onAnswerRef = useRef(onAnswer)
   onAnswerRef.current = onAnswer
@@ -68,7 +69,12 @@ export function ChoiceCard({ item, onAnswer, cardKey, now = defaultNow }: Choice
   const correct = chosen !== null && isCorrectChoice(item, chosen)
 
   useEffect(() => {
-    if (chosen !== null && !correct) continueRef.current?.focus({ preventScroll: true })
+    if (chosen === null || correct) return
+    continueRef.current?.focus({ preventScroll: true })
+    // On a short phone a picture, a long prompt and four options already fill
+    // the screen, so the correction and its Continue land below the fold.
+    // `nearest` leaves the page still when they are already in view.
+    feedbackRef.current?.scrollIntoView?.({ block: 'nearest' })
   }, [chosen, correct])
 
   function choose(option: string) {
@@ -107,7 +113,7 @@ export function ChoiceCard({ item, onAnswer, cardKey, now = defaultNow }: Choice
             <button
               key={option}
               type="button"
-              className={`choice-option${state}`}
+              className={`ghost choice-option${state}`}
               disabled={chosen !== null || !armed}
               aria-pressed={chosen === option}
               onClick={() => choose(option)}
@@ -125,7 +131,7 @@ export function ChoiceCard({ item, onAnswer, cardKey, now = defaultNow }: Choice
       )}
 
       {chosen !== null && !correct && (
-        <div className="test-feedback" role="status" aria-live="assertive">
+        <div ref={feedbackRef} className="test-feedback" role="status" aria-live="assertive">
           <p className="test-verdict">Not that one</p>
           <div className="test-correction">
             <p className="test-correction-row">

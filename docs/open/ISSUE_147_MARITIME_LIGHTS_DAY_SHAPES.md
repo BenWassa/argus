@@ -1,6 +1,6 @@
 # Issue #147 — Maritime I: lights, aspect and day shapes
 
-**Status:** implemented on the feature branch, in review; closes #147 when merged. Stacked on #149 → #146 (PRs #153, #152), so it merges after them.  
+**Status:** shipped (PR #154, merged 2026-09-30); the domain reviewer's second pass of the answer keys is still owed (see below).  
 **Issue:** #147  
 **Depends on:** #146  
 **Research authority:** `docs/open/ISSUE_138_MARITIME_VISUAL_LITERACY.md`  
