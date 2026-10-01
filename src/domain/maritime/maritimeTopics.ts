@@ -280,7 +280,7 @@ export function maritimeTopics(): Topic[] {
       id: LIGHTS_ID,
       title: 'Navigation Lights & Aspect',
       scope:
-        'Sixteen visual items on a canonical power-driven vessel under 50 m, underway: which basic navigation lights an observer sees from eight positions around it (8), and which vessel state eight light arrangements show (8): power-driven, sailing, trawling, other fishing, not under command, restricted in ability to manoeuvre, at anchor and aground. Vessel orientation terms are Learn-only. Test does not cover collision avoidance, sound signals, towing, pilotage, constrained by draught or any vessel not shown.',
+        'Which navigation lights you see from each position around a power-driven vessel under 50 m, underway, and which vessel state a light arrangement shows: power-driven, sailing, trawling, other fishing, not under command, restricted in ability to manoeuvre, at anchor and aground. Bow, stern, port and starboard are taught, not scored. Collision avoidance, sound signals, towing, pilotage and vessels constrained by draught are not covered.',
       items: withIds(LIGHTS_ID, [...aspectItems(), ...lightSignatureItems()]),
       learn: lightsLearn,
     }),
@@ -288,7 +288,7 @@ export function maritimeTopics(): Topic[] {
       id: SHAPES_ID,
       title: 'Vessel Day Shapes',
       scope:
-        'Five visual items: which vessel state five day-shape arrangements show — one ball (at anchor), two balls (not under command), ball-diamond-ball (restricted in ability to manoeuvre), three balls (aground) and two cones apexes together (fishing). Test does not cover shape construction, size rules, other shapes or collision avoidance.',
+        'Which vessel state a day shape shows: one ball (at anchor), two balls (not under command), ball-diamond-ball (restricted in ability to manoeuvre), three balls (aground) and two cones with their points together (fishing). Shape sizes, other shapes and collision avoidance are not scored.',
       items: withIds(SHAPES_ID, dayShapeItems()),
       learn: shapesLearn,
     }),

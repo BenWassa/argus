@@ -403,7 +403,7 @@ export function bearingTopics(): Topic[] {
       id: WHOLE_CIRCLE_ID,
       title: 'Whole-Circle Bearings',
       scope:
-        'Twelve diagram exercises on a compass rose: read the true bearing of a ray (6) and find the ray for a stated true bearing (6). Bearings run clockwise from north, 000° to 359°. Builds on the eight-point Compass Bearings topic. Test is visual; it does not cover calculations, compass handling or field navigation.',
+        'Reading the true bearing of a ray on a compass rose, and finding the ray for a stated bearing, clockwise from north, 000° to 359°. Follows Compass Bearings. Calculations, compass handling and field navigation are not scored.',
       items: withIds(WHOLE_CIRCLE_ID, [...readBearingItems(), ...findBearingItems()]),
       learn: wholeCircleLearn,
     }),
@@ -411,7 +411,7 @@ export function bearingTopics(): Topic[] {
       id: RECIPROCAL_ID,
       title: 'Reciprocal Bearings',
       scope:
-        'Twelve reciprocal (back) bearing calculations on one north reference: three below 180°, three at or above, two crossing 000°, two round-number checks and two read from a diagram. Test does not cover converting between norths or field navigation.',
+        'The reciprocal (back) bearing of a stated bearing, on one north reference, including results that cross 000°. Converting between norths and field navigation are not scored.',
       items: withIds(RECIPROCAL_ID, reciprocalItems()),
       learn: reciprocalLearn,
     }),
@@ -419,7 +419,7 @@ export function bearingTopics(): Topic[] {
       id: NORTH_REFERENCES_ID,
       title: 'True & Magnetic North',
       scope:
-        'Sixteen items: four on what true, magnetic and grid north and declination are, and twelve true↔magnetic conversions with a supplied signed declination (east positive), including results that cross 000°. Test never asks for a real declination and does not cover grid north, compass handling or field navigation.',
+        'What true, magnetic and grid north and declination are, and converting between true and magnetic bearings with a given declination (east positive), including results that cross 000°. Declination is always given. Grid conversions, compass handling and field navigation are not scored.',
       items: withIds(NORTH_REFERENCES_ID, [...northConceptItems(), ...declinationItems()]),
       learn: northReferencesLearn,
     }),
@@ -427,7 +427,7 @@ export function bearingTopics(): Topic[] {
       id: GRID_NORTH_ID,
       title: 'Grid North & Map Bearings',
       scope:
-        'Twelve items: four on reading a three-north diagram, four direct grid↔magnetic conversions from a stated margin relation, two true/magnetic/grid conversions with both declination and convergence supplied, and two that convert then take the reciprocal. Offsets are always supplied. Test does not cover plotting routes, coordinates, resection or field navigation.',
+        'Reading a three-north diagram, converting between grid, magnetic and true bearings from a map margin, and converting then taking the reciprocal. Offsets are always given. Plotting routes, coordinates, resection and field navigation are not scored.',
       items: withIds(GRID_NORTH_ID, [
         ...northDiagramItems(),
         ...directGridItems(),
