@@ -4,6 +4,11 @@ import {
   northReferenceGeometry,
   type FigureSpec,
 } from '../../domain/visual/figures'
+import {
+  dayShapeStackGeometry,
+  lightStackGeometry,
+  vesselPlanGeometry,
+} from '../../domain/maritime/geometry'
 
 /**
  * Deterministic rendering of a registry figure (#146). One function per kind,
@@ -111,6 +116,111 @@ export function FigureView({ figure }: { figure: FigureSpec }) {
             </g>
           ))}
           <circle className="figure-hub" cx={geometry.vertex.x} cy={geometry.vertex.y} r={3} />
+        </svg>
+      )
+    }
+    case 'vessel-plan': {
+      const geometry = vesselPlanGeometry(figure)
+      return (
+        <svg
+          className="figure figure-vessel-plan"
+          viewBox={`0 0 ${DIAL_VIEWBOX} ${DIAL_VIEWBOX}`}
+          aria-hidden="true"
+          focusable="false"
+        >
+          {geometry.labels.length > 0 && (
+            <line
+              className="figure-guide"
+              x1={geometry.centreline.from.x}
+              y1={geometry.centreline.from.y}
+              x2={geometry.centreline.to.x}
+              y2={geometry.centreline.to.y}
+            />
+          )}
+          {geometry.sectors.map((sector) => (
+            <g key={sector.id}>
+              <path className={`figure-sector is-${sector.colour}`} d={sector.path} />
+              <text
+                className="figure-sector-label"
+                x={sector.label.x}
+                y={sector.label.y}
+                textAnchor="middle"
+                dominantBaseline="central"
+              >
+                {sector.label.letter}
+              </text>
+            </g>
+          ))}
+          <path className="figure-hull" d={geometry.hull} />
+          {geometry.lights.map((light) => (
+            <circle
+              className={`figure-light is-${light.colour}`}
+              key={light.id}
+              cx={light.x}
+              cy={light.y}
+              r={5}
+            />
+          ))}
+          {geometry.labels.map((label) => (
+            <text
+              className="figure-cardinal"
+              key={label.text}
+              x={label.x}
+              y={label.y}
+              textAnchor="middle"
+              dominantBaseline="central"
+            >
+              {label.text}
+            </text>
+          ))}
+          {geometry.observer && (
+            <g>
+              <line
+                className="figure-observer-line"
+                x1={geometry.observer.at.x}
+                y1={geometry.observer.at.y}
+                x2={geometry.observer.towards.x}
+                y2={geometry.observer.towards.y}
+              />
+              <circle className="figure-observer" cx={geometry.observer.at.x} cy={geometry.observer.at.y} r={6} />
+            </g>
+          )}
+        </svg>
+      )
+    }
+    case 'light-stack': {
+      const lights = lightStackGeometry(figure)
+      return (
+        <svg
+          className="figure figure-light-stack"
+          viewBox={`0 0 ${DIAL_VIEWBOX} ${DIAL_VIEWBOX}`}
+          aria-hidden="true"
+          focusable="false"
+        >
+          {lights.map((light, index) => (
+            <circle className={`figure-light is-${light.colour}`} key={index} cx={light.cx} cy={light.cy} r={light.r} />
+          ))}
+        </svg>
+      )
+    }
+    case 'day-shape-stack': {
+      const shapes = dayShapeStackGeometry(figure)
+      return (
+        <svg
+          className="figure figure-day-shapes"
+          viewBox={`0 0 ${DIAL_VIEWBOX} ${DIAL_VIEWBOX}`}
+          aria-hidden="true"
+          focusable="false"
+        >
+          {/* Shapes are black by the regulations, so they sit on a light ground. */}
+          <rect className="figure-day-ground" x="0" y="0" width={DIAL_VIEWBOX} height={DIAL_VIEWBOX} />
+          {shapes.map((shape, index) =>
+            shape.kind === 'ball' ? (
+              <circle className="figure-day-shape" key={index} cx={shape.cx} cy={shape.cy} r={shape.r} />
+            ) : (
+              <polygon className="figure-day-shape" key={index} points={shape.points} />
+            ),
+          )}
         </svg>
       )
     }

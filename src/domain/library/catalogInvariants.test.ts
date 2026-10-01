@@ -40,11 +40,14 @@ describe('shipped catalog invariants', () => {
   it('keeps every prompt and every answer unambiguous within its topic', () => {
     for (const topic of topics) {
       const prompts = topic.items.map((item) => item.prompt)
-      const answers = topic.items.map((item) => item.answer)
       // Two cards with one prompt cannot both be right; two cards with one
       // answer make the reverse question — and the reference — ambiguous.
       expect(new Set(prompts).size, `${topic.id} repeats a prompt`).toBe(prompts.length)
-      expect(new Set(answers).size, `${topic.id} repeats an answer`).toBe(answers.length)
+      // A forward-only objective choice is never asked in reverse, so a repeated
+      // answer is natural there (three aspects that all see only the sternlight).
+      // The answer rule therefore binds only the items that can be reversed.
+      const reversible = topic.items.filter((item) => !item.choice).map((item) => item.answer)
+      expect(new Set(reversible).size, `${topic.id} repeats an answer`).toBe(reversible.length)
       for (const item of topic.items) {
         expect(item.prompt.trim()).toBe(item.prompt)
         expect(item.answer.trim()).toBe(item.answer)

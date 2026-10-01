@@ -1,6 +1,7 @@
 import type { Topic } from './topic'
 import type { Library } from './library'
 import { bearingTopics } from '../navigation/bearingTopics'
+import { maritimeTopics } from '../maritime/maritimeTopics'
 
 const NATO = [
   'Alfa', 'Bravo', 'Charlie', 'Delta', 'Echo', 'Foxtrot', 'Golf', 'Hotel',
@@ -490,6 +491,7 @@ export function seedLibrary(): Library {
       ],
     },
     ...bearingTopics(),
+    ...maritimeTopics(),
     {
       id: 'scuba-equipment-abbreviations',
       title: 'SCUBA Equipment',
