@@ -9,6 +9,7 @@ import {
 import { pruneLessonProgress } from '../../domain/morse/curriculum/lesson'
 import { pruneLessonSitting } from '../../domain/morse/curriculum/lessonSitting'
 import { pruneMorseReview } from '../../domain/morse/curriculum/review'
+import { pruneAudioEvidence } from '../../domain/audio/evidence'
 import type { LearnContent } from '../../domain/learning/content'
 import { TRACKS, type Item, type Topic, type Track } from '../../domain/library/topic'
 
@@ -112,6 +113,7 @@ export function TopicForm({
     const reconciledItems = reconcileAuthoredItems(topic?.items ?? [], items)
     const sitting = pruneLessonSitting(topic?.lessonSitting, reconciledItems)
     const review = pruneMorseReview(topic?.morseReview, reconciledItems)
+    const audioEvidence = topic?.audioEvidence && pruneAudioEvidence(topic.audioEvidence, reconciledItems)
     onSave({
       id: topic?.id ?? `topic-${Date.now()}`,
       title: title.trim(),
@@ -133,6 +135,8 @@ export function TopicForm({
       // Evidence follows stable ids through reorder/text edits and is removed
       // only when its item is actually deleted.
       itemEvidence: pruneItemEvidence(topic?.itemEvidence, reconciledItems),
+      // Listening evidence is its own record (#151) and follows the same rule.
+      ...(audioEvidence && Object.keys(audioEvidence).length > 0 ? { audioEvidence } : {}),
       lessonProgress: pruneLessonProgress(topic?.lessonProgress, reconciledItems),
       // The active finite sitting is durable learner progress too, so an edit to
       // the title carries it through. Only revisit ids for genuinely deleted

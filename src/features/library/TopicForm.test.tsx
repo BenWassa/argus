@@ -125,4 +125,39 @@ describe('editing a topic preserves durable learner progress', () => {
 
     expect(reparsed.ok).toBe(true)
   })
+
+  describe('listening evidence (#151)', () => {
+    const NATO_ID = 'nato-phonetic'
+    const heard = (): Topic => {
+      const base = seeded(NATO_ID)
+      const [first, second, ...rest] = base.items
+      const withAudio = (item: Topic['items'][number]) => ({
+        ...item,
+        choice: { options: [item.answer, 'Zulu'] },
+        audio: { assetId: `asset-${item.id}`, src: `/media/audio/${item.id}.wav`, transcript: item.answer, drill: 'proword' as const },
+      })
+      const answer = { correct: 1, attempts: 1, unassistedCorrect: 1, assistedAttempts: 0, lastAt: '2026-10-01T00:00:00.000Z', lastLatencyMs: 800 }
+      return {
+        ...base,
+        items: [withAudio(first), withAudio(second), ...rest],
+        audioEvidence: { [first.id!]: answer, [second.id!]: answer },
+      }
+    }
+    const lines = (topic: Topic, answerFor: (index: number, answer: string) => string = (_, a) => a) =>
+      topic.items.map((item, index) => `${item.prompt} | ${answerFor(index, item.answer)}`).join('\n')
+
+    it('carries listening evidence through a title edit', () => {
+      const topic = heard()
+      const saved = edit(topic, { title: 'Renamed' })
+      expect(saved.audioEvidence).toEqual(topic.audioEvidence)
+    })
+
+    it('drops evidence for an item detached from its recording, and still parses', () => {
+      const topic = heard()
+      const saved = edit(topic, { items: lines(topic, (index, answer) => (index === 0 ? `${answer}s` : answer)) })
+      expect(Object.keys(saved.audioEvidence ?? {})).toEqual([topic.items[1].id])
+      const reparsed = parseLibrary(JSON.parse(JSON.stringify({ version: 5, topics: [saved] })))
+      expect(reparsed.ok).toBe(true)
+    })
+  })
 })

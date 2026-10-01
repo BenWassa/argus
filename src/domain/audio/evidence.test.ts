@@ -87,4 +87,11 @@ describe('listening is its own claim', () => {
     expect(Object.keys(pruneAudioEvidence({ h1: a, gone: a }, items))).toEqual(['h1'])
     expect(pruneAudioEvidence(undefined, items)).toEqual({})
   })
+
+  it('prunes evidence for an item that is no longer heard', () => {
+    const a = recordAudioAnswer(undefined, { correct: true, assisted: false, latencyMs: 1, at })
+    // An answer edit detaches an item from its recording; the parser would then
+    // refuse evidence still keyed to it.
+    expect(pruneAudioEvidence({ h1: a, t1: a }, [heard('h1'), plain('t1')])).toEqual({ h1: a })
+  })
 })

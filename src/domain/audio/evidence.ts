@@ -70,13 +70,18 @@ export function mergeAudioEvidence(
   return { ...(existing ?? {}), ...updates }
 }
 
-/** Drop evidence for items that no longer exist, as `pruneItemEvidence` does. */
+/**
+ * Drop evidence for items that are no longer heard: deleted, or detached from
+ * their recording by an answer edit (`reconcileAuthoredItems`). The parser
+ * refuses evidence for an item without audio, so keeping it would make the
+ * whole library unreadable on the next load.
+ */
 export function pruneAudioEvidence(
   evidence: AudioEvidenceStore | undefined,
   items: Item[],
 ): AudioEvidenceStore {
   if (!evidence) return {}
-  const live = new Set(items.flatMap((item) => (item.id ? [item.id] : [])))
+  const live = new Set(audioItems(items).flatMap((item) => (item.id ? [item.id] : [])))
   return Object.fromEntries(Object.entries(evidence).filter(([id]) => live.has(id)))
 }
 
