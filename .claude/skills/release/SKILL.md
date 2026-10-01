@@ -105,3 +105,9 @@ bump the version.
   tests, all green, no flake. Hosting deployed and verified (bundle served as
   `text/javascript`, new topics present). No rules change since v1.2.0, so no
   `rules:deploy`.
+- v1.3.1 (2026-09-30): patch for the Library shelf keeping a programme's topics
+  together in learning order (#163). Gate: 1352 unit + 288 browser, green.
+- v1.3.2 (2026-10-01): patch for Signal Flags (#155, Oscar and Whiskey corrected
+  before merge) and the prerecorded-speech runtime with separate listening
+  evidence (#157, no audio topic ships yet). Gate: 1473 unit + build + 320
+  browser, green. Hosting deployed and verified; no rules change.
