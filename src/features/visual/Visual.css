@@ -170,10 +170,12 @@
   font-weight: 600;
 }
 
+/* A ring, never a filled disc: a pale filled circle beside the hull reads as a
+   white all-round light, which is exactly what an aspect question asks about. */
 .figure-observer {
-  fill: var(--accent);
-  stroke: var(--bg);
-  stroke-width: 1.5;
+  fill: var(--bg);
+  stroke: var(--accent);
+  stroke-width: 2;
 }
 
 .figure-observer-line {
