@@ -16,6 +16,10 @@
   font-size: var(--t-page);
   font-weight: var(--w-page);
   line-height: 1.08;
+  /* At 200% text on a 320px phone, "alphabet" in a wider system face (Linux
+     falls back to DejaVu) is broader than the column. Unbreakable, it sets the
+     grid track's minimum and pushes every card past the viewport. */
+  overflow-wrap: anywhere;
 }
 
 .morse-ref-lede,

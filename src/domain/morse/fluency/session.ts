@@ -94,15 +94,24 @@ export function wordTierForRung(rung: FluencyRung): WordTier {
  * selection behaviour and what stops a React re-render reshuffling a queue the
  * learner is halfway through.
  */
+/**
+ * `focus` weights the letters the learner is missing; `only`, when non-empty,
+ * restricts single-letter and group runs to those letters — the keyed way to
+ * practise exactly what a check or a lesson missed. Word runs keep their word
+ * lists either way.
+ */
 export function startFluencyRun(
   mode: FluencyMode,
   rung: FluencyRung,
   progress: MorseFluencyProgress,
   seed: number,
+  focus: ReadonlySet<MorseLetter> = new Set(),
+  only: readonly MorseLetter[] = [],
 ): FluencyRun {
   const random = seededRandom(seed)
-  const needOrdered = [...MORSE_ALPHABET].sort(
-    (a, b) => fluencyNeed(progress, b) - fluencyNeed(progress, a) || a.localeCompare(b),
+  const roster = only.length > 0 ? [...only] : [...MORSE_ALPHABET]
+  const needOrdered = roster.sort(
+    (a, b) => fluencyNeed(progress, b, focus) - fluencyNeed(progress, a, focus) || a.localeCompare(b),
   )
 
   let prompts: FluencyPrompt[]

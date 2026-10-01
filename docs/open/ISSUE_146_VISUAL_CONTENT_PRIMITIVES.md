@@ -1,6 +1,6 @@
 # Issue #146 — Visual content primitives
 
-**Status:** implemented on the feature branch, in review; closes #146 when merged. This note is the maintained contract for the shipped primitives.  
+**Status:** shipped (PR #152, merged 2026-09-30). This note is the maintained contract for the shipped primitives.  
 **Issue:** #146  
 **Priority:** shared dependency  
 **Research inputs:** #138, #140, #141  

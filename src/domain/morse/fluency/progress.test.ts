@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   FLUENCY_LATENCY_WINDOW,
+  FOCUS_NEED,
   characterCv,
   coefficientOfVariation,
   elementCountRatio,
@@ -150,6 +151,14 @@ describe('fluency progress', () => {
         Q: [1500, 1500, 1500, 1500, 1500],
       })
       expect(fluencyNeed(progress, 'Q')).toBeGreaterThan(fluencyNeed(progress, 'E'))
+    })
+
+    it('brings a letter the learner is missing forward, bounded, and never above an unheard one', () => {
+      const progress = withLatencies({ E: [500, 500, 500, 500, 500], T: [500, 500, 500, 500, 500] })
+      const focus = new Set(['T'] as const)
+      expect(fluencyNeed(progress, 'T', focus)).toBeGreaterThan(fluencyNeed(progress, 'E', focus))
+      expect(fluencyNeed(progress, 'T', focus) - fluencyNeed(progress, 'T')).toBe(FOCUS_NEED)
+      expect(fluencyNeed(progress, 'X', focus)).toBeGreaterThan(fluencyNeed(progress, 'T', focus))
     })
 
     it('prefers the less accurate of two equally slow characters', () => {

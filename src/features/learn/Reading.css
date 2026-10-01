@@ -131,12 +131,14 @@
 }
 
 .learn-entry-marker {
+  flex: none;
   min-width: 2ch;
   font-size: var(--t-page);
   color: var(--ink);
 }
 
 .learn-entry-title {
+  min-width: 0;
   font-size: var(--t-component);
   color: var(--ink);
   text-wrap: balance;
@@ -238,6 +240,18 @@
    scrolling there only clipped the content column. */
 .learn-table:has(th:nth-child(2):last-child) {
   min-width: 0;
+}
+
+/* Four or more columns cannot share a phone's width without crushing one of
+   them to a letter per line, so they size to their content and scroll inside
+   the wrapper instead. */
+.learn-table:has(th:nth-child(4)) {
+  min-width: 34em;
+  table-layout: auto;
+}
+
+.learn-table:has(th:nth-child(4)) :is(th, td) {
+  width: auto;
 }
 
 .learn-table th:last-child,

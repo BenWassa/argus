@@ -189,6 +189,12 @@ export interface LessonRun {
    * a stalled lesson.
    */
   reviewOnly?: boolean
+  /**
+   * True for a run after the thirteen lessons, over the letters the course still
+   * owes the learner (`startAfterCourse`). It introduces nothing and is always
+   * review-only.
+   */
+  afterCourse?: boolean
 }
 
 export type LessonStep =
@@ -249,6 +255,8 @@ export interface MorseAcquisitionPosition {
    * which is what every record written before that history existed looks like.
    */
   awaitingConsolidation: MorseLetter[]
+  /** True once every letter has been met, whether or not all are settled. */
+  metAll: boolean
 }
 
 export function morseAcquisitionPosition(topic: Topic): MorseAcquisitionPosition | null {
@@ -293,6 +301,7 @@ export function morseAcquisitionPosition(topic: Topic): MorseAcquisitionPosition
     started: supports.some((support) => support !== undefined),
     ready: settledEverything && awaitingConsolidation.length === 0,
     awaitingConsolidation,
+    metAll: supports.every((support) => support !== undefined),
   }
 }
 
@@ -478,6 +487,91 @@ function makeLessonEntry({
     notBefore: 0,
     lastAskedAt: null,
     order,
+  }
+}
+
+/**
+ * Letters the finished course still owes the learner, in acquisition order.
+ *
+ * Two kinds of debt, both about sittings and neither about time:
+ *
+ * - **not yet confirmed**: produced unaided, but never correctly in a sitting
+ *   after the one that taught it. Readiness waits on every one of these, and
+ *   the thirteen lessons cannot always supply one: Q and Y are taught in the
+ *   last lesson, and the confusable-separation rule keeps B and Z (and, for a
+ *   clean learner, C and J) out of the rosters that follow.
+ * - **an unrepaired miss**: missed in print and not yet produced correctly in
+ *   a later sitting.
+ *
+ * Once readiness is recorded only the second kind remains: readiness is
+ * permanent, so confirmation is no longer owed.
+ */
+export function owedLetters(topic: Topic): MorseLetter[] {
+  const byGlyph = rosterIdentity(topic)
+  if (!byGlyph) return []
+  const review = morseReviewOf(topic)
+  return ACQUISITION_ORDER.filter((glyph) => {
+    const character = byGlyph.get(glyph)
+    if (!character || review.items[character.itemId] === undefined) return false
+    const unconfirmed = !topic.acquisitionReadyAt && !hasLaterSittingSuccess(review, character.itemId)
+    return unconfirmed || owesRepair(review, character.itemId)
+  })
+}
+
+/**
+ * A keyed review run after the thirteen lessons, over the letters the course
+ * still owes (`owedLetters`), or `null` before the learner has met every
+ * letter, or when nothing is owed.
+ *
+ * "Met every letter" rather than "every letter settled": a miss in one of
+ * these runs rightly restores that letter's support, and the run that repairs
+ * it must still be there afterwards.
+ *
+ * The owed letters lead, most urgent first; any room left in the roster goes
+ * to the next most in need, so a run is never a single letter asked alone.
+ * Unlike the in-course review, the confusable-separation rule does not apply:
+ * that rule is exactly what left these letters stranded, and a roster of only
+ * met, settled letters has no first meeting for it to protect.
+ *
+ * The caller must start it in a sitting after the one that owed the letter,
+ * or a correct answer confirms nothing.
+ */
+export function startAfterCourse(topic: Topic): LessonRun | null {
+  const byGlyph = rosterIdentity(topic)
+  if (!byGlyph) return null
+  const packets = lessonPackets()
+  const store = topic.lessonProgress ?? {}
+  if ([...byGlyph.values()].some((character) => store[character.itemId] === undefined)) return null
+
+  const owed = new Set(owedLetters(topic))
+  if (owed.size === 0) return null
+
+  const review = morseReviewOf(topic)
+  const priority = byRetrievalPriority(review)
+  const met = ACQUISITION_ORDER.flatMap((glyph, order) => {
+    const character = byGlyph.get(glyph)
+    const support = character ? store[character.itemId] : undefined
+    if (!character || support === undefined) return []
+    return [{ itemId: character.itemId, glyph, character, support, order }]
+  })
+  const chosen = [
+    ...met.filter((candidate) => owed.has(candidate.glyph)).sort(priority),
+    ...met.filter((candidate) => !owed.has(candidate.glyph)).sort(priority),
+  ].slice(0, DEFAULT_PACKET_PLAN.visible)
+
+  return {
+    topicId: topic.id,
+    packetIndex: packets.length,
+    packetCount: packets.length,
+    step: 0,
+    entries: chosen.map(({ glyph, character, support }, order) =>
+      makeLessonEntry({ character, glyph, novel: false, support, introduced: true, order }),
+    ),
+    feedback: null,
+    complete: false,
+    finished: false,
+    reviewOnly: true,
+    afterCourse: true,
   }
 }
 

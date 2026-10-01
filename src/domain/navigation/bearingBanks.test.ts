@@ -302,7 +302,7 @@ describe('the four shipped topics', () => {
       const limitations = (topic.learn?.limitations ?? []).join(' ')
       expect(limitations).toMatch(/Argus editorial/)
       expect(limitations).toMatch(/does not show that you can navigate safely/)
-      expect(topic.scope).toMatch(/does not cover|never asks for a real declination/)
+      expect(topic.scope).toMatch(/does not cover|not scored|never asks for a real declination/)
       for (const source of topic.learn?.sources ?? []) expect(source.url).toMatch(/^https:\/\//)
     }
   })
