@@ -23,11 +23,10 @@ async function openTopic(page: Page, title: string) {
   await page.getByRole('button', { name: new RegExp(title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')) }).first().click()
 }
 
-/** An unstarted topic asks to be started before it offers its Test. */
+/** Opening content is learning; the one action starts Test directly. */
 async function startTest(page: Page) {
   const primary = page.locator('.topic-primary')
-  if ((await primary.locator('.topic-primary-verb').textContent()) === 'Start learning') await primary.click()
-  await expect(primary.locator('.topic-primary-verb')).toHaveText('Test')
+  await expect(primary).toHaveText('Test')
   await primary.click()
 }
 
@@ -41,10 +40,11 @@ async function noSidewaysScroll(page: Page) {
 for (const topic of TOPICS) {
   test(`${topic.title}: Learn reads without sideways scroll and lists its bank`, async ({ page }) => {
     await openTopic(page, topic.title)
-    await expect(page.locator('.sheet-items li')).toHaveCount(topic.items)
-    await expect(page.locator('.sheet-items li.has-visual')).toHaveCount(topic.figures)
+    await expect(page.locator('.topic-recall-cards > li')).toHaveCount(topic.items)
+    await expect(page.locator('.topic-recall-cards > li.has-visual')).toHaveCount(topic.figures)
     await expect(page.locator('#topic-reference-head')).toHaveText('What to remember')
     // Limitations state the boundary outside any picture.
+    await page.locator('summary', { hasText: 'What this doesn’t cover' }).click()
     await expect(page.locator('.learn-notes')).toContainText('does not show that you can navigate safely')
     await noSidewaysScroll(page)
   })

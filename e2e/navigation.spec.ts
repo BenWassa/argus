@@ -209,7 +209,7 @@ test('Today plates open their topic, and runs remember the topic they started fr
   await expect(page.getByRole('heading', { name: TOPIC.title, level: 1 })).toBeVisible()
 })
 
-test('browsing an ordinary topic is side-effect free and Start enrolls without a Back stop', async ({ page }) => {
+test('browsing stays inert and Test enters the scored run directly', async ({ page }) => {
   await openApp(page)
   await openLibrary(page)
   await openTopic(page)
@@ -219,28 +219,19 @@ test('browsing an ordinary topic is side-effect free and Start enrolls without a
 
   // The complete finite set is freely browsable and opening it has created no
   // learner-progress, scheduler or evidence state.
-  await expect(page.locator('.sheet-items li')).toHaveCount(TOPIC.items.length)
+  await expect(page.locator('.topic-recall-cards > li')).toHaveCount(TOPIC.items.length)
   await expect(page.getByText('Show all')).toHaveCount(0)
   const browsed = await storedTopic(page)
   expect(browsed.status).toBe('unstarted')
   expect(browsed.learningAt).toBeNull()
   expect(browsed.history).toEqual([])
   expect(browsed.lastTestedAt).toBeNull()
-  await expect(page.locator('.topic-primary-verb')).toHaveText('Start learning')
+  await expect(page.locator('.topic-primary')).toHaveText('Test')
 
-  // Deliberate Start changes only enrollment state and stays on the same route.
-  await page.locator('.topic-primary').click()
-  await expect(page.locator('.topic-primary-verb')).toHaveText('Test')
-  const enrolled = await storedTopic(page)
-  expect(enrolled.status).toBe('learning')
-  expect(enrolled.learningAt).not.toBeNull()
-  expect(enrolled.history).toEqual([])
-  expect(enrolled.lastTestedAt).toBeNull()
-  expect((await navigationState(page)).index).toBe(2)
-
-  // Test is still the scored run and therefore creates the next history entry.
+  // One deliberate Test enters the run; starting records no evidence or score.
   await page.locator('.topic-primary').click()
   await expect(page.locator('.flip-card')).toBeVisible()
+  expect(await storedTopic(page)).toEqual(browsed)
   expect(await navigationState(page)).toMatchObject({
     index: 3,
     route: { kind: 'run', mode: 'test', origin: { kind: 'topic', topicId: TOPIC.id } },
@@ -255,9 +246,7 @@ test('partial Test Back reuses End test, Back resumes, and confirmed exit preser
   await openApp(page)
   await openLibrary(page)
   await openTopic(page)
-  await expect(page.locator('.topic-primary-verb')).toHaveText('Start learning')
-  await page.locator('.topic-primary').click()
-  await expect(page.locator('.topic-primary-verb')).toHaveText('Test')
+  await expect(page.locator('.topic-primary')).toHaveText('Test')
   await page.locator('.topic-primary').click()
 
   await page.locator('.flip-card').click()

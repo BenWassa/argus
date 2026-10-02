@@ -104,6 +104,7 @@ async function openTopic(page: Page, library = LIBRARY) {
 
 async function openFluency(page: Page) {
   await openTopic(page)
+  await page.locator('.topic-options summary').click()
   await page.getByRole('button', { name: /Copy and speed practice/ }).click()
   await expect(page.getByRole('heading', { name: 'After the alphabet' })).toBeVisible()
 }
@@ -193,14 +194,17 @@ async function runToSummary(page: Page) {
 test.describe('fluency', () => {
   test('is offered once the alphabet is acquired, beside a due check', async ({ page }) => {
     await openTopic(page)
+    await expect(page.locator('.topic-options')).not.toHaveAttribute('open', '')
+    await page.locator('.topic-options summary').click()
     await expect(page.getByRole('button', { name: /Copy and speed practice/ })).toBeVisible()
-    await expect(page.locator('.topic-primary-verb')).toHaveText('Test')
+    await expect(page.locator('.topic-primary')).toHaveText('Test')
   })
 
   test('leads between checks, with the Test as a short review', async ({ page }) => {
     await openTopic(page, betweenChecks())
-    await expect(page.locator('.topic-primary-verb')).toHaveText('Keep going')
-    await expect(page.locator('.topic-primary-note')).toContainText('Next: letters')
+    await expect(page.locator('.topic-primary')).toHaveText('Keep going')
+    await expect(page.locator('.topic-options')).not.toHaveAttribute('open', '')
+    await page.locator('.topic-options summary').click()
 
     await page.getByRole('button', { name: /Quick review/ }).click()
     await expect(page.locator('.session-count')).toHaveText('1/10')

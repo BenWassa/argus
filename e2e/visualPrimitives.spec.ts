@@ -73,13 +73,15 @@ test('Learn shows the visual with its caption and the text alternative, without 
   await page.locator('.nav-btn', { hasText: 'Library' }).click()
   await page.getByRole('button', { name: /Visual e2e/ }).click()
 
-  await expect(page.getByRole('heading', { name: 'Reading a dial', level: 3 })).toBeVisible()
+  const summary = page.locator('summary', { hasText: 'Reading a dial' })
+  await expect(summary).toBeVisible()
+  await summary.click()
   await expect(
     page.getByRole('img', { name: 'A compass dial with one pointer, A, between north and east.' }).first(),
   ).toBeVisible()
   await expect(page.getByText('Pointer A at 45°.')).toBeVisible()
   // The scored set shows its own picture beside the prompt and answer.
-  await expect(page.locator('.sheet-items li.has-visual')).toHaveCount(2)
+  await expect(page.locator('.topic-recall-cards > li.has-visual')).toHaveCount(2)
   await noSidewaysScroll(page)
 })
 

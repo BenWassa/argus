@@ -17,8 +17,7 @@ async function openTopic(page: Page, title: string) {
 
 async function startTest(page: Page) {
   const primary = page.locator('.topic-primary')
-  if ((await primary.locator('.topic-primary-verb').textContent()) === 'Start learning') await primary.click()
-  await expect(primary.locator('.topic-primary-verb')).toHaveText('Test')
+  await expect(primary).toHaveText('Test')
   await primary.click()
 }
 
@@ -58,8 +57,9 @@ for (const [title, items, figures] of [
 ] as const) {
   test(`${title}: Learn shows its bank and diagrams with no sideways scroll`, async ({ page }) => {
     await openTopic(page, title)
-    await expect(page.locator('.sheet-items li')).toHaveCount(items)
-    await expect(page.locator('.sheet-items li.has-visual')).toHaveCount(figures)
+    await expect(page.locator('.topic-recall-cards > li')).toHaveCount(items)
+    await expect(page.locator('.topic-recall-cards > li.has-visual')).toHaveCount(figures)
+    await page.locator('summary', { hasText: 'What this doesn’t cover' }).click()
     await expect(page.locator('.learn-notes')).toContainText('does not show that you can navigate safely')
     await expect(page.locator('.learn-notes')).toContainText('proves nothing')
     await noSidewaysScroll(page)
