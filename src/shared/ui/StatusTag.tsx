@@ -5,9 +5,9 @@ import type { Status } from '../../domain/library/topic'
  * weight as every other rung; it routes work, it does not scold.
  */
 const LABELS: Record<Status, string> = {
-  unstarted: 'Not started',
+  unstarted: 'Not tested yet',
   learning: 'Learning',
-  drilled: 'Drilled',
+  drilled: 'Completed',
   completed: 'Completed',
   decayed: 'Needs repair',
 }

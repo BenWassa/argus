@@ -17,7 +17,7 @@ import type { Status, Topic } from '../library/topic'
  * ```text
  * acquisition   can I retrieve this without the teaching support I am using?
  * evidence      have I demonstrated the directions the scored boundary requires?
- * retention     has demonstrated recall held across two clean scored Tests?
+ * retention     has a clean scored Test demonstrated recall?
  * sitting       where am I in the finite task I am doing right now?
  * ```
  *
@@ -67,7 +67,7 @@ import type { Status, Topic } from '../library/topic'
  */
 
 /** What the learner should do with this topic now. */
-export type TopicAction = 'author' | 'enroll' | 'learn' | 'test'
+export type TopicAction = 'author' | 'learn' | 'test'
 
 /** The Topic page's primary label for a banked course. */
 export const KEEP_GOING = 'Keep going'
@@ -137,9 +137,8 @@ export interface TopicJourney {
   /**
    * The verb on a row or button: `Start`, `Continue`, `Test`, `Add items`.
    *
-   * Browsing is deliberately absent: opening an ordinary topic is reference
-   * access, not learner progress. `enroll` names the explicit boundary where an
-   * ordinary topic becomes active learning; progressive curricula keep `learn`.
+   * Ordinary topics offer Test directly. Opening their content writes no
+   * progress; progressive curricula keep their canonical `learn` action.
    */
   actionLabel: string
   /** The fuller name of the same action, for the Topic page's primary control. */
@@ -224,7 +223,7 @@ export function journeyFor(topic: Topic): TopicJourney {
 
   const scheduled = dueState(topic)
   const retention: RetentionView = {
-    status: topic.status,
+    status: topic.status === 'drilled' ? 'completed' : topic.status,
     label: scheduled.label,
     due: scheduled.due,
     gated,
@@ -304,30 +303,6 @@ export function journeyFor(topic: Topic): TopicJourney {
     }
   }
 
-  if (topic.status === 'unstarted') {
-    // A fresh ordinary topic is available to browse, but browsing is not
-    // enrollment. The explicit action is what creates active-learning state.
-    //
-    // A progressive topic can reach here only when acquisition is already ready
-    // while the scheduler still says `unstarted`, which no production sequence
-    // produces but an import or a fixture can. It is still a curriculum, so it
-    // still asks for its lesson.
-    return {
-      topicId: topic.id,
-      phase: 'acquiring',
-      acquisition,
-      evidence,
-      retention,
-      sitting,
-      action: acquisition.progressive ? 'learn' : 'enroll',
-      actionLabel: acquisition.progressive ? 'Start lesson' : 'Start',
-      primaryLabel: acquisition.progressive ? `Start lesson ${acquisition.packet}` : 'Start learning',
-      statusLabel: retention.label,
-      detail: acquisition.progressive ? null : 'Reference browsing does not start progress.',
-      due: true,
-      advancementEligible: true,
-    }
-  }
 
   const statusLabel = scheduled.label
 
@@ -349,7 +324,7 @@ export function journeyFor(topic: Topic): TopicJourney {
     sitting,
     action: 'test',
     actionLabel: 'Test',
-    primaryLabel: keepGoing ? KEEP_GOING : 'Test',
+    primaryLabel: keepGoing ? KEEP_GOING : phase === 'banked' ? 'Test again' : phase === 'repair' ? 'Repair' : 'Test',
     statusLabel,
     detail:
       acquisition.progressive && acquisition.ready
@@ -389,7 +364,7 @@ export function dueEntries(entries: JourneyEntry[]): JourneyEntry[] {
 /** Shown wherever a Test action is offered, so Today and Library never drift
  *  into stating this consequence two different ways. */
 export const TEST_CONSEQUENCE_NOTE =
-  'Tests are scored. Two perfect tests bank a topic, and a banked topic can be checked at any time.'
+  'Tests are scored. One clean test banks a topic, and a banked topic can be checked at any time.'
 
 export type ShelfId = 'due' | 'banked' | 'unfinished'
 

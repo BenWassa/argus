@@ -133,10 +133,6 @@ export function TopicPage({
   // ordinary topic's offer lives on its check's end screen instead.
   const practiceCount = hasPractice(topic) ? practiceItemCount(topic) : 0
 
-  function startLearning() {
-    updateTopic(topic.id, (current) => resolveStudy(current))
-  }
-
   function startCheck() {
     onStart('test', [topic.id])
   }
@@ -235,8 +231,7 @@ export function TopicPage({
               journey={journey}
               course={course}
               graded={topic.items.length > 0 && topic.items.every(isObjectiveItem)}
-              onEnroll={startLearning}
-              onLesson={startCurrentMorseLesson}
+                onLesson={startCurrentMorseLesson}
               onCheck={startCheck}
             />
           )}
@@ -333,10 +328,8 @@ export function TopicPage({
           )}
           {!course && (
             <p className="topic-consequence">
-              {journey.action === 'enroll'
-                ? 'Browse freely. Starting learning records enrollment, not a score or evidence.'
-                : journey.advancementEligible
-                  ? 'Scored, every item once. Two perfect tests complete the topic.'
+              {journey.advancementEligible
+                  ? 'Scored, every item once. One clean test completes the topic.'
                   : 'Scored and recorded, but the ladder does not move until acquisition is finished.'}
             </p>
           )}
@@ -494,7 +487,6 @@ function PrimaryAction({
   journey,
   course,
   graded,
-  onEnroll,
   onLesson,
   onCheck,
 }: {
@@ -502,21 +494,9 @@ function PrimaryAction({
   course: boolean
   /** Every item is an objectively graded choice, so nothing is self-scored. */
   graded: boolean
-  onEnroll: () => void
   onLesson: () => void
   onCheck: () => void
 }) {
-  if (journey.action === 'enroll') {
-    return (
-      <button className="topic-primary" type="button" onClick={onEnroll}>
-        <span className="topic-primary-verb">{journey.primaryLabel}</span>
-        <span className="topic-primary-note">
-          Make this an active topic. Browsing the reference alone changes nothing.
-        </span>
-      </button>
-    )
-  }
-
   if (journey.action === 'learn' && course) {
     const { sitting } = journey
     return (

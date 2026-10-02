@@ -261,8 +261,10 @@ describe('an ineligible Test is recorded and moves nothing', () => {
     expect(journey.acquisition.ready).toBe(false)
     expect(journey.advancementEligible).toBe(true)
     expect(journey.action).toBe('test')
-    expect(journey.due).toBe(true)
-    expect(journey.statusLabel).toBe('Ready to test again')
+    expect(journey.due).toBe(false)
+    expect(journey.retention.status).toBe('completed')
+    expect(drilled.status).toBe('drilled')
+    expect(journey.statusLabel).toBe('Banked')
   })
 
   it('never gates a completed topic back into acquisition', () => {
@@ -290,11 +292,11 @@ describe('ordinary topics separate browsing from deliberate enrollment', () => {
 
     const fresh = journeyFor(bearings)
     expect(fresh.acquisition.progressive).toBe(false)
-    expect(fresh.action).toBe('enroll')
-    expect(fresh.actionLabel).toBe('Start')
-    expect(fresh.primaryLabel).toBe('Start learning')
-    expect(fresh.statusLabel).toBe('Not started')
-    expect(fresh.detail).toBe('Reference browsing does not start progress.')
+    expect(fresh.action).toBe('test')
+    expect(fresh.actionLabel).toBe('Test')
+    expect(fresh.primaryLabel).toBe('Test')
+    expect(fresh.statusLabel).toBe('Not tested yet')
+    expect(fresh.detail).toBeNull()
     expect(fresh.due).toBe(true)
     expect(fresh.advancementEligible).toBe(true)
 
@@ -320,8 +322,8 @@ describe('ordinary topics separate browsing from deliberate enrollment', () => {
   it('keeps the scheduler wording for drilled, repair and completed topics', () => {
     const base = seeded('cardinal-bearings')
     const drilled = journeyFor({ ...base, status: 'drilled', drilledAt: ago(4), completedAt: null })
-    expect(drilled.statusLabel).toBe('Ready to test again')
-    expect(drilled.phase).toBe('due')
+    expect(drilled.statusLabel).toBe('Banked')
+    expect(drilled.phase).toBe('banked')
 
     const repair = journeyFor({ ...base, status: 'decayed', completedAt: ago(200) })
     expect(repair.phase).toBe('repair')
@@ -386,7 +388,7 @@ describe('the day and the shelves read from the same derivation', () => {
 
     expect(shelfOf('cardinal-bearings')).toBe('due')
     expect(shelfOf(MORSE_ID)).toBe('due')
-    expect(shelfOf('primary-survey')).toBe('due')
+    expect(shelfOf('primary-survey')).toBe('banked')
     expect(shelfOf('ooda-loop')).toBe('unfinished')
 
     // Nothing appears twice, and every topic appears once.

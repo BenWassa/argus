@@ -126,9 +126,6 @@ export function TestDone({
         <p className="transition" key={resolution.topic.id}>
           <strong>{resolution.topic.title}</strong>: {statusLabel(resolution.from).toLowerCase()} to{' '}
           {statusLabel(resolution.to).toLowerCase()}.
-          {resolution.from === 'drilled' && resolution.to === 'learning' && (
-            <> Another perfect test can complete it.</>
-          )}
         </p>
       ))}
 

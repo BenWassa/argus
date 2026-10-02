@@ -86,11 +86,11 @@ function attemptOf(topic: Topic, answer: (item: IdentifiedItem) => Omit<AttemptA
 const UNCUED_REVERSE = { direction: 'answer-to-prompt', correct: true, assisted: false } as const
 const UNCUED_FORWARD = { direction: 'prompt-to-answer', correct: true, assisted: false } as const
 
-/** A drilled topic sitting exactly on its delayed-test boundary. */
-function drilledTopic(store: ItemEvidenceStore): Topic {
+/** A learning topic ready for its first independent Test. */
+function learningTopic(store: ItemEvidenceStore): Topic {
   return {
     ...morseTopic(),
-    status: 'drilled',
+    status: 'learning',
     drilledAt: '2026-01-01T00:00:00.000Z',
     learningAt: '2025-12-01T00:00:00.000Z',
     itemEvidence: store,
@@ -112,7 +112,7 @@ describe('the qualifying delayed attempt and the word "independently"', () => {
     // rich rung, with half the pattern, the timing artwork and a verbal beat in
     // front of the learner. That is recognition with support, not independent
     // recall, and it may not carry a claim that says `independently`.
-    const topic = drilledTopic(
+    const topic = learningTopic(
       storeFor(morseTopic(), () =>
         bothDirections({ correct: 4, attempts: 4, unassistedCorrect: 0 }, { correct: 2, attempts: 2, unassistedCorrect: 0 }),
       ),
@@ -129,7 +129,7 @@ describe('the qualifying delayed attempt and the word "independently"', () => {
     // 25 letters independent, one still needing its element count. The learner
     // answered all 26 correctly, and history is fully independent, so only the
     // attempt's own testimony can catch this.
-    const topic = drilledTopic(
+    const topic = learningTopic(
       storeFor(morseTopic(), () => bothDirections({ unassistedCorrect: 3 }, { unassistedCorrect: 2 })),
     )
     expect(hasCompleteTopicDirectionalCoverage(topic.items, topic.itemEvidence)).toBe(true)
@@ -182,7 +182,7 @@ describe('the qualifying delayed attempt and the word "independently"', () => {
 
 describe('the qualifying delayed attempt and the words "both directions"', () => {
   it('refuses independent forward evidence with no reverse evidence at all', () => {
-    const topic = drilledTopic(
+    const topic = learningTopic(
       Object.fromEntries(
         morseTopic().items.map((item) => [
           item.id as string,
@@ -207,7 +207,7 @@ describe('the qualifying delayed attempt and the words "both directions"', () =>
         'answer-to-prompt': evidence({ attempts: 3, correct: 3, unassistedCorrect: 0 }),
       },
     }
-    const topic = drilledTopic(store)
+    const topic = learningTopic(store)
 
     expect(topic.items).toHaveLength(26)
     const { graded, resolution } = bank(topic, attemptOf(topic, () => UNCUED_REVERSE))
@@ -318,7 +318,7 @@ describe('the qualifying delayed attempt and the scheduler gap', () => {
   const independent = () => bothDirections({ unassistedCorrect: 2 }, { unassistedCorrect: 2 })
 
   it('banks a completion for a full clean independent bidirectional run', () => {
-    const topic = drilledTopic(storeFor(morseTopic(), independent))
+    const topic = learningTopic(storeFor(morseTopic(), independent))
     const attempt = attemptOf(topic, () => UNCUED_REVERSE)
 
     expect(topic.items).toHaveLength(26)
@@ -331,7 +331,7 @@ describe('the qualifying delayed attempt and the scheduler gap', () => {
   })
 
   it('banks a clean run whenever it is taken: no clock stands between drilled and completed', () => {
-    const topic = drilledTopic(storeFor(morseTopic(), independent))
+    const topic = learningTopic(storeFor(morseTopic(), independent))
     const attempt = attemptOf(topic, () => UNCUED_REVERSE)
     const early = new Date('2026-01-20T00:00:00.000Z')
 
@@ -343,19 +343,19 @@ describe('the qualifying delayed attempt and the scheduler gap', () => {
   })
 
   it('does not let the evidence gate advance the ladder on its own', () => {
-    const topic = drilledTopic(storeFor(morseTopic(), independent))
+    const topic = learningTopic(storeFor(morseTopic(), independent))
     const attempt = attemptOf(topic, () => UNCUED_REVERSE)
     expect(isQualifyingAttempt(topic.items, topic.itemEvidence, attempt)).toBe(true)
     // Reading the gate changes nothing about the topic it read.
     expect(topic.drilledAt).toBe('2026-01-01T00:00:00.000Z')
-    expect(topic.status).toBe('drilled')
+    expect(topic.status).toBe('learning')
     expect(topic.history).toEqual(morseTopic().history)
   })
 })
 
 describe('what the qualifying attempt may not borrow', () => {
   it('cannot be carried by a Learn run: no lesson state writes directional evidence', () => {
-    const topic = drilledTopic({})
+    const topic = learningTopic({})
     const settled = {
       ...topic,
       lessonProgress: Object.fromEntries(topic.items.map((item) => [item.id as string, 'settled' as const])),
@@ -374,18 +374,18 @@ describe('what the qualifying attempt may not borrow', () => {
     const independent = storeFor(morseTopic(), () =>
       bothDirections({ unassistedCorrect: 2 }, { unassistedCorrect: 2 }),
     )
-    expect(bank(drilledTopic({}), []).graded).toBe(0)
-    expect(bank(drilledTopic(independent), []).graded).toBe(0)
+    expect(bank(learningTopic({}), []).graded).toBe(0)
+    expect(bank(learningTopic(independent), []).graded).toBe(0)
 
     // And an attempt that skips even one of the 26 is not a whole-deck run.
-    const topic = drilledTopic(independent)
+    const topic = learningTopic(independent)
     const short = attemptOf(topic, () => UNCUED_REVERSE).slice(1)
     expect(isQualifyingAttempt(topic.items, topic.itemEvidence, short)).toBe(false)
     expect(bank(topic, short).graded).toBe(0)
   })
 
   it('makes no auditory, sending or speed claim: independence is a rung, not a latency', () => {
-    const topic = drilledTopic(
+    const topic = learningTopic(
       storeFor(morseTopic(), () =>
         bothDirections(
           { unassistedCorrect: 2, lastLatencyMs: 90_000 },
@@ -428,7 +428,7 @@ describe('ordinary topics are untouched by the bidirectional gate', () => {
       scope: 'Two terms.',
       track: 'tradecraft',
       items: plainItems,
-      status: 'drilled',
+      status: 'learning',
       createdAt: '2026-01-01T00:00:00.000Z',
       drilledAt: '2026-01-01T00:00:00.000Z',
       learningAt: '2025-12-01T00:00:00.000Z',
@@ -447,7 +447,7 @@ describe('ordinary topics are untouched by the bidirectional gate', () => {
 
 describe('portability of the independence counter', () => {
   it('round-trips through export/import losslessly', () => {
-    const topic = drilledTopic(
+    const topic = learningTopic(
       storeFor(morseTopic(), () => bothDirections({ unassistedCorrect: 2 }, { unassistedCorrect: 1 })),
     )
     const first = parseLibrary({ version: 5, topics: [topic] })
@@ -464,7 +464,7 @@ describe('portability of the independence counter', () => {
   })
 
   it('reads a pre-#68 v5 record as zero independent evidence rather than assuming it', () => {
-    const topic = drilledTopic({})
+    const topic = learningTopic({})
     const legacy = {
       version: 5,
       topics: [
@@ -499,12 +499,12 @@ describe('portability of the independence counter', () => {
     const { graded, resolution } = bank(loaded, attemptOf(loaded, () => UNCUED_REVERSE))
     expect(graded).toBe(0)
     expect(resolution.completed).toBe(false)
-    expect(loaded.status).toBe('drilled')
+    expect(loaded.status).toBe('learning')
     expect(loaded.history).toEqual(topic.history)
   })
 
   it('rejects an import claiming more independent answers than correct ones', () => {
-    const topic = drilledTopic({})
+    const topic = learningTopic({})
     const parsed = parseLibrary({
       version: 5,
       topics: [
