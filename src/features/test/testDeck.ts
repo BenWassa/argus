@@ -88,13 +88,15 @@ export function buildDeck(
   return topics.flatMap<Card>((topic) => {
     const profile = profiles.get(topic.id)
     const items = reviews.has(topic.id) ? reviewItems(topic) : topic.items
-    const sequence = sequenceFor(topic)
+    // A formative review asks a subset and keeps its existing progressive cards.
+    const sequence = reviews.has(topic.id) ? undefined : sequenceFor(topic)
     const ordered = sequence?.groups.flatMap(group => group.itemIds.map((id, step) => ({
       item: items.find(item => item.id === id)!, group, step,
     })))
     if (ordered) return ordered.map(({ item, group, step }) => ({
       topicId: topic.id, topicTitle: topic.title, item,
       sequence: { group, step, track: topic.track },
+      ...(profile && item.id ? { character: profile.get(item.id) } : {}),
     }))
     return shuffle(
       items.map((item) => ({

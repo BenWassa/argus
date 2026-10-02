@@ -5,7 +5,7 @@ import { seedLibrary } from '../../domain/library/catalogSeed'
 import { sequenceFor } from '../../domain/library/catalog'
 import { parseLibrary } from '../../infrastructure/persistence/libraryParser'
 import { parseSequence } from '../../infrastructure/persistence/sequenceParser'
-import { buildDeck } from './testDeck'
+import { acquisitionProfiles, buildDeck } from './testDeck'
 import { SequenceCard } from './SequenceCard'
 import { sequenceTextClass } from './textScale'
 
@@ -79,5 +79,26 @@ describe('ordered topic Tests', () => {
     render(<SequenceCard sequence={buildDeck([topic()], new Map())[0].sequence!} />)
     expect(screen.getByRole('listitem', { current: 'step' }).getAttribute('style')).toBeNull()
     vi.unstubAllGlobals()
+  })
+})
+
+
+describe('authored sequences on progressive topics', () => {
+  const morse = () => {
+    const t = seedLibrary().topics.find(t => t.id === 'international-morse-letters-printed')!
+    return { ...t, sequence: { groups: [{ label: 'Alphabet', letters: t.items.map(i => i.prompt).join(''), itemIds: t.items.map(i => i.id!) }] } }
+  }
+  it('preserves progressive character metadata in a full ordered deck', () => {
+    const t = morse()
+    expect(parseSequence(t.sequence, t.items, 'Topic').ok).toBe(true)
+    const deck = buildDeck([t], acquisitionProfiles([t]))
+    expect(deck.every(c => c.character !== undefined)).toBe(true)
+    expect(deck.map(c => c.item.id)).toEqual(t.sequence.groups[0].itemIds)
+  })
+  it('keeps reviews to their subset without undefined ordered cards', () => {
+    const t = morse()
+    const deck = buildDeck([t], acquisitionProfiles([t]), new Set([t.id]))
+    expect(deck).toHaveLength(10)
+    expect(deck.every(c => c.item && c.character !== undefined && !c.sequence)).toBe(true)
   })
 })
