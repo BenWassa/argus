@@ -26,3 +26,15 @@ test('recall leads, support opens in place and the primary stays reachable', asy
   await page.locator('.topic-primary').click()
   await expect(page.locator('.flip-card')).toBeVisible()
 })
+
+test('ACTS PROVE reference matches its ordered Test', async ({ page }) => {
+  await page.addInitScript(() => window.localStorage.setItem('argus-splash-seen', 'true'))
+  await page.goto('./')
+  await page.locator('.nav-btn', { hasText: 'Library' }).click()
+  await page.getByRole('button', { name: /Firearm Safety/ }).click()
+  await expect(page.locator('.topic-recall-group-label')).toHaveText(['ACTS', 'PROVE'])
+  await expect(page.locator('.topic-recall-marker')).toHaveText(['A', 'C', 'T', 'S', 'P', 'R', 'O', 'V', 'E'])
+  await expect(page.locator('.topic details[open]')).toHaveCount(0)
+  await page.locator('.topic-primary').click()
+  await expect(page.locator('.sequence-card')).toBeVisible()
+})

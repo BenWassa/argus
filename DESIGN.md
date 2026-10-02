@@ -229,9 +229,7 @@ The rule says *at most*, not *exactly*. A view with nothing to light is allowed 
 
 Two ways to engage a topic. Learn exposes the material; Test is the only recall interaction.
 
-`Learn` is a semantic, not a label: the learner reads `Read` for an ordinary
-topic and `Lesson N` for a curriculum, and `Test` is the only mode name that
-reaches them, because it is the only one with a consequence to state.
+`Learn` is internal terminology. Ordinary topics open directly as reading; their action is `Test`, `Test again` or `Repair`. Curriculum acquisition uses `Lesson N`.
 
 | Mode | Surface | Records |
 |---|---|---|
@@ -239,7 +237,7 @@ reaches them, because it is the only one with a consequence to state.
 | **Test** | Flashcards with a 3D flip, every scored item once, self-scored | Records the attempt; one clean eligible Test banks the topic |
 
 ### Topic page contract
-An ordinary topic opens with an optional local `Visual` hero or a 16:9 track-tinted fallback using its recognition icon. The title, scope and one line of state follow. The complete scored set comes next as compact, open recall cards, with numbered markers or authored sequence letters and item stimuli. These are visible reference material, never flip cards.
+An ordinary topic opens with an optional local `Visual` hero or a 16:9 track-tinted fallback using its recognition icon. The title, scope and one line of state follow. Ordered topics use a concise rule count at the top, with the full authored safety boundary preserved in a Scope and limits fold. The complete scored set comes next as compact, open recall cards, with numbered markers or authored sequence letters and item stimuli. These are visible reference material, never flip cards.
 
 All explanatory sections, overview, case studies, limitations and sources expand in place through native details, closed by default. Text remains authored content; folding does not remove it. On phone the primary action is fixed above navigation and safe-area padding, with space reserved at the end of the page. Secondary learning actions live in More options. Morse retains its curriculum path and lesson/placement gate with the same compact header.
 
@@ -247,7 +245,7 @@ All explanatory sections, overview, case studies, limitations and sources expand
 
 **Support Does Not Score.** The Learn briefing is explanatory. `What to remember` is the visible rendering of the finite Test deck. Their separation must be legible in the page hierarchy so richer explanation cannot imply that every sentence is a completion requirement.
 
-**Consequence Is Stated, Not Implied.** Voluntary early Tests state that the score is recorded while required evidence clocks do not move early.
+**Consequence Is Stated, Not Implied.** Test records a score; course acquisition gates remain explicit. No Test waits on an elapsed-time clock.
 
 ## 6. Components
 
