@@ -466,6 +466,30 @@ main:focus {
   outline: none;
 }
 
+/* Only in the embeddable demo build: says what the visitor is looking at. */
+.demo-note {
+  max-width: none;
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-sm);
+  margin: calc(var(--s-md) * -1) 0 var(--s-lg);
+  padding: var(--s-sm) var(--s-md);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  font-size: var(--t-label);
+  line-height: 1.4;
+  color: var(--subtle);
+}
+
+.demo-note strong {
+  flex: none;
+  font-weight: var(--w-component);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
 /* Mobile: the nav sits under the thumb and the brand line stays out of the
    way. Desktop gets a genuinely different structure below, not this widened. */
 .nav {

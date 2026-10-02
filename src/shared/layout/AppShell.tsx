@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import type { View } from '../../app/routing/routes'
+import { isDemoBuild } from '../../demo/demoMode'
 
 type NavView = Extract<View, 'today' | 'library'>
 
@@ -60,6 +61,11 @@ export function AppShell({ view, onNavigate, children }: AppShellProps) {
       </nav>
 
       <main id="main" tabIndex={-1}>
+        {isDemoBuild() && (
+          <p className="demo-note" role="note">
+            <strong>Demo</strong> Sample progress. Nothing is saved; reloading resets it.
+          </p>
+        )}
         {children}
       </main>
     </div>

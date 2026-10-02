@@ -1,7 +1,11 @@
+import { isDemoBuild } from '../demo/demoMode'
+
 const UPDATE_INTERVAL_MS = 60 * 60 * 1000
 
 export function registerServiceWorker() {
   if (!('serviceWorker' in navigator) || !import.meta.env.PROD) return
+  // The demo keeps nothing between visits, and an app-shell cache is something.
+  if (isDemoBuild()) return
 
   window.addEventListener('load', () => {
     const hadControllerAtLoad = Boolean(navigator.serviceWorker.controller)

@@ -1,6 +1,8 @@
 import type { CurrentLibrary } from '../../domain/library/library'
 import { clearAllLessonSittings } from '../../domain/morse/curriculum/lessonSittingStorage'
 import { NO_RECONCILIATION, type CatalogReconciliation } from '../../domain/library/catalog'
+import { isDemoBuild } from '../../demo/demoMode'
+import { demoLibraryWithReport } from '../../demo/demoLibrary'
 import { parseLibrary } from './libraryParser'
 import {
   adoptLegacyLessonSittings,
@@ -41,6 +43,9 @@ export interface LoadedLibrary {
 }
 
 export function loadLibraryWithReport(now: Date = new Date()): LoadedLibrary {
+  // A demo build never reads storage: whatever is under these keys is a real
+  // library (or a previous build's) that the demo has no business showing.
+  if (isDemoBuild()) return demoLibraryWithReport(now)
   try {
     const found = [KEY, ...LEGACY_KEYS]
       .map((key) => ({ key, raw: localStorage.getItem(key) }))
@@ -84,6 +89,8 @@ export function loadLibrary(): CurrentLibrary {
 }
 
 export function saveLibrary(library: CurrentLibrary): void {
+  // Nothing a demo visitor does is kept, so a reload is always the same demo.
+  if (isDemoBuild()) return
   try {
     localStorage.setItem(KEY, JSON.stringify(library))
   } catch {
@@ -93,6 +100,7 @@ export function saveLibrary(library: CurrentLibrary): void {
 }
 
 export function clearLibrary(): void {
+  if (isDemoBuild()) return
   try {
     localStorage.removeItem(KEY)
     for (const key of LEGACY_KEYS) localStorage.removeItem(key)
@@ -127,6 +135,7 @@ function preserveRecovery(key: string, reason: string, raw: string, now: Date): 
 
 /** Records this device could not read and kept, oldest first. */
 export function recoveryEntries(): RecoveryEntry[] {
+  if (isDemoBuild()) return []
   try {
     const raw = localStorage.getItem(RECOVERY_KEY)
     if (!raw) return []
@@ -145,6 +154,7 @@ export function recoveryEntries(): RecoveryEntry[] {
 }
 
 export function libraryOwner(): string | null {
+  if (isDemoBuild()) return null
   try {
     return localStorage.getItem(OWNER_KEY)
   } catch {
@@ -170,6 +180,9 @@ export function switchLibraryOwner(
   current: CurrentLibrary,
   now: Date = new Date(),
 ): LoadedLibrary | null {
+  // No account can be signed in to a demo build, and if one somehow were, it
+  // must not park or replace anything in storage.
+  if (isDemoBuild()) return null
   const owner = libraryOwner()
   if (owner === uid) return null
   if (owner === null) {

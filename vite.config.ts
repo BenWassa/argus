@@ -132,18 +132,35 @@ self.addEventListener('fetch', (event) => {
   }
 }
 
-export default defineConfig({
-  define: {
-    __ARGUS_BUILD_ID__: JSON.stringify(sourceBuildId()),
-  },
-  plugins: [react(), serviceWorkerPlugin()],
-  // Firebase Hosting is the sole deployment target, serving from the root of
-  // its own domain. GitHub Pages is retired.
-  base: '/',
-  test: {
-    // The Security Rules suite needs a live Firestore emulator, so it runs
-    // under its own config rather than in the ordinary unit run.
-    // Browser-level coverage runs under Playwright, against the built app.
-    exclude: ['**/node_modules/**', '**/dist/**', 'firestore/**', 'e2e/**'],
-  },
+// `--mode demo` builds the embeddable local-only demo (see `src/demo/demoMode.ts`
+// and `.env.demo`). It is served from a GitHub Pages sub-path rather than the
+// root of Firebase Hosting, so it has its own base, and it writes to its own
+// directory so that `dist/`, which `firebase deploy` uploads, can never end up
+// holding a demo.
+const DEMO_MODE = 'demo'
+const DEMO_BASE = '/argus/'
+
+export default defineConfig(({ mode }) => {
+  const demo = mode === DEMO_MODE
+
+  return {
+    define: {
+      __ARGUS_BUILD_ID__: JSON.stringify(sourceBuildId()),
+    },
+    // The demo registers no service worker, so it does not generate one: its
+    // precache list is written against the site root, and a demo must not keep
+    // anything across visits anyway.
+    plugins: [react(), ...(demo ? [] : [serviceWorkerPlugin()])],
+    // Production: Firebase Hosting serves the root of its own domain. Demo:
+    // GitHub Pages serves the repository under /argus/. Override with
+    // ARGUS_DEMO_BASE to host the demo anywhere else.
+    base: demo ? (process.env.ARGUS_DEMO_BASE ?? DEMO_BASE) : '/',
+    build: { outDir: demo ? 'dist-demo' : 'dist' },
+    test: {
+      // The Security Rules suite needs a live Firestore emulator, so it runs
+      // under its own config rather than in the ordinary unit run.
+      // Browser-level coverage runs under Playwright, against the built app.
+      exclude: ['**/node_modules/**', '**/dist/**', '**/dist-demo/**', 'firestore/**', 'e2e/**'],
+    },
+  }
 })

@@ -22,6 +22,8 @@
  * held in step with the library's without importing it.
  */
 
+import { isDemoBuild } from '../../demo/demoMode'
+
 export interface FirebaseWebConfig {
   apiKey: string
   authDomain: string
@@ -87,6 +89,9 @@ export function readSyncConfig(env: Env): SyncConfigResult {
 }
 
 export function syncConfig(): SyncConfigResult {
+  // A demo build is local by construction. Even if Firebase variables leak into
+  // its environment, no visitor is ever offered a sign-in or a sync.
+  if (isDemoBuild()) return { configured: false, missing: [...REQUIRED_SYNC_ENV] }
   try {
     return readSyncConfig(import.meta.env as unknown as Env)
   } catch {
