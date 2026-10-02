@@ -85,6 +85,7 @@ The **full offline-first runtime guarantee is active scope in #113**, not yet a 
 - `docs/closed/LIBRARY_AUDIT.md` — reconciled shipped-library boundary/content audit.
 - `docs/closed/SEEDED_CONTENT_PROVENANCE.md` — authoritative source record and Test boundary for every shipped catalog topic.
 - `docs/open/CONTENT_INBOX.md` — content-inbox and curated-ingestion architecture, and the Firebase setup it needs.
+- [Topic colour comparison](docs/open/TOPIC_COLOUR_SPIKE.md) — development-only current/raised previews and reproducible 390 px screen captures; owner choice pending.
 - `docs/open/REDESIGN_INPUT_AUDIT.md` — current factual screen, state, issue-reconciliation, acceptance, and redesign-risk input package.
 - `docs/open/TARGETED_PRACTICE.md` — the formative practice run: its evidence boundary, how it selects what to practise, and why it is not called repair.
 - `docs/closed/PROGRAMME.md` — Learn/Test + content-quality programme closeout.
