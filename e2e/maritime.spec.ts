@@ -68,11 +68,16 @@ for (const [title, items, figures] of [
 
 test('the Learn-only orientation prerequisite and the light sectors are taught before any scoring', async ({ page }) => {
   await openTopic(page, 'Navigation Lights & Aspect')
-  await expect(page.getByRole('heading', { name: 'Orient the vessel', level: 3 })).toBeVisible()
+  const orient = page.locator('summary', { hasText: 'Orient the vessel' })
+  await expect(orient).toBeVisible()
+  await expect(page.locator('.learn-definitions dt').filter({ hasText: '22.5° abaft the beam' })).not.toBeVisible()
+  await orient.click()
   await expect(page.locator('.learn-definitions dt').filter({ hasText: '22.5° abaft the beam' })).toBeVisible()
   await expect(page.getByRole('img', { name: /Port is labelled on the left/ })).toBeVisible()
+  await page.locator('summary', { hasText: 'How the light sectors work' }).click()
   await expect(page.locator('.figure-sector')).toHaveCount(4)
-  // The scored set is titled as reference, after the explanation.
+  for (const sector of await page.locator('.figure-sector').all()) await expect(sector).toBeVisible()
+  // The scored set remains visible before the optional explanatory folds.
   await expect(page.locator('#topic-reference-head')).toHaveText('What to remember')
 })
 
