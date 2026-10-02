@@ -179,3 +179,13 @@ describe('ordered topic content edits', () => {
     expect(parseLibrary({ version: 5, topics: [saved] }).ok).toBe(true)
   })
 })
+
+
+it('preserves imported hero artwork through ordinary edits', () => {
+  const hero: NonNullable<Topic['hero']> = { source: { kind: 'image', src: '/media/topics/nato/hero.avif', width: 1600, height: 900 }, alt: 'Radio reference.', credit: 'Owner artwork.' }
+  const saved = edit({ ...seeded('nato-phonetic'), hero }, { title: 'Radio alphabet' })
+  expect(saved.hero).toEqual(hero)
+  const parsed = parseLibrary({ version: 5, topics: [saved] })
+  expect(parsed.ok).toBe(true)
+  if (parsed.ok) expect(parsed.library.topics[0].hero).toEqual(hero)
+})

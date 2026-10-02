@@ -107,6 +107,8 @@ export interface Topic {
   learn?: LearnContent
   /** Ordered recall, one authored letter per scored item. */
   sequence?: TopicSequence
+  /** Optional topic artwork, using the shared local-media contract. */
+  hero?: Visual
   status: Status
   createdAt: string
   /** Legacy timestamp when the topic first reached `drilled`; retained for compatibility. */

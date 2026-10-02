@@ -279,3 +279,36 @@
     max-width: 420px;
   }
 }
+
+/* Topic content leads; one fixed action remains within thumb reach. */
+.topic { --topic-track: var(--learning); padding-bottom: 96px; }
+.topic-track-survival { --topic-track: var(--survival); }
+.topic-track-tradecraft { --topic-track: var(--tradecraft); }
+.topic-hero { margin-bottom: var(--s-xl); }
+.topic-hero-fallback { display: grid; place-items: center; aspect-ratio: 16 / 9; max-height: 260px; border-radius: var(--r-lg); background: radial-gradient(ellipse at 50% 35%, color-mix(in oklch, var(--topic-track) 22%, var(--surface-2)), var(--bg)); border: 1px solid var(--line); }
+.topic-hero-fallback img { width: 112px; height: 112px; opacity: .9; }
+.topic-hero-fallback span { font-size: 5rem; color: var(--topic-track); }
+.topic-hero .visual { margin: 0; }
+.topic-state { padding-top: 0; border: 0; gap: var(--s-sm); }
+.topic-state-meta::after { content: ' ·'; }
+.topic-body { margin-top: var(--s-xl); padding-top: 0; border: 0; }
+.topic-recall-cards { display: grid; gap: var(--s-sm); list-style: none; padding: 0; margin: var(--s-md) 0 0; }
+.topic-recall-cards li { display: grid; grid-template-columns: 2.2rem minmax(0, 1fr); gap: var(--s-xs) var(--s-sm); padding: var(--s-lg) var(--s-md); border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface); }
+.topic-recall-marker { grid-row: 1 / span 3; color: var(--topic-track); font-family: var(--font-mono); }
+.topic-recall-prompt { font-weight: var(--w-label); overflow-wrap: anywhere; }
+.topic-recall-answer { grid-column: 2; color: var(--muted); line-height: 1.5; overflow-wrap: anywhere; }
+.topic-recall-cards .sheet-visual { grid-column: 2; min-width: 0; }
+.topic-action-bar { position: fixed; z-index: 10; bottom: calc(54px + env(safe-area-inset-bottom)); left: 0; right: 0; padding: var(--s-md) max(var(--s-lg), env(safe-area-inset-right)); background: var(--bg); border-top: 1px solid var(--line-strong); }
+.topic-action-bar .topic-primary { max-width: 760px; margin-inline: auto; text-align: center; font-size: var(--t-component); }
+.topic-action-bar.is-repair .topic-primary { background: var(--warning); }
+.topic-alternates { display: grid; justify-items: start; padding-bottom: var(--s-md); }
+.learn-support .fold { margin-top: var(--s-md); }
+.learn-support .fold[open] { padding-bottom: var(--s-lg); }
+.learn-support .learn-notes { border: 0; margin-top: 0; padding-top: 0; }
+.fold summary { min-height: 44px; }
+@media (min-width: 980px) {
+  .topic-action-bar { left: var(--rail); bottom: 0; padding-bottom: var(--s-lg); }
+  .topic-recall-cards { max-width: 760px; }
+}
+.learn-section-lead { display: block; max-width: 65ch; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; text-transform: none; letter-spacing: normal; font-weight: var(--w-body); color: var(--subtle); padding-top: var(--s-xs); }
+.learn-section[open] .learn-section-lead { display: none; }

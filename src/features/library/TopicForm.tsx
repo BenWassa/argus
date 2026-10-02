@@ -24,6 +24,7 @@ export interface Draft {
   items: string
   /** AI/import-assisted authoring may provide structured Learn support. */
   learn?: LearnContent
+  hero?: Topic['hero']
 }
 
 interface TopicFormProps {
@@ -128,6 +129,7 @@ export function TopicForm({
       // ordinary title/scope/item edit untouched.
       learn: topic?.learn ?? draft?.learn,
       ...(sequence.ok && sequence.value ? { sequence: sequence.value } : {}),
+      hero: topic?.hero ?? draft?.hero,
       status: topic?.status ?? 'unstarted',
       createdAt: topic?.createdAt ?? now,
       drilledAt: topic?.drilledAt ?? null,

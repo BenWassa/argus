@@ -924,6 +924,8 @@ function parseTopic(
   const sequence = parseSequence(t.sequence, items.items, where)
   if (!sequence.ok) return sequence
 
+  const hero = t.hero == null ? undefined : parseVisual(t.hero, `${where} hero`)
+  if (hero && !hero.ok) return hero
   const learn = parseLearn(t.learn, `${where} ("${title}")`)
   if (!learn.ok) return learn
 
@@ -992,6 +994,7 @@ function parseTopic(
       scope,
       track,
       items: items.items,
+      ...(hero?.ok ? { hero: hero.value } : {}),
       ...(learn.learn ? { learn: learn.learn } : {}),
       ...(sequence.value ? { sequence: sequence.value } : {}),
       status,

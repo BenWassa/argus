@@ -5,11 +5,9 @@ import { useLibrary } from '../../services/library/LibraryProvider'
 import { morseLessonPath } from '../../domain/morse/curriculum/lessonPath'
 import { morseWordCheckpointPath } from '../../domain/morse/curriculum/checkpoints'
 import { statusLabel } from '../../shared/ui/StatusTag'
-import { TopicGauge } from './TopicGauge'
-import { gaugeLabel, gaugeReading } from './gaugeReading'
+import { topicIcon } from './topicIcon'
 import { LearnSupport } from '../learn/LearnSupport'
 import { VisualView } from '../visual/VisualView'
-import { isObjectiveItem } from '../../domain/audio/response'
 import { listeningCoverage } from '../../domain/audio/evidence'
 import { AudioReference } from '../audio/AudioReference'
 import { MorseBeatGrammarNote } from '../morse/MorsePhrase'
@@ -23,7 +21,6 @@ import type { RunTarget } from '../../app/routing/routes'
 import { hasPractice, practiceItemCount } from '../../domain/study/practiceTargets'
 import { REVIEW_LENGTH, isReviewTopic } from '../../domain/study/review'
 import { morseFocusLetters } from '../../domain/morse/fluency/focus'
-import { COPY_LEVEL_INFO, nextCopyLevel } from '../../domain/morse/fluency/copy'
 import type { Mode } from '../../domain/study/mode'
 import type { Topic } from '../../domain/library/topic'
 import './TopicPage.css'
@@ -45,34 +42,7 @@ function stamp(iso: string): string {
   })
 }
 
-/**
- * One topic, one page, and the page is the work.
- *
- * This surface used to be a status sheet: a definition list of five internal
- * progress dimensions, then two equally-shaped mode buttons, then the material
- * folded away behind `Show all 26 items`. The material then appeared a second
- * time on a separate full-screen Learn route that repeated the title, the scope
- * and every item, adding only a briefing and a `Test me` footer.
- *
- * Two things changed.
- *
- * **The body is the content.** For an ordinary topic the reference is the page,
- * set as editorial reading exactly as the Learn sheet set it, which is why the
- * separate reading route is gone rather than merely hidden. For a curriculum
- * topic the body is the path, so opening Morse lands on the curriculum instead
- * of on a facts table with the alphabet underneath it.
- *
- * **There is one action.** `journeyFor` already computed what to do next and
- * every other surface already displayed its verdict; showing two same-sized
- * buttons afterwards asked the learner to ratify a decision the product had
- * made. The recommended action is the only prominent control. The other path
- * stays reachable at text weight, because "available but not recommended" is a
- * real state and hiding it would be a different kind of lie.
- *
- * What did not change: acquisition, evidence, retention and sitting remain four
- * separate facts owned by four separate fields. They are simply no longer
- * printed as a table. Their consequences are stated where they bite.
- */
+/** Content first, explanatory support folded, one persistent action. */
 export function TopicPage({
   topic,
   onBack,
@@ -106,11 +76,6 @@ export function TopicPage({
   }, [topic.id])
 
   const { acquisition } = journey
-  // The detail line leads with the same count the gauge reads while a lesson
-  // is under way, so the two merge into one caption. Anywhere else they say
-  // different things and both stay.
-  const gaugeText = gaugeLabel(gaugeReading(topic, journey))
-  const showsGauge = Boolean(gaugeText && journey.detail?.startsWith(gaugeText))
   const testing = journey.action === 'test'
   const placementEligible = course && canOfferMorsePlacement(topic)
 
@@ -121,7 +86,6 @@ export function TopicPage({
   const afterAlphabet = course && acquisition.ready
   const keepGoing = afterAlphabet && journey.primaryLabel === KEEP_GOING
   const reviewable = isReviewTopic(topic)
-  const copyNext = afterAlphabet ? nextCopyLevel(topic.morseFluency) : null
 
   function openFluency() {
     onStart('learn', [topic.id], { kind: 'fluency' })
@@ -160,11 +124,12 @@ export function TopicPage({
   }
 
   return (
-    <article className="topic">
+    <article className={`topic topic-track-${topic.track}`}>
       <button className="quiet topic-back" type="button" aria-label="Back to Library" onClick={onBack}>
         <span aria-hidden="true">←</span> Library
       </button>
 
+      <TopicHero topic={topic} />
       <header className="topic-head">
         <h1 ref={heading} tabIndex={-1} className="topic-title">
           {topic.title}
@@ -194,155 +159,12 @@ export function TopicPage({
           </p>
         )}
 
-        {/* The detail line and the gauge caption used to say the same count
-            twice, one under the other. When there is a gauge, the detail is
-            its caption; when there is not, it stands on its own. */}
-        {journey.detail && !showsGauge && <p className="topic-detail">{journey.detail}</p>}
-
-        {/* The page about one topic used to say nothing about where the
-            learner was in it. Every measure it could have shown was already
-            computed by `journeyFor` and thrown away here.
-
-            One gauge, deliberately not the five-dimension status sheet this
-            header replaced: that sheet went because it made the learner
-            reconcile four numbers that disagreed. The gauge shows the single
-            most specific reading the topic has earned, in its own units. */}
-        <TopicGauge
-          topic={topic}
-          journey={journey}
-          variant="page"
-          caption={showsGauge ? journey.detail : null}
-        />
       </header>
 
-      {runnable ? (
-        <div className="topic-act">
-          {keepGoing ? (
-            <button className="topic-primary" type="button" onClick={openFluency}>
-              <span className="topic-primary-verb">{journey.primaryLabel}</span>
-              <span className="topic-primary-note">
-                {copyNext
-                  ? `Next: ${COPY_LEVEL_INFO[copyNext].title.toLowerCase()}. Hear it, write it down.`
-                  : 'Every copy level cleared. Tighten the spacing and go round again.'}
-              </span>
-            </button>
-          ) : (
-            <PrimaryAction
-              journey={journey}
-              course={course}
-              graded={topic.items.length > 0 && topic.items.every(isObjectiveItem)}
-                onLesson={startCurrentMorseLesson}
-              onCheck={startCheck}
-            />
-          )}
-
-          {/* A banked course is checked when the learner chooses. The full
-              check is scored and can send the topic to repair; the review asks
-              the weakest letters and moves nothing. */}
-          {keepGoing && (
-            <button className="quiet topic-alt" type="button" onClick={startCheck}>
-              Full test — all {topic.items.length} letters, scored
-            </button>
-          )}
-          {reviewable && (
-            <button className="quiet topic-alt" type="button" onClick={startReview}>
-              Quick review — {REVIEW_LENGTH} letters, no hints
-            </button>
-          )}
-
-          {/* The standing offer to go back over what a check missed (#92 batch
-              5). Text weight, never the primary control: the recommended move
-              is still the check, because only the check can re-earn anything.
-              It disappears on its own once a later check answers those items
-              correctly, which is why nothing here has to remember being taken.
-
-              It appears only for a topic that keeps per-item evidence. An
-              ordinary reveal-and-grade topic records no per-item result, so
-              after its check ends there is nothing left to select on; that
-              topic's offer lives on the check's end screen instead. */}
-          {practiceCount > 0 && (
-            <button
-              className="quiet topic-alt"
-              type="button"
-              onClick={() =>
-                course
-                  ? // Keyed and by ear, over just the letters missed.
-                    onStart('learn', [topic.id], {
-                      kind: 'fluency',
-                      mode: 'sprint',
-                      letters: morseFocusLetters(topic),
-                    })
-                  : onStart('learn', [topic.id], { kind: 'practice' })
-              }
-            >
-              {course
-                ? `Practise the letters you missed — ${morseFocusLetters(topic).join(' ')}`
-                : `Practise the ${practiceCount} ${practiceCount === 1 ? 'item' : 'items'} you missed`}
-            </button>
-          )}
-
-          {/* After the alphabet.
-
-              Gated on acquisition rather than on completion, because the two
-              answer different questions. Completion is a statement about
-              two clean scored Tests; acquisition readiness is the
-              fact that every letter has been produced unaided at least once,
-              which is exactly the point at which "you know the alphabet, now
-              get faster" becomes true. A learner between their first and
-              second clean check should not be told there is nothing to do.
-
-              It reads `acquisition.ready`, not `topic.acquisitionReadyAt`.
-              The stored field postdates the programme, so a learner who
-              finished the alphabet before it existed has every letter settled
-              and no timestamp — and gating on the raw field hid Fluency from
-              exactly the learner it was built for. `journeyFor` already
-              resolves the derived and stored answers into one, and it is the
-              same fallback `acquisitionStartedAt` makes for the same records.
-
-              Text weight, never primary: the recommended action is still
-              whatever the journey says, because only a check can earn
-              anything and Fluency cannot earn anything at all. */}
-          {afterAlphabet && !keepGoing && (
-            <button className="quiet topic-alt" type="button" onClick={openFluency}>
-              Copy and speed practice
-            </button>
-          )}
-
-          {/* The path not recommended, at text weight. It never takes the shape
-              of the primary control, and it states its own consequence.
-
-              It launches a replay rather than `{ kind: 'lesson' }` (#117). A
-              learner who has settled every letter has no unsettled packet left,
-              so asking for "the lesson" handed them the end-of-curriculum
-              screen — a control labelled `Go back over a lesson` that could not
-              go back over one. Replay runs the canonical course from Lesson 1,
-              through the same screens, and records nothing. */}
-          {course && testing && (
-            <button
-              className="quiet topic-alt"
-              type="button"
-              onClick={() => onStart('learn', [topic.id], { kind: 'replay', index: 0 })}
-            >
-              Replay the course from lesson 1
-            </button>
-          )}
-          {!course && (
-            <p className="topic-consequence">
-              {journey.advancementEligible
-                  ? 'Scored, every item once. One clean test completes the topic.'
-                  : 'Scored and recorded, but the ladder does not move until acquisition is finished.'}
-            </p>
-          )}
-        </div>
-      ) : (
+      {!runnable && (
         <div className="topic-unfinished">
-          <p>
-            This topic has no items yet, so there is nothing to read or test. Add them as
-            <code> prompt | answer</code>, one per line.
-          </p>
-          <button type="button" onClick={onEdit}>
-            Add items
-          </button>
+          <p>This topic has no items yet. Add them as <code>prompt | answer</code>, one per line.</p>
+          <button type="button" onClick={onEdit}>Add items</button>
         </div>
       )}
 
@@ -401,19 +223,97 @@ export function TopicPage({
           )}
         </section>
       ) : runnable ? (
-        /* The reference, as reading rather than as a fold. A card shape promises
-           a concealed answer; this conceals nothing, so it is set as a list. */
         <section className="topic-body" aria-labelledby="topic-reference-head">
-          {topic.learn ? (
-            <LearnSupport
-              content={topic.learn}
-              recall={<RecallReference topic={topic} heading="What to remember" />}
-            />
-          ) : (
-            <RecallReference topic={topic} heading="The complete set" />
-          )}
+          <RecallReference topic={topic} heading="What to remember" />
+          {topic.learn && <LearnSupport content={topic.learn} />}
         </section>
       ) : null}
+
+      {runnable && (course || practiceCount > 0) && (
+        <details className="fold topic-options">
+          <summary aria-label="More learning options">⋯ More options</summary>
+          <div className="topic-alternates">
+          {/* A banked course is checked when the learner chooses. The full
+              check is scored and can send the topic to repair; the review asks
+              the weakest letters and moves nothing. */}
+          {keepGoing && (
+            <button className="quiet topic-alt" type="button" onClick={startCheck}>
+              Full test: all {topic.items.length} letters, scored
+            </button>
+          )}
+          {reviewable && (
+            <button className="quiet topic-alt" type="button" onClick={startReview}>
+              Quick review: {REVIEW_LENGTH} letters, no hints
+            </button>
+          )}
+
+          {/* The standing offer to go back over what a check missed (#92 batch
+              5). Text weight, never the primary control: the recommended move
+              is still the check, because only the check can re-earn anything.
+              It disappears on its own once a later check answers those items
+              correctly, which is why nothing here has to remember being taken.
+
+              It appears only for a topic that keeps per-item evidence. An
+              ordinary reveal-and-grade topic records no per-item result, so
+              after its check ends there is nothing left to select on; that
+              topic's offer lives on the check's end screen instead. */}
+          {practiceCount > 0 && (
+            <button
+              className="quiet topic-alt"
+              type="button"
+              onClick={() =>
+                course
+                  ? // Keyed and by ear, over just the letters missed.
+                    onStart('learn', [topic.id], {
+                      kind: 'fluency',
+                      mode: 'sprint',
+                      letters: morseFocusLetters(topic),
+                    })
+                  : onStart('learn', [topic.id], { kind: 'practice' })
+              }
+            >
+              {course
+                ? `Practise the letters you missed: ${morseFocusLetters(topic).join(' ')}`
+                : `Practise the ${practiceCount} ${practiceCount === 1 ? 'item' : 'items'} you missed`}
+            </button>
+          )}
+
+          {/* Acquisition readiness makes fluency useful, independently of scoring. */}
+          {afterAlphabet && !keepGoing && (
+            <button className="quiet topic-alt" type="button" onClick={openFluency}>
+              Copy and speed practice
+            </button>
+          )}
+
+          {/* The path not recommended, at text weight. It never takes the shape
+              of the primary control, and it states its own consequence.
+
+              It launches a replay rather than `{ kind: 'lesson' }` (#117). A
+              learner who has settled every letter has no unsettled packet left,
+              so asking for "the lesson" handed them the end-of-curriculum
+              screen: a control labelled `Go back over a lesson` that could not
+              go back over one. Replay runs the canonical course from Lesson 1,
+              through the same screens, and records nothing. */}
+          {course && testing && (
+            <button
+              className="quiet topic-alt"
+              type="button"
+              onClick={() => onStart('learn', [topic.id], { kind: 'replay', index: 0 })}
+            >
+              Replay the course from lesson 1
+            </button>
+          )}
+          </div>
+        </details>
+      )}
+
+      {runnable && (
+        <div className={`topic-action-bar${journey.phase === 'repair' ? ' is-repair' : ''}`}>
+          <button className="topic-primary" type="button" onClick={keepGoing ? openFluency : course && journey.action === 'learn' ? startCurrentMorseLesson : startCheck}>
+            {course ? journey.primaryLabel : journey.phase === 'repair' ? 'Repair' : topic.status === 'completed' || topic.status === 'drilled' ? 'Test again' : 'Test'}
+          </button>
+        </div>
+      )}
 
       {topic.history.length > 0 && (
         <details className="fold">
@@ -478,59 +378,16 @@ export function TopicPage({
   )
 }
 
-/**
- * The one prominent control, and it is the journey's answer rather than this
- * page's opinion of it. Its label carries the consequence, because a scored run
- * is the most consequential thing in the product and a verb alone cannot say so.
- */
-function PrimaryAction({
-  journey,
-  course,
-  graded,
-  onLesson,
-  onCheck,
-}: {
-  journey: ReturnType<typeof journeyFor>
-  course: boolean
-  /** Every item is an objectively graded choice, so nothing is self-scored. */
-  graded: boolean
-  onLesson: () => void
-  onCheck: () => void
-}) {
-  if (journey.action === 'learn' && course) {
-    const { sitting } = journey
-    return (
-      <button className="topic-primary" type="button" onClick={onLesson}>
-        <span className="topic-primary-verb">{journey.primaryLabel}</span>
-        {/* The verb already names the lesson and the state line above already
-            gives the position, so repeating `lesson N of M` here put the same
-            number on screen three times inside four lines. The note says the
-            one thing neither of them does: what pressing it is like. */}
-        <span className="topic-primary-note">
-          {journey.acquisition.afterCourse && journey.acquisition.owed.length > 0
-            ? 'Keyed, no new letters. Then the Test.'
-            : sitting?.active
-              ? `Resume after ${sitting.retrievals} retrievals.`
-              : 'Two new letters, then retrieval.'}
-        </span>
-      </button>
-    )
-  }
-
-  // One name for the scored run, everywhere. The curriculum's last entry is a
-  // Test, not a differently-named cousin of one: two words for one consequence
-  // is exactly the ambiguity this pass exists to remove.
+function TopicHero({ topic }: { topic: Topic }) {
+  const icon = topicIcon(topic.id)
   return (
-    <button className="topic-primary" type="button" onClick={onCheck}>
-      <span className="topic-primary-verb">{journey.primaryLabel}</span>
-      <span className="topic-primary-note">
-        {course
-          ? 'Every letter, both printed directions, no support.'
-          : graded
-            ? 'Every item, once, graded for you.'
-            : 'Every item, once, scored by you.'}
-      </span>
-    </button>
+    <div className="topic-hero">
+      {topic.hero ? <VisualView key={topic.id} visual={topic.hero} /> : (
+        <div className="topic-hero-fallback" aria-hidden="true">
+          {icon ? <img src={icon} alt="" /> : <span>{topic.title.slice(0, 1)}</span>}
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -539,10 +396,10 @@ function RecallReference({ topic, heading }: { topic: Topic; heading: string }) 
   return (
     <div className="topic-reference">
       <h2 id="topic-reference-head" className="topic-reference-head">{heading}</h2>
-      <ol className="sheet-items">
+      <ol className="topic-recall-cards">
         {topic.items.map((item, i) => (
           <li key={item.id ?? `${item.prompt}-${i}`} className={item.stimulus || item.audio ? 'has-visual' : undefined}>
-            <span className="sheet-num tabular">{String(i + 1).padStart(2, '0')}</span>
+            <span className="topic-recall-marker tabular">{String(i + 1).padStart(2, '0')}</span>
             {item.stimulus && (
               <div className="sheet-visual">
                 <VisualView visual={item.stimulus} compact />
@@ -553,8 +410,8 @@ function RecallReference({ topic, heading }: { topic: Topic; heading: string }) 
                 <AudioReference item={item as typeof item & { audio: NonNullable<typeof item.audio> }} />
               </div>
             )}
-            <span className="sheet-prompt">{item.prompt}</span>
-            <span className="sheet-answer">{item.answer}</span>
+            <span className="topic-recall-prompt">{item.prompt}</span>
+            <span className="topic-recall-answer">{item.answer}</span>
           </li>
         ))}
       </ol>

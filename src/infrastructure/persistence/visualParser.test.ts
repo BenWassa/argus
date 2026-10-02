@@ -167,3 +167,20 @@ describe('library round trip', () => {
     expect(library(item, block({ source: dialVisual.source })).ok).toBe(false)
   })
 })
+
+
+describe('topic hero', () => {
+  const hero = { source: { kind: 'image', src: '/media/topics/example/hero.avif', width: 1600, height: 900 }, alt: 'The topic concept.', credit: 'Owner artwork.' }
+  it('round-trips authored artwork through the v5 boundary', () => {
+    const parsed = parseLibrary({ version: 5, topics: [{ ...topic([choiceItem]), hero }] })
+    expect(parsed.ok).toBe(true)
+    if (!parsed.ok) return
+    expect(parsed.library.topics[0].hero).toEqual(hero)
+    expect(parseLibrary(JSON.parse(JSON.stringify(parsed.library)))).toEqual(parsed)
+  })
+  it('keeps the visual validation contract', () => {
+    for (const invalid of [{ ...hero, alt: '' }, { ...hero, source: { ...hero.source, src: 'https://example.com/hero.avif' } }, { ...hero, source: { ...hero.source, width: undefined } }]) {
+      expect(parseLibrary({ version: 5, topics: [{ ...topic([choiceItem]), hero: invalid }] }).ok).toBe(false)
+    }
+  })
+})
