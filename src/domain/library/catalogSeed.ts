@@ -225,6 +225,7 @@ export function seedLibrary(): Library {
     },
     {
       id: 'ooda-loop',
+      sequence: { groups: [{ label: 'OODA', letters: 'OODA', itemIds: ['ooda-loop-item-01', 'ooda-loop-item-02', 'ooda-loop-item-03', 'ooda-loop-item-04'] }] },
       title: 'OODA Loop',
       scope: 'The four OODA stages in order and each stage’s core function. Nothing beyond those four stage/function pairs is scored.',
       track: 'learning',
@@ -355,6 +356,7 @@ export function seedLibrary(): Library {
     },
     {
       id: 'primary-survey',
+      sequence: { groups: [{ label: 'ABCDE', letters: 'ABCDE', itemIds: ['primary-survey-item-01', 'primary-survey-item-02', 'primary-survey-item-03', 'primary-survey-item-04', 'primary-survey-item-05'] }] },
       title: 'Primary Survey',
       scope: 'The five ABCDE headings in assessment order — Airway, Breathing, Circulation, Disability, Exposure. Test covers the headings and order only.',
       track: 'survival',
@@ -963,6 +965,7 @@ export function seedLibrary(): Library {
     },
     {
       id: 'firearm-safety-acts-prove',
+      sequence: { groups: [{ label: 'ACTS', letters: 'ACTS', itemIds: ['firearm-safety-acts-prove-item-01', 'firearm-safety-acts-prove-item-02', 'firearm-safety-acts-prove-item-03', 'firearm-safety-acts-prove-item-04'] }, { label: 'PROVE', letters: 'PROVE', itemIds: ['firearm-safety-acts-prove-item-05', 'firearm-safety-acts-prove-item-06', 'firearm-safety-acts-prove-item-07', 'firearm-safety-acts-prove-item-08', 'firearm-safety-acts-prove-item-09'] }] },
       title: 'Firearm Safety',
       scope: 'The Vital Four ACTS rules and the five PROVE it safe steps, in order and in the wording of the RCMP Canadian Firearms Safety Course Student Handbook (2014). Test covers recall of these nine rules only — not handling a firearm, the course, its tests or a licence.',
       track: 'survival',

@@ -1,0 +1,10 @@
+.sequence-card { display: block; width: 100%; --sequence-ink: var(--learning); }
+.sequence-card.track-survival { --sequence-ink: var(--survival); }
+.sequence-card.track-tradecraft { --sequence-ink: var(--tradecraft); }
+.sequence-word { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: center; gap: .12em; font-size: 2.25rem; font-weight: 600; line-height: 1.3; }
+.sequence-letter { color: var(--subtle); }
+.sequence-letter.is-answered { color: var(--complete); }
+.sequence-letter.is-current { color: var(--sequence-ink); font-size: 1.65em; }
+.sequence-card.is-medium .sequence-word { font-size: 1.7rem; }
+.sequence-card.is-long .sequence-word { font-size: 1.2rem; }
+/* No letter movement: reduced motion and normal playback use the same state. */

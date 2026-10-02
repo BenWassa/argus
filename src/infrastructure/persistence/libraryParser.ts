@@ -1,3 +1,4 @@
+import { parseSequence } from './sequenceParser'
 import {
   LEARN_KINDS,
   type LearnBlock,
@@ -920,6 +921,8 @@ function parseTopic(
   const topicId = optionalText(t.id) ?? `imported-topic-${index + 1}`
   const items = parseItems(t.items, `${where} ("${title}")`, topicId, sourceVersion)
   if (!items.ok) return items
+  const sequence = parseSequence(t.sequence, items.items, where)
+  if (!sequence.ok) return sequence
 
   const learn = parseLearn(t.learn, `${where} ("${title}")`)
   if (!learn.ok) return learn
@@ -990,6 +993,7 @@ function parseTopic(
       track,
       items: items.items,
       ...(learn.learn ? { learn: learn.learn } : {}),
+      ...(sequence.value ? { sequence: sequence.value } : {}),
       status,
       createdAt: typeof t.createdAt === 'string' ? t.createdAt : now.toISOString(),
       drilledAt: typeof t.drilledAt === 'string' ? t.drilledAt : null,
