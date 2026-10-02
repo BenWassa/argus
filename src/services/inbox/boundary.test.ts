@@ -180,7 +180,7 @@ describe('a pending request can never become learning state', () => {
     // overload, argument or code path through which a request could be offered.
     expect(before.due).toEqual(['nato-phonetic'])
     expect(before.shelves).toEqual(['due:1'])
-    expect(before.resolved).toBe('learning')
+    expect(before.resolved).toBe('completed')
   })
 })
 

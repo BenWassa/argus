@@ -591,23 +591,18 @@ describe('ordinary topic browsing and enrollment', () => {
     )
     expect(beforeBrowse).toEqual(fresh)
     renderTopicPage(fresh)
-    expect(document.querySelector('.topic-primary-verb')?.textContent).toBe('Start learning')
+    expect(document.querySelector('.topic-primary-verb')?.textContent).toBe('Test')
     expect(document.querySelectorAll('.sheet-items li')).toHaveLength(fresh.items.length)
     await waitFor(() => {
       const stored = JSON.parse(localStorage.getItem(STORE_KEY) ?? '{}') as { topics?: Topic[] }
       expect(stored.topics?.find((topic) => topic.id === fresh.id)).toEqual(beforeBrowse)
     })
 
-    fireEvent.click(screen.getByRole('button', { name: /Start learning/ }))
-    await waitFor(() => {
-      const stored = JSON.parse(localStorage.getItem(STORE_KEY) ?? '{}') as { topics?: Topic[] }
-      const enrolled = stored.topics?.find((topic) => topic.id === fresh.id)
-      expect(enrolled?.status).toBe('learning')
-      expect(enrolled?.learningAt).toBeTruthy()
-      expect(enrolled?.history).toEqual([])
-      expect(enrolled?.lastTestedAt).toBeNull()
-      expect(enrolled?.itemEvidence ?? {}).toEqual({})
-    })
+    // Starting a Test does not enroll or create evidence before scoring.
+    fireEvent.click(screen.getByRole('button', { name: /^Test/ }))
+    const stored = JSON.parse(localStorage.getItem(STORE_KEY) ?? '{}') as { topics?: Topic[] }
+    expect(stored.topics?.find((topic) => topic.id === fresh.id)).toEqual(beforeBrowse)
+
   })
 
   it('treats a topic with no items as authoring rather than learner progress', () => {

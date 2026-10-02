@@ -23,8 +23,15 @@ import { isDemoBuild } from '../../demo/demoMode'
 import { demoLibraryWithReport } from '../../demo/demoLibrary'
 import type { CatalogReconciliation } from '../../domain/library/catalog'
 import { clearAllLessonSittings } from '../../domain/morse/curriculum/lessonSittingStorage'
+import { journeyFor } from '../../domain/study/journey'
 import type { Topic } from '../../domain/library/topic'
 import type { CurrentLibrary } from '../../domain/library/library'
+
+/** Normalize legacy ordinary progress only as part of an explicit topic write. */
+function normalizeWrittenTopic(topic: Topic): Topic {
+  if (topic.status !== 'drilled' || journeyFor(topic).acquisition.progressive) return topic
+  return { ...topic, status: 'completed', completedAt: topic.completedAt ?? topic.drilledAt ?? topic.lastTestedAt ?? topic.createdAt }
+}
 
 interface LibraryStore {
   topics: Topic[]
@@ -90,7 +97,8 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
     saveLibrary(library)
   }, [library])
 
-  const upsertTopic = useCallback((topic: Topic) => {
+  const upsertTopic = useCallback((written: Topic) => {
+    const topic = normalizeWrittenTopic(written)
     setLibrary((prev) => {
       const i = prev.topics.findIndex((t) => t.id === topic.id)
       const topics =
@@ -105,8 +113,9 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
     setLibrary((prev) => {
       const at = prev.topics.findIndex((topic) => topic.id === id)
       if (at === -1) return prev
-      const next = update(prev.topics[at])
-      if (next === prev.topics[at]) return prev
+      const written = update(prev.topics[at])
+      if (written === prev.topics[at]) return prev
+      const next = normalizeWrittenTopic(written)
       return { ...prev, topics: prev.topics.map((topic, index) => (index === at ? next : topic)) }
     })
   }, [])

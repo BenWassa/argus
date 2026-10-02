@@ -1,6 +1,6 @@
 import type { Status, Topic } from '../library/topic'
 
-/** A topic reaches `drilled` only on a clean session. No partial credit. */
+/** A topic banks completion on one clean session. No partial credit. */
 export const PASS_THRESHOLD = 1
 
 /**
@@ -22,13 +22,12 @@ export interface DueReason {
 export function dueState(topic: Topic): DueReason {
   switch (topic.status) {
     case 'unstarted':
-      return { due: true, label: 'Not started' }
+      return { due: true, label: 'Not tested yet' }
     case 'decayed':
       return { due: true, label: 'Needs repair' }
     case 'learning':
       return { due: true, label: 'Ready to test' }
-    case 'drilled':
-      return { due: true, label: 'Ready to test again' }
+    case 'drilled': // Legacy saved progress reads as banked without a write.
     case 'completed':
       return { due: false, label: 'Banked' }
   }
@@ -41,7 +40,7 @@ export function dueState(topic: Topic): DueReason {
  */
 export const DUE_RANK: Record<Status, number> = {
   decayed: 0,
-  drilled: 1,
+  drilled: 4,
   learning: 2,
   unstarted: 3,
   completed: 4,
@@ -49,14 +48,15 @@ export const DUE_RANK: Record<Status, number> = {
 
 /**
  * Deliberately starting acquisition moves a topic off `unstarted`. For an
- * ordinary topic this is explicit enrollment (`Start learning`); for a
- * progressive topic it is the canonical lesson start. Merely browsing a
+ * progressive topic this is the canonical lesson start. Ordinary topics
+ * offer Test directly; their reference content needs no enrollment. Merely browsing a
  * reference must never call this function.
  *
  * No attempt or evidence is recorded: nothing was scored. The timestamp records
  * when learning began.
  */
 export function resolveStudy(topic: Topic, now: Date = new Date()): Topic {
+  if (topic.status === 'drilled') return { ...topic, status: 'completed', completedAt: topic.completedAt ?? topic.drilledAt ?? now.toISOString() }
   if (topic.status !== 'unstarted') return topic
   return { ...topic, status: 'learning', learningAt: now.toISOString() }
 }
@@ -112,15 +112,9 @@ export function resolveAttempt(
 
   if (!eligible) {
     // Recorded, and nothing else. See `AttemptOptions.advancementEligible`.
-  } else if (from === 'unstarted') {
-    // A first Test is itself a deliberate learning/check action, so it enrolls
-    // the topic, but it cannot also prove retention, whatever the score.
-    next.status = 'learning'
-    next.learningAt = at
-  } else if (from === 'completed') {
-    // A check, whenever the learner chooses to take one. Passing keeps the
-    // record; failing routes back to repair without erasing that the topic was
-    // completed.
+  } else if (from === 'completed' || from === 'drilled') {
+    // Legacy drilled progress already earned its clean Test and is banked.
+    next.completedAt = topic.completedAt ?? topic.drilledAt ?? at
     if (clean) {
       next.status = 'completed'
       next.spotCheckedAt = at
@@ -128,32 +122,13 @@ export function resolveAttempt(
       next.status = 'decayed'
       decayed = true
     }
-  } else if (from === 'drilled') {
-    if (clean) {
-      next.status = 'completed'
-      next.completedAt = topic.completedAt ?? at
-      completed = true
-    } else {
-      next.status = 'learning'
-      next.drilledAt = null
-      next.learningAt = at
-    }
+  } else if (clean) {
+    next.status = 'completed'
+    next.completedAt = topic.completedAt ?? at
+    completed = true
   } else {
-    // learning, decayed
-    if (clean) {
-      const priorPerfect = topic.history.some((attempt) => attempt.total > 0 && attempt.correct === attempt.total)
-      if (from === 'learning' && priorPerfect) {
-        next.status = 'completed'
-        next.completedAt = topic.completedAt ?? at
-        completed = true
-      } else {
-        next.status = 'drilled'
-        next.drilledAt = at
-      }
-    } else {
-      next.status = 'learning'
-      next.learningAt = at
-    }
+    next.status = 'learning'
+    next.learningAt = at
   }
 
   next.history = [...topic.history, { at, correct, total, resolvedTo: next.status }]

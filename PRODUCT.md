@@ -12,31 +12,12 @@ The job to be done, every session: see what's due, do the one thing the schedule
 
 ## Modes
 
-Reference access, active learning and scored recall are different interactions
-with different consequences. The interface must not let one masquerade as
-another.
+Opening an ordinary topic is learning: its complete finite reference and optional support are immediately available. Browsing writes no progress, history or evidence. There is no enrollment action.
 
-**Browse/reference ≠ enrolled learning.** Opening an ordinary topic is analogous
-to opening a course book: its finite reference and optional `topic.learn` support
-are immediately available to inspect, and that navigation performs no progress,
-scheduler or evidence write. Revisiting or scrolling the page is equally inert.
+- **Learn** — ungraded acquisition through canonical lessons for curricula such as Morse. These lessons own acquisition writes.
+- **Test** — every scored item once, self-scored where needed. One clean eligible Test banks the topic, including a clean first run. A miss enters learning; a miss on a banked topic enters repair and preserves its completion record. A banked topic offers Test again at any time.
 
-- **Browse/reference** — read-only access to the complete finite material. It does not change `status`, `learningAt`, history, evidence, scheduling or completion.
-- **Learn** — the internal ungraded acquisition mode. For an ordinary topic the learner-facing boundary is the explicit **Start learning** action: it enrolls an `unstarted` topic by entering the existing `learning` state and starts the existing learning gap, but records no score or evidence. For a curriculum such as Morse, canonical lessons own the corresponding acquisition writes.
-- **Test** — flashcards, every scored item once, self-scored. Every Test creates history, while the scheduler decides whether that result is timely enough to advance the ladder. A Test started from an `unstarted` topic is itself a deliberate check/enrollment action, but that first run still cannot simultaneously prove retention; existing Test/evidence semantics are unchanged.
-
-`Learn` remains an implementation term rather than a generic button label. An
-ordinary topic says `Start learning`; Morse says `Lesson N`; scored recall says
-`Test`. The reference remains visible before and after enrollment, because access
-to information is not evidence that the learner chose to study it.
-
-For most ordinary topics enrollment is a single explicit state transition before
-the existing Test/retention ladder. Some topics need more acquisition: Morse's
-Learn is a guided lesson running over many sittings and days, and its status is
-`learning` throughout. For those, finishing acquisition is a distinct event from
-first lesson start, and until it happens every surface keeps recommending the
-lesson — an early Test stays available, but it is recorded rather than banked.
-`docs/open/PROGRESS_ARCHITECTURE.md` is the authority.
+Morse keeps its lesson gate: an early Test is recorded but cannot advance or demote retention while acquisition is unfinished. The maintained authority is [Progress architecture](docs/open/PROGRESS_ARCHITECTURE.md).
 
 ## What progress means
 
@@ -44,7 +25,7 @@ Argus tracks four different things about a topic and deliberately does not avera
 
 - **Acquisition** — can you retrieve this without the teaching support you are currently using?
 - **Evidence** — have you demonstrated the directions and conditions the scored boundary requires?
-- **Retention** — has that recall survived the required gap?
+- **Retention** — has a clean eligible Test demonstrated recall?
 - **Current sitting** — where are you inside the finite task you are doing right now?
 
 One shared derivation reads all four and answers the only question the learner actually asks — *what should I do next, and why* — so Today, Library and Topic cannot contradict each other about the same topic at the same instant. There is no single progress percentage, because a number averaging those four would not mean anything.

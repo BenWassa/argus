@@ -25,66 +25,32 @@ function topic(status: Status, overrides: Partial<Topic> = {}): Topic {
   }
 }
 
-describe('Test evidence policy, with no clock', () => {
-  it('completes after two perfect attempts on the same day', () => {
-    const first = resolveAttempt(topic('unstarted'), 1, 1, now)
-    const second = resolveAttempt(first.topic, 1, 1, now)
-    expect(second.to).toBe('completed')
-    expect(second.completed).toBe(true)
+describe('one clean Test, without a clock', () => {
+  for (const status of ['unstarted', 'learning', 'drilled', 'completed', 'decayed'] as Status[]) {
+    for (const clean of [false, true]) {
+      for (const eligible of [false, true]) {
+        it(`${status}: clean=${clean}, eligible=${eligible}`, () => {
+          const original = topic(status, { drilledAt: ago(10), completedAt: status === 'completed' || status === 'decayed' ? ago(20) : null })
+          const result = resolveAttempt(original, clean ? 1 : 0, 1, now, { advancementEligible: eligible })
+          const banked = status === 'completed' || status === 'drilled'
+          expect(result.to).toBe(!eligible ? status : clean ? 'completed' : banked ? 'decayed' : 'learning')
+          expect(result.completed).toBe(eligible && clean && !banked)
+          expect(result.decayed).toBe(eligible && !clean && banked)
+          expect(result.topic.history).toEqual([{ at: now.toISOString(), correct: clean ? 1 : 0, total: 1, resolvedTo: result.to }])
+          expect(result.topic.lastTestedAt).toBe(now.toISOString())
+          expect(original.history).toEqual([])
+          if (eligible && (clean || banked)) expect(result.topic.completedAt).toBe(original.completedAt ?? (banked ? original.drilledAt : now.toISOString()))
+        })
+      }
+    }
+  }
+  it('reads legacy drilled as banked without mutation', () => {
+    const legacy = topic('drilled', { drilledAt: ago(365) })
+    expect(dueState(legacy)).toEqual({ due: false, label: 'Banked' })
+    expect(legacy.status).toBe('drilled')
+    expect(legacy.completedAt).toBeNull()
   })
-
-  it('does not count a failed first attempt as mastery', () => {
-    const first = resolveAttempt(topic('unstarted'), 0, 1, now)
-    const second = resolveAttempt(first.topic, 1, 1, now)
-    expect(second.to).toBe('drilled')
-  })
-
-  it('cannot bypass first exposure', () => {
-    const result = resolveAttempt(topic('unstarted'), 1, 1, now)
-    expect(result.to).toBe('learning')
-    expect(result.topic.learningAt).toBe(now.toISOString())
-  })
-
-  it('advances a learning Test taken straight away, keeping when learning began', () => {
-    const learningAt = ago(0)
-    const result = resolveAttempt(topic('learning', { learningAt }), 1, 1, now)
-    expect(result.to).toBe('drilled')
-    expect(result.topic.learningAt).toBe(learningAt)
-    expect(result.topic.history).toHaveLength(1)
-  })
-
-  it('banks completion on the next clean run, however soon, keeping drilledAt', () => {
-    const drilledAt = ago(10)
-    const result = resolveAttempt(topic('drilled', { drilledAt }), 1, 1, now)
-    expect(result.to).toBe('completed')
-    expect(result.topic.drilledAt).toBe(drilledAt)
-    expect(result.completed).toBe(true)
-  })
-
-  it('checks a banked topic whenever the learner chooses, however recently it was checked', () => {
-    const completedAt = ago(100)
-    const spotCheckedAt = ago(0)
-    const passed = resolveAttempt(topic('completed', { completedAt, spotCheckedAt }), 1, 1, now)
-    expect(passed.to).toBe('completed')
-    expect(passed.topic.spotCheckedAt).toBe(now.toISOString())
-
-    const failed = resolveAttempt(topic('completed', { completedAt, spotCheckedAt }), 0, 1, now)
-    expect(failed.to).toBe('decayed')
-    expect(failed.decayed).toBe(true)
-    expect(failed.topic.completedAt).toBe(completedAt)
-  })
-
-  it('reads the same ladder for a topic untouched for a year', () => {
-    expect(dueState(topic('completed', { completedAt: ago(365) }))).toEqual({ due: false, label: 'Banked' })
-    expect(dueState(topic('drilled', { drilledAt: ago(365) }))).toEqual({ due: true, label: 'Ready to test again' })
-  })
-
-  it('allows corrective Test evidence to resolve decayed immediately', () => {
-    const completedAt = ago(200)
-    const result = resolveAttempt(topic('decayed', { completedAt }), 1, 1, now)
-    expect(result.to).toBe('drilled')
-    expect(result.topic.drilledAt).toBe(now.toISOString())
-    expect(result.topic.completedAt).toBe(completedAt)
+  it('does not bank an empty run', () => {
+    expect(resolveAttempt(topic('unstarted'), 0, 0, now).to).toBe('learning')
   })
 })
-
