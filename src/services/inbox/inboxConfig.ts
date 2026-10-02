@@ -88,6 +88,12 @@ export function readInboxConfig(env: Env): InboxConfigResult {
 }
 
 export function inboxConfig(): InboxConfigResult {
+  // A demo build never reaches a backend, whatever its environment holds. The
+  // inbox is a sealed boundary and imports nothing from the app, so it restates
+  // the one-line check rather than importing `demo/demoMode`; `demoMode.test.ts`
+  // holds the two in step.
+  const demo = String((import.meta.env as unknown as Env).VITE_ARGUS_DEMO ?? '').trim().toLowerCase()
+  if (demo === 'true' || demo === '1') return { configured: false, missing: [...REQUIRED_INBOX_ENV] }
   try {
     return readInboxConfig(import.meta.env as unknown as Env)
   } catch {

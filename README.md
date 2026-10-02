@@ -31,13 +31,26 @@ Other commands:
 - `npm run inbox:rules` — render `firestore.rules` from its template for the configured owner (`ARGUS_OWNER_EMAIL`)
 - `npm run rules:deploy` — re-render the rules and deploy them; `npm run rules:check` refuses a ruleset left behind by the emulator suite
 - `npm run deploy:hosting` — build and deploy to Firebase Hosting
+- `npm run build:demo` / `npm run preview:demo` — build the embeddable demo into `dist-demo/` and serve it at http://localhost:4174/argus/ (see Demo build)
 - `npm run inbox -- list` / `npm run inbox -- mark-added ...` — maintainer content-inbox ingestion
 
 ### Content inbox
 
 Argus can capture "want to learn" notes into a small Firestore inbox, kept entirely outside the local learning library. It is optional: with no Firebase configuration the capture surface reports itself unavailable and the rest of Argus is unaffected. Copy `.env.example` to `.env.local` to configure it. Everything it reads is public web configuration; no privileged credential belongs in the client. See `docs/open/CONTENT_INBOX.md`.
 
-The production site is **https://argus-b7a5a.web.app**, on Firebase Hosting. GitHub Pages is retired; the app is served from the root of its own domain and `npm run deploy:hosting` is the whole deploy.
+The production site is **https://argus-b7a5a.web.app**, on Firebase Hosting. GitHub Pages no longer serves the app, only the embeddable demo (see Demo build); the app is served from the root of its own domain and `npm run deploy:hosting` is the whole deploy.
+
+## Demo build
+
+`npm run build:demo` (`vite build --mode demo`) produces an embeddable, local-only copy of Argus for the portfolio. It needs no secrets: `.env.demo` is committed and blanks every Firebase value, and a demo build ignores Firebase configuration regardless.
+
+- It opens on the shipped catalog with sample progress already on it (the repository's own `seedLibrary()` fixture: a drilled NATO alphabet, an OODA loop in learning, a banked bearings topic), so Today and Library are populated on first load.
+- It is local by construction: no sign-in, no sync, no inbox and no service worker.
+- It never reads or writes the library in browser storage, so a reload always returns to the same sample and a real library under the same origin is never touched. Reset in Profile returns to the sample.
+- It is a property of the build, not the URL. `?mode=demo` does nothing, and the production build cannot enter demo mode.
+- It writes to `dist-demo/`, never `dist/`, so `firebase deploy` can never upload a demo.
+
+`.github/workflows/demo-pages.yml` builds it with base `/argus/` and publishes it to https://benwassa.github.io/argus/ on every push to `main`. Pull requests build and check the artifact without deploying. Production is unchanged: Firebase Hosting, deployed by hand with `npm run deploy:hosting`.
 
 ## Sync
 

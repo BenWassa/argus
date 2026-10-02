@@ -5,6 +5,7 @@ graphify-out/
 # Vite
 node_modules/
 dist/
+dist-demo/
 *.tsbuildinfo
 
 # Generated from firestore.rules.template by scripts/renderRules.mjs

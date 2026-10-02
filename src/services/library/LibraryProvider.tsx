@@ -19,6 +19,8 @@ import {
   saveLibrary,
   switchLibraryOwner,
 } from '../../infrastructure/persistence/localLibraryRepository'
+import { isDemoBuild } from '../../demo/demoMode'
+import { demoLibraryWithReport } from '../../demo/demoLibrary'
 import type { CatalogReconciliation } from '../../domain/library/catalog'
 import { clearAllLessonSittings } from '../../domain/morse/curriculum/lessonSittingStorage'
 import type { Topic } from '../../domain/library/topic'
@@ -127,7 +129,8 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
   const resetLibrary = useCallback(() => {
     clearLibrary()
     clearAllLessonSittings()
-    const reset = reconcileLoadedLibrary(emptyLibrary())
+    // Reset in a demo means back to the sample the visitor arrived at.
+    const reset = isDemoBuild() ? demoLibraryWithReport() : reconcileLoadedLibrary(emptyLibrary())
     setLibrary(reset.library)
     setCatalogReport(reset.report)
   }, [])
