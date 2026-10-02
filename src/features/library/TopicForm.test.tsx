@@ -171,3 +171,20 @@ it('preserves imported hero artwork through ordinary edits', () => {
   expect(parsed.ok).toBe(true)
   if (parsed.ok) expect(parsed.library.topics[0].hero).toEqual(hero)
 })
+describe('ordered topic content edits', () => {
+  it('preserves the authored order through title edits and row reordering', () => {
+    const topic = seeded('primary-survey')
+    const saved = edit(topic, {
+      title: 'ABCDE',
+      items: [...topic.items].reverse().map(i => `${i.prompt} | ${i.answer}`).join('\n'),
+    })
+    expect(saved.sequence).toEqual(topic.sequence)
+    expect(parseLibrary({ version: 5, topics: [saved] }).ok).toBe(true)
+  })
+  it('drops incomplete sequence metadata after deleting a scored step', () => {
+    const topic = seeded('primary-survey')
+    const saved = edit(topic, { items: topic.items.slice(1).map(i => `${i.prompt} | ${i.answer}`).join('\n') })
+    expect(saved.sequence).toBeUndefined()
+    expect(parseLibrary({ version: 5, topics: [saved] }).ok).toBe(true)
+  })
+})

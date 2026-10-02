@@ -91,6 +91,10 @@ export interface Attempt {
   resolvedTo: Status
 }
 
+export interface TopicSequence {
+  groups: { label: string; letters: string; itemIds: string[] }[]
+}
+
 export interface Topic {
   id: string
   title: string
@@ -103,6 +107,8 @@ export interface Topic {
   learn?: LearnContent
   /** Optional topic artwork, using the same local-media contract as item visuals. */
   hero?: Visual
+  /** Ordered recall, one authored letter per scored item. */
+  sequence?: TopicSequence
   status: Status
   createdAt: string
   /** Legacy timestamp when the topic first reached `drilled`; retained for compatibility. */

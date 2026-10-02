@@ -368,3 +368,23 @@ describe('the Morse acquisition ladder is untouched', () => {
     expect(document.querySelector('.session')?.className).toContain('is-progressive')
   })
 })
+
+describe('ordered acronym session', () => {
+  it('keeps ACTS in order after a miss and then starts PROVE', async () => {
+    open(['firearm-safety-acts-prove'])
+    const expected = ['A', 'C', 'T', 'S', 'P']
+    for (let step = 0; step < expected.length; step += 1) {
+      const letter = screen.getByRole('listitem', { current: 'step' })
+      expect(letter.textContent).toBe(expected[step])
+      expect(document.querySelector('.flip-value-answer')?.textContent).toBe('')
+      if (step === 4) break
+      const before = promptNow()
+      press(' ')
+      expect(document.querySelector('.flip-value-answer')?.textContent).toBeTruthy()
+      press(step === 2 ? 'ArrowLeft' : 'ArrowRight')
+      await settled(before)
+    }
+    expect(screen.queryByRole('list', { name: 'ACTS' })).toBeNull()
+    expect(screen.getByRole('list', { name: 'PROVE' })).toBeTruthy()
+  }, 15000)
+})

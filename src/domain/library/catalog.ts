@@ -96,6 +96,15 @@ export function inferredOrigin(topic: Topic): NonNullable<Topic['origin']> {
   return scoredIdentity(topic.items) === scoredIdentity(definition.items) ? 'catalog' : 'user'
 }
 
+/** Presentation-only fallback for unchanged catalog copies written before ordered Tests. */
+export function sequenceFor(topic: Topic): Topic['sequence'] {
+  if (topic.sequence) return topic.sequence
+  if (topic.origin === 'user') return undefined
+  const definition = catalogDefinition(topic.id)
+  return definition && scoredIdentity(topic.items) === scoredIdentity(definition.items)
+    ? definition.sequence : undefined
+}
+
 export function topicOrigin(topic: Topic): NonNullable<Topic['origin']> {
   return topic.origin ?? inferredOrigin(topic)
 }
