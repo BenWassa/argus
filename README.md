@@ -78,6 +78,8 @@ The **full offline-first runtime guarantee is active scope in #113**, not yet a 
 - `docs/open/ISSUE_138_MARITIME_VISUAL_LITERACY.md` — active P0 research brief for vessel orientation, navigation lights/day shapes and signal flags.
 - `docs/open/ISSUE_139_RADIO_COMMUNICATIONS_AUDIO.md` — active P0 research brief for source-scoped radio procedure and audio drills.
 - `docs/open/ISSUE_140_COMPASS_BEARINGS_TOPO.md` — active P0 compass/bearings research plus the P1 topographic-map spike.
+- [Topic-page revamp](docs/open/TOPIC_PAGE_REVAMP.md) — one-test completion, ordered recall, folded reference support and artwork delivery.
+- [Cloud visual guide and asset ledger](docs/open/ISSUE_131_WMO_CLOUD_VISUAL_GUIDE.md) — textual vocabulary Test with unscored, credited photographs.
 - `docs/open/ISSUE_141_CLOUD_WEATHER_RECOGNITION.md` — active P0 cloud/weather recognition research; #131 remains downstream.
 - `docs/open/ISSUE_127_TODAY_REDESIGN_CONCEPTS.md` — proposed concepts for what Today holds and how it behaves (#127), companion to the visual-styling exploration in #126.
 - `docs/closed/LIBRARY_AUDIT.md` — reconciled shipped-library boundary/content audit.

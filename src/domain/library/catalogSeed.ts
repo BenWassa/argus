@@ -3,6 +3,8 @@ import type { Library } from './library'
 import { bearingTopics } from '../navigation/bearingTopics'
 import { maritimeTopics } from '../maritime/maritimeTopics'
 import { flagTopic } from '../maritime/flagTopic'
+import { cloudTopic } from './cloudTopic'
+import { beaufortVisualGuide } from './weatherVisuals'
 
 const NATO = [
   'Alfa', 'Bravo', 'Charlie', 'Delta', 'Echo', 'Foxtrot', 'Golf', 'Hotel',
@@ -493,6 +495,7 @@ export function seedLibrary(): Library {
         { at: ago(110), correct: 8, total: 8, resolvedTo: 'completed' },
       ],
     },
+    cloudTopic(ago(0)),
     ...bearingTopics(),
     ...maritimeTopics(),
     flagTopic(),
@@ -906,10 +909,8 @@ export function seedLibrary(): Library {
       learn: {
         kind: 'concise',
         overview: 'The Beaufort scale grades wind from force 0, calm, to force 12, hurricane. Each force has a name, a speed range in knots and effects that can be seen at sea and on land, so wind can be estimated by looking and a forecast speed can be pictured. The name and knot range are what Test asks; the effects below are for estimating.',
-        // #129 reserves the first position, straight after the overview, for
-        // the visual guide. It is a separate section when it lands; nothing
-        // here depends on it.
         sections: [
+          beaufortVisualGuide,
           {
             heading: 'The scale',
             blocks: [

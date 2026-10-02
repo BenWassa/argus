@@ -21,6 +21,7 @@ describe('researched seeded library', () => {
       'ooda-loop',
       'primary-survey',
       'cardinal-bearings',
+      'cloud-genera',
       'whole-circle-bearings',
       'reciprocal-bearings',
       'north-references-declination',
@@ -291,9 +292,9 @@ describe('researched seeded library', () => {
     // One entry per force (#128): number, term, knots, and the sea and land
     // cues kept together, rather than the same force split across two tables.
     const sections = topic.learn?.sections ?? []
-    expect(sections.map((section) => section.heading)).toEqual(['The scale'])
+    expect(sections.map((section) => section.heading)).toEqual(['Read the wind at a glance', 'The scale'])
     expect(sections.flatMap((section) => section.blocks).some((block) => block.type === 'table')).toBe(false)
-    const block = sections[0].blocks[0]
+    const block = sections[1].blocks[0]
     if (block.type !== 'entries') throw new Error('The scale should be force entries.')
     expect(block.entries).toHaveLength(13)
     block.entries.forEach((entry, force) => {

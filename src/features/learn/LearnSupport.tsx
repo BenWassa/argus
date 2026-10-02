@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import type { LearnBlock, LearnContent, LearnSection } from '../../domain/learning/content'
 import { MorseCharacterPacket } from '../morse/MorseCharacterPacket'
+import { VisualGuide } from './VisualGuide'
 import { VisualView } from '../visual/VisualView'
 
 function LearnBlockView({ block }: { block: LearnBlock }) {
@@ -50,6 +51,7 @@ function LearnBlockView({ block }: { block: LearnBlock }) {
         </div>
       )
     case 'entries':
+      if (block.presentation === 'visual-guide') return <VisualGuide entries={block.entries} />
       return (
         <ol className="learn-entries">
           {block.entries.map((entry, i) => (

@@ -221,7 +221,13 @@ function parseBlock(value: unknown, where: string): { ok: true; block: LearnBloc
         ...(visual ? { visual } : {}),
       })
     }
-    return { ok: true, block: { type: 'entries', entries } }
+    if (value.presentation !== undefined && value.presentation !== 'visual-guide') {
+      return { ok: false, error: `${where} entries presentation is not supported.` }
+    }
+    if (value.presentation === 'visual-guide' && entries.some((entry) => !entry.visual)) {
+      return { ok: false, error: `${where} visual guide needs a picture for every entry.` }
+    }
+    return { ok: true, block: { type: 'entries', entries, ...(value.presentation === 'visual-guide' ? { presentation: 'visual-guide' as const } : {}) } }
   }
 
   if (value.type === 'visual') {

@@ -37,7 +37,7 @@ describe('refreshing a rewritten shipped Learn (#128)', () => {
     const old = beforeTheRewrite()
     const [topic] = refreshShippedLearn(library(old)).topics
     expect(topic.learn).toEqual(catalogDefinition(BEAUFORT)?.learn)
-    expect(topic.learn?.sections?.[0].blocks[0].type).toBe('entries')
+    expect(topic.learn?.sections?.find((section) => section.heading === 'The scale')?.blocks[0].type).toBe('entries')
     // Explanation changed; evidence did not.
     expect({ ...topic, learn: old.learn }).toEqual(old)
   })
