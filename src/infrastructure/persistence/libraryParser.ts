@@ -921,6 +921,8 @@ function parseTopic(
   const items = parseItems(t.items, `${where} ("${title}")`, topicId, sourceVersion)
   if (!items.ok) return items
 
+  const hero = t.hero == null ? undefined : parseVisual(t.hero, `${where} hero`)
+  if (hero && !hero.ok) return hero
   const learn = parseLearn(t.learn, `${where} ("${title}")`)
   if (!learn.ok) return learn
 
@@ -989,6 +991,7 @@ function parseTopic(
       scope,
       track,
       items: items.items,
+      ...(hero?.ok ? { hero: hero.value } : {}),
       ...(learn.learn ? { learn: learn.learn } : {}),
       status,
       createdAt: typeof t.createdAt === 'string' ? t.createdAt : now.toISOString(),

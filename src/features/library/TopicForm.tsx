@@ -22,6 +22,7 @@ export interface Draft {
   items: string
   /** AI/import-assisted authoring may provide structured Learn support. */
   learn?: LearnContent
+  hero?: Topic['hero']
 }
 
 interface TopicFormProps {
@@ -124,6 +125,7 @@ export function TopicForm({
       // support is authored/imported as structured data and must survive an
       // ordinary title/scope/item edit untouched.
       learn: topic?.learn ?? draft?.learn,
+      hero: topic?.hero ?? draft?.hero,
       status: topic?.status ?? 'unstarted',
       createdAt: topic?.createdAt ?? now,
       drilledAt: topic?.drilledAt ?? null,

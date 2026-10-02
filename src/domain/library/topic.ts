@@ -101,6 +101,8 @@ export interface Topic {
   items: Item[]
   /** Optional explanatory support shown only in Learn. */
   learn?: LearnContent
+  /** Optional topic artwork, using the same local-media contract as item visuals. */
+  hero?: Visual
   status: Status
   createdAt: string
   /** Legacy timestamp when the topic first reached `drilled`; retained for compatibility. */
