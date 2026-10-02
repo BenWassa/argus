@@ -6,6 +6,7 @@ import { morseLessonPath } from '../../domain/morse/curriculum/lessonPath'
 import { morseWordCheckpointPath } from '../../domain/morse/curriculum/checkpoints'
 import { statusLabel } from '../../shared/ui/StatusTag'
 import { topicIcon } from './topicIcon'
+import { sequenceFor } from '../../domain/library/catalog'
 import { LearnSupport } from '../learn/LearnSupport'
 import { VisualView } from '../visual/VisualView'
 import { listeningCoverage } from '../../domain/audio/evidence'
@@ -65,6 +66,7 @@ export function TopicPage({
    * browsing and must not create learner state. The journey therefore reads the
    * stored topic exactly as it stands.
    */
+  const sequence = sequenceFor(topic)
   const journey = journeyFor(topic)
   const listening = listeningCoverage(topic.items, topic.audioEvidence)
 
@@ -137,7 +139,7 @@ export function TopicPage({
 
         {/* The boundary is the reason the topic is allowed to exist, so it reads
             as content rather than as a caption under the title. */}
-        <p className="topic-scope">{topic.scope}</p>
+        <p className="topic-scope">{sequence ? `${topic.items.length} rules, in order.` : topic.scope}</p>
 
         {/* One line of state, in the learner's words. Four dimensions still exist
             and still disagree usefully; this is the journey's one sentence about
@@ -146,7 +148,7 @@ export function TopicPage({
           <span className="topic-state-meta tabular">
             {topic.items.length} {topic.items.length === 1 ? 'item' : 'items'}
           </span>
-          <span className={`topic-state-label${journey.phase === 'repair' ? ' is-repair' : ''}`}>
+          <span className={`topic-state-label${journey.phase === 'repair' ? ' is-repair' : topic.status === 'completed' || topic.status === 'drilled' ? ' is-banked' : ''}`}>
             {journey.statusLabel}
           </span>
         </p>
@@ -217,7 +219,8 @@ export function TopicPage({
                 Replays and word checkpoints run the same lessons and record nothing at all. Test
                 is the only place the A–Z claim is proved.
               </p>
-              {topic.learn && <LearnSupport content={topic.learn} />}
+              {sequence && <details className="fold"><summary>Scope and limits</summary><p className="topic-course-rule">{topic.scope}</p></details>}
+          {topic.learn && <LearnSupport content={topic.learn} />}
               <MorseBeatGrammarNote className="topic-course-grammar" />
             </details>
           )}
@@ -225,6 +228,7 @@ export function TopicPage({
       ) : runnable ? (
         <section className="topic-body" aria-labelledby="topic-reference-head">
           <RecallReference topic={topic} heading="What to remember" />
+          {sequence && <details className="fold"><summary>Scope and limits</summary><p className="topic-course-rule">{topic.scope}</p></details>}
           {topic.learn && <LearnSupport content={topic.learn} />}
         </section>
       ) : null}
@@ -308,7 +312,7 @@ export function TopicPage({
       )}
 
       {runnable && (
-        <div className={`topic-action-bar${journey.phase === 'repair' ? ' is-repair' : ''}`}>
+        <div className={`topic-action-bar${journey.phase === 'repair' ? ' is-repair' : topic.status === 'completed' || topic.status === 'drilled' ? ' is-banked' : ''}`}>
           <button className="topic-primary" type="button" onClick={keepGoing ? openFluency : course && journey.action === 'learn' ? startCurrentMorseLesson : startCheck}>
             {course ? journey.primaryLabel : journey.phase === 'repair' ? 'Repair' : topic.status === 'completed' || topic.status === 'drilled' ? 'Test again' : 'Test'}
           </button>
@@ -393,13 +397,20 @@ function TopicHero({ topic }: { topic: Topic }) {
 
 /** The complete scored set, as reading. */
 function RecallReference({ topic, heading }: { topic: Topic; heading: string }) {
+  const groups = sequenceFor(topic)?.groups
+  const sets = groups ? groups.map(group => ({
+    label: group.label,
+    entries: group.itemIds.map((id, i) => ({ item: topic.items.find(item => item.id === id)!, marker: Array.from(group.letters)[i] })),
+  })) : [{ label: undefined, entries: topic.items.map((item, i) => ({ item, marker: String(i + 1).padStart(2, '0') })) }]
   return (
     <div className="topic-reference">
       <h2 id="topic-reference-head" className="topic-reference-head">{heading}</h2>
+      {sets.map((set, groupIndex) => <div className="topic-recall-group" key={set.label ?? groupIndex}>
+      {set.label && <h3 className="topic-recall-group-label">{set.label}</h3>}
       <ol className="topic-recall-cards">
-        {topic.items.map((item, i) => (
+        {set.entries.map(({ item, marker }, i) => (
           <li key={item.id ?? `${item.prompt}-${i}`} className={item.stimulus || item.audio ? 'has-visual' : undefined}>
-            <span className="topic-recall-marker tabular">{String(i + 1).padStart(2, '0')}</span>
+            <span className="topic-recall-marker tabular">{marker}</span>
             {item.stimulus && (
               <div className="sheet-visual">
                 <VisualView visual={item.stimulus} compact />
@@ -415,6 +426,7 @@ function RecallReference({ topic, heading }: { topic: Topic; heading: string }) 
           </li>
         ))}
       </ol>
+      </div>)}
     </div>
   )
 }
