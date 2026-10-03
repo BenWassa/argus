@@ -206,6 +206,11 @@ describe('the visible Primary Survey safety boundary (#166)', () => {
 })
 
 describe('Learn refresh respects the complete scored identity', () => {
+  it('preserves explanatory support when the learner edits the scope', () => {
+    const input = library(beforeTheRewrite({ scope: 'My narrower scope.' }))
+    expect(refreshShippedLearn(input)).toBe(input)
+  })
+
   it.each(['id', 'kind', 'choice'] as const)('preserves support when an item’s %s was edited', (field) => {
     const old = beforeTheRewrite()
     old.items = old.items.map((item, i) => i ? item : {

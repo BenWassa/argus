@@ -189,6 +189,7 @@ export function refreshShippedLearn(library: CurrentLibrary): CurrentLibrary {
     if (!REFRESHED_LEARN_TOPIC_IDS.includes(topic.id) || topicOrigin(topic) !== 'catalog') return topic
     const definition = catalogDefinition(topic.id)
     if (!definition?.learn || inferredOrigin(topic) !== 'catalog') return topic
+    if (topic.scope !== definition.scope && !PREVIOUS_SHIPPED_SCOPES[topic.id]?.includes(topic.scope)) return topic
     if (JSON.stringify(topic.learn) === JSON.stringify(definition.learn)) return topic
     changed = true
     return { ...topic, learn: definition.learn }
