@@ -188,25 +188,28 @@ export function seedLibrary(): Library {
       })),
       learn: {
         kind: 'concise',
-        overview: 'International Morse represents letters as sequences of dits (.) and dahs (-). A dah lasts three dit units; spacing within a character is one unit, between characters three, and between words seven. Completion requires uncued printed recall in both directions: letter → canonical pattern and printed pattern → letter. It does not claim auditory reception, sending, WPM, words, phrases, or operating fluency.',
+        overview: 'Morse dits (.) last one unit, dahs (-) three. Gaps within characters, between characters and between words last 1, 3, 7 units.',
         sections: [
           {
             heading: 'How the lesson works',
             blocks: [
               {
                 type: 'paragraph',
-                text: 'Learn is a guided lesson rather than a page to scroll. Each lesson introduces two new characters, asks you to retrieve them shortly afterwards, reteaches anything you miss and brings it back later, and mixes in characters from earlier lessons. Support falls away as you get a character right and comes back when you do not. A lesson finishes when every character in it has been produced from the letter alone.',
+                text: 'Lessons introduce two characters, then mix retrieval with earlier ones. Misses return with teaching support; correct retrieval removes support. Finish by producing every lesson character from its letter alone.',
               },
               {
                 type: 'paragraph',
-                text: 'The order runs from the shortest patterns upward, and two characters that differ only in their final element are never introduced together. Nothing in the lesson is scored: it decides what you are shown next and nothing else. The Morse alphabet page is separate, always open, and lists all 26 letters for lookup.',
+                text: 'Shortest patterns come first; characters differing only at the final element are introduced separately. Lessons are unscored. The separate alphabet page lists all 26 letters.',
               },
               {
                 type: 'paragraph',
-                text: 'Every drawing is that character’s own timing rather than a picture to decode: a dit is one unit wide, a dah is three, and the gap between them is one. Read the rhythm left to right, in the order it is keyed, and let the letter and its shape settle as a single thing.',
+                text: 'Drawings show timing left to right: dit width 1, dah width 3, internal gap 1.',
               },
             ],
           },
+        ],
+        limitations: [
+          'Completion covers uncued printed A–Z recall in both directions; not listening, sending, WPM, words, phrases or operating fluency.',
         ],
         sources: [
           {
@@ -251,54 +254,28 @@ export function seedLibrary(): Library {
       ],
       learn: {
         kind: 'briefing',
-        overview: 'John Boyd’s final OODA sketch is a feedback-rich model of adaptation, not merely four boxes connected in a circle. Observation supplies changing information; orientation interprets it; a decision is a hypothesis; action tests that hypothesis; results and new circumstances feed the process again.',
+        overview: 'Boyd’s model of adaptation: observe, orient, decide, act, with each result feeding the next cycle.',
         sections: [
           {
-            heading: 'The four functions',
-            blocks: [
-              {
-                type: 'definitions',
-                items: [
-                  {
-                    term: 'Observe',
-                    definition: 'Take in unfolding circumstances, outside information, and the effects of interaction with the environment.',
-                  },
-                  {
-                    term: 'Orient',
-                    definition: 'Make sense of observations through analysis and synthesis, filtered by factors such as previous experience, cultural traditions, genetic heritage, and new information.',
-                  },
-                  {
-                    term: 'Decide',
-                    definition: 'Choose a course of action: in Boyd’s model, a hypothesis about what should happen next.',
-                  },
-                  {
-                    term: 'Act',
-                    definition: 'Execute the decision as a test. What happens becomes new information for further observation and orientation.',
-                  },
-                ],
-              },
-            ],
-          },
-          {
-            heading: 'Relationships that matter',
+            heading: 'How the stages connect',
             blocks: [
               {
                 type: 'bullets',
                 items: [
-                  'Orientation is not a neutral sorting step: it is shaped by prior experience and inherited or learned frames as well as fresh information.',
-                  'Decision and action form a hypothesis/test pair. The value of action includes the information produced by its outcome.',
-                  'Feedback and feed-forward links make the model iterative and partly concurrent rather than a rigid stop-start sequence.',
-                  'Boyd’s sketch includes implicit guidance and control from orientation toward observation and action, so not every familiar situation requires a fresh explicit decision box before behavior changes.',
+                  'Orientation is shaped by prior experience, culture and heritage as well as fresh information.',
+                  'A decision is a hypothesis; action is the test, and its result is new information.',
+                  'Feedback runs between all the stages, so they overlap rather than run stop-start.',
+                  'Orientation can steer action directly (implicit guidance), so not every response needs a fresh decision.',
                 ],
               },
             ],
           },
           {
-            heading: 'Common simplification',
+            heading: 'The circle is a simplification',
             blocks: [
               {
                 type: 'paragraph',
-                text: 'The familiar four-arrow circle is useful as a mnemonic for order, but it is not Boyd’s full model. The published appendix to A Discourse on Winning and Losing explicitly describes that simple circular version as a gross oversimplification because it drops the feedback, feed-forward, orientation inputs, and implicit guidance shown in Boyd’s final sketch. “Run the loop faster” is therefore incomplete: adaptation depends on how accurately the situation is observed and oriented as well as on tempo.',
+                text: 'The four-arrow circle is a mnemonic for order. Boyd’s full sketch adds feedback, feed-forward and implicit guidance. “Run the loop faster” is incomplete: accurate observation and orientation matter as much as tempo.',
               },
             ],
           },
@@ -306,33 +283,24 @@ export function seedLibrary(): Library {
         caseStudies: [
           {
             title: 'Service incident under uncertainty',
-            scenario: 'Minutes after a software deployment, an operations team sees rising checkout failures, but the dashboards disagree about which service is responsible. The objective is to restore reliable checkout without blindly reversing unrelated changes.',
+            scenario: 'After a deployment, checkout failures rise and the dashboards disagree about which service is at fault.',
             analysis: [
               {
-                heading: 'Trace the whole loop',
+                heading: 'Walkthrough',
                 blocks: [
                   {
                     type: 'paragraph',
-                    text: 'The team first gathers current error rates, traces, deploy diffs, customer reports, and signs of downstream failure. Those observations do not dictate an answer by themselves. The team orients them using the system architecture, known dependencies, experience from earlier incidents, and the possibility that a familiar failure pattern may be misleading. It forms a bounded hypothesis: one newly changed checkout dependency is causing the failures. The decision is to canary a rollback of that dependency rather than reverse the entire release. The rollback is the test. Error rates fall but do not fully recover, creating new observations that force a revised orientation: the deployment exposed a second capacity problem. A second hypothesis and action follow from the changed picture.',
-                  },
-                ],
-              },
-              {
-                heading: 'Why the second cycle matters',
-                blocks: [
-                  {
-                    type: 'paragraph',
-                    text: 'The first action is not “completion” of the loop. Its result changes the evidence available and can invalidate the orientation that produced it. The useful habit is repeated re-observation and re-orientation as reality answers each test, rather than defending the first diagnosis because a decision was already made.',
+                    text: 'The team gathers error rates, traces and deploy diffs, reads them against the architecture and past incidents, and hypothesises one changed dependency. It canaries a rollback of that dependency only. Errors fall but not fully, so the team re-orients: the deployment also exposed a capacity problem. A second cycle follows.',
                   },
                 ],
               },
             ],
-            takeaway: 'OODA is a model for continuous adaptation under changing information: observe and orient well, treat decisions as testable hypotheses, learn from action, and update the next cycle.',
+            takeaway: 'The first action is a test, not the end: re-observe and re-orient as each result arrives.',
           },
         ],
         limitations: [
-          'OODA is a conceptual model, not a guarantee of good decisions. Boyd’s full sketch is richer than the four labels tested here.',
-          'Argus Test intentionally covers only the four stages in order and each stage’s core function. Implicit guidance, competitive strategy, tempo, and the wider theory remain explanatory context rather than completion requirements.',
+          'OODA is a conceptual model, not a guarantee of good decisions; Boyd’s full sketch is richer than the four labels tested.',
+          'Test covers only the four stages in order and each core function; implicit guidance, tempo and strategy are context, not scored.',
         ],
         sources: [
           {
@@ -360,7 +328,7 @@ export function seedLibrary(): Library {
       id: 'primary-survey',
       sequence: { groups: [{ label: 'ABCDE', letters: 'ABCDE', itemIds: ['primary-survey-item-01', 'primary-survey-item-02', 'primary-survey-item-03', 'primary-survey-item-04', 'primary-survey-item-05'] }] },
       title: 'Primary Survey',
-      scope: 'The five ABCDE headings in assessment order — Airway, Breathing, Circulation, Disability, Exposure. Test covers the headings and order only.',
+      scope: 'The five ABCDE headings in assessment order — Airway, Breathing, Circulation, Disability, Exposure. Test covers the headings and order only; not first-aid or clinical training.',
       track: 'survival',
       items: [
         { prompt: 'Step 1 (A)', answer: 'Airway' },
@@ -371,17 +339,16 @@ export function seedLibrary(): Library {
       ],
       learn: {
         kind: 'briefing',
-        overview: 'ABCDE is a structured priority sequence for the initial assessment of a seriously unwell or deteriorating person. The finite Argus boundary is deliberately narrower than clinical practice: remember the five headings and their order; use Learn only to understand why the sequence exists.',
+        overview: 'ABCDE orders the first assessment of a seriously unwell person by priority.',
         sections: [
           {
-            heading: 'Operating principles',
+            heading: 'How to use the sequence',
             blocks: [
               {
                 type: 'bullets',
                 items: [
-                  'Complete an initial ABCDE assessment and reassess regularly, especially after an intervention or a change in condition.',
-                  'Identify and address life-threatening problems before moving to the next part of the assessment, within your training and local protocol.',
-                  'Assess the effect of what was done and call for appropriate help early rather than treating ABCDE as a checklist to finish before escalation.',
+                  'Deal with life-threatening problems at each step, within your training and local protocol, before moving on.',
+                  'Reassess after every intervention or change in condition, and call for help early.',
                 ],
               },
             ],
@@ -402,47 +369,29 @@ export function seedLibrary(): Library {
               },
             ],
           },
-          {
-            heading: 'Priority sequence, not checklist completion',
-            blocks: [
-              {
-                type: 'paragraph',
-                text: 'The point of the sequence is priority. A life-threatening problem found at an early step is managed or escalated according to the responder’s training before simply proceeding down the alphabet, and the response to management is reassessed. ABCDE organizes the first pass; it does not replace diagnosis, definitive treatment, or continuing reassessment.',
-              },
-            ],
-          },
         ],
         caseStudies: [
           {
             title: 'Deterioration during supervised clinical care',
-            scenario: 'A trained clinical team is called because a patient has suddenly become less responsive and looks acutely unwell. This case illustrates sequence and reassessment only; it intentionally omits treatment techniques, thresholds, doses, and diagnosis.',
+            scenario: 'A trained clinical team is called to a patient who has become less responsive and looks acutely unwell. The case shows sequence and reassessment only.',
             analysis: [
               {
-                heading: 'Use the sequence as a priority frame',
+                heading: 'Walkthrough',
                 blocks: [
                   {
                     type: 'paragraph',
-                    text: 'The team starts with Airway rather than jumping to the most visually striking symptom. It then assesses Breathing and finds a serious abnormality. Appropriate help is called and the breathing problem is managed within training and local protocol before the team simply moves on. Breathing is reassessed to see whether the response changed the situation. The team then continues through Circulation, Disability, and Exposure. If the patient changes again, the sequence is repeated from the top because earlier priorities may have changed.',
-                  },
-                ],
-              },
-              {
-                heading: 'What the case is meant to teach',
-                blocks: [
-                  {
-                    type: 'paragraph',
-                    text: 'ABCDE supplies an order for finding immediate threats and a discipline of reassessment. It does not make an untrained person clinically competent, and completing E does not mean the patient is fully assessed or treated.',
+                    text: 'The team starts at Airway, not the most striking symptom, and finds a serious Breathing problem. It calls for help, manages that within protocol, and reassesses before moving on to Circulation, Disability and Exposure. If the patient changes again, the sequence restarts from the top.',
                   },
                 ],
               },
             ],
-            takeaway: 'Remember the order, prioritize immediate threats, reassess, and escalate appropriately; detailed clinical actions belong to formal training and current protocols, not this Test boundary.',
+            takeaway: 'Remember the order, prioritise immediate threats, reassess and escalate; clinical actions belong to formal training.',
           },
         ],
         limitations: [
-          'Argus supports memory and rehearsal only. This topic is not first-aid or clinical training, a credential, or a substitute for supervised practice and current local protocols.',
-          'Detailed examination techniques, treatment thresholds, interventions, medications, population-specific modifications, CPR algorithms, and diagnosis are outside the Test boundary.',
-          'In a real emergency or clinical deterioration, seek appropriate emergency or clinical help and act within your training and current local guidance.',
+          'Memory and rehearsal only: not first-aid or clinical training, a credential, or a substitute for supervised practice and local protocols.',
+          'Examination technique, treatment thresholds, interventions, medications, CPR algorithms and diagnosis are outside the Test boundary.',
+          'In a real emergency, seek emergency or clinical help and act within your training and current local guidance.',
         ],
         sources: [
           {
@@ -573,7 +522,7 @@ export function seedLibrary(): Library {
       ],
       learn: {
         kind: 'briefing',
-        overview: 'The useful part of scuba gear vocabulary is not memorizing isolated initials; it is knowing where each label sits in the equipment system. A cylinder holds high-pressure breathing gas. The regulator first stage reduces that pressure and distributes gas to the breathing, buoyancy and pressure-monitoring components. Surface-signalling and propulsion equipment sit outside that breathing-gas path. This topic teaches that system map and its common shorthand only.',
+        overview: 'The regulator reduces cylinder pressure for breathing and buoyancy equipment. Surface-signalling and propulsion devices sit outside that gas path.',
         sections: [
           {
             heading: 'Breathing-gas path',
@@ -581,12 +530,12 @@ export function seedLibrary(): Library {
               {
                 type: 'steps',
                 items: [
-                  'The cylinder and valve hold and release breathing gas at high pressure (HP).',
-                  'The regulator first stage attaches to the cylinder valve and reduces cylinder pressure to intermediate pressure (IP).',
-                  'A primary second stage — also called a demand valve (DV) — reduces that gas to surrounding ambient pressure and supplies it when the diver inhales.',
-                  'An alternate air source (AAS), commonly an alternate second stage or “octopus” in recreational open-circuit setups, provides a second breathing-gas outlet for gas sharing.',
-                  'A submersible pressure gauge (SPG), or an equivalent pressure transmitter/display, reads the cylinder-pressure side so the diver can monitor the remaining gas supply.',
-                  'Low-pressure (LP) outlets also supply devices such as the BCD low-pressure inflator (LPI), and may supply a dry-suit inflator where that equipment is used.',
+                  'Cylinder and valve: store and release high-pressure (HP) breathing gas.',
+                  'First stage: attaches to the valve and reduces HP to intermediate pressure (IP).',
+                  'Second stage, or demand valve (DV): supplies gas at ambient pressure on inhalation.',
+                  'Alternate air source (AAS): backup for gas sharing, commonly an alternate second stage (“octopus”).',
+                  'SPG or transmitter/display: monitors cylinder pressure and remaining gas supply.',
+                  'Low-pressure (LP) outlets: supply the BCD inflator (LPI) and, where fitted, dry-suit inflator.',
                 ],
               },
             ],
@@ -644,19 +593,19 @@ export function seedLibrary(): Library {
               {
                 type: 'bullets',
                 items: [
-                  'DIN describes the screw-in regulator/cylinder-valve connection. The common alternative is a yoke or bracket connection; adapters exist between some configurations.',
-                  '“Regulator” can mean the complete regulator set or, informally, the second stage alone. “Reg” is common shorthand.',
-                  '“Octopus”, “octo” or “occy” commonly refers to an alternate second stage. AAS is the broader functional term: alternate air source.',
-                  '“Tank”, “cylinder” and “bottle” may all be heard. “Cylinder” is the more precise equipment term; none of these names means the cylinder necessarily contains pure oxygen.',
+                  'DIN screws into the cylinder valve; yoke/bracket is the common alternative. Some configurations accept adapters.',
+                  '“Regulator” or “reg” may mean the whole set or just the second stage.',
+                  '“Octopus”, “octo” and “occy” mean alternate second stage; AAS is broader.',
+                  '“Tank” and “bottle” mean cylinder, not necessarily pure oxygen.',
                 ],
               },
             ],
           },
         ],
         limitations: [
-          'Argus supports vocabulary, system recognition and memory rehearsal only. This topic is not diver training, certification, an equipment-selection guide, a pre-dive checklist, a maintenance procedure or a substitute for a qualified instructor, dive professional, manufacturer manual or local dive operator.',
-          'Knowing an abbreviation does not establish competence in assembly, inspection, gas management, buoyancy control, emergency response, DSMB deployment, regulator configuration, servicing or ascent decisions. Those require appropriate instruction and current equipment-specific procedures.',
-          'Terminology varies between agencies, regions and equipment configurations. The Learn notes call out common synonyms rather than treating one brand or regional term as universal.',
+          'Vocabulary only, not diver training, certification, equipment selection, a pre-dive checklist, maintenance, or a substitute for instructors, dive professionals, manufacturer manuals and local operators.',
+          'Assembly, inspection, gas management, buoyancy, emergencies, DSMB deployment, regulator configuration, servicing and ascent decisions require instruction and current equipment-specific procedures.',
+          'Terminology varies by agency, region and equipment; synonyms here are common, not universal.',
         ],
         sources: [
           {
@@ -723,7 +672,7 @@ export function seedLibrary(): Library {
       items: RADIOTELEPHONY_NUMBERS.map(([prompt, answer]) => ({ prompt, answer })),
       learn: {
         kind: 'concise',
-        overview: 'Formal radiotelephony gives each digit a fixed spoken form — TREE, FIFE and NIN-er rather than three, five and nine — and set words for the decimal point, hundreds and thousands. These are the forms Innovation, Science and Economic Development Canada prints for aeronautical radio, right after the phonetic alphabet — the same code words as the NATO topic.',
+        overview: 'Canadian aeronautical radio uses fixed spoken forms, including TREE, FIFE and NIN-er, plus decimal, hundred and thousand.',
         sections: [
           {
             heading: 'How numbers are said on air',
@@ -731,18 +680,18 @@ export function seedLibrary(): Library {
               {
                 type: 'bullets',
                 items: [
-                  'Every number except a whole thousand is said one digit at a time: 75 is “seven five”, and 5,800 is “five eight zero zero”.',
-                  'A whole thousand is the digits of the thousands followed by “thousand”: 11,000 is “one one thousand”.',
-                  'A decimal point is said as “decimal”: 121.5 is “one two one decimal five”.',
-                  'RIC-21 sets further conventions for altitudes, flight levels, headings, wind, time and aircraft types. Those, and these grouping rules, are not scored here.',
+                  'Except whole thousands, say digits separately: 75 is “seven five”; 5,800 is “five eight zero zero”.',
+                  'Whole thousands: digits then “thousand”; 11,000 is “one one thousand”.',
+                  'Use “decimal”: 121.5 is “one two one decimal five”.',
+                  'RIC-21 also covers altitudes, flight levels, headings, wind, time and aircraft types. Grouping and these conventions are unscored.',
                 ],
               },
             ],
           },
         ],
         limitations: [
-          'Completion means you can recall these 13 spoken forms. It is not a radio operator certificate, radio training or permission to transmit.',
-          'The forms are sourced to Canadian aeronautical radiotelephony. Marine, amateur, public-safety and other radio services publish their own procedures, which this topic does not cover.',
+          'Recall only, not radio training, an operator certificate or permission to transmit.',
+          'Canadian aeronautical forms only; marine, amateur, public-safety and other services have separate procedures.',
         ],
         sources: [
           {
@@ -769,7 +718,7 @@ export function seedLibrary(): Library {
       items: SI_PREFIXES.map(([prompt, answer]) => ({ prompt, answer })),
       learn: {
         kind: 'concise',
-        overview: 'An SI prefix multiplies a unit by a power of ten: a kilometre is 10³ metres and a picosecond is 10⁻¹² seconds. The BIPM lists 24 prefixes, from quetta (10³⁰) down to quecto (10⁻³⁰). The outermost two at each end — ronna and quetta, ronto and quecto — were added in 2022.',
+        overview: 'SI prefixes multiply units by powers of ten. Ronna, quetta, ronto and quecto were added in 2022.',
         sections: [
           {
             heading: 'Patterns that carry most of the load',
@@ -777,18 +726,18 @@ export function seedLibrary(): Library {
               {
                 type: 'bullets',
                 items: [
-                  'Above kilo and below milli, each prefix is a step of 10³. Only hecto, deca, deci and centi sit between 10³ and 10⁻³, one power of ten apart.',
-                  'Symbols are case-sensitive. Apart from da, h and k, every multiple has an upper-case symbol and every sub-multiple a lower-case one, so M (mega) and m (milli), P (peta) and p (pico), Z and z, Y and y, R and r, Q and q are different prefixes.',
-                  'Deca is the only two-letter symbol (da). Micro is the Greek letter mu (µ).',
-                  'Prefix names are written in lower case, and a prefix symbol joins its unit symbol with no space: pm, mmol, GΩ, THz.',
+                  'Above kilo and below milli, steps are 10³. Between them, hecto, deca, deci and centi step by one power.',
+                  'Symbols are case-sensitive: multiples use capitals except da, h, k; sub-multiples use lower case. M (mega) differs from m (milli).',
+                  'Deca alone has two letters (da); micro uses Greek mu (µ).',
+                  'Names use lower case. Join prefix and unit without a space: pm, mmol, GΩ, THz.',
                 ],
               },
             ],
           },
         ],
         limitations: [
-          'Completion means you can give the name and symbol for each of the 24 powers of ten. The reverse (symbol → power), unit conversion and the SI rules for writing quantities are not tested.',
-          'SI prefixes are strictly powers of ten. The binary prefixes used for computer memory — kibi (Ki) for 2¹⁰, mebi (Mi) for 2²⁰ and so on — are a separate IEC set and are not part of this topic.',
+          'Reverse recall, unit conversion and rules for writing quantities are not tested.',
+          'IEC binary prefixes, such as kibi (Ki, 2¹⁰) and mebi (Mi, 2²⁰), are separate from SI and excluded.',
         ],
         sources: [
           {
@@ -815,7 +764,7 @@ export function seedLibrary(): Library {
       items: GREEK_LETTERS.map(([prompt, answer]) => ({ prompt, answer })),
       learn: {
         kind: 'concise',
-        overview: 'The Greek alphabet has 24 letters. Mathematics, science and engineering borrow most of them as symbols, usually in the small form — π, λ, σ, μ, Δ — so seeing a letter and naming it is the everyday need. That is the direction this topic tests.',
+        overview: 'Greek letters appear as symbols in mathematics, science and engineering. Small forms often distinguish letters whose capitals resemble Latin ones.',
         sections: [
           {
             heading: 'Where letters are easy to confuse',
@@ -823,18 +772,18 @@ export function seedLibrary(): Library {
               {
                 type: 'bullets',
                 items: [
-                  'Many capitals share their shape with Latin letters — Α, Β, Ε, Ζ, Η, Ι, Κ, Μ, Ν, Ο, Ρ, Τ, Υ, Χ — so the small form is usually what identifies the letter.',
-                  'Some small forms look like Latin letters with other names: η (eta) is not n, ν (nu) is not v, ρ (rho) is not p, χ (chi) is not x, and ω (omega) is not w.',
-                  'ζ (zeta) and ξ (xi) are easily swapped, and so are ν (nu) and υ (upsilon).',
-                  'Sigma has two small forms: σ, and ς, the final sigma written at the end of a word.',
+                  'Latin-like capitals: Α, Β, Ε, Ζ, Η, Ι, Κ, Μ, Ν, Ο, Ρ, Τ, Υ, Χ.',
+                  'Latin-like small forms: η (eta), ν (nu), ρ (rho), χ (chi), ω (omega) are not n, v, p, x, w.',
+                  'Compare ζ (zeta) with ξ (xi), and ν (nu) with υ (upsilon).',
+                  'Sigma: σ normally; ς at a word’s end.',
                 ],
               },
             ],
           },
         ],
         limitations: [
-          'Completion means you can name each letter when you see it. Writing a letter from its name is not tested, and knowing the letters is not reading, writing or speaking Greek.',
-          'The names are the conventional English ones used in mathematics and science, not a guide to Greek pronunciation. The order below is alphabetical but is not scored.',
+          'Recognition only, not writing letters from names or reading, writing or speaking Greek.',
+          'Conventional English names, not Greek pronunciation. Alphabetical order is not scored.',
         ],
         sources: [
           {
@@ -864,7 +813,7 @@ export function seedLibrary(): Library {
       })),
       learn: {
         kind: 'concise',
-        overview: 'One hexadecimal digit stands for exactly four bits, so a byte is always two hex digits: C3 is 1100 0011. Knowing the 16 patterns by heart turns hex dumps, bit masks and colour codes into bits without counting.',
+        overview: 'One hex digit represents four bits; a byte is two hex digits. C3 is 1100 0011.',
         sections: [
           {
             heading: 'Reading a pattern from its place values',
@@ -872,16 +821,16 @@ export function seedLibrary(): Library {
               {
                 type: 'bullets',
                 items: [
-                  'The four bits are worth 8, 4, 2 and 1 from left to right. Add the places that hold a 1: 1011 is 8 + 2 + 1 = 11, which is B.',
-                  'The letters A to F stand for the values 10 to 15. Upper and lower case mean the same digit.',
-                  'Anchors that make the rest quick: 1, 2, 4 and 8 are the single-bit patterns (0001, 0010, 0100, 1000); 7 is 0111 and F is 1111.',
+                  'Bit weights, left to right: 8, 4, 2, 1. Add set bits: 1011 = 8 + 2 + 1 = 11 = B.',
+                  'A–F mean 10–15; upper and lower case are equivalent.',
+                  'Single-bit anchors: 1 = 0001, 2 = 0010, 4 = 0100, 8 = 1000. Also 7 = 0111; F = 1111.',
                 ],
               },
             ],
           },
         ],
         limitations: [
-          'Completion means you can give the four-bit pattern for each of the 16 hex digits. Binary → hex, longer numbers, signed representations and binary arithmetic are not tested.',
+          'Binary → hex, longer numbers, signed representations and binary arithmetic are not tested.',
         ],
         sources: [
           {
@@ -908,7 +857,7 @@ export function seedLibrary(): Library {
       items: BEAUFORT.map(([prompt, answer]) => ({ prompt, answer })),
       learn: {
         kind: 'concise',
-        overview: 'The Beaufort scale grades wind from force 0, calm, to force 12, hurricane. Each force has a name, a speed range in knots and effects that can be seen at sea and on land, so wind can be estimated by looking and a forecast speed can be pictured. The name and knot range are what Test asks; the effects below are for estimating.',
+        overview: 'Beaufort links wind forces with knot ranges and observed effects at sea and on land.',
         sections: [
           beaufortVisualGuide,
           {
@@ -934,8 +883,8 @@ export function seedLibrary(): Library {
           },
         ],
         limitations: [
-          'A memory aid for estimating and describing wind. It is not a forecast and is no substitute for current marine forecasts and warnings, or for seamanship judgement.',
-          'Completion means you can give the term and knot range for each force. The observed effects, km/h and other units, wave heights and the reverse (speed → force) are not tested.',
+          'A memory aid, not a forecast or a substitute for current marine forecasts, warnings and seamanship judgement.',
+          'Observed effects, other units, wave heights and reverse recall (speed → force) are not tested.',
         ],
         sources: [
           {
@@ -973,31 +922,21 @@ export function seedLibrary(): Library {
       items: ACTS_PROVE.map(([prompt, answer]) => ({ prompt, answer })),
       learn: {
         kind: 'briefing',
-        overview: 'ACTS and PROVE are the safety core of the Canadian Firearms Safety Course. ACTS is four rules applied together, every time a firearm is handled. Its last rule — see that the firearm is unloaded — is carried out by PROVE, five steps in a fixed order. Test asks for the wording and order of all nine; the handbook rules below explain how they work together and are not scored.',
+        overview: 'ACTS is four rules applied together every time a firearm is handled. Its last rule is carried out by PROVE, five steps in a fixed order.',
         sections: [
           {
-            heading: 'How the two fit together',
+            heading: 'Handbook rules',
             blocks: [
               {
                 type: 'bullets',
                 items: [
-                  'The handbook calls ACTS the four rules an instructor returns to time and again, and notes that whenever an incident occurs, at least one of them has been broken.',
-                  'ACTS starts from an assumption, not a check: every firearm is treated as loaded, so the muzzle and trigger rules apply before anyone knows its condition.',
-                  'S is done through PROVE. Both the chamber and the magazine are checked, every time a firearm is handled, for any reason.',
-                ],
-              },
-            ],
-          },
-          {
-            heading: 'Rules the handbook attaches',
-            blocks: [
-              {
-                type: 'bullets',
-                items: [
+                  'Whenever an incident occurs, at least one ACTS rule has been broken.',
+                  'ACTS starts from an assumption, not a check: treat every firearm as loaded, so the muzzle and trigger rules apply before its condition is known.',
+                  'S is done through PROVE: check both chamber and magazine, every time a firearm is handled, for any reason.',
                   'Pass or accept only open and unloaded firearms.',
-                  'A firearm is unloaded and safe only until it leaves the direct control of the person who unloaded and PROVEd it safe.',
-                  'Never rely on the safety to prevent firing. A loaded firearm with the safety on could still fire; mechanical devices can fail.',
-                  'Do not handle a firearm unless you can properly PROVE it safe. Do not attempt to handle one you are uncomfortable handling — seek the assistance of a qualified individual.',
+                  'A firearm is unloaded and safe only until it leaves the direct control of the person who PROVEd it.',
+                  'Never rely on the safety: a loaded firearm with the safety on could still fire.',
+                  'If you cannot properly PROVE a firearm safe, do not handle it; ask a qualified individual.',
                 ],
               },
             ],
@@ -1006,25 +945,25 @@ export function seedLibrary(): Library {
         caseStudies: [
           {
             title: 'A firearm handed over as “already checked”',
-            scenario: 'At a supervised range, a friend holds out a rifle with the action closed and says it is unloaded — they checked it a minute ago. This case is about the rules only; it deliberately leaves out how any particular action is opened or inspected.',
+            scenario: 'At a supervised range, a friend holds out a rifle with the action closed and says it is unloaded: they checked it a minute ago.',
             analysis: [
               {
-                heading: 'Apply the rules as a whole',
+                heading: 'Walkthrough',
                 blocks: [
                   {
                     type: 'paragraph',
-                    text: 'ACTS comes first: assume the rifle is loaded, keep its muzzle in the safest available direction and keep your finger off the trigger and out of the trigger guard. The handbook rule is to accept only an open and unloaded firearm, so a closed action is already the first problem. The friend’s check does not transfer to you: the rifle was unloaded and safe only while it stayed in their direct control. Seeing that it is unloaded is now your job, through PROVE, step by step. If you do not know how to open and check this rifle, you do not improvise — you ask the range officer or another qualified person.',
+                    text: 'Assume it is loaded: muzzle safe, finger off the trigger. A closed action already breaks the accept-only-open-and-unloaded rule, and the friend’s check does not transfer. PROVE it yourself, or ask the range officer if you cannot open it.',
                   },
                 ],
               },
             ],
-            takeaway: 'Safe status is established by the person holding the firearm, through the whole sequence, every time. It is never inherited from someone else’s word.',
+            takeaway: 'Safe status is established by the person holding the firearm, every time, never inherited from someone else’s word.',
           },
         ],
         limitations: [
-          'Argus supports memory and rehearsal only. Completing this topic is not the Canadian Firearms Safety Course, does not pass its written or practical tests, does not qualify you for a firearms licence and does not show that you can handle a firearm safely.',
-          'Handling, loading, unloading and inspecting real firearms is taught and tested hands-on by a certified CFSC instructor. Learn those there, not from a screen. This topic teaches nothing about shooting, tactics or use of force.',
-          'The wording is pinned to the 2014 Student Handbook, which Ontario’s course provider still directs students to as of September 2026. The RCMP is rolling out a new national safety curriculum from 2026; if your course words the rules differently, follow your course.',
+          'Memory and rehearsal only: not the Canadian Firearms Safety Course, not a licence qualification, not proof you can handle a firearm safely.',
+          'Handling and inspecting real firearms is taught hands-on by a certified CFSC instructor. This topic teaches nothing about shooting, tactics or use of force.',
+          'Wording follows the 2014 Student Handbook; a new national curriculum rolls out from 2026. If your course differs, follow your course.',
         ],
         sources: [
           {

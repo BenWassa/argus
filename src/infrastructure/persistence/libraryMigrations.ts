@@ -7,6 +7,7 @@ import {
   catalogDefinition,
   catalogDefinitions,
   freshCatalogTopic,
+  inferredOrigin,
   reconcileCatalog,
   topicOrigin,
   type CatalogReconciliation,
@@ -132,6 +133,27 @@ export function renameShippedTitles(library: CurrentLibrary): CurrentLibrary {
   return changed ? { ...library, topics } : library
 }
 
+/** Exact former safety scopes; this changes presentation, never the recall claim. */
+const PREVIOUS_SHIPPED_SCOPES: Readonly<Record<string, readonly string[]>> = {
+  'primary-survey': [
+    'The five ABCDE headings in assessment order — Airway, Breathing, Circulation, Disability, Exposure. Test covers the headings and order only.',
+  ],
+}
+
+/** Carry the visible safety boundary to unchanged catalog copies, preserving custom scopes and progress. */
+export function refreshShippedScopes(library: CurrentLibrary): CurrentLibrary {
+  let changed = false
+  const topics = library.topics.map((topic) => {
+    if (!PREVIOUS_SHIPPED_SCOPES[topic.id]?.includes(topic.scope) ||
+      topicOrigin(topic) !== 'catalog' || inferredOrigin(topic) !== 'catalog') return topic
+    const definition = catalogDefinition(topic.id)
+    if (!definition || definition.scope === topic.scope) return topic
+    changed = true
+    return { ...topic, scope: definition.scope }
+  })
+  return changed ? { ...library, topics } : library
+}
+
 /**
  * Shipped topics whose Learn content has been rewritten since first shipping.
  * Delivery never rewrites a topic a library already holds, so new explanatory
@@ -140,6 +162,23 @@ export function renameShippedTitles(library: CurrentLibrary): CurrentLibrary {
 const REFRESHED_LEARN_TOPIC_IDS: readonly string[] = [
   // #128: sea and land tables became one entry per force.
   'beaufort-wind-scale',
+  // #166: prose trimmed to the main content.
+  'ooda-loop',
+  'primary-survey',
+  'firearm-safety-acts-prove',
+  'whole-circle-bearings',
+  'reciprocal-bearings',
+  'north-references-declination',
+  'grid-north-map-bearings',
+  'navigation-lights',
+  'vessel-day-shapes',
+  'signal-flags',
+  'scuba-equipment-abbreviations',
+  'radiotelephony-numbers',
+  'si-prefixes',
+  'greek-alphabet',
+  'hex-digits-binary',
+  'international-morse-letters-printed',
 ]
 
 /**
@@ -155,10 +194,8 @@ export function refreshShippedLearn(library: CurrentLibrary): CurrentLibrary {
   const topics = library.topics.map((topic) => {
     if (!REFRESHED_LEARN_TOPIC_IDS.includes(topic.id) || topicOrigin(topic) !== 'catalog') return topic
     const definition = catalogDefinition(topic.id)
-    if (!definition?.learn || topic.items.length !== definition.items.length) return topic
-    const sameItems = topic.items.every((item, index) =>
-      item.prompt === definition.items[index].prompt && item.answer === definition.items[index].answer)
-    if (!sameItems || JSON.stringify(topic.learn) === JSON.stringify(definition.learn)) return topic
+    if (!definition?.learn || inferredOrigin(topic) !== 'catalog') return topic
+    if (JSON.stringify(topic.learn) === JSON.stringify(definition.learn)) return topic
     changed = true
     return { ...topic, learn: definition.learn }
   })
@@ -282,7 +319,7 @@ export function reconcileLoadedLibrary(
 ): { library: CurrentLibrary; report: CatalogReconciliation } {
   return reconcileCatalog(
     refreshShippedLearn(
-      renameShippedTitles(upgradeSeededScubaEquipment(absorbSeededMorseBaseline(library))),
+      refreshShippedScopes(renameShippedTitles(upgradeSeededScubaEquipment(absorbSeededMorseBaseline(library)))),
     ),
     now,
   )

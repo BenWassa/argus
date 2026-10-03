@@ -31,20 +31,17 @@ const COLREGS = {
   note: 'Rule 27(e) requires a rigid replica of Code flag A in a specified diving-operation case, an independent confirmation of the meaning of A.',
 }
 
-const GROUPS: { heading: string; intro: string; group: SignalFlag['group'] }[] = [
+const GROUPS: { heading: string; group: SignalFlag['group'] }[] = [
   {
     heading: 'Warnings to others',
-    intro: 'These tell other vessels to keep clear, stop or take care.',
     group: 'warning',
   },
   {
     heading: 'Vessel state',
-    intro: 'These state what the flying vessel is doing or what has happened to it.',
     group: 'state',
   },
   {
     heading: 'Assistance',
-    intro: 'These ask for help.',
     group: 'assistance',
   },
 ]
@@ -75,12 +72,11 @@ function entry(flag: SignalFlag): LearnEntry {
 const learn: LearnContent = {
   kind: 'concise',
   overview:
-    'The International Code of Signals gives every letter a flag, and a few letters a meaning of their own when flown alone. These twelve are worth recognizing first because they say something urgent: a hazard, a warning, a vessel in difficulty or a request for help. The whole Code, the numeral pennants and the two-letter signals are far larger and are not covered.',
+    'Single-letter flags communicate warnings, vessel states and requests for assistance. The published International Code governs their meanings.',
   sections: [
-    ...GROUPS.map(({ heading, intro, group }) => ({
+    ...GROUPS.map(({ heading, group }) => ({
       heading,
       blocks: [
-        { type: 'paragraph' as const, text: intro },
         { type: 'entries' as const, entries: SIGNAL_FLAGS.filter((flag) => flag.group === group).map(entry) },
       ],
     })),
@@ -90,11 +86,11 @@ const learn: LearnContent = {
         {
           type: 'bullets',
           items: [
-            'D, F and M: manoeuvring with difficulty, disabled, and stopped and making no way. Their flags are different too: yellow-blue-yellow bands, a red diamond on white, and a white cross on blue.',
-            'U, V and W: you are running into danger, assistance required, and medical assistance required. Look at the pattern: red and white quarters, a red cross on white, and nested rectangles.',
-            'B and J: carrying dangerous goods, and on fire or leaking with dangerous cargo. One is plain red; the other is blue, white, blue.',
-            'L and M: you should stop your vessel, and my vessel is stopped. One is addressed to another vessel; the other describes your own.',
-            'A and O: a diver down, and a man overboard. Half white and half blue against a diagonal split of red and yellow.',
+            'D: manoeuvring with difficulty; F: disabled; M: stopped and making no way. Compare bands, diamond and cross.',
+            'U: danger; V: assistance; W: medical assistance. Compare quarters, cross and nested rectangles.',
+            'B: dangerous goods; J: fire or dangerous-cargo leak. Plain red versus blue-white-blue.',
+            'L tells another vessel to stop; M describes your own stopped vessel.',
+            'A: diver down; O: man overboard. White-blue halves versus red-yellow diagonal.',
           ],
         },
       ],
@@ -111,9 +107,9 @@ const learn: LearnContent = {
     },
   ],
   limitations: [
-    'These twelve are an Argus editorial selection of the International Code’s single-letter signals, not an official sub-code. A flag can also carry other meanings in other contexts, and the published Code governs.',
-    'The flags are drawn by Argus from the International Code’s designs. Learning to recognize them is not signalling procedure, and completing this topic is not a maritime qualification.',
-    'Essential information is always the text: the letter, the name, the meaning and the design description. The picture only adds recognition.',
+    'An Argus selection, not an official sub-code. Flags may have other contextual meanings; the published Code governs.',
+    'Argus drawings follow Code designs. Recognition is not signalling procedure or a maritime qualification.',
+    'Letter, name, meaning and design remain text; pictures add recognition.',
   ],
   sources: [IMO_ICS, NGA_ICS, COLREGS],
 }

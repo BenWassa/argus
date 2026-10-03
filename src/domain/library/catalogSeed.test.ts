@@ -80,7 +80,7 @@ describe('researched seeded library', () => {
     expect(topic.history).toEqual([])
     expect(topic.learn?.kind).toBe('concise')
     expect(topic.items.every((item) => item.kind === 'bidirectional')).toBe(true)
-    expect(topic.learn?.overview).toContain('does not claim auditory reception')
+    expect(topic.learn?.limitations?.some(note => note.includes('not listening, sending'))).toBe(true)
     expect(topic.learn?.sources?.[0].url).toBe('https://www.itu.int/rec/R-REC-M.1677-1-200910-I/en')
   })
 
@@ -104,7 +104,7 @@ describe('researched seeded library', () => {
     expect(topic.learn?.kind).toBe('briefing')
     expect(topic.learn?.caseStudies).toHaveLength(1)
     expect(topic.learn?.sources?.length).toBeGreaterThanOrEqual(1)
-    expect(topic.learn?.limitations?.some((note) => note.includes('Test intentionally covers only'))).toBe(true)
+    expect(topic.learn?.limitations?.some((note) => note.includes('Test covers only'))).toBe(true)
   })
 
   it('keeps Primary Survey scoring to the five ABCDE headings and order', () => {
@@ -197,7 +197,7 @@ describe('researched seeded library', () => {
     expect(topic.history).toEqual([])
     expect(topic.scope).toContain('radio procedure are not scored')
     expect(topic.learn?.kind).toBe('concise')
-    expect(topic.learn?.limitations?.some((note) => note.includes('not a radio operator certificate'))).toBe(true)
+    expect(topic.learn?.limitations?.some((note) => note.includes('not radio training, an operator certificate'))).toBe(true)
     expect(topic.learn?.sources?.[0].url).toContain('ric-21')
   })
 
@@ -244,7 +244,7 @@ describe('researched seeded library', () => {
     expect(topic.items.every((item) => item.kind === 'forward')).toBe(true)
     expect(topic.status).toBe('unstarted')
     expect(topic.learn?.kind).toBe('concise')
-    expect(topic.learn?.limitations?.some((note) => note.includes('not reading, writing or speaking Greek'))).toBe(true)
+    expect(topic.learn?.limitations?.some((note) => note.includes('or reading, writing or speaking Greek'))).toBe(true)
     expect(topic.learn?.sources?.[0].url).toBe('https://www.unicode.org/charts/PDF/U0370.pdf')
   })
 
@@ -338,9 +338,35 @@ describe('researched seeded library', () => {
     expect(topic.learn?.kind).toBe('briefing')
     expect(topic.learn?.caseStudies).toHaveLength(1)
     const limits = topic.learn?.limitations ?? []
-    expect(limits.some((note) => note.includes('is not the Canadian Firearms Safety Course'))).toBe(true)
+    expect(limits.some((note) => note.includes('not the Canadian Firearms Safety Course'))).toBe(true)
     expect(limits.some((note) => note.includes('nothing about shooting, tactics or use of force'))).toBe(true)
     expect(limits.some((note) => note.includes('follow your course'))).toBe(true)
     expect(topic.learn?.sources?.[0].url).toContain('publications.gc.ca')
+  })
+})
+
+/** #166: shipped Learn text that has been trimmed stays inside its budget. */
+describe('trimmed Learn prose', () => {
+  const words = (text: string | undefined) => (text ? text.trim().split(/\s+/).length : 0)
+  type Block = NonNullable<NonNullable<ReturnType<typeof seededTopic>['learn']>['sections']>[number]['blocks'][number]
+  const blockWords = (block: Block): number =>
+    block.type === 'paragraph' ? words(block.text)
+      : (block.type === 'bullets' || block.type === 'steps') ? block.items.reduce((n, i) => n + words(i), 0)
+        : 0
+
+  // Prose budgets exclude definitions, tables, entries and visual references.
+  it.each(['ooda-loop', 'primary-survey', 'firearm-safety-acts-prove', 'whole-circle-bearings', 'reciprocal-bearings', 'north-references-declination', 'grid-north-map-bearings', 'navigation-lights', 'vessel-day-shapes', 'signal-flags', 'beaufort-wind-scale', 'scuba-equipment-abbreviations', 'radiotelephony-numbers', 'si-prefixes', 'greek-alphabet', 'hex-digits-binary', 'international-morse-letters-printed'])('keeps %s compact', (id) => {
+    const learn = seededTopic(id).learn!
+    const sections = (learn.sections ?? []).flatMap((section) => section.blocks).reduce((n, b) => n + blockWords(b), 0)
+    const cases = (learn.caseStudies ?? []).reduce(
+      (n, c) => n + words(c.scenario) + words(c.takeaway) + c.analysis.flatMap((s) => s.blocks).reduce((m, b) => m + blockWords(b), 0),
+      0,
+    )
+
+    expect(words(learn.overview)).toBeLessThanOrEqual(30)
+    expect(sections).toBeLessThanOrEqual(learn.kind === 'concise' ? 90 : 130)
+    expect(cases).toBeLessThanOrEqual(90)
+    expect(learn.limitations?.length).toBeLessThanOrEqual(3)
+    learn.limitations?.forEach((note) => expect(words(note)).toBeLessThanOrEqual(25))
   })
 })

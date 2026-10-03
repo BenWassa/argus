@@ -52,10 +52,10 @@ const NOAA_NAVIGATION = {
 }
 
 const EDITORIAL_CONVENTIONS =
-  'Three-digit bearings with a T, M or G suffix, the signed grid-convergence convention (east of true north positive) and the exercise banks are Argus editorial choices for consistent practice, not quotations from one publication.'
+  'Three-digit T/M/G notation, east-positive grid convergence and practice banks are Argus conventions, not quotations. Practice offsets are invented, not current local values.'
 
 const NOT_NAVIGATION =
-  'Completing this topic does not show that you can navigate safely: it does not cover holding, levelling or sighting a compass, taking a field bearing, walking an azimuth, resection, terrain association, GPS use, finding a current local declination, or navigating in low visibility, emergencies or the Canadian Arctic.'
+  'Recall does not show that you can navigate safely: compass handling, fieldwork, resection, terrain, GPS, current declination, low visibility, emergencies and Arctic travel are excluded.'
 
 function dial(
   pointers: { bearing: number; label?: string }[],
@@ -98,7 +98,7 @@ const WHOLE_CIRCLE_ID = 'whole-circle-bearings'
 const wholeCircleLearn: LearnContent = {
   kind: 'concise',
   overview:
-    'Builds on Compass Bearings, which gives the eight named points. A whole-circle bearing is any direction from 000° to 359°, measured clockwise from the stated north. This topic is about reading that angle off a diagram and finding the ray for a given bearing. Because its claim is about diagrams, it is a visual topic.',
+    'A whole-circle bearing is measured clockwise from the stated north, from 000° to 359°.',
   sections: [
     {
       heading: 'Reading a bearing',
@@ -107,8 +107,8 @@ const wholeCircleLearn: LearnContent = {
           type: 'bullets',
           items: [
             'Bearings increase clockwise from north: east is 090°, south 180°, west 270°.',
-            'Write them with three digits: 005°, not 5°. Answers here are always 000° to 359°; 360° is the same direction as 000° after a full turn.',
-            'Name the north the bearing is measured from. A suffix does it: 037°T is measured from true north. Here every bearing is from true north.',
+            'Use three digits: 005°. A full turn, 360°, is written 000°.',
+            'Name the reference: 037°T means true north, used throughout this topic.',
           ],
         },
         visual(
@@ -123,7 +123,7 @@ const wholeCircleLearn: LearnContent = {
       blocks: [
         {
           type: 'paragraph',
-          text: 'Before you pick a number, place the ray in a quadrant. It catches most mistakes, such as reading from the wrong end of a line or counting anticlockwise.',
+          text: 'Check the quadrant before reading the angle; count clockwise from north.',
         },
         {
           type: 'table',
@@ -142,7 +142,7 @@ const wholeCircleLearn: LearnContent = {
       blocks: [
         {
           type: 'paragraph',
-          text: 'Rays near north are easy to confuse. 005° and 355° are only 10° apart, on opposite sides of north. One is just east of north; the other is just west.',
+          text: '005° is just east of north; 355° is just west. They are 10° apart.',
         },
         visual(
           dial([{ bearing: 5, label: '005°' }, { bearing: 355, label: '355°' }], { reference: 'T', quadrantGuides: true }),
@@ -153,7 +153,7 @@ const wholeCircleLearn: LearnContent = {
     },
   ],
   limitations: [
-    'This topic is explicitly visual: it asks you to read and choose bearings in diagrams. The diagram cannot be replaced by a description without giving the answer away, so it does not claim to be fully usable without sight; reciprocal and declination calculations in the following topics can be done from text alone.',
+    'Visual diagram questions require sight; descriptions would reveal answers. Reciprocal and declination calculations in the following topics work from text alone.',
     EDITORIAL_CONVENTIONS,
     NOT_NAVIGATION,
   ],
@@ -167,7 +167,7 @@ const RECIPROCAL_ID = 'reciprocal-bearings'
 const reciprocalLearn: LearnContent = {
   kind: 'concise',
   overview:
-    'The reciprocal, or back bearing, is the opposite direction along the same line. If you walk from A to B on a bearing, the bearing from B back to A is the reciprocal. It is always measured from the same north.',
+    'A reciprocal, or back bearing, points the opposite way along the same line, measured from the same north.',
   sections: [
     {
       heading: 'The rule',
@@ -176,13 +176,13 @@ const reciprocalLearn: LearnContent = {
           type: 'steps',
           items: [
             'Add 180° to the bearing.',
-            'If the result is 360° or more, subtract 360° so it lies between 000° and 359°.',
-            'Keep the reference: a true bearing gives a true reciprocal, a magnetic bearing a magnetic one, a grid bearing a grid one.',
+            'At 360° or more, subtract 360° to return to 000°–359°.',
+            'Keep the same north reference: true, magnetic or grid.',
           ],
         },
         {
           type: 'paragraph',
-          text: 'The same thing as a mental shortcut: below 180°, add 180°; at 180° or above, subtract 180°. It is one rule in two steps, not a second rule.',
+          text: 'Shortcut: below 180°, add 180°; otherwise subtract 180°.',
         },
         {
           type: 'table',
@@ -216,7 +216,7 @@ const reciprocalLearn: LearnContent = {
     },
   ],
   limitations: [
-    'Reciprocals are calculated on one north reference. Converting between true, magnetic and grid north is a separate step, taught in the next topics.',
+    'A reciprocal keeps its north reference. Converting between true, magnetic and grid north is a separate step.',
     EDITORIAL_CONVENTIONS,
     NOT_NAVIGATION,
   ],
@@ -230,7 +230,7 @@ const NORTH_REFERENCES_ID = 'north-references-declination'
 const northReferencesLearn: LearnContent = {
   kind: 'briefing',
   overview:
-    'A compass does not point to true north. Bearings can be measured from true north, magnetic north or, on a map, grid north, and the same line has a different number against each. Converting between true and magnetic bearings needs the declination, and here it is always supplied.',
+    'The same line has different bearings from true, magnetic and grid north. Declination relates true and magnetic bearings.',
   sections: [
     {
       heading: 'Three norths',
@@ -256,7 +256,7 @@ const northReferencesLearn: LearnContent = {
       blocks: [
         {
           type: 'paragraph',
-          text: 'Think of the diagram. If magnetic north is east of true north (D positive), then a line’s bearing measured from magnetic north is smaller than its bearing from true north by D.',
+          text: 'When magnetic north lies east of true north, D is positive and M is smaller than T by D.',
         },
         {
           type: 'table',
@@ -269,11 +269,11 @@ const northReferencesLearn: LearnContent = {
         },
         {
           type: 'paragraph',
-          text: 'Always finish by bringing the answer back into 000° to 359°. A result of 365° is 005°, and −5° is 355°.',
+          text: 'Normalize to 000°–359°: 365° becomes 005°; −5° becomes 355°.',
         },
         {
           type: 'paragraph',
-          text: 'Argus teaches the rule from the diagram instead of a mnemonic. An add-or-subtract mnemonic that leaves out the starting and target references is easy to apply backwards.',
+          text: 'Name the starting and target norths before adding or subtracting.',
         },
       ],
     },
@@ -282,13 +282,13 @@ const northReferencesLearn: LearnContent = {
       blocks: [
         {
           type: 'paragraph',
-          text: 'Declination differs from place to place and changes over time, so this topic never asks you to remember one. Every calculation states D. For real use, take the current value for your location from an up-to-date authoritative source.',
+          text: 'Declination varies with location and time. Exercises supply D; real use needs a current, authoritative local value.',
         },
       ],
     },
   ],
   limitations: [
-    'The declinations used here are made-up values for practice, not current local values.',
+    'Compass reliability varies in the Canadian Arctic; these exercises do not establish field competence.',
     EDITORIAL_CONVENTIONS,
     NOT_NAVIGATION,
   ],
@@ -302,7 +302,7 @@ const GRID_NORTH_ID = 'grid-north-map-bearings'
 const gridNorthLearn: LearnContent = {
   kind: 'briefing',
   overview:
-    'A map has a third north. Grid north follows the map’s grid lines, and on a Canadian topographic map the margin diagram usually gives the angle between grid north and magnetic north. That angle is not the same as the true-magnetic declination. This topic covers reading the three-north relationship and converting between the stated norths when the offsets are supplied.',
+    'Grid north follows the map’s grid. A Canadian topographic margin often gives grid-to-magnetic declination, distinct from true-to-magnetic declination.',
   sections: [
     {
       heading: 'Three angles, three names',
@@ -317,7 +317,7 @@ const gridNorthLearn: LearnContent = {
         },
         {
           type: 'paragraph',
-          text: 'Do not call all three “declination”. Each is the angle between a different pair of norths.',
+          text: 'Each angle joins a different pair of norths.',
         },
         visual(
           { kind: 'north-reference', rays: [{ ref: 'T', angle: 0, label: 'TN' }, { ref: 'G', angle: 12, label: 'GN' }, { ref: 'M', angle: 28, label: 'MN' }] },
@@ -331,7 +331,7 @@ const gridNorthLearn: LearnContent = {
       blocks: [
         {
           type: 'paragraph',
-          text: 'Give each north a signed offset clockwise from true north: true is 0°, magnetic is D, and grid is C (east of true positive, west negative). To change reference, add the offset of the one you are leaving and subtract the offset of the one you are going to.',
+          text: 'Offsets from true north: T = 0°, M = D, G = C; east positive, west negative. Add the starting reference’s offset, subtract the target’s.',
         },
         {
           type: 'table',
@@ -347,11 +347,11 @@ const gridNorthLearn: LearnContent = {
         },
         {
           type: 'paragraph',
-          text: 'When a margin already gives the grid-to-magnetic angle, use it directly. Magnetic north east of grid north by g degrees gives M = G − g and G = M + g. You do not need D and C separately.',
+          text: 'For magnetic north g degrees east of grid north, use M = G − g or G = M + g directly.',
         },
         {
           type: 'paragraph',
-          text: 'Two-step problems often convert, then take the reciprocal. Doing it in the other order must give the same answer, which makes a good check.',
+          text: 'Converting then taking the reciprocal must agree with taking the reciprocal then converting.',
         },
       ],
     },
@@ -360,7 +360,7 @@ const gridNorthLearn: LearnContent = {
     {
       title: 'A margin relation and a back bearing',
       scenario:
-        'A map margin states that magnetic north is 10° east of grid north. A line on the map has a grid bearing of 060°G. You want the bearing to walk back along it with a compass.',
+        'A margin gives magnetic north 10° east of grid north. Find the magnetic reciprocal of a 060°G line.',
       analysis: [
         {
           heading: 'Trace',
@@ -368,20 +368,19 @@ const gridNorthLearn: LearnContent = {
             {
               type: 'steps',
               items: [
-                'Magnetic north is east of grid north by 10°, so M = G − 10°: 060° − 10° = 050°M.',
-                'The back bearing is the reciprocal on the same north: 050° + 180° = 230°M.',
-                'Check the other way: the reciprocal grid bearing is 240°G, and 240° − 10° = 230°M. Both routes agree.',
+                'Convert: M = G − 10° = 050°M.',
+                'Reciprocate: 050° + 180° = 230°M.',
+                'Check: reciprocal 240°G − 10° = 230°M. Both routes agree.',
               ],
             },
           ],
         },
       ],
-      takeaway: 'Name both norths, apply the stated offset with its sign, and check with the reciprocal.',
+      takeaway: 'Name the norths, keep the offset’s sign, and check both routes.',
     },
   ],
   limitations: [
-    'The offsets used are made-up values for practice. Real margins state the values for their own map and date.',
-    'Use the numbers printed in a margin, not the angle drawn, which may be exaggerated.',
+    'Use the margin’s printed values and date, never its drawn angles, which may be exaggerated.',
     EDITORIAL_CONVENTIONS,
     NOT_NAVIGATION,
   ],
