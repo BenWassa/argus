@@ -332,17 +332,16 @@ export function seedLibrary(): Library {
       ],
       learn: {
         kind: 'briefing',
-        overview: 'ABCDE is a structured priority sequence for the initial assessment of a seriously unwell or deteriorating person. The finite Argus boundary is deliberately narrower than clinical practice: remember the five headings and their order; use Learn only to understand why the sequence exists.',
+        overview: 'ABCDE orders the first assessment of a seriously unwell person by priority.',
         sections: [
           {
-            heading: 'Operating principles',
+            heading: 'How to use the sequence',
             blocks: [
               {
                 type: 'bullets',
                 items: [
-                  'Complete an initial ABCDE assessment and reassess regularly, especially after an intervention or a change in condition.',
-                  'Identify and address life-threatening problems before moving to the next part of the assessment, within your training and local protocol.',
-                  'Assess the effect of what was done and call for appropriate help early rather than treating ABCDE as a checklist to finish before escalation.',
+                  'Deal with life-threatening problems at each step, within your training and local protocol, before moving on.',
+                  'Reassess after every intervention or change in condition, and call for help early.',
                 ],
               },
             ],
@@ -363,47 +362,29 @@ export function seedLibrary(): Library {
               },
             ],
           },
-          {
-            heading: 'Priority sequence, not checklist completion',
-            blocks: [
-              {
-                type: 'paragraph',
-                text: 'The point of the sequence is priority. A life-threatening problem found at an early step is managed or escalated according to the responder’s training before simply proceeding down the alphabet, and the response to management is reassessed. ABCDE organizes the first pass; it does not replace diagnosis, definitive treatment, or continuing reassessment.',
-              },
-            ],
-          },
         ],
         caseStudies: [
           {
             title: 'Deterioration during supervised clinical care',
-            scenario: 'A trained clinical team is called because a patient has suddenly become less responsive and looks acutely unwell. This case illustrates sequence and reassessment only; it intentionally omits treatment techniques, thresholds, doses, and diagnosis.',
+            scenario: 'A trained clinical team is called to a patient who has become less responsive and looks acutely unwell. The case shows sequence and reassessment only.',
             analysis: [
               {
-                heading: 'Use the sequence as a priority frame',
+                heading: 'Walkthrough',
                 blocks: [
                   {
                     type: 'paragraph',
-                    text: 'The team starts with Airway rather than jumping to the most visually striking symptom. It then assesses Breathing and finds a serious abnormality. Appropriate help is called and the breathing problem is managed within training and local protocol before the team simply moves on. Breathing is reassessed to see whether the response changed the situation. The team then continues through Circulation, Disability, and Exposure. If the patient changes again, the sequence is repeated from the top because earlier priorities may have changed.',
-                  },
-                ],
-              },
-              {
-                heading: 'What the case is meant to teach',
-                blocks: [
-                  {
-                    type: 'paragraph',
-                    text: 'ABCDE supplies an order for finding immediate threats and a discipline of reassessment. It does not make an untrained person clinically competent, and completing E does not mean the patient is fully assessed or treated.',
+                    text: 'The team starts at Airway, not the most striking symptom, and finds a serious Breathing problem. It calls for help, manages that within protocol, and reassesses before moving on to Circulation, Disability and Exposure. If the patient changes again, the sequence restarts from the top.',
                   },
                 ],
               },
             ],
-            takeaway: 'Remember the order, prioritize immediate threats, reassess, and escalate appropriately; detailed clinical actions belong to formal training and current protocols, not this Test boundary.',
+            takeaway: 'Remember the order, prioritise immediate threats, reassess and escalate; clinical actions belong to formal training.',
           },
         ],
         limitations: [
-          'Argus supports memory and rehearsal only. This topic is not first-aid or clinical training, a credential, or a substitute for supervised practice and current local protocols.',
-          'Detailed examination techniques, treatment thresholds, interventions, medications, population-specific modifications, CPR algorithms, and diagnosis are outside the Test boundary.',
-          'In a real emergency or clinical deterioration, seek appropriate emergency or clinical help and act within your training and current local guidance.',
+          'Memory and rehearsal only: not first-aid or clinical training, a credential, or a substitute for supervised practice and local protocols.',
+          'Examination technique, treatment thresholds, interventions, medications, CPR algorithms and diagnosis are outside the Test boundary.',
+          'In a real emergency, seek emergency or clinical help and act within your training and current local guidance.',
         ],
         sources: [
           {
@@ -934,31 +915,21 @@ export function seedLibrary(): Library {
       items: ACTS_PROVE.map(([prompt, answer]) => ({ prompt, answer })),
       learn: {
         kind: 'briefing',
-        overview: 'ACTS and PROVE are the safety core of the Canadian Firearms Safety Course. ACTS is four rules applied together, every time a firearm is handled. Its last rule — see that the firearm is unloaded — is carried out by PROVE, five steps in a fixed order. Test asks for the wording and order of all nine; the handbook rules below explain how they work together and are not scored.',
+        overview: 'ACTS is four rules applied together every time a firearm is handled. Its last rule is carried out by PROVE, five steps in a fixed order.',
         sections: [
           {
-            heading: 'How the two fit together',
+            heading: 'Handbook rules',
             blocks: [
               {
                 type: 'bullets',
                 items: [
-                  'The handbook calls ACTS the four rules an instructor returns to time and again, and notes that whenever an incident occurs, at least one of them has been broken.',
-                  'ACTS starts from an assumption, not a check: every firearm is treated as loaded, so the muzzle and trigger rules apply before anyone knows its condition.',
-                  'S is done through PROVE. Both the chamber and the magazine are checked, every time a firearm is handled, for any reason.',
-                ],
-              },
-            ],
-          },
-          {
-            heading: 'Rules the handbook attaches',
-            blocks: [
-              {
-                type: 'bullets',
-                items: [
+                  'Whenever an incident occurs, at least one ACTS rule has been broken.',
+                  'ACTS starts from an assumption, not a check: treat every firearm as loaded, so the muzzle and trigger rules apply before its condition is known.',
+                  'S is done through PROVE: check both chamber and magazine, every time a firearm is handled, for any reason.',
                   'Pass or accept only open and unloaded firearms.',
-                  'A firearm is unloaded and safe only until it leaves the direct control of the person who unloaded and PROVEd it safe.',
-                  'Never rely on the safety to prevent firing. A loaded firearm with the safety on could still fire; mechanical devices can fail.',
-                  'Do not handle a firearm unless you can properly PROVE it safe. Do not attempt to handle one you are uncomfortable handling — seek the assistance of a qualified individual.',
+                  'A firearm is unloaded and safe only until it leaves the direct control of the person who PROVEd it.',
+                  'Never rely on the safety: a loaded firearm with the safety on could still fire.',
+                  'If you cannot properly PROVE a firearm safe, do not handle it; ask a qualified individual.',
                 ],
               },
             ],
@@ -967,25 +938,25 @@ export function seedLibrary(): Library {
         caseStudies: [
           {
             title: 'A firearm handed over as “already checked”',
-            scenario: 'At a supervised range, a friend holds out a rifle with the action closed and says it is unloaded — they checked it a minute ago. This case is about the rules only; it deliberately leaves out how any particular action is opened or inspected.',
+            scenario: 'At a supervised range, a friend holds out a rifle with the action closed and says it is unloaded: they checked it a minute ago.',
             analysis: [
               {
-                heading: 'Apply the rules as a whole',
+                heading: 'Walkthrough',
                 blocks: [
                   {
                     type: 'paragraph',
-                    text: 'ACTS comes first: assume the rifle is loaded, keep its muzzle in the safest available direction and keep your finger off the trigger and out of the trigger guard. The handbook rule is to accept only an open and unloaded firearm, so a closed action is already the first problem. The friend’s check does not transfer to you: the rifle was unloaded and safe only while it stayed in their direct control. Seeing that it is unloaded is now your job, through PROVE, step by step. If you do not know how to open and check this rifle, you do not improvise — you ask the range officer or another qualified person.',
+                    text: 'Assume it is loaded: muzzle safe, finger off the trigger. A closed action already breaks the accept-only-open-and-unloaded rule, and the friend’s check does not transfer. PROVE it yourself, or ask the range officer if you cannot open it.',
                   },
                 ],
               },
             ],
-            takeaway: 'Safe status is established by the person holding the firearm, through the whole sequence, every time. It is never inherited from someone else’s word.',
+            takeaway: 'Safe status is established by the person holding the firearm, every time, never inherited from someone else’s word.',
           },
         ],
         limitations: [
-          'Argus supports memory and rehearsal only. Completing this topic is not the Canadian Firearms Safety Course, does not pass its written or practical tests, does not qualify you for a firearms licence and does not show that you can handle a firearm safely.',
-          'Handling, loading, unloading and inspecting real firearms is taught and tested hands-on by a certified CFSC instructor. Learn those there, not from a screen. This topic teaches nothing about shooting, tactics or use of force.',
-          'The wording is pinned to the 2014 Student Handbook, which Ontario’s course provider still directs students to as of September 2026. The RCMP is rolling out a new national safety curriculum from 2026; if your course words the rules differently, follow your course.',
+          'Memory and rehearsal only: not the Canadian Firearms Safety Course, not a licence qualification, not proof you can handle a firearm safely.',
+          'Handling and inspecting real firearms is taught hands-on by a certified CFSC instructor. This topic teaches nothing about shooting, tactics or use of force.',
+          'Wording follows the 2014 Student Handbook; a new national curriculum rolls out from 2026. If your course differs, follow your course.',
         ],
         sources: [
           {

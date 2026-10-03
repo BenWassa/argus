@@ -139,41 +139,42 @@ describe('the #121 scuba expansion', () => {
 })
 
 describe('the #166 prose trims reach libraries that already hold the topic', () => {
-  const OODA = 'ooda-loop'
   const at = '2026-09-20T00:00:00.000Z'
 
-  /** OODA as a library received it before its prose was trimmed. */
-  function beforeTheTrim(overrides: Partial<Topic> = {}): Topic {
-    const shipped = catalogDefinition(OODA)
-    if (!shipped) throw new Error('OODA is not shipped')
+  /** A trimmed topic as a library received it before its prose was trimmed. */
+  function beforeTheTrim(id: string, overrides: Partial<Topic> = {}): Topic {
+    const shipped = catalogDefinition(id)
+    if (!shipped) throw new Error(`${id} is not shipped`)
     return {
       ...shipped,
       origin: 'catalog',
       status: 'learning',
       learningAt: at,
       lastTestedAt: at,
-      history: [{ at, correct: 3, total: 4, resolvedTo: 'learning' }],
+      history: [{ at, correct: 1, total: shipped.items.length, resolvedTo: 'learning' }],
       learn: { kind: 'briefing', overview: 'The old, longer overview.', limitations: ['An old limitation.'] },
       ...overrides,
     }
   }
 
-  it('swaps in the trimmed Learn and leaves every learner field exactly as it was', () => {
-    const old = beforeTheTrim()
-    const [topic] = refreshShippedLearn({ version: 5, topics: [old] }).topics
+  describe.each(['ooda-loop', 'primary-survey', 'firearm-safety-acts-prove'])('%s', (id) => {
+    it('swaps in the trimmed Learn and leaves every learner field exactly as it was', () => {
+      const old = beforeTheTrim(id)
+      const [topic] = refreshShippedLearn({ version: 5, topics: [old] }).topics
 
-    expect(topic.learn).toEqual(catalogDefinition(OODA)?.learn)
-    expect({ ...topic, learn: old.learn }).toEqual(old)
-  })
+      expect(topic.learn).toEqual(catalogDefinition(id)?.learn)
+      expect({ ...topic, learn: old.learn }).toEqual(old)
+    })
 
-  it('is idempotent, so two devices agree', () => {
-    const once = refreshShippedLearn({ version: 5, topics: [beforeTheTrim()] })
-    expect(refreshShippedLearn(once)).toBe(once)
-  })
+    it('is idempotent, so two devices agree', () => {
+      const once = refreshShippedLearn({ version: 5, topics: [beforeTheTrim(id)] })
+      expect(refreshShippedLearn(once)).toBe(once)
+    })
 
-  it('does not touch a topic whose scored boundary was edited', () => {
-    const edited = beforeTheTrim({ items: catalogDefinition(OODA)!.items.slice(0, 3) })
-    const input: CurrentLibrary = { version: 5, topics: [edited] }
-    expect(refreshShippedLearn(input)).toBe(input)
+    it('does not touch a topic whose scored boundary was edited', () => {
+      const edited = beforeTheTrim(id, { items: catalogDefinition(id)!.items.slice(0, -1) })
+      const input: CurrentLibrary = { version: 5, topics: [edited] }
+      expect(refreshShippedLearn(input)).toBe(input)
+    })
   })
 })

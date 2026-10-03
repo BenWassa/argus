@@ -142,6 +142,8 @@ const REFRESHED_LEARN_TOPIC_IDS: readonly string[] = [
   'beaufort-wind-scale',
   // #166: prose trimmed to the main content.
   'ooda-loop',
+  'primary-survey',
+  'firearm-safety-acts-prove',
 ]
 
 /**
