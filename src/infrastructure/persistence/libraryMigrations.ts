@@ -170,6 +170,9 @@ const REFRESHED_LEARN_TOPIC_IDS: readonly string[] = [
   'reciprocal-bearings',
   'north-references-declination',
   'grid-north-map-bearings',
+  'navigation-lights',
+  'vessel-day-shapes',
+  'signal-flags',
 ]
 
 /**
