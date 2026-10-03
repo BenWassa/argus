@@ -28,7 +28,7 @@ export const ANSWER_FOR = new Map(nato.items.map((item) => [item.prompt, item.an
  */
 const LIBRARY = JSON.stringify({
   version: 5,
-  topics: [nato],
+  topics: [{ ...nato, status: 'learning', drilledAt: null, completedAt: null }],
   catalogDelivered: [...shippedCatalog.topicIds].sort(),
 })
 
