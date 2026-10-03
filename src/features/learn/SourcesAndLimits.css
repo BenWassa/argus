@@ -19,4 +19,4 @@ button.sources-link {
 .sources-notes ul { list-style: disc; }
 .sources-notes ol { list-style: decimal; }
 
-.sources-notes { min-width: 0; overflow-wrap: anywhere; }
+.sources-notes { min-width: 0; grid-template-columns: minmax(0, 1fr); overflow-wrap: anywhere; }

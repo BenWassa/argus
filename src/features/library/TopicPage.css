@@ -10,6 +10,8 @@
   padding-left: 0;
 }
 
+.topic-title { overflow-wrap: anywhere; }
+
 .topic-title:focus {
   outline: none;
 }
