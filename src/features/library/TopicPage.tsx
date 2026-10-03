@@ -140,7 +140,7 @@ export function TopicPage({
 
         {/* The boundary is the reason the topic is allowed to exist, so it reads
             as content rather than as a caption under the title. */}
-        <p className="topic-scope">{sequence ? `${topic.items.length} rules, in order.` : topic.scope}</p>
+        <p className="topic-scope">{sequence && topic.track !== 'survival' ? `${topic.items.length} rules, in order.` : topic.scope}</p>
 
         {/* One line of state, in the learner's words. Four dimensions still exist
             and still disagree usefully; this is the journey's one sentence about

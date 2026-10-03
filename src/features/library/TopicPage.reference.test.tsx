@@ -23,7 +23,7 @@ describe('topic reference page', () => {
     expect([...container.querySelectorAll('.topic-recall-marker')].map(node => node.textContent).join('')).toBe('ACTSPROVE')
     expect(container.querySelectorAll('.topic-recall-cards > li')).toHaveLength(9)
     expect(container.querySelector('details[open]')).toBeNull()
-    expect(container.querySelector('.topic-scope')?.textContent).toBe('9 rules, in order.')
+    expect(container.querySelector('.topic-scope')?.textContent).toBe(topic.scope)
     expect(container.textContent).toContain(topic.scope)
     expect(container.querySelector('.topic-hero-fallback')).toBeTruthy()
     expect(updateTopic).not.toHaveBeenCalled()
