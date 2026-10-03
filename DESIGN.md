@@ -130,6 +130,9 @@ components:
 
 # Design System: Argus
 
+**Status:** current integration contract; changes in #175 are in review, not deployed.
+**Authority:** design context. `docs/open/TOPIC_PAGE_REVAMP.md` and `docs/open/LIBRARY_COMPACT_TOPICS.md` own the pending topic-page and provenance contracts.
+
 ## 1. Overview
 
 **Creative North Star: "Brushed Gunmetal"**

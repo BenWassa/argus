@@ -189,4 +189,12 @@ The combined branch is `feat/compact-library-integration`. It combines both revi
 
 All implementation work for the original 19-topic request is complete. NATO and Compass Bearings remain unchanged because they were already compact. Sources remain verbatim for every topic, including Cloud Genera from the rebuild. Owner domain review for survival and maritime remains required before merge; no domain review or deployment is claimed here.
 
-Validation results are recorded below once the final integrated run completes.
+Final local validation:
+
+- Full unit suite: 1,601 tests pass across 116 files; typecheck and production browser build pass.
+- Real-catalog comparison: all scored items, sequences and source lists unchanged. All Batches 3–5 reference blocks remain byte-identical. OODA’s existing pilot removed its duplicate definition block deliberately.
+- Broad browser run: 344 passed, 16 intentional viewport/route skips, four failures from the old Morse reference fixture. After correction, that four-viewport test passes all four cases (348 applicable checks verified across the run and focused rerun). This is not a claim of a single all-green full-suite run.
+- The modal checks cover centring, 200% text, internal scrolling, focus trap/return, dismissal, browser Back and the two visible safety scopes at all four viewports. The weather-guide image decode assertion now polls for the actual image load.
+- The corrected NATO fixture models a due `learning` topic instead of legacy `drilled` (now banked). Morse navigation models explicit review history and lookup through Topic while preserving the unfinished confirmation route. These are test-fixture changes, not curriculum changes.
+
+PR #175 is the combined review and merge target. GitHub CI results are separate from the local checks above; deployment remains pending owner domain review and merge.

@@ -1,5 +1,8 @@
 # Product
 
+**Status:** current integration contract; changes in #175 are in review, not deployed.
+**Authority:** product context. Maintained behaviour contracts live in `docs/open/`; the compact-topic and topic-page documents own the pending #166 changes.
+
 ## Register
 
 product
