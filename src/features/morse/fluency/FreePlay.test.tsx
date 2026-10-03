@@ -1,10 +1,14 @@
 // @vitest-environment jsdom
-import { afterEach, describe, expect, it } from 'vitest'
-import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { FREE_LETTER_PAUSE_MS } from '../../../domain/morse/fluency/freePlay'
 import { FreePlay } from './FreePlay'
 
-afterEach(cleanup)
+beforeEach(() => vi.useFakeTimers())
+afterEach(() => {
+  cleanup()
+  vi.useRealTimers()
+})
 
 function key(element: '.' | '-' | ' ') {
   act(() => {
@@ -19,12 +23,14 @@ function spelled(): string {
 async function letter(...elements: ('.' | '-')[]) {
   for (const element of elements) {
     key(element)
-    // One element at a time: the key takes the next once the last has landed.
-    await waitFor(() => expect(document.querySelector('.morse-key:enabled')).toBeTruthy())
+    expect(document.querySelector('.morse-key:enabled')).toBeTruthy()
   }
-  await waitFor(() => expect(document.querySelector('.free-play-cursor')).toBeNull(), {
-    timeout: FREE_LETTER_PAUSE_MS * 3,
-  })
+  // Wall-clock stalls between elements must not accidentally finish a letter
+  // in the test. Exercise the real pause boundary with a controlled clock.
+  await act(async () => { await vi.advanceTimersByTimeAsync(FREE_LETTER_PAUSE_MS - 1) })
+  expect(document.querySelector('.free-play-cursor')).not.toBeNull()
+  await act(async () => { await vi.advanceTimersByTimeAsync(1) })
+  expect(document.querySelector('.free-play-cursor')).toBeNull()
 }
 
 describe('free play', () => {
@@ -35,7 +41,7 @@ describe('free play', () => {
     key(' ')
     await letter('-')
     expect(spelled()).toBe('Spelled: HI T')
-  }, 15000)
+  })
 
   it('deletes the last thing keyed', async () => {
     render(<FreePlay rung={6} onExit={() => undefined} />)
@@ -43,7 +49,7 @@ describe('free play', () => {
     await letter('-')
     fireEvent.click(screen.getByRole('button', { name: 'Delete' }))
     expect(spelled()).toBe('Spelled: E')
-  }, 10000)
+  })
 
   it('plays typed text and names what it cannot play', () => {
     render(<FreePlay rung={6} onExit={() => undefined} />)
