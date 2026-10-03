@@ -21,7 +21,7 @@ test('Beaufort guide loads approved images and manually advances without page ov
   const guide = page.getByRole('region', { name: 'Visual field guide' }).first()
   await expect(guide).toBeVisible()
   await expect(guide.locator('img')).toHaveCount(4)
-  expect(await guide.locator('img').first().evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth === 700)).toBe(true)
+  await expect.poll(() => guide.locator('img').first().evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth === 700)).toBe(true)
   await guide.getByRole('button', { name: 'Next guide image' }).click()
   await expect(guide.locator('.visual-guide-position')).toHaveText('4–6 · 2 of 4')
   await guide.locator('.visual-guide-rail').focus()
