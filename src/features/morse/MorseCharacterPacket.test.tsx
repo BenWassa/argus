@@ -199,7 +199,7 @@ describe('seeded Morse topic', () => {
       section.blocks.some((block) => block.type === 'morse-character-packet'),
     )
     expect(packetSections).toHaveLength(0)
-    expect(JSON.stringify(topic.learn)).toContain('guided lesson')
+    expect(JSON.stringify(topic.learn)).toContain('Lessons introduce two characters')
   })
 
   it('keeps the Test ladder mnemonic cue working without authored packet metadata', () => {

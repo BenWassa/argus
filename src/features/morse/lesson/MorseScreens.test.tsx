@@ -135,7 +135,7 @@ describe('the course explains itself somewhere reachable', () => {
     const fold = screen.getByText('How this course works')
     expect(fold.tagName).toBe('SUMMARY')
     expect(document.querySelector('.learn-support')).toBeTruthy()
-    expect(document.body.textContent).toContain('International Morse represents letters as')
+    expect(document.body.textContent).toContain('Morse dits (.) last one unit')
     expect(document.body.textContent).toContain('How the lesson works')
   })
 
