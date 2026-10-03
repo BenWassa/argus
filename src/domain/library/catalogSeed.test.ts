@@ -79,7 +79,7 @@ describe('researched seeded library', () => {
     expect(topic.history).toEqual([])
     expect(topic.learn?.kind).toBe('concise')
     expect(topic.items.every((item) => item.kind === 'bidirectional')).toBe(true)
-    expect(topic.learn?.overview).toContain('does not claim auditory reception')
+    expect(topic.learn?.limitations?.some(note => note.includes('not listening, sending'))).toBe(true)
     expect(topic.learn?.sources?.[0].url).toBe('https://www.itu.int/rec/R-REC-M.1677-1-200910-I/en')
   })
 
@@ -196,7 +196,7 @@ describe('researched seeded library', () => {
     expect(topic.history).toEqual([])
     expect(topic.scope).toContain('radio procedure are not scored')
     expect(topic.learn?.kind).toBe('concise')
-    expect(topic.learn?.limitations?.some((note) => note.includes('not a radio operator certificate'))).toBe(true)
+    expect(topic.learn?.limitations?.some((note) => note.includes('not radio training, an operator certificate'))).toBe(true)
     expect(topic.learn?.sources?.[0].url).toContain('ric-21')
   })
 
@@ -243,7 +243,7 @@ describe('researched seeded library', () => {
     expect(topic.items.every((item) => item.kind === 'forward')).toBe(true)
     expect(topic.status).toBe('unstarted')
     expect(topic.learn?.kind).toBe('concise')
-    expect(topic.learn?.limitations?.some((note) => note.includes('not reading, writing or speaking Greek'))).toBe(true)
+    expect(topic.learn?.limitations?.some((note) => note.includes('or reading, writing or speaking Greek'))).toBe(true)
     expect(topic.learn?.sources?.[0].url).toBe('https://www.unicode.org/charts/PDF/U0370.pdf')
   })
 
@@ -354,7 +354,7 @@ describe('trimmed Learn prose', () => {
         : 0
 
   // Prose budgets exclude definitions, tables, entries and visual references.
-  it.each(['ooda-loop', 'primary-survey', 'firearm-safety-acts-prove', 'whole-circle-bearings', 'reciprocal-bearings', 'north-references-declination', 'grid-north-map-bearings', 'navigation-lights', 'vessel-day-shapes', 'signal-flags'])('keeps %s compact', (id) => {
+  it.each(['ooda-loop', 'primary-survey', 'firearm-safety-acts-prove', 'whole-circle-bearings', 'reciprocal-bearings', 'north-references-declination', 'grid-north-map-bearings', 'navigation-lights', 'vessel-day-shapes', 'signal-flags', 'beaufort-wind-scale', 'scuba-equipment-abbreviations', 'radiotelephony-numbers', 'si-prefixes', 'greek-alphabet', 'hex-digits-binary', 'international-morse-letters-printed'])('keeps %s compact', (id) => {
     const learn = seededTopic(id).learn!
     const sections = (learn.sections ?? []).flatMap((section) => section.blocks).reduce((n, b) => n + blockWords(b), 0)
     const cases = (learn.caseStudies ?? []).reduce(

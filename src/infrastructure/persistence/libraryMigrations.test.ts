@@ -157,7 +157,7 @@ describe('the #166 prose trims reach libraries that already hold the topic', () 
     }
   }
 
-  describe.each(['ooda-loop', 'primary-survey', 'firearm-safety-acts-prove', 'whole-circle-bearings', 'reciprocal-bearings', 'north-references-declination', 'grid-north-map-bearings', 'navigation-lights', 'vessel-day-shapes', 'signal-flags'])('%s', (id) => {
+  describe.each(['ooda-loop', 'primary-survey', 'firearm-safety-acts-prove', 'whole-circle-bearings', 'reciprocal-bearings', 'north-references-declination', 'grid-north-map-bearings', 'navigation-lights', 'vessel-day-shapes', 'signal-flags', 'beaufort-wind-scale', 'scuba-equipment-abbreviations', 'radiotelephony-numbers', 'si-prefixes', 'greek-alphabet', 'hex-digits-binary', 'international-morse-letters-printed'])('%s', (id) => {
     it('swaps in the trimmed Learn and leaves every learner field exactly as it was', () => {
       const old = beforeTheTrim(id)
       const [topic] = refreshShippedLearn({ version: 5, topics: [old] }).topics

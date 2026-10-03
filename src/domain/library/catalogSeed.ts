@@ -186,25 +186,28 @@ export function seedLibrary(): Library {
       })),
       learn: {
         kind: 'concise',
-        overview: 'International Morse represents letters as sequences of dits (.) and dahs (-). A dah lasts three dit units; spacing within a character is one unit, between characters three, and between words seven. Completion requires uncued printed recall in both directions: letter → canonical pattern and printed pattern → letter. It does not claim auditory reception, sending, WPM, words, phrases, or operating fluency.',
+        overview: 'Morse dits (.) last one unit, dahs (-) three. Gaps within characters, between characters and between words last 1, 3, 7 units.',
         sections: [
           {
             heading: 'How the lesson works',
             blocks: [
               {
                 type: 'paragraph',
-                text: 'Learn is a guided lesson rather than a page to scroll. Each lesson introduces two new characters, asks you to retrieve them shortly afterwards, reteaches anything you miss and brings it back later, and mixes in characters from earlier lessons. Support falls away as you get a character right and comes back when you do not. A lesson finishes when every character in it has been produced from the letter alone.',
+                text: 'Lessons introduce two characters, then mix retrieval with earlier ones. Misses return with teaching support; correct retrieval removes support. Finish by producing every lesson character from its letter alone.',
               },
               {
                 type: 'paragraph',
-                text: 'The order runs from the shortest patterns upward, and two characters that differ only in their final element are never introduced together. Nothing in the lesson is scored: it decides what you are shown next and nothing else. The Morse alphabet page is separate, always open, and lists all 26 letters for lookup.',
+                text: 'Shortest patterns come first; characters differing only at the final element are introduced separately. Lessons are unscored. The separate alphabet page lists all 26 letters.',
               },
               {
                 type: 'paragraph',
-                text: 'Every drawing is that character’s own timing rather than a picture to decode: a dit is one unit wide, a dah is three, and the gap between them is one. Read the rhythm left to right, in the order it is keyed, and let the letter and its shape settle as a single thing.',
+                text: 'Drawings show timing left to right: dit width 1, dah width 3, internal gap 1.',
               },
             ],
           },
+        ],
+        limitations: [
+          'Completion covers uncued printed A–Z recall in both directions; not listening, sending, WPM, words, phrases or operating fluency.',
         ],
         sources: [
           {
@@ -514,7 +517,7 @@ export function seedLibrary(): Library {
       ],
       learn: {
         kind: 'briefing',
-        overview: 'The useful part of scuba gear vocabulary is not memorizing isolated initials; it is knowing where each label sits in the equipment system. A cylinder holds high-pressure breathing gas. The regulator first stage reduces that pressure and distributes gas to the breathing, buoyancy and pressure-monitoring components. Surface-signalling and propulsion equipment sit outside that breathing-gas path. This topic teaches that system map and its common shorthand only.',
+        overview: 'The regulator reduces cylinder pressure for breathing and buoyancy equipment. Surface-signalling and propulsion devices sit outside that gas path.',
         sections: [
           {
             heading: 'Breathing-gas path',
@@ -522,12 +525,12 @@ export function seedLibrary(): Library {
               {
                 type: 'steps',
                 items: [
-                  'The cylinder and valve hold and release breathing gas at high pressure (HP).',
-                  'The regulator first stage attaches to the cylinder valve and reduces cylinder pressure to intermediate pressure (IP).',
-                  'A primary second stage — also called a demand valve (DV) — reduces that gas to surrounding ambient pressure and supplies it when the diver inhales.',
-                  'An alternate air source (AAS), commonly an alternate second stage or “octopus” in recreational open-circuit setups, provides a second breathing-gas outlet for gas sharing.',
-                  'A submersible pressure gauge (SPG), or an equivalent pressure transmitter/display, reads the cylinder-pressure side so the diver can monitor the remaining gas supply.',
-                  'Low-pressure (LP) outlets also supply devices such as the BCD low-pressure inflator (LPI), and may supply a dry-suit inflator where that equipment is used.',
+                  'Cylinder and valve: store and release high-pressure (HP) breathing gas.',
+                  'First stage: attaches to the valve and reduces HP to intermediate pressure (IP).',
+                  'Second stage, or demand valve (DV): supplies gas at ambient pressure on inhalation.',
+                  'Alternate air source (AAS): backup for gas sharing, commonly an alternate second stage (“octopus”).',
+                  'SPG or transmitter/display: monitors cylinder pressure and remaining gas supply.',
+                  'Low-pressure (LP) outlets: supply the BCD inflator (LPI) and, where fitted, dry-suit inflator.',
                 ],
               },
             ],
@@ -585,19 +588,19 @@ export function seedLibrary(): Library {
               {
                 type: 'bullets',
                 items: [
-                  'DIN describes the screw-in regulator/cylinder-valve connection. The common alternative is a yoke or bracket connection; adapters exist between some configurations.',
-                  '“Regulator” can mean the complete regulator set or, informally, the second stage alone. “Reg” is common shorthand.',
-                  '“Octopus”, “octo” or “occy” commonly refers to an alternate second stage. AAS is the broader functional term: alternate air source.',
-                  '“Tank”, “cylinder” and “bottle” may all be heard. “Cylinder” is the more precise equipment term; none of these names means the cylinder necessarily contains pure oxygen.',
+                  'DIN screws into the cylinder valve; yoke/bracket is the common alternative. Some configurations accept adapters.',
+                  '“Regulator” or “reg” may mean the whole set or just the second stage.',
+                  '“Octopus”, “octo” and “occy” mean alternate second stage; AAS is broader.',
+                  '“Tank” and “bottle” mean cylinder, not necessarily pure oxygen.',
                 ],
               },
             ],
           },
         ],
         limitations: [
-          'Argus supports vocabulary, system recognition and memory rehearsal only. This topic is not diver training, certification, an equipment-selection guide, a pre-dive checklist, a maintenance procedure or a substitute for a qualified instructor, dive professional, manufacturer manual or local dive operator.',
-          'Knowing an abbreviation does not establish competence in assembly, inspection, gas management, buoyancy control, emergency response, DSMB deployment, regulator configuration, servicing or ascent decisions. Those require appropriate instruction and current equipment-specific procedures.',
-          'Terminology varies between agencies, regions and equipment configurations. The Learn notes call out common synonyms rather than treating one brand or regional term as universal.',
+          'Vocabulary only, not diver training, certification, equipment selection, a pre-dive checklist, maintenance, or a substitute for instructors, dive professionals, manufacturer manuals and local operators.',
+          'Assembly, inspection, gas management, buoyancy, emergencies, DSMB deployment, regulator configuration, servicing and ascent decisions require instruction and current equipment-specific procedures.',
+          'Terminology varies by agency, region and equipment; synonyms here are common, not universal.',
         ],
         sources: [
           {
@@ -664,7 +667,7 @@ export function seedLibrary(): Library {
       items: RADIOTELEPHONY_NUMBERS.map(([prompt, answer]) => ({ prompt, answer })),
       learn: {
         kind: 'concise',
-        overview: 'Formal radiotelephony gives each digit a fixed spoken form — TREE, FIFE and NIN-er rather than three, five and nine — and set words for the decimal point, hundreds and thousands. These are the forms Innovation, Science and Economic Development Canada prints for aeronautical radio, right after the phonetic alphabet — the same code words as the NATO topic.',
+        overview: 'Canadian aeronautical radio uses fixed spoken forms, including TREE, FIFE and NIN-er, plus decimal, hundred and thousand.',
         sections: [
           {
             heading: 'How numbers are said on air',
@@ -672,18 +675,18 @@ export function seedLibrary(): Library {
               {
                 type: 'bullets',
                 items: [
-                  'Every number except a whole thousand is said one digit at a time: 75 is “seven five”, and 5,800 is “five eight zero zero”.',
-                  'A whole thousand is the digits of the thousands followed by “thousand”: 11,000 is “one one thousand”.',
-                  'A decimal point is said as “decimal”: 121.5 is “one two one decimal five”.',
-                  'RIC-21 sets further conventions for altitudes, flight levels, headings, wind, time and aircraft types. Those, and these grouping rules, are not scored here.',
+                  'Except whole thousands, say digits separately: 75 is “seven five”; 5,800 is “five eight zero zero”.',
+                  'Whole thousands: digits then “thousand”; 11,000 is “one one thousand”.',
+                  'Use “decimal”: 121.5 is “one two one decimal five”.',
+                  'RIC-21 also covers altitudes, flight levels, headings, wind, time and aircraft types. Grouping and these conventions are unscored.',
                 ],
               },
             ],
           },
         ],
         limitations: [
-          'Completion means you can recall these 13 spoken forms. It is not a radio operator certificate, radio training or permission to transmit.',
-          'The forms are sourced to Canadian aeronautical radiotelephony. Marine, amateur, public-safety and other radio services publish their own procedures, which this topic does not cover.',
+          'Recall only, not radio training, an operator certificate or permission to transmit.',
+          'Canadian aeronautical forms only; marine, amateur, public-safety and other services have separate procedures.',
         ],
         sources: [
           {
@@ -710,7 +713,7 @@ export function seedLibrary(): Library {
       items: SI_PREFIXES.map(([prompt, answer]) => ({ prompt, answer })),
       learn: {
         kind: 'concise',
-        overview: 'An SI prefix multiplies a unit by a power of ten: a kilometre is 10³ metres and a picosecond is 10⁻¹² seconds. The BIPM lists 24 prefixes, from quetta (10³⁰) down to quecto (10⁻³⁰). The outermost two at each end — ronna and quetta, ronto and quecto — were added in 2022.',
+        overview: 'SI prefixes multiply units by powers of ten. Ronna, quetta, ronto and quecto were added in 2022.',
         sections: [
           {
             heading: 'Patterns that carry most of the load',
@@ -718,18 +721,18 @@ export function seedLibrary(): Library {
               {
                 type: 'bullets',
                 items: [
-                  'Above kilo and below milli, each prefix is a step of 10³. Only hecto, deca, deci and centi sit between 10³ and 10⁻³, one power of ten apart.',
-                  'Symbols are case-sensitive. Apart from da, h and k, every multiple has an upper-case symbol and every sub-multiple a lower-case one, so M (mega) and m (milli), P (peta) and p (pico), Z and z, Y and y, R and r, Q and q are different prefixes.',
-                  'Deca is the only two-letter symbol (da). Micro is the Greek letter mu (µ).',
-                  'Prefix names are written in lower case, and a prefix symbol joins its unit symbol with no space: pm, mmol, GΩ, THz.',
+                  'Above kilo and below milli, steps are 10³. Between them, hecto, deca, deci and centi step by one power.',
+                  'Symbols are case-sensitive: multiples use capitals except da, h, k; sub-multiples use lower case. M (mega) differs from m (milli).',
+                  'Deca alone has two letters (da); micro uses Greek mu (µ).',
+                  'Names use lower case. Join prefix and unit without a space: pm, mmol, GΩ, THz.',
                 ],
               },
             ],
           },
         ],
         limitations: [
-          'Completion means you can give the name and symbol for each of the 24 powers of ten. The reverse (symbol → power), unit conversion and the SI rules for writing quantities are not tested.',
-          'SI prefixes are strictly powers of ten. The binary prefixes used for computer memory — kibi (Ki) for 2¹⁰, mebi (Mi) for 2²⁰ and so on — are a separate IEC set and are not part of this topic.',
+          'Reverse recall, unit conversion and rules for writing quantities are not tested.',
+          'IEC binary prefixes, such as kibi (Ki, 2¹⁰) and mebi (Mi, 2²⁰), are separate from SI and excluded.',
         ],
         sources: [
           {
@@ -756,7 +759,7 @@ export function seedLibrary(): Library {
       items: GREEK_LETTERS.map(([prompt, answer]) => ({ prompt, answer })),
       learn: {
         kind: 'concise',
-        overview: 'The Greek alphabet has 24 letters. Mathematics, science and engineering borrow most of them as symbols, usually in the small form — π, λ, σ, μ, Δ — so seeing a letter and naming it is the everyday need. That is the direction this topic tests.',
+        overview: 'Greek letters appear as symbols in mathematics, science and engineering. Small forms often distinguish letters whose capitals resemble Latin ones.',
         sections: [
           {
             heading: 'Where letters are easy to confuse',
@@ -764,18 +767,18 @@ export function seedLibrary(): Library {
               {
                 type: 'bullets',
                 items: [
-                  'Many capitals share their shape with Latin letters — Α, Β, Ε, Ζ, Η, Ι, Κ, Μ, Ν, Ο, Ρ, Τ, Υ, Χ — so the small form is usually what identifies the letter.',
-                  'Some small forms look like Latin letters with other names: η (eta) is not n, ν (nu) is not v, ρ (rho) is not p, χ (chi) is not x, and ω (omega) is not w.',
-                  'ζ (zeta) and ξ (xi) are easily swapped, and so are ν (nu) and υ (upsilon).',
-                  'Sigma has two small forms: σ, and ς, the final sigma written at the end of a word.',
+                  'Latin-like capitals: Α, Β, Ε, Ζ, Η, Ι, Κ, Μ, Ν, Ο, Ρ, Τ, Υ, Χ.',
+                  'Latin-like small forms: η (eta), ν (nu), ρ (rho), χ (chi), ω (omega) are not n, v, p, x, w.',
+                  'Compare ζ (zeta) with ξ (xi), and ν (nu) with υ (upsilon).',
+                  'Sigma: σ normally; ς at a word’s end.',
                 ],
               },
             ],
           },
         ],
         limitations: [
-          'Completion means you can name each letter when you see it. Writing a letter from its name is not tested, and knowing the letters is not reading, writing or speaking Greek.',
-          'The names are the conventional English ones used in mathematics and science, not a guide to Greek pronunciation. The order below is alphabetical but is not scored.',
+          'Recognition only, not writing letters from names or reading, writing or speaking Greek.',
+          'Conventional English names, not Greek pronunciation. Alphabetical order is not scored.',
         ],
         sources: [
           {
@@ -805,7 +808,7 @@ export function seedLibrary(): Library {
       })),
       learn: {
         kind: 'concise',
-        overview: 'One hexadecimal digit stands for exactly four bits, so a byte is always two hex digits: C3 is 1100 0011. Knowing the 16 patterns by heart turns hex dumps, bit masks and colour codes into bits without counting.',
+        overview: 'One hex digit represents four bits; a byte is two hex digits. C3 is 1100 0011.',
         sections: [
           {
             heading: 'Reading a pattern from its place values',
@@ -813,16 +816,16 @@ export function seedLibrary(): Library {
               {
                 type: 'bullets',
                 items: [
-                  'The four bits are worth 8, 4, 2 and 1 from left to right. Add the places that hold a 1: 1011 is 8 + 2 + 1 = 11, which is B.',
-                  'The letters A to F stand for the values 10 to 15. Upper and lower case mean the same digit.',
-                  'Anchors that make the rest quick: 1, 2, 4 and 8 are the single-bit patterns (0001, 0010, 0100, 1000); 7 is 0111 and F is 1111.',
+                  'Bit weights, left to right: 8, 4, 2, 1. Add set bits: 1011 = 8 + 2 + 1 = 11 = B.',
+                  'A–F mean 10–15; upper and lower case are equivalent.',
+                  'Single-bit anchors: 1 = 0001, 2 = 0010, 4 = 0100, 8 = 1000. Also 7 = 0111; F = 1111.',
                 ],
               },
             ],
           },
         ],
         limitations: [
-          'Completion means you can give the four-bit pattern for each of the 16 hex digits. Binary → hex, longer numbers, signed representations and binary arithmetic are not tested.',
+          'Binary → hex, longer numbers, signed representations and binary arithmetic are not tested.',
         ],
         sources: [
           {
@@ -849,7 +852,7 @@ export function seedLibrary(): Library {
       items: BEAUFORT.map(([prompt, answer]) => ({ prompt, answer })),
       learn: {
         kind: 'concise',
-        overview: 'The Beaufort scale grades wind from force 0, calm, to force 12, hurricane. Each force has a name, a speed range in knots and effects that can be seen at sea and on land, so wind can be estimated by looking and a forecast speed can be pictured. The name and knot range are what Test asks; the effects below are for estimating.',
+        overview: 'Beaufort links wind forces with knot ranges and observed effects at sea and on land.',
         // #129 reserves the first position, straight after the overview, for
         // the visual guide. It is a separate section when it lands; nothing
         // here depends on it.
@@ -877,8 +880,8 @@ export function seedLibrary(): Library {
           },
         ],
         limitations: [
-          'A memory aid for estimating and describing wind. It is not a forecast and is no substitute for current marine forecasts and warnings, or for seamanship judgement.',
-          'Completion means you can give the term and knot range for each force. The observed effects, km/h and other units, wave heights and the reverse (speed → force) are not tested.',
+          'A memory aid, not a forecast or a substitute for current marine forecasts, warnings and seamanship judgement.',
+          'Observed effects, other units, wave heights and reverse recall (speed → force) are not tested.',
         ],
         sources: [
           {

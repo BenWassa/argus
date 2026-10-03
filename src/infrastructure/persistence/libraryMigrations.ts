@@ -173,6 +173,12 @@ const REFRESHED_LEARN_TOPIC_IDS: readonly string[] = [
   'navigation-lights',
   'vessel-day-shapes',
   'signal-flags',
+  'scuba-equipment-abbreviations',
+  'radiotelephony-numbers',
+  'si-prefixes',
+  'greek-alphabet',
+  'hex-digits-binary',
+  'international-morse-letters-printed',
 ]
 
 /**
