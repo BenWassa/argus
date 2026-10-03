@@ -122,7 +122,7 @@ One PR per batch. Each batch is gated on unit tests plus a targeted e2e; the ful
 
 | Batch | Scope | Depends on | Review |
 | --- | --- | --- | --- |
-| **0a** | "Sources and limitations" button and modal for all topics; remove inline Limitations and Sources from `LearnSupport` | topic-page rebuild merged, or built on `feat/topic-revamp-integration` | UI, a11y |
+| **0a** | "Sources and limitations" button and modal for all topics; remove inline Limitations and Sources from `LearnSupport`. **Built, committed locally on `feat/sources-modal` (off `feat/topic-revamp-integration`); not pushed** because that base is not on the remote | topic-page rebuild merged, or built on `feat/topic-revamp-integration` | UI, a11y |
 | **0b** | ~~Learn-content refresh~~ **Not needed:** `refreshShippedLearn` exists (§2.4). Each content batch registers its ids | n/a | n/a |
 | **1** | Pilot trim: **OODA Loop**; confirm budgets in §3.3. **In review: #168** | none (0a changes the final look only) | owner reads the diff |
 | **2** | Survival briefings: Primary Survey, Firearm Safety | 1 | owner domain review |
@@ -146,7 +146,7 @@ Update the box when the batch PR merges. Word counts are Learn text before → a
 
 | Topic | Batch | Trimmed | Domain review | Words |
 | --- | --- | :-: | :-: | --- |
-| Sources and limitations modal (all topics) | 0a | ☐ | n/a | n/a |
+| Sources and limitations modal (all topics) | 0a | built, local branch `feat/sources-modal` | n/a | n/a |
 | Learn-content refresh | 0b | n/a (already exists) | n/a | n/a |
 | `ooda-loop` | 1 | PR #168 | ☐ | 556 → 228 |
 | `primary-survey` | 2 | ☐ | ☐ | 475 → |
