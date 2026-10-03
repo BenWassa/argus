@@ -1,6 +1,6 @@
 # Compact library topics
 
-**Status:** plan, 2026-10-02. Nothing here is implemented. Tracking issue: #166.
+**Status:** plan, 2026-10-02, owner decisions in. Batch 1 (OODA pilot) is in review as #168; nothing else is implemented. Tracking issue: #166.
 **Authority:** once a batch ships, its section becomes the maintained contract for that behaviour. Until then `TOPIC_PAGE_REVAMP.md` stays authoritative for the topic-page layout and `LIBRARY_ROADMAP.md` for which topics exist.
 **Relationship:** this is the content and provenance half of the topic-page diet. `TOPIC_PAGE_REVAMP.md` §4 decides how the page is laid out; this document decides how much each topic says and where its sources live.
 
@@ -53,32 +53,27 @@ What the worst cases look like (read from `catalogSeed.ts`):
 
 Title, one scope sentence, the recall set, the one action. Nothing else is open. This is `TOPIC_PAGE_REVAMP.md` §4's layout; this document adds what that layout still shows at the bottom.
 
-### 2.2 Sources: one quiet control, one modal
+### 2.2 Sources and limitations: one quiet control, one modal
 
-- A single text button labelled **Sources**, last element on the page, horizontally centred, small and low-contrast (muted ink, no border, no icon, no chevron per the UI preference). It is the only trace of provenance in the body.
-- It opens a **centred modal** built on the existing `shared/ui/Dialog` (focus entry and return, scroll lock, Escape, and the browser-Back blocker are already handled there). Title "Sources"; body is the current `learn-sources` list unchanged (label, link, note); close button named "Close sources".
-- The inline `Sources` section is removed from `LearnSupport`. Topics with no sources render no button.
+Decided by the owner: limitations are bullets, at the end, and live with the sources.
+
+- A single text button, last element on the page, horizontally centred, small and low-contrast (muted ink, no border, no icon, no chevron per the UI preference). Label: **Sources and limitations** (shortened to **Sources** for a topic with no limitations). It is the only trace of provenance or caveat in the body.
+- It opens a **centred modal** built on the existing `shared/ui/Dialog` (focus entry and return, scroll lock, Escape, and the browser-Back blocker are already handled there). Two parts in one scroll: **Limitations** as a short bullet list first, then **Sources** (the current `learn-sources` list unchanged: label, link, note). Close button named "Close sources and limitations".
+- The inline `Limitations` and `Sources` sections are removed from `LearnSupport`. A topic with neither renders no button.
 - **Provenance is not reduced.** Every source stays, verbatim, one tap away. The provenance requirement (see `docs/closed/SEEDED_CONTENT_PROVENANCE.md`) is met by availability, not by prominence.
-- Accessibility: the button is a real `<button aria-haspopup="dialog">`; contrast of the muted style must still clear 4.5:1 on `--surface-2` (text this small is the case the token comments warn about); at 200% text the modal scrolls internally and never clips the close control. Links keep `target="_blank" rel="noreferrer"`.
+- **Safety topics.** Firearm Safety and Primary Survey rely on limitations for their scope boundary (Argus teaches recall, not competence). Hiding them is a decision the owner has made; their `scope` sentence under the title therefore carries the one-line boundary ("recall of these nine rules only, not handling a firearm") and must not be trimmed away in Batch 2.
+- Accessibility: the button is a real `<button aria-haspopup="dialog">`; its muted style must still clear 4.5:1 on `--surface-2` (text this small is the case the token comments warn about); at 200% text the modal scrolls internally and never clips the close control. Links keep `target="_blank" rel="noreferrer"`.
 - Offline: no change. Links are the only network touch and already were.
 
-### 2.3 Limitations
+### 2.3 Limitations as bullets
 
-Not named in the request, so the conservative reading: limitations **stay**, folded below the recall set, never in the first view. Firearm Safety and Primary Survey rely on them for their scope boundary (Argus teaches recall, not competence). **Open question for the owner:** should limitations also move behind the Sources control (one "About this topic" modal), or stay a fold? Default until answered: fold.
+Limitations are authored as a short bullet list (≤ 3 bullets, ≤ 25 words each, §3.3), each one fact: what the topic does not claim. They are no longer prose paragraphs. `LearnContent.limitations` is already `string[]`, so there is no schema change; the change is in how short they are and where they render.
 
 ### 2.4 Learn-content refresh for existing learners
 
-`reconcileCatalog` "only ever appends" and never rewrites a topic that already exists locally (`catalog.ts`). A trim edited into `catalogSeed.ts` therefore reaches **new installs only**; everyone who already has these topics keeps the old prose, and so the old Sources section, forever. Changing the meaning of a shipped topic is documented there as "an explicit migration decision".
+`reconcileCatalog` only appends and never rewrites a topic a learner already holds (`catalog.ts`). Rewritten prose therefore needs the other path, and **it already exists**: `refreshShippedLearn` in `libraryMigrations.ts` (introduced for Beaufort in #128). It is an opt-in list, `REFRESHED_LEARN_TOPIC_IDS`. For a listed topic that the catalog still owns and whose scored items match the catalog exactly, it replaces `learn` and nothing else; it is idempotent, so two devices agree and sync sees no conflict. A topic whose boundary the learner edited is left alone.
 
-Options, smallest first:
-
-| Option | What it does | Cost |
-| --- | --- | --- |
-| A. Do nothing | New installs get compact topics | Current users never see the change. Probably not what the owner means |
-| B. Learn-only refresh | For catalog-origin topics whose `scoredIdentity` matches the catalog, replace `learn` (and `scope` text if changed) from the catalog; never touch items, status, history, evidence or sitting | One small reconcile step, a `learnRevision` on the catalog definition so it runs once, and sync tolerance for a changed `learn` |
-| C. Resolve `learn` at read time from the catalog | `learn` stops being stored for catalog topics | Larger change to the storage and Firestore shape; not warranted for this |
-
-**Recommendation: B.** `learn` is content definition, not learner state (`topic.ts`), and the identity guard (`topicOrigin === 'catalog'`, scored items byte-identical) means a learner-edited topic is never overwritten. B is the one new mechanism in this programme and gets its own PR (Batch 0b) so it can be reviewed as a data-safety change, with a scratch vitest over real library fixtures: unchanged scored identity, progress untouched, learner-edited topic skipped, second run is a no-op.
+So no new mechanism is needed (this corrects an earlier draft, which proposed building one). The rule for every content batch is: **add the trimmed topic's id to `REFRESHED_LEARN_TOPIC_IDS`, and extend the `#166` test in `libraryMigrations.test.ts`.** The refresh does not touch `scope` or `title`; a batch that must change either needs the narrower title/scope migration pattern (`PREVIOUS_SHIPPED_TITLES`) instead, and should avoid doing so.
 
 ## 3. Editorial rules for trimming
 
@@ -105,10 +100,10 @@ Words of non-source Learn text, per topic. These are starting points, to be conf
 
 | Shape | Overview | Sections | Case study | Limitations |
 | --- | --- | --- | --- | --- |
-| concise | ≤ 25, or none | ≤ 90 | none | ≤ 2 items, ≤ 20 words each |
-| briefing | ≤ 30, or none | ≤ 130 | ≤ 80 (scenario + takeaway) | ≤ 3 items, ≤ 25 words each |
+| concise | ≤ 25, or none | ≤ 90 | none | ≤ 2 bullets, ≤ 20 words each |
+| briefing | ≤ 30, or none | ≤ 130 | ≤ 90 (scenario, walkthrough, takeaway) | ≤ 3 bullets, ≤ 25 words each |
 
-A topic already inside budget is left alone. NATO Alphabet (29) and Compass Bearings (36) need no change.
+The OODA pilot landed at 15 / 89 / 82 / 42 against these and they held. A topic already inside budget is left alone. NATO Alphabet (29) and Compass Bearings (36) need no change.
 
 ### 3.4 Visual-heavy topics
 
@@ -127,9 +122,9 @@ One PR per batch. Each batch is gated on unit tests plus a targeted e2e; the ful
 
 | Batch | Scope | Depends on | Review |
 | --- | --- | --- | --- |
-| **0a** | Sources button and modal for all topics; remove inline Sources from `LearnSupport` | topic-page rebuild merged, or built on `feat/topic-revamp-integration` | UI, a11y |
-| **0b** | Learn-content refresh (§2.4 option B) | owner picks an option | data safety |
-| **1** | Pilot trim: **OODA Loop**; confirm budgets in §3.3 | 0a (for the final look) | owner reads the diff |
+| **0a** | "Sources and limitations" button and modal for all topics; remove inline Limitations and Sources from `LearnSupport` | topic-page rebuild merged, or built on `feat/topic-revamp-integration` | UI, a11y |
+| **0b** | ~~Learn-content refresh~~ **Not needed:** `refreshShippedLearn` exists (§2.4). Each content batch registers its ids | n/a | n/a |
+| **1** | Pilot trim: **OODA Loop**; confirm budgets in §3.3. **In review: #168** | none (0a changes the final look only) | owner reads the diff |
 | **2** | Survival briefings: Primary Survey, Firearm Safety | 1 | owner domain review |
 | **3** | Navigation: Cardinal (no-op), Whole-circle, Reciprocal, North References, Grid North | 1 | owner skim |
 | **4** | Maritime: Navigation Lights, Vessel Day Shapes, Signal Flags | 1, §3.4 measure | owner domain review |
@@ -137,7 +132,9 @@ One PR per batch. Each batch is gated on unit tests plus a targeted e2e; the ful
 
 Why OODA first: lowest domain risk, worst words-to-items ratio (556 words around 4 items), and its prose is the clearest example of the lead-in problem, so it calibrates the budgets cheaply.
 
-0a and 0b are independent of 1–5 in code but 0b must ship before 1–5 reach existing learners.
+0a is independent of 1–5 in code. Each of 1–5 reaches existing learners through its own `REFRESHED_LEARN_TOPIC_IDS` entry.
+
+Some existing tests pin the old wording of limitations (`catalogSeed.test.ts` asserts three Firearm Safety limitation phrases and an OODA one). A trim updates those assertions to the new wording and keeps what they protect: that the boundary is stated.
 
 ### 4.1 Base branch and merge order
 
@@ -149,9 +146,9 @@ Update the box when the batch PR merges. Word counts are Learn text before → a
 
 | Topic | Batch | Trimmed | Domain review | Words |
 | --- | --- | :-: | :-: | --- |
-| Sources modal (all topics) | 0a | ☐ | n/a | n/a |
-| Learn-content refresh | 0b | ☐ | n/a | n/a |
-| `ooda-loop` | 1 | ☐ | ☐ | 556 → |
+| Sources and limitations modal (all topics) | 0a | ☐ | n/a | n/a |
+| Learn-content refresh | 0b | n/a (already exists) | n/a | n/a |
+| `ooda-loop` | 1 | PR #168 | ☐ | 556 → 228 |
 | `primary-survey` | 2 | ☐ | ☐ | 475 → |
 | `firearm-safety-acts-prove` | 2 | ☐ | ☐ | 531 → |
 | `cardinal-bearings` | 3 | n/a (in budget) | n/a | 36 |
@@ -175,8 +172,9 @@ Update the box when the batch PR merges. Word counts are Learn text before → a
 
 - **Word audit.** A scratch vitest (not committed) calls the real `catalogDefinitions()` and prints the §1 table. Re-run after each batch to fill §5.
 - **Scored identity.** For every edited topic, `scoredIdentity` (the helper in `catalog.ts`) is identical to the pre-edit value. `catalogInvariants.test.ts` already guards shipped ids.
-- **Sources modal.** Component test: button present only when `sources` exist; opens a dialog titled "Sources" listing every source with its link; Escape and the close button return focus to the button; no `Sources` heading remains in the page body. A targeted Playwright pass at 390 px and 200% text.
-- **Learn refresh (0b).** Fixture test over a library holding an old-prose catalog topic with progress: prose replaced, progress identical, learner-edited topic untouched, idempotent, sync round-trip.
+- **Sources and limitations modal.** Component test: button present only when the topic has sources or limitations; opens a dialog listing limitations as bullets, then every source with its link; Escape and the close button return focus to the button; no `Limitations` or `Sources` heading remains in the page body. A targeted Playwright pass at 390 px and 200% text.
+- **Learn refresh.** The `#166` describe in `libraryMigrations.test.ts`: old-prose catalog topic with progress gets the new `learn`, every learner field identical, idempotent, edited boundary untouched. Extended per batch.
+- **Budget.** A word-budget test in `catalogSeed.test.ts` per trimmed topic, so prose cannot creep back.
 - **Parser/sync.** `libraryParser` and `syncPlanner` accept the changed `learn` shape unchanged (no schema change is expected from any batch).
 
 ## 7. Out of scope
