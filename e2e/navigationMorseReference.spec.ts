@@ -101,40 +101,32 @@ async function finishCheckpointWarmups(page: Page) {
   await expect(page.getByText('1/1', { exact: true })).toBeVisible({ timeout: 2_000 })
 }
 
-test('the alphabet returns to the lesson it was opened from, not past it', async ({ page }) => {
+test('the alphabet round-trip preserves the topic and its unfinished confirmation route', async ({ page }) => {
   await openApp(page)
 
-  // The docket plate opens the topic, whose one action resumes the curriculum.
+  // Completed lessons still owe confirmation. The primary opens that task;
+  // alphabet lookup belongs to the Topic page, not the live retrieval screen.
   await page.locator('.docket .index-row').click()
   await expect(page.getByRole('heading', { name: morse.title, level: 1 })).toBeVisible()
   expect(await state(page)).toMatchObject({ index: 1, route: { kind: 'topic', topicId: MORSE_ID } })
-  // This fixture has completed its lessons; its primary resumes confirmation.
-  // Replay a named lesson explicitly to exercise the lesson/reference route.
-  await openFinishedLessons(page)
-  await page.getByRole('button', { name: 'Replay lesson 1', exact: true }).click()
-  await expect(page.locator('.morse-lesson')).toBeVisible()
-  expect(await state(page)).toMatchObject({ index: 2, route: { kind: 'run', mode: 'learn' } })
-
-  await page.getByRole('button', { name: 'Morse alphabet' }).click()
-  await expect(page.getByRole('heading', { name: 'Morse alphabet', level: 1 })).toBeVisible()
-  expect(await state(page)).toMatchObject({ index: 3, route: { kind: 'reference', topicId: MORSE_ID } })
-
-  // The change this replaces: Back used to abandon the lesson and land on the
-  // Topic page, which is why App had to rewrite the run entry into a Topic entry
-  // on the way in. The sitting is durable, so Back now returns to the lesson.
-  await page.evaluate(() => window.history.back())
-  await expect(page.locator('.morse-lesson')).toBeVisible()
+  await page.locator('.topic-primary').click()
+  await expect(page.locator('.morse-key')).toBeVisible()
   expect(await state(page)).toMatchObject({ index: 2, route: { kind: 'run', mode: 'learn' } })
 
   await page.evaluate(() => window.history.back())
   await expect(page.getByRole('heading', { name: morse.title, level: 1 })).toBeVisible()
   expect((await state(page)).index).toBe(1)
+  await page.getByRole('button', { name: 'Morse alphabet' }).click()
+  await expect(page.getByRole('heading', { name: 'Morse alphabet', level: 1 })).toBeVisible()
+  expect(await state(page)).toMatchObject({ index: 2, route: { kind: 'reference', topicId: MORSE_ID, origin: { kind: 'topic', topicId: MORSE_ID } } })
 
   await page.evaluate(() => window.history.back())
-  await expect(page.getByRole('button', { name: 'Today', exact: true })).toHaveAttribute(
-    'aria-current',
-    'page',
-  )
+  await expect(page.getByRole('heading', { name: morse.title, level: 1 })).toBeFocused()
+  await expect(page.locator('.topic-primary')).toContainText('Go over missed letters')
+  expect((await state(page)).index).toBe(1)
+
+  await page.evaluate(() => window.history.back())
+  await expect(page.getByRole('button', { name: 'Today', exact: true })).toHaveAttribute('aria-current', 'page')
   expect((await state(page)).index).toBe(0)
 })
 
