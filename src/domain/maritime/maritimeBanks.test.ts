@@ -211,9 +211,9 @@ describe('the two shipped topics', () => {
   it('carry source references, the absence caveat, and no qualification claim', () => {
     for (const topic of topics) {
       const limitations = (topic.learn?.limitations ?? []).join(' ')
-      expect(limitations).toMatch(/absence of one proves nothing|missing shape proves nothing/)
+      expect(limitations).toMatch(/missing (signal|shape) proves nothing/)
       expect(limitations).toMatch(/does not show that you can navigate safely/)
-      expect(limitations).toMatch(/Argus editorial/)
+      expect(limitations).toMatch(/Argus chooses/)
       expect(topic.learn?.sources?.some((s) => s.url?.includes('laws-lois.justice.gc.ca'))).toBe(true)
       for (const source of topic.learn?.sources ?? []) expect(source.url).toMatch(/^https:\/\//)
     }
