@@ -108,7 +108,10 @@ test('the alphabet returns to the lesson it was opened from, not past it', async
   await page.locator('.docket .index-row').click()
   await expect(page.getByRole('heading', { name: morse.title, level: 1 })).toBeVisible()
   expect(await state(page)).toMatchObject({ index: 1, route: { kind: 'topic', topicId: MORSE_ID } })
-  await page.locator('.topic-primary').click()
+  // This fixture has completed its lessons; its primary resumes confirmation.
+  // Replay a named lesson explicitly to exercise the lesson/reference route.
+  await openFinishedLessons(page)
+  await page.getByRole('button', { name: 'Replay lesson 1', exact: true }).click()
   await expect(page.locator('.morse-lesson')).toBeVisible()
   expect(await state(page)).toMatchObject({ index: 2, route: { kind: 'run', mode: 'learn' } })
 
