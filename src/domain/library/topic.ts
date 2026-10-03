@@ -24,10 +24,11 @@ export type Track = (typeof TRACKS)[number]
  * The status ladder. Every topic sits on exactly one rung, and the rung
  * decides both what the topic looks like and when it comes back.
  *
- *   unstarted -> learning -> drilled -> completed
- *                              ^           |
- *                              +- decayed -+
+ *   unstarted / learning / decayed -> completed
+ *                          ^             |
+ *                          +-- decayed --+
  *
+ * `drilled` remains a parseable legacy status and reads as completed.
  * `completed` is permanent: decay routes a topic back to drilling without
  * erasing the fact that it was once completed.
  */
@@ -90,6 +91,10 @@ export interface Attempt {
   resolvedTo: Status
 }
 
+export interface TopicSequence {
+  groups: { label: string; letters: string; itemIds: string[] }[]
+}
+
 export interface Topic {
   id: string
   title: string
@@ -100,11 +105,15 @@ export interface Topic {
   items: Item[]
   /** Optional explanatory support shown only in Learn. */
   learn?: LearnContent
+  /** Ordered recall, one authored letter per scored item. */
+  sequence?: TopicSequence
+  /** Optional topic artwork, using the shared local-media contract. */
+  hero?: Visual
   status: Status
   createdAt: string
-  /** When the topic first reached `drilled`. Starts the delayed-recall clock. */
+  /** Legacy timestamp when the topic first reached `drilled`; retained for compatibility. */
   drilledAt: string | null
-  /** First exposure timestamp. Starts the one-day learning gap. */
+  /** When acquisition or corrective learning began. No elapsed-time gate. */
   learningAt: string | null
   /** Set once, the first time the topic completes. Never cleared by decay. */
   completedAt: string | null
@@ -164,12 +173,7 @@ export interface Topic {
    * reason `completedAt` is: reaching the acquisition boundary is a historical
    * fact, so a topic already past it is never dragged back to `Continue lesson`.
    *
-   * It anchors the qualifying `learning → drilled` gap for progressive topics,
-   * so a programme spanning weeks does not arrive at its first scored Test with
-   * a clock that expired while the learner was still on packet 2. Absent on a
-   * topic whose acquisition is already complete means a record written before
-   * this field existed; the journey layer then falls back to `learningAt`, which
-   * is exactly the pre-#62 behaviour and can only ever be more permissive.
+   * This is a readiness gate, never an elapsed-time anchor.
    */
   acquisitionReadyAt?: string | null
   /**

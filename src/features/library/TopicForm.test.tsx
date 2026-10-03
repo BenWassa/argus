@@ -161,3 +161,31 @@ describe('editing a topic preserves durable learner progress', () => {
     })
   })
 })
+
+describe('ordered topic content edits', () => {
+  it('preserves the authored order through title edits and row reordering', () => {
+    const topic = seeded('primary-survey')
+    const saved = edit(topic, {
+      title: 'ABCDE',
+      items: [...topic.items].reverse().map(i => `${i.prompt} | ${i.answer}`).join('\n'),
+    })
+    expect(saved.sequence).toEqual(topic.sequence)
+    expect(parseLibrary({ version: 5, topics: [saved] }).ok).toBe(true)
+  })
+  it('drops incomplete sequence metadata after deleting a scored step', () => {
+    const topic = seeded('primary-survey')
+    const saved = edit(topic, { items: topic.items.slice(1).map(i => `${i.prompt} | ${i.answer}`).join('\n') })
+    expect(saved.sequence).toBeUndefined()
+    expect(parseLibrary({ version: 5, topics: [saved] }).ok).toBe(true)
+  })
+})
+
+
+it('preserves imported hero artwork through ordinary edits', () => {
+  const hero: NonNullable<Topic['hero']> = { source: { kind: 'image', src: '/media/topics/nato/hero.avif', width: 1600, height: 900 }, alt: 'Radio reference.', credit: 'Owner artwork.' }
+  const saved = edit({ ...seeded('nato-phonetic'), hero }, { title: 'Radio alphabet' })
+  expect(saved.hero).toEqual(hero)
+  const parsed = parseLibrary({ version: 5, topics: [saved] })
+  expect(parsed.ok).toBe(true)
+  if (parsed.ok) expect(parsed.library.topics[0].hero).toEqual(hero)
+})

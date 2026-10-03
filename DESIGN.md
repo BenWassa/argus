@@ -130,6 +130,9 @@ components:
 
 # Design System: Argus
 
+**Status:** current integration contract; changes in #175 are in review, not deployed.
+**Authority:** design context. `docs/open/TOPIC_PAGE_REVAMP.md` and `docs/open/LIBRARY_COMPACT_TOPICS.md` own the pending topic-page and provenance contracts.
+
 ## 1. Overview
 
 **Creative North Star: "Brushed Gunmetal"**
@@ -201,7 +204,7 @@ A restrained strategy: cool near-black neutrals carry almost the entire surface,
 ### Named Rules
 **The Two-Voice Rule.** Mono means a reading; sans means language. A button verb never uses the mono, and a status word never uses the sans. The one place this is explicit is the session bar, where the deck's *name* and the *End test* control stay sans inside an element that is otherwise mono. Mixing them destroys the only signal that tells the eye which is which.
 
-**The No-Eyebrow Rule.** Headings do not get an eyebrow label above them. Eyebrow-weight type is reserved for genuine metadata: track labels, item counts, session kickers. Learn's `Briefing`, `Concise support`, and `Case study` labels are content-type metadata, not decorative pre-headings.
+**The No-Eyebrow Rule.** Headings do not get an eyebrow label above them. Eyebrow-weight type is reserved for genuine metadata: track labels, item counts, session kickers. Topic support folds use descriptive summaries; the former Briefing and Concise support labels are omitted.
 
 **Tabular figures everywhere.** Any number that updates in place (counts, positions, scores, dates) carries `font-variant-numeric: tabular-nums`, so digits never reflow the layout around them.
 
@@ -229,23 +232,23 @@ The rule says *at most*, not *exactly*. A view with nothing to light is allowed 
 
 Two ways to engage a topic. Learn exposes the material; Test is the only recall interaction.
 
-`Learn` is a semantic, not a label: the learner reads `Read` for an ordinary
-topic and `Lesson N` for a curriculum, and `Test` is the only mode name that
-reaches them, because it is the only one with a consequence to state.
+`Learn` is internal terminology. Ordinary topics open directly as reading; their action is `Test`, `Test again` or `Repair`. Curriculum acquisition uses `Lesson N`.
 
 | Mode | Surface | Records |
 |---|---|---|
-| **Learn** | The topic page itself for an ordinary topic: the finite prompt/answer reference in full, preceded by optional concise or briefing support, concealing nothing. A guided lesson for a curriculum topic. | Moves `unstarted` → `learning`. No score. |
-| **Test** | Flashcards with a 3D flip, every scored item once, self-scored | Records the attempt; moves the ladder only when scheduled evidence conditions are met |
+| **Learn** | The topic page itself for an ordinary topic: hero, title, one-line state and visible recall cards, followed by closed support folds, concealing no scored material. A guided lesson for a curriculum topic. | Opening ordinary content writes nothing. Curriculum lessons own acquisition writes. |
+| **Test** | Flashcards with a 3D flip, every scored item once, self-scored | Records the attempt; one clean eligible Test banks the topic |
 
-Learn has three valid visual outcomes. A **reference-only** topic keeps the compact title/scope/count + numbered set with no additional scaffolding. **Concise support** adds only the small amount of explanation/provenance/limitation the topic needs. A **briefing** may add short sections, lists, definitions, compact tables and integrated case studies before a visibly separate `What to remember` section. The extra structure is never mandatory simply because the renderer supports it.
+### Topic page contract
+An ordinary topic opens with an optional local `Visual` hero or a 16:9 track-tinted fallback using its recognition icon. The title, scope and one line of state follow. Ordered learning topics use a concise rule count at the top. Survival topics keep their full authored safety scope visible; the complete scope is also available in a Scope and limits fold. The complete scored set comes next as compact, open recall cards, with numbered markers or authored sequence letters and item stimuli. These are visible reference material, never flip cards.
 
-### Named Rules
-**Flashcards Must Conceal.** A card shape promises a hidden answer. If both sides are visible at once it is not a card, it is a list, and it should be set as one. Learn is therefore never card-shaped, and Test never shows the answer before the flip.
+Explanatory sections, overview and case studies expand through native details, closed by default. A quiet centred footer control opens limitations as bullets, then sources, in a centred modal. Text remains authored content; folding does not remove it. On phone the primary action is fixed above navigation and safe-area padding, with space reserved at the end of the page. Secondary learning actions live in More options. Morse retains its curriculum path and lesson/placement gate with the same compact header.
+
+**Test Conceals; Reference Reveals.** Test keeps the answer hidden until reveal. Topic recall cards show prompt and answer together; their compact reference treatment must remain distinct from the focused Test card.
 
 **Support Does Not Score.** The Learn briefing is explanatory. `What to remember` is the visible rendering of the finite Test deck. Their separation must be legible in the page hierarchy so richer explanation cannot imply that every sentence is a completion requirement.
 
-**Consequence Is Stated, Not Implied.** Voluntary early Tests state that the score is recorded while required evidence clocks do not move early.
+**Consequence Is Stated, Not Implied.** Test records a score; course acquisition gates remain explicit. No Test waits on an elapsed-time clock.
 
 ## 6. Components
 
@@ -274,10 +277,10 @@ The richer Learn layer is a compact reference briefing, not an article template 
 
 - Maximum prose measure stays near 68ch; overview copy may use a slightly larger reading size (`--t-lede`), while longer explanatory body copy uses the normal body voice.
 - Structure is native and visible: headings, paragraphs, unordered/ordered lists, definition lists and compact tables.
-- Whole-framework/procedure case studies are continuous sections separated with rules and spacing. They are not one card per stage or one panel per term.
-- The finite recall set follows rich support under a strong hairline and `What to remember` metadata label, before Limitations and Sources (#128).
+- Whole-framework/procedure case studies are continuous reading inside a native fold. They are not one card per stage or one panel per term.
+- The finite recall set leads under `What to remember`; optional explanatory support follows in closed folds.
 - A repeated reference whose unit is the entry (Beaufort's forces) uses the `entries` block: the marker is the heaviest element, then the title, a mono meta line, and labelled fields stacked beneath, never in columns.
-- Sources and limitations remain in normal document flow, set smaller/muted but not collapsed or hidden.
+- Sources and limitations remain available in a centred modal through one quiet footer control. Safety boundaries remain visible in the topic scope.
 - Tables wrap content aggressively and may scroll inside their own focusable wrapper at extreme text scaling. The page itself must not overflow horizontally at 200% text scaling.
 - No animation is needed for briefing comprehension; reduced-motion behavior is therefore inherited without special alternative content.
 
@@ -326,12 +329,12 @@ Once the accent is a near-white, a hue shift alone cannot carry "current" agains
 - **Do** state a mode's consequence in its own label.
 - **Do** treat decay as routing information, never as an error or a scolding.
 - **Do** keep reference-only Learn topics compact and add richer hierarchy only when the content earns it.
-- **Do** keep Learn sources and limitations visible, subordinate and readable at 200% text scaling.
+- **Do** keep Learn sources and limitations reachable through a named footer control and centred modal, readable at 200% text scaling.
 
 ### Don't
-- **Don't** put a hero, slogan, or eyebrow above a heading.
+- **Don't** add marketing heroes, slogans or decorative eyebrows. Topic artwork is a finite content slot, not a pitch.
 - **Don't** build a wall of identical metric cards.
-- **Don't** shape something like a flashcard unless it actually conceals an answer.
+- **Don't** style visible reference cards like the concealed-answer Test card.
 - **Don't** turn structured Learn content into arbitrary HTML, a marketing article, or a stack of mini-cards.
 - **Don't** nest cards, use side-stripe borders, gradient text, or glassmorphism.
 - **Don't** add glow. A polished surface catches light; it does not emit it. Outer glow on a fill is the fastest way to turn a machined instrument into a sci-fi prop, and it smears on OLED.

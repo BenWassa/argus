@@ -15,3 +15,9 @@ export function testCardTextClass(text: string): string {
   const scale = testCardTextScale(text)
   return scale === 'short' ? '' : ` is-${scale}`
 }
+
+/** Longer authored words step down while retaining the current-letter contrast. */
+export function sequenceTextClass(letters: string): string {
+  const count = Array.from(letters).length
+  return count <= 5 ? '' : count <= 9 ? ' is-medium' : ' is-long'
+}

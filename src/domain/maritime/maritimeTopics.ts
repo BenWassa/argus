@@ -41,13 +41,13 @@ const TC_GUIDE = {
 }
 
 const SCOPE_LIMITS =
-  'Completing this topic does not show that you can navigate safely, avoid collisions, keep a watch, meet the legal requirements of a particular vessel, or hold a Pleasure Craft Operator Card or any maritime qualification. It teaches what standardized signals mean, not what to do about them.'
+  'Recall does not show that you can navigate safely, avoid collisions, keep watch, meet vessel requirements, or hold a PCOC or maritime qualification.'
 
 const ABSENCE =
-  'A displayed signal is interpreted; the absence of one proves nothing. The Regulations exempt small vessels and some situations, so never conclude from what you do not see that a vessel is not in a given state.'
+  'A missing signal proves nothing: small-vessel and situational exemptions apply. Interpret displayed signals, never infer a vessel’s state from their absence.'
 
 const EDITORIAL =
-  'The example vessel (power-driven, under 50 m), the eight light signatures, the five day shapes, the drawing style and the choice of distractors are Argus editorial choices. The sector arcs, colours and shape meanings are from the Collision Regulations.'
+  'Argus chooses the under-50-m power-driven example, eight light signatures, five shapes, drawings and distractors. The Regulations supply sectors, colours and meanings.'
 
 function figure(f: FigureSpec, alt: string, caption?: string): Visual {
   return { source: { kind: 'figure', figure: f }, alt, ...(caption ? { caption } : {}) }
@@ -114,14 +114,14 @@ const signatureEntries: LearnEntry[] = VESSEL_STATUSES.map((status) => {
 const lightsLearn: LearnContent = {
   kind: 'briefing',
   overview:
-    'Navigation lights let you read, from the lights alone, which way a vessel is facing and what it is doing. This topic teaches which lights an observer can see from each side of a vessel, and what eight common light arrangements say. It teaches decoding, not manoeuvring.',
+    'Visible lights depend on the observer’s position; distinguishing arrangements identify vessel states.',
   sections: [
     {
       heading: 'Orient the vessel',
       blocks: [
         {
           type: 'paragraph',
-          text: 'Every question here uses one top-down drawing with the bow at the top. You only need these terms; none of them is scored.',
+          text: 'Drawings put the bow at the top. Orientation terms are Learn-only.',
         },
         {
           type: 'definitions',
@@ -151,7 +151,7 @@ const lightsLearn: LearnContent = {
       blocks: [
         {
           type: 'paragraph',
-          text: 'Lights are shown from sunset to sunrise, and in restricted visibility; day shapes are shown by day. Each light is visible only over a fixed arc, so which lights you see depends on where you stand around the vessel. Bearings here are your position clockwise from the bow: 045° is on the starboard bow.',
+          text: 'Lights are shown sunset to sunrise and in restricted visibility; shapes by day. Each light has a fixed arc. Observer bearings run clockwise from the bow: 045° is starboard bow.',
         },
         {
           type: 'table',
@@ -175,9 +175,9 @@ const lightsLearn: LearnContent = {
         {
           type: 'steps',
           items: [
-            'Place yourself around the vessel as a bearing clockwise from the bow.',
-            'Check each arc: is your bearing inside it?',
-            'Dead ahead is the one edge worth remembering: there you see the masthead light and both sidelights, and no sternlight.',
+            'Place the observer clockwise from the bow.',
+            'Check which light arcs include that bearing.',
+            'Dead ahead: masthead and both sidelights, no sternlight.',
           ],
         },
       ],
@@ -187,15 +187,15 @@ const lightsLearn: LearnContent = {
       blocks: [
         {
           type: 'paragraph',
-          text: 'Some lights are all-round lights, shown in a vertical line. The colours and their order say what the vessel is doing. Learn the distinguishing part of each signal; the notes say what is left out.',
+          text: 'Vertical all-round lights identify states by colour and order. Entry notes retain unscored additions and exceptions.',
         },
         { type: 'entries', entries: signatureEntries },
         {
           type: 'bullets',
           items: [
-            'Vessels under 12 m are exempt from the Rule 27 signals, except in diving operations, so their absence says nothing.',
-            'A status signal tells you what a vessel is doing. It does not tell you who gives way or what to do about it.',
-            'Canada adds positioning modifications for the Great Lakes and inland waters that are outside this topic.',
+            'Rule 27 exempts vessels under 12 m except diving operations; missing signals prove nothing.',
+            'Status signals do not determine who gives way.',
+            'Canadian Great Lakes and inland positioning modifications are excluded.',
           ],
         },
       ],
@@ -227,7 +227,7 @@ const shapeEntries: LearnEntry[] = DAY_SHAPE_STATUS_ORDER.map((id) => {
 const shapesLearn: LearnContent = {
   kind: 'concise',
   overview:
-    'By day, vessels show black shapes instead of lights. Five arrangements matter first, and they reinforce the light signals: one ball, two balls, ball-diamond-ball, three balls, and two cones with their apexes together.',
+    'Day shapes are black. Count them and read their order.',
   sections: [
     {
       heading: 'Five arrangements',
@@ -235,7 +235,7 @@ const shapesLearn: LearnContent = {
         { type: 'entries', entries: shapeEntries },
         {
           type: 'paragraph',
-          text: 'The strongest confusions are one, two and three balls, and two cones against ball-diamond-ball. Count the shapes, then note their order.',
+          text: 'Distinguish one, two and three balls; distinguish two cones from ball-diamond-ball.',
         },
       ],
     },
@@ -253,17 +253,17 @@ const shapesLearn: LearnContent = {
         },
         {
           type: 'paragraph',
-          text: 'Shapes are black. On vessels under 20 m they may be smaller, in proportion to the vessel. The drawings here keep the shapes’ proportions but not their size.',
+          text: 'Vessels under 20 m may use proportionately smaller shapes. Drawings preserve proportions, not size.',
         },
         {
           type: 'paragraph',
-          text: 'Two shapes are left out on purpose. The cone with its apex down for a vessel under sail and power has a Canadian size and waters exception, and the cylinder for a vessel constrained by her draught is prohibited in Canadian inland waters. Neither fits a context-free card.',
+          text: 'Excluded: the sail-and-power apex-down cone has Canadian size/waters exceptions; the draught-constrained cylinder is prohibited in Canadian inland waters.',
         },
       ],
     },
   ],
   limitations: [
-    'This topic teaches what a displayed shape means, not that every vessel in that state must display it. The Regulations exempt small vessels, so a missing shape proves nothing.',
+    'A missing shape proves nothing: small-vessel exemptions apply. A displayed shape’s meaning does not imply that every vessel in that state must display it.',
     EDITORIAL,
     SCOPE_LIMITS,
   ],

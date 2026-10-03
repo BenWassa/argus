@@ -1,10 +1,11 @@
 # Issue #131 — WMO cloud genera visual field guide
 
-**Status:** hero images sourced and QA'd (2026-09-30); UI integration depends on #146  
+**Status:** implemented on `feat/topic-staged-assets`, 2026-10-02; not merged.
+**Authority:** maintained cloud-guide scope and packaged asset provenance contract.
 **Issue:** #131  
 **Research authority:** #141 and `docs/open/ISSUE_141_CLOUD_WEATHER_RECOGNITION.md`  
 **Shared UI dependency:** #146  
-**Roadmap:** `docs/LIBRARY_ROADMAP.md`
+**Roadmap:** [Library roadmap](LIBRARY_ROADMAP.md)
 
 ## Locked first phase
 
@@ -103,11 +104,7 @@ Rejected along the way:
 
 All ten are CC BY-SA, so the credit line must be shown wherever the image is (`credit` in #146's visual primitive), and the derivative carries the same licence. The set is 180 KB of AVIF under `public/media/clouds/`, and is precached like every other file in `dist`. The `assetId`s match the #146 `assetId` field.
 
-Still to do, after #146 lands:
-- the Learn copy from #141;
-- the comparison sections;
-- the topic;
-- wiring each image through `LearnEntry.visual` with its alt text and this credit line.
+Implemented: `cloud-genera` is a ten-item textual abbreviation-to-name topic, authorized by the owner on 2026-10-02. The photos remain unscored `LearnEntry.visual` content, grouped High / Middle / Low-base with comparison sections, source links, credits and unchanged packaged images. Shared manual visual-guide controls work inside the topic’s closed folds. Completion claims vocabulary only, never photographic recognition.
 
 ### `cloud-cirrus` — Cirrus
 

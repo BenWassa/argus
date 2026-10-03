@@ -1,0 +1,22 @@
+/* The only trace of provenance in the page body: small, quiet, last, centred. */
+button.sources-link {
+  display: block;
+  min-height: 44px;
+  margin: var(--s-xl) auto 0;
+  padding: 0 var(--s-md);
+  color: var(--subtle);
+  font-size: var(--t-small);
+}
+
+/* Inside the dialog the notes are the content, so they drop the rule and the
+   top margin the inline version used to separate them from the body. */
+.learn-notes.sources-notes {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.sources-notes ul { list-style: disc; }
+.sources-notes ol { list-style: decimal; }
+
+.sources-notes { min-width: 0; grid-template-columns: minmax(0, 1fr); overflow-wrap: anywhere; }

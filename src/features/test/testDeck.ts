@@ -1,3 +1,5 @@
+import { sequenceFor } from '../../domain/library/catalog'
+import type { TopicSequence, Track } from '../../domain/library/topic'
 import { journeyFor } from '../../domain/study/journey'
 import { morseAcquisitionProfile, type AcquisitionCharacter, type AcquisitionProfile } from '../../domain/morse/testing/acquisitionProfile'
 import { isReviewTopic, reviewItems } from '../../domain/study/review'
@@ -20,6 +22,7 @@ export interface Card {
   item: Item
   /** Present only for a topic the acquisition ladder recognises. */
   character?: AcquisitionCharacter
+  sequence?: { group: TopicSequence['groups'][number]; step: number; track: Track }
 }
 
 export function shuffle<T>(list: T[]): T[] {
@@ -82,9 +85,19 @@ export function buildDeck(
   profiles: Map<string, AcquisitionProfile>,
   reviews: Set<string> = new Set(),
 ): Card[] {
-  return topics.flatMap((topic) => {
+  return topics.flatMap<Card>((topic) => {
     const profile = profiles.get(topic.id)
     const items = reviews.has(topic.id) ? reviewItems(topic) : topic.items
+    // A formative review asks a subset and keeps its existing progressive cards.
+    const sequence = reviews.has(topic.id) ? undefined : sequenceFor(topic)
+    const ordered = sequence?.groups.flatMap(group => group.itemIds.map((id, step) => ({
+      item: items.find(item => item.id === id)!, group, step,
+    })))
+    if (ordered) return ordered.map(({ item, group, step }) => ({
+      topicId: topic.id, topicTitle: topic.title, item,
+      sequence: { group, step, track: topic.track },
+      ...(profile && item.id ? { character: profile.get(item.id) } : {}),
+    }))
     return shuffle(
       items.map((item) => ({
         topicId: topic.id,

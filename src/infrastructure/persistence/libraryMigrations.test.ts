@@ -3,7 +3,7 @@ import { catalogDefinition } from '../../domain/library/catalog'
 import type { CurrentLibrary } from '../../domain/library/library'
 import type { Topic } from '../../domain/library/topic'
 import { seedLibrary } from '../../domain/library/catalogSeed'
-import { reconcileLoadedLibrary, refreshShippedLearn, upgradeSeededScubaEquipment } from './libraryMigrations'
+import { reconcileLoadedLibrary, refreshShippedLearn, refreshShippedScopes, upgradeSeededScubaEquipment } from './libraryMigrations'
 
 const BEAUFORT = 'beaufort-wind-scale'
 
@@ -37,7 +37,7 @@ describe('refreshing a rewritten shipped Learn (#128)', () => {
     const old = beforeTheRewrite()
     const [topic] = refreshShippedLearn(library(old)).topics
     expect(topic.learn).toEqual(catalogDefinition(BEAUFORT)?.learn)
-    expect(topic.learn?.sections?.[0].blocks[0].type).toBe('entries')
+    expect(topic.learn?.sections?.find((section) => section.heading === 'The scale')?.blocks[0].type).toBe('entries')
     // Explanation changed; evidence did not.
     expect({ ...topic, learn: old.learn }).toEqual(old)
   })
@@ -135,5 +135,91 @@ describe('the #121 scuba expansion', () => {
     const [upgraded] = upgradeSeededScubaEquipment({ version: 5, topics: [fresh] }).topics
     expect(upgraded.items).toHaveLength(13)
     expect(upgraded.status).toBe('unstarted')
+  })
+})
+
+describe('the #166 prose trims reach libraries that already hold the topic', () => {
+  const at = '2026-09-20T00:00:00.000Z'
+
+  /** A trimmed topic as a library received it before its prose was trimmed. */
+  function beforeTheTrim(id: string, overrides: Partial<Topic> = {}): Topic {
+    const shipped = catalogDefinition(id)
+    if (!shipped) throw new Error(`${id} is not shipped`)
+    return {
+      ...shipped,
+      origin: 'catalog',
+      status: 'learning',
+      learningAt: at,
+      lastTestedAt: at,
+      history: [{ at, correct: 1, total: shipped.items.length, resolvedTo: 'learning' }],
+      learn: { kind: 'briefing', overview: 'The old, longer overview.', limitations: ['An old limitation.'] },
+      ...overrides,
+    }
+  }
+
+  describe.each(['ooda-loop', 'primary-survey', 'firearm-safety-acts-prove', 'whole-circle-bearings', 'reciprocal-bearings', 'north-references-declination', 'grid-north-map-bearings', 'navigation-lights', 'vessel-day-shapes', 'signal-flags', 'beaufort-wind-scale', 'scuba-equipment-abbreviations', 'radiotelephony-numbers', 'si-prefixes', 'greek-alphabet', 'hex-digits-binary', 'international-morse-letters-printed'])('%s', (id) => {
+    it('swaps in the trimmed Learn and leaves every learner field exactly as it was', () => {
+      const old = beforeTheTrim(id)
+      const [topic] = refreshShippedLearn({ version: 5, topics: [old] }).topics
+
+      expect(topic.learn).toEqual(catalogDefinition(id)?.learn)
+      expect({ ...topic, learn: old.learn }).toEqual(old)
+    })
+
+    it('is idempotent, so two devices agree', () => {
+      const once = refreshShippedLearn({ version: 5, topics: [beforeTheTrim(id)] })
+      expect(refreshShippedLearn(once)).toBe(once)
+    })
+
+    it('does not touch a topic whose scored boundary was edited', () => {
+      const edited = beforeTheTrim(id, { items: catalogDefinition(id)!.items.slice(0, -1) })
+      const input: CurrentLibrary = { version: 5, topics: [edited] }
+      expect(refreshShippedLearn(input)).toBe(input)
+    })
+  })
+})
+
+
+describe('the visible Primary Survey safety boundary (#166)', () => {
+  const oldScope = 'The five ABCDE headings in assessment order — Airway, Breathing, Circulation, Disability, Exposure. Test covers the headings and order only.'
+  const old = { ...catalogDefinition('primary-survey')!, origin: 'catalog' as const, scope: oldScope }
+
+  it('updates only the exact former scope, preserves progress, and is idempotent', () => {
+    const input: CurrentLibrary = { version: 5, topics: [old] }
+    const once = refreshShippedScopes(input)
+    expect(once.topics[0].scope).toContain('not first-aid or clinical training')
+    expect({ ...once.topics[0], scope: oldScope }).toEqual(old)
+    expect(refreshShippedScopes(once)).toBe(once)
+    expect(reconcileLoadedLibrary(input).library.topics[0].scope).toBe(once.topics[0].scope)
+  })
+
+  it('preserves custom scopes, user ownership, and edited scored items', () => {
+    for (const topic of [
+      { ...old, scope: 'My own scope.' },
+      { ...old, origin: 'user' as const },
+      { ...old, items: old.items.slice(1) },
+    ]) {
+      const input: CurrentLibrary = { version: 5, topics: [topic] }
+      expect(refreshShippedScopes(input)).toBe(input)
+    }
+  })
+})
+
+describe('Learn refresh respects the complete scored identity', () => {
+  it('preserves explanatory support when the learner edits the scope', () => {
+    const input = library(beforeTheRewrite({ scope: 'My narrower scope.' }))
+    expect(refreshShippedLearn(input)).toBe(input)
+  })
+
+  it.each(['id', 'kind', 'choice'] as const)('preserves support when an item’s %s was edited', (field) => {
+    const old = beforeTheRewrite()
+    old.items = old.items.map((item, i) => i ? item : {
+      ...item,
+      ...(field === 'id' ? { id: 'custom-id' } : field === 'kind' ? { kind: 'bidirectional' as const } : {
+        choice: { options: [item.answer, 'Custom alternative'] },
+      }),
+    })
+    const input = library(old)
+    expect(refreshShippedLearn(input)).toBe(input)
   })
 })

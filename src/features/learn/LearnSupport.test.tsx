@@ -4,7 +4,7 @@ import type { LearnContent } from '../../domain/learning/content'
 import { LearnSupport } from './LearnSupport'
 
 describe('structured Learn rendering', () => {
-  it('renders concise support with visible limitations and provenance', () => {
+  it('renders concise support without limitations or provenance in the body', () => {
     const content: LearnContent = {
       kind: 'concise',
       overview: 'A small amount of context is enough for this topic.',
@@ -13,12 +13,14 @@ describe('structured Learn rendering', () => {
     }
 
     const html = renderToStaticMarkup(<LearnSupport content={content} />)
-    expect(html).toContain('Concise support')
+    expect(html).toContain('<summary>Why it works</summary>')
     expect(html).toContain('A small amount of context')
-    expect(html).toContain('<h3>Limitations</h3>')
-    expect(html).toContain('<h3>Sources</h3>')
-    expect(html).toContain('href="https://example.com/reference"')
+    // Provenance and caveats are not in the body; `SourcesAndLimits` owns them.
+    expect(html).not.toContain('Memory support only.')
+    expect(html).not.toContain('https://example.com/reference')
+    expect(html).not.toContain('learn-notes')
     expect(html).not.toContain('flip-card')
+    expect(html).not.toContain(' open=')
     expect(html).not.toContain('<button')
   })
 
@@ -63,21 +65,21 @@ describe('structured Learn rendering', () => {
     }
 
     const html = renderToStaticMarkup(<LearnSupport content={content} />)
-    expect(html).toContain('Briefing')
-    expect(html).toContain('<h3>Relationships</h3>')
+    expect(html).not.toContain('learn-support-kind')
+    expect(html).toContain('<span>Relationships</span>')
     expect(html).toContain('<ul class="learn-list">')
     expect(html).toContain('<ol class="learn-list learn-steps">')
     expect(html).toContain('<dl class="learn-definitions">')
     expect(html).toContain('<th scope="col">Stage</th>')
-    expect(html).toContain('<p class="learn-case-label">Case study</p>')
-    expect(html).toContain('<h3>Integrated decision case</h3>')
+    expect(html).toContain('<summary>Case study: Integrated decision case</summary>')
     expect(html).toContain('<h4>Trace the whole loop</h4>')
     expect(html).toContain('The framework is iterative')
     expect(html).not.toContain('dangerouslySetInnerHTML')
     expect(html).not.toContain('flip-card')
+    expect(html).not.toContain(' open=')
   })
 
-  it('keeps each entry together, and sets the recall slot before Limitations and Sources', () => {
+  it('keeps each entry together, and sets the recall slot first', () => {
     const content: LearnContent = {
       kind: 'concise',
       sections: [{
@@ -105,7 +107,6 @@ describe('structured Learn rendering', () => {
     expect(html).toContain('<dt>On land</dt><dd>Whole trees in motion.</dd>')
     expect(html).toContain('An inline note.')
     expect(html).not.toContain('<table')
-    expect(html.indexOf('recall-slot')).toBeGreaterThan(html.indexOf('Near gale'))
-    expect(html.indexOf('recall-slot')).toBeLessThan(html.indexOf('<h3>Limitations</h3>'))
+    expect(html.indexOf('recall-slot')).toBeLessThan(html.indexOf('Near gale'))
   })
 })

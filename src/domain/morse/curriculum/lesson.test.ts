@@ -524,7 +524,7 @@ describe('a Learn answer cannot become formal evidence', () => {
 
     expect(withheld).toBe(0)
     expect(resolution.completed).toBe(false)
-    expect(resolution.topic.completedAt).toBeNull()
+    expect(resolution.topic.completedAt).toBe(drilled.drilledAt)
   })
 
   it('resolves an attempt identically whether or not a lesson ever happened', () => {

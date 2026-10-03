@@ -1,0 +1,11 @@
+/* Development-only colour study. Production never sets data-colour-preview.
+   Keep the chassis and shared track tokens unchanged while the owner compares. */
+[data-colour-preview="raised"] .topic-track-learning .topic-hero-fallback { --topic-track: oklch(0.76 0.13 250); }
+[data-colour-preview="raised"] .topic-track-survival .topic-hero-fallback { --topic-track: oklch(0.77 0.12 205); }
+[data-colour-preview="raised"] .topic-track-tradecraft .topic-hero-fallback { --topic-track: oklch(0.75 0.13 300); }
+[data-colour-preview="raised"] .sequence-card.track-learning { --sequence-ink: oklch(0.76 0.13 250); }
+[data-colour-preview="raised"] .sequence-card.track-survival { --sequence-ink: oklch(0.77 0.12 205); }
+[data-colour-preview="raised"] .sequence-card.track-tradecraft { --sequence-ink: oklch(0.75 0.13 300); }
+/* Settled and tarnished actions carry state independently of track identity. */
+[data-colour-preview] .topic-action-bar .topic-primary { color: var(--accent-ink); }
+[data-colour-preview] .topic-action-bar.is-banked .topic-primary { background: var(--complete); }

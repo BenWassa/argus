@@ -67,7 +67,7 @@ describe('the gauge reads an ordinary topic honestly', () => {
     }
 
     const result = reading(topic)
-    expect(result.kind).toBe('none')
+    expect(result.kind).toBe('complete')
   })
 })
 

@@ -1,3 +1,5 @@
+import { sequenceFor } from '../../domain/library/catalog'
+import { parseSequence } from '../../infrastructure/persistence/sequenceParser'
 import { useEffect, useId, useMemo, useState } from 'react'
 import { Dialog } from '../../shared/ui/Dialog'
 import { TRACK_LABELS } from '../../shared/ui/trackLabels'
@@ -22,6 +24,7 @@ export interface Draft {
   items: string
   /** AI/import-assisted authoring may provide structured Learn support. */
   learn?: LearnContent
+  hero?: Topic['hero']
 }
 
 interface TopicFormProps {
@@ -111,6 +114,7 @@ export function TopicForm({
 
     const now = new Date().toISOString()
     const reconciledItems = reconcileAuthoredItems(topic?.items ?? [], items)
+    const sequence = parseSequence(topic ? sequenceFor(topic) : undefined, reconciledItems, 'Topic')
     const sitting = pruneLessonSitting(topic?.lessonSitting, reconciledItems)
     const review = pruneMorseReview(topic?.morseReview, reconciledItems)
     const audioEvidence = topic?.audioEvidence && pruneAudioEvidence(topic.audioEvidence, reconciledItems)
@@ -124,6 +128,8 @@ export function TopicForm({
       // support is authored/imported as structured data and must survive an
       // ordinary title/scope/item edit untouched.
       learn: topic?.learn ?? draft?.learn,
+      ...(sequence.ok && sequence.value ? { sequence: sequence.value } : {}),
+      hero: topic?.hero ?? draft?.hero,
       status: topic?.status ?? 'unstarted',
       createdAt: topic?.createdAt ?? now,
       drilledAt: topic?.drilledAt ?? null,

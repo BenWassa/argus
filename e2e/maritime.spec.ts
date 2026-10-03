@@ -17,8 +17,7 @@ async function openTopic(page: Page, title: string) {
 
 async function startTest(page: Page) {
   const primary = page.locator('.topic-primary')
-  if ((await primary.locator('.topic-primary-verb').textContent()) === 'Start learning') await primary.click()
-  await expect(primary.locator('.topic-primary-verb')).toHaveText('Test')
+  await expect(primary).toHaveText('Test')
   await primary.click()
 }
 
@@ -58,21 +57,27 @@ for (const [title, items, figures] of [
 ] as const) {
   test(`${title}: Learn shows its bank and diagrams with no sideways scroll`, async ({ page }) => {
     await openTopic(page, title)
-    await expect(page.locator('.sheet-items li')).toHaveCount(items)
-    await expect(page.locator('.sheet-items li.has-visual')).toHaveCount(figures)
-    await expect(page.locator('.learn-notes')).toContainText('does not show that you can navigate safely')
-    await expect(page.locator('.learn-notes')).toContainText('proves nothing')
+    await expect(page.locator('.topic-recall-cards > li')).toHaveCount(items)
+    await expect(page.locator('.topic-recall-cards > li.has-visual')).toHaveCount(figures)
+    await page.getByRole('button', { name: 'Sources and limitations' }).click()
+    await expect(page.locator('.sources-notes')).toContainText('does not show that you can navigate safely')
+    await expect(page.locator('.sources-notes')).toContainText('proves nothing')
     await noSidewaysScroll(page)
   })
 }
 
 test('the Learn-only orientation prerequisite and the light sectors are taught before any scoring', async ({ page }) => {
   await openTopic(page, 'Navigation Lights & Aspect')
-  await expect(page.getByRole('heading', { name: 'Orient the vessel', level: 3 })).toBeVisible()
+  const orient = page.locator('summary', { hasText: 'Orient the vessel' })
+  await expect(orient).toBeVisible()
+  await expect(page.locator('.learn-definitions dt').filter({ hasText: '22.5° abaft the beam' })).not.toBeVisible()
+  await orient.click()
   await expect(page.locator('.learn-definitions dt').filter({ hasText: '22.5° abaft the beam' })).toBeVisible()
   await expect(page.getByRole('img', { name: /Port is labelled on the left/ })).toBeVisible()
+  await page.locator('summary', { hasText: 'How the light sectors work' }).click()
   await expect(page.locator('.figure-sector')).toHaveCount(4)
-  // The scored set is titled as reference, after the explanation.
+  for (const sector of await page.locator('.figure-sector').all()) await expect(sector).toBeVisible()
+  // The scored set remains visible before the optional explanatory folds.
   await expect(page.locator('#topic-reference-head')).toHaveText('What to remember')
 })
 

@@ -1,5 +1,8 @@
 # Product
 
+**Status:** current integration contract; changes in #175 are in review, not deployed.
+**Authority:** product context. Maintained behaviour contracts live in `docs/open/`; the compact-topic and topic-page documents own the pending #166 changes.
+
 ## Register
 
 product
@@ -12,31 +15,12 @@ The job to be done, every session: see what's due, do the one thing the schedule
 
 ## Modes
 
-Reference access, active learning and scored recall are different interactions
-with different consequences. The interface must not let one masquerade as
-another.
+Opening an ordinary topic is learning: its complete finite reference and optional support are immediately available. Browsing writes no progress, history or evidence. There is no enrollment action.
 
-**Browse/reference ≠ enrolled learning.** Opening an ordinary topic is analogous
-to opening a course book: its finite reference and optional `topic.learn` support
-are immediately available to inspect, and that navigation performs no progress,
-scheduler or evidence write. Revisiting or scrolling the page is equally inert.
+- **Learn** — ungraded acquisition through canonical lessons for curricula such as Morse. These lessons own acquisition writes.
+- **Test** — every scored item once, self-scored where needed. One clean eligible Test banks the topic, including a clean first run. A miss enters learning; a miss on a banked topic enters repair and preserves its completion record. A banked topic offers Test again at any time.
 
-- **Browse/reference** — read-only access to the complete finite material. It does not change `status`, `learningAt`, history, evidence, scheduling or completion.
-- **Learn** — the internal ungraded acquisition mode. For an ordinary topic the learner-facing boundary is the explicit **Start learning** action: it enrolls an `unstarted` topic by entering the existing `learning` state and starts the existing learning gap, but records no score or evidence. For a curriculum such as Morse, canonical lessons own the corresponding acquisition writes.
-- **Test** — flashcards, every scored item once, self-scored. Every Test creates history, while the scheduler decides whether that result is timely enough to advance the ladder. A Test started from an `unstarted` topic is itself a deliberate check/enrollment action, but that first run still cannot simultaneously prove retention; existing Test/evidence semantics are unchanged.
-
-`Learn` remains an implementation term rather than a generic button label. An
-ordinary topic says `Start learning`; Morse says `Lesson N`; scored recall says
-`Test`. The reference remains visible before and after enrollment, because access
-to information is not evidence that the learner chose to study it.
-
-For most ordinary topics enrollment is a single explicit state transition before
-the existing Test/retention ladder. Some topics need more acquisition: Morse's
-Learn is a guided lesson running over many sittings and days, and its status is
-`learning` throughout. For those, finishing acquisition is a distinct event from
-first lesson start, and until it happens every surface keeps recommending the
-lesson — an early Test stays available, but it is recorded rather than banked.
-`docs/open/PROGRESS_ARCHITECTURE.md` is the authority.
+Morse keeps its lesson gate: an early Test is recorded but cannot advance or demote retention while acquisition is unfinished. The maintained authority is [Progress architecture](docs/open/PROGRESS_ARCHITECTURE.md).
 
 ## What progress means
 
@@ -44,7 +28,7 @@ Argus tracks four different things about a topic and deliberately does not avera
 
 - **Acquisition** — can you retrieve this without the teaching support you are currently using?
 - **Evidence** — have you demonstrated the directions and conditions the scored boundary requires?
-- **Retention** — has that recall survived the required gap?
+- **Retention** — has a clean eligible Test demonstrated recall?
 - **Current sitting** — where are you inside the finite task you are doing right now?
 
 One shared derivation reads all four and answers the only question the learner actually asks — *what should I do next, and why* — so Today, Library and Topic cannot contradict each other about the same topic at the same instant. There is no single progress percentage, because a number averaging those four would not mean anything.
@@ -94,7 +78,7 @@ Turning a request into curriculum is editorial work that happens in the reposito
 
 ## Product Purpose
 
-Argus is a personal skill library built entirely from topics that can be genuinely finished: a fixed alphabet, a named framework with a known number of parts, a defined protocol. Every topic states its own boundary (`scope`) at authoring time; topics without an edge are rejected, not managed later. Completion requires two clean scored Tests, not exposure, and remains a durable, permanent record — a failed check routes a topic back to repair without erasing that it was once completed. Nothing in the ladder reads a clock: the learner chooses when to Test, whether they open Argus five days in a row or five times a year (owner, 2026-09-29).
+Argus is a personal skill library built entirely from topics that can be genuinely finished: a fixed alphabet, a named framework with a known number of parts, a defined protocol. Every topic states its own boundary (`scope`) at authoring time; topics without an edge are rejected, not managed later. One clean eligible scored Test banks an ordinary topic; exposure alone does not, and remains a durable, permanent record — a failed check routes a topic back to repair without erasing that it was once completed. Nothing in the ladder reads a clock: the learner chooses when to Test, whether they open Argus five days in a row or five times a year (owner, 2026-09-29).
 
 Success, twelve months in: 40–60 completed topics that the owner can still recall cold, weeks after last opening the app.
 
@@ -121,7 +105,7 @@ The tradecraft and survival tracks pull hard toward military, prepper, or tactic
 
 1. **Finishability is the entry gate.** Every topic must state a hard boundary before it can exist in the library; the UI enforces this at authoring time rather than relying on discipline later.
 2. **Task-first over showcase-first.** The interface opens to "what's due" and "start Test," not to a summary or a pitch. Marketing-page instincts (heroes, slogans, eyebrows) are actively rejected on functional screens.
-3. **Retention over exposure, decay as routing not punishment.** Completion means recall held across two clean scored Tests, and a banked topic can be checked whenever the learner chooses; a failed check is decay. No rung, availability or label waits on elapsed time. Surfacing decay is diagnostic information, framed the same way as any other status, never as a failure state.
+3. **Retention over exposure, decay as routing not punishment.** One clean eligible Test banks the topic, and a banked topic can be checked whenever the learner chooses; a failed check is decay. No rung, availability or label waits on elapsed time. Surfacing decay is diagnostic information, framed the same way as any other status, never as a failure state.
 4. **Portable and owner-owned.** Full JSON export/import is a first-class feature, not a settings-page afterthought — including optional structured Learn support. The interface should never make data feel trapped.
 5. **Restraint reads as competence.** One accent color, minimal chrome, and native typography carry the "capable and deliberate" tone. Restraint is not the same as flatness: the interface earns its calm through material, real typographic hierarchy, and one lit surface per view, not by removing contrast until everything sits at the same pitch.
 6. **The form must not lie about the content.** A card shape promises a concealed answer; a list promises scannability. Matching the surface to the actual task is a correctness requirement, not a style choice. Learn support therefore uses editorial structure, never concealed-answer styling.
@@ -136,4 +120,4 @@ Target WCAG 2.1 AA. Established and non-negotiable baseline (already implemented
 - Modal/sheet focus management: opening moves focus inside, closing returns focus to the invoking control; Escape and backdrop dismissal both available.
 - `aria-live="polite"` regions for dynamic status (e.g. due-count updates) so screen reader users get session state without hunting for it.
 - Full `prefers-reduced-motion` support — no animation is load-bearing for comprehension.
-- Learn briefings use native heading/list/definition/table semantics, keep sources and limitations visible, and must remain readable at 200% text scaling without page-level horizontal overflow.
+- Learn briefings use native heading/list/definition/table semantics. Sources and limitations are reachable through a named footer control and centred modal; survival training boundaries remain visible in scope. Content must remain readable at 200% text scaling without page-level horizontal overflow.

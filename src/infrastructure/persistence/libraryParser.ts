@@ -1,3 +1,4 @@
+import { parseSequence } from './sequenceParser'
 import {
   LEARN_KINDS,
   type LearnBlock,
@@ -220,7 +221,13 @@ function parseBlock(value: unknown, where: string): { ok: true; block: LearnBloc
         ...(visual ? { visual } : {}),
       })
     }
-    return { ok: true, block: { type: 'entries', entries } }
+    if (value.presentation !== undefined && value.presentation !== 'visual-guide') {
+      return { ok: false, error: `${where} entries presentation is not supported.` }
+    }
+    if (value.presentation === 'visual-guide' && entries.some((entry) => !entry.visual)) {
+      return { ok: false, error: `${where} visual guide needs a picture for every entry.` }
+    }
+    return { ok: true, block: { type: 'entries', entries, ...(value.presentation === 'visual-guide' ? { presentation: 'visual-guide' as const } : {}) } }
   }
 
   if (value.type === 'visual') {
@@ -920,7 +927,11 @@ function parseTopic(
   const topicId = optionalText(t.id) ?? `imported-topic-${index + 1}`
   const items = parseItems(t.items, `${where} ("${title}")`, topicId, sourceVersion)
   if (!items.ok) return items
+  const sequence = parseSequence(t.sequence, items.items, where)
+  if (!sequence.ok) return sequence
 
+  const hero = t.hero == null ? undefined : parseVisual(t.hero, `${where} hero`)
+  if (hero && !hero.ok) return hero
   const learn = parseLearn(t.learn, `${where} ("${title}")`)
   if (!learn.ok) return learn
 
@@ -989,7 +1000,9 @@ function parseTopic(
       scope,
       track,
       items: items.items,
+      ...(hero?.ok ? { hero: hero.value } : {}),
       ...(learn.learn ? { learn: learn.learn } : {}),
+      ...(sequence.value ? { sequence: sequence.value } : {}),
       status,
       createdAt: typeof t.createdAt === 'string' ? t.createdAt : now.toISOString(),
       drilledAt: typeof t.drilledAt === 'string' ? t.drilledAt : null,

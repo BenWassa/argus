@@ -1,6 +1,7 @@
 # Issue #129 — Beaufort visual-guide carousel
 
-Status: **Visual direction approved; assets staged; implementation pending**
+**Status:** implemented on `feat/topic-staged-assets`, 2026-10-02; not merged.
+**Authority:** maintained artwork and visual-guide contract. Topic-page ordering is superseded by [the revamp plan](TOPIC_PAGE_REVAMP.md): recall first, guide in a closed fold.
 
 Related: #128, #129
 
@@ -92,7 +93,7 @@ Treat the guide as an interactive field-guide element, not four ordinary content
 - Do not auto-advance.
 - Keep transitions short and direct.
 - Place the descriptive paragraph and `Look for` cues outside the photograph.
-- Use pagination dots plus the active range; do not depend on dots alone for meaning.
+- Use labelled range buttons plus the active range and position; labels make dots unnecessary.
 
 ### Larger screens
 
@@ -107,7 +108,7 @@ Use the visual continuity explicitly with a compact progression indicator beneat
 
 `CALMER  ●────────●────────●────────●  STRONGER`
 
-with nodes labelled `0–3`, `4–6`, `7–9`, `10–12`.
+with nodes labelled `0–3`, `4–6`, `7–9`, `10–12`. The shared implementation uses labelled range buttons rather than a decorative connecting rail.
 
 The active node/range receives emphasis. Colour should be restrained and applied to the control/marker only. Do not tint the photographs.
 
@@ -120,6 +121,10 @@ The active node/range receives emphasis. Colour should be restrained and applied
 
 ## Implementation boundary
 
-This asset work does **not** implement the carousel. The implementation agent should integrate this contract with the #128 Beaufort layout work and the existing Learn content model.
+The guide is wired through the shared Learn `entries` block with `presentation: "visual-guide"`. Manual scroll snapping, range controls, Previous/Next and keyboard arrows share the same component as the cloud guide. No autoplay or required motion. The existing narrow Beaufort Learn refresh delivers it to unchanged catalog topics without changing evidence.
 
 The images are visual intuition, not a claim that one still photograph can precisely diagnose a Beaufort force. Exact force names and knot ranges remain authoritative in the detailed reference and scored mapping.
+
+## Packaged artwork provenance
+
+These are the owner-approved illustrations staged by commit `8c424d9` (#130), reused without regeneration. The original asset handoff records approval and hashes but does not record creator, generation model or rights metadata. The UI credits the supplied Argus artwork without asserting a photographic or AI origin; that missing metadata remains an asset-ledger follow-up.

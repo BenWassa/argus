@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import type { LearnBlock, LearnContent, LearnSection } from '../../domain/learning/content'
 import { MorseCharacterPacket } from '../morse/MorseCharacterPacket'
+import { VisualGuide } from './VisualGuide'
 import { VisualView } from '../visual/VisualView'
 
 function LearnBlockView({ block }: { block: LearnBlock }) {
@@ -50,6 +51,7 @@ function LearnBlockView({ block }: { block: LearnBlock }) {
         </div>
       )
     case 'entries':
+      if (block.presentation === 'visual-guide') return <VisualGuide entries={block.entries} />
       return (
         <ol className="learn-entries">
           {block.entries.map((entry, i) => (
@@ -87,6 +89,12 @@ function LearnSections({ sections, inCase = false }: { sections: LearnSection[];
     <>
       {sections.map((section, i) => {
         const Heading = inCase ? 'h4' : 'h3'
+        if (!inCase) return (
+          <details className="fold learn-section" key={`${section.heading}-${i}`}>
+            <summary><span>{section.heading}</span>{section.blocks[0]?.type === 'paragraph' && <span className="learn-section-lead">{section.blocks[0].text}</span>}</summary>
+            <div className="learn-blocks">{section.blocks.map((block, index) => <LearnBlockView block={block} key={index} />)}</div>
+          </details>
+        )
         return (
           <section className={inCase ? 'learn-case-analysis' : 'learn-section'} key={`${section.heading}-${i}`}>
             <Heading>{section.heading}</Heading>
@@ -103,62 +111,29 @@ function LearnSections({ sections, inCase = false }: { sections: LearnSection[];
 }
 
 /**
- * `recall` is the topic's scored set, set by the topic page. It sits after the
- * explanation and before Limitations and Sources, so the page reads explanation,
- * then what to remember, then provenance.
+ * Optional recall leads the page. Explanatory support expands in place through
+ * native disclosures, all closed on arrival. Limitations and sources are not
+ * here: they sit behind `SourcesAndLimits` at the foot of the page (#166).
  */
 export function LearnSupport({ content, recall }: { content: LearnContent; recall?: ReactNode }) {
-  const hasNotes = Boolean(content.limitations?.length || content.sources?.length)
-
   return (
     <section className={`learn-support learn-support-${content.kind}`} aria-label="Explanatory support">
-      <p className="learn-support-kind">{content.kind === 'briefing' ? 'Briefing' : 'Concise support'}</p>
+      {recall}
 
-      {content.overview && <p className="learn-overview">{content.overview}</p>}
+      {content.overview && <details className="fold"><summary>Why it works</summary><p className="learn-overview">{content.overview}</p></details>}
 
       {content.sections && <LearnSections sections={content.sections} />}
 
       {content.caseStudies?.map((caseStudy, i) => (
-        <section className="learn-case" key={`${caseStudy.title}-${i}`}>
-          <p className="learn-case-label">Case study</p>
-          <h3>{caseStudy.title}</h3>
+        <details className="fold learn-case" key={`${caseStudy.title}-${i}`}>
+          <summary>Case study: {caseStudy.title}</summary>
           <p className="learn-case-scenario"><strong>Scenario.</strong> {caseStudy.scenario}</p>
           <LearnSections sections={caseStudy.analysis} inCase />
           {caseStudy.takeaway && (
             <p className="learn-case-takeaway"><strong>Takeaway.</strong> {caseStudy.takeaway}</p>
           )}
-        </section>
+        </details>
       ))}
-
-      {recall}
-
-      {hasNotes && (
-        <div className="learn-notes">
-          {content.limitations && (
-            <section>
-              <h3>Limitations</h3>
-              <ul>
-                {content.limitations.map((limitation, i) => <li key={`${limitation}-${i}`}>{limitation}</li>)}
-              </ul>
-            </section>
-          )}
-          {content.sources && (
-            <section>
-              <h3>Sources</h3>
-              <ol className="learn-sources">
-                {content.sources.map((source, i) => (
-                  <li key={`${source.label}-${i}`}>
-                    {source.url ? (
-                      <a href={source.url} target="_blank" rel="noreferrer">{source.label}</a>
-                    ) : source.label}
-                    {source.note && <span className="learn-source-note"> — {source.note}</span>}
-                  </li>
-                ))}
-              </ol>
-            </section>
-          )}
-        </div>
-      )}
     </section>
   )
 }

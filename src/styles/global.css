@@ -883,6 +883,24 @@ main:focus {
   box-shadow: var(--edge), var(--shadow-lift);
 }
 
+.backdrop.is-centred {
+  align-items: center;
+  justify-content: center;
+  padding: var(--s-lg);
+}
+
+.backdrop.is-centred .sheet {
+  width: min(100%, 560px);
+  max-height: 84dvh;
+  border-radius: var(--r-xl);
+}
+
+/* Long titles reflow at enlarged text; the close control keeps its full target. */
+.backdrop.is-centred .sheet-head { flex-shrink: 0; }
+.backdrop.is-centred .sheet-head h2 { min-width: 0; overflow-wrap: anywhere; font-size: var(--t-component); }
+.backdrop.is-centred .sheet-head button { flex-shrink: 0; }
+
+
 .sheet-head {
   display: flex;
   align-items: center;

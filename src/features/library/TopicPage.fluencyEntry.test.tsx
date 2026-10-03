@@ -145,7 +145,7 @@ describe('the Fluency entry', () => {
   it('leads a banked course, beside a full scored check and a quick review of weak letters', () => {
     const onStart = open(morse({ status: 'completed', completedAt: new Date().toISOString(), acquisitionReadyAt: new Date().toISOString() }))
     expect(keepGoing()!.className).toContain('topic-primary')
-    expect(keepGoing()!.textContent).toContain('Next: letters')
+    expect(keepGoing()!.textContent).toBe('Keep going')
 
     fireEvent.click(keepGoing()!)
     expect(onStart).toHaveBeenLastCalledWith('learn', [MORSE_ID], { kind: 'fluency' })
@@ -178,7 +178,7 @@ describe('the Fluency entry', () => {
         },
       },
     }))
-    fireEvent.click(screen.getByRole('button', { name: /Practise the letters you missed — Q/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Practise the letters you missed: Q/ }))
     expect(onStart).toHaveBeenLastCalledWith('learn', [MORSE_ID], { kind: 'fluency', mode: 'sprint', letters: ['Q'] })
   })
 
@@ -190,7 +190,7 @@ describe('the Fluency entry', () => {
         morseFluency: { rung: 6, characters: {}, bests: { 'copy:letters': 95, 'copy:common': 91 } },
       }),
     )
-    expect(keepGoing()!.textContent).toContain('Next: everyday words')
+    expect(keepGoing()!.textContent).toBe('Keep going')
   })
 
   it('stays absent for a topic that is not the course, even once completed', () => {

@@ -68,6 +68,8 @@ The **full offline-first runtime guarantee is active scope in #113**, not yet a 
 - `docs/LIBRARY_ROADMAP.md` — authoritative library-expansion priorities, families, issue ownership and execution order.
 - `docs/LIBRARY_RESEARCH_METHOD.md` — authoritative method for source hierarchy, completion claims, media choice, claim traceability, QA and implementation handoff for new library topics.
 - `docs/open/LIBRARY_TOPIC_ICONS.md` — active visual and asset contract for shipped topic icons on Library and Today.
+- `docs/open/LIBRARY_COMPACT_TOPICS.md` — compact library topic contract and review tracker: sources in a centred modal, prose budgets and guarded refreshes for existing libraries (#166).
+- `docs/closed/COMPACT_LIBRARY_REVIEW.md` — completed source/code review and resolved safety-copy findings for #175.
 - `docs/open/LEARN_CONTENT_MODEL.md` — structured Learn schema/editorial contract.
 - `docs/open/AUDIO_DRILLS_RUNTIME.md` — maintained contract for prerecorded speech drills: audio stimulus and response modes, deterministic grading, separate listening evidence, transcript-assisted rule and the production asset-QA gate.
 - `docs/open/ISSUE_146_VISUAL_CONTENT_PRIMITIVES.md` — maintained contract for the shared visual Learn block, visual-choice items and the finite figure registry.
@@ -78,11 +80,14 @@ The **full offline-first runtime guarantee is active scope in #113**, not yet a 
 - `docs/open/ISSUE_138_MARITIME_VISUAL_LITERACY.md` — active P0 research brief for vessel orientation, navigation lights/day shapes and signal flags.
 - `docs/open/ISSUE_139_RADIO_COMMUNICATIONS_AUDIO.md` — active P0 research brief for source-scoped radio procedure and audio drills.
 - `docs/open/ISSUE_140_COMPASS_BEARINGS_TOPO.md` — active P0 compass/bearings research plus the P1 topographic-map spike.
+- [Topic-page revamp](docs/open/TOPIC_PAGE_REVAMP.md) — one-test completion, ordered recall, folded reference support and artwork delivery.
+- [Cloud visual guide and asset ledger](docs/open/ISSUE_131_WMO_CLOUD_VISUAL_GUIDE.md) — textual vocabulary Test with unscored, credited photographs.
 - `docs/open/ISSUE_141_CLOUD_WEATHER_RECOGNITION.md` — active P0 cloud/weather recognition research; #131 remains downstream.
 - `docs/open/ISSUE_127_TODAY_REDESIGN_CONCEPTS.md` — proposed concepts for what Today holds and how it behaves (#127), companion to the visual-styling exploration in #126.
 - `docs/closed/LIBRARY_AUDIT.md` — reconciled shipped-library boundary/content audit.
 - `docs/closed/SEEDED_CONTENT_PROVENANCE.md` — authoritative source record and Test boundary for every shipped catalog topic.
 - `docs/open/CONTENT_INBOX.md` — content-inbox and curated-ingestion architecture, and the Firebase setup it needs.
+- [Topic colour comparison](docs/open/TOPIC_COLOUR_SPIKE.md) — development-only current/raised previews and reproducible 390 px screen captures; owner choice pending.
 - `docs/open/REDESIGN_INPUT_AUDIT.md` — current factual screen, state, issue-reconciliation, acceptance, and redesign-risk input package.
 - `docs/open/TARGETED_PRACTICE.md` — the formative practice run: its evidence boundary, how it selects what to practise, and why it is not called repair.
 - `docs/closed/PROGRAMME.md` — Learn/Test + content-quality programme closeout.

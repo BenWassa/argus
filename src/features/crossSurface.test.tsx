@@ -209,7 +209,7 @@ function libraryGroup(topic: Topic): string {
 /** The Topic page's single primary action. There is only ever one. */
 function topicPrimary(topic: Topic): string {
   renderTopicPage(topic)
-  return document.querySelector('.topic-primary-verb')?.textContent?.trim() ?? ''
+  return document.querySelector('.topic-primary')?.textContent?.trim() ?? ''
 }
 
 function topicSchedule(topic: Topic): string {
@@ -383,7 +383,7 @@ describe('partially acquired Morse is never routed to Test', () => {
     // still reachable, from its own place at the end of the curriculum, and it
     // states its consequence there rather than as a standing second button.
     expect(document.querySelectorAll('.topic-primary')).toHaveLength(1)
-    expect(document.querySelector('.topic-primary-verb')?.textContent).toContain('lesson')
+    expect(document.querySelector('.topic-primary')?.textContent).toContain('lesson')
 
     const check = document.querySelector('.morse-path-check')
     expect(check?.querySelector('.morse-path-cue')?.textContent).toBe('Try early')
@@ -413,11 +413,14 @@ describe('partially acquired Morse is never routed to Test', () => {
     expect(todayOpens(resumed)).toBe(resumed.id)
     cleanup()
     renderToday()
-    // Today states no quantities; the sitting's count is the topic page's.
+    // Compact overview surfaces keep the sitting count in durable state.
     expect(rowFor(resumed.title, todayDocket()).textContent).not.toContain('retrievals')
     cleanup()
     renderTopicPage(resumed)
-    expect(document.body.textContent).toContain('6 retrievals')
+    expect(document.querySelector('.topic-state-label')?.textContent).toBe(journeyFor(resumed).statusLabel)
+    expect(document.querySelector('.topic-primary')?.textContent).toBe(journeyFor(resumed).primaryLabel)
+    const stored = JSON.parse(localStorage.getItem(STORE_KEY) ?? '{}') as { topics?: Topic[] }
+    expect(stored.topics?.find(topic => topic.id === resumed.id)?.lessonSitting).toEqual(resumed.lessonSitting)
     // Plain terminology: the finite sitting is a retrieval budget, not a score.
     expect(document.body.textContent).not.toContain('XP')
   })
@@ -562,20 +565,25 @@ describe('ordinary topic browsing and enrollment', () => {
     // The separate reading route repeated this page's title, scope and every
     // item. The material is now the body of the page, visible and unconcealed,
     // which is what a surface that hides nothing should look like.
-    expect(document.querySelectorAll('.sheet-items li')).toHaveLength(ordinary.items.length)
+    expect(document.querySelectorAll('.topic-recall-cards > li')).toHaveLength(ordinary.items.length)
     expect(document.body.textContent).not.toContain('Show all')
     expect(document.querySelector('.morse-path')).toBeNull()
-    // Nothing on a reading surface is card-shaped, because nothing is concealed.
+    // Reference cards expose answers; the concealed-answer Test card is absent.
     expect(document.querySelector('.flip-card')).toBeNull()
   })
 
-  it('renders a briefing above the scored set, with the boundary between them visible', () => {
+  it('puts the scored set before closed briefing folds, with its boundary visible', () => {
     const briefed = blank('ooda-loop')
     renderTopicPage(briefed)
 
     expect(document.querySelector('.learn-support')).not.toBeNull()
     expect(screen.getByRole('heading', { name: 'What to remember', level: 2 })).toBeTruthy()
-    expect(document.querySelectorAll('.sheet-items li')).toHaveLength(briefed.items.length)
+    expect(document.querySelectorAll('.topic-recall-cards > li')).toHaveLength(briefed.items.length)
+    const reference = document.querySelector('.topic-reference')!
+    const support = document.querySelector('.learn-support')!
+    expect(reference.compareDocumentPosition(support) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(support.querySelectorAll('details')).not.toHaveLength(0)
+    expect(support.querySelector('details[open]')).toBeNull()
   })
 
   it('keeps page-open side-effect free and starts only on the deliberate action', async () => {
@@ -591,23 +599,18 @@ describe('ordinary topic browsing and enrollment', () => {
     )
     expect(beforeBrowse).toEqual(fresh)
     renderTopicPage(fresh)
-    expect(document.querySelector('.topic-primary-verb')?.textContent).toBe('Start learning')
-    expect(document.querySelectorAll('.sheet-items li')).toHaveLength(fresh.items.length)
+    expect(document.querySelector('.topic-primary')?.textContent).toBe('Test')
+    expect(document.querySelectorAll('.topic-recall-cards > li')).toHaveLength(fresh.items.length)
     await waitFor(() => {
       const stored = JSON.parse(localStorage.getItem(STORE_KEY) ?? '{}') as { topics?: Topic[] }
       expect(stored.topics?.find((topic) => topic.id === fresh.id)).toEqual(beforeBrowse)
     })
 
-    fireEvent.click(screen.getByRole('button', { name: /Start learning/ }))
-    await waitFor(() => {
-      const stored = JSON.parse(localStorage.getItem(STORE_KEY) ?? '{}') as { topics?: Topic[] }
-      const enrolled = stored.topics?.find((topic) => topic.id === fresh.id)
-      expect(enrolled?.status).toBe('learning')
-      expect(enrolled?.learningAt).toBeTruthy()
-      expect(enrolled?.history).toEqual([])
-      expect(enrolled?.lastTestedAt).toBeNull()
-      expect(enrolled?.itemEvidence ?? {}).toEqual({})
-    })
+    // Starting a Test does not enroll or create evidence before scoring.
+    fireEvent.click(screen.getByRole('button', { name: /^Test/ }))
+    const stored = JSON.parse(localStorage.getItem(STORE_KEY) ?? '{}') as { topics?: Topic[] }
+    expect(stored.topics?.find((topic) => topic.id === fresh.id)).toEqual(beforeBrowse)
+
   })
 
   it('treats a topic with no items as authoring rather than learner progress', () => {

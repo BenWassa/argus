@@ -40,7 +40,10 @@ const KEY: [RegExp, string][] = [
 test('Learn groups the twelve flags by use, shows each with its text, and does not scroll sideways', async ({ page }) => {
   await openTopic(page)
   for (const heading of ['Warnings to others', 'Vessel state', 'Assistance', 'Pairs that get mixed up', 'Alphabetical reference']) {
-    await expect(page.getByRole('heading', { name: heading, level: 3 })).toBeVisible()
+    const fold = page.locator('details').filter({ has: page.locator('summary', { hasText: heading }) }).first()
+    await expect(fold).not.toHaveAttribute('open', '')
+    await fold.locator('summary').click()
+    await expect(fold).toHaveAttribute('open', '')
   }
   await expect(page.locator('.learn-entry')).toHaveCount(12)
   await expect(page.locator('.learn-entry .figure-signal-flag')).toHaveCount(12)
@@ -49,16 +52,16 @@ test('Learn groups the twelve flags by use, shows each with its text, and does n
   await expect(alfa.locator('.learn-entry-marker')).toHaveText('A')
   await expect(alfa).toContainText('Diver down; keep well clear and proceed slowly')
   await expect(alfa).toContainText('swallow-tailed flag divided vertically')
-  await expect(page.locator('.sheet-items li.has-visual')).toHaveCount(12)
-  await expect(page.locator('.learn-notes')).toContainText('not an official sub-code')
+  await expect(page.locator('.topic-recall-cards > li.has-visual')).toHaveCount(12)
+  await page.getByRole('button', { name: 'Sources and limitations' }).click()
+  await expect(page.locator('.sources-notes')).toContainText('not an official sub-code')
   await noSidewaysScroll(page)
 })
 
 test('answering all twelve flags correctly banks a clean run', async ({ page }) => {
   await openTopic(page)
   const primary = page.locator('.topic-primary')
-  if ((await primary.locator('.topic-primary-verb').textContent()) === 'Start learning') await primary.click()
-  await expect(primary.locator('.topic-primary-verb')).toHaveText('Test')
+  await expect(primary).toHaveText('Test')
   await primary.click()
 
   const seen = new Set<string>()

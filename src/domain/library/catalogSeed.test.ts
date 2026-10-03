@@ -21,6 +21,7 @@ describe('researched seeded library', () => {
       'ooda-loop',
       'primary-survey',
       'cardinal-bearings',
+      'cloud-genera',
       'whole-circle-bearings',
       'reciprocal-bearings',
       'north-references-declination',
@@ -79,7 +80,7 @@ describe('researched seeded library', () => {
     expect(topic.history).toEqual([])
     expect(topic.learn?.kind).toBe('concise')
     expect(topic.items.every((item) => item.kind === 'bidirectional')).toBe(true)
-    expect(topic.learn?.overview).toContain('does not claim auditory reception')
+    expect(topic.learn?.limitations?.some(note => note.includes('not listening, sending'))).toBe(true)
     expect(topic.learn?.sources?.[0].url).toBe('https://www.itu.int/rec/R-REC-M.1677-1-200910-I/en')
   })
 
@@ -103,7 +104,7 @@ describe('researched seeded library', () => {
     expect(topic.learn?.kind).toBe('briefing')
     expect(topic.learn?.caseStudies).toHaveLength(1)
     expect(topic.learn?.sources?.length).toBeGreaterThanOrEqual(1)
-    expect(topic.learn?.limitations?.some((note) => note.includes('Test intentionally covers only'))).toBe(true)
+    expect(topic.learn?.limitations?.some((note) => note.includes('Test covers only'))).toBe(true)
   })
 
   it('keeps Primary Survey scoring to the five ABCDE headings and order', () => {
@@ -196,7 +197,7 @@ describe('researched seeded library', () => {
     expect(topic.history).toEqual([])
     expect(topic.scope).toContain('radio procedure are not scored')
     expect(topic.learn?.kind).toBe('concise')
-    expect(topic.learn?.limitations?.some((note) => note.includes('not a radio operator certificate'))).toBe(true)
+    expect(topic.learn?.limitations?.some((note) => note.includes('not radio training, an operator certificate'))).toBe(true)
     expect(topic.learn?.sources?.[0].url).toContain('ric-21')
   })
 
@@ -243,7 +244,7 @@ describe('researched seeded library', () => {
     expect(topic.items.every((item) => item.kind === 'forward')).toBe(true)
     expect(topic.status).toBe('unstarted')
     expect(topic.learn?.kind).toBe('concise')
-    expect(topic.learn?.limitations?.some((note) => note.includes('not reading, writing or speaking Greek'))).toBe(true)
+    expect(topic.learn?.limitations?.some((note) => note.includes('or reading, writing or speaking Greek'))).toBe(true)
     expect(topic.learn?.sources?.[0].url).toBe('https://www.unicode.org/charts/PDF/U0370.pdf')
   })
 
@@ -291,9 +292,9 @@ describe('researched seeded library', () => {
     // One entry per force (#128): number, term, knots, and the sea and land
     // cues kept together, rather than the same force split across two tables.
     const sections = topic.learn?.sections ?? []
-    expect(sections.map((section) => section.heading)).toEqual(['The scale'])
+    expect(sections.map((section) => section.heading)).toEqual(['Read the wind at a glance', 'The scale'])
     expect(sections.flatMap((section) => section.blocks).some((block) => block.type === 'table')).toBe(false)
-    const block = sections[0].blocks[0]
+    const block = sections[1].blocks[0]
     if (block.type !== 'entries') throw new Error('The scale should be force entries.')
     expect(block.entries).toHaveLength(13)
     block.entries.forEach((entry, force) => {
@@ -336,10 +337,41 @@ describe('researched seeded library', () => {
     expect(topic.status).toBe('unstarted')
     expect(topic.learn?.kind).toBe('briefing')
     expect(topic.learn?.caseStudies).toHaveLength(1)
+    const handover = topic.learn!.caseStudies![0].analysis!.flatMap(section => section.blocks)
+      .flatMap(block => block.type === 'paragraph' ? [block.text] : []).join(' ')
+    expect(handover).toMatch(/Do not accept it closed/)
+    expect(handover).toMatch(/within your training/)
     const limits = topic.learn?.limitations ?? []
-    expect(limits.some((note) => note.includes('is not the Canadian Firearms Safety Course'))).toBe(true)
+    expect(limits.some((note) => note.includes('not the Canadian Firearms Safety Course'))).toBe(true)
     expect(limits.some((note) => note.includes('nothing about shooting, tactics or use of force'))).toBe(true)
     expect(limits.some((note) => note.includes('follow your course'))).toBe(true)
     expect(topic.learn?.sources?.[0].url).toContain('publications.gc.ca')
+  })
+})
+
+/** #166: shipped Learn text that has been trimmed stays inside its budget. */
+describe('trimmed Learn prose', () => {
+  const words = (text: string | undefined) => (text ? text.trim().split(/\s+/).length : 0)
+  type Block = NonNullable<NonNullable<ReturnType<typeof seededTopic>['learn']>['sections']>[number]['blocks'][number]
+  const blockWords = (block: Block): number =>
+    block.type === 'paragraph' ? words(block.text)
+      : (block.type === 'bullets' || block.type === 'steps') ? block.items.reduce((n, i) => n + words(i), 0)
+        : 0
+
+  // Prose budgets exclude definitions, tables, entries and visual references.
+  it.each(['ooda-loop', 'primary-survey', 'firearm-safety-acts-prove', 'whole-circle-bearings', 'reciprocal-bearings', 'north-references-declination', 'grid-north-map-bearings', 'navigation-lights', 'vessel-day-shapes', 'signal-flags', 'beaufort-wind-scale', 'scuba-equipment-abbreviations', 'radiotelephony-numbers', 'si-prefixes', 'greek-alphabet', 'hex-digits-binary', 'international-morse-letters-printed'])('keeps %s compact', (id) => {
+    const learn = seededTopic(id).learn!
+    const sections = (learn.sections ?? []).flatMap((section) => section.blocks).reduce((n, b) => n + blockWords(b), 0)
+    const cases = (learn.caseStudies ?? []).reduce(
+      (n, c) => n + words(c.scenario) + words(c.takeaway) + c.analysis.flatMap((s) => s.blocks).reduce((m, b) => m + blockWords(b), 0),
+      0,
+    )
+
+    expect(words(learn.overview)).toBeLessThanOrEqual(learn.kind === 'concise' ? 25 : 30)
+    expect(sections).toBeLessThanOrEqual(learn.kind === 'concise' ? 90 : 130)
+    expect(cases).toBeLessThanOrEqual(learn.kind === 'concise' ? 0 : 90)
+    const threeNotes = learn.kind === 'briefing' || ['whole-circle-bearings', 'reciprocal-bearings', 'vessel-day-shapes', 'signal-flags'].includes(id)
+    expect(learn.limitations?.length ?? 0).toBeLessThanOrEqual(threeNotes ? 3 : 2)
+    learn.limitations?.forEach((note) => expect(words(note)).toBeLessThanOrEqual(threeNotes ? 25 : 20))
   })
 })

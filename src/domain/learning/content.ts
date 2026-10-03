@@ -47,7 +47,7 @@ export type LearnBlock =
   | { type: 'steps'; items: string[] }
   | { type: 'definitions'; items: { term: string; definition: string }[] }
   | { type: 'table'; columns: string[]; rows: string[][] }
-  | { type: 'entries'; entries: LearnEntry[] }
+  | { type: 'entries'; entries: LearnEntry[]; presentation?: 'visual-guide' }
   | { type: 'visual'; visual: Visual }
   | { type: 'morse-character-packet'; characters: MorseCharacterLearnItem[] }
 

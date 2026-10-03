@@ -1,3 +1,5 @@
+import { journeyFor } from './journey'
+import { resolveAttempt } from './scheduling'
 import { describe, expect, it } from 'vitest'
 import {
   CUE_RUNGS,
@@ -210,5 +212,19 @@ describe('the climb is untouched for anyone who has not finished the curriculum'
 
     expect(seen.slice(0, 6).every((id) => id !== CUE_RUNGS[FREE_PRODUCTION_RUNG].id)).toBe(true)
     expect(seen[6]).toBe(CUE_RUNGS[FREE_PRODUCTION_RUNG].id)
+  })
+})
+
+
+describe('one-test handoff keeps the curriculum gate', () => {
+  it('banks a ready Morse topic on its first clean eligible Test', () => {
+    const now = new Date('2026-10-02T12:00:00.000Z')
+    const topic = { ...morseTopic(), status: 'learning' as const, acquisitionReadyAt: now.toISOString(), history: [], completedAt: null }
+    const journey = journeyFor(topic)
+    expect(journey.advancementEligible).toBe(true)
+    const result = resolveAttempt(topic, topic.items.length, topic.items.length, now, { advancementEligible: journey.advancementEligible })
+    expect(result.to).toBe('completed')
+    expect(result.completed).toBe(true)
+    expect(result.topic.completedAt).toBe(now.toISOString())
   })
 })

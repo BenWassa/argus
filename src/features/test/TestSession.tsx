@@ -1,3 +1,4 @@
+import { SequenceCard } from './SequenceCard'
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import {
   animate,
@@ -790,15 +791,19 @@ export function TestSession({ topicIds, review = false, onExit, onPractice }: Te
           aria-label={
             answerVisible
               ? `Answer: ${card.item.answer}`
-              : `Prompt: ${card.item.prompt}. Reveal answer.`
+              : card.sequence
+                ? `${card.sequence.group.label}. Step ${card.sequence.step + 1} of ${card.sequence.group.itemIds.length}, ${Array.from(card.sequence.group.letters)[card.sequence.step]}. Reveal answer.`
+                : `Prompt: ${card.item.prompt}. Reveal answer.`
           }
         >
           <span className="flip-inner">
             <span className="flip-face flip-front">
               <span className="flip-label">Tap to reveal</span>
-              <span className={`flip-value${testCardTextClass(card.item.prompt)}`}>
-                {card.item.prompt}
-              </span>
+              {card.sequence ? <SequenceCard sequence={card.sequence} /> : (
+                <span className={`flip-value${testCardTextClass(card.item.prompt)}`}>
+                  {card.item.prompt}
+                </span>
+              )}
             </span>
             <span className="flip-face flip-back">
               <motion.span className="flip-wash flip-wash-miss" style={{ opacity: missStrength }} aria-hidden="true" />

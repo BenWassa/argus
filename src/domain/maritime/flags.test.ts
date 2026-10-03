@@ -189,11 +189,19 @@ describe('the Signal Flags topic', () => {
     expect(topic.scope).toMatch(/Argus editorial selection, not an official sub-code/)
     const limitations = (topic.learn?.limitations ?? []).join(' ')
     expect(limitations).toMatch(/not an official sub-code/)
-    expect(limitations).toMatch(/not a maritime qualification/)
-    expect(limitations).toMatch(/Essential information is always the text/)
+    expect(limitations).toMatch(/not signalling procedure or a maritime qualification/)
+    expect(limitations).toMatch(/Letter, name, meaning and design remain text/)
     for (const source of topic.learn?.sources ?? []) expect(source.url).toMatch(/^https:\/\//)
     expect(topic.learn?.sources?.map((s) => s.url).join(' ')).toMatch(/imo\.org/)
     expect(topic.learn?.sources?.map((s) => s.url).join(' ')).toMatch(/msi\.nga\.mil/)
+  })
+
+  it('keeps dangerous cargo attached to Juliet’s fire meaning in the comparison copy', () => {
+    const comparisons = topic.learn!.sections!.find(section => section.heading === 'Pairs that get mixed up')!.blocks
+      .flatMap(block => block.type === 'bullets' ? block.items : [])
+    const juliet = comparisons.find(text => text.includes('J:'))!
+    expect(juliet).toMatch(/J: fire with dangerous cargo, or dangerous-cargo leak/)
+    expect(flagByLetter('J').meaning).toMatch(/fire with dangerous cargo/)
   })
 
   it('groups the flags by use, not alphabetically, with an alphabetical reference below', () => {
