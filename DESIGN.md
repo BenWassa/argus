@@ -237,9 +237,9 @@ Two ways to engage a topic. Learn exposes the material; Test is the only recall 
 | **Test** | Flashcards with a 3D flip, every scored item once, self-scored | Records the attempt; one clean eligible Test banks the topic |
 
 ### Topic page contract
-An ordinary topic opens with an optional local `Visual` hero or a 16:9 track-tinted fallback using its recognition icon. The title, scope and one line of state follow. Ordered topics use a concise rule count at the top, with the full authored safety boundary preserved in a Scope and limits fold. The complete scored set comes next as compact, open recall cards, with numbered markers or authored sequence letters and item stimuli. These are visible reference material, never flip cards.
+An ordinary topic opens with an optional local `Visual` hero or a 16:9 track-tinted fallback using its recognition icon. The title, scope and one line of state follow. Ordered learning topics use a concise rule count at the top. Survival topics keep their full authored safety scope visible; the complete scope is also available in a Scope and limits fold. The complete scored set comes next as compact, open recall cards, with numbered markers or authored sequence letters and item stimuli. These are visible reference material, never flip cards.
 
-All explanatory sections, overview, case studies, limitations and sources expand in place through native details, closed by default. Text remains authored content; folding does not remove it. On phone the primary action is fixed above navigation and safe-area padding, with space reserved at the end of the page. Secondary learning actions live in More options. Morse retains its curriculum path and lesson/placement gate with the same compact header.
+Explanatory sections, overview and case studies expand through native details, closed by default. A quiet centred footer control opens limitations as bullets, then sources, in a centred modal. Text remains authored content; folding does not remove it. On phone the primary action is fixed above navigation and safe-area padding, with space reserved at the end of the page. Secondary learning actions live in More options. Morse retains its curriculum path and lesson/placement gate with the same compact header.
 
 **Test Conceals; Reference Reveals.** Test keeps the answer hidden until reveal. Topic recall cards show prompt and answer together; their compact reference treatment must remain distinct from the focused Test card.
 
@@ -275,9 +275,9 @@ The richer Learn layer is a compact reference briefing, not an article template 
 - Maximum prose measure stays near 68ch; overview copy may use a slightly larger reading size (`--t-lede`), while longer explanatory body copy uses the normal body voice.
 - Structure is native and visible: headings, paragraphs, unordered/ordered lists, definition lists and compact tables.
 - Whole-framework/procedure case studies are continuous reading inside a native fold. They are not one card per stage or one panel per term.
-- The finite recall set follows rich support under a strong hairline and `What to remember` metadata label, before Limitations and Sources (#128).
+- The finite recall set leads under `What to remember`; optional explanatory support follows in closed folds.
 - A repeated reference whose unit is the entry (Beaufort's forces) uses the `entries` block: the marker is the heaviest element, then the title, a mono meta line, and labelled fields stacked beneath, never in columns.
-- Sources and limitations remain in normal document flow, set smaller/muted but not collapsed or hidden.
+- Sources and limitations remain available in a centred modal through one quiet footer control. Safety boundaries remain visible in the topic scope.
 - Tables wrap content aggressively and may scroll inside their own focusable wrapper at extreme text scaling. The page itself must not overflow horizontally at 200% text scaling.
 - No animation is needed for briefing comprehension; reduced-motion behavior is therefore inherited without special alternative content.
 
@@ -326,7 +326,7 @@ Once the accent is a near-white, a hue shift alone cannot carry "current" agains
 - **Do** state a mode's consequence in its own label.
 - **Do** treat decay as routing information, never as an error or a scolding.
 - **Do** keep reference-only Learn topics compact and add richer hierarchy only when the content earns it.
-- **Do** keep Learn sources and limitations reachable in named folds and readable at 200% text scaling.
+- **Do** keep Learn sources and limitations reachable through a named footer control and centred modal, readable at 200% text scaling.
 
 ### Don't
 - **Don't** add marketing heroes, slogans or decorative eyebrows. Topic artwork is a finite content slot, not a pitch.

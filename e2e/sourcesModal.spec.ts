@@ -46,6 +46,7 @@ test('sources modal centres, scrolls at 200% text, traps focus and returns it on
 })
 
 for (const [title, boundary] of [
+  ['Primary Survey', 'not first-aid or clinical training'],
   ['Firearm Safety', 'not handling a firearm'],
 ]) {
   test(`${title} keeps its safety scope visible with support closed`, async ({ page }) => {
@@ -55,3 +56,15 @@ for (const [title, boundary] of [
     await expect(page.locator('.topic details[open]')).toHaveCount(0)
   })
 }
+
+
+test('a sources-only topic closes on browser Back without leaving the topic', async ({ page }) => {
+  await page.getByRole('button', { name: /NATO Alphabet/ }).click()
+  const opener = page.getByRole('button', { name: 'Sources', exact: true })
+  await opener.click()
+  await expect(page.getByRole('dialog', { name: 'Sources', exact: true })).toBeVisible()
+  await page.goBack()
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await expect(page.locator('.topic-title')).toHaveText('NATO Alphabet')
+  await expect(opener).toBeFocused()
+})

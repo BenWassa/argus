@@ -1,6 +1,6 @@
 # Topic page and Test revamp
 
-**Status:** implemented and locally validated in phase commits on 2026-10-02; not merged or deployed. Colour variants await the owner’s pick; external hero artwork remains pending. D1–D6 were accepted through the owner’s instruction to scope and implement this plan.
+**Status:** implemented and published for review as #170 on 2026-10-02; not merged or deployed. Colour variants await the owner’s pick; external hero artwork remains pending. D1–D6 were accepted through the owner’s instruction to scope and implement this plan.
 **Authority:** implementation contract for the topic-page revamp. [Progress architecture](PROGRESS_ARCHITECTURE.md) owns the one-test ladder; [topic icons](LIBRARY_TOPIC_ICONS.md) owns icon artwork. Local implementation is not evidence of production deployment.
 **Relationship:** extends the Today/Library cleanup (#127) down into the topic page and the Test run, which is where the product is still dense.
 
@@ -84,7 +84,7 @@ One page, three bands, everything else folded. Content first, because content is
 Library ←
 [ hero — owner's art, or the fallback plate ]
 Firearm Safety                          ← title
-Nine rules, in order.                   ← one sentence (scope, trimmed)
+Authored safety scope                   ← visible training boundary
 9 items · Not tested yet                ← one line of state, nothing else
 
 WHAT TO REMEMBER                        ← the recall set, as cards (§4.2)
@@ -93,7 +93,7 @@ WHAT TO REMEMBER                        ← the recall set, as cards (§4.2)
  …
 
 ▸ Why it works        ▸ Case study      ← folds, closed
-▸ What this doesn't cover · Sources
+Sources and limitations                 ← quiet footer control, centred modal
 
 [ Test ]                                ← sticky bottom bar, the one action
 ```
@@ -110,7 +110,7 @@ Replace `RecallReference`'s numbered list with compact cards: marker (number, or
 
 ### 4.3 Sections expand in place
 
-Each `LearnSection` becomes a `<details>` with its heading as the summary and a one-line lead; nothing opens by default except the recall set. A section is reached in one tap and never navigates. Case studies, limitations and sources become one fold each. This reuses the existing `fold` style and needs no new content model, so authored content is untouched.
+Each `LearnSection` becomes a `<details>` with its heading as the summary and a one-line lead; nothing opens by default except the recall set. A section is reached in one tap and never navigates. Case studies use closed folds. #166 places limitations and sources in one centred modal, reached through a quiet control at the page foot. This reuses the existing `fold` style and needs no new content model, so authored content is untouched.
 
 ### 4.4 The one action
 
@@ -192,7 +192,7 @@ Beaufort reuses the exact approved files and the existing narrow `refreshShipped
 
 The shared guide extends `entries` with optional `presentation: "visual-guide"` inside v5. It uses manual horizontal snapping, labelled selectors, Previous/Next and arrow keys; no autoplay, global media framework or scored image recognition. All essential labels remain HTML.
 
-Ordered topics use concise scope text such as “9 rules, in order.” The complete authored scope remains in the Scope and limits fold. Image failure retains alt text. Hero files have not been supplied; fallback plates are intentional.
+Ordered learning topics use concise scope text such as “4 rules, in order.” Survival topics retain their full authored scope visibly; the training boundary never depends on opening a fold. The complete scope remains available in the Scope and limits fold as well. Image failure retains alt text. Hero files have not been supplied; fallback plates are intentional.
 
 Integrated validation: all 1,521 unit tests (115 files), TypeScript and the production build pass. The new topic/ordered-reference/weather browser gates pass 12 scenarios across 320 px, 390 px and desktop, including closed folds, fixed phone action, 200% text scaling, image loading and unscored cloud photos. The bundle remains 3.06 MiB (3.05 MiB app-shell precache), reusing already-staged media. The build retains its existing large-chunk advisory.
 
