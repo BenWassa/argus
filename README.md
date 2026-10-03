@@ -68,8 +68,9 @@ The **full offline-first runtime guarantee is active scope in #113**, not yet a 
 - `docs/LIBRARY_ROADMAP.md` — authoritative library-expansion priorities, families, issue ownership and execution order.
 - `docs/LIBRARY_RESEARCH_METHOD.md` — authoritative method for source hierarchy, completion claims, media choice, claim traceability, QA and implementation handoff for new library topics.
 - `docs/open/LIBRARY_TOPIC_ICONS.md` — active visual and asset contract for shipped topic icons on Library and Today.
-- `docs/open/LIBRARY_COMPACT_TOPICS.md` — compact library topic contract and review tracker: sources in a centred modal, prose budgets and guarded refreshes for existing libraries (#166).
+- `docs/open/LIBRARY_COMPACT_TOPICS.md` — shipped compact library topic contract: sources in a centred modal, prose budgets and guarded refreshes for existing libraries (#166).
 - `docs/closed/COMPACT_LIBRARY_REVIEW.md` — completed source/code review and resolved safety-copy findings for #175.
+- `docs/closed/RELEASE_1_3_3.md` — v1.3.3 review, release-gate and verified Firebase Hosting delivery record.
 - `docs/open/LEARN_CONTENT_MODEL.md` — structured Learn schema/editorial contract.
 - `docs/open/AUDIO_DRILLS_RUNTIME.md` — maintained contract for prerecorded speech drills: audio stimulus and response modes, deterministic grading, separate listening evidence, transcript-assisted rule and the production asset-QA gate.
 - `docs/open/ISSUE_146_VISUAL_CONTENT_PRIMITIVES.md` — maintained contract for the shared visual Learn block, visual-choice items and the finite figure registry.

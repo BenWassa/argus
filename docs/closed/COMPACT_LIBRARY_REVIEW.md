@@ -1,13 +1,13 @@
 # Compact library review
 
-**Status:** completed agent review pass, 2026-10-03. Release authorised by the owner’s instruction “review pass then run release”; deployment was pending when this record was written.
+**Status:** completed agent review pass, 2026-10-03. Release authorised by the owner’s instruction “review pass then run release”; deployment was pending at review time and subsequently passed in [v1.3.3](RELEASE_1_3_3.md).
 **Authority:** historical review evidence for #175 and #166. This records an agent source/code review performed at the owner’s request, not an independent professional certification or a claim that the owner personally read the diff. Maintained behaviour remains in [Compact library topics](../open/LIBRARY_COMPACT_TOPICS.md) and [Topic-page revamp](../open/TOPIC_PAGE_REVAMP.md).
 
 ## Scope and result
 
 Reviewed the integrated change against current `origin/main`: compact topic prose, topic/reference presentation, ordered Test metadata and parsing, the one-clean-Test ladder and legacy progress, existing-library migrations, modal focus/history/scrolling, and production/demo build boundaries. No blocking code finding remains. The source review replaces the pending review step for this release under the owner’s explicit delegation; it does not waive future safety-content review.
 
-All scored item wording, choices, source lists and existing reference structures remain unchanged by the compact-copy edits. Ordered Tests intentionally add order metadata; the topic-page prerequisite intentionally changes ordinary completion to one clean Test. Progressive acquisition/evidence gates remain separate. The former Primary Survey scope migrates only for unchanged catalog copies; custom scopes, edited decks, user-owned topics and learner progress remain guarded.
+All scored item wording, choices and source lists remain unchanged by the compact-copy edits. Batches 3–5 preserve reference structures; the existing OODA pilot deliberately removed a duplicate Learn definition list, retaining its functions in scored recall. Ordered Tests intentionally add order metadata; the topic-page prerequisite intentionally changes ordinary completion to one clean Test. Progressive acquisition/evidence gates remain separate. The former Primary Survey scope migrates only for unchanged catalog copies; custom scopes, edited decks, user-owned topics and learner progress remain guarded.
 
 ## Source checks and corrections
 

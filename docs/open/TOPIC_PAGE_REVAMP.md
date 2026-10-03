@@ -1,7 +1,7 @@
 # Topic page and Test revamp
 
-**Status:** implemented and published for review as #170 on 2026-10-02; not merged or deployed. Colour variants await the owner’s pick; external hero artwork remains pending. D1–D6 were accepted through the owner’s instruction to scope and implement this plan.
-**Authority:** implementation contract for the topic-page revamp. [Progress architecture](PROGRESS_ARCHITECTURE.md) owns the one-test ladder; [topic icons](LIBRARY_TOPIC_ICONS.md) owns icon artwork. Local implementation is not evidence of production deployment.
+**Status:** shipped in v1.3.3 on 2026-10-03 through #175, including the #170 rebuild and #171 provenance modal. Current production colours and fallback hero plates are delivered; optional colour variants and external hero artwork remain separate follow-up work. D1–D6 were accepted through the owner’s instruction to scope and implement this plan.
+**Authority:** implementation contract for the topic-page revamp. [Progress architecture](PROGRESS_ARCHITECTURE.md) owns the one-test ladder; [topic icons](LIBRARY_TOPIC_ICONS.md) owns icon artwork. Deployment and final validation are recorded in [v1.3.3 closeout](../closed/RELEASE_1_3_3.md).
 **Relationship:** extends the Today/Library cleanup (#127) down into the topic page and the Test run, which is where the product is still dense.
 
 ## 0. The problem, as found in the code
@@ -176,7 +176,7 @@ Today and Library layout (already done), Morse lesson internals, Firebase sync s
 
 ## 9. Local implementation and review
 
-All phase worktrees began at fetched `origin/main` commit `4600565`, leaving `feat/demo-target` and its untracked files untouched. `feat/topic-revamp-integration` combines the phase commits for final verification and review. The integration is published in #175. The owner requested a review pass and release on 2026-10-03; [the review record](../closed/COMPACT_LIBRARY_REVIEW.md) documents the delegated checks. Merge and deployment are pending.
+All phase worktrees began at fetched `origin/main` commit `4600565`, leaving `feat/demo-target` and its untracked files untouched. `feat/topic-revamp-integration` combines the phase commits for final verification and review. The integration is published in #175. The owner requested a review pass and release on 2026-10-03; [the review record](../closed/COMPACT_LIBRARY_REVIEW.md) documents the delegated checks. The integration merged through #175 and shipped in v1.3.3; final release validation and live verification passed.
 
 | Phase | Branch | Local outcome |
 | --- | --- | --- |
@@ -194,8 +194,8 @@ The shared guide extends `entries` with optional `presentation: "visual-guide"` 
 
 Ordered learning topics use concise scope text such as “4 rules, in order.” Survival topics retain their full authored scope visibly; the training boundary never depends on opening a fold. The complete scope remains available in the Scope and limits fold as well. Image failure retains alt text. Hero files have not been supplied; fallback plates are intentional.
 
-Integrated validation: all 1,521 unit tests (115 files), TypeScript and the production build pass. The new topic/ordered-reference/weather browser gates pass 12 scenarios across 320 px, 390 px and desktop, including closed folds, fixed phone action, 200% text scaling, image loading and unscored cloud photos. The bundle remains 3.06 MiB (3.05 MiB app-shell precache), reusing already-staged media. The build retains its existing large-chunk advisory.
+Rebuild validation before final compact-library integration: all 1,521 unit tests (115 files), TypeScript and the production build pass. The new topic/ordered-reference/weather browser gates pass 12 scenarios across 320 px, 390 px and desktop, including closed folds, fixed phone action, 200% text scaling, image loading and unscored cloud photos. The bundle remains 3.06 MiB (3.05 MiB app-shell precache), reusing already-staged media. The build retains its existing large-chunk advisory.
 
 The colour comparison is documented in [Topic colour spike](TOPIC_COLOUR_SPIKE.md). Generated 390 px comparisons live under `test-results/topic-colour/` in the colour worktree; reproduce with `scripts/captureTopicColour.mjs`. Hero assets for other topics remain external, not generated or fabricated as part of this work.
 
-Existing browser coverage was updated for direct Test entry, recall cards and native folds. Five targeted navigation/Morse scenarios and 23 visual/audio scenarios pass at 390 px. A maritime light-aspects browser timeout passed on isolated rerun; the other maritime failure was an obsolete always-open-section assertion, now corrected. Together with the 12 new scenarios, 40 targeted browser cases cover the changed paths; the full Playwright suite was deliberately not run under shared-checkout load.
+Existing browser coverage was updated for direct Test entry, recall cards and native folds. Five targeted navigation/Morse scenarios and 23 visual/audio scenarios pass at 390 px. A maritime light-aspects browser timeout passed on isolated rerun; the other maritime failure was an obsolete always-open-section assertion, now corrected. Together with the 12 new scenarios, 40 targeted browser cases cover the changed paths; that preliminary pass did not run the full Playwright suite. The final v1.3.3 release gate later passed all 348 applicable browser cases (16 intentional skips) and 1,602 unit tests.

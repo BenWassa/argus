@@ -1,6 +1,6 @@
 # Issue #129 — Beaufort visual-guide carousel
 
-**Status:** implemented on `feat/topic-staged-assets`, 2026-10-02; not merged.
+**Status:** guide implementation shipped in v1.3.3 through #175 on 2026-10-03. This document remains the maintained artwork/scope contract; external provenance details and later photographic-recognition gates retain their stated status.
 **Authority:** maintained artwork and visual-guide contract. Topic-page ordering is superseded by [the revamp plan](TOPIC_PAGE_REVAMP.md): recall first, guide in a closed fold.
 
 Related: #128, #129

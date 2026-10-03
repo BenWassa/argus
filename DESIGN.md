@@ -130,7 +130,7 @@ components:
 
 # Design System: Argus
 
-**Status:** current integration contract; changes in #175 are in review, not deployed.
+**Status:** current shipped contract; #175 is deployed in v1.3.3 (2026-10-03).
 **Authority:** design context. `docs/open/TOPIC_PAGE_REVAMP.md` and `docs/open/LIBRARY_COMPACT_TOPICS.md` own the pending topic-page and provenance contracts.
 
 ## 1. Overview

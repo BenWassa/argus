@@ -111,3 +111,5 @@ bump the version.
   before merge) and the prerecorded-speech runtime with separate listening
   evidence (#157, no audio topic ships yet). Gate: 1473 unit + build + 320
   browser, green. Hosting deployed and verified; no rules change.
+
+- v1.3.3 (2026-10-03): patch for the compact-library project (#166/#175), centred provenance modal, visible survival scopes and guarded refreshes, plus the approved topic-page/ordered one-Test rebuild and weather guides. Owner-delegated source/code review corrected explanatory safety ambiguities. Gate: 1602 unit + build + 348 browser passed, 16 intentional skips. First gate attempt exposed a Free Play wall-clock test stall; its clock is now deterministic, with the real pause boundary asserted. Tag `v1.3.3` is `abfde3e`. Hosting deployed to `argus-b7a5a` and live HTML/JS/SW match release artifacts; JS serves `text/javascript`, production sign-in gate renders without runtime errors. No rules changes or rules deployment.

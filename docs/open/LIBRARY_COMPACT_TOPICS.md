@@ -1,7 +1,7 @@
 # Compact library topics
 
-**Status:** implemented and published for review, 2026-10-02; not merged or deployed. Batches 0a–5 are ready in PRs #168–#174, with the rebuild in #170. Tracking issue: #166. The owner requested an agent review pass followed by release on 2026-10-03; that delegated source review is complete. Merge and deployment are pending.
-**Authority:** active implementation and review contract for #166. After merge, the layout and content-refresh sections remain maintained contracts in `docs/open/`; review status is not a production-delivery claim. `TOPIC_PAGE_REVAMP.md` owns the surrounding page/Test rebuild; this document owns compact copy and the provenance modal.
+**Status:** shipped in v1.3.3 on 2026-10-03 through #175; Firebase Hosting deployment and live artifact verification passed. Tracking issue #166 is closed. The owner delegated the review pass and authorised release; [review evidence](../closed/COMPACT_LIBRARY_REVIEW.md) records its scope and corrections.
+**Authority:** maintained contract for shipped compact topics, provenance layout and guarded content refreshes. Historical measurements and PR slices below document delivery; [release closeout](../closed/RELEASE_1_3_3.md) records final validation. `TOPIC_PAGE_REVAMP.md` owns the surrounding page/Test rebuild.
 **Relationship:** this is the content and provenance half of the topic-page diet. `TOPIC_PAGE_REVAMP.md` §4 decides how the page is laid out; this document decides how much each topic says and where its sources live.
 
 ## 0. The request
@@ -13,7 +13,7 @@ From the owner, near verbatim:
 3. Some topics carry **too much prose**: dramatic lead-ins and over-explaining. Trim significantly, keeping the main content only.
 4. There are many topics, so this is tracked in a doc and an issue.
 
-## 1. What is there today
+## 1. Baseline before compact copy (2026-10-02)
 
 Measured by a scratch vitest over the real `catalogDefinitions()` (word counts of Learn text; scored items excluded, sources counted in the last column only). Reference blocks (tables, `entries`) are counted with prose, so the visual-heavy rows overstate how much is trimmable; see §3.4.
 
@@ -126,7 +126,7 @@ One PR per batch. Each batch is gated on unit tests plus a targeted e2e; the ful
 | --- | --- | --- | --- |
 | **0a** | "Sources and limitations" button and modal for all topics; remove inline Limitations and Sources from `LearnSupport`. **PR #171**, stacked on rebuild **#170** | topic-page rebuild merged, or built on `feat/topic-revamp-integration` | UI, a11y |
 | **0b** | ~~Learn-content refresh~~ **Not needed:** `refreshShippedLearn` exists (§2.4). Each content batch registers its ids | n/a | n/a |
-| **1** | Pilot trim: **OODA Loop**; confirm budgets in §3.3. **In review: #168** | none (0a changes the final look only) | owner reads the diff |
+| **1** | Pilot trim: **OODA Loop**; confirm budgets in §3.3. **Merged through #175: #168** | none (0a changes the final look only) | owner reads the diff |
 | **2** | Survival briefings: Primary Survey, Firearm Safety. **PR #169**, stacked on #168; visible Primary Survey scope migration included | 1 | owner domain review |
 | **3** | Navigation: Cardinal (no-op), Whole-circle, Reciprocal, North References, Grid North. **PR #172**, stacked on #169 | 1 | owner skim |
 | **4** | Maritime: Navigation Lights, Vessel Day Shapes, Signal Flags. **PR #174**, stacked on #172 | 1, §3.4 measure | owner domain review |
@@ -140,34 +140,34 @@ Some existing tests pin the old wording of limitations (`catalogSeed.test.ts` as
 
 ### 4.1 Base branch and merge order
 
-The topic-page rebuild is published as #170 (`feat/topic-revamp-integration`) and is not merged. It rewrites `TopicPage.tsx` (432 lines, down from 583) and changes `LearnSupport.tsx`. Batch 0a edits `LearnSupport.tsx` and the foot of `TopicPage.tsx`, so building it on current `main` guarantees a conflict. Build 0a on the integration branch, or wait for it to merge. Content batches share the seed, refresh list and tests. The final integration resolves the Beaufort overview conflict while retaining the staged visual guide. The scored decks and reference structures remain unchanged.
+The implementation used UI stack #170 → #171 and content stack #168 → #169 → #172 → #174 → #173. Both stacks were combined and merged through #175. The topic rebuild and modal were published together so their dependent edits to `TopicPage.tsx` and `LearnSupport.tsx` could be reviewed. The final integration resolved the Beaufort overview conflict while retaining the staged visual guide. Compact-copy changes preserve scored items and reference structures; the rebuild separately adds ordered Test metadata.
 
 ## 5. Tracker
 
-Update the box when the batch PR merges. Word counts are Learn text before → after on the content base. The unchanged staged Beaufort guide adds 137 words to both sides in the final integration. The rebuild also introduces Cloud Genera; it is outside the original 19-topic copy audit and its Learn text is unchanged by #166.
+All implementation slices are included in merged #175. “Agent pass” records the owner-delegated review, not an independent professional certification. Word counts are Learn text before → after on the content base. The unchanged staged Beaufort guide adds 137 words to both sides in the final integration. The rebuild also introduces Cloud Genera; it is outside the original 19-topic copy audit and its Learn text is unchanged by #166.
 
 | Topic | Batch | Trimmed | Domain review | Words |
 | --- | --- | :-: | :-: | --- |
 | Sources and limitations modal (all topics) | 0a | PR #171 (base #170) | n/a | n/a |
 | Learn-content refresh | 0b | n/a (already exists) | n/a | n/a |
-| `ooda-loop` | 1 | PR #168 | ☐ | 556 → 228 |
-| `primary-survey` | 2 | PR #169 | ☐ | 475 → 257 |
-| `firearm-safety-acts-prove` | 2 | PR #169 | ☐ | 531 → 286 |
+| `ooda-loop` | 1 | PR #168 | Agent pass | 556 → 228 |
+| `primary-survey` | 2 | PR #169 | Agent pass | 475 → 257 |
+| `firearm-safety-acts-prove` | 2 | PR #169 | Agent pass | 531 → 286 |
 | `cardinal-bearings` | 3 | n/a (in budget) | n/a | 36 |
-| `whole-circle-bearings` | 3 | PR #172 | ☐ | 343 → 173 |
-| `reciprocal-bearings` | 3 | PR #172 | ☐ | 290 → 187 |
-| `north-references-declination` | 3 | PR #172 | ☐ | 387 → 260 |
-| `grid-north-map-bearings` | 3 | PR #172 | ☐ | 489 → 280 |
-| `navigation-lights` | 4 | PR #174 | ☐ | 980 → 785 |
-| `vessel-day-shapes` | 4 | PR #174 | ☐ | 427 → 303 |
-| `signal-flags` | 4 | PR #174 | ☐ | 688 → 507 |
-| `scuba-equipment-abbreviations` | 5 | PR #173 | ☐ | 672 → 496 |
-| `beaufort-wind-scale` | 5 | PR #173 | ☐ | 572 → 498 |
-| `radiotelephony-numbers` | 5 | PR #173 | ☐ | 184 → 95 |
-| `si-prefixes` | 5 | PR #173 | ☐ | 236 → 112 |
-| `greek-alphabet` | 5 | PR #173 | ☐ | 208 → 100 |
-| `hex-digits-binary` | 5 | PR #173 | ☐ | 145 → 82 |
-| `international-morse-letters-printed` | 5 | PR #173 | ☐ | 240 → 109 |
+| `whole-circle-bearings` | 3 | PR #172 | Agent pass | 343 → 173 |
+| `reciprocal-bearings` | 3 | PR #172 | Agent pass | 290 → 187 |
+| `north-references-declination` | 3 | PR #172 | Agent pass | 387 → 260 |
+| `grid-north-map-bearings` | 3 | PR #172 | Agent pass | 489 → 280 |
+| `navigation-lights` | 4 | PR #174 | Agent pass | 980 → 785 |
+| `vessel-day-shapes` | 4 | PR #174 | Agent pass | 427 → 303 |
+| `signal-flags` | 4 | PR #174 | Agent pass | 688 → 507 |
+| `scuba-equipment-abbreviations` | 5 | PR #173 | Agent pass | 672 → 496 |
+| `beaufort-wind-scale` | 5 | PR #173 | Agent pass | 572 → 498 |
+| `radiotelephony-numbers` | 5 | PR #173 | Agent pass | 184 → 95 |
+| `si-prefixes` | 5 | PR #173 | Agent pass | 236 → 112 |
+| `greek-alphabet` | 5 | PR #173 | Agent pass | 208 → 100 |
+| `hex-digits-binary` | 5 | PR #173 | Agent pass | 145 → 82 |
+| `international-morse-letters-printed` | 5 | PR #173 | Agent pass | 240 → 109 |
 | `nato-phonetic` | 5 | n/a (in budget) | n/a | 29 |
 
 ## 6. Verification
@@ -185,9 +185,9 @@ Layout of the topic page beyond the Sources control (`TOPIC_PAGE_REVAMP.md`), th
 
 ## 8. Delivery and review
 
-The combined branch is `feat/compact-library-integration`. It combines both review stacks without changing their scored identities or dropping the staged visual guides. Content merge order: #168 → #169 → #172 → #174 → #173. UI merge order: #170 → #171. The integration PR contains the final documentation and cross-stack safety/browser checks; it can be retargeted after its dependencies land.
+The combined branch is `feat/compact-library-integration`. It combines both review stacks without changing their scored identities or dropping the staged visual guides. Content merge order: #168 → #169 → #172 → #174 → #173. UI merge order: #170 → #171. PR #175 merged both stacks, final documentation and cross-stack safety/browser checks into `main`.
 
-All implementation work for the original 19-topic request is complete. NATO and Compass Bearings remain unchanged because they were already compact. Sources remain verbatim for every topic, including Cloud Genera from the rebuild. The owner delegated the review pass and authorised release on 2026-10-03. The agent checked survival and maritime claims against primary sources and corrected explanatory ambiguities and restored explicit regular reassessment; see [review record](../closed/COMPACT_LIBRARY_REVIEW.md). This is a source review, not an independent clinical or maritime certification. Deployment is pending.
+All implementation work for the original 19-topic request is complete. NATO and Compass Bearings remain unchanged because they were already compact. Sources remain verbatim for every topic, including Cloud Genera from the rebuild. The owner delegated the review pass and authorised release on 2026-10-03. The agent checked survival and maritime claims against primary sources and corrected explanatory ambiguities and restored explicit regular reassessment; see [review record](../closed/COMPACT_LIBRARY_REVIEW.md). This is a source review, not an independent clinical or maritime certification. Deployment and live verification passed in v1.3.3.
 
 Final local validation:
 
@@ -197,4 +197,4 @@ Final local validation:
 - The modal checks cover centring, 200% text, internal scrolling, focus trap/return, dismissal, browser Back and the two visible safety scopes at all four viewports. The weather-guide image decode assertion now polls for the actual image load.
 - The corrected NATO fixture models a due `learning` topic instead of legacy `drilled` (now banked). Morse navigation models explicit review history and lookup through Topic while preserving the unfinished confirmation route. These are test-fixture changes, not curriculum changes.
 
-PR #175 is the combined review and merge target. GitHub CI passed all 348 applicable browser checks (16 intentional skips), unit/build and rules gates on `eadc255`. The subsequent review corrections will be checked by the release gate; deployment remains pending merge and release.
+PR #175 is the combined review and merge target. GitHub CI passed all 348 applicable browser checks (16 intentional skips), unit/build and rules gates on `eadc255`. After review corrections, the release gate passed all 1,602 unit tests, production build and 348 browser cases (16 intentional skips) in one run. v1.3.3 is deployed and its live app shell, JavaScript and service worker match the release artifacts.
