@@ -53,13 +53,13 @@ const LIBRARY = JSON.stringify({
   catalogDelivered: [...shippedCatalog.topicIds].sort(),
 })
 
-async function openApp(page: Page) {
+async function openApp(page: Page, fixture = LIBRARY) {
   await page.addInitScript(
     ([library, storeKey, splashKey]) => {
       window.localStorage.setItem(splashKey, 'true')
       window.localStorage.setItem(storeKey, library)
     },
-    [LIBRARY, STORE_KEY, SPLASH_KEY] as const,
+    [fixture, STORE_KEY, SPLASH_KEY] as const,
   )
   await page.goto('./')
 }
@@ -102,7 +102,21 @@ async function finishCheckpointWarmups(page: Page) {
 }
 
 test('the alphabet round-trip preserves the topic and its unfinished confirmation route', async ({ page }) => {
-  await openApp(page)
+  const confirming: Topic = {
+    ...morse,
+    status: 'learning',
+    learningAt: new Date().toISOString(),
+    morseReview: {
+      sittings: 13,
+      items: Object.fromEntries(source!.items.map(item => [item.id!, {
+        introducedIn: ['Y', 'Q'].includes(item.prompt) ? 13 : 1,
+        lastSeenIn: 13,
+        laterCorrect: ['Y', 'Q'].includes(item.prompt) ? 0 : 1,
+        printed: 3, heard: 0, heardCorrect: 0,
+      }])),
+    },
+  }
+  await openApp(page, JSON.stringify({ version: 5, topics: [confirming], catalogDelivered: shippedCatalog.topicIds }))
 
   // Completed lessons still owe confirmation. The primary opens that task;
   // alphabet lookup belongs to the Topic page, not the live retrieval screen.
