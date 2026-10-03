@@ -321,7 +321,7 @@ export function seedLibrary(): Library {
     {
       id: 'primary-survey',
       title: 'Primary Survey',
-      scope: 'The five ABCDE headings in assessment order — Airway, Breathing, Circulation, Disability, Exposure. Test covers the headings and order only.',
+      scope: 'The five ABCDE headings in assessment order — Airway, Breathing, Circulation, Disability, Exposure. Test covers the headings and order only; not first-aid or clinical training.',
       track: 'survival',
       items: [
         { prompt: 'Step 1 (A)', answer: 'Airway' },

@@ -3,7 +3,7 @@ import { catalogDefinition } from '../../domain/library/catalog'
 import type { CurrentLibrary } from '../../domain/library/library'
 import type { Topic } from '../../domain/library/topic'
 import { seedLibrary } from '../../domain/library/catalogSeed'
-import { reconcileLoadedLibrary, refreshShippedLearn, upgradeSeededScubaEquipment } from './libraryMigrations'
+import { reconcileLoadedLibrary, refreshShippedLearn, refreshShippedScopes, upgradeSeededScubaEquipment } from './libraryMigrations'
 
 const BEAUFORT = 'beaufort-wind-scale'
 
@@ -176,5 +176,45 @@ describe('the #166 prose trims reach libraries that already hold the topic', () 
       const input: CurrentLibrary = { version: 5, topics: [edited] }
       expect(refreshShippedLearn(input)).toBe(input)
     })
+  })
+})
+
+
+describe('the visible Primary Survey safety boundary (#166)', () => {
+  const oldScope = 'The five ABCDE headings in assessment order — Airway, Breathing, Circulation, Disability, Exposure. Test covers the headings and order only.'
+  const old = { ...catalogDefinition('primary-survey')!, origin: 'catalog' as const, scope: oldScope }
+
+  it('updates only the exact former scope, preserves progress, and is idempotent', () => {
+    const input: CurrentLibrary = { version: 5, topics: [old] }
+    const once = refreshShippedScopes(input)
+    expect(once.topics[0].scope).toContain('not first-aid or clinical training')
+    expect({ ...once.topics[0], scope: oldScope }).toEqual(old)
+    expect(refreshShippedScopes(once)).toBe(once)
+    expect(reconcileLoadedLibrary(input).library.topics[0].scope).toBe(once.topics[0].scope)
+  })
+
+  it('preserves custom scopes, user ownership, and edited scored items', () => {
+    for (const topic of [
+      { ...old, scope: 'My own scope.' },
+      { ...old, origin: 'user' as const },
+      { ...old, items: old.items.slice(1) },
+    ]) {
+      const input: CurrentLibrary = { version: 5, topics: [topic] }
+      expect(refreshShippedScopes(input)).toBe(input)
+    }
+  })
+})
+
+describe('Learn refresh respects the complete scored identity', () => {
+  it.each(['id', 'kind', 'choice'] as const)('preserves support when an item’s %s was edited', (field) => {
+    const old = beforeTheRewrite()
+    old.items = old.items.map((item, i) => i ? item : {
+      ...item,
+      ...(field === 'id' ? { id: 'custom-id' } : field === 'kind' ? { kind: 'bidirectional' as const } : {
+        choice: { options: [item.answer, 'Custom alternative'] },
+      }),
+    })
+    const input = library(old)
+    expect(refreshShippedLearn(input)).toBe(input)
   })
 })
