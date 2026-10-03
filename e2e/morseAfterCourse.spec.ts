@@ -105,7 +105,7 @@ test('a finished course goes over the letters it still owes, then its Test count
 
   // Not lesson 13 again: the page names what is left and offers going over it.
   await expect(page.locator('.topic-primary')).toContainText('Go over missed letters')
-  await expect(page.getByText('Still to confirm: Y Q')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Go over Y, Q' })).toContainText('Confirms the last letters before the Test')
   await expect(page.getByRole('button', { name: 'Go over Y, Q' })).toBeVisible()
 
   await page.locator('.topic-primary').click()
