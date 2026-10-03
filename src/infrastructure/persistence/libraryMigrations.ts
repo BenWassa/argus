@@ -140,6 +140,8 @@ export function renameShippedTitles(library: CurrentLibrary): CurrentLibrary {
 const REFRESHED_LEARN_TOPIC_IDS: readonly string[] = [
   // #128: sea and land tables became one entry per force.
   'beaufort-wind-scale',
+  // #166: prose trimmed to the main content.
+  'ooda-loop',
 ]
 
 /**

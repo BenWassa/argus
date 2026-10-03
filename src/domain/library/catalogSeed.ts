@@ -248,54 +248,28 @@ export function seedLibrary(): Library {
       ],
       learn: {
         kind: 'briefing',
-        overview: 'John Boyd’s final OODA sketch is a feedback-rich model of adaptation, not merely four boxes connected in a circle. Observation supplies changing information; orientation interprets it; a decision is a hypothesis; action tests that hypothesis; results and new circumstances feed the process again.',
+        overview: 'Boyd’s model of adaptation: observe, orient, decide, act, with each result feeding the next cycle.',
         sections: [
           {
-            heading: 'The four functions',
-            blocks: [
-              {
-                type: 'definitions',
-                items: [
-                  {
-                    term: 'Observe',
-                    definition: 'Take in unfolding circumstances, outside information, and the effects of interaction with the environment.',
-                  },
-                  {
-                    term: 'Orient',
-                    definition: 'Make sense of observations through analysis and synthesis, filtered by factors such as previous experience, cultural traditions, genetic heritage, and new information.',
-                  },
-                  {
-                    term: 'Decide',
-                    definition: 'Choose a course of action: in Boyd’s model, a hypothesis about what should happen next.',
-                  },
-                  {
-                    term: 'Act',
-                    definition: 'Execute the decision as a test. What happens becomes new information for further observation and orientation.',
-                  },
-                ],
-              },
-            ],
-          },
-          {
-            heading: 'Relationships that matter',
+            heading: 'How the stages connect',
             blocks: [
               {
                 type: 'bullets',
                 items: [
-                  'Orientation is not a neutral sorting step: it is shaped by prior experience and inherited or learned frames as well as fresh information.',
-                  'Decision and action form a hypothesis/test pair. The value of action includes the information produced by its outcome.',
-                  'Feedback and feed-forward links make the model iterative and partly concurrent rather than a rigid stop-start sequence.',
-                  'Boyd’s sketch includes implicit guidance and control from orientation toward observation and action, so not every familiar situation requires a fresh explicit decision box before behavior changes.',
+                  'Orientation is shaped by prior experience, culture and heritage as well as fresh information.',
+                  'A decision is a hypothesis; action is the test, and its result is new information.',
+                  'Feedback runs between all the stages, so they overlap rather than run stop-start.',
+                  'Orientation can steer action directly (implicit guidance), so not every response needs a fresh decision.',
                 ],
               },
             ],
           },
           {
-            heading: 'Common simplification',
+            heading: 'The circle is a simplification',
             blocks: [
               {
                 type: 'paragraph',
-                text: 'The familiar four-arrow circle is useful as a mnemonic for order, but it is not Boyd’s full model. The published appendix to A Discourse on Winning and Losing explicitly describes that simple circular version as a gross oversimplification because it drops the feedback, feed-forward, orientation inputs, and implicit guidance shown in Boyd’s final sketch. “Run the loop faster” is therefore incomplete: adaptation depends on how accurately the situation is observed and oriented as well as on tempo.',
+                text: 'The four-arrow circle is a mnemonic for order. Boyd’s full sketch adds feedback, feed-forward and implicit guidance. “Run the loop faster” is incomplete: accurate observation and orientation matter as much as tempo.',
               },
             ],
           },
@@ -303,33 +277,24 @@ export function seedLibrary(): Library {
         caseStudies: [
           {
             title: 'Service incident under uncertainty',
-            scenario: 'Minutes after a software deployment, an operations team sees rising checkout failures, but the dashboards disagree about which service is responsible. The objective is to restore reliable checkout without blindly reversing unrelated changes.',
+            scenario: 'After a deployment, checkout failures rise and the dashboards disagree about which service is at fault.',
             analysis: [
               {
-                heading: 'Trace the whole loop',
+                heading: 'Walkthrough',
                 blocks: [
                   {
                     type: 'paragraph',
-                    text: 'The team first gathers current error rates, traces, deploy diffs, customer reports, and signs of downstream failure. Those observations do not dictate an answer by themselves. The team orients them using the system architecture, known dependencies, experience from earlier incidents, and the possibility that a familiar failure pattern may be misleading. It forms a bounded hypothesis: one newly changed checkout dependency is causing the failures. The decision is to canary a rollback of that dependency rather than reverse the entire release. The rollback is the test. Error rates fall but do not fully recover, creating new observations that force a revised orientation: the deployment exposed a second capacity problem. A second hypothesis and action follow from the changed picture.',
-                  },
-                ],
-              },
-              {
-                heading: 'Why the second cycle matters',
-                blocks: [
-                  {
-                    type: 'paragraph',
-                    text: 'The first action is not “completion” of the loop. Its result changes the evidence available and can invalidate the orientation that produced it. The useful habit is repeated re-observation and re-orientation as reality answers each test, rather than defending the first diagnosis because a decision was already made.',
+                    text: 'The team gathers error rates, traces and deploy diffs, reads them against the architecture and past incidents, and hypothesises one changed dependency. It canaries a rollback of that dependency only. Errors fall but not fully, so the team re-orients: the deployment also exposed a capacity problem. A second cycle follows.',
                   },
                 ],
               },
             ],
-            takeaway: 'OODA is a model for continuous adaptation under changing information: observe and orient well, treat decisions as testable hypotheses, learn from action, and update the next cycle.',
+            takeaway: 'The first action is a test, not the end: re-observe and re-orient as each result arrives.',
           },
         ],
         limitations: [
-          'OODA is a conceptual model, not a guarantee of good decisions. Boyd’s full sketch is richer than the four labels tested here.',
-          'Argus Test intentionally covers only the four stages in order and each stage’s core function. Implicit guidance, competitive strategy, tempo, and the wider theory remain explanatory context rather than completion requirements.',
+          'OODA is a conceptual model, not a guarantee of good decisions; Boyd’s full sketch is richer than the four labels tested.',
+          'Test covers only the four stages in order and each core function; implicit guidance, tempo and strategy are context, not scored.',
         ],
         sources: [
           {

@@ -103,7 +103,7 @@ describe('researched seeded library', () => {
     expect(topic.learn?.kind).toBe('briefing')
     expect(topic.learn?.caseStudies).toHaveLength(1)
     expect(topic.learn?.sources?.length).toBeGreaterThanOrEqual(1)
-    expect(topic.learn?.limitations?.some((note) => note.includes('Test intentionally covers only'))).toBe(true)
+    expect(topic.learn?.limitations?.some((note) => note.includes('Test covers only'))).toBe(true)
   })
 
   it('keeps Primary Survey scoring to the five ABCDE headings and order', () => {
@@ -341,5 +341,27 @@ describe('researched seeded library', () => {
     expect(limits.some((note) => note.includes('nothing about shooting, tactics or use of force'))).toBe(true)
     expect(limits.some((note) => note.includes('follow your course'))).toBe(true)
     expect(topic.learn?.sources?.[0].url).toContain('publications.gc.ca')
+  })
+})
+
+/** #166: shipped Learn text that has been trimmed stays inside its budget. */
+describe('trimmed Learn prose', () => {
+  const words = (text: string | undefined) => (text ? text.trim().split(/\s+/).length : 0)
+
+  it('keeps the OODA Loop briefing compact', () => {
+    const learn = seededTopic('ooda-loop').learn!
+    const blockWords = (block: NonNullable<typeof learn.sections>[number]['blocks'][number]) =>
+      block.type === 'paragraph' ? words(block.text) : block.type === 'bullets' ? block.items.reduce((n, i) => n + words(i), 0) : 0
+    const sections = (learn.sections ?? []).flatMap((section) => section.blocks).reduce((n, b) => n + blockWords(b), 0)
+    const cases = (learn.caseStudies ?? []).reduce(
+      (n, c) => n + words(c.scenario) + words(c.takeaway) + c.analysis.flatMap((s) => s.blocks).reduce((m, b) => m + blockWords(b), 0),
+      0,
+    )
+
+    expect(words(learn.overview)).toBeLessThanOrEqual(30)
+    expect(sections).toBeLessThanOrEqual(130)
+    expect(cases).toBeLessThanOrEqual(90)
+    expect(learn.limitations?.length).toBeLessThanOrEqual(3)
+    learn.limitations?.forEach((note) => expect(words(note)).toBeLessThanOrEqual(25))
   })
 })
