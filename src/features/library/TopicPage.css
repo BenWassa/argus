@@ -10,12 +10,15 @@
   padding-left: 0;
 }
 
+.topic-title { overflow-wrap: anywhere; }
+
 .topic-title:focus {
   outline: none;
 }
 
 .topic-head {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--s-md);
 }
 
