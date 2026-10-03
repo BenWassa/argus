@@ -350,12 +350,11 @@ describe('trimmed Learn prose', () => {
   type Block = NonNullable<NonNullable<ReturnType<typeof seededTopic>['learn']>['sections']>[number]['blocks'][number]
   const blockWords = (block: Block): number =>
     block.type === 'paragraph' ? words(block.text)
-      : block.type === 'bullets' ? block.items.reduce((n, i) => n + words(i), 0)
-        : block.type === 'table' ? block.rows.flat().reduce((n, c) => n + words(c), 0)
-          : 0
+      : (block.type === 'bullets' || block.type === 'steps') ? block.items.reduce((n, i) => n + words(i), 0)
+        : 0
 
-  // Briefing budgets from docs/open/LIBRARY_COMPACT_TOPICS.md §3.3.
-  it.each(['ooda-loop', 'primary-survey', 'firearm-safety-acts-prove'])('keeps the %s briefing compact', (id) => {
+  // Prose budgets exclude definitions, tables, entries and visual references.
+  it.each(['ooda-loop', 'primary-survey', 'firearm-safety-acts-prove', 'whole-circle-bearings', 'reciprocal-bearings', 'north-references-declination', 'grid-north-map-bearings'])('keeps %s compact', (id) => {
     const learn = seededTopic(id).learn!
     const sections = (learn.sections ?? []).flatMap((section) => section.blocks).reduce((n, b) => n + blockWords(b), 0)
     const cases = (learn.caseStudies ?? []).reduce(
@@ -364,7 +363,7 @@ describe('trimmed Learn prose', () => {
     )
 
     expect(words(learn.overview)).toBeLessThanOrEqual(30)
-    expect(sections).toBeLessThanOrEqual(130)
+    expect(sections).toBeLessThanOrEqual(learn.kind === 'concise' ? 90 : 130)
     expect(cases).toBeLessThanOrEqual(90)
     expect(learn.limitations?.length).toBeLessThanOrEqual(3)
     learn.limitations?.forEach((note) => expect(words(note)).toBeLessThanOrEqual(25))

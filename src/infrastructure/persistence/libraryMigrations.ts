@@ -166,6 +166,10 @@ const REFRESHED_LEARN_TOPIC_IDS: readonly string[] = [
   'ooda-loop',
   'primary-survey',
   'firearm-safety-acts-prove',
+  'whole-circle-bearings',
+  'reciprocal-bearings',
+  'north-references-declination',
+  'grid-north-map-bearings',
 ]
 
 /**
