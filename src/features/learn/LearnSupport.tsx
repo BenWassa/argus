@@ -111,12 +111,11 @@ function LearnSections({ sections, inCase = false }: { sections: LearnSection[];
 }
 
 /**
- * Optional recall leads the page. Explanatory support and provenance expand
- * in place through native disclosures, all closed on arrival.
+ * Optional recall leads the page. Explanatory support expands in place through
+ * native disclosures, all closed on arrival. Limitations and sources are not
+ * here: they sit behind `SourcesAndLimits` at the foot of the page (#166).
  */
 export function LearnSupport({ content, recall }: { content: LearnContent; recall?: ReactNode }) {
-  const hasNotes = Boolean(content.limitations?.length || content.sources?.length)
-
   return (
     <section className={`learn-support learn-support-${content.kind}`} aria-label="Explanatory support">
       {recall}
@@ -135,34 +134,6 @@ export function LearnSupport({ content, recall }: { content: LearnContent; recal
           )}
         </details>
       ))}
-
-      {hasNotes && (
-        <div className="learn-notes">
-          {content.limitations && (
-            <details className="fold">
-              <summary>What this doesn’t cover</summary>
-              <ul>
-                {content.limitations.map((limitation, i) => <li key={`${limitation}-${i}`}>{limitation}</li>)}
-              </ul>
-            </details>
-          )}
-          {content.sources && (
-            <details className="fold">
-              <summary>Sources</summary>
-              <ol className="learn-sources">
-                {content.sources.map((source, i) => (
-                  <li key={`${source.label}-${i}`}>
-                    {source.url ? (
-                      <a href={source.url} target="_blank" rel="noreferrer">{source.label}</a>
-                    ) : source.label}
-                    {source.note && <span className="learn-source-note">: {source.note}</span>}
-                  </li>
-                ))}
-              </ol>
-            </details>
-          )}
-        </div>
-      )}
     </section>
   )
 }

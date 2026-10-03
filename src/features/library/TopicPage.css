@@ -304,7 +304,6 @@
 .topic-alternates { display: grid; justify-items: start; padding-bottom: var(--s-md); }
 .learn-support .fold { margin-top: var(--s-md); }
 .learn-support .fold[open] { padding-bottom: var(--s-lg); }
-.learn-support .learn-notes { border: 0; margin-top: 0; padding-top: 0; }
 .fold summary { min-height: 44px; }
 @media (min-width: 980px) {
   .topic-action-bar { left: var(--rail); bottom: 0; padding-bottom: var(--s-lg); }

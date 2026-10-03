@@ -44,8 +44,8 @@ for (const topic of TOPICS) {
     await expect(page.locator('.topic-recall-cards > li.has-visual')).toHaveCount(topic.figures)
     await expect(page.locator('#topic-reference-head')).toHaveText('What to remember')
     // Limitations state the boundary outside any picture.
-    await page.locator('summary', { hasText: 'What this doesn’t cover' }).click()
-    await expect(page.locator('.learn-notes')).toContainText('does not show that you can navigate safely')
+    await page.getByRole('button', { name: 'Sources and limitations' }).click()
+    await expect(page.locator('.sources-notes')).toContainText('does not show that you can navigate safely')
     await noSidewaysScroll(page)
   })
 }

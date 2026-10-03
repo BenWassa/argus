@@ -7,12 +7,14 @@ interface DialogProps {
   children: ReactNode
   /** Named so the control says what it closes, never a bare cross. */
   closeLabel?: string
+  /** Centre the panel on every width instead of pinning it to the bottom edge on a phone. */
+  centred?: boolean
 }
 
 const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
-export function Dialog({ title, onClose, children, closeLabel }: DialogProps) {
+export function Dialog({ title, onClose, children, closeLabel, centred }: DialogProps) {
   const panel = useRef<HTMLDivElement>(null)
   const opener = useRef<Element | null>(null)
   const titleId = useId()
@@ -79,7 +81,7 @@ export function Dialog({ title, onClose, children, closeLabel }: DialogProps) {
   }, [])
 
   return (
-    <div className="backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+    <div className={centred ? 'backdrop is-centred' : 'backdrop'} onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <div
         className="sheet"
         role="dialog"

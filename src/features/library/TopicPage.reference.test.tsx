@@ -41,3 +41,13 @@ describe('topic reference page', () => {
     expect(updateTopic).not.toHaveBeenCalled()
   })
 })
+
+describe('topic page provenance', () => {
+  it('keeps sources and limitations out of the body, behind one control at the very bottom', () => {
+    const { container } = render(<TopicPage topic={firearm()} onStart={vi.fn()} onBack={vi.fn()} onReference={vi.fn()} onEdit={vi.fn()} onDelete={vi.fn()} />)
+    expect(container.querySelector('.learn-notes')).toBeNull()
+    expect(container.textContent).not.toContain('publications.gc.ca')
+    const article = container.querySelector('article')!
+    expect(article.lastElementChild?.textContent).toBe('Sources and limitations')
+  })
+})

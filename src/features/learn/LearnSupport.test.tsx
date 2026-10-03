@@ -4,7 +4,7 @@ import type { LearnContent } from '../../domain/learning/content'
 import { LearnSupport } from './LearnSupport'
 
 describe('structured Learn rendering', () => {
-  it('renders concise support with visible limitations and provenance', () => {
+  it('renders concise support without limitations or provenance in the body', () => {
     const content: LearnContent = {
       kind: 'concise',
       overview: 'A small amount of context is enough for this topic.',
@@ -15,9 +15,10 @@ describe('structured Learn rendering', () => {
     const html = renderToStaticMarkup(<LearnSupport content={content} />)
     expect(html).toContain('<summary>Why it works</summary>')
     expect(html).toContain('A small amount of context')
-    expect(html).toContain('<summary>What this doesn’t cover</summary>')
-    expect(html).toContain('<summary>Sources</summary>')
-    expect(html).toContain('href="https://example.com/reference"')
+    // Provenance and caveats are not in the body; `SourcesAndLimits` owns them.
+    expect(html).not.toContain('Memory support only.')
+    expect(html).not.toContain('https://example.com/reference')
+    expect(html).not.toContain('learn-notes')
     expect(html).not.toContain('flip-card')
     expect(html).not.toContain(' open=')
     expect(html).not.toContain('<button')
@@ -78,7 +79,7 @@ describe('structured Learn rendering', () => {
     expect(html).not.toContain(' open=')
   })
 
-  it('keeps each entry together, and sets the recall slot before Limitations and Sources', () => {
+  it('keeps each entry together, and sets the recall slot first', () => {
     const content: LearnContent = {
       kind: 'concise',
       sections: [{
@@ -107,6 +108,5 @@ describe('structured Learn rendering', () => {
     expect(html).toContain('An inline note.')
     expect(html).not.toContain('<table')
     expect(html.indexOf('recall-slot')).toBeLessThan(html.indexOf('Near gale'))
-    expect(html.indexOf('recall-slot')).toBeLessThan(html.indexOf('<summary>What this doesn’t cover</summary>'))
   })
 })

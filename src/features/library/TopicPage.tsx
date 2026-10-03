@@ -8,6 +8,7 @@ import { statusLabel } from '../../shared/ui/StatusTag'
 import { topicIcon } from './topicIcon'
 import { sequenceFor } from '../../domain/library/catalog'
 import { LearnSupport } from '../learn/LearnSupport'
+import { SourcesAndLimits } from '../learn/SourcesAndLimits'
 import { VisualView } from '../visual/VisualView'
 import { listeningCoverage } from '../../domain/audio/evidence'
 import { AudioReference } from '../audio/AudioReference'
@@ -355,6 +356,7 @@ export function TopicPage({
           Delete topic
         </button>
       </div>
+      {topic.learn && <SourcesAndLimits content={topic.learn} />}
       {placementOpen && course && (
         <MorsePlacementDialog
           topic={topic}

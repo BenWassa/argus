@@ -883,6 +883,18 @@ main:focus {
   box-shadow: var(--edge), var(--shadow-lift);
 }
 
+.backdrop.is-centred {
+  align-items: center;
+  justify-content: center;
+  padding: var(--s-lg);
+}
+
+.backdrop.is-centred .sheet {
+  width: min(100%, 560px);
+  max-height: 84dvh;
+  border-radius: var(--r-xl);
+}
+
 .sheet-head {
   display: flex;
   align-items: center;

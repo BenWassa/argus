@@ -59,9 +59,9 @@ for (const [title, items, figures] of [
     await openTopic(page, title)
     await expect(page.locator('.topic-recall-cards > li')).toHaveCount(items)
     await expect(page.locator('.topic-recall-cards > li.has-visual')).toHaveCount(figures)
-    await page.locator('summary', { hasText: 'What this doesn’t cover' }).click()
-    await expect(page.locator('.learn-notes')).toContainText('does not show that you can navigate safely')
-    await expect(page.locator('.learn-notes')).toContainText('proves nothing')
+    await page.getByRole('button', { name: 'Sources and limitations' }).click()
+    await expect(page.locator('.sources-notes')).toContainText('does not show that you can navigate safely')
+    await expect(page.locator('.sources-notes')).toContainText('proves nothing')
     await noSidewaysScroll(page)
   })
 }

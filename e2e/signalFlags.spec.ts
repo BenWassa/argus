@@ -53,8 +53,8 @@ test('Learn groups the twelve flags by use, shows each with its text, and does n
   await expect(alfa).toContainText('Diver down; keep well clear and proceed slowly')
   await expect(alfa).toContainText('swallow-tailed flag divided vertically')
   await expect(page.locator('.topic-recall-cards > li.has-visual')).toHaveCount(12)
-  await page.locator('summary', { hasText: 'What this doesn’t cover' }).click()
-  await expect(page.locator('.learn-notes')).toContainText('not an official sub-code')
+  await page.getByRole('button', { name: 'Sources and limitations' }).click()
+  await expect(page.locator('.sources-notes')).toContainText('not an official sub-code')
   await noSidewaysScroll(page)
 })
 
