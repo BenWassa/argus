@@ -18,3 +18,5 @@ button.sources-link {
 
 .sources-notes ul { list-style: disc; }
 .sources-notes ol { list-style: decimal; }
+
+.sources-notes { min-width: 0; overflow-wrap: anywhere; }

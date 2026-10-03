@@ -895,6 +895,12 @@ main:focus {
   border-radius: var(--r-xl);
 }
 
+/* Long titles reflow at enlarged text; the close control keeps its full target. */
+.backdrop.is-centred .sheet-head { flex-shrink: 0; }
+.backdrop.is-centred .sheet-head h2 { min-width: 0; overflow-wrap: anywhere; font-size: var(--t-component); }
+.backdrop.is-centred .sheet-head button { flex-shrink: 0; }
+
+
 .sheet-head {
   display: flex;
   align-items: center;
