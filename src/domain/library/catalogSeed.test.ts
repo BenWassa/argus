@@ -362,10 +362,11 @@ describe('trimmed Learn prose', () => {
       0,
     )
 
-    expect(words(learn.overview)).toBeLessThanOrEqual(30)
+    expect(words(learn.overview)).toBeLessThanOrEqual(learn.kind === 'concise' ? 25 : 30)
     expect(sections).toBeLessThanOrEqual(learn.kind === 'concise' ? 90 : 130)
-    expect(cases).toBeLessThanOrEqual(90)
-    expect(learn.limitations?.length).toBeLessThanOrEqual(3)
-    learn.limitations?.forEach((note) => expect(words(note)).toBeLessThanOrEqual(25))
+    expect(cases).toBeLessThanOrEqual(learn.kind === 'concise' ? 0 : 90)
+    const threeNotes = learn.kind === 'briefing' || ['whole-circle-bearings', 'reciprocal-bearings', 'vessel-day-shapes', 'signal-flags'].includes(id)
+    expect(learn.limitations?.length ?? 0).toBeLessThanOrEqual(threeNotes ? 3 : 2)
+    learn.limitations?.forEach((note) => expect(words(note)).toBeLessThanOrEqual(threeNotes ? 25 : 20))
   })
 })
