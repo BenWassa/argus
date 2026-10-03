@@ -176,7 +176,7 @@ Today and Library layout (already done), Morse lesson internals, Firebase sync s
 
 ## 9. Local implementation and review
 
-All phase worktrees began at fetched `origin/main` commit `4600565`, leaving `feat/demo-target` and its untracked files untouched. `feat/topic-revamp-integration` combines the phase commits for final verification and review. Nothing is merged, pushed or deployed.
+All phase worktrees began at fetched `origin/main` commit `4600565`, leaving `feat/demo-target` and its untracked files untouched. `feat/topic-revamp-integration` combines the phase commits for final verification and review. The integration is published in #175. The owner requested a review pass and release on 2026-10-03; [the review record](../closed/COMPACT_LIBRARY_REVIEW.md) documents the delegated checks. Merge and deployment are pending.
 
 | Phase | Branch | Local outcome |
 | --- | --- | --- |

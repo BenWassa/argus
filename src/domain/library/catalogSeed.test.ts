@@ -337,6 +337,10 @@ describe('researched seeded library', () => {
     expect(topic.status).toBe('unstarted')
     expect(topic.learn?.kind).toBe('briefing')
     expect(topic.learn?.caseStudies).toHaveLength(1)
+    const handover = topic.learn!.caseStudies![0].analysis!.flatMap(section => section.blocks)
+      .flatMap(block => block.type === 'paragraph' ? [block.text] : []).join(' ')
+    expect(handover).toMatch(/Do not accept it closed/)
+    expect(handover).toMatch(/within your training/)
     const limits = topic.learn?.limitations ?? []
     expect(limits.some((note) => note.includes('not the Canadian Firearms Safety Course'))).toBe(true)
     expect(limits.some((note) => note.includes('nothing about shooting, tactics or use of force'))).toBe(true)

@@ -88,7 +88,7 @@ const learn: LearnContent = {
           items: [
             'D: manoeuvring with difficulty; F: disabled; M: stopped and making no way. Compare bands, diamond and cross.',
             'U: danger; V: assistance; W: medical assistance. Compare quarters, cross and nested rectangles.',
-            'B: dangerous goods; J: fire or dangerous-cargo leak. Plain red versus blue-white-blue.',
+            'B: dangerous goods; J: fire with dangerous cargo, or dangerous-cargo leak. Plain red versus blue-white-blue.',
             'L tells another vessel to stop; M describes your own stopped vessel.',
             'A: diver down; O: man overboard. White-blue halves versus red-yellow diagonal.',
           ],

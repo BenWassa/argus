@@ -1,6 +1,6 @@
 # Compact library topics
 
-**Status:** implemented and published for review, 2026-10-02; not merged or deployed. Batches 0a–5 are ready in PRs #168–#174, with the rebuild in #170. Tracking issue: #166. Owner domain review remains open for survival and maritime content.
+**Status:** implemented and published for review, 2026-10-02; not merged or deployed. Batches 0a–5 are ready in PRs #168–#174, with the rebuild in #170. Tracking issue: #166. The owner requested an agent review pass followed by release on 2026-10-03; that delegated source review is complete. Merge and deployment are pending.
 **Authority:** active implementation and review contract for #166. After merge, the layout and content-refresh sections remain maintained contracts in `docs/open/`; review status is not a production-delivery claim. `TOPIC_PAGE_REVAMP.md` owns the surrounding page/Test rebuild; this document owns compact copy and the provenance modal.
 **Relationship:** this is the content and provenance half of the topic-page diet. `TOPIC_PAGE_REVAMP.md` §4 decides how the page is laid out; this document decides how much each topic says and where its sources live.
 
@@ -152,7 +152,7 @@ Update the box when the batch PR merges. Word counts are Learn text before → a
 | Learn-content refresh | 0b | n/a (already exists) | n/a | n/a |
 | `ooda-loop` | 1 | PR #168 | ☐ | 556 → 228 |
 | `primary-survey` | 2 | PR #169 | ☐ | 475 → 257 |
-| `firearm-safety-acts-prove` | 2 | PR #169 | ☐ | 531 → 288 |
+| `firearm-safety-acts-prove` | 2 | PR #169 | ☐ | 531 → 286 |
 | `cardinal-bearings` | 3 | n/a (in budget) | n/a | 36 |
 | `whole-circle-bearings` | 3 | PR #172 | ☐ | 343 → 173 |
 | `reciprocal-bearings` | 3 | PR #172 | ☐ | 290 → 187 |
@@ -160,7 +160,7 @@ Update the box when the batch PR merges. Word counts are Learn text before → a
 | `grid-north-map-bearings` | 3 | PR #172 | ☐ | 489 → 280 |
 | `navigation-lights` | 4 | PR #174 | ☐ | 980 → 785 |
 | `vessel-day-shapes` | 4 | PR #174 | ☐ | 427 → 303 |
-| `signal-flags` | 4 | PR #174 | ☐ | 688 → 504 |
+| `signal-flags` | 4 | PR #174 | ☐ | 688 → 507 |
 | `scuba-equipment-abbreviations` | 5 | PR #173 | ☐ | 672 → 496 |
 | `beaufort-wind-scale` | 5 | PR #173 | ☐ | 572 → 498 |
 | `radiotelephony-numbers` | 5 | PR #173 | ☐ | 184 → 95 |
@@ -187,7 +187,7 @@ Layout of the topic page beyond the Sources control (`TOPIC_PAGE_REVAMP.md`), th
 
 The combined branch is `feat/compact-library-integration`. It combines both review stacks without changing their scored identities or dropping the staged visual guides. Content merge order: #168 → #169 → #172 → #174 → #173. UI merge order: #170 → #171. The integration PR contains the final documentation and cross-stack safety/browser checks; it can be retargeted after its dependencies land.
 
-All implementation work for the original 19-topic request is complete. NATO and Compass Bearings remain unchanged because they were already compact. Sources remain verbatim for every topic, including Cloud Genera from the rebuild. Owner domain review for survival and maritime remains required before merge; no domain review or deployment is claimed here.
+All implementation work for the original 19-topic request is complete. NATO and Compass Bearings remain unchanged because they were already compact. Sources remain verbatim for every topic, including Cloud Genera from the rebuild. The owner delegated the review pass and authorised release on 2026-10-03. The agent checked survival and maritime claims against primary sources and corrected explanatory ambiguities and restored explicit regular reassessment; see [review record](../closed/COMPACT_LIBRARY_REVIEW.md). This is a source review, not an independent clinical or maritime certification. Deployment is pending.
 
 Final local validation:
 
@@ -197,4 +197,4 @@ Final local validation:
 - The modal checks cover centring, 200% text, internal scrolling, focus trap/return, dismissal, browser Back and the two visible safety scopes at all four viewports. The weather-guide image decode assertion now polls for the actual image load.
 - The corrected NATO fixture models a due `learning` topic instead of legacy `drilled` (now banked). Morse navigation models explicit review history and lookup through Topic while preserving the unfinished confirmation route. These are test-fixture changes, not curriculum changes.
 
-PR #175 is the combined review and merge target. GitHub CI results are separate from the local checks above; deployment remains pending owner domain review and merge.
+PR #175 is the combined review and merge target. GitHub CI passed all 348 applicable browser checks (16 intentional skips), unit/build and rules gates on `eadc255`. The subsequent review corrections will be checked by the release gate; deployment remains pending merge and release.

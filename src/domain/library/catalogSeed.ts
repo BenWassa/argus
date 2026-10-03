@@ -348,7 +348,7 @@ export function seedLibrary(): Library {
                 type: 'bullets',
                 items: [
                   'Deal with life-threatening problems at each step, within your training and local protocol, before moving on.',
-                  'Reassess after every intervention or change in condition, and call for help early.',
+                  'Reassess regularly and after interventions or changes in condition; call for help early.',
                 ],
               },
             ],
@@ -952,7 +952,7 @@ export function seedLibrary(): Library {
                 blocks: [
                   {
                     type: 'paragraph',
-                    text: 'Assume it is loaded: muzzle safe, finger off the trigger. A closed action already breaks the accept-only-open-and-unloaded rule, and the friend’s check does not transfer. PROVE it yourself, or ask the range officer if you cannot open it.',
+                    text: 'Assume it is loaded. Do not accept it closed: only open and unloaded firearms may be passed. The friend’s check does not transfer; PROVE it yourself within your training, or ask the range officer for help.',
                   },
                 ],
               },
