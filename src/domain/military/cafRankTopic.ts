@@ -55,19 +55,32 @@ function landAirLabel(level: CafRankLevel): string {
   return `Army — ${level.army} / RCAF — ${level.rcaf}`
 }
 
-const items: IdentifiedItem[] = CAF_RANK_LEVELS.map((level, index) => ({
-  id: `${CAF_RANK_EQUIVALENCIES_ID}-item-${String(index + 1).padStart(2, '0')}`,
-  kind: 'bidirectional',
-  prompt: landAirLabel(level),
-  answer: `RCN — ${level.rcn}`,
-}))
+const items: IdentifiedItem[] = CAF_RANK_LEVELS.flatMap((level, index) => {
+  const pair = String(index + 1).padStart(2, '0')
+  const landAir = landAirLabel(level)
+  const navy = `RCN — ${level.rcn}`
+  return [
+    {
+      id: `${CAF_RANK_EQUIVALENCIES_ID}-item-${pair}-land-air-to-rcn`,
+      kind: 'forward' as const,
+      prompt: landAir,
+      answer: navy,
+    },
+    {
+      id: `${CAF_RANK_EQUIVALENCIES_ID}-item-${pair}-rcn-to-land-air`,
+      kind: 'forward' as const,
+      prompt: navy,
+      answer: landAir,
+    },
+  ]
+})
 
 export function cafRankEquivalenciesTopic(): Topic {
   return {
     id: CAF_RANK_EQUIVALENCIES_ID,
     title: 'CAF Rank Equivalencies',
     scope:
-      'The 19 practical current Canadian Armed Forces hierarchy levels used to map Canadian Army / RCAF designations to Royal Canadian Navy equivalents, tested in both directions. The statutory hierarchy has 17 ranks; this practical set inserts the Master Corporal / Master Sailor appointment and displays the single Private / Aviator rank at Basic and Trained classifications. Insignia are not scored.',
+      'The 19 practical current Canadian Armed Forces hierarchy equivalencies between Canadian Army / RCAF designations and Royal Canadian Navy designations, tested in both directions as 38 directional prompts. The statutory hierarchy has 17 ranks; this practical set inserts the Master Corporal / Master Sailor appointment and displays the single Private / Aviator rank at Basic and Trained classifications. Insignia are not scored.',
     track: 'learning',
     items,
     learn: {
