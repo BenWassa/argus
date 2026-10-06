@@ -10,7 +10,7 @@ describe('CAF rank equivalencies (#177)', () => {
     const topic = cafRankEquivalenciesTopic()
 
     expect(topic.id).toBe(CAF_RANK_EQUIVALENCIES_ID)
-    expect(topic.items).toHaveLength(19)
+    expect(topic.items).toHaveLength(38)
     expect(CAF_RANK_LEVELS).toHaveLength(19)
     expect(CAF_RANK_LEVELS.filter((level) => level.status === 'statutory rank')).toHaveLength(16)
     expect(CAF_RANK_LEVELS.filter((level) => level.status === 'appointment')).toHaveLength(1)
@@ -23,29 +23,34 @@ describe('CAF rank equivalencies (#177)', () => {
   it('uses stable bidirectional item identities and current RCN terminology', () => {
     const topic = cafRankEquivalenciesTopic()
 
-    expect(topic.items.map((item) => item.id)).toEqual(
-      Array.from({ length: 19 }, (_, index) =>
-        `caf-rank-equivalencies-item-${String(index + 1).padStart(2, '0')}`,
-      ),
-    )
-    expect(topic.items.every((item) => item.kind === 'bidirectional')).toBe(true)
-
+    expect(topic.items.every((item) => item.kind === 'forward')).toBe(true)
     expect(topic.items[0]).toMatchObject({
+      id: 'caf-rank-equivalencies-item-01-land-air-to-rcn',
       prompt: 'Army / RCAF — General',
       answer: 'RCN — Admiral',
     })
-    expect(topic.items[15]).toMatchObject({
+    expect(topic.items[1]).toMatchObject({
+      id: 'caf-rank-equivalencies-item-01-rcn-to-land-air',
+      prompt: 'RCN — Admiral',
+      answer: 'Army / RCAF — General',
+    })
+    expect(topic.items[30]).toMatchObject({
       prompt: 'Army / RCAF — Master Corporal',
       answer: 'RCN — Master Sailor',
     })
-    expect(topic.items[17]).toMatchObject({
+    expect(topic.items[34]).toMatchObject({
       prompt: 'Army — Private (Trained) / RCAF — Aviator (Trained)',
       answer: 'RCN — Sailor 2nd Class',
     })
-    expect(topic.items[18]).toMatchObject({
+    expect(topic.items[36]).toMatchObject({
       prompt: 'Army — Private (Basic) / RCAF — Aviator (Basic)',
       answer: 'RCN — Sailor 3rd Class',
     })
+    for (let index = 0; index < 19; index += 1) {
+      const [forward, reverse] = topic.items.slice(index * 2, index * 2 + 2)
+      expect(reverse.prompt).toBe(forward.answer)
+      expect(reverse.answer).toBe(forward.prompt)
+    }
 
     const scored = topic.items.map((item) => `${item.prompt} ${item.answer}`).join(' ')
     expect(scored).not.toMatch(/Master Seaman|Leading Seaman|Able Seaman|Ordinary Seaman/)
