@@ -15,9 +15,9 @@ describe('CAF rank equivalencies (#177)', () => {
     expect(CAF_RANK_LEVELS.filter((level) => level.status === 'statutory rank')).toHaveLength(16)
     expect(CAF_RANK_LEVELS.filter((level) => level.status === 'appointment')).toHaveLength(1)
     expect(CAF_RANK_LEVELS.filter((level) => level.status === 'junior classification')).toHaveLength(2)
-    expect(topic.scope).toContain('17 statutory ranks')
+    expect(topic.scope).toContain('statutory hierarchy has 17 ranks')
     expect(topic.scope).toContain('appointment')
-    expect(topic.scope).toContain('Basic / Trained junior classifications')
+    expect(topic.scope).toContain('Basic and Trained classifications')
   })
 
   it('uses stable bidirectional item identities and current RCN terminology', () => {
