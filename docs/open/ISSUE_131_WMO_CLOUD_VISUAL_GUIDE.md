@@ -1,6 +1,6 @@
 # Issue #131 — WMO cloud genera visual field guide
 
-**Status:** guide implementation shipped in v1.3.3 through #175 on 2026-10-03. This document remains the maintained artwork/scope contract; external provenance details and later photographic-recognition gates retain their stated status.
+**Status:** guide implementation shipped in v1.3.3 through #175 on 2026-10-03. Fresh-main closeout audit on 2026-10-06 found no product-copy, asset, provenance or classification repair required; focused coverage now explicitly exercises all ten packaged photographs across the three guide groups. This document remains the maintained artwork/scope contract; later photographic-recognition gates retain their stated status.
 **Authority:** maintained cloud-guide scope and packaged asset provenance contract.
 **Issue:** #131  
 **Research authority:** #141 and `docs/open/ISSUE_141_CLOUD_WEATHER_RECOGNITION.md`  

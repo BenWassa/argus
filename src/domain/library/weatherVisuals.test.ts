@@ -29,6 +29,27 @@ describe('staged weather guides', () => {
     const clouds = weather.find((topic) => topic.id === 'cloud-genera')!
     expect(clouds.items.map((item) => item.prompt)).toEqual(['Ci', 'Cc', 'Cs', 'Ac', 'As', 'Ns', 'St', 'Sc', 'Cu', 'Cb'])
     expect(clouds.items.map((item) => item.answer)).toEqual(['Cirrus', 'Cirrocumulus', 'Cirrostratus', 'Altocumulus', 'Altostratus', 'Nimbostratus', 'Stratus', 'Stratocumulus', 'Cumulus', 'Cumulonimbus'])
+    expect(clouds.scope).toContain('Test scores vocabulary only')
+    expect(clouds.learn?.limitations?.join(' ')).toContain('One photograph per genus cannot demonstrate recognition across natural variation.')
+
+    const sectionHeadings = clouds.learn?.sections?.map((section) => section.heading) ?? []
+    expect(sectionHeadings).toEqual(expect.arrayContaining([
+      'Cloud levels',
+      'High clouds',
+      'Middle clouds',
+      'Low-base clouds',
+      'Compare grains, masses and rolls',
+      'Compare veils and sheets',
+      'Compare uniform layers and cloud towers',
+      'What clouds can tell you',
+    ]))
+    const comparisonCopy = JSON.stringify(clouds.learn?.sections ?? [])
+    expect(comparisonCopy).toContain('Cirrocumulus, Altocumulus and Stratocumulus')
+    expect(comparisonCopy).toContain('Cirrostratus')
+    expect(comparisonCopy).toContain('Altostratus')
+    expect(comparisonCopy).toContain('Nimbostratus')
+    expect(comparisonCopy).toContain('Stratus is generally uniform; Stratocumulus')
+    expect(comparisonCopy).toContain('Cumulus has sharp detached mounds or towers. Cumulonimbus')
     const existing = freshCatalogTopic(weather.find((topic) => topic.id === 'beaufort-wind-scale')!)
     const { library, report } = reconcileCatalog({ version: 5, topics: [existing] })
     expect(report.added).toContain('cloud-genera')

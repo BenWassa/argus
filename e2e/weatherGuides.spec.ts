@@ -30,12 +30,26 @@ test('Beaufort guide loads approved images and manually advances without page ov
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(0)
 })
 
-test('Clouds keeps photographs credited and outside the textual Test', async ({ page }) => {
+test('Clouds loads all ten credited photos without page overflow and keeps them outside the textual Test', async ({ page }) => {
   await open(page, 'Cloud Genera')
-  await revealFold(page, 'High clouds')
-  const guide = page.getByRole('region', { name: 'Visual field guide' }).first()
-  await expect(guide.locator('img')).toHaveCount(3)
-  await expect(guide.getByText(/Photo: Jebulon, CC BY-SA 3.0/)).toBeVisible()
+  await expect(page.getByText(/Test scores vocabulary only/)).toBeVisible()
+
+  for (const [heading, count] of [['High clouds', 3], ['Middle clouds', 3], ['Low-base clouds', 4]] as const) {
+    await revealFold(page, heading)
+    const fold = page.locator('details').filter({ has: page.locator('summary', { hasText: heading }) }).first()
+    const guide = fold.getByRole('region', { name: 'Visual field guide' })
+    await expect(guide).toBeVisible()
+    await expect(guide.locator('img')).toHaveCount(count)
+    await expect.poll(() => guide.locator('img').evaluateAll((images) =>
+      images.every((image) => (image as HTMLImageElement).complete && (image as HTMLImageElement).naturalWidth === 700)
+    )).toBe(true)
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(0)
+  }
+
+  const highGuide = page.locator('details').filter({ has: page.locator('summary', { hasText: 'High clouds' }) }).first()
+    .getByRole('region', { name: 'Visual field guide' })
+  await expect(highGuide.getByText(/Photo: Jebulon, CC BY-SA 3.0/)).toBeVisible()
+
   await page.locator('.topic-primary').click()
   await expect(page.locator('.flip-card')).toBeVisible()
   await expect(page.locator('.flip-card img')).toHaveCount(0)
