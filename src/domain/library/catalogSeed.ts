@@ -3,6 +3,7 @@ import type { Library } from './library'
 import { bearingTopics } from '../navigation/bearingTopics'
 import { maritimeTopics } from '../maritime/maritimeTopics'
 import { flagTopic } from '../maritime/flagTopic'
+import { cafRankEquivalenciesTopic } from '../military/cafRankTopic'
 import { cloudTopic } from './cloudTopic'
 import { beaufortVisualGuide } from './weatherVisuals'
 
@@ -448,6 +449,7 @@ export function seedLibrary(): Library {
     ...bearingTopics(),
     ...maritimeTopics(),
     flagTopic(),
+    cafRankEquivalenciesTopic(),
     {
       id: 'scuba-equipment-abbreviations',
       title: 'SCUBA Equipment',
