@@ -144,7 +144,7 @@ This is a hard implementation constraint. DND/CAF explicitly excludes Canadian A
 
 ### 6.1 Foundation scored boundary
 
-Use **19 bidirectional equivalency items**. The learner should retrieve either side, not merely recognize one multiple-choice list.
+Use **19 equivalency pairs expressed as 38 ordinary directional scored prompts**: one Army/RCAF → RCN prompt and one RCN → Army/RCAF prompt per pair. Argus reserves `bidirectional` evidence for the Morse acquisition ladder, so this topic must not widen that architecture merely to reverse ordinary recall cards.
 
 | Level | Army | RCAF | RCN current learner-facing designation | Status note |
 | ---: | --- | --- | --- | --- |
@@ -177,7 +177,7 @@ Do not create separate scored items for abbreviations in v1. Show abbreviations 
 Keep this compact:
 
 - one table showing the nineteen practical levels in descending order;
-- a short note explaining 17 statutory ranks versus appointment/classification rows;
+- a short note explaining that QR&O has 17 statutory ranks, while the practical 19-level table inserts MCpl/MS and splits the single Private/Aviator rank into Basic/Trained presentations;
 - one note on current RCN Sailor terminology versus the still-unamended QR&O table;
 - officer / senior NCM / junior NCM grouping;
 - source and limitations modal using the existing compact-topic pattern.
@@ -227,7 +227,7 @@ Avoid obviously impossible cross-family distractors in normal acquisition. A lat
 
 ### Foundation
 
-Existing text/bidirectional item machinery is sufficient. No new runtime primitive.
+Existing ordinary text-item machinery is sufficient. No new runtime primitive. Both directions are authored explicitly so ordinary Test/evidence semantics remain honest.
 
 ### Visual topics
 
