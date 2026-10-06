@@ -1,7 +1,7 @@
 # Argus Library Roadmap
 
 **Status:** authoritative current library-expansion priority index  
-**Last reviewed:** 2026-09-30  
+**Last reviewed:** 2026-10-06  
 **Research method:** `docs/LIBRARY_RESEARCH_METHOD.md`
 
 ## Purpose
@@ -51,6 +51,9 @@ Research approval does not itself authorize implementation. A build issue exists
 | **P0** | Communications — prerecorded listening/copy drills | **Runtime implemented; production blocked** | #151 | local prerecorded speech + transcript + objective drill | Runtime shipped (`docs/open/AUDIO_DRILLS_RUNTIME.md`); production scripts depend on #150 and the TTS bake-off needs model access and human listening QA. No microphone/ASR in first release. |
 | **P0** | Environment — WMO cloud genera visual field guide | **Hero images sourced** | #131 | sourced real imagery + HTML Learn guide | Ten CC BY-SA hero images sourced, QA'd and packaged under `public/media/clouds/` (2026-09-30); UI integration uses #146. Scored photographic recognition remains deferred. |
 | **P0** | Navigation — compass & bearing skills | **Shipped** | #149 | deterministic SVG/React + calculations | Existing eight-point topic remains prerequisite; four follow-on topics (12/12/16/12 items) shipped per #140. Detail in `docs/open/ISSUE_149_COMPASS_BEARINGS_IMPLEMENTATION.md`. |
+| **P0** | Military identity — CAF rank hierarchy & equivalencies | **Build approved** | #177 | structured HTML + 19 equivalency pairs / 38 directional prompts | #176 fixes the distinction between 17 statutory ranks and the practical 19-level recognition ladder, including MCpl/MS appointment and Basic/Trained junior classifications. Build now; no insignia assets required. |
+| **P0** | Military identity — Army / RCN / RCAF rank-insignia recognition | **Approved; rights-blocked** | #178 | licensed official local imagery + objective visual choice | Three 19-item visual topics approved by #176. DND/CAF requires a licence to reproduce CAF insignia, so no insignia asset enters Git until written permission covers the public PWA/repository use. |
+| **P1** | Military identity — CANSOFCOM rank-insignia recognition | **Later extension** | #176 research | licensed official local imagery + objective visual choice | Names substantially duplicate the Army/RCAF hierarchy; defer the extra visual set until the three core environments ship and prove useful. |
 | **P1** | Navigation — topographic map literacy | **Later, research completed** | #140 research | synthetic deterministic contours / later real-map transfer | Valid beginner subset exists, but defer until #149 proves the shared visual-exercise system and cartographic QA is available. |
 | **P2** | Rigging / mechanical advantage | Parked | — | deterministic diagrams + calculations | Principles may fit; physical knot/rigging execution does not. |
 | **P2** | Hazard symbols / placards | Parked | — | official pictograms + recognition | Strong phone fit but lower owner priority than current families. |
@@ -66,6 +69,7 @@ Research approval does not itself authorize implementation. A build issue exists
 | #139 — Radio communications/audio research | Completed research authority for #150/#151. |
 | #140 — Compass/bearings + topo research | Completed research authority for #149; topo deferred. |
 | #141 — Cloud/weather research | Completed research authority for #131; fronts/maps deferred. |
+| #176 — CAF ranks and insignia research | Build authority for #177/#178. Establishes the 17-rank versus 19 practical-level distinction, current RCN nomenclature treatment, visual confusion sets and the DND/CAF licence gate. |
 | #104 — practical skills / library expansion research | Historical research umbrella; superseded as priority authority by this roadmap. |
 
 ## Coherent capability families
@@ -108,6 +112,12 @@ Clouds proceed as a real-image-first WMO genus field guide. Natural variation is
 The first cloud release is Learn/reference only. Scored photo recognition requires the later dataset and held-out-image gate defined by #141. Weather associations remain narrower than forecasting. Fronts/weather-map literacy is a separate future topic.
 
 Beaufort remains a useful shipped environmental reference and should not be duplicated inside cloud work.
+
+### Military identity
+
+The CAF programme is split deliberately between structure and appearance. #177 teaches the finite current hierarchy/equivalencies without implying that all 19 practical recognition levels are statutory ranks. #178 adds service-specific insignia recognition only after DND/CAF reproduction permission is secured.
+
+The first visual release is one canonical current service-dress exemplar per practical level for the Canadian Army, Royal Canadian Navy and Royal Canadian Air Force. It does not claim recognition across every order of dress, historical pattern, regimental variant or operational colourway. CANSOFCOM is a later extension.
 
 ## Admission gate for a proposed topic
 
@@ -153,24 +163,19 @@ Do not use one perpetual umbrella issue for successive generations of library wo
 
 ### Start now
 
-1. **#146 — shared visual Learn + objective visual-choice primitives.** This is the critical dependency for #147, #148 and #149, and for #131's app integration.
-2. **#150 — Canadian radio procedure / marine VHF text programme.** Independent of #146 and safe to run in parallel.
-3. **#131 — cloud asset sourcing and QA.** Can run in parallel with #146 because real-image acquisition/provenance does not depend on the final Learn renderer.
+1. **#177 — CAF rank hierarchy & equivalencies.** Independent text/structured work; no insignia-licensing dependency.
+2. **#131 — finish cloud visual-guide integration** on the already-shipped #146 visual primitive.
+3. **#150 — Canadian radio procedure / marine VHF text programme** once its named primary sources are available.
 
-### After #146
+### Rights-gated visual follow-on
 
-4. **#147 — Maritime I: orientation, navigation lights and day shapes.**
-5. **#148 — Maritime II: selected signal flags.**
-6. **#149 — Compass & Bearings.**
-7. Integrate **#131** cloud assets/copy into the shared visual Learn primitive.
-8. Reconcile **#129** Beaufort with #146 only where the generic Learn-media primitive cleanly replaces bespoke work.
-
-### Radio follow-on
-
-9. **#151 — prerecorded speech drills.** Architecture may be explored alongside #150, but production scripts/audio must follow the landed #150 authority and wording.
+4. **#178 — CAF rank-insignia recognition.** Do not add insignia assets until written DND/CAF permission covers reproduction in the public PWA and public repository.
+5. **#151 — prerecorded radio speech drills** after #150 lands authoritative production scripts.
+6. Reconcile **#129** Beaufort and continue **#132** SCUBA visual-reference work where the shared visual primitive fits cleanly.
 
 ### Later
 
-- Topographic map literacy after #149 proves the shared visual exercise path and a cartographic QA approach is available.
+- CANSOFCOM rank-insignia recognition after the core Army/RCN/RCAF programme proves useful.
+- Topographic map literacy as the next navigation research/build family.
 - Fronts/weather-map literacy as a separate future research/build topic.
 - Rigging and hazard placards remain parked P2 candidates.
