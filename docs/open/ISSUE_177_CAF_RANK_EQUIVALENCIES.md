@@ -1,6 +1,6 @@
 # Issue #177 — CAF rank hierarchy and equivalencies
 
-**Status:** implementation staged in PR #180; CI pending.  
+**Status:** implementation staged in PR #180. First CI run passed unit/type/build and failed only because the new Playwright test asserted content inside a closed Learn disclosure; the test now opens the disclosure before asserting. Fresh CI is the remaining merge gate.  
 **Research authority:** #176 and `docs/open/ISSUE_176_CAF_RANKS_INSIGNIA.md`
 
 ## Implemented
