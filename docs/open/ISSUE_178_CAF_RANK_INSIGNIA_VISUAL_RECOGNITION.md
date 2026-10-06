@@ -2,7 +2,7 @@
 
 **Status:** licence-safe preparation implemented; all insignia reproduction and runtime delivery remain blocked pending written DND/CAF permission.  
 **Issue:** #178  
-**Research authority:** #176 / `docs/open/ISSUE_176_CAF_RANKS_INSIGNIA.md` (currently staged by PR #179 at the time this work began)  
+**Research authority:** #176 / `docs/closed/ISSUE_176_CAF_RANKS_INSIGNIA.md`  
 **Shared visual capability:** #146 / `docs/open/ISSUE_146_VISUAL_CONTENT_PRIMITIVES.md`  
 **Machine-readable preparation:** `src/domain/military/cafRankRecognitionPlan.ts`  
 **Verified:** 2026-10-06 against current Canada.ca rank pages, Dress Instructions and DND/CAF intellectual-property guidance.

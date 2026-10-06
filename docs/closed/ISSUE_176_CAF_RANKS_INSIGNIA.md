@@ -1,6 +1,6 @@
 # Issue #176 — Canadian Armed Forces ranks and insignia programme
 
-**Status:** research complete — build approved; visual recognition is rights-gated.  
+**Status:** research complete and merged via PR #179; #177 shipped via PR #180; #178 remains rights-gated.  
 **Issue:** #176  
 **Priority:** P0 foundation; P0 visual work once DND/CAF reproduction permission is secured  
 **Research method:** `docs/LIBRARY_RESEARCH_METHOD.md`

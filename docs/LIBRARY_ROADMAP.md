@@ -51,8 +51,8 @@ Research approval does not itself authorize implementation. A build issue exists
 | **P0** | Communications — prerecorded listening/copy drills | **Runtime implemented; production blocked** | #151 | local prerecorded speech + transcript + objective drill | Runtime shipped (`docs/open/AUDIO_DRILLS_RUNTIME.md`); production scripts depend on #150 and the TTS bake-off needs model access and human listening QA. No microphone/ASR in first release. |
 | **P0** | Environment — WMO cloud genera visual field guide | **Hero images sourced** | #131 | sourced real imagery + HTML Learn guide | Ten CC BY-SA hero images sourced, QA'd and packaged under `public/media/clouds/` (2026-09-30); UI integration uses #146. Scored photographic recognition remains deferred. |
 | **P0** | Navigation — compass & bearing skills | **Shipped** | #149 | deterministic SVG/React + calculations | Existing eight-point topic remains prerequisite; four follow-on topics (12/12/16/12 items) shipped per #140. Detail in `docs/open/ISSUE_149_COMPASS_BEARINGS_IMPLEMENTATION.md`. |
-| **P0** | Military identity — CAF rank hierarchy & equivalencies | **Build approved** | #177 | structured HTML + 19 equivalency pairs / 38 directional prompts | #176 fixes the distinction between 17 statutory ranks and the practical 19-level recognition ladder, including MCpl/MS appointment and Basic/Trained junior classifications. Build now; no insignia assets required. |
-| **P0** | Military identity — Army / RCN / RCAF rank-insignia recognition | **Approved; rights-blocked** | #178 | licensed official local imagery + objective visual choice | Three 19-item visual topics approved by #176. DND/CAF requires a licence to reproduce CAF insignia, so no insignia asset enters Git until written permission covers the public PWA/repository use. |
+| **P0** | Military identity — CAF rank hierarchy & equivalencies | **Shipped** | #177 | structured HTML + 19 equivalency pairs / 38 directional prompts | Shipped via #180. #176 fixes the distinction between 17 statutory ranks and the practical 19-level recognition ladder, including MCpl/MS appointment and Basic/Trained junior classifications. |
+| **P0** | Military identity — Army / RCN / RCAF rank-insignia recognition | **Prepared; rights-blocked** | #178 | licensed official local imagery + objective visual choice | Licence-safe 57-item preparation shipped via #181. DND/CAF requires a licence to reproduce CAF insignia, so no insignia asset enters Git until written permission covers the public PWA/repository use. |
 | **P1** | Military identity — CANSOFCOM rank-insignia recognition | **Later extension** | #176 research | licensed official local imagery + objective visual choice | Names substantially duplicate the Army/RCAF hierarchy; defer the extra visual set until the three core environments ship and prove useful. |
 | **P1** | Navigation — topographic map literacy | **Later, research completed** | #140 research | synthetic deterministic contours / later real-map transfer | Valid beginner subset exists, but defer until #149 proves the shared visual-exercise system and cartographic QA is available. |
 | **P2** | Rigging / mechanical advantage | Parked | — | deterministic diagrams + calculations | Principles may fit; physical knot/rigging execution does not. |
@@ -163,13 +163,13 @@ Do not use one perpetual umbrella issue for successive generations of library wo
 
 ### Start now
 
-1. **#177 — CAF rank hierarchy & equivalencies.** Independent text/structured work; no insignia-licensing dependency.
+1. **#177 — CAF rank hierarchy & equivalencies — shipped.** Merged via #180.
 2. **#131 — finish cloud visual-guide integration** on the already-shipped #146 visual primitive.
 3. **#150 — Canadian radio procedure / marine VHF text programme** once its named primary sources are available.
 
 ### Rights-gated visual follow-on
 
-4. **#178 — CAF rank-insignia recognition.** Do not add insignia assets until written DND/CAF permission covers reproduction in the public PWA and public repository.
+4. **#178 — CAF rank-insignia recognition — prepared to the rights gate.** Do not add insignia assets until written DND/CAF permission covers reproduction in the public PWA and public repository.
 5. **#151 — prerecorded radio speech drills** after #150 lands authoritative production scripts.
 6. Reconcile **#129** Beaufort and continue **#132** SCUBA visual-reference work where the shared visual primitive fits cleanly.
 
