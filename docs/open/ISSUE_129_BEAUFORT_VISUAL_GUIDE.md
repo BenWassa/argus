@@ -1,6 +1,6 @@
 # Issue #129 — Beaufort visual-guide carousel
 
-**Status:** guide implementation shipped in v1.3.3 through #175 on 2026-10-03. This document remains the maintained artwork/scope contract; external provenance details and later photographic-recognition gates retain their stated status.
+**Status:** guide implementation shipped in v1.3.3 through #175 on 2026-10-03. Fresh-main closeout audit on 2026-10-06 confirmed the shared manual guide, four approved assets, unchanged 13-force reference/Test boundary, HTML accessibility content and responsive structure. The audit restored the maintained approved panel copy where #175 had shortened it and added focused unit/browser verification for the exact asset/copy contract, 700 px render ceiling and all configured 320 px, 390 px, short-landscape and desktop viewports. This document remains the maintained artwork/scope contract.
 **Authority:** maintained artwork and visual-guide contract. Topic-page ordering is superseded by [the revamp plan](TOPIC_PAGE_REVAMP.md): recall first, guide in a closed fold.
 
 Related: #128, #129
@@ -123,7 +123,7 @@ The active node/range receives emphasis. Colour should be restrained and applied
 
 The guide is wired through the shared Learn `entries` block with `presentation: "visual-guide"`. Manual scroll snapping, range controls, Previous/Next and keyboard arrows share the same component as the cloud guide. No autoplay or required motion. The existing narrow Beaufort Learn refresh delivers it to unchanged catalog topics without changing evidence.
 
-The images are visual intuition, not a claim that one still photograph can precisely diagnose a Beaufort force. Exact force names and knot ranges remain authoritative in the detailed reference and scored mapping.
+The images are visual intuition, not a claim that one still photograph can precisely diagnose a Beaufort force. Exact force names and knot ranges remain authoritative in the detailed reference and scored mapping. The fresh-main closeout audit found no need to regenerate or replace the approved artwork; #129 can close while this document stays open as the maintained shipped contract.
 
 ## Packaged artwork provenance
 
