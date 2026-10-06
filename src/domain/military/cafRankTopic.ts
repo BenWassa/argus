@@ -67,7 +67,7 @@ export function cafRankEquivalenciesTopic(): Topic {
     id: CAF_RANK_EQUIVALENCIES_ID,
     title: 'CAF Rank Equivalencies',
     scope:
-      'The 19 practical current Canadian Armed Forces hierarchy levels used to map Canadian Army / RCAF designations to Royal Canadian Navy equivalents, tested in both directions. The set contains 17 statutory ranks plus the Master Corporal / Master Sailor appointment and separate Basic / Trained junior classifications. Insignia are not scored.',
+      'The 19 practical current Canadian Armed Forces hierarchy levels used to map Canadian Army / RCAF designations to Royal Canadian Navy equivalents, tested in both directions. The statutory hierarchy has 17 ranks; this practical set inserts the Master Corporal / Master Sailor appointment and displays the single Private / Aviator rank at Basic and Trained classifications. Insignia are not scored.',
     track: 'learning',
     items,
     learn: {
@@ -92,7 +92,7 @@ export function cafRankEquivalenciesTopic(): Topic {
             {
               type: 'bullets',
               items: [
-                'QR&O 3.01 defines 17 statutory ranks. This practical table also shows the MCpl/MS appointment and separate Basic/Trained junior classifications.',
+                'QR&O 3.01 defines 17 statutory ranks. This practical table inserts MCpl/MS and splits the one Private/Aviator rank into Basic and Trained classifications.',
                 'MCpl/MS is an appointment: the underlying rank remains Corporal/Sailor 1st Class.',
                 'Current CAF policy uses Master Sailor and Sailor 1st/2nd/3rd Class; QR&O’s web table still carries older Seaman designations.',
               ],
