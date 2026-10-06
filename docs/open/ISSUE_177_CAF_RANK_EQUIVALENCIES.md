@@ -1,6 +1,6 @@
 # Issue #177 — CAF rank hierarchy and equivalencies
 
-**Status:** implementation complete on `feat/issue-177-caf-rank-equivalencies`; PR pending.  
+**Status:** implementation staged in PR #180; CI pending.  
 **Research authority:** #176 and `docs/open/ISSUE_176_CAF_RANKS_INSIGNIA.md`
 
 ## Implemented
