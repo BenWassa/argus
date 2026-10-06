@@ -11,7 +11,7 @@ describe('staged weather guides', () => {
   it('ships all 14 accepted local images as unscored Learn content with accessible credits', () => {
     const visuals = weather.flatMap((topic) => topic.learn?.sections?.flatMap((section) => section.blocks.flatMap((block) => block.type === 'entries' ? block.entries.flatMap((entry) => entry.visual ? [entry.visual] : []) : [])) ?? [])
     expect(visuals).toHaveLength(14)
-    const ledger = readFileSync('docs/open/ISSUE_131_WMO_CLOUD_VISUAL_GUIDE.md', 'utf8') + readFileSync('docs/open/ISSUE_129_BEAUFORT_VISUAL_GUIDE.md', 'utf8')
+    const ledger = readFileSync('docs/closed/ISSUE_131_WMO_CLOUD_VISUAL_GUIDE.md', 'utf8') + readFileSync('docs/open/ISSUE_129_BEAUFORT_VISUAL_GUIDE.md', 'utf8')
     for (const visual of visuals) {
       expect(visual.source.kind).toBe('image')
       if (visual.source.kind !== 'image') continue

@@ -1,6 +1,6 @@
 # Issue #141 — Cloud and weather recognition programme
 
-**Status:** research complete — implementation decisions ready  
+**Status:** research complete and closed; the ten-genus Learn/reference guide shipped and #131 closed via PR #182  
 **Priority:** P0  
 **Issue:** #141  
 **Related:** #131 WMO cloud genera visual guide; #129 Beaufort visual guide  

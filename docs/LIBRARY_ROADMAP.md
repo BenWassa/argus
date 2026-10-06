@@ -44,12 +44,12 @@ Research approval does not itself authorize implementation. A build issue exists
 
 | Priority | Family / candidate | Current state | Owner issue | Intended medium | Decision / note |
 | --- | --- | --- | --- | --- | --- |
-| **P0** | Shared visual content primitives | **Shipped** | #146 | Learn media + deterministic visual-choice item | Shipped shapes recorded in `docs/open/ISSUE_146_VISUAL_CONTENT_PRIMITIVES.md`. Unblocks #147/#148/#149 and #131's UI integration once merged. |
+| **P0** | Shared visual content primitives | **Shipped** | #146 | Learn media + deterministic visual-choice item | Shipped shapes recorded in `docs/open/ISSUE_146_VISUAL_CONTENT_PRIMITIVES.md`; now used by the shipped cloud guide and other visual topics. |
 | **P0** | Maritime — vessel orientation, navigation lights & day shapes | **Shipped** | #147 | HTML + deterministic SVG/React + objective visual choice | Learn-only orientation prerequisite; 16 light/aspect items + 5 day shapes. Detail and the pending domain-review note in `docs/open/ISSUE_147_MARITIME_LIGHTS_DAY_SHAPES.md`. |
 | **P0** | Maritime — selected International Code of Signals flags | **Shipped** (Pub. 102 comparison still open) | #148 | deterministic/redrawn SVG + visual recognition | 12 signals: A, B, D, F, J, L, M, O, U, V, W, Y. Designs await comparison with IMO/NGA depictions before merge; checklist in `docs/open/ISSUE_148_SIGNAL_FLAGS.md`. |
 | **P0** | Communications — Canadian radio procedure + marine VHF | **Blocked on primary sources** | #150 | HTML + finite recall / structured sequence | Canadian general substrate from ISED RIC-22; marine procedure from CCG RAMN 2026. Scored wording must come from those texts, which were not reachable when this was attempted; see the note for how to unblock. |
 | **P0** | Communications — prerecorded listening/copy drills | **Runtime implemented; production blocked** | #151 | local prerecorded speech + transcript + objective drill | Runtime shipped (`docs/open/AUDIO_DRILLS_RUNTIME.md`); production scripts depend on #150 and the TTS bake-off needs model access and human listening QA. No microphone/ASR in first release. |
-| **P0** | Environment — WMO cloud genera visual field guide | **Hero images sourced** | #131 | sourced real imagery + HTML Learn guide | Ten CC BY-SA hero images sourced, QA'd and packaged under `public/media/clouds/` (2026-09-30); UI integration uses #146. Scored photographic recognition remains deferred. |
+| **P0** | Environment — WMO cloud genera visual field guide | **Shipped** | #131 | sourced real imagery + HTML Learn guide | Ten CC BY-SA photographs, provenance, WMO-grounded recognition cues and all-ten browser coverage shipped. Photographs remain Learn-only; scored photographic recognition is deferred. |
 | **P0** | Navigation — compass & bearing skills | **Shipped** | #149 | deterministic SVG/React + calculations | Existing eight-point topic remains prerequisite; four follow-on topics (12/12/16/12 items) shipped per #140. Detail in `docs/open/ISSUE_149_COMPASS_BEARINGS_IMPLEMENTATION.md`. |
 | **P0** | Military identity — CAF rank hierarchy & equivalencies | **Shipped** | #177 | structured HTML + 19 equivalency pairs / 38 directional prompts | Shipped via #180. #176 fixes the distinction between 17 statutory ranks and the practical 19-level recognition ladder, including MCpl/MS appointment and Basic/Trained junior classifications. |
 | **P0** | Military identity — Army / RCN / RCAF rank-insignia recognition | **Prepared; rights-blocked** | #178 | licensed official local imagery + objective visual choice | Licence-safe 57-item preparation shipped via #181. DND/CAF requires a licence to reproduce CAF insignia, so no insignia asset enters Git until written permission covers the public PWA/repository use. |
@@ -63,12 +63,12 @@ Research approval does not itself authorize implementation. A build issue exists
 | Issue | Relationship |
 | --- | --- |
 | #129 — Beaufort visual guide | Existing environment visual-reference implementation; may reuse #146's Learn-media primitive if it fits without widening #146. |
-| #131 — WMO cloud genera visual field guide | Active implementation issue after completed #141 research. Hero images and provenance are done; app integration follows #146. |
+| #131 — WMO cloud genera visual field guide | Closed via #182 after fresh-main audit confirmed the ten-genus Learn/reference guide, assets, provenance and non-scored photo boundary are complete. |
 | #132 — SCUBA equipment visual reference set | Existing visual-reference production work; useful for asset QA patterns but outside this expansion batch. |
 | #138 — Maritime research | Completed research authority for #147/#148. |
 | #139 — Radio communications/audio research | Completed research authority for #150/#151. |
 | #140 — Compass/bearings + topo research | Completed research authority for #149; topo deferred. |
-| #141 — Cloud/weather research | Completed research authority for #131; fronts/maps deferred. |
+| #141 — Cloud/weather research | Completed and closed research authority for #131; fronts/maps and scored photographic recognition remain deferred. |
 | #176 — CAF ranks and insignia research | Build authority for #177/#178. Establishes the 17-rank versus 19 practical-level distinction, current RCN nomenclature treatment, visual confusion sets and the DND/CAF licence gate. |
 | #104 — practical skills / library expansion research | Historical research umbrella; superseded as priority authority by this roadmap. |
 
@@ -163,15 +163,14 @@ Do not use one perpetual umbrella issue for successive generations of library wo
 
 ### Start now
 
-1. **#177 — CAF rank hierarchy & equivalencies — shipped.** Merged via #180.
-2. **#131 — finish cloud visual-guide integration** on the already-shipped #146 visual primitive.
+1. **#129 — Beaufort visual-guide carousel.** Approved assets and implementation contract are already in-repo.
+2. Continue **#132 — SCUBA visual reference set** where the shared visual primitive fits cleanly.
 3. **#150 — Canadian radio procedure / marine VHF text programme** once its named primary sources are available.
 
-### Rights-gated visual follow-on
+### Rights/dependency-gated follow-on
 
 4. **#178 — CAF rank-insignia recognition — prepared to the rights gate.** Do not add insignia assets until written DND/CAF permission covers reproduction in the public PWA and public repository.
 5. **#151 — prerecorded radio speech drills** after #150 lands authoritative production scripts.
-6. Reconcile **#129** Beaufort and continue **#132** SCUBA visual-reference work where the shared visual primitive fits cleanly.
 
 ### Later
 
