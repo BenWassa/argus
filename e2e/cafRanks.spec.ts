@@ -23,6 +23,7 @@ test('CAF rank equivalencies render the full two-direction boundary without hori
 })
 
 test('CAF rank Learn material keeps appointment and nomenclature caveats visible', async ({ page }) => {
+  await page.getByText('The practical hierarchy', { exact: true }).click()
   await expect(page.getByText(/MCpl\/MS is an appointment/)).toBeVisible()
   await expect(page.getByText(/older Seaman designations/)).toBeVisible()
 
