@@ -128,6 +128,11 @@ export function cafRankEquivalenciesTopic(): Topic {
           url: 'https://www.canada.ca/en/department-national-defence/corporate/policies-standards/canadian-forces-military-personnel-instructions/promotion-and-other-rank-changes.html',
           note: 'Current personnel policy using Master Sailor and Sailor 1st/2nd/3rd Class terminology and confirming MCpl/MS as an appointment above the underlying Cpl/S1 rank.',
         },
+        {
+          label: 'National Defence — Military ranks',
+          url: 'https://www.canada.ca/en/services/defence/caf/military-identity-system/rank-appointment-insignia.html',
+          note: 'Current CAF service-reference table for Navy, Army and Air Force rank designations, classifications and abbreviations; it also records the RCN gender-neutral junior-rank nomenclature change pending amendment of QR&O 3.01.',
+        },
       ],
     },
     status: 'unstarted',
