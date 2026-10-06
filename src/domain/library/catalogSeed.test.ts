@@ -29,6 +29,7 @@ describe('researched seeded library', () => {
       'navigation-lights',
       'vessel-day-shapes',
       'signal-flags',
+      'caf-rank-equivalencies',
       'scuba-equipment-abbreviations',
       'radiotelephony-numbers',
       'si-prefixes',
@@ -359,7 +360,7 @@ describe('trimmed Learn prose', () => {
         : 0
 
   // Prose budgets exclude definitions, tables, entries and visual references.
-  it.each(['ooda-loop', 'primary-survey', 'firearm-safety-acts-prove', 'whole-circle-bearings', 'reciprocal-bearings', 'north-references-declination', 'grid-north-map-bearings', 'navigation-lights', 'vessel-day-shapes', 'signal-flags', 'beaufort-wind-scale', 'scuba-equipment-abbreviations', 'radiotelephony-numbers', 'si-prefixes', 'greek-alphabet', 'hex-digits-binary', 'international-morse-letters-printed'])('keeps %s compact', (id) => {
+  it.each(['ooda-loop', 'primary-survey', 'firearm-safety-acts-prove', 'whole-circle-bearings', 'reciprocal-bearings', 'north-references-declination', 'grid-north-map-bearings', 'navigation-lights', 'vessel-day-shapes', 'signal-flags', 'caf-rank-equivalencies', 'beaufort-wind-scale', 'scuba-equipment-abbreviations', 'radiotelephony-numbers', 'si-prefixes', 'greek-alphabet', 'hex-digits-binary', 'international-morse-letters-printed'])('keeps %s compact', (id) => {
     const learn = seededTopic(id).learn!
     const sections = (learn.sections ?? []).flatMap((section) => section.blocks).reduce((n, b) => n + blockWords(b), 0)
     const cases = (learn.caseStudies ?? []).reduce(

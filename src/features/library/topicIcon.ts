@@ -1,4 +1,5 @@
 import beaufortWindScale from '../../assets/library-icons/beaufort-wind-scale.svg'
+import cafRankEquivalencies from '../../assets/library-icons/caf-rank-equivalencies.svg'
 import cardinalBearings from '../../assets/library-icons/cardinal-bearings.svg'
 import firearmSafetyActsProve from '../../assets/library-icons/firearm-safety-acts-prove.svg'
 import greekAlphabet from '../../assets/library-icons/greek-alphabet.svg'
@@ -20,6 +21,7 @@ import wholeCircleBearings from '../../assets/library-icons/whole-circle-bearing
 
 const icons: Record<string, string> = {
   'beaufort-wind-scale': beaufortWindScale,
+  'caf-rank-equivalencies': cafRankEquivalencies,
   'cardinal-bearings': cardinalBearings,
   'firearm-safety-acts-prove': firearmSafetyActsProve,
   'greek-alphabet': greekAlphabet,
