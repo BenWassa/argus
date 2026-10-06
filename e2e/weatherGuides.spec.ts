@@ -20,8 +20,20 @@ test('Beaufort guide loads approved images and manually advances without page ov
   await revealFold(page, 'Read the wind at a glance')
   const guide = page.getByRole('region', { name: 'Visual field guide' }).first()
   await expect(guide).toBeVisible()
-  await expect(guide.locator('img')).toHaveCount(4)
-  await expect.poll(() => guide.locator('img').first().evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth === 700)).toBe(true)
+  const images = guide.locator('img')
+  await expect(images).toHaveCount(4)
+  await expect.poll(() => images.evaluateAll((nodes) => nodes.every((node) => {
+    const image = node as HTMLImageElement
+    return image.complete && image.naturalWidth === 700 && image.naturalHeight === 300
+  }))).toBe(true)
+  expect(await images.evaluateAll((nodes) => nodes.map((node) => new URL((node as HTMLImageElement).src).pathname))).toEqual([
+    '/media/beaufort/beaufort-0-3.avif',
+    '/media/beaufort/beaufort-4-6.avif',
+    '/media/beaufort/beaufort-7-9.avif',
+    '/media/beaufort/beaufort-10-12.avif',
+  ])
+  expect(await images.evaluateAll((nodes) => nodes.every((node) => node.getBoundingClientRect().width <= 700.5))).toBe(true)
+  await expect(guide.getByRole('button', { name: 'Show 0–3: Calm → gentle breeze' })).toHaveAttribute('aria-current', 'step')
   await guide.getByRole('button', { name: 'Next guide image' }).click()
   await expect(guide.locator('.visual-guide-position')).toHaveText('4–6 · 2 of 4')
   await guide.locator('.visual-guide-rail').focus()

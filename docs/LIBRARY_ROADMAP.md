@@ -62,7 +62,7 @@ Research approval does not itself authorize implementation. A build issue exists
 
 | Issue | Relationship |
 | --- | --- |
-| #129 — Beaufort visual guide | Existing environment visual-reference implementation; may reuse #146's Learn-media primitive if it fits without widening #146. |
+| #129 — Beaufort visual guide | Shipped in v1.3.3 on the shared #146 visual-guide primitive. Fresh-main closeout verification pins the four approved assets/copy, responsive manual navigation and unchanged 13-force Test boundary; the maintained contract remains in `docs/open/ISSUE_129_BEAUFORT_VISUAL_GUIDE.md`. |
 | #131 — WMO cloud genera visual field guide | Closed via #182 after fresh-main audit confirmed the ten-genus Learn/reference guide, assets, provenance and non-scored photo boundary are complete. |
 | #132 — SCUBA equipment visual reference set | Existing visual-reference production work; useful for asset QA patterns but outside this expansion batch. |
 | #138 — Maritime research | Completed research authority for #147/#148. |
@@ -163,14 +163,13 @@ Do not use one perpetual umbrella issue for successive generations of library wo
 
 ### Start now
 
-1. **#129 — Beaufort visual-guide carousel.** Approved assets and implementation contract are already in-repo.
-2. Continue **#132 — SCUBA visual reference set** where the shared visual primitive fits cleanly.
-3. **#150 — Canadian radio procedure / marine VHF text programme** once its named primary sources are available.
+1. Continue **#132 — SCUBA visual reference set** where the shared visual primitive fits cleanly.
+2. **#150 — Canadian radio procedure / marine VHF text programme** once its named primary sources are available.
 
 ### Rights/dependency-gated follow-on
 
-4. **#178 — CAF rank-insignia recognition — prepared to the rights gate.** Do not add insignia assets until written DND/CAF permission covers reproduction in the public PWA and public repository.
-5. **#151 — prerecorded radio speech drills** after #150 lands authoritative production scripts.
+3. **#178 — CAF rank-insignia recognition — prepared to the rights gate.** Do not add insignia assets until written DND/CAF permission covers reproduction in the public PWA and public repository.
+4. **#151 — prerecorded radio speech drills** after #150 lands authoritative production scripts.
 
 ### Later
 
