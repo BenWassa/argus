@@ -123,7 +123,7 @@ The active node/range receives emphasis. Colour should be restrained and applied
 
 The guide is wired through the shared Learn `entries` block with `presentation: "visual-guide"`. Manual scroll snapping, range controls, Previous/Next and keyboard arrows share the same component as the cloud guide. No autoplay or required motion. The existing narrow Beaufort Learn refresh delivers it to unchanged catalog topics without changing evidence.
 
-The images are visual intuition, not a claim that one still photograph can precisely diagnose a Beaufort force. Exact force names and knot ranges remain authoritative in the detailed reference and scored mapping. The fresh-main closeout audit found no need to regenerate or replace the approved artwork; #129 can close while this document stays open as the maintained shipped contract.
+The images are visual intuition, not a claim that one still photograph can precisely diagnose a Beaufort force. Exact force names and knot ranges remain authoritative in the detailed reference and scored mapping. The fresh-main closeout audit found no need to regenerate or replace the approved artwork; #129 is closed and this document is archived under `docs/closed/` as the maintained shipped contract.
 
 ## Packaged artwork provenance
 

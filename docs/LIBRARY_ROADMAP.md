@@ -62,7 +62,7 @@ Research approval does not itself authorize implementation. A build issue exists
 
 | Issue | Relationship |
 | --- | --- |
-| #129 — Beaufort visual guide | Shipped in v1.3.3 on the shared #146 visual-guide primitive. Fresh-main closeout verification pins the four approved assets/copy, responsive manual navigation and unchanged 13-force Test boundary; the maintained contract remains in `docs/open/ISSUE_129_BEAUFORT_VISUAL_GUIDE.md`. |
+| #129 — Beaufort visual guide | Shipped in v1.3.3 on the shared #146 visual-guide primitive. Fresh-main closeout verification pins the four approved assets/copy, responsive manual navigation and unchanged 13-force Test boundary; the maintained contract remains in `docs/closed/ISSUE_129_BEAUFORT_VISUAL_GUIDE.md`. |
 | #131 — WMO cloud genera visual field guide | Closed via #182 after fresh-main audit confirmed the ten-genus Learn/reference guide, assets, provenance and non-scored photo boundary are complete. |
 | #132 — SCUBA equipment visual reference set | Existing visual-reference production work; useful for asset QA patterns but outside this expansion batch. |
 | #138 — Maritime research | Completed research authority for #147/#148. |
