@@ -20,7 +20,7 @@ describe('CAF rank equivalencies (#177)', () => {
     expect(topic.scope).toContain('Basic and Trained classifications')
   })
 
-  it('uses stable bidirectional item identities and current RCN terminology', () => {
+  it('uses stable paired directional identities and current RCN terminology', () => {
     const topic = cafRankEquivalenciesTopic()
 
     expect(topic.items.every((item) => item.kind === 'forward')).toBe(true)
@@ -69,6 +69,7 @@ describe('CAF rank equivalencies (#177)', () => {
     expect(topic.learn?.sources?.map((source) => source.url)).toEqual([
       'https://www.canada.ca/en/department-national-defence/corporate/policies-standards/queens-regulations-orders/vol-1-administration/ch-3-rank-seniority-command-precedence.html',
       'https://www.canada.ca/en/department-national-defence/corporate/policies-standards/canadian-forces-military-personnel-instructions/promotion-and-other-rank-changes.html',
+      'https://www.canada.ca/en/services/defence/caf/military-identity-system/rank-appointment-insignia.html',
     ])
   })
 })
