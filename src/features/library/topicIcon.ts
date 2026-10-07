@@ -7,11 +7,14 @@ import greekAlphabet from '../../assets/library-icons/greek-alphabet.svg'
 import gridNorthMapBearings from '../../assets/library-icons/grid-north-map-bearings.svg'
 import hexDigitsBinary from '../../assets/library-icons/hex-digits-binary.svg'
 import internationalMorseLettersPrinted from '../../assets/library-icons/international-morse-letters-printed.svg'
+import marineVhfPriorityCommunications from '../../assets/library-icons/marine-vhf-priority-communications.svg'
+import marineVhfRoutineCalling from '../../assets/library-icons/marine-vhf-routine-calling.svg'
 import navigationLights from '../../assets/library-icons/navigation-lights.svg'
 import northReferencesDeclination from '../../assets/library-icons/north-references-declination.svg'
 import natoPhonetic from '../../assets/library-icons/nato-phonetic.svg'
 import oodaLoop from '../../assets/library-icons/ooda-loop.svg'
 import primarySurvey from '../../assets/library-icons/primary-survey.svg'
+import radioProcedure from '../../assets/library-icons/radio-procedure.svg'
 import reciprocalBearings from '../../assets/library-icons/reciprocal-bearings.svg'
 import radiotelephonyNumbers from '../../assets/library-icons/radiotelephony-numbers.svg'
 import scubaEquipmentAbbreviations from '../../assets/library-icons/scuba-equipment-abbreviations.svg'
@@ -30,11 +33,14 @@ const icons: Record<string, string> = {
   'grid-north-map-bearings': gridNorthMapBearings,
   'hex-digits-binary': hexDigitsBinary,
   'international-morse-letters-printed': internationalMorseLettersPrinted,
+  'marine-vhf-priority-communications': marineVhfPriorityCommunications,
+  'marine-vhf-routine-calling': marineVhfRoutineCalling,
   'nato-phonetic': natoPhonetic,
   'navigation-lights': navigationLights,
   'north-references-declination': northReferencesDeclination,
   'ooda-loop': oodaLoop,
   'primary-survey': primarySurvey,
+  'radio-procedure': radioProcedure,
   'radiotelephony-numbers': radiotelephonyNumbers,
   'reciprocal-bearings': reciprocalBearings,
   'scuba-equipment-abbreviations': scubaEquipmentAbbreviations,
