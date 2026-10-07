@@ -268,7 +268,7 @@ test.describe('fluency', () => {
         if (!current) throw new Error('Spotlight word lost its current letter.')
         await expect(page.locator('.morse-key')).toBeEnabled({ timeout: 4_000 })
         await page.keyboard.type(MORSE_LETTERS[current], { delay: 80 })
-        await page.waitForTimeout(900)
+        await page.waitForTimeout(1400)
       }
 
       await expect(page.locator('.send-review-card')).toBeVisible()
