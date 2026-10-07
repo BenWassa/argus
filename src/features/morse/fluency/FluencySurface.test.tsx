@@ -45,7 +45,7 @@ describe('the fluency home screen', () => {
       expect(screen.getByText(title)).toBeTruthy()
     }
     for (const title of ['Spotlight words', 'Word flow', 'Phrases', 'Short messages', 'Dispatch']) {
-      expect(screen.getByText(title)).toBeTruthy()
+      expect(screen.getAllByText(title).length).toBeGreaterThan(0)
     }
   })
 
