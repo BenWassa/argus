@@ -394,7 +394,7 @@ export function SendRun({
           </p>
         </header>
 
-        <div className="send-output" aria-live="polite">
+        <div className="send-output">
           <span className="send-output-label">Sent</span>
           <span className="send-output-value">
             {meta.interaction === 'spotlight'
