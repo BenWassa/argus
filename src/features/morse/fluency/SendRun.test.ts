@@ -40,7 +40,7 @@ describe('guided Morse sending surface', () => {
     expect(source).toContain('className="session send-run"')
     expect(source).toContain('className="session-bar"')
     expect(source).toContain('<MorseKeyInput')
-    expect(css).toContain('var(--bg)')
+    expect(css).toContain('var(--field)')
     expect(css).toContain('var(--surface)')
     expect(css).toContain('var(--accent)')
     expect(css).toContain('var(--font-mono)')
