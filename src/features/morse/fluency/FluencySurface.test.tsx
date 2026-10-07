@@ -29,6 +29,7 @@ function openHome(progress = undefined as Parameters<typeof FluencyHome>[0]['pro
         onProgress={onProgress}
         onStart={() => undefined}
         onCopy={() => undefined}
+        onSend={() => undefined}
         onFreePlay={() => undefined}
         onExit={() => undefined}
       />
@@ -38,9 +39,12 @@ function openHome(progress = undefined as Parameters<typeof FluencyHome>[0]['pro
 }
 
 describe('the fluency home screen', () => {
-  it('offers every mode', () => {
+  it('offers every listening drill and every guided sending stage', () => {
     openHome()
     for (const title of ['Sprint', 'Ladder', 'Words', 'Groups']) {
+      expect(screen.getByText(title)).toBeTruthy()
+    }
+    for (const title of ['Spotlight words', 'Word flow', 'Phrases', 'Short messages', 'Dispatch']) {
       expect(screen.getByText(title)).toBeTruthy()
     }
   })
@@ -118,7 +122,7 @@ describe('the fluency home screen', () => {
 
   it('states that nothing here counts', () => {
     openHome()
-    expect(screen.getByText(/none of it changes your progress or your completion/)).toBeTruthy()
+    expect(screen.getByText(/none of it changes your Test progress or completion/)).toBeTruthy()
   })
 })
 
