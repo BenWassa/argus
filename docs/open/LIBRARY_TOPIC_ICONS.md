@@ -41,6 +41,8 @@ Topic icons are compact recognition aids beside shipped topic titles on Library 
 | `ooda-loop` | eye inside a four-direction feedback cycle |
 | `primary-survey` | medical assessment clipboard |
 | `cardinal-bearings` | eight-point compass rose |
+| `cloud-genera` | layered cloud outlines (WMO cloud genera) |
+| `caf-rank-equivalencies` | rank hierarchy / equivalence bars |
 | `scuba-equipment-abbreviations` | scuba mask |
 | `radiotelephony-numbers` | handheld radio + keypad |
 | `si-prefixes` | increasing magnitude / scale |
