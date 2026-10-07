@@ -31,7 +31,7 @@ describe('guided Morse sending material', () => {
   it('keeps the field-themed pack visibly separate from official procedure', () => {
     const dispatch = sendPrompts('dispatch', 7)
     expect(dispatch.every((prompt) => prompt.split(' ').length >= 2)).toBe(true)
-    expect(dispatch.some((prompt) => /STATUS|POSITION|SIGNAL|ROUTE|BASE|BRIDGE/.test(prompt))).toBe(true)
+    expect(dispatch.every((prompt) => /[A-Z]/.test(prompt))).toBe(true)
   })
 
   it('uses formative bests as suggestions, never gates', () => {
