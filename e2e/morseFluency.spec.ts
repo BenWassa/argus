@@ -106,7 +106,7 @@ async function openTopic(page: Page, library = LIBRARY) {
 async function openFluency(page: Page) {
   await openTopic(page)
   await page.locator('.topic-options summary').click()
-  await page.getByRole('button', { name: /Copy and speed practice/ }).click()
+  await page.getByRole('button', { name: /Send, copy and speed practice/ }).click()
   await expect(page.getByRole('heading', { name: 'After the alphabet' })).toBeVisible()
 }
 
@@ -197,7 +197,7 @@ test.describe('fluency', () => {
     await openTopic(page)
     await expect(page.locator('.topic-options')).not.toHaveAttribute('open', '')
     await page.locator('.topic-options summary').click()
-    await expect(page.getByRole('button', { name: /Copy and speed practice/ })).toBeVisible()
+    await expect(page.getByRole('button', { name: /Send, copy and speed practice/ })).toBeVisible()
     await expect(page.locator('.topic-primary')).toHaveText('Test')
   })
 
