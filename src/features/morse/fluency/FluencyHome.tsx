@@ -97,6 +97,7 @@ export function FluencyHome({ progress, onProgress, onStart, onCopy, onSend, onF
   const headingRef = useRef<HTMLHeadingElement>(null)
   const store = progress ?? newFluencyProgress()
   const nextSend = nextSendStage(store)
+  const recommendedSend: SendStage = nextSend ?? 'messages'
   const nextLevel = nextCopyLevel(store)
 
   const stats = useMemo(() => {
@@ -169,38 +170,56 @@ export function FluencyHome({ progress, onProgress, onStart, onCopy, onSend, onF
         <h2 id="send-levels-head" className="fluency-stats-title">
           Send — see it, key it
         </h2>
-        <ol className="fluency-modes">
-          {SEND_STAGES.map((stage) => {
-            const sendMeta = SEND_STAGE_INFO[stage]
-            const best = store.bests[sendBestKey(stage)]
-            const isNext = stage === nextSend
-            return (
-              <li key={stage}>
-                <button
-                  className={`fluency-mode${isNext ? ' is-next' : ''}`}
-                  type="button"
-                  onClick={() => onSend(stage)}
-                  aria-describedby={isNext ? 'send-next-label' : undefined}
-                >
-                  <span className="fluency-mode-title">
-                    {sendMeta.title}
-                    {isNext && (
-                      <span id="send-next-label" className="copy-next-tag">
-                        Next
-                      </span>
-                    )}
-                  </span>
-                  <span className="fluency-mode-purpose">{sendMeta.purpose}</span>
-                  <span className="fluency-mode-meta tabular">
-                    {sendMeta.length} prompts
-                    {best !== undefined && ` · best ${best}%`}
-                    {sendStageCleared(store, stage) && ' · cleared'}
-                  </span>
-                </button>
-              </li>
-            )
-          })}
-        </ol>
+
+        {(() => {
+          const sendMeta = SEND_STAGE_INFO[recommendedSend]
+          const best = store.bests[sendBestKey(recommendedSend)]
+          return (
+            <button
+              className="fluency-mode is-next"
+              type="button"
+              onClick={() => onSend(recommendedSend)}
+            >
+              <span className="fluency-mode-title">
+                {sendMeta.title}
+                <span className="copy-next-tag">{nextSend ? 'Next' : 'Recommended'}</span>
+              </span>
+              <span className="fluency-mode-purpose">{sendMeta.purpose}</span>
+              <span className="fluency-mode-meta tabular">
+                {sendMeta.length} prompts
+                {best !== undefined && ` · best ${best}%`}
+                {sendStageCleared(store, recommendedSend) && ' · cleared'}
+              </span>
+            </button>
+          )
+        })()}
+
+        <details className="fluency-stage-picker">
+          <summary>Choose another sending stage</summary>
+          <ol className="fluency-modes">
+            {SEND_STAGES.filter((stage) => stage !== recommendedSend).map((stage) => {
+              const sendMeta = SEND_STAGE_INFO[stage]
+              const best = store.bests[sendBestKey(stage)]
+              return (
+                <li key={stage}>
+                  <button
+                    className="fluency-mode"
+                    type="button"
+                    onClick={() => onSend(stage)}
+                  >
+                    <span className="fluency-mode-title">{sendMeta.title}</span>
+                    <span className="fluency-mode-purpose">{sendMeta.purpose}</span>
+                    <span className="fluency-mode-meta tabular">
+                      {sendMeta.length} prompts
+                      {best !== undefined && ` · best ${best}%`}
+                      {sendStageCleared(store, stage) && ' · cleared'}
+                    </span>
+                  </button>
+                </li>
+              )
+            })}
+          </ol>
+        </details>
       </section>
 
       {/* Copy is the reverse direction: sound to text. The speed drills below
