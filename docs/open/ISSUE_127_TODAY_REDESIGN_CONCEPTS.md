@@ -1,6 +1,18 @@
-# Issue #127 — Today redesign concepts
+# Issue #127 — Home redesign concepts
 
 **Status:** concept proposal / owner decision — not implemented, apart from the interim plate layout in §2
+
+> **Owner direction — 2026-10-07.** The root destination should be renamed **Home**. The September concept set below remains useful design history, but the preferred Home composition has changed after owner-reviewed mockups:
+>
+> 1. **Top readout, no heading:** show `Completed`, `In progress`, and `Last active` (the most recent date on which any durable study activity occurred). This is a restrained instrument readout, not three dashboard cards and not a mastery score.
+> 2. **Active topics immediately below:** no separate Last Activity card/feed. Active topics are the main content. Give them only a little more lift than the current Core mockup — clearly raised from the chassis, but far short of the heavy Lifted treatment.
+> 3. **Colour describes progress/state, not topic identity.** Do not colour-code topic cards by subject/track. The exact progress palette still needs design work; preserve Tarnish for repair/decay and do not repurpose it decoratively.
+> 4. **Capture action at the bottom:** add a Home control such as `+ Add something to learn` that opens the existing Want-to-learn/content-inbox overlay. It must not create a second authoring model.
+> 5. **No extra section merely to fill space.** Home may end after the capture action. Recent activity history, achievements and analytics are not required.
+> 6. **Navigation styling:** the owner prefers the rounded mobile bottom-nav treatment explored in the Core mockup. #126 owns the exact visual treatment.
+> 7. **Gamification is separate.** #191 now owns role/designation progression and a possible third primary destination; #192 owns role badge art. Home itself should not absorb badges or role progression.
+>
+> The current production `Today.tsx` behavior remains authoritative until this redesign is implemented. Any earlier recommendation below that conflicts with this addendum is superseded.
 
 > **No-clock note — 2026-09-29.** The owner removed time-based scheduling, which changes this paper's premises in three places:
 >
