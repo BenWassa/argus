@@ -74,15 +74,95 @@ For variation, ship small deterministic packs first: *Check-in*, *Movement*, *St
 - A little **mission board** if the owner prefers a visual campaign. Avoid badges/coins/daily-streak penalties unless later user testing shows value.
 - Optional challenge setting with no highlight, but never force hidden targets for a beginner.
 
-## 4. Suggested phone UI, not a redesign of Argus
+## 4. UI/UX direction — must feel native to Argus
 
-Use the existing **dark-mode** Argus grammar and Morse key. Prioritize a single mobile viewport on a Pixel rather than a tall list of controls.
+This is **not** permission to invent a separate arcade skin. The sending game must read as the same product as Today, Library, Topic, Learn and Test.
 
-**Play entry:** On the Morse topic page, surface `Send words` beside `Copy Morse` and `Free play`; for an in-course learner show `Try a word` once eligible, rather than hiding it behind `After the alphabet`. The recommended next stage is strongest visually; advanced drill settings remain secondary.
+### Design-system contract
 
-**Run:** compact `Send · Word 3/5` top bar; a high-contrast full text target with stable current-letter/current-word emphasis; one line of decoded sent letters; the existing large tap/hold key occupies the lower interaction area. Avoid separate submit/restart buttons competing near the key; place help/progress details in one collapsible row. No unplanned page scroll when keyboard, feedback or 200% text appears; allow deliberate overflow/scroll when accessibility text size requires it.
+Use `DESIGN.md` / `DESIGN.json` as hard constraints:
 
-**Review:** an accurate diff of **expected** vs **decoded** text, with missed positions, haptic/audio controls where supported, and `Repeat / Next / Focus misses`. The result is formative and must say so when clarity needs it, without repeating a disclaimer on every card.
+- **Gunmetal chassis:** `#101215` page ground, milled/raised cool-grey surfaces and recessed `#0b0d10` fields. No bright game-board panels, neon accents, cartoon effects or military-stencil styling.
+- **One Accent Rule:** at most one polished-steel primary action/current state per screen. A highlighted Morse target is a current-state treatment, not a second glowing button.
+- **One Warm Colour Rule:** tarnish remains reserved for decay/repair. Do not use orange/gold for streaks, scores or mission progress. Correct/miss may use the existing cooled Mineral/Clay feedback vocabulary.
+- **Two-Voice Rule:** language and target text stay in native sans; session position, counts and measured results use mono readout. Do not put button verbs in mono.
+- **Hardware controls:** the Morse key and buttons should use existing raised/pressed/engraved material behavior. The key remains the physical centre of the interaction rather than being redrawn as a novelty control.
+- **Motion:** 150–220 ms state feedback only, no decorative movement; collapse under `prefers-reduced-motion`. Haptics follow the existing semantic vocabulary rather than adding mode-specific vibration patterns.
+- **One Lit Surface Rule:** the current task can be the focused/lit surface. Secondary statistics, help and mode controls remain flush/quiet.
+
+### Product feel
+
+The intended tone is a **precision training instrument**, not a mobile game layered onto Argus. Engagement should come from fast interaction, visible progress through a finite round, accurate feedback, personal improvement and meaningful content — not coins, badges, confetti, artificial streak pressure or decorative mission chrome.
+
+A themed Dispatch mode may change **copy and content**, not the design language. It still uses the same gunmetal session shell, key, typography, feedback colors and completion treatment as ordinary Morse.
+
+### Entry / discovery
+
+On the Morse topic page, surface `Send words` beside `Copy Morse` and `Free play`; for an in-course learner show `Try a word` once eligible rather than hiding it behind `After the alphabet`. The recommended next stage is visually strongest; advanced drill settings remain secondary. Do not add another dashboard or mode-picker screen unless owner-reviewed mockups prove it improves navigation.
+
+### Run layout
+
+Target the real phone first, especially **390 px portrait** with 320 px as the narrow automated boundary.
+
+A default run should fit its **core interaction in one viewport without ordinary vertical scrolling**:
+
+1. compact session bar: `Send` + mono `3/5` + quiet Close;
+2. large target area, with stable current-letter or current-word emphasis;
+3. one restrained line showing decoded/sent progress;
+4. the existing large tap/hold Morse key in the lower interaction zone;
+5. at most one secondary/help control exposed during active input.
+
+Do not stack score cards, tips, progress bars and multiple controls above the key. Nothing should move vertically when an answer lands. Feedback should replace or overlay a stable region rather than pushing the key around.
+
+At 200% text, accessibility takes priority over the single-viewport goal: allow deliberate scroll rather than clipping or shrinking below readable/touchable sizes.
+
+### Target treatment
+
+- **Spotlight stage:** keep the whole word visible; current letter gets one clear current-state treatment. Completed letters recede; upcoming letters remain readable.
+- **Word Flow:** keep the full word stable with no per-letter flash/grade interruption. Show sent progress separately so the target itself does not jump.
+- **Phrases/messages:** current word may be emphasized, but never hide the rest of the message. The user should always understand their location in the target.
+- Avoid faux-terminal styling, blinking cursors, typewriter animations, giant Morse glyph decoration, military map textures or any visual treatment that competes with the keying task.
+
+### Review / completion
+
+The completion screen is allowed one stronger polished moment, consistent with Argus's existing completion hierarchy. It should show:
+
+- expected text;
+- decoded/sent text;
+- exact missed positions/words;
+- one concise result readout in mono;
+- one primary next action;
+- no more than two quiet secondary actions such as `Repeat` and `Focus misses`.
+
+Do not bury the useful diagnosis under celebratory treatment. No confetti or trophy UI.
+
+### Owner-reviewed design gate
+
+**No runtime implementation of S1/S2/S3 should begin from wireframe prose alone.** Before each new interaction family ships:
+
+1. produce realistic **dark-mode Argus mockups** at 390 px portrait using current `DESIGN.md` tokens/components;
+2. show at minimum the active run, a miss, and the completion/review state;
+3. for S2, also show the continuous word/phrase flow state where segmentation and progress are visible without per-letter interruption;
+4. compare the mockups against the current Morse Learn/Fluency screens so new work does not introduce a separate visual grammar;
+5. obtain owner selection/approval, then treat the approved direction as the implementation reference.
+
+Design review should reject any concept that feels visually busier, more arcade-like, less legible, or less physically coherent than the existing Morse surfaces even if the mechanics are technically correct.
+
+### UX acceptance gate
+
+A slice is not complete merely because inputs grade correctly. It must also pass:
+
+- no accidental taps during answer transitions or key release;
+- no layout jump when correct/miss feedback appears;
+- no normal-run scroll on 390 px portrait and no horizontal overflow at 320 px;
+- target, position and next action understandable within one glance;
+- primary key/control reach remains comfortable one-handed;
+- Android Back exits one meaningful level, never the whole PWA unexpectedly;
+- audio/haptics unavailable still leaves every state understandable;
+- reduced motion removes animation without removing state cues;
+- screen-reader output does not repeat every visual character update noisily;
+- interruption/background/resume never creates a phantom element or skips progress;
+- owner real-device Pixel review before merge of any interaction that changes continuous keying behavior.
 
 **Discoverability audit:** confirm the live topic page labels and paths, and whether the learner who has mastered A–Z can find Copy/Free play in one obvious action. The source already implements the features, so this should be solved with navigation/copy, not by recreating them.
 
