@@ -94,7 +94,7 @@ function open(topic: Topic, onStart = vi.fn()) {
   return onStart
 }
 
-const fluency = () => screen.queryByRole('button', { name: /Copy and speed practice|Keep going/ })
+const fluency = () => screen.queryByRole('button', { name: /Send, copy and speed practice|Keep going/ })
 const keepGoing = () => screen.queryByRole('button', { name: /Keep going/ })
 const quickReview = () => screen.queryByRole('button', { name: /Quick review/ })
 
