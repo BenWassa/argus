@@ -4,6 +4,7 @@ import { expect, test, type Page } from '@playwright/test'
 import { seedLibrary } from '../src/domain/library/catalogSeed'
 import type { Topic } from '../src/domain/library/topic'
 import type { ItemLessonStore } from '../src/domain/morse/progress'
+import { MORSE_LETTERS, type MorseLetter } from '../src/domain/morse/code'
 
 /**
  * Post-acquisition Fluency, end to end through the real route model (#119).
@@ -239,6 +240,58 @@ test.describe('fluency', () => {
     expect(after?.status).toBe(before?.status)
     expect(after?.itemEvidence).toEqual(before?.itemEvidence)
     expect(after?.history).toEqual(before?.history)
+  })
+
+  test('sends visible words with the shared key and keeps the run formative', async ({ page }) => {
+    test.setTimeout(90_000)
+    await openTopic(page, betweenChecks())
+    const before = await storedTopic(page)
+    await page.locator('.topic-primary').click()
+    await expect(page.getByRole('heading', { name: 'After the alphabet' })).toBeVisible()
+
+    // Sending leads the post-alphabet surface rather than being hidden under
+    // the listening drills.
+    const sendHeading = page.getByRole('heading', { name: 'Send — see it, key it' })
+    const copyHeading = page.getByRole('heading', { name: 'Copy — hear it, write it down' })
+    await expect(sendHeading).toBeVisible()
+    expect((await sendHeading.boundingBox())!.y).toBeLessThan((await copyHeading.boundingBox())!.y)
+
+    await page.getByRole('button', { name: /Spotlight words/ }).click()
+    await expect(page.locator('.send-run')).toBeVisible()
+    await expect(page.locator('.morse-key')).toBeVisible()
+
+    // One complete finite run, answering from the visible highlighted target.
+    for (let prompt = 0; prompt < 5; prompt += 1) {
+      for (let guard = 0; guard < 8; guard += 1) {
+        if ((await page.locator('.send-review-card').count()) > 0) break
+        const current = (await page.locator('.send-target .is-current').textContent())?.trim() as MorseLetter | undefined
+        if (!current) throw new Error('Spotlight word lost its current letter.')
+        await expect(page.locator('.morse-key')).toBeEnabled({ timeout: 4_000 })
+        await page.keyboard.type(MORSE_LETTERS[current], { delay: 80 })
+        await page.waitForTimeout(900)
+      }
+
+      await expect(page.locator('.send-review-card')).toBeVisible()
+      await expect(page.getByText('Received as sent')).toBeVisible()
+      await page.getByRole('button', { name: prompt < 4 ? 'Next' : 'Finish round' }).click()
+    }
+
+    await expect(page.locator('.send-summary-card')).toBeVisible()
+    await expect(page.getByText('100%')).toBeVisible()
+
+    const after = await storedTopic(page)
+    expect(after?.morseFluency?.bests['send:words']).toBe(100)
+    expect(after?.status).toBe(before?.status)
+    expect(after?.lastTestedAt).toBe(before?.lastTestedAt)
+    expect(after?.itemEvidence).toEqual(before?.itemEvidence)
+    expect(after?.history).toEqual(before?.history)
+    expect(after?.lessonProgress).toEqual(before?.lessonProgress)
+
+    const overflow = await page.evaluate(() => ({
+      scroll: document.documentElement.scrollWidth,
+      client: document.documentElement.clientWidth,
+    }))
+    expect(overflow.scroll).toBeLessThanOrEqual(overflow.client)
   })
 
   test('pins the character speed and offers only the spacing', async ({ page }) => {
