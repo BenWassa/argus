@@ -54,8 +54,8 @@ export const SEND_STAGE_INFO: Record<SendStage, SendStageInfo> = {
 }
 
 /**
- * Themed practice only. These are newly authored plain-English strings, not
- * official CAF/NATO procedure, Q-codes, prosigns or operating instructions.
+ * Themed practice only. These are newly authored plain-English strings, not official
+ * CAF/NATO procedure, Q-codes, prosigns or operating instructions.
  */
 const DISPATCH_PROMPTS = [
   'CHECK IN',
