@@ -109,6 +109,25 @@
   margin-inline: auto;
 }
 
+.fluency-stage-picker {
+  width: min(100%, 36rem);
+  border-top: 1px solid var(--line);
+}
+
+.fluency-stage-picker > summary {
+  display: flex;
+  align-items: center;
+  min-height: var(--control-h);
+  color: var(--muted);
+  font-size: var(--t-small);
+  cursor: pointer;
+}
+
+.fluency-stage-picker[open] > summary {
+  margin-bottom: var(--s-sm);
+  color: var(--ink);
+}
+
 .copy-next-tag {
   margin-left: var(--s-sm);
   padding: 0 var(--s-xs);
