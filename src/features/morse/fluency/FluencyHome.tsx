@@ -25,6 +25,14 @@ import {
   nextCopyLevel,
   type CopyLevel,
 } from '../../../domain/morse/fluency/copy'
+import {
+  SEND_STAGES,
+  SEND_STAGE_INFO,
+  nextSendStage,
+  sendBestKey,
+  sendStageCleared,
+  type SendStage,
+} from '../../../domain/morse/fluency/send'
 import './Fluency.css'
 
 interface FluencyHomeProps {
@@ -32,6 +40,7 @@ interface FluencyHomeProps {
   onProgress: (next: MorseFluencyProgress) => void
   onStart: (mode: FluencyMode) => void
   onCopy: (level: CopyLevel) => void
+  onSend: (stage: SendStage) => void
   onFreePlay: () => void
   onExit: () => void
 }
@@ -84,9 +93,10 @@ const MODES: Record<FluencyMode, { title: string; purpose: string; best: (value:
  * perceived evidence, which is the same reason the practice offer is a quiet
  * text control rather than a primary action.
  */
-export function FluencyHome({ progress, onProgress, onStart, onCopy, onFreePlay, onExit }: FluencyHomeProps) {
+export function FluencyHome({ progress, onProgress, onStart, onCopy, onSend, onFreePlay, onExit }: FluencyHomeProps) {
   const headingRef = useRef<HTMLHeadingElement>(null)
   const store = progress ?? newFluencyProgress()
+  const nextSend = nextSendStage(store)
   const nextLevel = nextCopyLevel(store)
 
   const stats = useMemo(() => {
@@ -120,10 +130,9 @@ export function FluencyHome({ progress, onProgress, onStart, onCopy, onFreePlay,
           After the alphabet
         </h1>
         <p className="lede-text">
-          You know all 26. This is where they stop being something you work out and
-          start being something you just hear — first as letters, then words, then
-          sentences. Everything here is practice — none of it changes your progress or
-          your completion.
+          You know all 26. Now use them in both directions: send written words and
+          messages with the key, or copy Morse you hear into text. Everything here is
+          practice — none of it changes your Test progress or completion.
         </p>
       </header>
 
@@ -156,10 +165,47 @@ export function FluencyHome({ progress, onProgress, onStart, onCopy, onFreePlay,
         </div>
       </div>
 
-      {/* Copy leads because it is the progression: the material grows from
-          letters to sentences, and it is the only mode that asks for the text
-          rather than an echo of the rhythm. The speed drills below it train
-          recognition time and are what to reach for when a level stalls. */}
+      <section className="fluency-section" aria-labelledby="send-levels-head">
+        <h2 id="send-levels-head" className="fluency-stats-title">
+          Send — see it, key it
+        </h2>
+        <ol className="fluency-modes">
+          {SEND_STAGES.map((stage) => {
+            const sendMeta = SEND_STAGE_INFO[stage]
+            const best = store.bests[sendBestKey(stage)]
+            const isNext = stage === nextSend
+            return (
+              <li key={stage}>
+                <button
+                  className={`fluency-mode${isNext ? ' is-next' : ''}`}
+                  type="button"
+                  onClick={() => onSend(stage)}
+                  aria-describedby={isNext ? 'send-next-label' : undefined}
+                >
+                  <span className="fluency-mode-title">
+                    {sendMeta.title}
+                    {isNext && (
+                      <span id="send-next-label" className="copy-next-tag">
+                        Next
+                      </span>
+                    )}
+                  </span>
+                  <span className="fluency-mode-purpose">{sendMeta.purpose}</span>
+                  <span className="fluency-mode-meta tabular">
+                    {sendMeta.length} prompts
+                    {best !== undefined && ` · best ${best}%`}
+                    {sendStageCleared(store, stage) && ' · cleared'}
+                  </span>
+                </button>
+              </li>
+            )
+          })}
+        </ol>
+      </section>
+
+      {/* Copy is the reverse direction: sound to text. The speed drills below
+          it train recognition time and are what to reach for when a level
+          stalls. */}
       <section className="fluency-section" aria-labelledby="copy-levels-head">
         <h2 id="copy-levels-head" className="fluency-stats-title">
           Copy — hear it, write it down
