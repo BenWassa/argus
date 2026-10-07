@@ -6,12 +6,14 @@ import {
 } from '../../../domain/morse/fluency/progress'
 import type { FluencyMode } from '../../../domain/morse/fluency/session'
 import type { CopyLevel } from '../../../domain/morse/fluency/copy'
+import type { SendStage } from '../../../domain/morse/fluency/send'
 import { morseFocusLetters } from '../../../domain/morse/fluency/focus'
 import type { MorseLetter } from '../../../domain/morse/code'
 import { CopyRun } from './CopyRun'
 import { FreePlay } from './FreePlay'
 import { FluencyHome } from './FluencyHome'
 import { FluencyRun } from './FluencyRun'
+import { SendRun } from './SendRun'
 
 interface FluencySurfaceProps {
   topicId: string
@@ -47,6 +49,7 @@ export function FluencySurface({ topicId, initialMode, letters, onExit }: Fluenc
   )
   const [mode, setMode] = useState<FluencyMode | null>(initialMode ?? null)
   const [copy, setCopy] = useState<{ level: CopyLevel; run: number } | null>(null)
+  const [send, setSend] = useState<{ stage: SendStage; run: number } | null>(null)
   const [free, setFree] = useState(false)
 
   const commit = useCallback(
@@ -62,6 +65,21 @@ export function FluencySurface({ topicId, initialMode, letters, onExit }: Fluenc
 
   if (free) {
     return <FreePlay rung={(progress ?? newFluencyProgress()).rung} onExit={() => setFree(false)} />
+  }
+
+  if (send) {
+    return (
+      <SendRun
+        key={`send-${send.stage}-${send.run}`}
+        stage={send.stage}
+        progress={progress ?? newFluencyProgress()}
+        onProgress={commit}
+        onStage={(stage) =>
+          setSend((previous) => ({ stage, run: (previous?.run ?? 0) + 1 }))
+        }
+        onExit={() => setSend(null)}
+      />
+    )
   }
 
   if (copy) {
@@ -106,6 +124,7 @@ export function FluencySurface({ topicId, initialMode, letters, onExit }: Fluenc
       onProgress={commit}
       onStart={setMode}
       onCopy={(level) => setCopy({ level, run: 0 })}
+      onSend={(stage) => setSend({ stage, run: 0 })}
       onFreePlay={() => setFree(true)}
       onExit={onExit}
     />
