@@ -137,35 +137,6 @@ export function FluencyHome({ progress, onProgress, onStart, onCopy, onSend, onF
         </p>
       </header>
 
-      {/* The one dial, shared by Copy and the drills. Characters always sound
-          at the same speed; this is how much room you get between them. */}
-      <div className="fluency-rung">
-        <p className="fluency-rung-label">
-          Spacing <span className="tabular">{store.rung} WPM</span>
-        </p>
-        <p className="note">{rungDescription(store.rung)} · characters always at 20 WPM</p>
-        <div className="fluency-rung-controls">
-          <button
-            className="ghost small"
-            type="button"
-            onClick={() => setRung(previousRung(store.rung))}
-            disabled={store.rung === FLUENCY_RUNGS[0]}
-            aria-label="More room between characters"
-          >
-            More room
-          </button>
-          <button
-            className="ghost small"
-            type="button"
-            onClick={() => setRung(nextRung(store.rung))}
-            disabled={store.rung === FLUENCY_RUNGS[FLUENCY_RUNGS.length - 1]}
-            aria-label="Less room between characters"
-          >
-            Less room
-          </button>
-        </div>
-      </div>
-
       <section className="fluency-section" aria-labelledby="send-levels-head">
         <h2 id="send-levels-head" className="fluency-stats-title">
           Send — see it, key it
@@ -221,6 +192,36 @@ export function FluencyHome({ progress, onProgress, onStart, onCopy, onSend, onF
           </ol>
         </details>
       </section>
+
+      {/* The one listening dial, shared by Copy and the speed drills.
+          Guided Send uses the learner's own keying and is deliberately
+          unaffected by this setting. */}
+      <div className="fluency-rung">
+        <p className="fluency-rung-label">
+          Listening spacing <span className="tabular">{store.rung} WPM</span>
+        </p>
+        <p className="note">{rungDescription(store.rung)} · characters always at 20 WPM</p>
+        <div className="fluency-rung-controls">
+          <button
+            className="ghost small"
+            type="button"
+            onClick={() => setRung(previousRung(store.rung))}
+            disabled={store.rung === FLUENCY_RUNGS[0]}
+            aria-label="More room between characters"
+          >
+            More room
+          </button>
+          <button
+            className="ghost small"
+            type="button"
+            onClick={() => setRung(nextRung(store.rung))}
+            disabled={store.rung === FLUENCY_RUNGS[FLUENCY_RUNGS.length - 1]}
+            aria-label="Less room between characters"
+          >
+            Less room
+          </button>
+        </div>
+      </div>
 
       {/* Copy is the reverse direction: sound to text. The speed drills below
           it train recognition time and are what to reach for when a level
