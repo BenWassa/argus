@@ -58,6 +58,16 @@ Topic icons are compact recognition aids beside shipped topic titles on Library 
 | `vessel-day-shapes` | stacked ball, diamond and ball |
 | `signal-flags` | swallow-tailed signal flag on a staff, split down the middle |
 
+## Prepared icons for pending topics
+
+The following icons have been approved and committed in advance of the radio curriculum's release. They are mapped by topic ID, but do not appear in the shipped Library until the topics themselves are added to `shippedCatalog.json` by #150.
+
+| Topic id | Visual cue |
+| --- | --- |
+| `radio-procedure` | radio microphone and structured-message checklist |
+| `marine-vhf-routine-calling` | side-view vessel transmitting VHF |
+| `marine-vhf-priority-communications` | head-on vessel broadcasting a priority call |
+
 ## Design boundary
 
 Icons must stay consistent with Argus's brushed-gunmetal instrument language. Do not drift into colourful course thumbnails, tactical-game imagery, clip-art illustration, or detailed mini-scenes. The title remains the authoritative label; the icon exists to make recognition faster.
