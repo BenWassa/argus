@@ -1,6 +1,6 @@
 # Morse sending games — guided words, messages and free transmission
 
-**Status:** Proposed / owner selection pending (not implemented)  
+**Status:** Owner selected A + B; runtime implementation in PR #194, pending merge/acceptance  
 **Issue:** [#188](https://github.com/BenWassa/argus/issues/188)  
 **Reviewed against current `main`:** 2026-10-06  
 **Authority:** This proposal specifies *unbuilt* gameplay and selection choices. For shipped behavior, `MORSE_WORD_CHECKPOINTS.md`, `MORSE_FLUENCY.md`, `MORSE_INTERMEDIATE_PATH.md`, `MORSE_AUDIO_RUNTIME.md` and `PROGRESS_ARCHITECTURE.md` remain authoritative. Historical #29 concerns formal, scored competency and is not re-opened.
@@ -196,15 +196,20 @@ A slice is not complete merely because inputs grade correctly. It must also pass
 - New modes are explicitly usable in dark mode, on 320/390 px phone, in reduced motion and audio/haptics-disabled states. Check a real Pixel/PWA for the continuous-send boundary before calling S2 done.
 - Every game works with connectivity disabled in a provisioned offline session; broader cold-offline guarantee remains with #113.
 
-## 7. Owner decision record (pending)
+## 7. Owner decision record (selected 2026-10-07)
 
-1. **Primary game:** A Morse Missions [recommended] / B Dispatch-first / C Rapid Fire-first / D Copy & Relay-first / E Free Transmission+.
-2. **Presentation:** plain levels, or a thematic mission board with the same underlying stages.
-3. **Input difficulty:** highlighted-letter beginner progression, then whole-word Flow, then optional no-highlight message.
-4. **Theming:** general everyday vocabulary first [recommended], with a separate fictional field-comms content pack after; alternatively mixed from the start if owner prefers.
-5. **Optional first add-on:** E free-text target checker / C timed rounds / D relay.
+Owner instruction **Build it** selects the recommended **A — Morse Missions** as the core and **B — Dispatch** as the first contextual pack.
 
-Once chosen, split #188 into implementation issues **S1/S2/S3** with exact owned files, acceptance and non-overlap with shipped #119 / historical #29. Keep #188 open as the decision and linkage point until its selected scope is implemented and accepted.
+Runtime PR #194 implements:
+1. Spotlight words;
+2. Word flow;
+3. Phrases;
+4. Short messages;
+5. Dispatch.
+
+The presentation stays as restrained Argus levels rather than a separate mission-board skin. Spotlight uses highlighted-letter support; later stages use pause-delimited open keying. Everyday material comes first and Dispatch remains explicitly fictional rather than official CAF/NATO procedure.
+
+Rapid Fire, Copy & Relay and Free Transmission+ remain optional later work. Keep #188 open until #194 is green, merged and accepted on the owner's real Pixel.
 
 ## Research and source record
 
