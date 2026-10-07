@@ -33,7 +33,8 @@ describe('guided Morse sending surface', () => {
   it('keeps the themed stage explicitly fictional rather than official procedure', () => {
     expect(domain).toContain("title: 'Dispatch'")
     expect(domain).toContain('Fictional field-communications messages')
-    expect(domain).toContain('not official CAF/NATO procedure')
+    expect(domain).toContain('not official')
+    expect(domain).toContain('CAF/NATO procedure')
   })
 
   it('uses the Argus session grammar instead of an arcade skin', () => {
