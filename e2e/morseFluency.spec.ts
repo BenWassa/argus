@@ -242,7 +242,7 @@ test.describe('fluency', () => {
     expect(after?.history).toEqual(before?.history)
   })
 
-  test('sends visible words with the shared key and keeps the run formative', async ({ page }) => {
+  test('sends visible words with the shared key and keeps the run formative', async ({ page }, testInfo) => {
     test.setTimeout(90_000)
     await openTopic(page, betweenChecks())
     const before = await storedTopic(page)
@@ -259,6 +259,15 @@ test.describe('fluency', () => {
     await page.getByRole('button', { name: /Spotlight words/ }).click()
     await expect(page.locator('.send-run')).toBeVisible()
     await expect(page.locator('.morse-key')).toBeVisible()
+
+    if (testInfo.project.name === 'phone-390') {
+      await expect(page.locator('.morse-key')).toBeInViewport()
+      const vertical = await page.evaluate(() => ({
+        scroll: document.documentElement.scrollHeight,
+        client: document.documentElement.clientHeight,
+      }))
+      expect(vertical.scroll).toBeLessThanOrEqual(vertical.client)
+    }
 
     // One complete finite run, answering from the visible highlighted target.
     for (let prompt = 0; prompt < 5; prompt += 1) {
