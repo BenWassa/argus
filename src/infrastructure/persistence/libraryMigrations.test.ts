@@ -205,6 +205,21 @@ describe('the visible Primary Survey safety boundary (#166)', () => {
   })
 })
 
+describe('the radio-numbers re-sourcing to RIC-22 (#150)', () => {
+  const oldScope = 'The spoken forms of the digits 0–9 and of decimal, hundred and thousand, as printed for Canadian aeronautical radio in ISED RIC-21. Tested number → spoken form. How numbers are grouped on air and radio procedure are not scored.'
+  const old = { ...catalogDefinition('radiotelephony-numbers')!, origin: 'catalog' as const, scope: oldScope }
+
+  it('moves the exact former scope and Learn to the RIC-22 wording, leaving progress alone', () => {
+    const [topic] = reconcileLoadedLibrary({ version: 5, topics: [old] }).library.topics.filter(
+      (candidate) => candidate.id === 'radiotelephony-numbers',
+    )
+    expect(topic.scope).toContain('ISED RIC-22')
+    expect(topic.scope).not.toContain('aeronautical')
+    expect(topic.learn).toEqual(catalogDefinition('radiotelephony-numbers')?.learn)
+    expect({ ...topic, scope: oldScope, learn: old.learn }).toEqual(old)
+  })
+})
+
 describe('Learn refresh respects the complete scored identity', () => {
   it('preserves explanatory support when the learner edits the scope', () => {
     const input = library(beforeTheRewrite({ scope: 'My narrower scope.' }))
