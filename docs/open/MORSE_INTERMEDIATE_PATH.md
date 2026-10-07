@@ -11,13 +11,13 @@
 > describe the review and the page under this rule.
 
 **Authority:** Current for shipped behaviour after A–Z acquisition: the uncued
-Test floor, reviews the learner chooses, Copy, figures and punctuation,
-free play and the extended spacing ladder. `MORSE_FLUENCY.md` still governs
+Test floor, reviews the learner chooses, guided Send, Copy, figures and
+punctuation, free play and the extended spacing ladder. `MORSE_FLUENCY.md` still governs
 the Fluency surface this extends; `MORSE_CUE_LADDER.md` still governs the
 ladder for anyone mid-curriculum; `PROGRESS_ARCHITECTURE.md` still governs the
 state boundaries none of this crosses.
 
-**Last verified:** 2026-09-25
+**Last verified:** 2026-10-07
 
 ## Why
 
@@ -58,7 +58,7 @@ re-floors after folding each answer so the stored cue stays `free`.
   support — no longer reads as a returning cue anywhere.
 
 Support after the alphabet lives where it is formative: Practice, Learn
-replays, and Copy's feedback.
+replays, guided Send, and Copy's feedback.
 
 ## 2. Reviews, when the learner chooses one
 
@@ -85,13 +85,47 @@ Decided once at session start (`reviewTopics`), like the deck itself.
 ## 3. The topic page after the alphabet
 
 `journeyFor` gives an acquired progressive topic in the `banked` phase the
-primary label **Keep going**, which opens Fluency and names the next Copy
-level, with **Full test** and **Quick review** beside it. While the ladder is
-still moving (learning, drilled) or the topic needs repair, Test leads,
-because only the check can earn anything; Copy and speed practice and the
-review sit beside it at text weight.
+primary label **Keep going**, which opens Fluency with guided Send first, then
+Copy, free play and speed drills; **Full test** and **Quick review** sit beside
+it. While the ladder is still moving (learning, drilled) or the topic needs
+repair, Test leads because only it can earn anything; **Send, copy and speed
+practice** and the review remain text-weight alternatives.
 
-## 4. Copy — hear it, write it down
+## 4. Send — see it, key it
+
+`src/domain/morse/fluency/send.ts`;
+`src/features/morse/fluency/SendRun.tsx`.
+
+Guided Send is the production complement to Copy. The learner sees plain text
+and uses the same shared tap/hold Morse key as Learn, Test, checkpoints and free
+play. Five finite stages increase composition while remaining formative:
+
+| Stage | Material | Interaction | Prompts |
+| --- | --- | --- | --- |
+| Spotlight words | familiar 3–5 letter words | current letter highlighted; per-letter correction | 5 |
+| Word flow | 4–7 letter words | pause-delimited open keying; review after the word | 5 |
+| Phrases | 2–3 familiar words | open keying with deliberate Space between words | 3 |
+| Short messages | plain-English generated messages | open keying; target vs received review | 2 |
+| Dispatch | fictional field-communications messages | the same open-keying interaction | 3 |
+
+Spotlight is deliberately supported: the shared key receives the current
+letter's element count, matching the bridge already established by the lesson
+checkpoints. From Word flow onward the key receives only
+`MORSE_MAX_ELEMENTS`; a 900 ms idle pause, shared with Free play, ends a
+letter. The target's expected pattern is therefore not used to segment the
+learner's transmission.
+
+Every stage remains open. A 90% personal best marks a stage cleared only to
+suggest what to try next. Bests live under `morseFluency.bests["send:<stage>"]`;
+they never update Test evidence, acquisition support, retention, history or the
+A–Z completion claim. Press duration never leaves `MorseKeyInput` and is not
+reported as WPM or physical sending proficiency.
+
+Dispatch is an authored **fictional** practice pack. Its plain-English prompts
+are not represented as official CAF/NATO procedure, Q-codes, prosigns or radio
+operating instruction.
+
+## 5. Copy — hear it, write it down
 
 `src/domain/morse/fluency/copy.ts`, `sentences.ts`;
 `src/features/morse/fluency/CopyRun.tsx`.
@@ -131,7 +165,7 @@ Copy is formative and sits inside Fluency's evidence boundary.
 `FluencyBoundary.test.ts` holds `CopyRun` to the same import rules as
 `FluencyRun`.
 
-## 5. Figures and punctuation
+## 6. Figures and punctuation
 
 `MORSE_FIGURES` and `MORSE_PUNCTUATION` in `code.ts`, per ITU-R M.1677-1, and
 `MORSE_CHARACTERS` as their union with the letters. **`MORSE_LETTERS` is
@@ -141,7 +175,7 @@ unchanged** — the course, its completion claim, every per-letter store and
 reference lists the fourteen after the alphabet; the topic page's reference
 cards stay the course.
 
-## 6. Free play
+## 7. Free play
 
 `src/domain/morse/fluency/freePlay.ts`; `src/features/morse/fluency/FreePlay.tsx`.
 
@@ -160,7 +194,7 @@ No target, no score, and no write path at all — it receives no `onProgress`.
 caller passes a length of four or less and no `onEntry`, so their behaviour is
 unchanged.
 
-## 7. The spacing ladder reaches 20
+## 8. The spacing ladder reaches 20
 
 `FLUENCY_RUNGS` is now `6 … 13, 15, 18, 20`. At 20 the spacing is at parity
 with the pinned 20 WPM character — no Farnsworth stretch — which is real-speed
@@ -178,5 +212,7 @@ now travel with the verdict.
 
 ## Not in scope
 
-No scored auditory or copy claim, no sending-speed evidence (press duration is
-still discarded), no prosigns or Q-codes, no storage version change.
+No scored auditory, copy or sending claim. Guided Send keeps formative accuracy
+bests only; press duration is still discarded outside dit/dah classification,
+so there is no sending-speed evidence. No prosigns or Q-codes and no storage
+version change.
