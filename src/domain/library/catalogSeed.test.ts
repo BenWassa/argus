@@ -32,6 +32,9 @@ describe('researched seeded library', () => {
       'caf-rank-equivalencies',
       'scuba-equipment-abbreviations',
       'radiotelephony-numbers',
+      'radio-procedure',
+      'marine-vhf-routine-calling',
+      'marine-vhf-priority-communications',
       'si-prefixes',
       'greek-alphabet',
       'hex-digits-binary',
@@ -175,7 +178,7 @@ describe('researched seeded library', () => {
     expect(topic.learn?.sources?.length).toBeGreaterThanOrEqual(9)
   })
 
-  it('keeps radiotelephony numbers to the 13 RIC-21 spoken forms, number → spoken form', () => {
+  it('keeps radiotelephony numbers to the 13 RIC-22 spoken forms, number → spoken form', () => {
     const topic = seededTopic('radiotelephony-numbers')
 
     expect(rows(topic.items)).toEqual([
@@ -199,7 +202,8 @@ describe('researched seeded library', () => {
     expect(topic.scope).toContain('radio procedure are not scored')
     expect(topic.learn?.kind).toBe('concise')
     expect(topic.learn?.limitations?.some((note) => note.includes('not radio training, an operator certificate'))).toBe(true)
-    expect(topic.learn?.sources?.[0].url).toContain('ric-21')
+    expect(topic.learn?.sources?.[0].url).toContain('ric-22')
+    expect(topic.learn?.sources?.[1].url).toContain('ric-21')
   })
 
   it('keeps SI prefixes to the 24 BIPM powers of ten, power → name and symbol', () => {
@@ -360,7 +364,7 @@ describe('trimmed Learn prose', () => {
         : 0
 
   // Prose budgets exclude definitions, tables, entries and visual references.
-  it.each(['ooda-loop', 'primary-survey', 'firearm-safety-acts-prove', 'whole-circle-bearings', 'reciprocal-bearings', 'north-references-declination', 'grid-north-map-bearings', 'navigation-lights', 'vessel-day-shapes', 'signal-flags', 'caf-rank-equivalencies', 'beaufort-wind-scale', 'scuba-equipment-abbreviations', 'radiotelephony-numbers', 'si-prefixes', 'greek-alphabet', 'hex-digits-binary', 'international-morse-letters-printed'])('keeps %s compact', (id) => {
+  it.each(['ooda-loop', 'primary-survey', 'firearm-safety-acts-prove', 'whole-circle-bearings', 'reciprocal-bearings', 'north-references-declination', 'grid-north-map-bearings', 'navigation-lights', 'vessel-day-shapes', 'signal-flags', 'caf-rank-equivalencies', 'beaufort-wind-scale', 'scuba-equipment-abbreviations', 'radiotelephony-numbers', 'radio-procedure', 'marine-vhf-routine-calling', 'marine-vhf-priority-communications', 'si-prefixes', 'greek-alphabet', 'hex-digits-binary', 'international-morse-letters-printed'])('keeps %s compact', (id) => {
     const learn = seededTopic(id).learn!
     const sections = (learn.sections ?? []).flatMap((section) => section.blocks).reduce((n, b) => n + blockWords(b), 0)
     const cases = (learn.caseStudies ?? []).reduce(

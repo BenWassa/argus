@@ -57,6 +57,9 @@ Topic icons are compact recognition aids beside shipped topic titles on Library 
 | `navigation-lights` | top-down vessel outline with its masthead, side and stern lights |
 | `vessel-day-shapes` | stacked ball, diamond and ball |
 | `signal-flags` | swallow-tailed signal flag on a staff, split down the middle |
+| `radio-procedure` | radio microphone and structured-message checklist |
+| `marine-vhf-routine-calling` | side-view boat broadcasting over VHF |
+| `marine-vhf-priority-communications` | head-on vessel with priority radio transmission |
 
 ## Prepared icons for pending topics
 

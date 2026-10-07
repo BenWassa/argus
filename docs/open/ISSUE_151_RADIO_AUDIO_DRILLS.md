@@ -35,9 +35,9 @@ Architecture can be explored in parallel with #150, but production scripts/audio
 
 ## Implementation status — runtime built; production blocked (updated 2026-10-01)
 
-The reusable runtime is built and documented in `docs/open/AUDIO_DRILLS_RUNTIME.md`. No audio topic ships, for two independent reasons:
+The reusable runtime is built and documented in `docs/open/AUDIO_DRILLS_RUNTIME.md`. No audio topic ships. The first reason below is cleared; the second still blocks production audio:
 
-1. **Production content** depends on #150's canonical scripts, which are blocked on the ISED RIC-22 and CCG RAMN 2026 texts (see #150's note).
+1. **Production content** depended on #150's canonical scripts. #150 shipped on 2026-10-06, so the canonical text now exists (`src/domain/radio/radioTopics.ts`); this reason no longer blocks scripting.
 2. **Build-time TTS could not be evaluated in the environment that attempted this.** The candidate engines' models are hosted on `huggingface.co` (Kokoro, most Piper voices), which the sandbox refused. The bake-off in #139 §9 — generating the acceptance corpus and choosing an engine by human listening — needs that access, and needs a human to listen. Generated audio is never accepted because a model is "generally high quality".
 
 The runtime (audio stimulus on an item, native Play/Replay, transcript-assisted state, deterministic response modes) landed after the #146 visual primitives, as sequenced, and keeps listening evidence in its own record (`audioEvidence`), so text recall and choice recognition can never mark the listening claim complete. One product question is open before any audio topic ships: a scored Test currently offers to reveal the transcript (the answer then counts as a miss), which sits against the rule that Tests after acquisition show no hints.

@@ -138,6 +138,10 @@ const PREVIOUS_SHIPPED_SCOPES: Readonly<Record<string, readonly string[]>> = {
   'primary-survey': [
     'The five ABCDE headings in assessment order — Airway, Breathing, Circulation, Disability, Exposure. Test covers the headings and order only.',
   ],
+  // #150: the same thirteen forms, re-sourced from RIC-21 (aeronautical) to RIC-22 (general).
+  'radiotelephony-numbers': [
+    'The spoken forms of the digits 0–9 and of decimal, hundred and thousand, as printed for Canadian aeronautical radio in ISED RIC-21. Tested number → spoken form. How numbers are grouped on air and radio procedure are not scored.',
+  ],
 }
 
 /** Carry the visible safety boundary to unchanged catalog copies, preserving custom scopes and progress. */

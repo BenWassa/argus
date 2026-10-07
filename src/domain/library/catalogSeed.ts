@@ -4,6 +4,7 @@ import { bearingTopics } from '../navigation/bearingTopics'
 import { maritimeTopics } from '../maritime/maritimeTopics'
 import { flagTopic } from '../maritime/flagTopic'
 import { cafRankEquivalenciesTopic } from '../military/cafRankTopic'
+import { radioTopics } from '../radio/radioTopics'
 import { cloudTopic } from './cloudTopic'
 import { beaufortVisualGuide } from './weatherVisuals'
 
@@ -34,7 +35,7 @@ const BEARINGS = [
   ['Northwest', '315°'],
 ] as const
 
-/** ISED RIC-21 §5.3, spellings and hyphenation exactly as printed. */
+/** ISED RIC-22 §4.3, spellings and hyphenation exactly as printed. RIC-21 §5.3 prints the same forms. */
 const RADIOTELEPHONY_NUMBERS = [
   ['0', 'ZE-RO'], ['1', 'WUN'], ['2', 'TOO'], ['3', 'TREE'], ['4', 'FOW-er'],
   ['5', 'FIFE'], ['6', 'SIX'], ['7', 'SEV-en'], ['8', 'AIT'], ['9', 'NIN-er'],
@@ -669,12 +670,12 @@ export function seedLibrary(): Library {
     {
       id: 'radiotelephony-numbers',
       title: 'Radio Numbers',
-      scope: 'The spoken forms of the digits 0–9 and of decimal, hundred and thousand, as printed for Canadian aeronautical radio in ISED RIC-21. Tested number → spoken form. How numbers are grouped on air and radio procedure are not scored.',
+      scope: 'The spoken forms of the digits 0–9 and of decimal, hundred and thousand, as printed for Canadian general radio use in ISED RIC-22. Tested number → spoken form. How numbers are grouped on air and radio procedure are not scored.',
       track: 'learning',
       items: RADIOTELEPHONY_NUMBERS.map(([prompt, answer]) => ({ prompt, answer })),
       learn: {
         kind: 'concise',
-        overview: 'Canadian aeronautical radio uses fixed spoken forms, including TREE, FIFE and NIN-er, plus decimal, hundred and thousand.',
+        overview: 'Canadian radio uses fixed spoken forms, including TREE, FIFE and NIN-er, plus decimal, hundred and thousand.',
         sections: [
           {
             heading: 'How numbers are said on air',
@@ -685,7 +686,7 @@ export function seedLibrary(): Library {
                   'Except whole thousands, say digits separately: 75 is “seven five”; 5,800 is “five eight zero zero”.',
                   'Whole thousands: digits then “thousand”; 11,000 is “one one thousand”.',
                   'Use “decimal”: 121.5 is “one two one decimal five”.',
-                  'RIC-21 also covers altitudes, flight levels, headings, wind, time and aircraft types. Grouping and these conventions are unscored.',
+                  'RIC-22 also covers time and money. Grouping and these conventions are unscored.',
                 ],
               },
             ],
@@ -693,13 +694,18 @@ export function seedLibrary(): Library {
         ],
         limitations: [
           'Recall only, not radio training, an operator certificate or permission to transmit.',
-          'Canadian aeronautical forms only; marine, amateur, public-safety and other services have separate procedures.',
+          'Canadian general-radio forms only; aeronautical, amateur and other services keep their own procedures.',
         ],
         sources: [
           {
+            label: 'ISED — RIC-22, General Radio Operating Procedures (Issue 4, January 2008)',
+            url: 'https://ised-isde.canada.ca/site/spectrum-management-telecommunications/en/licences-and-certificates/radiocom-information-circulars-ricpagination-orphans/ric-22/ric-22-general-radio-operating-procedures',
+            note: 'Government of Canada guidance for all radio operators. §4.3 prints the spoken forms of 0–9 and of decimal, hundred and thousand; §4.4 sets how numbers are transmitted.',
+          },
+          {
             label: 'ISED — RIC-21, Study Guide for the Restricted Operator Certificate With Aeronautical Qualification',
             url: 'https://ised-isde.canada.ca/site/spectrum-management-telecommunications/en/official-publications/information/radiocom-information-circulars-ric/ric-21-study-guide-restricted-operator-certificate-aeronautical-qualification',
-            note: 'Government of Canada study guide (dated 2011-07-12). §5.3 prints the spoken forms of 0–9 and of decimal, hundred and thousand; §5.4 sets how numbers are transmitted.',
+            note: 'Cross-check (dated 2011-07-12). §5.3 prints the same thirteen forms for aeronautical use.',
           },
         ],
       },
@@ -712,6 +718,7 @@ export function seedLibrary(): Library {
       spotCheckedAt: null,
       history: [],
     },
+    ...radioTopics(),
     {
       id: 'si-prefixes',
       title: 'SI Prefixes',
