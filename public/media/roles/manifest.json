@@ -4,7 +4,7 @@
   "family": "Nautical (current)",
   "runtime": "/media/roles/communicator.svg",
   "format": "pure-vector SVG, no embedded raster",
-  "status": "Layered vector merged via #196; automated browser QA passed, final owner visual review and runtime Pixel QA pending",
+  "status": "v1.5.0 production artwork with vetted symbols, symmetric radio waves and balanced compass; automated QA passed, real Pixel and final owner visual acceptance remain outstanding",
   "awardPolicy": "Badge awarded only on all seven permanent topic completion records; pathway completion has no badge; no progress-state material upgrade",
   "source": "Original Argus-made hand-authored vector reconstruction from owner-selected Nautical generated concept, 2026-10-07. No official military/diving organisation insignia or copied service marks.",
   "gitBlobSha": "71c4e805eab8fdf69cb76b653110820db0d3eb39",
@@ -34,7 +34,7 @@
       32
     ],
     "vectorXML": "well-formed in standalone reconstruction QA",
-    "mobileRuntime": "pending real Pixel and CI verification"
+    "mobileRuntime": "Automated browser suite passed across four viewports; real Pixel acceptance remains outstanding"
   },
   "notes": "Original vector reconstruction using the owner PNG as a composition/material reference, with vetted communication symbols rather than tracing its invented marks. A/Z Morse use 1:3 dot/dash proportions and equal one-unit gaps. Flags are November (4x4 blue/white), Zulu (yellow top/blue fly/red bottom/black hoist), Victor (red saltire/white) and Alfa (white hoist/blue swallowtail fly). Rope braid and pointed keeper refined against the reference; reconstruction is not pixel-identical. Final real-device artwork acceptance remains with owner.",
   "symbols": {

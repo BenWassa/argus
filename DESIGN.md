@@ -130,7 +130,7 @@ components:
 
 # Design System: Argus
 
-**Status:** current design contract with Morse/Home (#195) and Communicator Roles (#196) merged on 2026-10-07; deployment remains held until explicitly authorized.
+**Status:** current design contract with Morse/Home (#195) and Communicator Roles (#196) merged on 2026-10-07; included in the owner-authorized v1.5.0 release; real Pixel acceptance remains outstanding.
 **Authority:** design context. `docs/open/TOPIC_PAGE_REVAMP.md` and `docs/open/LIBRARY_COMPACT_TOPICS.md` own the pending topic-page and provenance contracts.
 
 ## 1. Overview
