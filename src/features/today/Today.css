@@ -60,144 +60,23 @@
   white-space: nowrap;
 }
 
-.today-note {
-  margin-top: var(--s-md);
-  color: var(--muted);
-}
 
-.today-sub {
-  margin-top: var(--s-xs);
-  font-size: var(--t-small);
-  color: var(--subtle);
+.home-readout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-lg) var(--s-md);
+  margin: var(--s-xl) 0 var(--s-2xl);
+  padding: var(--s-lg) 0;
+  border-block: 1px solid var(--line);
 }
-
-/* Today is a few large plates: the same objects the Library shows, set
-   bigger because there are at most three and each is something you are in the
-   middle of. Qualified with .index so the override does not depend on bundle
-   order: feature stylesheets are emitted before global.css. */
-.index.docket {
-  display: grid;
-  gap: var(--s-md);
-  margin-top: var(--s-xl);
-  border-top: 0;
-}
-
-.today-note + .index.docket {
-  margin-top: var(--s-lg);
-}
-
-/* Arrival: the plates rise in once, top first, and each gauge fills after
-   its plate lands. Transform and opacity only. */
-.today-entry {
-  animation: today-plate-in 340ms var(--ease) both;
-  animation-delay: calc(var(--order, 0) * 50ms);
-}
-
-@keyframes today-plate-in {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-}
-
-/* A plate not due today sits flush with the chassis: it is in motion, but it
-   is not what today asks for. The whole plate is the control, so there is no
-   chevron. */
-.index-row.today-plate {
-  grid-template-columns: minmax(0, 1fr);
-  align-items: start;
-  column-gap: var(--s-md);
-  row-gap: var(--s-md);
-  padding: var(--s-xl) var(--s-xl) var(--s-xl) var(--s-lg);
-  border: 1px solid var(--line);
-  border-radius: var(--r-xl);
-  background: var(--surface);
-  transition:
-    background var(--t-fast) var(--ease),
-    border-color var(--t-fast) var(--ease),
-    transform var(--t-fast) var(--ease),
-    box-shadow var(--t-fast) var(--ease);
-}
-
-.index-row.today-plate::after {
-  content: none;
-}
-
-/* Due plates are raised hardware: this is the work. */
-.index-row.today-plate[data-due] {
-  border-color: var(--line-strong);
-  border-top-color: var(--line-hover);
-  background: var(--sheen), var(--gradient-ghost);
-  box-shadow: var(--edge), var(--edge-under), var(--shadow-sm);
-}
-
-/* The first due plate is the day's key, and takes the depth Today reserves
-   for the required action now that no separate button carries it. */
-.index-row.today-plate[data-lead] {
-  box-shadow: var(--edge), var(--edge-under), var(--shadow-key);
-}
-
-.index-row.today-plate[data-repair] {
-  border-color: color-mix(in oklch, var(--warning) 45%, var(--line-strong));
-}
-
-.index-row.today-plate:hover {
-  border-color: var(--line-hover);
-  background: var(--surface-2);
-}
-
-.index-row.today-plate[data-due]:hover {
-  background: var(--sheen), var(--gradient-ghost-hover);
-}
-
-.index-row.today-plate:active {
-  transform: translateY(1px);
-  background: var(--surface-2);
-  box-shadow: var(--press);
-}
-
-.index-row.today-plate.has-topic-icon {
-  grid-template-columns: 36px minmax(0, 1fr);
-}
-
-.today-plate .topic-icon {
-  align-self: center;
-  width: 36px;
-  height: 36px;
-  object-fit: contain;
-}
-
-.today-plate-title {
+.home-readout > div {
+  display: flex;
+  flex: 1 1 5.5rem;
   min-width: 0;
-  font-size: var(--t-section);
-  letter-spacing: -0.018em;
-  line-height: 1.18;
+  flex-direction: column-reverse;
+  gap: var(--s-xs);
 }
-
-.today-plate .due-reason,
-.today-plate .gauge-bare {
-  grid-column: 1 / -1;
-}
-
-/* The bar closes the plate, set off a little further than the reason above. */
-.today-plate .gauge-bare {
-  margin-top: var(--s-xs);
-}
-
-.today-plate:not([data-due]) .due-reason {
-  color: var(--subtle);
-}
-
-.today-plate .gauge-track {
-  height: 8px;
-}
-
-.today-plate .gauge-fill {
-  --gauge-delay: calc(var(--order, 0) * 50ms + 220ms);
-}
-
-/* Why the topic surfaced today, not which rung it sits on. */
-.due-reason {
+.home-readout dt {
   font-family: var(--font-mono);
   font-size: var(--t-readout);
   font-weight: var(--w-label);
@@ -205,78 +84,93 @@
   text-transform: uppercase;
   color: var(--muted);
 }
-
-.due-reason.is-repair {
-  color: var(--warning);
-}
-
-.today-actions {
-  display: grid;
-  justify-items: stretch;
-  gap: var(--s-md);
-  margin-top: var(--s-xl);
-}
-
-/* The primary action on the empty states. On a working day the lead plate
-   carries the key depth instead. */
-.today-go {
-  display: grid;
-  gap: 2px;
-  width: 100%;
-  min-height: var(--control-h-lg);
-  padding: var(--s-md) var(--s-lg);
-  text-align: left;
-  box-shadow: var(--edge), var(--shadow-key);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .today-entry,
-  .today-plate .gauge-fill {
-    animation: none;
-  }
-}
-
-/* ---------------------------------------------------------------- primer -- */
-
-.primer-head {
-  margin-top: var(--s-xl);
-}
-
-.primer {
-  margin-top: var(--s-sm);
-  border-top: 1px solid var(--line);
-}
-
-.primer li {
-  padding: var(--s-md) 0;
-  border-bottom: 1px solid var(--line);
-}
-
-.primer-title {
-  display: block;
-  font-family: var(--font-display);
+.home-readout dd {
+  margin: 0;
+  font-family: var(--font-mono);
   font-size: var(--t-component);
   font-weight: var(--w-component);
-  letter-spacing: -0.008em;
+  color: var(--ink);
+  overflow-wrap: anywhere;
 }
-
-.primer-scope {
-  display: block;
-  margin-top: 3px;
-  max-width: var(--measure);
-  font-size: var(--t-small);
+.home-section-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-md);
+}
+.home-section-bar h2 {
+  font-size: var(--t-component);
   color: var(--muted);
 }
-
-@media (min-width: 980px) {
-  /* A full-width accent slab across a 760px column reads as a banner, not a
-     key. Higher specificity than .today-go so the cap actually lands. */
-  .today-actions {
-    justify-items: start;
-  }
-
-  .today-actions > button {
-    width: auto;
-    min-width: 280px;
-  }
+.index.docket {
+  display: grid;
+  gap: var(--s-md);
+  margin-top: var(--s-md);
+  border-top: 0;
+}
+.index-row.today-plate {
+  grid-template-columns: 56px minmax(0, 1fr);
+  align-items: center;
+  gap: var(--s-lg);
+  padding: var(--s-lg);
+  border: 1px solid var(--line-strong);
+  border-top-color: var(--line-hover);
+  border-radius: var(--r-xl);
+  background: var(--sheen), var(--gradient-ghost);
+  box-shadow: var(--edge), var(--edge-under), var(--shadow-sm);
+  transition: border-color var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
+}
+.index-row.today-plate::after { content: none; }
+.index-row.today-plate:hover {
+  border-color: var(--line-hover);
+  background: var(--sheen), var(--gradient-ghost-hover);
+}
+.index-row.today-plate:active {
+  transform: translateY(1px);
+  box-shadow: var(--press);
+}
+.home-topic-copy { display: grid; gap: var(--s-sm); min-width: 0; }
+.today-plate-title {
+  font-size: var(--t-component);
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+.home-topic-reading {
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  line-height: 1.4;
+  color: var(--muted);
+}
+.home-topic-reading.is-repair { color: var(--warning); }
+.home-dial {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--r-pill);
+  background: var(--field);
+  box-shadow: var(--engrave);
+}
+.home-dial svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+.home-dial circle { fill: none; stroke-width: 3; }
+.home-dial-track { stroke: var(--line-strong); }
+.home-dial-arc { stroke: var(--ink); stroke-linecap: round; }
+.home-dial-stage { stroke: var(--muted); stroke-dasharray: 3 9; }
+.home-dial.is-complete .home-dial-stage { stroke: var(--complete); stroke-dasharray: none; }
+.home-dial.is-repair .home-dial-stage { stroke: var(--warning); }
+.home-dial-mark { color: var(--muted); font-family: var(--font-mono); font-size: var(--t-component); }
+.home-dial.is-repair .home-dial-mark { color: var(--warning); }
+.home-add.quiet {
+  display: block;
+  min-height: 44px;
+  margin-top: var(--s-xl);
+  padding: var(--s-sm) 0;
+  text-align: left;
+  color: var(--ink);
+}
+.home-empty { display: grid; justify-items: start; gap: var(--s-lg); }
+.today-note { color: var(--muted); }
+@media (prefers-reduced-motion: reduce) {
+  .index-row.today-plate { transition: none; }
 }

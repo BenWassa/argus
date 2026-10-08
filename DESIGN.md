@@ -130,7 +130,7 @@ components:
 
 # Design System: Argus
 
-**Status:** current shipped contract; #175 is deployed in v1.3.3 (2026-10-03).
+**Status:** current design contract with combined Morse/Home candidate changes (2026-10-07); production deployment is pending.
 **Authority:** design context. `docs/open/TOPIC_PAGE_REVAMP.md` and `docs/open/LIBRARY_COMPACT_TOPICS.md` own the pending topic-page and provenance contracts.
 
 ## 1. Overview
@@ -219,12 +219,12 @@ Depth is then built from four things, in this order: **tonal layering**; an **ed
 - **`--engrave`**: anything cut into the surface — inputs, progress tracks, an engaged filter chip.
 - **`--press` / `--press-lit`**: a held control, dropping into the chassis. The lit variant is for the polished primary, which does not need half a stop of black in it to look held.
 - **`--shadow-sm`**: buttons and small raised controls.
-- **`--shadow-key`**: the required action on Today, when there is one.
+- **`--shadow-key`**: a focused required action; Home topic plates use the modest `--shadow-sm` instead.
 - **`--shadow`**: the flashcard, the one focused surface in a session.
 - **`--shadow-lift`**: the completion moment, and the sheet.
 
 ### Named Rules
-**One Lit Surface Rule.** At most one surface per view is lit. In a session it is the card. On Today it is the required action itself, the first due plate, so a day with nothing due carries no key shadow anywhere, because there is no work. Everything else sits flush with a bevel at most.
+**One Lit Surface Rule.** At most one surface per view is lit. In a session it is the card. Home uses modestly raised plates with small shadows; no plate receives the session key depth. Neutral dial brightness carries finite progress without coloring topics by subject.
 
 The rule says *at most*, not *exactly*. A view with nothing to light is allowed to stay dark. Learn briefings are editorial flow, not raised surfaces, so they do not create a second lit object.
 
@@ -284,21 +284,17 @@ The richer Learn layer is a compact reference briefing, not an article template 
 - Tables wrap content aggressively and may scroll inside their own focusable wrapper at extreme text scaling. The page itself must not overflow horizontally at 200% text scaling.
 - No animation is needed for briefing comprehension; reduced-motion behavior is therefore inherited without special alternative content.
 
-### Topic rows
-Today's docket is a dense index: no radius, full-width bottom hairline, sans title, mono readout metadata, and a chevron.
+### Home
 
-Library rows are **plates** instead (see Library list). Ruled rows were a deliberate rejection of the obvious gunmetal move, a card per topic, and they are still right where density is the job. On the Library the owner found hairline rows flat and the chevrons unwanted, so each topic became its own stamped plate: one object per topic, the whole plate the control, no chevron or nested surface. Shipped topics carry small recognition icons beside their titles.
+Home keeps the Argus/date/profile masthead. A single compact, reflowing instrument readout reports Completed, In progress and Last active. Its figures are mono; no icons, gauges or separate metric cards appear in the strip.
 
-### The docket
-Today is a few large **plates** (at most three) for topics already in motion: started and not yet banked, or needing repair. A topic nobody has started is Library's to offer, and a banked topic rests in Library, where it can be checked whenever the learner chooses. Nothing waits on a clock, so there is no "not due yet" plate; plates come in the ladder's own ranking.
+Active topics lead the body, bounded to three plates in the journey's priority order. Plates use the existing ghost/sheened gunmetal, both bevels and `--shadow-sm`; no deep key shadow or subject color is applied. Each plate has one recessed circular instrument and a title with one concise progression reading. Morse acquisition uses a real settled/total arc; ordinary topics without item-level evidence use a dashed Building recall state rather than a partial percentage. Repair uses a named reading and the tarnish dial/mark. Home has no redundant horizontal gauge, topic icon or procedural lesson/Test label.
 
-Each plate is the same object as a Library plate, set bigger: section-size title, a neutral recognition icon for shipped topics, one mono line, and the bare gauge (no label, its reading kept for a screen reader). User-authored topics have no placeholder icon. A due plate's line is the schedule's own reason (`Ready to test`, `Lesson in progress`, `Needs repair` in tarnish); a plate that is not due says `Not due yet` and sits flush.
+The whole plate opens its topic; rings are informational and have a visible text equivalent. Home ends with `+ Add something to learn`, reusing the existing capture or deterministic authoring fallback. The mobile navigation is inset, rounded and modestly raised in the existing materials, with a polished current state. Desktop keeps its attached left rail. The route remains internally `today` for restored history.
 
-**Every plate opens its topic**, due or not: the same topic page a Library plate opens. Today starts no run itself, so a topic is always entered one way, and its action is always chosen on the topic page, where a Test's consequence is stated. This reverses the earlier one-tap rule, under which a due plate started its Test or lesson directly (owner decision, 2026-09-26).
+### Guided Morse sending
 
-**Today states no quantities**: no item counts, no topic counts, no sitting counts, no batch button, no `Test the other` link and no standing note about scoring. The first due plate carries `--shadow-key`, the depth Today reserves for the required action; nothing else on the page is lit. Plates rise in 50ms apart and their gauges fill after them; all of it is off under reduced motion.
-
-`docs/open/ISSUE_127_TODAY_REDESIGN_CONCEPTS.md` (#127) holds the redesign directions this interim layout is expected to be replaced by.
+Sending uses the shared full-screen session grammar, one stable written target, a recessed sent readout and the shared Morse key. Spotlight highlights one letter and reserves feedback space; continuous sending retains the whole target, with explicit word gaps for phrases/messages. Review presents target and received text with one primary next action. Sending leads Fluency, while listening spacing remains separate. Reduced motion, keyboard input and audio/haptic absence preserve the interaction state.
 
 ### Stat strip
 One bordered container divided by hairlines, reading as a single instrument panel. Every figure is a reading, so every figure is mono.
@@ -308,7 +304,7 @@ Two named shelves, each a mono label with its count on the same line: `Started` 
 
 Each topic is its own **plate**, 8px apart, 12px radius, with no chevron because the plate is the control. A started topic's plate is raised (ghost face, sheen, both bevels, `--shadow-sm`); a not-started one sits flush (`--surface`, hairline, no bevel), so the shelves differ in depth. A decayed topic's plate takes tarnish in its full hairline, never a side stripe. Held, a plate drops a pixel into the chassis with `--press`.
 
-A shipped topic leads with a neutral recognition icon beside its title, whether started or not. User-authored topics retain the title-only layout. The shared Library and Today icon system is specified in `docs/open/LIBRARY_TOPIC_ICONS.md`. A started plate carries exactly one reading under the title, spanning the full plate width: its gauge, with the gauge's label beneath in its own units (`27 days of the gap to go`, `Banked`), or, where there is no measure yet, the schedule's own sentence (`Ready to drill`). A decayed topic says `Needs repair` in tarnish behind a small diamond, so decay is never colour alone. A not-started row has no reading. No row carries an action button, item count or track name. Search is a single icon control that opens leftwards over the heading.
+A shipped topic leads with a neutral recognition icon beside its title, whether started or not. User-authored topics retain the title-only layout. The shared Library and Home icon system is specified in `docs/open/LIBRARY_TOPIC_ICONS.md`. A started plate carries exactly one reading under the title, spanning the full plate width: its gauge, with the gauge's label beneath in its own units (`27 days of the gap to go`, `Banked`), or, where there is no measure yet, the schedule's own sentence (`Ready to drill`). A decayed topic says `Needs repair` in tarnish behind a small diamond, so decay is never colour alone. A not-started row has no reading. No row carries an action button, item count or track name. Search is a single icon control that opens leftwards over the heading.
 
 The list arrives once: rows rise 8px and fade in, 24ms apart and capped at twelve, with each gauge filling just after its row lands. Hover lifts the plate one tonal step. All of it is transform and opacity, and all of it is off under reduced motion.
 

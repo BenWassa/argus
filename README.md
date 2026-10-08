@@ -44,7 +44,7 @@ The production site is **https://argus-b7a5a.web.app**, on Firebase Hosting. Git
 
 `npm run build:demo` (`vite build --mode demo`) produces an embeddable, local-only copy of Argus for the portfolio. It needs no secrets: `.env.demo` is committed and blanks every Firebase value, and a demo build ignores Firebase configuration regardless.
 
-- It opens on the shipped catalog with sample progress already on it (the repository's own `seedLibrary()` fixture: a drilled NATO alphabet, an OODA loop in learning, a banked bearings topic), so Today and Library are populated on first load.
+- It opens on the shipped catalog with sample progress already on it (the repository's own `seedLibrary()` fixture: a drilled NATO alphabet, an OODA loop in learning, a banked bearings topic), so Home and Library are populated on first load.
 - It is local by construction: no sign-in, no sync, no inbox and no service worker.
 - It never reads or writes the library in browser storage, so a reload always returns to the same sample and a real library under the same origin is never touched. Reset in Profile returns to the sample.
 - It is a property of the build, not the URL. `?mode=demo` does nothing, and the production build cannot enter demo mode.
@@ -62,12 +62,15 @@ The **full offline-first runtime guarantee is active scope in #113**, not yet a 
 
 ## Durable product and programme documentation
 
+- [Combined Morse and Home candidate](docs/open/MORSE_HOME_RELEASE_CANDIDATE.md) — implemented scope, checks and remaining release acceptance.
+- [Selected Home implementation](docs/open/ISSUE_193_HOME_REDESIGN.md) — combined candidate behavior and remaining Pixel acceptance.
+- [Next release review](docs/open/NEXT_RELEASE_REVIEW.md) — current baseline, candidate readiness and options for the next feature release.
 - `docs/README.md` — documentation lifecycle and open/closed housekeeping.
 - `PRODUCT.md` — current implemented product contract and design principles.
 - `DESIGN.md` / `DESIGN.json` — current visual and interaction system.
 - `docs/LIBRARY_ROADMAP.md` — authoritative library-expansion priorities, families, issue ownership and execution order.
 - `docs/LIBRARY_RESEARCH_METHOD.md` — authoritative method for source hierarchy, completion claims, media choice, claim traceability, QA and implementation handoff for new library topics.
-- `docs/open/LIBRARY_TOPIC_ICONS.md` — active visual and asset contract for shipped topic icons on Library and Today.
+- `docs/open/LIBRARY_TOPIC_ICONS.md` — active visual and asset contract for shipped topic icons on Library. Home uses neutral progress dials.
 - `docs/open/LIBRARY_COMPACT_TOPICS.md` — shipped compact library topic contract: sources in a centred modal, prose budgets and guarded refreshes for existing libraries (#166).
 - `docs/closed/COMPACT_LIBRARY_REVIEW.md` — completed source/code review and resolved safety-copy findings for #175.
 - `docs/closed/RELEASE_1_3_3.md` — v1.3.3 review, release-gate and verified Firebase Hosting delivery record.
@@ -84,7 +87,7 @@ The **full offline-first runtime guarantee is active scope in #113**, not yet a 
 - [Topic-page revamp](docs/open/TOPIC_PAGE_REVAMP.md) — one-test completion, ordered recall, folded reference support and artwork delivery.
 - [Cloud visual guide and asset ledger](docs/closed/ISSUE_131_WMO_CLOUD_VISUAL_GUIDE.md) — shipped textual vocabulary Test with unscored, credited photographs.
 - `docs/closed/ISSUE_141_CLOUD_WEATHER_RECOGNITION.md` — completed cloud/weather recognition research authority; scored photographic recognition remains deferred.
-- `docs/open/ISSUE_127_TODAY_REDESIGN_CONCEPTS.md` — proposed concepts for what Today holds and how it behaves (#127), companion to the visual-styling exploration in #126.
+- `docs/open/ISSUE_127_TODAY_REDESIGN_CONCEPTS.md` — Home exploration history (#127); the selected implementation is maintained in #193.
 - `docs/closed/LIBRARY_AUDIT.md` — reconciled shipped-library boundary/content audit.
 - `docs/closed/SEEDED_CONTENT_PROVENANCE.md` — authoritative source record and Test boundary for every shipped catalog topic.
 - `docs/open/CONTENT_INBOX.md` — content-inbox and curated-ingestion architecture, and the Firebase setup it needs.
@@ -99,6 +102,7 @@ The **full offline-first runtime guarantee is active scope in #113**, not yet a 
 - `docs/open/MORSE_AUDIO_RUNTIME.md` — maintained Web Audio lifecycle and first-press regression contract for every Morse audio surface.
 - `docs/open/MORSE_FLUENCY.md` — maintained contract for the post-acquisition Fluency surface: the pinned character speed and Farnsworth ladder, the four modes, the automaticity measures, the haptic vocabulary and the formative-only evidence boundary.
 - `docs/open/MORSE_INTERMEDIATE_PATH.md` — maintained contract for Morse after the alphabet: the uncued Test floor, a full check or a short review whenever the learner chooses, Copy (letters to sentences, figures and punctuation), free play and the spacing ladder to 20 WPM.
+- `docs/open/ISSUE_188_MORSE_SENDING_GAMEPLAY.md` — active, owner-pending design for repeatable printed-text → keyed-Morse games, beginner-to-sentence sending, field-message options and free-play improvements; **not yet implemented**.
 - `docs/closed/ISSUE_119_MORSE_POST_ACQUISITION_FLUENCY_RESEARCH.md` — the sources, architecture audit and rejected options behind `MORSE_FLUENCY.md`.
 - `docs/open/ISSUE_113_OFFLINE_FIRST_RUNTIME.md` — active contract for IndexedDB local authority, durable sync/outbox, deterministic offline PWA launch, storage lifecycle and content-size/download policy.
 - `docs/closed/MORSE_PROVENANCE_RECONCILIATION.md` — provenance/doc-reconciliation closeout for the pre-#28 documentation lane.

@@ -322,7 +322,8 @@ export function AppRouter() {
       {view === 'today' && (
         <Today
           onOpenTopic={(id) => navigate({ kind: 'topic', topicId: id })}
-          onGoToLibrary={() => {
+          onGoToLibrary={() => navigate({ kind: 'section', view: 'library' })}
+          onAuthorTopic={() => {
             setAuthorOnEntry(true)
             navigate({ kind: 'section', view: 'library' })
           }}

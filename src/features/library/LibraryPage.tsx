@@ -10,8 +10,7 @@ import { TopicForm, type Draft } from './TopicForm'
 import { TopicPage } from './TopicPage'
 import { TopicGauge } from './TopicGauge'
 import { gaugeLabel, gaugeReading } from './gaugeReading'
-import { CaptureSheet } from './CaptureSheet'
-import { useInbox } from '../../services/inbox/useInbox'
+import { useTopicCapture } from './useTopicCapture'
 import type { Mode } from '../../domain/study/mode'
 import { TRACKS, type Topic } from '../../domain/library/topic'
 import { topicIcon } from './topicIcon'
@@ -76,12 +75,11 @@ export function LibraryPage({
   // The inbox is a neighbour of the library, never a part of it. Capture is
   // reached from the + button; its requests never enter `topics`, so nothing
   // here can reach the scheduler, a Test run, progress or completion.
-  const inbox = useInbox()
-  const [capturing, setCapturing] = useState(false)
 
   const [query, setQuery] = useState('')
   const [searchOpen, setSearchOpen] = useState(false)
   const [announcement, setAnnouncement] = useState('')
+  const capture = useTopicCapture(() => setAnnouncement('Added to Want to learn.'))
 
   const searchId = useId()
   const searchField = useRef<HTMLInputElement>(null)
@@ -185,7 +183,7 @@ export function LibraryPage({
   // Capture needs a working inbox. Without one there is only one real choice,
   // so the FAB skips straight to it rather than opening a menu with one option.
   function openAdd() {
-    if (inbox.status !== 'ready') {
+    if (!capture.available) {
       newTopic()
       return
     }
@@ -239,19 +237,13 @@ export function LibraryPage({
           }}
           onWantToLearn={() => {
             setAddMenuOpen(false)
-            setCapturing(true)
+            capture.openCapture()
           }}
           onClose={() => setAddMenuOpen(false)}
         />
       )}
 
-      {capturing && (
-        <CaptureSheet
-          onSubmit={inbox.addRequest}
-          onClose={() => setCapturing(false)}
-          onCaptured={() => setAnnouncement('Added to Want to learn.')}
-        />
-      )}
+      {capture.overlay}
 
       {pendingDelete && (
         <Confirm

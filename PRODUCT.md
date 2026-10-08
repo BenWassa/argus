@@ -1,6 +1,6 @@
 # Product
 
-**Status:** current shipped contract; #175 is deployed in v1.3.3 (2026-10-03).
+**Status:** current product contract with combined Morse/Home candidate changes (2026-10-07); production deployment is pending.
 **Authority:** product context. Maintained behaviour contracts live in `docs/open/`; the compact-topic and topic-page documents own the shipped #166 behaviour.
 
 ## Register
@@ -11,7 +11,7 @@ product
 
 Ben, the owner and sole user for the beta: a self-directed learner building a personal library of finite, closed-scope competencies (recall systems, psychology frameworks, emergency medicine, navigation, observation and counter-surveillance tradecraft). He authors topics himself rather than consuming a catalogue, and tests recall in short mobile sessions — on a phone, in spare five-minute windows — not at a desk in a dedicated study block. The desktop surface exists for authoring and review, not as the primary recall context.
 
-The job to be done, every session: see what's due, do the one thing the schedule is asking for, and leave. Nothing else competes with that on open.
+The job to be done, every session: find a topic already in motion, open it, and do the next useful thing. Home keeps three active topics and a compact reading of the durable learning record.
 
 ## Modes
 
@@ -31,11 +31,19 @@ Argus tracks four different things about a topic and deliberately does not avera
 - **Retention** — has a clean eligible Test demonstrated recall?
 - **Current sitting** — where are you inside the finite task you are doing right now?
 
-One shared derivation reads all four and answers the only question the learner actually asks — *what should I do next, and why* — so Today, Library and Topic cannot contradict each other about the same topic at the same instant. There is no single progress percentage, because a number averaging those four would not mean anything.
+One shared derivation reads all four and answers the only question the learner actually asks — *what should I do next, and why* — so Home, Library and Topic cannot contradict each other about the same topic at the same instant. There is no single progress percentage, because a number averaging those four would not mean anything.
 
-The learner is not asked to hold all four at once. Each surface states one sentence about a topic, in the schedule's own words, and the consequences of the other dimensions are stated where they bite: on a Test's end screen, on a row's status line. The dimensions stay four separate fields; they stopped being a printed table.
+The learner is not asked to hold all four at once. Home reports topic progression in its own units; Library and Topic retain the journey's action and state language. Consequences are stated where they bite: on a Test's end screen and the topic's status line. The dimensions stay four separate fields; they stopped being a printed table.
 
-**Progress is not a destination.** Its live sections were a third projection of the same derivation Library already shelves, and its one unique artifact — the permanent completion record — now closes Library, composed rather than listed. Nothing it showed was lost. Navigation is two destinations, `Today` and `Library`; `Profile` is a Today child reached from its header. It owns account, sync, export, import, and reset without spending a quarter of the bottom bar on utilities or mixing account controls into the learning Library.
+**Progress is not a destination.** Its live sections were a third projection of the same derivation Library already shelves, and its one unique artifact — the permanent completion record — now closes Library, composed rather than listed. Nothing it showed was lost. Navigation is two destinations, `Home` and `Library`; `Profile` is a Home child reached from its header. It owns account, sync, export, import, and reset without spending a quarter of the bottom bar on utilities or mixing account controls into the learning Library.
+
+## Home and formative sending
+
+Home shows Completed (permanent completion records), In progress (started and never completed), and Last active (latest existing durable study timestamp). Repair preserves historical completion. Formative activity without a timestamp does not silently update Last active.
+
+At most three started topics in motion appear in the existing journey priority order, including repair. Each plate opens its topic. Morse rings show settled characters out of the finite roster; ordinary topics without item evidence use a discrete Building recall dial, never a fabricated percentage. Repair is named in text as well as tarnish. Home reuses Library's Want-to-learn capture directly when available, otherwise opens the existing new-topic form. Internal `today` history entries remain compatible.
+
+After the Morse alphabet, guided sending leads Fluency: Spotlight words, Word flow, Phrases, Short messages and fictional Dispatch. Every stage remains available. A 90% formative best suggests progression; only `morseFluency.bests` changes, with no Test evidence, scheduler or completion writes. Continuous stages use pause-delimited letters and explicit word gaps. Listening spacing controls affect Copy/listening drills, not sending. Phone key duration classifies dit/dah and is never a sending-speed claim.
 
 ## Content boundary
 
@@ -62,7 +70,7 @@ A request has no bearing on the learning record, and the inbox being signed out 
 
 The library is **local-first and synced**, in that order. The copy in the browser is the one Argus reads and writes, and once signed in every surface works exactly the same with no network, offline or on a flight, the way it did before there was an account. Signing in with Google lays a mirror over that copy so one owner's devices hold the same record, and signing out leaves the local copy untouched.
 
-A build with Firebase configured asks who you are before anything else: `Today`, `Library` and every learning surface stay unmounted behind a sign-in screen until the owner is signed in, because the learning record is now an account's record rather than a browser's (#93 §1). A returning owner sees a brief "Checking your session…" rather than the button, never the library, while that resolves. A build with no Firebase configuration — the one the browser test suite runs, and what the repository has always supported — has nothing to gate and opens straight to Today, entirely local and entirely optional.
+A build with Firebase configured asks who you are before anything else: `Home`, `Library` and every learning surface stay unmounted behind a sign-in screen until the owner is signed in, because the learning record is now an account's record rather than a browser's (#93 §1). A returning owner sees a brief "Checking your session…" rather than the button, never the library, while that resolves. A build with no Firebase configuration — the one the browser test suite runs, and what the repository has always supported — has nothing to gate and opens straight to Home, entirely local and entirely optional.
 
 Sync is deliberately narrow. It carries the record as the exact JSON the v5 storage boundary already validates, rather than as a second Firestore-shaped schema that could drift from it, and an arriving record goes through that same boundary before it reaches the library — so sync cannot widen what a topic is allowed to be, and cannot affect what has been proved. One document per topic means two devices working on different topics do not overwrite each other.
 

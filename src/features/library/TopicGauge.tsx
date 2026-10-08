@@ -20,8 +20,8 @@ import { gaugeFill, gaugeLabel, gaugeReading } from './gaugeReading'
  * `variant` is density, not meaning. A row sets the reading beside a short bar,
  * because a bar with no units on a list of titles is a shape to decode. The
  * topic page sets it beneath a full-width one, and may replace it with a fuller
- * caption in the same units. Today's plates are `bare`: the bar alone, its
- * reading kept for a screen reader, because Today states no quantities.
+ * caption in the same units. The legacy `bare` variant keeps its reading for screen readers. Home now
+ * uses a separate circular progress instrument.
  */
 export function TopicGauge({
   topic,

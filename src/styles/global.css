@@ -459,7 +459,7 @@ main {
   width: min(100%, 720px);
   margin-inline: auto;
   padding: var(--s-xl) max(var(--s-lg), env(safe-area-inset-left))
-    calc(72px + env(safe-area-inset-bottom));
+    calc(90px + env(safe-area-inset-bottom));
 }
 
 main:focus {
@@ -494,13 +494,14 @@ main:focus {
    way. Desktop gets a genuinely different structure below, not this widened. */
 .nav {
   position: fixed;
-  inset: auto 0 0;
+  inset: auto max(var(--s-sm), env(safe-area-inset-right)) max(var(--s-sm), env(safe-area-inset-bottom)) max(var(--s-sm), env(safe-area-inset-left));
   z-index: 20;
   display: flex;
-  border-top: 1px solid var(--line-strong);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-xl);
   background: linear-gradient(180deg, var(--surface-2), var(--surface));
-  box-shadow: var(--edge), 0 -4px 18px rgb(0 0 0 / 40%);
-  padding-bottom: env(safe-area-inset-bottom);
+  box-shadow: var(--edge), var(--edge-under), var(--shadow-sm);
+  padding: var(--s-xs);
 }
 
 .nav .brand {
@@ -525,7 +526,7 @@ main:focus {
   gap: 3px;
   padding: 6px 2px;
   border: 0;
-  border-radius: 0;
+  border-radius: var(--r-lg);
   font-size: 0.72rem;
   font-weight: var(--w-label);
   color: var(--muted);
@@ -544,6 +545,8 @@ main:focus {
 }
 
 .nav-btn[aria-current='page'] {
+  background: var(--surface-3);
+  box-shadow: var(--edge), var(--edge-under);
   color: var(--accent-2);
 }
 
@@ -971,7 +974,8 @@ main:focus {
     flex-direction: column;
     align-items: stretch;
     padding: var(--s-xl) var(--s-md);
-    border-top: 0;
+    border: 0;
+    border-radius: 0;
     border-right: 1px solid var(--line-strong);
     /* The rail is attached on the left, so the light and the shadow it casts
        both turn ninety degrees with it. */

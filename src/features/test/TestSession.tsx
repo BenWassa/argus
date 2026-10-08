@@ -586,7 +586,7 @@ export function TestSession({ topicIds, review = false, onExit, onPractice }: Te
     return (
       <section className="session">
         <h1>Nothing to run</h1>
-        <p>These topics have no items yet. Add items to a topic and it will come back to Today.</p>
+        <p>These topics have no items yet. Add items to a topic and it will come back to Home.</p>
         <button type="button" onClick={onExit}>
           Back to today
         </button>

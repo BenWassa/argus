@@ -1,0 +1,348 @@
+/* The session owns its full viewport; its shell must not add a top gutter. */
+.session-shell main:has(.send-run) {
+  padding-top: 0;
+}
+
+/*
+ * Guided sending is still Argus: one gunmetal task surface, one key, one
+ * polished action when a decision is required. The target is language (sans);
+ * position and scores are readings (mono).
+ */
+
+.send-run {
+  box-sizing: border-box;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 100svh;
+  padding-bottom: max(var(--s-lg), env(safe-area-inset-bottom));
+}
+
+.send-run .session-bar {
+  margin-bottom: var(--s-lg);
+}
+
+.send-stage {
+  display: grid;
+  grid-template-rows: auto auto minmax(10rem, 1fr);
+  align-content: stretch;
+  gap: var(--s-lg);
+  min-height: 0;
+}
+
+.send-stage-head {
+  display: grid;
+  justify-items: center;
+  gap: var(--s-sm);
+  min-width: 0;
+  text-align: center;
+}
+
+.send-kicker {
+  margin: 0;
+  color: var(--subtle);
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  font-weight: var(--w-label);
+  letter-spacing: var(--track-readout);
+  text-transform: uppercase;
+}
+
+.send-target {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font);
+  font-weight: var(--w-page);
+  line-height: 1.04;
+  letter-spacing: 0.035em;
+}
+
+.send-target-word {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.05em;
+  font-size: clamp(2.6rem, 15vw, 5.4rem);
+}
+
+.send-target-word > span {
+  display: inline-grid;
+  place-items: center;
+  min-width: 0.72em;
+  padding: 0.08em 0.025em;
+  border-radius: var(--r-sm);
+  color: var(--ink);
+  transition:
+    color var(--t-fast) var(--ease),
+    box-shadow var(--t-fast) var(--ease);
+}
+
+.send-target-word > span.is-current {
+  box-shadow: inset 0 -0.12em 0 var(--accent);
+}
+
+.send-target-word > span.is-done {
+  color: var(--subtle);
+}
+
+.send-target-message {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.22em 0.36em;
+  max-width: 34rem;
+  font-size: clamp(1.55rem, 7.4vw, 2.65rem);
+  line-height: 1.16;
+  letter-spacing: -0.01em;
+}
+
+.send-target-message > span {
+  padding: 0.08em 0.05em;
+  border-radius: var(--r-sm);
+  color: var(--muted);
+}
+
+.send-target-message > span.is-current-word {
+  color: var(--ink);
+  box-shadow: inset 0 -0.1em 0 var(--accent);
+}
+
+.send-purpose {
+  max-width: 34rem;
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--t-small);
+  line-height: 1.45;
+}
+
+.send-output {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: baseline;
+  gap: var(--s-sm);
+  min-height: 3.1rem;
+  padding: var(--s-sm) var(--s-md);
+  border-radius: var(--r-md);
+  background: var(--field);
+  box-shadow: var(--engrave);
+}
+
+.send-output-label {
+  color: var(--subtle);
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  font-weight: var(--w-label);
+  letter-spacing: var(--track-readout);
+  text-transform: uppercase;
+}
+
+.send-output-value {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: clamp(1rem, 4.8vw, 1.35rem);
+  letter-spacing: 0.04em;
+}
+
+.send-key-zone {
+  align-self: end;
+  display: grid;
+  gap: var(--s-md);
+  width: min(100%, 34rem);
+  margin-inline: auto;
+}
+
+.send-feedback-slot {
+  display: grid;
+  place-items: center;
+  min-height: 4.35rem;
+}
+
+.send-feedback-placeholder {
+  color: transparent;
+  user-select: none;
+}
+
+.send-feedback {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-sm);
+  width: 100%;
+  min-height: 4rem;
+  padding: var(--s-sm) var(--s-md);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  box-shadow: var(--edge), var(--edge-under);
+  text-align: center;
+}
+
+.send-feedback.is-correct {
+  border-color: color-mix(in oklch, var(--ok) 62%, var(--line));
+}
+
+.send-feedback.is-wrong {
+  border-color: color-mix(in oklch, var(--danger) 68%, var(--line));
+}
+
+.send-feedback strong {
+  color: var(--ink);
+}
+
+.send-feedback.is-correct strong {
+  color: var(--ok);
+}
+
+.send-feedback.is-wrong strong {
+  color: var(--danger);
+}
+
+.send-flow-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-sm);
+}
+
+/* Review is a decision state, so one polished action is allowed. */
+.send-review,
+.send-summary {
+  align-content: start;
+}
+
+.send-review-card,
+.send-summary-card {
+  display: grid;
+  gap: var(--s-lg);
+  width: min(100%, 36rem);
+  margin-inline: auto;
+  padding: var(--s-lg);
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  background: linear-gradient(180deg, var(--surface-2), var(--surface));
+  box-shadow: var(--edge), var(--edge-under), var(--shadow);
+}
+
+.send-review-card h1,
+.send-summary-card h1 {
+  margin: 0;
+  font-family: var(--font);
+  font-size: var(--t-section);
+  line-height: 1.15;
+}
+
+.send-review-card h1.is-correct {
+  color: var(--ok);
+}
+
+.send-compare {
+  display: grid;
+  gap: var(--s-md);
+  margin: 0;
+}
+
+.send-compare > div {
+  display: grid;
+  gap: var(--s-xs);
+  padding: var(--s-md);
+  border-radius: var(--r-md);
+  background: var(--field);
+  box-shadow: var(--engrave);
+}
+
+.send-compare dt {
+  color: var(--subtle);
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  font-weight: var(--w-label);
+  letter-spacing: var(--track-readout);
+  text-transform: uppercase;
+}
+
+.send-compare dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: clamp(1rem, 5.4vw, 1.45rem);
+  line-height: 1.4;
+  letter-spacing: 0.035em;
+}
+
+.send-review-score,
+.send-score {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-weight: var(--w-label);
+}
+
+.send-review-score {
+  font-size: var(--t-component);
+}
+
+.send-score {
+  font-size: clamp(3rem, 17vw, 5.8rem);
+  line-height: 0.95;
+  letter-spacing: -0.045em;
+}
+
+.send-summary-copy {
+  margin: 0;
+  color: var(--muted);
+}
+
+.send-summary-actions {
+  display: grid;
+  gap: var(--s-sm);
+}
+
+/* The shared key owns the physical interaction. Do not let surrounding
+   controls crowd it on shorter phones. */
+@media (max-height: 720px) and (max-width: 480px) {
+  .send-run {
+    padding-top: var(--s-lg);
+  }
+
+  .send-run .session-bar {
+    margin-bottom: var(--s-md);
+  }
+
+  .send-stage {
+    gap: var(--s-md);
+  }
+
+  .send-purpose {
+    font-size: 0.78rem;
+  }
+
+  .send-feedback-slot {
+    min-height: 3.5rem;
+  }
+
+  .send-target-message {
+    font-size: clamp(1.35rem, 6.7vw, 2.2rem);
+  }
+}
+
+@media (max-width: 380px) {
+  .send-target-word {
+    font-size: clamp(2.25rem, 13vw, 4rem);
+  }
+
+  .send-target-message {
+    font-size: clamp(1.35rem, 7vw, 2.1rem);
+  }
+
+  .send-output {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .send-target-word > span {
+    transition: none;
+  }
+}

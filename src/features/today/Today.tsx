@@ -1,180 +1,96 @@
-import type { CSSProperties } from 'react'
+import { useState } from 'react'
 import { useLibrary } from '../../services/library/LibraryProvider'
 import { dueEntries, journeysFor, type JourneyEntry } from '../../domain/study/journey'
 import { hasStarted } from '../../domain/study/libraryGroups'
-import { TopicGauge } from '../library/TopicGauge'
-import { topicIcon } from '../library/topicIcon'
+import { homeProgress, homeReadout, type HomeProgress } from '../../domain/study/home'
+import { useTopicCapture } from '../library/useTopicCapture'
 import './Today.css'
 
-const WORDS = [
-  'no', 'one', 'two', 'three', 'four', 'five', 'six',
-  'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve',
-]
-
-/** How many plates Today shows. Today is the few things already in motion,
- *  not the library again; everything else is one tap away in Library. */
-const TODAY_VISIBLE = 3
-
-/** Small counts read as prose. Past twelve the numeral is clearer than the word. */
-function count(n: number): string {
-  return n <= 12 ? WORDS[n] : String(n)
-}
-
-function topicCount(n: number): string {
-  return `${count(n)} ${n === 1 ? 'topic' : 'topics'}`
-}
-
-function sentence(s: string): string {
-  return s.charAt(0).toUpperCase() + s.slice(1)
-}
-
-function militaryDate(date: Date): string {
-  const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
-  return `${String(date.getDate()).padStart(2, '0')} ${months[date.getMonth()]} ${date.getFullYear()}`
-}
-
-/**
- * What Today holds: topics the learner has already started and that are still
- * in motion, in the ladder's own ranking. Nothing waits on a clock, so every
- * started topic that is not banked is here. A banked topic rests in Library,
- * where it can be checked whenever the learner chooses; a topic nobody has
- * started is Library's to offer, not Today's.
- */
+/** Keep the established priority order, including historically completed repair. */
 export function inProgress(entries: JourneyEntry[]): JourneyEntry[] {
   return dueEntries(entries.filter((entry) => entry.topic.items.length > 0 && hasStarted(entry)))
 }
 
-/** Mirrors the seeded library, so the empty state teaches the shape of a topic
- *  rather than restating the rule in the abstract. */
-const PRIMER = [
-  {
-    title: 'NATO Alphabet',
-    scope: 'The 26 letters A to Z and their code words. Nothing else.',
-  },
-  {
-    title: 'Primary Survey',
-    scope: 'The five ABCDE steps in assessment order.',
-  },
-  {
-    title: 'Compass Bearings',
-    scope: 'The eight compass points and their degree values.',
-  },
-]
+function militaryDate(date: Date, year = true): string {
+  const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
+  return `${String(date.getDate()).padStart(2, '0')} ${months[date.getMonth()]}${year ? ` ${date.getFullYear()}` : ''}`
+}
 
 interface TodayProps {
   onOpenTopic: (topicId: string) => void
   onGoToLibrary: () => void
+  onAuthorTopic: () => void
   onOpenProfile: () => void
 }
 
-export function Today({ onOpenTopic, onGoToLibrary, onOpenProfile }: TodayProps) {
+/** Home keeps the historical `today` route so restored history stays valid. */
+export function Today({ onOpenTopic, onGoToLibrary, onAuthorTopic, onOpenProfile }: TodayProps) {
   const { topics } = useLibrary()
-  const stamp = militaryDate(new Date())
-
-  // One derivation for the whole page. Today asks the journey layer what each
-  // topic needs rather than reading status and reaching its own conclusion, so
-  // the reason on a plate here and the one on the topic page are the same value,
-  // not two rules that happen to agree.
+  const [announcement, setAnnouncement] = useState('')
+  const capture = useTopicCapture(() => setAnnouncement('Added to Want to learn.'))
   const entries = journeysFor(topics)
-  const practicable = entries.filter((entry) => entry.topic.items.length > 0)
-
-  // Nothing authored yet. Teach the entry gate rather than showing a blank.
-  if (topics.length === 0) {
-    return (
-      <>
-        <Head stamp={stamp} onProfile={onOpenProfile} />
-        <p className="today-note">
-          Argus holds topics that can be genuinely finished. Every one states its own boundary
-          before it can exist, and that boundary is what makes finishing possible.
-        </p>
-
-        <h2 className="primer-head">What a topic looks like</h2>
-        <ul className="primer">
-          {PRIMER.map((example) => (
-            <li key={example.title}>
-              <span className="primer-title">{example.title}</span>
-              <span className="primer-scope">{example.scope}</span>
-            </li>
-          ))}
-        </ul>
-
-        <div className="today-actions">
-          <button className="today-go" type="button" onClick={onGoToLibrary}>
-            Create the first topic
-          </button>
-        </div>
-      </>
-    )
-  }
-
-  // Topics exist but none of them can be run. Say so, rather than offering a
-  // Test button with nothing behind it.
-  if (practicable.length === 0) {
-    return (
-      <>
-        <Head stamp={stamp} onProfile={onOpenProfile} />
-        <p className="today-note">
-          {sentence(topicCount(topics.length))} in the library, none with any items yet. A topic
-          needs its prompts and answers before it can be read or tested.
-        </p>
-        <div className="today-actions">
-          <button className="today-go" type="button" onClick={onGoToLibrary}>
-            Add items in the library
-          </button>
-        </div>
-      </>
-    )
-  }
-
+  const readout = homeReadout(entries)
   const active = inProgress(entries)
-
-  // Nothing in motion. Either nothing has been started, which Library is for,
-  // or everything started is banked.
-  if (active.length === 0) {
-    const anyStarted = practicable.some(hasStarted)
-    return (
-      <>
-        <Head stamp={stamp} onProfile={onOpenProfile} />
-        <p className="today-note">
-          {anyStarted
-            ? 'Everything you have started is banked. Check any of it from the Library whenever you like.'
-            : 'Nothing started yet. Start a topic in the Library and it will be here while you learn it.'}
-        </p>
-        {!anyStarted && (
-          <div className="today-actions">
-            <button className="ghost" type="button" onClick={onGoToLibrary}>
-              Open Library
-            </button>
-          </div>
-        )}
-      </>
-    )
-  }
-
-  const visible = active.slice(0, TODAY_VISIBLE)
-  // Everything on Today is in motion, so the first plate is always the key.
-  const leadId = visible[0].topic.id
 
   return (
     <>
-      <Head stamp={stamp} onProfile={onOpenProfile} />
-
-      {/* A few large plates and nothing else: no batch button, no counts. Every
-          plate opens its topic, the same page a Library plate opens, so a topic
-          is always entered the same way and its action is always chosen there.
-          The first due plate is the day's key. */}
-      <ul className="index docket">
-        {visible.map((entry, order) => (
-          <TodayPlate
-            key={entry.topic.id}
-            entry={entry}
-            order={order}
-            lead={entry.topic.id === leadId}
-            onPress={() => onOpenTopic(entry.topic.id)}
-          />
-        ))}
-      </ul>
+      <Head stamp={militaryDate(new Date())} onProfile={onOpenProfile} />
+      <dl className="home-readout" aria-label="Learning record">
+        <div><dt>Completed</dt><dd className="tabular">{readout.completed}</dd></div>
+        <div><dt>In progress</dt><dd className="tabular">{readout.inProgress}</dd></div>
+        <div><dt>Last active</dt><dd className="tabular">
+          {readout.lastActive ? <time dateTime={readout.lastActive}>{militaryDate(new Date(readout.lastActive), false)}</time> : '—'}
+        </dd></div>
+      </dl>
+      {active.length > 0 ? (
+        <section className="home-active" aria-labelledby="home-active-heading">
+          <div className="home-section-bar">
+            <h2 id="home-active-heading">Active topics</h2>
+            {active.length > 3 && <button className="quiet" type="button" onClick={onGoToLibrary}>See all</button>}
+          </div>
+          <ul className="index docket">
+            {active.slice(0, 3).map((entry) => (
+              <li className="today-entry" key={entry.topic.id}>
+                <button type="button" className="index-row today-plate" data-repair={entry.journey.phase === 'repair' || undefined} onClick={() => onOpenTopic(entry.topic.id)}>
+                  <ProgressRing progress={homeProgress(entry.topic, entry.journey)} />
+                  <span className="home-topic-copy">
+                    <span className="index-title today-plate-title">{entry.topic.title}</span>
+                    <span className={`home-topic-reading${entry.journey.phase === 'repair' ? ' is-repair' : ''}`}>{homeProgress(entry.topic, entry.journey).label}</span>
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : (
+        <div className="home-empty">
+          <p className="today-note">{topics.some((topic) => topic.items.length === 0)
+            ? 'Add prompts and answers to your topics in the Library before testing.'
+            : readout.completed > 0
+            ? 'Everything you have started is banked. Check any topic from the Library whenever you like.'
+            : 'Start a topic in the Library. It will appear here while you build recall.'}</p>
+          <button className="ghost" type="button" onClick={onGoToLibrary}>Open Library</button>
+        </div>
+      )}
+      <button className="home-add quiet" type="button" onClick={capture.available ? capture.openCapture : onAuthorTopic}>+ Add something to learn</button>
+      {capture.overlay}
+      <p className="sr-only" role="status">{announcement}</p>
     </>
+  )
+}
+
+function ProgressRing({ progress }: { progress: HomeProgress }) {
+  const circumference = 2 * Math.PI * 23
+  const ratio = progress.kind === 'ratio' ? Math.max(0, Math.min(1, progress.done / progress.total)) : null
+  return (
+    <span className={`home-dial is-${progress.kind}`} aria-hidden="true">
+      <svg viewBox="0 0 56 56" focusable="false">
+        <circle className="home-dial-track" cx="28" cy="28" r="23" />
+        {ratio !== null ? <circle className="home-dial-arc" cx="28" cy="28" r="23" strokeDasharray={circumference} strokeDashoffset={circumference * (1 - ratio)} /> :
+          <circle className="home-dial-stage" cx="28" cy="28" r="23" />}
+      </svg>
+      <span className="home-dial-mark">{progress.kind === 'repair' ? '!' : progress.kind === 'complete' ? '✓' : '·'}</span>
+    </span>
   )
 }
 
@@ -207,46 +123,5 @@ function Head({
         </button>
       </div>
     </div>
-  )
-}
-
-/**
- * One topic in motion, as a plate. It says why it is here in the ladder's own
- * words; the gauge shows how far along it is, and Today states no quantities.
- */
-function TodayPlate({
-  entry,
-  order,
-  lead,
-  onPress,
-}: {
-  entry: JourneyEntry
-  order: number
-  lead: boolean
-  onPress: () => void
-}) {
-  const { topic, journey } = entry
-  const repair = journey.phase === 'repair'
-  const icon = topicIcon(topic.id)
-  const style = { '--track-hue': `var(--${topic.track})`, '--order': order } as CSSProperties
-
-  return (
-    <li className="today-entry" style={style}>
-      <button
-        type="button"
-        className={`index-row today-plate${icon ? ' has-topic-icon' : ''}`}
-        data-due={journey.due || undefined}
-        data-lead={lead || undefined}
-        data-repair={repair || undefined}
-        onClick={onPress}
-      >
-        {icon && <img className="topic-icon" src={icon} alt="" aria-hidden="true" />}
-        <span className="index-title today-plate-title">{topic.title}</span>
-        <span className={`due-reason${repair ? ' is-repair' : ''}`}>
-          {journey.statusLabel}
-        </span>
-        <TopicGauge topic={topic} journey={journey} variant="bare" />
-      </button>
-    </li>
   )
 }

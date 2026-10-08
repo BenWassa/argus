@@ -130,7 +130,7 @@ test('initial root replaces the document entry and current-section taps add no B
   }))
   expect(lengths.after).toBe(lengths.before)
 
-  await page.getByRole('button', { name: 'Today', exact: true }).click()
+  await page.getByRole('button', { name: 'Home', exact: true }).click()
   expect((await navigationState(page)).index).toBe(0)
 
   await openLibrary(page)
@@ -160,7 +160,7 @@ test('Back unwinds Topic and Library, and Forward restores the Topic without dup
   expect((await navigationState(page)).index).toBe(1)
 
   await systemBack(page)
-  await expect(page.getByRole('button', { name: 'Today', exact: true })).toHaveAttribute(
+  await expect(page.getByRole('button', { name: 'Home', exact: true })).toHaveAttribute(
     'aria-current',
     'page',
   )
@@ -190,7 +190,7 @@ test('Today plates open their topic, and runs remember the topic they started fr
   })
   await expect(page.locator('.flip-card')).toHaveCount(0)
   await systemBack(page)
-  await expect(page.getByRole('button', { name: 'Today', exact: true })).toHaveAttribute(
+  await expect(page.getByRole('button', { name: 'Home', exact: true })).toHaveAttribute(
     'aria-current',
     'page',
   )
@@ -298,18 +298,18 @@ test('Profile is a Today utility with its own route, Back and current tab', asyn
   })
 
   // Profile is a child of Today, so Today remains the current destination.
-  await expect(page.getByRole('button', { name: 'Today', exact: true })).toHaveAttribute(
+  await expect(page.getByRole('button', { name: 'Home', exact: true })).toHaveAttribute(
     'aria-current',
     'page',
   )
 
-  await page.getByRole('button', { name: 'Back to Today' }).click()
+  await page.getByRole('button', { name: 'Back to Home' }).click()
   await expect(page.getByRole('button', { name: 'Open profile' })).toBeVisible()
   expect((await navigationState(page)).index).toBe(0)
 
   // And the nav button behaves like that Back rather than pushing a duplicate.
   await page.getByRole('button', { name: 'Open profile' }).click()
-  await page.getByRole('button', { name: 'Today', exact: true }).click()
+  await page.getByRole('button', { name: 'Home', exact: true }).click()
   await expect(page.getByRole('button', { name: 'Open profile' })).toBeVisible()
   expect((await navigationState(page)).index).toBe(0)
 })
@@ -360,7 +360,7 @@ test('malformed initial history normalizes to Today', async ({ page }) => {
     index: 7,
     route: { kind: 'topic', topicId: 'missing-topic' },
   })
-  await expect(page.getByRole('button', { name: 'Today', exact: true })).toHaveAttribute(
+  await expect(page.getByRole('button', { name: 'Home', exact: true })).toHaveAttribute(
     'aria-current',
     'page',
   )
@@ -406,7 +406,7 @@ test('Back from the Today root is left to the browser instead of being trapped',
   await page.goto('data:text/html,<title>External</title><p>External page</p>')
   await installLibrary(page)
   await page.goto('./')
-  await expect(page.getByRole('button', { name: 'Today', exact: true })).toHaveAttribute(
+  await expect(page.getByRole('button', { name: 'Home', exact: true })).toHaveAttribute(
     'aria-current',
     'page',
   )

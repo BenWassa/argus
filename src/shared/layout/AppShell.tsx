@@ -14,15 +14,15 @@ interface AppShellProps {
 /**
  * Two destinations, and they are the two the learner actually has.
  *
- * Today is the docket: what the schedule wants now. Library is everything owned,
+ * Home holds the topics already in motion. Library is everything owned,
  * including the permanent completion record. Progress used to sit here and was a
  * third projection of the derivation Library already shelves; utility controls
  * likewise do not earn a permanent destination.
  *
- * Profile is reached from Today and marks Today current while it is open.
+ * Profile is reached from Home and marks Home current while it is open.
  */
 const NAV: { id: NavView; label: string; path: string }[] = [
-  { id: 'today', label: 'Today', path: 'M4 7h16M4 12h16M4 17h9' },
+  { id: 'today', label: 'Home', path: 'M4 7h16M4 12h16M4 17h9' },
   { id: 'library', label: 'Library', path: 'M5 4h5v16H5zM14 4h5v16h-5' },
 ]
 

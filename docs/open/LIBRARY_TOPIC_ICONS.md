@@ -1,12 +1,12 @@
 # Shipped topic icon system
 
 - **Status:** active design authority
-- **Scope:** shipped topics on Library and Today
+- **Scope:** shipped topics on Library (Home uses progress dials in the combined candidate)
 - **Implementation:** `src/assets/library-icons/` + `src/features/library/topicIcon.ts`
 
 ## Purpose
 
-Topic icons are compact recognition aids beside shipped topic titles on Library and Today. They are not badges, achievements, category colours, or replacement labels. A learner should understand the subject faster when the icon and title are seen together.
+Topic icons are compact recognition aids beside shipped topic titles on Library. They are not badges, achievements, category colours, or replacement labels. A learner should understand the subject faster when the icon and title are seen together.
 
 ## Production rules
 
@@ -30,7 +30,7 @@ Topic icons are compact recognition aids beside shipped topic titles on Library 
 4. Rebuild/normalize the approved concept as a clean SVG using the rules above.
 5. Add the SVG under `src/assets/library-icons/<topic-id>.svg`.
 6. Add the topic-id mapping in `topicIcon.ts`.
-7. QA on the real dark gunmetal Library row and Today plate at phone width. Reject icons that need the source-size image to make sense.
+7. QA on the real dark gunmetal Library row at phone width. Reject icons that need the source-size image to make sense.
 
 ## Current shipped mappings
 

@@ -1,19 +1,19 @@
 # Morse Fluency — the post-acquisition surface
 
-**Status:** Implemented under #119
+**Status:** base implemented under #119; guided Send extension is implemented in the combined Morse/Home candidate, pending merge and Pixel acceptance.
 
-**Authority:** Current for shipped Fluency behaviour. `MORSE_PROGRAMME_PLAN.md`
+**Authority:** maintained Fluency contract; guided Send describes the pending candidate. `MORSE_PROGRAMME_PLAN.md`
 still governs the A–Z acquisition programme, `PROGRESS_ARCHITECTURE.md` still
 governs the state boundaries this surface must not cross, and
 `MORSE_AUDIO_RUNTIME.md` still governs every Morse audio entry point including
 this one.
 
-**Last verified:** 2026-09-30
+**Last verified:** 2026-10-07
 
 > **Misses lead — 2026-09-30.** `fluencyNeed` takes an optional focus set, and adds a bounded `FOCUS_NEED` (150) for a letter the learner is currently missing. The set is `morseFocusLetters`: a lesson letter still owed, or a Test direction whose last answer was wrong. Every Fluency run and the Copy *letters* level weight it. "Practise the letters you missed", from the topic page or a check's end screen, now opens a **keyed Fluency sprint over just those letters** (route `{ kind: 'fluency', mode: 'sprint', letters }`), not the reveal-and-self-grade practice run. It writes only `morseFluency`, as before.
 
-**Extended by:** `docs/open/MORSE_INTERMEDIATE_PATH.md` — Copy, free play,
-figures and punctuation, and the ladder past 13 WPM.
+**Extended by:** `docs/open/MORSE_INTERMEDIATE_PATH.md` — guided Send, Copy,
+free play, figures and punctuation, and the ladder past 13 WPM.
 
 **Issue:** #119
 
@@ -79,10 +79,12 @@ Four speed drills, sharing one state machine in
 `domain/morse/fluency/session.ts`. Four bespoke runners would be four places to
 get the answer gate wrong, and the answer gate took #87 to get right once.
 
-Above them the home screen now leads with **Copy** (hear it, type the text —
-letters up to sentences) and offers **Free play**; both are specified in
-`MORSE_INTERMEDIATE_PATH.md`. The drills keep training recognition time and are
-what to reach for when a Copy level stalls.
+Above them the home screen now leads with **Send** (see text, key it — spotlight
+words through whole words, phrases, short messages and the explicitly fictional
+Dispatch pack), then **Copy** (hear it, type the text — letters up to sentences)
+and **Free play**. These are specified in `MORSE_INTERMEDIATE_PATH.md`. The
+speed drills keep training recognition time and are what to reach for when a
+Send or Copy level stalls.
 
 | Mode | Asks | Length | Best is |
 | --- | --- | --- | --- |
@@ -266,16 +268,20 @@ share the same input.
 | `src/domain/morse/fluency/progress.ts` | the durable store, its parser, and the derived measures |
 | `src/domain/morse/fluency/session.ts` | the run state machine for all four modes |
 | `src/domain/morse/fluency/corpus.ts` | the authored word list and the group generator |
+| `src/domain/morse/fluency/send.ts` | the guided sending stages, content selection and formative best keys |
 | `src/features/morse/fluency/FluencySurface.tsx` | the feature's only write path |
 | `src/features/morse/fluency/FluencyHome.tsx` | modes, the one dial, the diagnostics |
 | `src/features/morse/fluency/FluencyRun.tsx` | one run, and the latency hygiene |
 | `src/features/morse/fluency/CopyRun.tsx` | one Copy run |
+| `src/features/morse/fluency/SendRun.tsx` | guided printed-text → keyed-Morse words, flow, phrases, messages and Dispatch |
 | `src/features/morse/fluency/FreePlay.tsx` | free keying and listening; writes nothing |
 
 ## Not in scope
 
-No change to the printed A–Z completion boundary. No scored auditory or
-sending claim — the deferred #29 remains the only home for either, and the
+No change to the printed A–Z completion boundary. Guided Send is formative and
+records only private Fluency bests; it makes no scored sending claim and never
+interprets touchscreen press duration as sending speed. The deferred #29 remains
+the only home for a formal sending competency, and the
 `auditory` value reserved in `CUE_STATES` stays reserved and unused. No
 leaderboards, opponents or shared streaks. No storage version change:
 `morseFluency` is additive within v5, absent by default, exactly as

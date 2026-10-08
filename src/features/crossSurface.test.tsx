@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { homeProgress } from '../domain/study/home'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { LibraryProvider } from '../services/library/LibraryProvider'
@@ -108,6 +109,7 @@ function renderToday(onOpenTopic: (topicId: string) => void = () => undefined) {
       <Today
         onOpenTopic={onOpenTopic}
         onGoToLibrary={() => undefined}
+        onAuthorTopic={() => undefined}
         onOpenProfile={() => undefined}
       />
     </LibraryProvider>,
@@ -189,7 +191,7 @@ function onToday(topic: Topic): boolean {
 
 function todaySchedule(topic: Topic): string {
   renderToday()
-  return rowFor(topic.title, todayDocket()).querySelector('.due-reason')?.textContent?.trim() ?? ''
+  return rowFor(topic.title, todayDocket()).querySelector('.home-topic-reading')?.textContent?.trim() ?? ''
 }
 
 /**
@@ -311,7 +313,7 @@ describe('one learner state, three surfaces, one recommendation', () => {
       } else if (journey.due) {
         expect(todayOpens(topic)).toBe(topic.id)
         cleanup()
-        expect(todaySchedule(topic)).toBe(journey.statusLabel)
+        expect(todaySchedule(topic)).toBe(homeProgress(topic, journey).label)
         cleanup()
       }
 
@@ -445,7 +447,7 @@ describe('acquisition readiness moves every surface together', () => {
     renderToday()
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('ARGUS')
     const row = rowFor(topic.title, todayDocket())
-    expect(row.querySelector('.due-reason')?.textContent).toBe('Ready to test')
+    expect(row.querySelector('.home-topic-reading')?.textContent).toBe(homeProgress(topic, journeyFor(topic)).label)
     cleanup()
     expect(todayOpens(topic)).toBe(topic.id)
   })
@@ -468,7 +470,7 @@ describe('acquisition readiness moves every surface together', () => {
 
     expect(todayOpens(topic)).toBe(topic.id)
     cleanup()
-    expect(todaySchedule(topic)).toBe('Ready to test')
+    expect(todaySchedule(topic)).toBe(homeProgress(topic, journeyFor(topic)).label)
     cleanup()
     expect(libraryGroup(topic)).toBe('Started')
   })
