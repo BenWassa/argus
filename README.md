@@ -63,6 +63,7 @@ The **full offline-first runtime guarantee is active scope in #113**, not yet a 
 ## Durable product and programme documentation
 
 - [Roles evaluation closeout](docs/closed/ROLES_SCREEN_EVALUATION.md) — Communicator MVP and SVG review, merge verification and deployment hold.
+- [Expanded role architecture research (#197)](docs/open/ISSUE_197_EXPANDED_ROLE_ARCHITECTURE_RESEARCH.md) — full 24-topic MECE Library inventory, cross-role matrix and proposed cognitive/technical/advanced/capstone learning lines; research only.
 - [Combined Morse and Home candidate](docs/open/MORSE_HOME_RELEASE_CANDIDATE.md) — implemented scope, checks and remaining release acceptance.
 - [Selected Home implementation](docs/open/ISSUE_193_HOME_REDESIGN.md) — combined candidate behavior and remaining Pixel acceptance.
 - [Next release review](docs/open/NEXT_RELEASE_REVIEW.md) — current baseline, candidate readiness and options for the next feature release.
