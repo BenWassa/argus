@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { seedLibrary } from '../src/domain/library/catalogSeed'
-import { COMMUNICATOR } from '../src/domain/roles/roles'
+import { COMMUNICATOR } from '../src/domain/roles/definitions'
 
 const STORE = 'argus.library.v5'
 const IDS = new Set<string>(COMMUNICATOR.pathways.flatMap((path) => [...path.topicIds]))
