@@ -1,9 +1,40 @@
 {
-  "version": 1,
+  "version": 2,
   "role": "communicator",
   "family": "Nautical (current)",
   "runtime": "/media/roles/communicator.svg",
-  "status": "Vector approximation pending high-detail generated raster production import",
-  "statePolicy": "Preview subdued until all seven requirements banked; only full-earned is award.",
-  "source": "Original owner-approved generated nautical concept, 2026-10-07; vector hand-authored; no official service art."
+  "format": "pure-vector SVG, no embedded raster",
+  "status": "Layered vector candidate integrated; owner visual review and runtime Pixel QA pending",
+  "awardPolicy": "Badge awarded only on all seven permanent topic completion records; pathway completion has no badge; no progress-state material upgrade",
+  "source": "Original Argus-made hand-authored vector reconstruction from owner-selected Nautical generated concept, 2026-10-07. No official military/diving organisation insignia or copied service marks.",
+  "gitBlobSha": "49e4621a83ebaccdb88ddd9775d3e4eddb8374f8",
+  "layers": [
+    "rope-border",
+    "enamel-field",
+    "mast-assembly",
+    "signal-arcs",
+    "signal-left",
+    "signal-right",
+    "signal-flags",
+    "morse-code",
+    "sea-waves",
+    "wave-back",
+    "wave-mid",
+    "wave-front",
+    "rim-clasps",
+    "compass-rose"
+  ],
+  "animation": "Vector layer IDs are stable; signal and compass have optional hover micro-interactions, disabled under prefers-reduced-motion. Unearned app preview blocks image pointer interaction.",
+  "qa": {
+    "rasterizedPreviewSizesPx": [
+      512,
+      220,
+      96,
+      48,
+      32
+    ],
+    "vectorXML": "well-formed in standalone reconstruction QA",
+    "mobileRuntime": "pending real Pixel and CI verification"
+  },
+  "notes": "Reconstruction is not a pixel-identical raster trace. Appearance approval of the vector itself remains with owner."
 }
