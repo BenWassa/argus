@@ -24,7 +24,7 @@
     "rim-clasps",
     "compass-rose"
   ],
-  "animation": "Vector layer IDs are stable; signal and compass have optional hover micro-interactions, disabled under prefers-reduced-motion. Unearned app preview blocks image pointer interaction.",
+  "animation": "Vector layer IDs are stable for future inline animation. Internal signal/compass hover rules are not triggered through the runtime img element; only the earned image lift is active, with reduced-motion respected. Unearned app preview blocks image pointer interaction.",
   "qa": {
     "rasterizedPreviewSizesPx": [
       512,

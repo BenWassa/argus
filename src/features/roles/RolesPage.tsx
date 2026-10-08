@@ -39,7 +39,7 @@ export function RolesPage({ onOpenTopic }: Props) {
       </header>
       <section className="roles-award" aria-label="Communicator achievement">
         <img
-          src="/media/roles/communicator.svg"
+          src={`${import.meta.env.BASE_URL}media/roles/communicator.svg`}
           className={`roles-medallion ${progress.earned ? 'is-earned' : 'is-unearned'}`}
           alt=""
           width={220}
