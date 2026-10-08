@@ -335,6 +335,10 @@ Once the accent is a near-white, a hue shift alone cannot carry "current" agains
 - **Don't** nest cards, use side-stripe borders, gradient text, or glassmorphism.
 - **Don't** add glow. A polished surface catches light; it does not emit it. Outer glow on a fill is the fastest way to turn a machined instrument into a sci-fi prop, and it smears on OLED.
 - **Don't** let the material drag the *language* tactical. The chassis is machined; the words are not. Argus says `Needs repair`, `Continue lesson 2` and `Start`, never `TST`, `MODULE DATA` or `INITIATE EXECUTION`. Status is written in English and reinforced by colour, not replaced by a callsign. The Survival and Tradecraft subject matter invites the opposite, and the framing is competence, not catastrophe.
-- **Don't** add streaks, badges, XP, or shame-based nudges.
+- **Don't** add streaks, XP, indiscriminate badges, or shame-based nudges. The sole approved badge exception is a completed Argus role; pathways do not earn badges (#191/#192).
 - **Don't** widen the mobile layout and call it desktop. Desktop gets a real side rail.
 - **Don't** let an early Test counterfeit or postpone scheduled evidence.
+
+## Role-award exception (owner-approved v1, #191/#192)
+
+Only the earned **Communicator** award may deliberately use the Nautical (current) badge family: textured navy enamel, dimensional gold-toned rim and restrained teal sea relief. This is artwork inside the award, not an app-surface colour token. Continue to reserve Tarnish (`#d68d5e`) for decay on functional UI. No gold UI controls, glow, animated badge upgrade, pathway medals or alternate scoring system. Before earning, a muted monochrome medallion may preview what is being pursued; its progression is expressed entirely with the three pathway lists and raw completed-topic counts. The earned artwork remains earned after later decay; any repair information is text outside the badge. No official CAF or protected professional insignia.

@@ -62,6 +62,7 @@ The **full offline-first runtime guarantee is active scope in #113**, not yet a 
 
 ## Durable product and programme documentation
 
+- [Roles screen evaluation](docs/open/ROLES_SCREEN_EVALUATION.md) — current implementation readiness, Communicator scope and supplied locked/earned artwork assessment.
 - [Combined Morse and Home candidate](docs/open/MORSE_HOME_RELEASE_CANDIDATE.md) — implemented scope, checks and remaining release acceptance.
 - [Selected Home implementation](docs/open/ISSUE_193_HOME_REDESIGN.md) — combined candidate behavior and remaining Pixel acceptance.
 - [Next release review](docs/open/NEXT_RELEASE_REVIEW.md) — current baseline, candidate readiness and options for the next feature release.

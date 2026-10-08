@@ -3,6 +3,7 @@ import { AppShell } from '../../shared/layout/AppShell'
 import { useLibrary } from '../../services/library/LibraryProvider'
 import { Today } from '../../features/today/Today'
 import { LibraryPage } from '../../features/library/LibraryPage'
+import { RolesPage } from '../../features/roles/RolesPage'
 import { ProfilePage } from '../../features/data-management/ProfilePage'
 import { TestSession } from '../../features/test/TestSession'
 import { LessonRun } from '../../features/morse/lesson/LessonRun'
@@ -314,8 +315,8 @@ export function AppRouter() {
   // `data` remains valid only so old browser history can open the utility it
   // named. Profile belongs to Today; neither utility becomes primary nav.
   const renderedView = view === 'data' ? 'profile' : view
-  const navView: Extract<View, 'today' | 'library'> =
-    renderedView === 'library' ? 'library' : 'today'
+  const navView: Extract<View, 'today' | 'roles' | 'library'> =
+    renderedView === 'library' ? 'library' : renderedView === 'roles' ? 'roles' : 'today'
 
   return (
     <AppShell view={navView} onNavigate={navigateSection}>
@@ -329,6 +330,9 @@ export function AppRouter() {
           }}
           onOpenProfile={() => navigate({ kind: 'section', view: 'profile' })}
         />
+      )}
+      {view === 'roles' && (
+        <RolesPage onOpenTopic={(id) => navigate({ kind: 'topic', topicId: id })} />
       )}
       {view === 'library' && (
         <LibraryPage
