@@ -66,6 +66,8 @@ The **full offline-first runtime guarantee is active scope in #113**, not yet a 
 
 - [Roles evaluation closeout](docs/closed/ROLES_SCREEN_EVALUATION.md) — Communicator MVP and SVG review, merge verification and deployment hold.
 - [Expanded role architecture research (#197)](docs/open/ISSUE_197_EXPANDED_ROLE_ARCHITECTURE_RESEARCH.md) — full 24-topic MECE Library inventory, cross-role matrix and proposed cognitive/technical/advanced/capstone learning lines; research only.
+- [Scored-content audit (#197)](docs/open/ISSUE_197_SCORED_CONTENT_AUDIT.md) — per-item audit of all 24 shipped topics: 342 items, 29.5% objective, application only in Navigation.
+- [Role decision record (#197)](docs/open/ISSUE_197_ROLE_DECISION_RECORD.md) — recommended names, achievement model, earnability gates and curriculum sequencing; awaiting owner ratification.
 - [Combined Morse and Home candidate](docs/closed/MORSE_HOME_RELEASE_CANDIDATE.md) — historical pre-release scope and merge evidence, superseded by v1.5.0.
 - [Selected Home implementation](docs/open/ISSUE_193_HOME_REDESIGN.md) — combined candidate behavior and remaining Pixel acceptance.
 - [Next release review](docs/closed/NEXT_RELEASE_REVIEW.md) — historical v1.4.0 baseline and options that informed the v1.5.0 release.
