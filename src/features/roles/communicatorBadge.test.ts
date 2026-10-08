@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest'
-import badgeSvg from '../../../public/media/roles/communicator.svg?raw'
-import manifest from '../../../public/media/roles/manifest.json'
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+
+const assetRoot = '../../../public/media/roles/'
+const badgeSvg = readFileSync(fileURLToPath(new URL(assetRoot + 'communicator.svg', import.meta.url)), 'utf8')
+const manifest = JSON.parse(readFileSync(fileURLToPath(new URL(assetRoot + 'manifest.json', import.meta.url)), 'utf8')) as {
+  role: string
+  runtime: string
+  family: string
+  format: string
+}
 
 describe('Communicator nautical badge asset', () => {
   it('is a real independently editable vector, not a raster wrapper', () => {
