@@ -1,5 +1,5 @@
 {
-  "version": 4,
+  "version": 5,
   "role": "communicator",
   "family": "Nautical (current)",
   "runtime": "/media/roles/communicator.svg",
@@ -7,7 +7,7 @@
   "status": "Layered vector merged via #196; automated browser QA passed, final owner visual review and runtime Pixel QA pending",
   "awardPolicy": "Badge awarded only on all seven permanent topic completion records; pathway completion has no badge; no progress-state material upgrade",
   "source": "Original Argus-made hand-authored vector reconstruction from owner-selected Nautical generated concept, 2026-10-07. No official military/diving organisation insignia or copied service marks.",
-  "gitBlobSha": "dbd0db8407a68a4232202fe1f2b92c924bdfdb11",
+  "gitBlobSha": "71c4e805eab8fdf69cb76b653110820db0d3eb39",
   "layers": [
     "rope-border",
     "enamel-field",
@@ -84,5 +84,16 @@
     "mirrorAxisX": 256,
     "construction": "Single shared vector geometry; right group mirrored with translate(512 0) scale(-1 1).",
     "flagFrameClearanceSvgUnits": 19.75
+  },
+  "compassRose": {
+    "centre": [
+      256,
+      451
+    ],
+    "points": 8,
+    "cardinalRadius": 38,
+    "intercardinalRadius": 27,
+    "valleyRadius": 11,
+    "construction": "Single continuous eight-point outline with sixteen facets meeting at one centre; equal cardinal points, equal intercardinal points, quarter-turn and mirror symmetry. All points fit inside the ring."
   }
 }

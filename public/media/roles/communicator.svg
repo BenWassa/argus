@@ -144,10 +144,32 @@
 <g id="top-keeper"><path d="M235 22L245 18L256 4L268 18L279 22L275 60Q258 72 240 60Z" fill="url(#gold-cross)" stroke="#5c3513" stroke-width="3"/><path d="M244 24V58M268 24V58M256 8V62" fill="none" stroke="#fff1ba" stroke-width="2" opacity=".83"/></g>
 <g id="left-clasp"><path d="M24 237L55 232Q66 235 67 245V271Q57 280 24 276L18 269V245Z" fill="url(#gold-cross)" stroke="#6e4119" stroke-width="3"/><path d="M22 242L60 240" fill="none" stroke="#fff3bd" stroke-width="2"/></g>
 <g id="right-clasp"><path d="M489 237L457 232Q446 235 445 245V271Q455 280 488 276L494 269V245Z" fill="url(#gold-cross)" stroke="#6e4119" stroke-width="3"/><path d="M490 242L452 240" fill="none" stroke="#fff3bd" stroke-width="2"/></g></g>
+<!-- One symmetric eight-point rose, with 38-unit cardinal and 27-unit
+     intercardinal tips. Every facet meets at (256,451); all tips fit inside the ring. -->
 <g id="compass-rose" data-layer="compass" filter="url(#relief)">
-<circle cx="256" cy="451" r="48" fill="#281a12" stroke="#633810" stroke-width="3"/><circle cx="256" cy="451" r="44" fill="url(#enamel)" stroke="url(#gold-cross)" stroke-width="8"/><circle cx="256" cy="451" r="36.6" fill="none" stroke="#e3af63" stroke-width="1.5"/>
-<path d="M256 394L265 437L295 451L265 464L256 500L246 464L216 451L246 437Z" fill="url(#gold-top)" stroke="#5d3415" stroke-width="2.4"/>
-<path d="M256 399L256 451L216 451L246 438Z" fill="#fff1be" opacity=".84"/><path d="M256 451L295 451L264 464L256 496Z" fill="#e3a14e" opacity=".75"/>
-<path d="M236 431L256 442L277 429L266 451L278 474L256 461L233 475L245 451Z" fill="url(#gold-cross)" stroke="#633b17" stroke-width="1.4"/>
-<circle cx="256" cy="451" r="6.2" fill="url(#orb)" stroke="#f9e6b0" stroke-width="1.4"/></g>
+<circle cx="256" cy="451" r="48" fill="#281a12" stroke="#633810" stroke-width="3"/>
+<circle cx="256" cy="451" r="44" fill="url(#enamel)" stroke="url(#gold-cross)" stroke-width="8"/>
+<circle cx="256" cy="451" r="39.5" fill="none" stroke="#e3af63" stroke-opacity=".65" stroke-width="1"/>
+<g id="compass-points">
+<path id="compass-outline" d="M256.000 413.000L260.210 440.837L275.092 431.908L266.163 446.790L294.000 451.000L266.163 455.210L275.092 470.092L260.210 461.163L256.000 489.000L251.790 461.163L236.908 470.092L245.837 455.210L218.000 451.000L245.837 446.790L236.908 431.908L251.790 440.837Z" fill="url(#gold-top)"/>
+<path d="M256 451L251.790 440.837L256.000 413.000Z" fill="#fff0b9" fill-opacity=".8"/>
+<path d="M256 451L256.000 413.000L260.210 440.837Z" fill="#92571e" fill-opacity=".7"/>
+<path d="M256 451L260.210 440.837L275.092 431.908Z" fill="#fff0b9" fill-opacity=".8"/>
+<path d="M256 451L275.092 431.908L266.163 446.790Z" fill="#92571e" fill-opacity=".7"/>
+<path d="M256 451L266.163 446.790L294.000 451.000Z" fill="#fff0b9" fill-opacity=".8"/>
+<path d="M256 451L294.000 451.000L266.163 455.210Z" fill="#92571e" fill-opacity=".7"/>
+<path d="M256 451L266.163 455.210L275.092 470.092Z" fill="#fff0b9" fill-opacity=".8"/>
+<path d="M256 451L275.092 470.092L260.210 461.163Z" fill="#92571e" fill-opacity=".7"/>
+<path d="M256 451L260.210 461.163L256.000 489.000Z" fill="#fff0b9" fill-opacity=".8"/>
+<path d="M256 451L256.000 489.000L251.790 461.163Z" fill="#92571e" fill-opacity=".7"/>
+<path d="M256 451L251.790 461.163L236.908 470.092Z" fill="#fff0b9" fill-opacity=".8"/>
+<path d="M256 451L236.908 470.092L245.837 455.210Z" fill="#92571e" fill-opacity=".7"/>
+<path d="M256 451L245.837 455.210L218.000 451.000Z" fill="#fff0b9" fill-opacity=".8"/>
+<path d="M256 451L218.000 451.000L245.837 446.790Z" fill="#92571e" fill-opacity=".7"/>
+<path d="M256 451L245.837 446.790L236.908 431.908Z" fill="#fff0b9" fill-opacity=".8"/>
+<path d="M256 451L236.908 431.908L251.790 440.837Z" fill="#92571e" fill-opacity=".7"/>
+<path d="M256.000 413.000L260.210 440.837L275.092 431.908L266.163 446.790L294.000 451.000L266.163 455.210L275.092 470.092L260.210 461.163L256.000 489.000L251.790 461.163L236.908 470.092L245.837 455.210L218.000 451.000L245.837 446.790L236.908 431.908L251.790 440.837Z" fill="none" stroke="#70441b" stroke-width="1.2" stroke-linejoin="round"/>
+</g>
+<circle cx="256" cy="451" r="3.8" fill="url(#orb)" stroke="#f9e6b0" stroke-width="1"/>
+</g>
 </svg>

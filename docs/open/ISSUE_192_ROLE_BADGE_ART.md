@@ -202,3 +202,7 @@ The original [locked/earned PNG reference](assets/roles/communicator-locked-earn
 ## 16. Symmetric radio waves (2026-10-07)
 
 Owner requested even wave shapes, symmetry and more clearance above the flags. Both sides now reference one shared set of four concentric 60-degree circular arcs centred on the tower orb at `(256,149)`, with radii `38,60,82,104`. The right group is an exact mirror about `x=256`; the radial step is consistently 22 units. The lowest rounded stroke edge is at `y=205.25`, leaving 19.75 units before the flag frames begin at `y=225` (before shadow blur). The stable `signal-left` and `signal-right` groups remain independently addressable. The SVG was visually inspected at 512 px and the 220 px badge size; its shared geometry and mirrored placement were verified. No deployment.
+
+## 17. Balanced compass rose (2026-10-07)
+
+Owner flagged the bottom compass shape. Its overlapping, uneven stars were replaced with one continuous eight-point rose centred at `(256,451)`. Four equal 38-unit cardinal tips alternate with four equal 27-unit intercardinal tips, with 11-unit valleys and sixteen light/dark facets meeting at the same centre. All tips now fit inside the ring; none protrudes through the bezel. Horizontal/vertical mirror symmetry and quarter-turn symmetry were verified, and the result was inspected at 512 px and 220 px. The stable `compass-rose` group remains intact. No deployment.
