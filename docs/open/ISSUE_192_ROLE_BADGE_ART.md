@@ -198,3 +198,7 @@ Regression checks inspect the actual SVG Morse shapes/order, dot/dash dimensions
 ## 15. Retained reference source
 
 The original [locked/earned PNG reference](assets/roles/communicator-locked-earned-reference.png) is retained under `docs/open/assets/roles/`, outside the public runtime asset tree. Its original filename and SHA-256 are recorded in `public/media/roles/manifest.json`; moving and renaming it did not change its pixels. The source sheet guides composition and material, while §14 governs the corrected Morse and flag symbols.
+
+## 16. Symmetric radio waves (2026-10-07)
+
+Owner requested even wave shapes, symmetry and more clearance above the flags. Both sides now reference one shared set of four concentric 60-degree circular arcs centred on the tower orb at `(256,149)`, with radii `38,60,82,104`. The right group is an exact mirror about `x=256`; the radial step is consistently 22 units. The lowest rounded stroke edge is at `y=205.25`, leaving 19.75 units before the flag frames begin at `y=225` (before shadow blur). The stable `signal-left` and `signal-right` groups remain independently addressable. The SVG was visually inspected at 512 px and the 220 px badge size; its shared geometry and mirrored placement were verified. No deployment.
