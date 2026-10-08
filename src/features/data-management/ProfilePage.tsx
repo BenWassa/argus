@@ -94,8 +94,8 @@ export function ProfilePage({ onBack }: { onBack: () => void }) {
 
   return (
     <>
-      <button className="quiet topic-back" type="button" aria-label="Back to Today" onClick={onBack}>
-        <span aria-hidden="true">←</span> Today
+      <button className="quiet topic-back" type="button" aria-label="Back to Home" onClick={onBack}>
+        <span aria-hidden="true">←</span> Home
       </button>
 
       <h1>Profile</h1>

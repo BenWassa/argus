@@ -1,6 +1,6 @@
 # Issue #193 — Selected Home redesign
 
-**Status:** owner-selected implementation scope — 2026-10-07.  
+**Status:** implemented on the combined Morse/Home candidate branch (2026-10-07); automated regression passed; owner Pixel acceptance pending.
 **Authority:** implementation contract for #193. #126 and #127 remain the exploration/decision history.  
 **Related:** #191 role/designation progression; #192 role badge art.
 
@@ -499,17 +499,25 @@ At minimum:
 - recoloring the whole app.
 - changing topic completion/evidence semantics merely to make a progress ring look better.
 
-## 17. Acceptance
+## 17. Candidate implementation record
 
-- [ ] Home composition matches the owner-selected hierarchy.
-- [ ] Exact production tokens remain the visual baseline.
-- [ ] Top readout is Completed / In progress / Last active with no icons/bars.
-- [ ] Active topics receive modest lift only.
-- [ ] Circular progress instrument replaces Home horizontal gauges.
-- [ ] Circular progress is truthful for every topic shown.
-- [ ] Procedural “lesson/test status” copy is removed from Home.
-- [ ] Capture action reuses the existing Want-to-learn workflow.
-- [ ] Rounded mobile nav remains restrained and uses existing Argus materials.
-- [ ] Empty/repair/overflow/accessibility states pass.
-- [ ] PRODUCT/DESIGN documentation reflects the final shipped behavior.
+The combined branch `feat/morse-home-release` implements the selected structure. `homeReadout()` counts permanent completion independently of repair and reads the existing durable timestamps. `homeProgress()` chooses real acquisition/evidence ratios or a discrete Building recall / Completion earned / Needs repair state. Active topics retain journey ordering and are bounded to three; See all opens Library without authoring.
+
+Home shares `useTopicCapture()` with Library. An available inbox opens the existing CaptureSheet directly; otherwise the action opens Library's existing TopicForm. No request is a learning topic and no Firestore schema/rule changes are introduced. Home labels replace Today in navigation and Profile while internal `today` routes remain valid.
+
+The selected neutral dial takes the leading slot on Home, replacing subject icons and horizontal gauges. Library retains its existing icon/gauge treatment. Mobile navigation uses the existing radii, gunmetal and bevels; desktop retains its attached rail. Automated tests cover count/activity boundaries, repair, ratio fallback, capture, history navigation, reduced motion, 320px and 200% text. Owner Pixel verification remains required before closeout.
+
+## 18. Acceptance
+
+- [x] Home composition matches the owner-selected hierarchy.
+- [x] Exact production tokens remain the visual baseline.
+- [x] Top readout is Completed / In progress / Last active with no icons/bars.
+- [x] Active topics receive modest lift only.
+- [x] Circular progress instrument replaces Home horizontal gauges.
+- [x] Circular progress is truthful for every topic shown.
+- [x] Procedural “lesson/test status” copy is removed from Home.
+- [x] Capture action reuses the existing Want-to-learn workflow.
+- [x] Rounded mobile nav remains restrained and uses existing Argus materials.
+- [x] Empty/repair/overflow/accessibility states pass.
+- [x] PRODUCT/DESIGN documentation reflects candidate behavior with deployment pending.
 - [ ] Owner verifies the production build on Pixel before close.

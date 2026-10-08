@@ -200,7 +200,7 @@ A slice is not complete merely because inputs grade correctly. It must also pass
 
 Owner instruction **Build it** selects the recommended **A — Morse Missions** as the core and **B — Dispatch** as the first contextual pack.
 
-Runtime PR #194 implements:
+Runtime PR #194 supplies the implementation, now integrated with its design contract into `feat/morse-home-release`:
 1. Spotlight words;
 2. Word flow;
 3. Phrases;
@@ -209,7 +209,7 @@ Runtime PR #194 implements:
 
 The presentation stays as restrained Argus levels rather than a separate mission-board skin. Spotlight uses highlighted-letter support; later stages use pause-delimited open keying. Everyday material comes first and Dispatch remains explicitly fictional rather than official CAF/NATO procedure.
 
-Rapid Fire, Copy & Relay and Free Transmission+ remain optional later work. Keep #188 open until #194 is green, merged and accepted on the owner's real Pixel.
+Rapid Fire, Copy & Relay and Free Transmission+ remain optional later work. The combined candidate fixes the listening-spacing assertion, the extra shell gutter on sending, and idle-letter segmentation during a held dah. Keep #188 open until the combined candidate is green, merged and accepted on the owner's real Pixel. The first implementation remains post-alphabet; in-course entry, target replay and focused missed-letter rounds are deferred follow-ons, not completion claims of this release.
 
 ## Research and source record
 

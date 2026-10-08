@@ -449,6 +449,7 @@ export function SendRun({
               advanceToken={advanceToken}
               locked={phase !== 'sending'}
               onEntry={onFlowEntry}
+              onPressStart={clearPause}
               onSubmit={commitPattern}
             />
 

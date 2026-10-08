@@ -1,3 +1,8 @@
+/* The session owns its full viewport; its shell must not add a top gutter. */
+.session-shell main:has(.send-run) {
+  padding-top: 0;
+}
+
 /*
  * Guided sending is still Argus: one gunmetal task surface, one key, one
  * polished action when a decision is required. The target is language (sans);

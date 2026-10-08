@@ -303,6 +303,57 @@ test.describe('fluency', () => {
     expect(overflow.scroll).toBeLessThanOrEqual(overflow.client)
   })
 
+  test('continuous sending decodes pauses and explicit word gaps without saving incomplete rounds', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'phone-390', 'One phone exercises the shared continuous input path.')
+    test.setTimeout(90_000)
+    await openFluency(page)
+    const before = await storedTopic(page)
+    for (const title of ['Word flow', 'Dispatch']) {
+      await page.getByText('Choose another sending stage', { exact: true }).click()
+      await page.getByRole('button', { name: new RegExp(title) }).click()
+      if (title === 'Word flow') {
+        // A hold is still part of the letter, even when longer than the idle pause.
+        await page.keyboard.type('.')
+        const key = page.locator('.morse-key')
+        const box = (await key.boundingBox())!
+        await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
+        await page.mouse.down()
+        await page.waitForTimeout(1200)
+        await page.mouse.up()
+        await page.waitForTimeout(1150)
+        await expect(page.locator('.send-output-value')).toHaveText('A')
+        await page.getByRole('button', { name: 'Fluency', exact: true }).click()
+        await page.getByText('Choose another sending stage', { exact: true }).click()
+        await page.getByRole('button', { name: /Word flow/ }).click()
+      }
+      const target = (await page.locator('.send-target').getAttribute('aria-label'))!.replace(/^Send /, '')
+      for (let index = 0; index < target.length; index += 1) {
+        const character = target[index]
+        if (character === ' ') {
+          await page.getByRole('button', { name: 'Space', exact: true }).click()
+          continue
+        }
+        const pattern = MORSE_LETTERS[character as MorseLetter]
+        if (index === 0) {
+          // Real pointer holds classify dits/dahs; later letters use the keyboard fallback.
+          for (const element of pattern) {
+            await keyElement(page, element as '.' | '-')
+            await page.waitForTimeout(140)
+          }
+        } else {
+          await page.keyboard.type(pattern, { delay: 80 })
+        }
+        await page.waitForTimeout(1150)
+      }
+      if (title === 'Dispatch') await page.getByRole('button', { name: 'Finish', exact: true }).click()
+      await expect(page.getByText('Received as sent')).toBeVisible()
+      await expect(page.locator('.send-compare dd').nth(1)).toHaveText(target)
+      await page.getByRole('button', { name: 'Fluency', exact: true }).click()
+      await expect(page.getByRole('heading', { name: 'After the alphabet' })).toBeVisible()
+    }
+    expect(await storedTopic(page)).toEqual(before)
+  })
+
   test('pins the character speed and offers only the spacing', async ({ page }) => {
     await openFluency(page)
     await expect(page.getByText(/characters always at 20 WPM/)).toBeVisible()
@@ -311,7 +362,7 @@ test.describe('fluency', () => {
     await expect(page.getByRole('button', { name: 'More room between characters' })).toBeDisabled()
 
     await page.getByRole('button', { name: 'Less room between characters' }).click()
-    await expect(page.getByText(/Spacing/)).toContainText('7 WPM')
+    await expect(page.getByText(/Listening spacing/)).toContainText('7 WPM')
     await expect(page.getByText(/characters always at 20 WPM/)).toBeVisible()
   })
 

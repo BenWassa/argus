@@ -61,7 +61,7 @@ test('section Back and Forward land focus on main', async ({ page }) => {
   expect(await historyIndex(page)).toBe(1)
 
   await page.evaluate(() => window.history.back())
-  await expect(page.getByRole('button', { name: 'Today', exact: true })).toHaveAttribute(
+  await expect(page.getByRole('button', { name: 'Home', exact: true })).toHaveAttribute(
     'aria-current',
     'page',
   )
@@ -92,7 +92,7 @@ test('deleting the open Topic returns through the existing Library entry', async
   await expect.poll(() => historyIndex(page)).toBe(1)
 
   await page.evaluate(() => window.history.back())
-  await expect(page.getByRole('button', { name: 'Today', exact: true })).toHaveAttribute(
+  await expect(page.getByRole('button', { name: 'Home', exact: true })).toHaveAttribute(
     'aria-current',
     'page',
   )

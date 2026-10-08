@@ -64,6 +64,8 @@ interface MorseKeyInputProps {
    * rather than grading on a known length.
    */
   onEntry?: (entry: string) => void
+  /** Pause-delimited callers must suspend their idle timer during a held element. */
+  onPressStart?: () => void
   now?: () => number
 }
 
@@ -111,6 +113,7 @@ export function MorseKeyInput({
   locked = false,
   advanceToken,
   onEntry,
+  onPressStart,
   now = defaultNow,
 }: MorseKeyInputProps) {
   const [entry, setEntry] = useState('')
@@ -349,10 +352,11 @@ export function MorseKeyInput({
    */
   const keyElement = useCallback((element: '.' | '-') => {
     if (lockedRef.current) return
+    onPressStart?.()
     pressRef.current = { pointerId: KEYBOARD_POINTER_ID, startedAt: now(), releasedElement: element }
     fire('element')
     startTone(KEYBOARD_POINTER_ID)
-  }, [now, startTone])
+  }, [now, onPressStart, startTone])
 
   const cancelPress = useCallback((pointerId: number) => {
     const press = pressRef.current
@@ -362,7 +366,8 @@ export function MorseKeyInput({
     setPressed(false)
     clearReleasedToneTimer()
     stopTone()
-  }, [clearReleasedToneTimer, stopTone])
+    onEntry?.(entryRef.current)
+  }, [clearReleasedToneTimer, onEntry, stopTone])
 
   useEffect(() => {
     return () => {
@@ -482,6 +487,7 @@ export function MorseKeyInput({
         onPointerDown={(event) => {
           if (event.button !== 0 || pressRef.current || lockedRef.current || inputBlocked) return
           event.preventDefault()
+          onPressStart?.()
           pressRef.current = { pointerId: event.pointerId, startedAt: now() }
           // A key should feel like a key. Onset only, and the lightest effect
           // in the vocabulary: a second pulse on release would compete with

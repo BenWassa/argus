@@ -1,6 +1,6 @@
 # Morse after the alphabet — the path into intermediate
 
-**Status:** Implemented
+**Status:** base path implemented; guided Send extension is implemented in the combined Morse/Home candidate, pending merge and Pixel acceptance.
 
 > **No-clock addendum — 2026-09-29.** Time-based scheduling is gone. A banked
 > course is never "due": its topic page leads with **Keep going**, and offers
@@ -10,7 +10,7 @@
 > `{ kind: 'review' }`, not something inferred from "not due". §2 and §3 below
 > describe the review and the page under this rule.
 
-**Authority:** Current for shipped behaviour after A–Z acquisition: the uncued
+**Authority:** maintained behaviour after A–Z acquisition; guided Send describes the pending candidate: the uncued
 Test floor, reviews the learner chooses, guided Send, Copy, figures and
 punctuation, free play and the extended spacing ladder. `MORSE_FLUENCY.md` still governs
 the Fluency surface this extends; `MORSE_CUE_LADDER.md` still governs the

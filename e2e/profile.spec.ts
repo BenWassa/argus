@@ -59,7 +59,7 @@ test('a legacy Data history entry restores Profile under Today navigation', asyn
 
   await expect(page.getByRole('heading', { name: 'Profile', level: 1 })).toBeVisible()
   await expect(page.getByText(new RegExp(`^App version ${appVersion} · build (?:[0-9a-f]{7}|unknown)$`))).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Today', exact: true })).toHaveAttribute(
+  await expect(page.getByRole('button', { name: 'Home', exact: true })).toHaveAttribute(
     'aria-current',
     'page',
   )

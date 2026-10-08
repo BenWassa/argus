@@ -825,6 +825,11 @@ describe('post-acquisition fluency statistics are durable and portable (#119)', 
     expect(parsed(RECORD).morseFluency).toEqual(RECORD)
   })
 
+  it('preserves guided sending bests through the import boundary', () => {
+    const record = { ...RECORD, bests: { ...RECORD.bests, 'send:words': 100, 'send:flow': 90, 'send:dispatch': 75 } }
+    expect(parsed(JSON.parse(JSON.stringify(record))).morseFluency).toEqual(record)
+  })
+
   it('reads an absent field as a learner who has done no fluency', () => {
     expect(parsed(undefined).morseFluency).toBeUndefined()
   })

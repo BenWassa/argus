@@ -1,6 +1,6 @@
 # Next release review
 
-**Status:** active release-planning snapshot; no release authorized or performed.
+**Status:** combined Morse + Home selected by owner on 2026-10-07; candidate implementation in progress, no release/deployment performed.
 **Authority:** repository/GitHub review as of 2026-10-07; feature contracts and current checks govern implementation.
 **Baseline:** main `e7c609f`, package/tag `v1.4.0` (`23a5673`).
 
@@ -24,9 +24,15 @@ Versions below are proposals, not reservations.
 | Combined Morse + Home | v1.5.0 | Both improvements in one release | Wait for both independent acceptance gates. Larger interaction regression surface and slower delivery than a focused Morse release. |
 | Roles and custom badges | Later minor release | A third destination with finite role requirements and original badge art | #191 is design/scoping; taxonomy, earned/freshness semantics and owner approval remain required. #192 depends on that model and visual approval. Not implementation-ready. |
 
+## Selected combined candidate
+
+Owner selected **Morse + Home** on 2026-10-07. Branch `feat/morse-home-release` integrates #194 and #189 and implements #193. The original five Morse failures are addressed: listening-spacing assertions now match the control, and the sending session no longer inherits a second top gutter. Continuous sending also suspends idle-letter segmentation during pointer holds. Home uses true finite ratios or discrete dials, historical completion counts, existing durable study timestamps and shared capture.
+
+The proposed release remains v1.5.0. No version bump, tag, release publication or Firebase deployment has occurred. Full candidate verification and owner real-device review are recorded in the PR/validation follow-up; keep #188/#193 open until that acceptance is complete.
+
 ## Candidate blockers and later work
 
-- **Morse #194:** reviewed CI has 371 browser passes, 5 failures and 16 skips. Four failures cannot find the expected Spacing label; the new sending test finds 870 px page height in an 844 px viewport. Unit/build, rules and demo build checks passed. [Failing run](https://github.com/BenWassa/argus/actions/runs/37680782972). These observations identify failures, not a verified root cause or code review approval.
+- **Original Morse #194 CI (before combined fixes):** reviewed CI has 371 browser passes, 5 failures and 16 skips. Four failures cannot find the expected Spacing label; the new sending test finds 870 px page height in an 844 px viewport. Unit/build, rules and demo build checks passed. [Failing run](https://github.com/BenWassa/argus/actions/runs/37680782972). These observations identify failures, not a verified root cause or code review approval.
 - **Radio audio #151:** reusable runtime exists; text foundation is now available. Voice bake-off/model access, human listening QA and transcript behavior in scored Test remain unresolved. #151 is absent from the current open-issue list despite production work remaining in its document; reconcile tracking before scheduling it.
 - **Offline-first #113:** active architecture work, not a current product guarantee. Treat persistence migration, durable sync and offline startup as a separate release with explicit data-safety verification.
 - **SCUBA #132:** asset scope needs a decision after the topic expanded from six to thirteen terms. Choose physical component references versus an annotated kit diagram before production.

@@ -140,7 +140,7 @@ test('the alphabet round-trip preserves the topic and its unfinished confirmatio
   expect((await state(page)).index).toBe(1)
 
   await page.evaluate(() => window.history.back())
-  await expect(page.getByRole('button', { name: 'Today', exact: true })).toHaveAttribute('aria-current', 'page')
+  await expect(page.getByRole('button', { name: 'Home', exact: true })).toHaveAttribute('aria-current', 'page')
   expect((await state(page)).index).toBe(0)
 })
 

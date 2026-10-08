@@ -1,8 +1,8 @@
 # Morse Fluency — the post-acquisition surface
 
-**Status:** Implemented under #119
+**Status:** base implemented under #119; guided Send extension is implemented in the combined Morse/Home candidate, pending merge and Pixel acceptance.
 
-**Authority:** Current for shipped Fluency behaviour. `MORSE_PROGRAMME_PLAN.md`
+**Authority:** maintained Fluency contract; guided Send describes the pending candidate. `MORSE_PROGRAMME_PLAN.md`
 still governs the A–Z acquisition programme, `PROGRESS_ARCHITECTURE.md` still
 governs the state boundaries this surface must not cross, and
 `MORSE_AUDIO_RUNTIME.md` still governs every Morse audio entry point including
