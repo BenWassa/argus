@@ -194,3 +194,7 @@ The owner requested checking the SVG against the PNG reference and chose four ac
 - The rim now uses wider twisted rope strands, the top keeper has the reference's pointed crest, and the lower compass tip has more viewport clearance. Stable parent layer IDs and the existing earned/unearned treatment are preserved. No bitmap is embedded and the reference PNG is untouched.
 
 Regression checks inspect the actual SVG Morse shapes/order, dot/dash dimensions and gaps against the runtime alphabet, plus flag geometry. Both material states were inspected at 512 px and in the mobile Roles screen. This is an artwork correction only; completion semantics and the deployment hold remain unchanged. Updated provenance and the asset blob hash are recorded in `public/media/roles/manifest.json`.
+
+## 15. Retained reference source
+
+The original [locked/earned PNG reference](assets/roles/communicator-locked-earned-reference.png) is retained under `docs/open/assets/roles/`, outside the public runtime asset tree. Its original filename and SHA-256 are recorded in `public/media/roles/manifest.json`; moving and renaming it did not change its pixels. The source sheet guides composition and material, while §14 governs the corrected Morse and flag symbols.

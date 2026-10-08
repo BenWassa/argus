@@ -55,7 +55,7 @@ Freeze the first definition's required IDs for the initial release. Future addit
 
 **Owner clarification:** The PNG is a visual reference only. The SVG was subsequently supplied on `feat/communicator-roles-mvp` and is the intended production artwork. Do not crop, convert, or integrate the reference PNG as a runtime asset.
 
-Source: local untracked `ChatGPT Image Oct 7, 2026, 10_23_13 PM.png`, 1774 × 887, approximately 2.6 MB, RGBA PNG. SHA-256: `5ca25a6a03586b02ff476959ea79f3524c0c0f2e251444d80aa48d39d65819d2`. The file is present in the checkout; it is not committed on local or remote `main`. Its original pixels have not been changed.
+Source at initial review: local untracked `ChatGPT Image Oct 7, 2026, 10_23_13 PM.png`, 1774 × 887, approximately 2.6 MB, RGBA PNG. SHA-256: `5ca25a6a03586b02ff476959ea79f3524c0c0f2e251444d80aa48d39d65819d2`. It was subsequently retained as [the locked/earned reference](../open/assets/roles/communicator-locked-earned-reference.png) under `docs/open/assets/roles/` and committed with the source manifest. Its original pixels have not been changed.
 
 The combined sheet contains a silver **LOCKED** medallion and a gold/blue **EARNED** medallion, with baked-in labels and a visible navy backdrop. An alpha channel alone does not establish a usable transparent cutout. Radio tower, signal flags, Morse marks and maritime waves give Communicator a coherent identity. The tower reads clearly; the smaller flags, rope and Morse details need small-size checks.
 

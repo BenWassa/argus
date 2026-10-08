@@ -62,5 +62,11 @@
       "source": "https://msi.nga.mil/api/publications/download?key=16694273%2FSFH00000%2FPub102bk.pdf",
       "reference": "Inside front cover: alphabet flag plate; corrected patterns retain the owner-selected four-position composition."
     }
+  },
+  "reference": {
+    "path": "docs/open/assets/roles/communicator-locked-earned-reference.png",
+    "originalFilename": "ChatGPT Image Oct 7, 2026, 10_23_13 PM.png",
+    "sha256": "5ca25a6a03586b02ff476959ea79f3524c0c0f2e251444d80aa48d39d65819d2",
+    "purpose": "Owner visual reference for locked/earned composition and material; source only, not served in either app build. Morse and flag symbols are vetted independently."
   }
 }
