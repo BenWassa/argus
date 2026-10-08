@@ -1,6 +1,6 @@
 # Issue #192 — Custom role badge art system
 
-**Status:** scoped asset-design lane; blocked on #191 role taxonomy — 2026-10-07.  
+**Status:** owner-locked Nautical (current) family; production-raster import/QA remains open — 2026-10-07.  
 **Authority:** active visual-production proposal for role badges only. `DESIGN.md` / `DESIGN.json` remain the authority for the application UI.
 
 ## 1. Purpose
@@ -161,3 +161,12 @@ For every final badge:
 - [ ] Production asset format decision.
 - [ ] Manifest/provenance record.
 - [ ] Integration notes for #191.
+
+
+## 12. Approved visual direction — 2026-10-07
+
+**Nautical (current)** was selected over CAF-inspired, minimal and other families. The original concept's high-detail circular medallion is the authority: substantial relief, rope edge, brushed metal, deep navy enamel, gold relief, limited teal wave accents. Communicator's central subjects: radio mast/transmission arcs, abstract signal flags, Morse-like marks, waves and compass rose. Do not use official CAF insignia, crowns, trade badges or protected service logos.
+
+Only fully completed roles receive the **earned** full-colour badge. An unearned monochrome *preview* is permitted, but no progress-stage material transformations. A completed pathway receives a text **Complete** state only, no badge.
+
+**Asset status:** the app MVP stages a small hand-authored SVG as a lightweight rendering placeholder. It reflects the same visual vocabulary but is not asserted to match the high-detail approved image. The image-generation source and transparent optimized raster masters were prepared in the owner conversation on 2026-10-07. Import the approved earned/locked WebP/PNG masters before treating #192 as complete; record checksums and render QA at 220, 96, 48 and 32px. Replace the vector fallback in the manifest and UI only after that review. Maintain original file provenance and document that this is original Argus-made visual art, not licensed official insignia.
