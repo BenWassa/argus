@@ -1,6 +1,6 @@
 # Product
 
-**Status:** current product contract with combined Morse/Home candidate changes (2026-10-07); production deployment is pending.
+**Status:** current product contract with Morse/Home changes merged via #195 (2026-10-07); deployment is held pending Roles.
 **Authority:** product context. Maintained behaviour contracts live in `docs/open/`; the compact-topic and topic-page documents own the shipped #166 behaviour.
 
 ## Register

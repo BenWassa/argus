@@ -1,6 +1,6 @@
 # Next release review
 
-**Status:** combined Morse + Home selected by owner on 2026-10-07; candidate implementation in progress, no release/deployment performed.
+**Status:** combined Morse + Home selected by owner on 2026-10-07; implementation merged via #195; deployment held for the forthcoming Roles screen, no release/deployment performed.
 **Authority:** repository/GitHub review as of 2026-10-07; feature contracts and current checks govern implementation.
 **Baseline:** main `e7c609f`, package/tag `v1.4.0` (`23a5673`).
 
@@ -48,3 +48,7 @@ The proposed release remains v1.5.0. No version bump, tag, release publication o
 5. Record the final scope, version, checks and deployment evidence in a release closeout under `docs/closed/`; update repository links and this planning snapshot when superseded.
 
 This review uses existing CI evidence rather than a fresh local test run. It does not merge PRs, publish a release or deploy.
+
+## Owner deployment hold (2026-10-07)
+
+Owner authorized #195 to merge but explicitly instructed not to deploy while the new Roles screen is added. Main now contains Morse + Home. GitHub Pages demo auto-publication is paused by disabling `demo-pages.yml`; Firebase remains untouched. See `MORSE_HOME_RELEASE_CANDIDATE.md` for the hold and workflow restoration record.

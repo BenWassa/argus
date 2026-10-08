@@ -1,6 +1,6 @@
 # Issue #193 — Selected Home redesign
 
-**Status:** implemented on the combined Morse/Home candidate branch (2026-10-07); automated regression passed; owner Pixel acceptance pending.
+**Status:** merged via #195 (2026-10-07); automated regression passed; deployment held for Roles, Pixel release acceptance pending.
 **Authority:** implementation contract for #193. #126 and #127 remain the exploration/decision history.  
 **Related:** #191 role/designation progression; #192 role badge art.
 

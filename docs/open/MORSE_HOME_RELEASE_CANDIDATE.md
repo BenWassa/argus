@@ -1,6 +1,6 @@
 # Combined Morse and Home release candidate
 
-**Status:** implementation candidate for proposed v1.5.0; not deployed.
+**Status:** merged via #195 on 2026-10-07; deployment held pending the forthcoming Roles screen.
 **Authority:** owner instruction “do morse and home next” (2026-10-07), #188/#193 contracts, and the verification recorded below.
 **Branch:** `feat/morse-home-release`, based on main `e7c609f`, integrating Morse runtime #194 and design contract #189.
 
@@ -29,6 +29,14 @@ No topic completion, scheduler, scored item inventory, schema version or Firesto
 
 ## Remaining release acceptance
 
-The #188 and #193 contracts require owner real-device Pixel review before merge/closeout. Verify continuous letter pauses, word gaps, first-press sound, cancellation/backgrounding and Home/navigation in the installed PWA. Automated pointer/keyboard tests cannot substitute for that hardware check.
+The owner authorized merging #195 on 2026-10-07 while explicitly withholding deployment until the forthcoming Roles screen. This overrides the earlier pre-merge Pixel gate; real-device verification remains pending for release/closeout. Verify continuous letter pauses, word gaps, first-press sound, cancellation/backgrounding and Home/navigation in the installed PWA. Automated pointer/keyboard tests cannot substitute for that hardware check.
 
 No version bump, tag, GitHub Release or Firebase deployment has been performed. After acceptance, run final gates on the release commit, confirm the live baseline, and record deployment evidence in a closeout under `docs/closed/`. Keep the maintained Home/Morse contracts in `docs/open/`; move this candidate record when superseded and update links.
+
+## Merge and deployment hold
+
+PR #195 merged as `49ab1f6` after web, browser, rules and demo-build CI passed. Local main is synchronized. The integrated source PRs #194/#189 are superseded by this merge.
+
+Neither Firebase nor the GitHub Pages demo was deployed. The `demo-pages.yml` workflow was disabled before the merge because pushes to main normally publish the demo automatically. Keep it disabled during the release hold; re-enable with `gh workflow enable demo-pages.yml` only when deployment is authorized, then explicitly run/verify the intended demo publication. Firebase Hosting remains manual.
+
+Do not bump a version, tag or deploy just because Roles merges. The combined release scope and owner deployment instruction govern the next release.
