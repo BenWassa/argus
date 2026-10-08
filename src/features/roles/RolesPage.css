@@ -3,7 +3,9 @@
 .roles-head p{max-width:55ch;margin:var(--s-sm) 0 0;color:var(--muted)}
 .roles-award{display:grid;grid-template-columns:minmax(0,220px) minmax(0,1fr);align-items:center;gap:var(--s-xl);padding:var(--s-lg);border:1px solid var(--line);border-radius:var(--r-xl);background:linear-gradient(160deg,var(--surface-2),var(--surface));box-shadow:var(--edge),var(--edge-under)}
 .roles-medallion{display:block;width:100%;max-width:220px;height:auto;aspect-ratio:1;object-fit:contain;filter:drop-shadow(0 10px 14px rgb(0 0 0 / 45%))}
-.roles-medallion.is-unearned{filter:grayscale(1) brightness(.64) drop-shadow(0 5px 9px rgb(0 0 0 / 35%))}
+.roles-medallion.is-unearned{filter:grayscale(1) brightness(.64) drop-shadow(0 5px 9px rgb(0 0 0 / 35%));pointer-events:none}
+.roles-medallion.is-earned{transition:transform 220ms ease}
+@media (hover:hover) and (prefers-reduced-motion:no-preference){.roles-medallion.is-earned:hover{transform:translateY(-2px)}}
 .roles-award-copy{min-width:0}
 .roles-award-status{font-size:var(--t-component);font-weight:var(--w-component)}
 .roles-award-count{font-family:var(--font-mono);font-size:var(--t-small);color:var(--ink);font-variant-numeric:tabular-nums;margin-top:var(--s-sm)}
