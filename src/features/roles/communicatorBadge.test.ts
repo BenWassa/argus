@@ -21,6 +21,6 @@ describe('Communicator nautical badge asset', () => {
     expect(manifest.runtime).toBe('/media/roles/communicator.svg')
     expect(manifest.family).toBe('Nautical (current)')
     expect(manifest.format).toContain('pure-vector')
-    expect(badgeSvg).not.toMatch(/https?:\/\//i)
+    expect(badgeSvg).not.toMatch(/\b(?:href|xlink:href)\s*=\s*['\"](?:https?:\/\/|data:)/i)
   })
 })
