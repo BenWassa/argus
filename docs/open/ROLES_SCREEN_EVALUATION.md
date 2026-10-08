@@ -1,13 +1,27 @@
 # Roles screen evaluation
 
-**Status:** Active evaluation, 7 October 2026. No Roles runtime implemented.
+**Status:** Active evaluation, 7 October 2026. Communicator MVP and owner-supplied SVG reviewed on `origin/feat/communicator-roles-mvp` at `a3ed600`; not merged into main.
 **Authority:** Repository assessment and implementation recommendation; does not ratify the open product decisions in [#191](ISSUE_191_ROLE_DESIGNATIONS.md) or replace the artwork brief in [#192](ISSUE_192_ROLE_BADGE_ART.md).
 
-## Current starting point
+## Main-branch starting point
 
 `feat/roles-screen` starts from `main` at `fac05e5`, after the Morse and Home merge. Deployment remains on hold; the automatic Pages demo workflow remains disabled. This work must not create a release or deploy either build.
 
 The app currently has Home and Library navigation, with no Roles route, role definitions, or award records. The 24-topic shipped catalog and existing permanent `Topic.completedAt` provide a useful foundation. Learning activity, Morse sending bests, and formative practice are not role completion evidence.
+
+## Communicator MVP review
+
+The owner identified `public/media/roles/communicator.svg` on `feat/communicator-roles-mvp`. That branch also implements the Roles route/navigation, a single Communicator destination, three open pathways containing all seven requirements, catalog-provenance checks, and an earned badge that survives retention decay. It has not been integrated into this evaluation branch or main.
+
+The SVG is 19,897 bytes, uses editable vector groups and gradients, contains no embedded raster, and matches the asset manifest's Git blob hash `49e4621a83ebaccdb88ddd9775d3e4eddb8374f8`. The screen renders the same gold/blue SVG with grayscale and brightness filters for the unearned state. Both states were visually inspected at 390 px: the central transmission mast, rim, compass and waves remain legible at the screen's approximately 200 px display size. The artwork is a stylized reconstruction of the PNG reference, not an identical trace.
+
+Focused verification passed: seven role/asset unit tests and eight Roles browser tests across the four configured viewports. Production and demo builds passed, with the existing large-chunk warning. These checks do not replace full regression or real Pixel acceptance.
+
+**Confirmed release defect:** `RolesPage.tsx` uses `/media/roles/communicator.svg`, which fails to load when the demo is served under `/argus/`. The same asset returns HTTP 200 at `/argus/media/roles/communicator.svg`. Resolve its URL using `import.meta.env.BASE_URL`, as existing audio/visual assets do, and verify actual image decoding in the demo. Existing browser tests assert element visibility but do not catch a broken image.
+
+**Asset behavior limitation:** SVG-internal hover selectors cannot be driven by hovering its host `<img>`; the page's earned-image lift works, but the manifest's internal signal/compass hover interactions should not be claimed as verified runtime behavior. Inline SVG or another explicit interaction mechanism would be needed if those internal effects are desired.
+
+No code fixes, main merge, version change, or deployment were performed during this review. Earlier recommendations below describe the initial proposal; this section records the subsequently located candidate.
 
 ## Recommended first scope
 
