@@ -37,16 +37,18 @@ Freeze the first definition's required IDs for the initial release. Future addit
 
 ## Supplied artwork assessment
 
+**Owner clarification:** The PNG is a visual reference only. The owner is still creating the SVG; that forthcoming SVG is the intended production artwork. Do not crop, convert, or integrate the reference PNG as a runtime asset.
+
 Source: local untracked `ChatGPT Image Oct 7, 2026, 10_23_13 PM.png`, 1774 × 887, approximately 2.6 MB, RGBA PNG. SHA-256: `5ca25a6a03586b02ff476959ea79f3524c0c0f2e251444d80aa48d39d65819d2`. The file is present in the checkout; it is not committed on local or remote `main`. Its original pixels have not been changed.
 
 The combined sheet contains a silver **LOCKED** medallion and a gold/blue **EARNED** medallion, with baked-in labels and a visible navy backdrop. An alpha channel alone does not establish a usable transparent cutout. Radio tower, signal flags, Morse marks and maritime waves give Communicator a coherent identity. The tower reads clearly; the smaller flags, rope and Morse details need small-size checks.
 
 Use this as the direction for a medallion family. The earned gold/blue palette is more expressive than #192's restrained steel proposal; preserve that owner-supplied direction in the artwork while keeping ordinary interface chrome within the existing design system. Start with a 96–128 px badge on the Roles card/detail, not a tiny navigation icon.
 
-Before runtime integration, prepare two individual square assets without baked text or sheet background, retaining the original as source provenance. Inspect each at actual display sizes and on the app background, and compare their framing: the two drawings are not geometrically identical, so avoid a crossfade that assumes perfect alignment. Optimize production derivatives rather than shipping the entire 2.6 MB sheet or using CSS to expose half of it. No asset editing has been performed in this evaluation; generation prompt/model metadata is unavailable and must not be invented.
+When the owner's SVG is available, inspect its locked and earned treatments at actual display sizes and on the app background. Check framing, small-detail legibility, and accessible state text in the interface. The PNG's background, labels, file size, and differences between the two drawings are properties of the reference sheet, not defects to fix or assumptions about the forthcoming SVG. No asset editing has been performed in this evaluation; generation prompt/model metadata is unavailable and must not be invented.
 
 ## Implementation gates
 
-The smallest coherent next build is Communicator only, the supplied two-state artwork, a finite checklist, existing topic navigation, and separate refresh status. Update PRODUCT/DESIGN's blanket badge prohibition with a narrowly scoped Roles exception when that implementation is approved; the existing shipped contract remains authoritative meanwhile.
+The smallest coherent next build is Communicator only, the forthcoming owner-created SVG with locked and earned treatments, a finite checklist, existing topic navigation, and separate refresh status. Screen structure and behavior can be developed while the SVG is in progress; final artwork acceptance waits for the SVG. Update PRODUCT/DESIGN's blanket badge prohibition with a narrowly scoped Roles exception when that implementation is approved; the existing shipped contract remains authoritative meanwhile.
 
 Before release, verify empty/partial/earned/refresh states, catalog provenance, import/deletion behavior, route/back navigation, keyboard and screen-reader labels, and phone/landscape/desktop layout. Continue the existing deployment hold until explicitly lifted, including the outstanding Morse/Home device acceptance.
