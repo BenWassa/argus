@@ -1,34 +1,9 @@
 import type { Topic } from '../library/topic'
 import { topicOrigin } from '../library/catalog'
 
-/** Six approved identities. Only Communicator is earnable/visible in v1. */
-export const ROLE_IDS = ['communicator', 'navigator', 'mariner', 'diver', 'responder', 'operator'] as const
+import { COMMUNICATOR, ROLE_IDS } from './definitions'
+export { COMMUNICATOR, ROLE_IDS } from './definitions'
 export type RoleId = (typeof ROLE_IDS)[number]
-
-/** Version 1's authored requirement boundary cannot be changed retrospectively. */
-export const COMMUNICATOR = {
-  id: 'communicator',
-  version: 1,
-  title: 'Communicator',
-  description: 'Foundational communication and signalling knowledge across codes, radio and marine procedures.',
-  pathways: [
-    {
-      id: 'codes-signalling',
-      title: 'Codes & Signalling',
-      topicIds: ['nato-phonetic', 'international-morse-letters-printed', 'signal-flags'],
-    },
-    {
-      id: 'radio-fundamentals',
-      title: 'Radio Fundamentals',
-      topicIds: ['radiotelephony-numbers', 'radio-procedure'],
-    },
-    {
-      id: 'marine-communications',
-      title: 'Marine Communications',
-      topicIds: ['marine-vhf-routine-calling', 'marine-vhf-priority-communications'],
-    },
-  ],
-} as const
 
 export type RoleTopicState = 'complete' | 'in-progress' | 'not-started' | 'unavailable'
 
