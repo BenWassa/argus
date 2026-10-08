@@ -154,13 +154,13 @@ For every final badge:
 
 ## 11. Deliverables
 
-- [ ] Three coherent badge-family concept sheets.
-- [ ] Owner-selected family.
+- [x] Multiple coherent badge-family concept sheets reviewed in the owner conversation.
+- [x] Owner-selected family — Nautical (current).
 - [ ] One approved master per v1 role.
-- [ ] Small-scale QA comparison.
-- [ ] Production asset format decision.
-- [ ] Manifest/provenance record.
-- [ ] Integration notes for #191.
+- [x] Small-scale rasterized vector/reference comparison (32–512 px; runtime device QA outstanding).
+- [x] Production asset format decision — genuinely layered standalone SVG.
+- [x] Manifest/provenance record.
+- [x] Integration notes for #191.
 
 
 ## 12. Approved visual direction — 2026-10-07
@@ -169,7 +169,7 @@ For every final badge:
 
 Only fully completed roles receive the **earned** full-colour badge. An unearned monochrome *preview* is permitted, but no progress-stage material transformations. A completed pathway receives a text **Complete** state only, no badge.
 
-**Asset status:** the app MVP stages a small hand-authored SVG as a lightweight rendering placeholder. It reflects the same visual vocabulary but is not asserted to match the high-detail approved image. The image-generation source and transparent optimized raster masters were prepared in the owner conversation on 2026-10-07. Import the approved earned/locked WebP/PNG masters before treating #192 as complete; record checksums and render QA at 220, 96, 48 and 32px. Replace the vector fallback in the manifest and UI only after that review. Maintain original file provenance and document that this is original Argus-made visual art, not licensed official insignia.
+**Asset status (superseded by §13):** PR #196 initially staged a simplified vector placeholder. The subsequent layered SVG reconstruction replaces that first vector. Its fidelity remains subject to final visual review. The image-generation reference and optimized PNG/WebP masters were prepared in the owner conversation on 2026-10-07, but the owner subsequently chose an editable vector reconstruction instead of making those rasters the sole runtime badge. A new layered vector candidate is now present in PR #196, with material parts separately addressable for animation. It replaces the prior placeholder; consult §13 for the current asset and QA contract. Final owner vector-fidelity acceptance and Pixel/browser verification remain outstanding.
 
 
 ## 13. Layered SVG reconstruction — 2026-10-07
