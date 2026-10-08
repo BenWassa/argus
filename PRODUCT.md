@@ -35,7 +35,7 @@ One shared derivation reads all four and answers the only question the learner a
 
 The learner is not asked to hold all four at once. Home reports topic progression in its own units; Library and Topic retain the journey's action and state language. Consequences are stated where they bite: on a Test's end screen and the topic's status line. The dimensions stay four separate fields; they stopped being a printed table.
 
-**Progress is not a destination.** Its live sections were a third projection of the same derivation Library already shelves, and its one unique artifact — the permanent completion record — now closes Library, composed rather than listed. Nothing it showed was lost. Navigation is two destinations, `Home` and `Library`; `Profile` is a Home child reached from its header. It owns account, sync, export, import, and reset without spending a quarter of the bottom bar on utilities or mixing account controls into the learning Library.
+**Progress is not a destination.** Its live sections were a third projection of the same derivation Library already shelves, and its one unique artifact — the permanent completion record — now closes Library, composed rather than listed. Nothing it showed was lost. Navigation is three destinations, `Home`, `Roles`, and `Library`; `Profile` is a Home child reached from its header. It owns account, sync, export, import, and reset without spending a quarter of the bottom bar on utilities or mixing account controls into the learning Library.
 
 ## Home and formative sending
 
@@ -104,7 +104,7 @@ The tradecraft and survival tracks pull hard toward military, prepper, or tactic
 - The generic AI-generated dashboard: a hero, four equal metric cards, a grid of identical rounded topic cards. Flagged directly in design critique as "category-interchangeable" — recognizable ingredients, generic composition.
 - Repetitive card scaffolding used as a default container for everything (stats, topics, modes, panels) — it flattens hierarchy instead of establishing it.
 - Military, survivalist, or "prepper" visual language: tactical iconography, rugged/camo textures, alarm-red urgency, game-like HUD elements.
-- Gamification: streaks, badges, XP, leaderboards, shame-based nudging for missed days. Retention decay is information, not punishment. The ten-answer Morse Learn sitting is a finite retrieval budget and is named as one — earlier copy called it `XP`, which implied a currency the product does not have.
+- Gamification: streaks, XP, leaderboards, indiscriminate badges, shame-based nudging for missed days. The narrowly approved exception is one finite, evidence-backed badge per completed Argus role (#191); pathways earn no badges. Retention decay is information, not punishment. The ten-answer Morse Learn sitting is a finite retrieval budget and is named as one — earlier copy called it `XP`, which implied a currency the product does not have.
 - A single aggregate progress percentage. Acquisition, evidence, retention and completion answer different questions; one number combining them would be precise and untrue.
 - Desktop-as-widened-mobile: cosmetic breakpoint scaling instead of a real task-oriented desktop layout (side rail, dense authoring views).
 - Decorative gradients, ornamental rings, and non-functional visual flourish anywhere in the Test loop.
@@ -129,3 +129,7 @@ Target WCAG 2.1 AA. Established and non-negotiable baseline (already implemented
 - `aria-live="polite"` regions for dynamic status (e.g. due-count updates) so screen reader users get session state without hunting for it.
 - Full `prefers-reduced-motion` support — no animation is load-bearing for comprehension.
 - Learn briefings use native heading/list/definition/table semantics. Sources and limitations are reachable through a named footer control and centred modal; survival training boundaries remain visible in scope. Content must remain readable at 200% text scaling without page-level horizontal overflow.
+
+## Role designations (approved v1 exception, #191)
+
+Roles are rare permanent awards for completing a finite cross-topic learning boundary, not credentials, XP or a new retention rung. Only **Communicator** is visible in v1. It requires seven shipped topics across three fully open pathways in suggested order. The page reports completed-topic counts and pathway states, never an aggregate mastery percentage. The badge remains earned when a previously completed topic decays. See `docs/open/ISSUE_191_ROLE_DESIGNATIONS.md` and `docs/open/ISSUE_192_ROLE_BADGE_ART.md`.

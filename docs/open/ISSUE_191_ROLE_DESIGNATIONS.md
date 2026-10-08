@@ -1,6 +1,6 @@
 # Issue #191 — Role-based learning designations
 
-**Status:** scoped concept / owner decision pending — 2026-10-07.  
+**Status:** owner-approved Communicator MVP; implementation PR in progress — 2026-10-07.  
 **Authority:** active product-design proposal for #191. It does not change shipped progress, completion, navigation, or anti-gamification rules until an implementation decision is approved and merged.  
 **Companion asset lane:** #192 — custom role badge art system.
 
@@ -282,3 +282,23 @@ Only after owner approval:
 - [ ] Role-definition versioning policy.
 - [ ] Whether tiers are still wanted after testing v1.
 - [ ] Whether a global fictional rank system remains interesting after roles ship.
+
+
+## 15. Owner-locked Communicator MVP — 2026-10-07
+
+- Primary destination **Roles**, opening Communicator directly for the one-role MVP. Six long-term identities: Communicator, Navigator, Mariner, Diver, Responder, Operator. Only Communicator visible/earnable now.
+- MECE Library topic categories are a *separate future information-architecture decision*; roles are cross-domain overlays and may share a topic.
+- **Codes & Signalling:** NATO Alphabet (`nato-phonetic`), International Morse Code (`international-morse-letters-printed`), Signal Flags (`signal-flags`).
+- **Radio Fundamentals:** Radio Numbers (`radiotelephony-numbers`), Radio Procedure (`radio-procedure`).
+- **Marine Communications:** Marine Calling (`marine-vhf-routine-calling`), Marine Priority Calls (`marine-vhf-priority-communications`).
+- Pathways display in this suggested order but all three are *fully open*, with no prerequisites or locked lessons. Within a pathway, a topic can be opened directly and Back returns to Roles.
+- Pathway with all topics banked shows **Complete** and nothing more; no sub-badge, level, credential, score or tier.
+- **Communicator badge is awarded only for all seven permanent topic completion records**. Full Morse A–Z learning and genuine scored eligibility remain unchanged. Mere lesson progress, activity, attempts and time spent do not qualify.
+- Award is **permanent** even when an underlying topic later decays; refresh is displayed separately. Primary progress is pathway states plus **raw completed-topic counts**, never a percentage.
+- The version-1 boundary must remain immutable. Before adding later required topics, design an explicit historical-award/version migration.
+- Badge family **Nautical (current)** owner-approved (#192). A subdued monochrome preview is not an earned badge; no partial badge upgrades during pathway progress.
+- Argus roles are learning designations, never real-world radio, marine, medical or other qualifications.
+
+### Current implementation scope
+
+Typed v1 role definition, pure projection from existing topic completion history, third navigation destination, open pathway lists, in-app links to existing topics, separate freshness note, and mobile accessibility checks. No independent progress store, scheduler changes, or scoring changes.

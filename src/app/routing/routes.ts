@@ -14,14 +14,14 @@ import { FLUENCY_MODES, type FluencyMode } from '../../domain/morse/fluency/sess
 /**
  * Top-level destinations.
  *
- * Two of them are navigation: Today is the docket, Library is everything owned.
+ * Three are primary navigation: Home is the docket, Roles is achievement, and Library is everything owned.
  * `profile` is a Today utility with its own route rather than a third thumb-level
  * slot; legacy `data` entries remain valid only for history compatibility.
  * Progress is gone as a destination: its live
  * sections were a third reading of the same `journeyFor` derivation Library
  * already shelves, and its permanent completion record now closes Library.
  */
-export type View = 'today' | 'library' | 'profile' | 'data'
+export type View = 'today' | 'roles' | 'library' | 'profile' | 'data'
 
 export type ParentRoute =
   | { kind: 'section'; view: View }
@@ -82,7 +82,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
  * its root rather than restoring a route it can no longer render.
  */
 function isView(value: unknown): value is View {
-  return value === 'today' || value === 'library' || value === 'profile' || value === 'data'
+  return value === 'today' || value === 'roles' || value === 'library' || value === 'profile' || value === 'data'
 }
 
 function isMode(value: unknown): value is Mode {
