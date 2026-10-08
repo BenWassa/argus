@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "role": "communicator",
   "family": "Nautical (current)",
   "runtime": "/media/roles/communicator.svg",
@@ -7,7 +7,7 @@
   "status": "Layered vector merged via #196; automated browser QA passed, final owner visual review and runtime Pixel QA pending",
   "awardPolicy": "Badge awarded only on all seven permanent topic completion records; pathway completion has no badge; no progress-state material upgrade",
   "source": "Original Argus-made hand-authored vector reconstruction from owner-selected Nautical generated concept, 2026-10-07. No official military/diving organisation insignia or copied service marks.",
-  "gitBlobSha": "49e4621a83ebaccdb88ddd9775d3e4eddb8374f8",
+  "gitBlobSha": "35c75cf619936aadefe3feb41290f5a4e3cb5ef5",
   "layers": [
     "rope-border",
     "enamel-field",
@@ -36,5 +36,31 @@
     "vectorXML": "well-formed in standalone reconstruction QA",
     "mobileRuntime": "pending real Pixel and CI verification"
   },
-  "notes": "Reconstruction is not a pixel-identical raster trace. Appearance approval of the vector itself remains with owner."
+  "notes": "Original vector reconstruction using the owner PNG as a composition/material reference, with vetted communication symbols rather than tracing its invented marks. A/Z Morse use 1:3 dot/dash proportions and equal one-unit gaps. Flags are November (4x4 blue/white), Zulu (yellow top/blue fly/red bottom/black hoist), Victor (red saltire/white) and Alfa (white hoist/blue swallowtail fly). Rope braid and pointed keeper refined against the reference; reconstruction is not pixel-identical. Final real-device artwork acceptance remains with owner.",
+  "symbols": {
+    "morse": {
+      "left": {
+        "letter": "A",
+        "pattern": ".-"
+      },
+      "right": {
+        "letter": "Z",
+        "pattern": "--.."
+      },
+      "dotUnit": 10,
+      "dashUnits": 3,
+      "elementGapUnits": 1,
+      "source": "https://www.itu.int/dms_pubrec/itu-r/rec/m/R-REC-M.1677-1-200910-I!!PDF-E.pdf"
+    },
+    "flags": {
+      "leftToRight": [
+        "N",
+        "Z",
+        "V",
+        "A"
+      ],
+      "source": "https://msi.nga.mil/api/publications/download?key=16694273%2FSFH00000%2FPub102bk.pdf",
+      "reference": "Inside front cover: alphabet flag plate; corrected patterns retain the owner-selected four-position composition."
+    }
+  }
 }

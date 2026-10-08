@@ -183,3 +183,14 @@ The user approved continuing with a **real animatable SVG**, rather than importi
 **QA:** SVG parsed and rasterized at 512, 220, 96, 48 and 32 px in the working environment. The 32 px badge reads as a medallion and mast, but flags and Morse marks intentionally require larger presentation. Review at 220 px remains the primary target. A vector-to-approved-raster side-by-side is available for owner review outside the repository. CI/browser suite, native mobile (Pixel), high-DPI rasterization of SVG filters, screen-reader interpretation and animation triggers should be verified on the PR before merge. The current preferred approach does **not** require importing the pre-generated WebP masters to achieve an editable vector.
 
 **Status gate:** this fulfills the SVG production **candidate**, not final visual acceptance. Do not close #192 or describe the badge as an exact production reproduction until owner accepts the vector's fidelity and mobile/browser checks pass. `public/media/roles/manifest.json` records asset details and the Git blob SHA.
+
+
+## 14. Vetted symbols and reference refinement (2026-10-07)
+
+The owner requested checking the SVG against the PNG reference and chose four accurate flags: **N, Z, V, A**. The reference establishes composition and metalwork; its generated symbols are not the technical authority.
+
+- Left Morse is **A (`.-`)**, right Morse is **Z (`--..`)**, verified against [ITU-R M.1677-1, Annex 1 §1.1.1](https://www.itu.int/dms_pubrec/itu-r/rec/m/R-REC-M.1677-1-200910-I!!PDF-E.pdf). The prior marks were `..-.` and `..--`. Drawn elements now have a 10-unit dot diameter, 30-unit dash length, and 10-unit within-letter gaps. Separate sides of the mast make the letter boundary explicit.
+- The four flags follow the [NGA Pub. 102 inside-cover flag plate](https://msi.nga.mil/api/publications/download?key=16694273%2FSFH00000%2FPub102bk.pdf): November has sixteen alternating blue/white squares; Zulu has yellow top, blue fly, red bottom and black hoist triangles; Victor has a red diagonal cross on white; Alfa has white at the hoist, blue at the fly and an actual swallowtail notch. The previous quartered checker, invented diagonal colours, and rectangular Alfa-like split were replaced.
+- The rim now uses wider twisted rope strands, the top keeper has the reference's pointed crest, and the lower compass tip has more viewport clearance. Stable parent layer IDs and the existing earned/unearned treatment are preserved. No bitmap is embedded and the reference PNG is untouched.
+
+Regression checks inspect the actual SVG Morse shapes/order, dot/dash dimensions and gaps against the runtime alphabet, plus flag geometry. Both material states were inspected at 512 px and in the mobile Roles screen. This is an artwork correction only; completion semantics and the deployment hold remain unchanged. Updated provenance and the asset blob hash are recorded in `public/media/roles/manifest.json`.
