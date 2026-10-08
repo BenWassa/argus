@@ -1,7 +1,7 @@
 # Issue #191 — Role-based learning designations
 
-**Status:** owner-approved Communicator MVP; implementation PR in progress — 2026-10-07.  
-**Authority:** active product-design proposal for #191. It does not change shipped progress, completion, navigation, or anti-gamification rules until an implementation decision is approved and merged.  
+**Status:** Communicator MVP merged via #196; deployment and real-device release acceptance held — 2026-10-07.
+**Authority:** maintained Communicator MVP contract and broader role-design proposals for #191. The owner-approved MVP is merged; unimplemented roles and alternatives remain proposals.
 **Companion asset lane:** #192 — custom role badge art system.
 
 ## 1. Owner direction

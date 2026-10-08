@@ -1,7 +1,9 @@
 # Roles screen evaluation
 
-**Status:** Active evaluation, 7 October 2026. Communicator MVP and owner-supplied SVG reviewed on `origin/feat/communicator-roles-mvp` at `a3ed600`; owner authorized merging the MVP and review follow-up into main. Deployment remains held.
-**Authority:** Repository assessment and implementation recommendation; does not ratify the open product decisions in [#191](ISSUE_191_ROLE_DESIGNATIONS.md) or replace the artwork brief in [#192](ISSUE_192_ROLE_BADGE_ART.md).
+**Status:** Completed evaluation and main catch-up, 7 October 2026. Communicator MVP, supplied SVG and demo asset-path correction merged via #196 as `5482544`. No deployment or version change.
+**Authority:** Historical assessment and merge record. Maintained role and asset contracts are [#191](../open/ISSUE_191_ROLE_DESIGNATIONS.md) and [#192](../open/ISSUE_192_ROLE_BADGE_ART.md); recommendations below preserve the assessment's original reasoning.
+
+**Final checks:** 1,652 unit tests passed locally; eight focused Roles browser checks passed; full PR CI passed web, rules and 389 browser tests with 19 expected skips. Production and demo builds passed. Actual SVG decoding succeeded with the demo served under `/argus/`. The extra local full-browser run was stopped after full CI passed; it is not claimed as a completed run. Real Pixel and final owner artwork acceptance remain release checks. Automatic demo publication remains disabled, and deployment requires a separate explicit instruction.
 
 ## Main-branch starting point
 
@@ -11,13 +13,13 @@ At that baseline the app had Home and Library navigation, with no Roles route, r
 
 ## Communicator MVP review
 
-The owner identified `public/media/roles/communicator.svg` on `feat/communicator-roles-mvp`. That branch also implements the Roles route/navigation, a single Communicator destination, three open pathways containing all seven requirements, catalog-provenance checks, and an earned badge that survives retention decay. It is now integrated into this evaluation branch for the authorized main merge.
+The owner identified `public/media/roles/communicator.svg` on `feat/communicator-roles-mvp`. That branch also implements the Roles route/navigation, a single Communicator destination, three open pathways containing all seven requirements, catalog-provenance checks, and an earned badge that survives retention decay. It was integrated into the evaluation branch and merged into main via #196.
 
 The SVG is 19,897 bytes, uses editable vector groups and gradients, contains no embedded raster, and matches the asset manifest's Git blob hash `49e4621a83ebaccdb88ddd9775d3e4eddb8374f8`. The screen renders the same gold/blue SVG with grayscale and brightness filters for the unearned state. Both states were visually inspected at 390 px: the central transmission mast, rim, compass and waves remain legible at the screen's approximately 200 px display size. The artwork is a stylized reconstruction of the PNG reference, not an identical trace.
 
 Focused verification passed: seven role/asset unit tests and eight Roles browser tests across the four configured viewports. Production and demo builds passed, with the existing large-chunk warning. These checks do not replace full regression or real Pixel acceptance.
 
-**Resolved release defect:** `RolesPage.tsx` uses `/media/roles/communicator.svg`, which fails to load when the demo is served under `/argus/`. The same asset returns HTTP 200 at `/argus/media/roles/communicator.svg`. The integration follow-up resolves its URL using `import.meta.env.BASE_URL`, as existing audio/visual assets do. Both Roles browser scenarios now require successful image decoding, rather than element visibility alone. Demo decoding under `/argus/` is also checked before merge.
+**Resolved release defect:** `RolesPage.tsx` uses `/media/roles/communicator.svg`, which fails to load when the demo is served under `/argus/`. The same asset returns HTTP 200 at `/argus/media/roles/communicator.svg`. The integration follow-up resolves its URL using `import.meta.env.BASE_URL`, as existing audio/visual assets do. Both Roles browser scenarios now require successful image decoding, rather than element visibility alone. Demo decoding under `/argus/` passed before merge.
 
 **Asset behavior limitation:** SVG-internal hover selectors cannot be driven by hovering its host `<img>`; the page's earned-image lift works, but the manifest's internal signal/compass hover interactions should not be claimed as verified runtime behavior. Inline SVG or another explicit interaction mechanism would be needed if those internal effects are desired.
 

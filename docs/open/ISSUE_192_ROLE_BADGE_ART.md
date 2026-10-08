@@ -1,6 +1,6 @@
 # Issue #192 — Custom role badge art system
 
-**Status:** owner-locked Nautical (current) family; independently layered vector candidate integrated in PR #196; runtime QA and owner vector-fidelity review remain open — 2026-10-07.  
+**Status:** owner-locked Nautical (current) family; independently layered vector merged via #196; automated runtime checks passed, real-device QA and final owner vector-fidelity acceptance remain open — 2026-10-07.
 **Authority:** active visual-production proposal for role badges only. `DESIGN.md` / `DESIGN.json` remain the authority for the application UI.
 
 ## 1. Purpose
@@ -178,7 +178,7 @@ The user approved continuing with a **real animatable SVG**, rather than importi
 
 **Actual editable vector groups:** `badge-body`, `rope-border` (106 reusable modeled braid segments), `enamel-field`, `mast-assembly`, `signal-arcs` (individual left/right groups), `signal-flags` (individual flags), `morse-code` (left/right), `sea-waves` (back/mid/front), `rim-clasps`, `compass-rose`. All artwork is original SVG path/circle/rect geometry with gradients and filters: no data URI, embedded bitmap, traced protected art, HTML foreign object, downloaded font or official emblem. Outer medallion geometry is transparent beyond the badge perimeter; the source remains square 512 viewBox.
 
-**Motion contract:** SVG IDs permit later timeline-based pulse/wave/compass effects without retracing. Tiny signal/compass hover treatments are included for motion-capable devices, behind `prefers-reduced-motion: no-preference`. The unearned preview remains monochrome, inert and unanimated; the earned badge alone uses the full enamel-and-gold vector. No perpetual, automatic, score-driven, or pathway-specific badge animation. Animation must never communicate achievement independently of real completion.
+**Motion contract:** SVG IDs permit later timeline-based pulse/wave/compass effects without retracing. SVG-internal signal/compass hover rules are present but do not activate through the runtime `<img>`. The active earned-image lift respects reduced motion; internal layer animation is future scope. The unearned preview remains monochrome, inert and unanimated; the earned badge alone uses the full enamel-and-gold vector. No perpetual, automatic, score-driven, or pathway-specific badge animation. Animation must never communicate achievement independently of real completion.
 
 **QA:** SVG parsed and rasterized at 512, 220, 96, 48 and 32 px in the working environment. The 32 px badge reads as a medallion and mast, but flags and Morse marks intentionally require larger presentation. Review at 220 px remains the primary target. A vector-to-approved-raster side-by-side is available for owner review outside the repository. CI/browser suite, native mobile (Pixel), high-DPI rasterization of SVG filters, screen-reader interpretation and animation triggers should be verified on the PR before merge. The current preferred approach does **not** require importing the pre-generated WebP masters to achieve an editable vector.
 

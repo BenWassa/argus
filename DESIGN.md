@@ -130,7 +130,7 @@ components:
 
 # Design System: Argus
 
-**Status:** current design contract with Morse/Home changes merged via #195 (2026-10-07); deployment is held pending Roles.
+**Status:** current design contract with Morse/Home (#195) and Communicator Roles (#196) merged on 2026-10-07; deployment remains held until explicitly authorized.
 **Authority:** design context. `docs/open/TOPIC_PAGE_REVAMP.md` and `docs/open/LIBRARY_COMPACT_TOPICS.md` own the pending topic-page and provenance contracts.
 
 ## 1. Overview

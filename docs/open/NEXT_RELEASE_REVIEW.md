@@ -1,6 +1,6 @@
 # Next release review
 
-**Status:** combined Morse + Home selected by owner on 2026-10-07; implementation merged via #195; deployment held for the forthcoming Roles screen, no release/deployment performed.
+**Status:** combined Morse + Home selected by owner on 2026-10-07; implementation merged via #195; Communicator Roles subsequently merged via #196; deployment remains held, no release/deployment performed.
 **Authority:** repository/GitHub review as of 2026-10-07; feature contracts and current checks govern implementation.
 **Baseline:** main `e7c609f`, package/tag `v1.4.0` (`23a5673`).
 
@@ -52,3 +52,7 @@ This review uses existing CI evidence rather than a fresh local test run. It doe
 ## Owner deployment hold (2026-10-07)
 
 Owner authorized #195 to merge but explicitly instructed not to deploy while the new Roles screen is added. Main now contains Morse + Home. GitHub Pages demo auto-publication is paused by disabling `demo-pages.yml`; Firebase remains untouched. See `MORSE_HOME_RELEASE_CANDIDATE.md` for the hold and workflow restoration record.
+
+## Main catch-up (2026-10-07)
+
+The owner authorized #196 to merge, including Communicator Roles, the layered SVG, the evaluation and demo asset-path correction. Main now includes Morse, Home and Roles. The earlier readiness table is a historical planning snapshot: Communicator is implemented, with automated gates passed and real-device/final-art acceptance still required before release. The deployment hold continues; `demo-pages.yml` remains disabled and Firebase remains untouched. See [Roles evaluation closeout](../closed/ROLES_SCREEN_EVALUATION.md).

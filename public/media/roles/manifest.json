@@ -4,7 +4,7 @@
   "family": "Nautical (current)",
   "runtime": "/media/roles/communicator.svg",
   "format": "pure-vector SVG, no embedded raster",
-  "status": "Layered vector candidate integrated; owner visual review and runtime Pixel QA pending",
+  "status": "Layered vector merged via #196; automated browser QA passed, final owner visual review and runtime Pixel QA pending",
   "awardPolicy": "Badge awarded only on all seven permanent topic completion records; pathway completion has no badge; no progress-state material upgrade",
   "source": "Original Argus-made hand-authored vector reconstruction from owner-selected Nautical generated concept, 2026-10-07. No official military/diving organisation insignia or copied service marks.",
   "gitBlobSha": "49e4621a83ebaccdb88ddd9775d3e4eddb8374f8",

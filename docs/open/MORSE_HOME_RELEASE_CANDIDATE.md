@@ -1,6 +1,6 @@
 # Combined Morse and Home release candidate
 
-**Status:** merged via #195 on 2026-10-07; deployment held pending the forthcoming Roles screen.
+**Status:** merged via #195 on 2026-10-07; Communicator Roles subsequently merged via #196; deployment remains held until explicitly authorized.
 **Authority:** owner instruction “do morse and home next” (2026-10-07), #188/#193 contracts, and the verification recorded below.
 **Branch:** `feat/morse-home-release`, based on main `e7c609f`, integrating Morse runtime #194 and design contract #189.
 
@@ -40,3 +40,7 @@ PR #195 merged as `49ab1f6` after web, browser, rules and demo-build CI passed. 
 Neither Firebase nor the GitHub Pages demo was deployed. The `demo-pages.yml` workflow was disabled before the merge because pushes to main normally publish the demo automatically. Keep it disabled during the release hold; re-enable with `gh workflow enable demo-pages.yml` only when deployment is authorized, then explicitly run/verify the intended demo publication. Firebase Hosting remains manual.
 
 Do not bump a version, tag or deploy just because Roles merges. The combined release scope and owner deployment instruction govern the next release.
+
+## Roles integration update (2026-10-07)
+
+Communicator Roles and its layered SVG merged via #196 as `5482544`. The owner authorized that main catch-up without lifting the deployment hold. The integrated candidate passed 1,652 unit tests and full CI (389 browser tests passed, 19 expected skips; web and rules passed). The demo badge base-path fix was verified by actual image decoding under `/argus/`. Real Pixel acceptance for the combined Home/Morse/Roles candidate remains outstanding. No version, tag or deployment change.
