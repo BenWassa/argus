@@ -1,6 +1,6 @@
 # Issue #192 — Custom role badge art system
 
-**Status:** owner-locked Nautical (current) family; production-raster import/QA remains open — 2026-10-07.  
+**Status:** owner-locked Nautical (current) family; independently layered vector candidate integrated in PR #196; runtime QA and owner vector-fidelity review remain open — 2026-10-07.  
 **Authority:** active visual-production proposal for role badges only. `DESIGN.md` / `DESIGN.json` remain the authority for the application UI.
 
 ## 1. Purpose
@@ -170,3 +170,16 @@ For every final badge:
 Only fully completed roles receive the **earned** full-colour badge. An unearned monochrome *preview* is permitted, but no progress-stage material transformations. A completed pathway receives a text **Complete** state only, no badge.
 
 **Asset status:** the app MVP stages a small hand-authored SVG as a lightweight rendering placeholder. It reflects the same visual vocabulary but is not asserted to match the high-detail approved image. The image-generation source and transparent optimized raster masters were prepared in the owner conversation on 2026-10-07. Import the approved earned/locked WebP/PNG masters before treating #192 as complete; record checksums and render QA at 220, 96, 48 and 32px. Replace the vector fallback in the manifest and UI only after that review. Maintain original file provenance and document that this is original Argus-made visual art, not licensed official insignia.
+
+
+## 13. Layered SVG reconstruction — 2026-10-07
+
+The user approved continuing with a **real animatable SVG**, rather than importing the generated PNG as the sole production asset. PR #196 now replaces the first provisional flat placeholder with a manually authored, fully vector medallion in `public/media/roles/communicator.svg` (~20 KB). It follows the locked Nautical family; it is not claimed to be a pixel-perfect replica of the original photorealistic reference.
+
+**Actual editable vector groups:** `badge-body`, `rope-border` (106 reusable modeled braid segments), `enamel-field`, `mast-assembly`, `signal-arcs` (individual left/right groups), `signal-flags` (individual flags), `morse-code` (left/right), `sea-waves` (back/mid/front), `rim-clasps`, `compass-rose`. All artwork is original SVG path/circle/rect geometry with gradients and filters: no data URI, embedded bitmap, traced protected art, HTML foreign object, downloaded font or official emblem. Outer medallion geometry is transparent beyond the badge perimeter; the source remains square 512 viewBox.
+
+**Motion contract:** SVG IDs permit later timeline-based pulse/wave/compass effects without retracing. Tiny signal/compass hover treatments are included for motion-capable devices, behind `prefers-reduced-motion: no-preference`. The unearned preview remains monochrome, inert and unanimated; the earned badge alone uses the full enamel-and-gold vector. No perpetual, automatic, score-driven, or pathway-specific badge animation. Animation must never communicate achievement independently of real completion.
+
+**QA:** SVG parsed and rasterized at 512, 220, 96, 48 and 32 px in the working environment. The 32 px badge reads as a medallion and mast, but flags and Morse marks intentionally require larger presentation. Review at 220 px remains the primary target. A vector-to-approved-raster side-by-side is available for owner review outside the repository. CI/browser suite, native mobile (Pixel), high-DPI rasterization of SVG filters, screen-reader interpretation and animation triggers should be verified on the PR before merge. The current preferred approach does **not** require importing the pre-generated WebP masters to achieve an editable vector.
+
+**Status gate:** this fulfills the SVG production **candidate**, not final visual acceptance. Do not close #192 or describe the badge as an exact production reproduction until owner accepts the vector's fidelity and mobile/browser checks pass. `public/media/roles/manifest.json` records asset details and the Git blob SHA.
