@@ -117,7 +117,7 @@ For each authored scenario score **five separately observable dimensions**:
 
 ## 5. High-value NEW curriculum candidates — specifically bounded, not shipped
 
-**Priority rule:** P0 = directly usable next role or important evidence gap; P1 = second wave; P2 = optional/advanced. Effort is *editorial relative complexity* (S/M/L), **not development estimates**. No IDs are reserved; titles are proposed. Formats: R=finite recall, V=image/diagram interpretation, A=audio, S=authored scenario. Sources cross-reference §7 and the already researched #104 files.
+**Research ranking for issue #197 only, NOT implementation priority:** P0 = high-value research soon; P1 = second research wave; P2 = optional/advanced research. These labels do **not** mean the P0/P1 priorities of `docs/LIBRARY_ROADMAP.md`, whose P0 means approved active expansion. None of the topic candidates here is approved for implementation by this research alone. Effort is relative *editorial* complexity (S/M/L/XL), not a duration or development estimate. No topic IDs are reserved. Formats: R=finite recall, V=image/diagram interpretation, A=audio, S=authored scenario. Sources cross-reference §7 and the already researched #104 files. Existing topographic map-literacy research from #140 is deferred under the current Library Roadmap and must be reused before any Map Scale & Symbols expansion.
 
 | P | Candidate topic | Proposed finite score boundary (examples only) | Role(s) / Format | Effort, authority and caution |
 |---|---|---|---|---|
