@@ -1,6 +1,6 @@
 # Issue #192 — Custom role badge art system
 
-**Status:** owner-locked Nautical (current) family; independently layered vector merged via #196; automated runtime checks passed, real-device QA and final owner vector-fidelity acceptance remain open — 2026-10-07.
+**Status:** owner-locked Nautical (current) family; independently layered vector merged via #196 and refined for v1.5.0; automated runtime checks passed, real-device QA and final owner vector-fidelity acceptance remain open — 2026-10-07.
 **Authority:** active visual-production proposal for role badges only. `DESIGN.md` / `DESIGN.json` remain the authority for the application UI.
 
 ## 1. Purpose
@@ -194,3 +194,15 @@ The owner requested checking the SVG against the PNG reference and chose four ac
 - The rim now uses wider twisted rope strands, the top keeper has the reference's pointed crest, and the lower compass tip has more viewport clearance. Stable parent layer IDs and the existing earned/unearned treatment are preserved. No bitmap is embedded and the reference PNG is untouched.
 
 Regression checks inspect the actual SVG Morse shapes/order, dot/dash dimensions and gaps against the runtime alphabet, plus flag geometry. Both material states were inspected at 512 px and in the mobile Roles screen. This is an artwork correction only; completion semantics and the deployment hold remain unchanged. Updated provenance and the asset blob hash are recorded in `public/media/roles/manifest.json`.
+
+## 15. Retained reference source
+
+The original [locked/earned PNG reference](assets/roles/communicator-locked-earned-reference.png) is retained under `docs/open/assets/roles/`, outside the public runtime asset tree. Its original filename and SHA-256 are recorded in `public/media/roles/manifest.json`; moving and renaming it did not change its pixels. The source sheet guides composition and material, while §14 governs the corrected Morse and flag symbols.
+
+## 16. Symmetric radio waves (2026-10-07)
+
+Owner requested even wave shapes, symmetry and more clearance above the flags. Both sides now reference one shared set of four concentric 60-degree circular arcs centred on the tower orb at `(256,149)`, with radii `38,60,82,104`. The right group is an exact mirror about `x=256`; the radial step is consistently 22 units. The lowest rounded stroke edge is at `y=205.25`, leaving 19.75 units before the flag frames begin at `y=225` (before shadow blur). The stable `signal-left` and `signal-right` groups remain independently addressable. The SVG was visually inspected at 512 px and the 220 px badge size; its shared geometry and mirrored placement were verified. No deployment.
+
+## 17. Balanced compass rose (2026-10-07)
+
+Owner flagged the bottom compass shape. Its overlapping, uneven stars were replaced with one continuous eight-point rose centred at `(256,451)`. Four equal 38-unit cardinal tips alternate with four equal 27-unit intercardinal tips, with 11-unit valleys and sixteen light/dark facets meeting at the same centre. All tips now fit inside the ring; none protrudes through the bezel. Horizontal/vertical mirror symmetry and quarter-turn symmetry were verified, and the result was inspected at 512 px and 220 px. The stable `compass-rose` group remains intact. No deployment.

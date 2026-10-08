@@ -1,9 +1,9 @@
 # Morse sending games — guided words, messages and free transmission
 
-**Status:** Owner selected A + B; runtime implementation in PR #194, pending merge/acceptance  
+**Status:** Selected A + B runtime merged via #195 and included in v1.5.0; real Pixel acceptance remains outstanding.
 **Issue:** [#188](https://github.com/BenWassa/argus/issues/188)  
 **Reviewed against current `main`:** 2026-10-06  
-**Authority:** This proposal specifies *unbuilt* gameplay and selection choices. For shipped behavior, `MORSE_WORD_CHECKPOINTS.md`, `MORSE_FLUENCY.md`, `MORSE_INTERMEDIATE_PATH.md`, `MORSE_AUDIO_RUNTIME.md` and `PROGRESS_ARCHITECTURE.md` remain authoritative. Historical #29 concerns formal, scored competency and is not re-opened.
+**Authority:** Maintained selected sending gameplay contract and deferred follow-on proposals. The selected Send implementation is merged; optional later modes remain unbuilt. For shipped behavior, `MORSE_WORD_CHECKPOINTS.md`, `MORSE_FLUENCY.md`, `MORSE_INTERMEDIATE_PATH.md`, `MORSE_AUDIO_RUNTIME.md` and `PROGRESS_ARCHITECTURE.md` remain authoritative. Historical #29 concerns formal, scored competency and is not re-opened.
 
 ## 0. Decision in plain terms
 

@@ -1,6 +1,6 @@
 # Issue #193 — Selected Home redesign
 
-**Status:** merged via #195 (2026-10-07); automated regression passed; deployment held for Roles, Pixel release acceptance pending.
+**Status:** merged via #195 (2026-10-07); automated regression passed; included in the owner-authorized v1.5.0 release; real Pixel acceptance remains outstanding.
 **Authority:** implementation contract for #193. #126 and #127 remain the exploration/decision history.  
 **Related:** #191 role/designation progression; #192 role badge art.
 
@@ -380,7 +380,7 @@ Desktop continues to use a left rail at the existing breakpoint.
 
 Do not apply a rounded floating mobile dock treatment to desktop.
 
-#191 may later add Roles as a third destination. #193 should not block on or pre-build that route.
+#191 added Communicator Roles as a third destination via #196. The integrated navigation is Home · Roles · Library; Home continues to own its readout and active-topic projection.
 
 ## 11. Interaction
 

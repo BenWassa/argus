@@ -10,8 +10,10 @@ ARGUMENTS: `patch` (default) | `minor` | `major` | `--verify-only`
 - `private: true`, no `publishConfig` — nothing is published to a registry.
 - No custom `version:*` script — the plain `npm version` command is correct.
 - No prior release convention existed before v0.2.0; this file defines it going forward.
-- Deploy is **manual, not CI-triggered**, as of v1.0.0. GitHub Pages is retired; Firebase
-  Hosting is the sole deployment target. `.github/workflows/validate.yml` runs `web`
+- Deploy is **manual, not CI-triggered**, as of v1.0.0. Firebase
+  Hosting is the production deployment target. GitHub Pages serves the separate
+  local-only demo via `demo-pages.yml`; main pushes publish it when the workflow
+  is active. Verify that target independently and respect any owner deployment hold. `.github/workflows/validate.yml` runs `web`
   (test + build sanity check), `browser` and `rules` on every push and pull request —
   it does not deploy. Ship with:
   ```bash
@@ -115,3 +117,5 @@ bump the version.
 - v1.3.3 (2026-10-03): patch for the compact-library project (#166/#175), centred provenance modal, visible survival scopes and guarded refreshes, plus the approved topic-page/ordered one-Test rebuild and weather guides. Owner-delegated source/code review corrected explanatory safety ambiguities. Gate: 1602 unit + build + 348 browser passed, 16 intentional skips. First gate attempt exposed a Free Play wall-clock test stall; its clock is now deterministic, with the real pause boundary asserted. Tag `v1.3.3` is `abfde3e`. Hosting deployed to `argus-b7a5a` and live HTML/JS/SW match release artifacts; JS serves `text/javascript`, production sign-in gate renders without runtime errors. No rules changes or rules deployment.
 
 - v1.3.4 (2026-10-06): patch for the CAF Rank Equivalencies topic (#177, 19 practical levels tested in both directions as 38 items; no insignia artwork, #178 stays licence-blocked), the approved Beaufort guide copy and tests (#129), the cloud guide scope tests (#131) and lifecycle closeouts. Gate: 1613 unit + build + 356 browser passed, 16 intentional skips; CI green on `b6808d3`. No rules changes.
+
+- v1.5.0 (2026-10-07): integrated Morse guided Send/Dispatch, selected Home, and Communicator Roles with vetted/refined vector artwork. Composite gate: 1,654 unit tests + build + 389 browser tests passed, 19 expected skips. Tagged `04ae10d`; Firebase Hosting and restored Pages demo deployed and byte/runtime verified. No rules changes. Real Pixel acceptance remains unperformed; see `docs/closed/RELEASE_1_5_0.md`.

@@ -22,6 +22,7 @@
 <filter id="depth" x="-25%" y="-25%" width="150%" height="155%"><feDropShadow dx="0" dy="2.2" stdDeviation="2.1" flood-color="#030e19" flood-opacity=".83"/></filter>
 <filter id="relief" x="-25%" y="-25%" width="150%" height="160%"><feDropShadow dx="1.2" dy="2.3" stdDeviation="1.3" flood-color="#100e10" flood-opacity=".68"/></filter>
 <filter id="enamel-grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".09" numOctaves="2" seed="7" result="noise"/><feColorMatrix in="noise" type="saturate" values="0"/><feComponentTransfer><feFuncA type="linear" slope=".06"/></feComponentTransfer></filter>
+<g id="radio-wave-shape"><path d="M223.091 130A38 38 0 0 0 223.091 168"/><path d="M204.038 119A60 60 0 0 0 204.038 179"/><path d="M184.986 108A82 82 0 0 0 184.986 190"/><path d="M165.933 97A104 104 0 0 0 165.933 201"/></g>
 <g id="rope-link"><path d="M238 35C242 23 253 18 274 20C270 28 265 36 242 40Z" fill="url(#rope)" stroke="#684016" stroke-width="1.2"/><path d="M241 34C252 23 261 23 270 23" fill="none" stroke="#fff0b2" stroke-width="2.5" stroke-linecap="round"/><path d="M242 39C255 36 265 30 271 22" fill="none" stroke="#6d4117" stroke-width="1.5"/></g>
 </defs>
 <style><![CDATA[
@@ -91,9 +92,13 @@
 <path d="M241 210L273 239 M274 209L232 240 M231 250L292 282 M280 250L222 282 M220 292L298 329 M290 292L213 329" stroke="#6d3e18" stroke-width="8" fill="none"/>
 <path d="M241 210L273 239 M274 209L232 240 M231 250L292 282 M280 250L222 282 M220 292L298 329 M290 292L213 329" stroke="url(#gold)" stroke-width="5" fill="none"/>
 <circle cx="256" cy="149" r="14" fill="url(#orb)" stroke="#6b3e18" stroke-width="2.6"/><path d="M248 143Q255 137 261 139" fill="none" stroke="#fff4c4" stroke-width="2.2" opacity=".85"/></g>
+<!-- Four concentric 60-degree arcs centred on the mast orb (256,149).
+     Radii increase by 22; the right side mirrors the exact same geometry.
+     Lowest stroked endpoint is y=205.25, clear of flag frames at y=225. -->
 <g id="signal-arcs" data-layer="radio-signals" fill="none" stroke="url(#gold)" stroke-width="8.5" stroke-linecap="round" filter="url(#depth)">
-<g id="signal-left"><path d="M230 149 C211 164 207 184 221 199"/><path d="M215 126C185 150 178 188 211 218"/><path d="M198 108C159 145 154 193 201 225"/><path d="M181 90C129 140 136 204 188 230"/></g>
-<g id="signal-right"><path d="M282 149C301 164 305 184 291 199"/><path d="M297 126C327 150 334 188 301 218"/><path d="M314 108C353 145 358 193 311 225"/><path d="M331 90C383 140 376 204 324 230"/></g></g>
+<g id="signal-left"><use href="#radio-wave-shape"/></g>
+<g id="signal-right" transform="translate(512 0) scale(-1 1)"><use href="#radio-wave-shape"/></g>
+</g>
 <!-- Flag patterns verified against NGA Pub. 102, inside front cover. Hoist is left. -->
 <g id="signal-flags" data-layer="flags" filter="url(#depth)">
 <g id="flag-november" data-letter="N" transform="translate(77 228)">
@@ -139,10 +144,32 @@
 <g id="top-keeper"><path d="M235 22L245 18L256 4L268 18L279 22L275 60Q258 72 240 60Z" fill="url(#gold-cross)" stroke="#5c3513" stroke-width="3"/><path d="M244 24V58M268 24V58M256 8V62" fill="none" stroke="#fff1ba" stroke-width="2" opacity=".83"/></g>
 <g id="left-clasp"><path d="M24 237L55 232Q66 235 67 245V271Q57 280 24 276L18 269V245Z" fill="url(#gold-cross)" stroke="#6e4119" stroke-width="3"/><path d="M22 242L60 240" fill="none" stroke="#fff3bd" stroke-width="2"/></g>
 <g id="right-clasp"><path d="M489 237L457 232Q446 235 445 245V271Q455 280 488 276L494 269V245Z" fill="url(#gold-cross)" stroke="#6e4119" stroke-width="3"/><path d="M490 242L452 240" fill="none" stroke="#fff3bd" stroke-width="2"/></g></g>
+<!-- One symmetric eight-point rose, with 38-unit cardinal and 27-unit
+     intercardinal tips. Every facet meets at (256,451); all tips fit inside the ring. -->
 <g id="compass-rose" data-layer="compass" filter="url(#relief)">
-<circle cx="256" cy="451" r="48" fill="#281a12" stroke="#633810" stroke-width="3"/><circle cx="256" cy="451" r="44" fill="url(#enamel)" stroke="url(#gold-cross)" stroke-width="8"/><circle cx="256" cy="451" r="36.6" fill="none" stroke="#e3af63" stroke-width="1.5"/>
-<path d="M256 394L265 437L295 451L265 464L256 500L246 464L216 451L246 437Z" fill="url(#gold-top)" stroke="#5d3415" stroke-width="2.4"/>
-<path d="M256 399L256 451L216 451L246 438Z" fill="#fff1be" opacity=".84"/><path d="M256 451L295 451L264 464L256 496Z" fill="#e3a14e" opacity=".75"/>
-<path d="M236 431L256 442L277 429L266 451L278 474L256 461L233 475L245 451Z" fill="url(#gold-cross)" stroke="#633b17" stroke-width="1.4"/>
-<circle cx="256" cy="451" r="6.2" fill="url(#orb)" stroke="#f9e6b0" stroke-width="1.4"/></g>
+<circle cx="256" cy="451" r="48" fill="#281a12" stroke="#633810" stroke-width="3"/>
+<circle cx="256" cy="451" r="44" fill="url(#enamel)" stroke="url(#gold-cross)" stroke-width="8"/>
+<circle cx="256" cy="451" r="39.5" fill="none" stroke="#e3af63" stroke-opacity=".65" stroke-width="1"/>
+<g id="compass-points">
+<path id="compass-outline" d="M256.000 413.000L260.210 440.837L275.092 431.908L266.163 446.790L294.000 451.000L266.163 455.210L275.092 470.092L260.210 461.163L256.000 489.000L251.790 461.163L236.908 470.092L245.837 455.210L218.000 451.000L245.837 446.790L236.908 431.908L251.790 440.837Z" fill="url(#gold-top)"/>
+<path d="M256 451L251.790 440.837L256.000 413.000Z" fill="#fff0b9" fill-opacity=".8"/>
+<path d="M256 451L256.000 413.000L260.210 440.837Z" fill="#92571e" fill-opacity=".7"/>
+<path d="M256 451L260.210 440.837L275.092 431.908Z" fill="#fff0b9" fill-opacity=".8"/>
+<path d="M256 451L275.092 431.908L266.163 446.790Z" fill="#92571e" fill-opacity=".7"/>
+<path d="M256 451L266.163 446.790L294.000 451.000Z" fill="#fff0b9" fill-opacity=".8"/>
+<path d="M256 451L294.000 451.000L266.163 455.210Z" fill="#92571e" fill-opacity=".7"/>
+<path d="M256 451L266.163 455.210L275.092 470.092Z" fill="#fff0b9" fill-opacity=".8"/>
+<path d="M256 451L275.092 470.092L260.210 461.163Z" fill="#92571e" fill-opacity=".7"/>
+<path d="M256 451L260.210 461.163L256.000 489.000Z" fill="#fff0b9" fill-opacity=".8"/>
+<path d="M256 451L256.000 489.000L251.790 461.163Z" fill="#92571e" fill-opacity=".7"/>
+<path d="M256 451L251.790 461.163L236.908 470.092Z" fill="#fff0b9" fill-opacity=".8"/>
+<path d="M256 451L236.908 470.092L245.837 455.210Z" fill="#92571e" fill-opacity=".7"/>
+<path d="M256 451L245.837 455.210L218.000 451.000Z" fill="#fff0b9" fill-opacity=".8"/>
+<path d="M256 451L218.000 451.000L245.837 446.790Z" fill="#92571e" fill-opacity=".7"/>
+<path d="M256 451L245.837 446.790L236.908 431.908Z" fill="#fff0b9" fill-opacity=".8"/>
+<path d="M256 451L236.908 431.908L251.790 440.837Z" fill="#92571e" fill-opacity=".7"/>
+<path d="M256.000 413.000L260.210 440.837L275.092 431.908L266.163 446.790L294.000 451.000L266.163 455.210L275.092 470.092L260.210 461.163L256.000 489.000L251.790 461.163L236.908 470.092L245.837 455.210L218.000 451.000L245.837 446.790L236.908 431.908L251.790 440.837Z" fill="none" stroke="#70441b" stroke-width="1.2" stroke-linejoin="round"/>
+</g>
+<circle cx="256" cy="451" r="3.8" fill="url(#orb)" stroke="#f9e6b0" stroke-width="1"/>
+</g>
 </svg>

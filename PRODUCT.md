@@ -1,6 +1,6 @@
 # Product
 
-**Status:** current product contract with Morse/Home (#195) and Communicator Roles (#196) merged on 2026-10-07; deployment remains held until explicitly authorized.
+**Status:** current product contract with Morse/Home (#195) and Communicator Roles (#196) merged on 2026-10-07; released and deployment-verified in v1.5.0 on 2026-10-07; real Pixel acceptance remains outstanding.
 **Authority:** product context. Maintained behaviour contracts live in `docs/open/`; the compact-topic and topic-page documents own the shipped #166 behaviour.
 
 ## Register

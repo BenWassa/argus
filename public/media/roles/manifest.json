@@ -1,13 +1,13 @@
 {
-  "version": 3,
+  "version": 5,
   "role": "communicator",
   "family": "Nautical (current)",
   "runtime": "/media/roles/communicator.svg",
   "format": "pure-vector SVG, no embedded raster",
-  "status": "Layered vector merged via #196; automated browser QA passed, final owner visual review and runtime Pixel QA pending",
+  "status": "v1.5.0 production artwork with vetted symbols, symmetric radio waves and balanced compass; automated QA passed, real Pixel and final owner visual acceptance remain outstanding",
   "awardPolicy": "Badge awarded only on all seven permanent topic completion records; pathway completion has no badge; no progress-state material upgrade",
   "source": "Original Argus-made hand-authored vector reconstruction from owner-selected Nautical generated concept, 2026-10-07. No official military/diving organisation insignia or copied service marks.",
-  "gitBlobSha": "35c75cf619936aadefe3feb41290f5a4e3cb5ef5",
+  "gitBlobSha": "71c4e805eab8fdf69cb76b653110820db0d3eb39",
   "layers": [
     "rope-border",
     "enamel-field",
@@ -34,7 +34,7 @@
       32
     ],
     "vectorXML": "well-formed in standalone reconstruction QA",
-    "mobileRuntime": "pending real Pixel and CI verification"
+    "mobileRuntime": "Automated browser suite passed across four viewports; real Pixel acceptance remains outstanding"
   },
   "notes": "Original vector reconstruction using the owner PNG as a composition/material reference, with vetted communication symbols rather than tracing its invented marks. A/Z Morse use 1:3 dot/dash proportions and equal one-unit gaps. Flags are November (4x4 blue/white), Zulu (yellow top/blue fly/red bottom/black hoist), Victor (red saltire/white) and Alfa (white hoist/blue swallowtail fly). Rope braid and pointed keeper refined against the reference; reconstruction is not pixel-identical. Final real-device artwork acceptance remains with owner.",
   "symbols": {
@@ -62,5 +62,38 @@
       "source": "https://msi.nga.mil/api/publications/download?key=16694273%2FSFH00000%2FPub102bk.pdf",
       "reference": "Inside front cover: alphabet flag plate; corrected patterns retain the owner-selected four-position composition."
     }
+  },
+  "reference": {
+    "path": "docs/open/assets/roles/communicator-locked-earned-reference.png",
+    "originalFilename": "ChatGPT Image Oct 7, 2026, 10_23_13 PM.png",
+    "sha256": "5ca25a6a03586b02ff476959ea79f3524c0c0f2e251444d80aa48d39d65819d2",
+    "purpose": "Owner visual reference for locked/earned composition and material; source only, not served in either app build. Morse and flag symbols are vetted independently."
+  },
+  "radioWaves": {
+    "centre": [
+      256,
+      149
+    ],
+    "radii": [
+      38,
+      60,
+      82,
+      104
+    ],
+    "arcDegrees": 60,
+    "mirrorAxisX": 256,
+    "construction": "Single shared vector geometry; right group mirrored with translate(512 0) scale(-1 1).",
+    "flagFrameClearanceSvgUnits": 19.75
+  },
+  "compassRose": {
+    "centre": [
+      256,
+      451
+    ],
+    "points": 8,
+    "cardinalRadius": 38,
+    "intercardinalRadius": 27,
+    "valleyRadius": 11,
+    "construction": "Single continuous eight-point outline with sixteen facets meeting at one centre; equal cardinal points, equal intercardinal points, quarter-turn and mirror symmetry. All points fit inside the ring."
   }
 }

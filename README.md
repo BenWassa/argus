@@ -62,11 +62,13 @@ The **full offline-first runtime guarantee is active scope in #113**, not yet a 
 
 ## Durable product and programme documentation
 
+- [Release v1.5.0](docs/closed/RELEASE_1_5_0.md) — integrated Morse, Home and Communicator Roles release, deployment verification and remaining device acceptance.
+
 - [Roles evaluation closeout](docs/closed/ROLES_SCREEN_EVALUATION.md) — Communicator MVP and SVG review, merge verification and deployment hold.
 - [Expanded role architecture research (#197)](docs/open/ISSUE_197_EXPANDED_ROLE_ARCHITECTURE_RESEARCH.md) — full 24-topic MECE Library inventory, cross-role matrix and proposed cognitive/technical/advanced/capstone learning lines; research only.
-- [Combined Morse and Home candidate](docs/open/MORSE_HOME_RELEASE_CANDIDATE.md) — implemented scope, checks and remaining release acceptance.
+- [Combined Morse and Home candidate](docs/closed/MORSE_HOME_RELEASE_CANDIDATE.md) — historical pre-release scope and merge evidence, superseded by v1.5.0.
 - [Selected Home implementation](docs/open/ISSUE_193_HOME_REDESIGN.md) — combined candidate behavior and remaining Pixel acceptance.
-- [Next release review](docs/open/NEXT_RELEASE_REVIEW.md) — current baseline, candidate readiness and options for the next feature release.
+- [Next release review](docs/closed/NEXT_RELEASE_REVIEW.md) — historical v1.4.0 baseline and options that informed the v1.5.0 release.
 - `docs/README.md` — documentation lifecycle and open/closed housekeeping.
 - `PRODUCT.md` — current implemented product contract and design principles.
 - `DESIGN.md` / `DESIGN.json` — current visual and interaction system.
@@ -104,7 +106,7 @@ The **full offline-first runtime guarantee is active scope in #113**, not yet a 
 - `docs/open/MORSE_AUDIO_RUNTIME.md` — maintained Web Audio lifecycle and first-press regression contract for every Morse audio surface.
 - `docs/open/MORSE_FLUENCY.md` — maintained contract for the post-acquisition Fluency surface: the pinned character speed and Farnsworth ladder, the four modes, the automaticity measures, the haptic vocabulary and the formative-only evidence boundary.
 - `docs/open/MORSE_INTERMEDIATE_PATH.md` — maintained contract for Morse after the alphabet: the uncued Test floor, a full check or a short review whenever the learner chooses, Copy (letters to sentences, figures and punctuation), free play and the spacing ladder to 20 WPM.
-- `docs/open/ISSUE_188_MORSE_SENDING_GAMEPLAY.md` — active, owner-pending design for repeatable printed-text → keyed-Morse games, beginner-to-sentence sending, field-message options and free-play improvements; **not yet implemented**.
+- `docs/open/ISSUE_188_MORSE_SENDING_GAMEPLAY.md` — maintained guided Send and Dispatch scope, with later modes and in-course enhancements explicitly deferred.
 - `docs/closed/ISSUE_119_MORSE_POST_ACQUISITION_FLUENCY_RESEARCH.md` — the sources, architecture audit and rejected options behind `MORSE_FLUENCY.md`.
 - `docs/open/ISSUE_113_OFFLINE_FIRST_RUNTIME.md` — active contract for IndexedDB local authority, durable sync/outbox, deterministic offline PWA launch, storage lifecycle and content-size/download policy.
 - `docs/closed/MORSE_PROVENANCE_RECONCILIATION.md` — provenance/doc-reconciliation closeout for the pre-#28 documentation lane.
