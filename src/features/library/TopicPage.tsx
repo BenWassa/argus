@@ -283,10 +283,12 @@ export function TopicPage({
             </button>
           )}
 
-          {/* Acquisition readiness makes fluency useful, independently of scoring. */}
+          {/* Acquisition readiness makes post-alphabet practice useful,
+              independently of scoring. Sending now leads this surface, with
+              Copy and speed drills alongside it. */}
           {afterAlphabet && !keepGoing && (
             <button className="quiet topic-alt" type="button" onClick={openFluency}>
-              Copy and speed practice
+              Send, copy and speed practice
             </button>
           )}
 
