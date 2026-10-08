@@ -1,7 +1,7 @@
 # Argus Library Roadmap
 
 **Status:** authoritative current library-expansion priority index  
-**Last reviewed:** 2026-10-06  
+**Last reviewed:** 2026-10-07
 **Research method:** `docs/LIBRARY_RESEARCH_METHOD.md`
 
 ## Purpose
@@ -47,7 +47,7 @@ Research approval does not itself authorize implementation. A build issue exists
 | **P0** | Shared visual content primitives | **Shipped** | #146 | Learn media + deterministic visual-choice item | Shipped shapes recorded in `docs/open/ISSUE_146_VISUAL_CONTENT_PRIMITIVES.md`; now used by the shipped cloud guide and other visual topics. |
 | **P0** | Maritime — vessel orientation, navigation lights & day shapes | **Shipped** | #147 | HTML + deterministic SVG/React + objective visual choice | Learn-only orientation prerequisite; 16 light/aspect items + 5 day shapes. Detail and the pending domain-review note in `docs/open/ISSUE_147_MARITIME_LIGHTS_DAY_SHAPES.md`. |
 | **P0** | Maritime — selected International Code of Signals flags | **Shipped** (Pub. 102 comparison still open) | #148 | deterministic/redrawn SVG + visual recognition | 12 signals: A, B, D, F, J, L, M, O, U, V, W, Y. Designs await comparison with IMO/NGA depictions before merge; checklist in `docs/open/ISSUE_148_SIGNAL_FLAGS.md`. |
-| **P0** | Communications — Canadian radio procedure + marine VHF | **Blocked on primary sources** | #150 | HTML + finite recall / structured sequence | Canadian general substrate from ISED RIC-22; marine procedure from CCG RAMN 2026. Scored wording must come from those texts, which were not reachable when this was attempted; see the note for how to unblock. |
+| **P0** | Communications — Canadian radio procedure + marine VHF | **Shipped in v1.4.0** | #150 | HTML + finite recall / objective sequence choice | Merged via #184: three topics, 28 scored items, sourced from ISED RIC-22 and CCG RAMN 2026. Independent domain review remains open; see `docs/open/ISSUE_150_RADIO_TEXT_PROGRAMME.md`. |
 | **P0** | Communications — prerecorded listening/copy drills | **Runtime implemented; production blocked** | #151 | local prerecorded speech + transcript + objective drill | Runtime shipped (`docs/open/AUDIO_DRILLS_RUNTIME.md`); production scripts depend on #150 and the TTS bake-off needs model access and human listening QA. No microphone/ASR in first release. |
 | **P0** | Environment — WMO cloud genera visual field guide | **Shipped** | #131 | sourced real imagery + HTML Learn guide | Ten CC BY-SA photographs, provenance, WMO-grounded recognition cues and all-ten browser coverage shipped. Photographs remain Learn-only; scored photographic recognition is deferred. |
 | **P0** | Navigation — compass & bearing skills | **Shipped** | #149 | deterministic SVG/React + calculations | Existing eight-point topic remains prerequisite; four follow-on topics (12/12/16/12 items) shipped per #140. Detail in `docs/open/ISSUE_149_COMPASS_BEARINGS_IMPLEMENTATION.md`. |
@@ -164,12 +164,12 @@ Do not use one perpetual umbrella issue for successive generations of library wo
 ### Start now
 
 1. Continue **#132 — SCUBA visual reference set** where the shared visual primitive fits cleanly.
-2. **#150 — Canadian radio procedure / marine VHF text programme** once its named primary sources are available.
+2. Reconcile **#150** acceptance/closeout after its merged text programme; obtain the independent answer-key review recorded in its maintained contract.
 
 ### Rights/dependency-gated follow-on
 
 3. **#178 — CAF rank-insignia recognition — prepared to the rights gate.** Do not add insignia assets until written DND/CAF permission covers reproduction in the public PWA and public repository.
-4. **#151 — prerecorded radio speech drills** after #150 lands authoritative production scripts.
+4. **#151 — prerecorded radio speech drills** using #150's now-available text foundation; production audio still needs voice selection, human listening QA and the transcript-in-Test decision.
 
 ### Later
 
