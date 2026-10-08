@@ -62,10 +62,12 @@ The **full offline-first runtime guarantee is active scope in #113**, not yet a 
 
 ## Durable product and programme documentation
 
+- [Release v1.5.0](docs/closed/RELEASE_1_5_0.md) — integrated Morse, Home and Communicator Roles release, deployment verification and remaining device acceptance.
+
 - [Roles evaluation closeout](docs/closed/ROLES_SCREEN_EVALUATION.md) — Communicator MVP and SVG review, merge verification and deployment hold.
-- [Combined Morse and Home candidate](docs/open/MORSE_HOME_RELEASE_CANDIDATE.md) — implemented scope, checks and remaining release acceptance.
+- [Combined Morse and Home candidate](docs/closed/MORSE_HOME_RELEASE_CANDIDATE.md) — historical pre-release scope and merge evidence, superseded by v1.5.0.
 - [Selected Home implementation](docs/open/ISSUE_193_HOME_REDESIGN.md) — combined candidate behavior and remaining Pixel acceptance.
-- [Next release review](docs/open/NEXT_RELEASE_REVIEW.md) — current baseline, candidate readiness and options for the next feature release.
+- [Next release review](docs/closed/NEXT_RELEASE_REVIEW.md) — historical v1.4.0 baseline and options that informed the v1.5.0 release.
 - `docs/README.md` — documentation lifecycle and open/closed housekeeping.
 - `PRODUCT.md` — current implemented product contract and design principles.
 - `DESIGN.md` / `DESIGN.json` — current visual and interaction system.

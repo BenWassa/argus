@@ -1,6 +1,6 @@
 # Combined Morse and Home release candidate
 
-**Status:** merged via #195 on 2026-10-07; Communicator Roles subsequently merged via #196; deployment remains held until explicitly authorized.
+**Status:** superseded by released v1.5.0 on 2026-10-07; historical candidate/review record.
 **Authority:** owner instruction “do morse and home next” (2026-10-07), #188/#193 contracts, and the verification recorded below.
 **Branch:** `feat/morse-home-release`, based on main `e7c609f`, integrating Morse runtime #194 and design contract #189.
 
@@ -44,3 +44,7 @@ Do not bump a version, tag or deploy just because Roles merges. The combined rel
 ## Roles integration update (2026-10-07)
 
 Communicator Roles and its layered SVG merged via #196 as `5482544`. The owner authorized that main catch-up without lifting the deployment hold. The integrated candidate passed 1,652 unit tests and full CI (389 browser tests passed, 19 expected skips; web and rules passed). The demo badge base-path fix was verified by actual image decoding under `/argus/`. Real Pixel acceptance for the combined Home/Morse/Roles candidate remains outstanding. No version, tag or deployment change.
+
+## Release closeout
+
+The owner subsequently authorized the full integrated release. The prior hold and readiness statements above are historical. [Release v1.5.0](RELEASE_1_5_0.md) records the successful tag, production and demo deployment, final gates and unperformed real-device acceptance. `demo-pages.yml` is restored to active.

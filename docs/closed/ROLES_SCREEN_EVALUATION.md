@@ -68,3 +68,7 @@ The supplied SVG has been inspected in both states at the actual mobile display 
 The smallest coherent next build is Communicator only, the supplied owner-created SVG with locked and earned treatments, a finite checklist, existing topic navigation, and separate refresh status. The MVP implements that structure with three open pathways; real-device artwork acceptance remains a release check. PRODUCT/DESIGN now contain the narrow Roles exception; other progress and anti-gamification rules remain authoritative.
 
 Before release, verify empty/partial/earned/refresh states, catalog provenance, import/deletion behavior, route/back navigation, keyboard and screen-reader labels, and phone/landscape/desktop layout. Continue the existing deployment hold until explicitly lifted, including the outstanding Morse/Home device acceptance.
+
+## Subsequent release
+
+The merge-only hold recorded above was superseded by the owner’s full release instruction. [v1.5.0](RELEASE_1_5_0.md) contains the final artifact refinements, verified release gates and production/demo deployment evidence.
