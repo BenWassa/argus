@@ -1,10 +1,24 @@
 # Issue #201 — Continuous Morse gameplay, post-alphabet handoff and engagement
 
-**Status:** OPEN — owner problem confirmed on 2026-10-13. **S0 (handoff and discoverability) implemented 2026-10-14 without the mandatory 390px mockup review, because the owner asked for autonomous end-to-end delivery; it remains subject to owner visual review and real-Pixel acceptance.** S1–S6 are unbuilt and unchanged below.
+**Status:** OPEN — #209 S0 merged. On 2026-10-14 the owner approved the embedded Topic-page Play direction; [#212](https://github.com/BenWassa/argus/pull/212) contains the 390px visual review reference. A focused follow-up PR implements direct Play access, named next challenge and replay of already-unlocked beginner word checkpoints. This is **not shipped or Pixel-accepted until the runtime PR merges and device review occurs**. Remaining adaptive practice, generated early rounds, milestones and advanced extensions are unbuilt.
 **Issue:** [#201](https://github.com/BenWassa/argus/issues/201)
 **Authority:** Proposed future Morse continuation/engagement experience and implementation acceptance. Shipped behavior remains defined by [MORSE_FLUENCY.md](MORSE_FLUENCY.md), [MORSE_INTERMEDIATE_PATH.md](MORSE_INTERMEDIATE_PATH.md), [ISSUE_188_MORSE_SENDING_GAMEPLAY.md](ISSUE_188_MORSE_SENDING_GAMEPLAY.md), [PROGRESS_ARCHITECTURE.md](PROGRESS_ARCHITECTURE.md) and [MORSE_AUDIO_RUNTIME.md](MORSE_AUDIO_RUNTIME.md). Do **not** interpret this proposal as a shipped feature or an alteration to their evidence boundaries.
 **Audit:** current `main` as examined 2026-10-13; v1.5.0 shipped the initial guided Send/Copy/Fluency experience. Owner Pixel acceptance of #188 is **still outstanding**.
 **Related:** #188 (existing sending-game delivery/Pixel acceptance), #119 (closed Fluency research), #21 (historical alphabet programme), #29 (historical/deferred formal auditory/sending competency), #191/#197 (Roles architecture), #113 (offline-first runtime).
+
+
+### Approved slice after #209 (2026-10-14)
+
+**Owner-selected architecture:** embed the Play section in the existing Morse Topic page rather than creating a new top-level destination. Keep the docked polished action (finite lesson/Test while acquiring or repairing, recommended Send for a banked course). The section shows a concrete recommended Send stage with a ghost CTA and four direct destinations: Send, Receive (current Copy level), Challenges (Sprint), and Free Play. No separate overall skill score is shown beside Test state; detailed formative diagnostics stay within Fluency.
+
+**Scope of the focused implementation PR:**
+- A banked course's generic `Keep going` becomes the actual recommended sending challenge. The existing `recommendedSendStage` selects the first uncleared stage or a weakest cleared stage.
+- Ready-but-not-banked / repair states preserve Test or Repair as primary, with the Play section separately available.
+- The direct Copy and Free Play route targets are separately validated and isolated from the existing direct Send / Sprint route.
+- During alphabet acquisition, the latest already unlocked word checkpoint is reachable with **Try a word**. This uses the existing packet-validated words and four-character warm-up, requires milestone eligibility, and writes no formal evidence. **This is not yet the new unrestricted known-letter game** envisioned by S1; that separately needs a target corpus, safety of learned-letter eligibility and mockup-specific run acceptance.
+- The static mockups in #212 are design references, not proof of actual screenshot fidelity. 320/390 browser and real Pixel checks are implementation gates.
+
+**Boundaries:** no new gamification economy, retention writes, formal skills scores, local storage schema, authentication changes or role achievements. #188 Pixel acceptance remains independently open. No issue is closed by the UX slice.
 
 ## 0. Executive decision brief
 
