@@ -10,6 +10,8 @@
 
 **Foundation candidate — 2026-10-13:** [IndexedDB schema/repository](ISSUE_113_INDEXEDDB_FOUNDATION.md) implements and tests the local boundary, atomic cumulative sync intent and verified migration. It is not yet wired to production, so the acceptance criteria below remain open.
 
+**Shell hardening candidate — 2026-10-13:** [generation-safe offline shell](ISSUE_113_OFFLINE_SHELL.md) builds on the already-existing precache generator and size report. It adds generation-pinned navigation, safe failed-install cleanup, prior-chunk retention and browser update-failure checks. Provisioned offline auth and canonical IndexedDB integration are still open.
+
 ## Product contract
 
 Argus is to be **offline-first**, not merely tolerant of a temporary network failure.
