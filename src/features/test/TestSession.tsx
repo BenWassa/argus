@@ -88,9 +88,11 @@ interface TestSessionProps {
    * than reconstructed afterwards from state that was never stored.
    */
   onPractice?: (topicId: string, itemIds: string[]) => void
+  /** Offered on a Morse result: opens guided sending directly (#201). */
+  onPlayMorse?: (topicId: string) => void
 }
 
-export function TestSession({ topicIds, review = false, onExit, onPractice }: TestSessionProps) {
+export function TestSession({ topicIds, review = false, onExit, onPractice, onPlayMorse }: TestSessionProps) {
   const { topics, updateTopic } = useLibrary()
 
   // Snapshot the topics and deck at session start. A bankable attempt always
@@ -602,6 +604,7 @@ export function TestSession({ topicIds, review = false, onExit, onPractice }: Te
         missed={missedItems.current}
         onExit={onExit}
         onPractice={onPractice}
+        onPlayMorse={onPlayMorse}
         headingRef={headingRef}
       />
     )

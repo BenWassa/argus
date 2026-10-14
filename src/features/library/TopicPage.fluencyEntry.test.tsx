@@ -129,6 +129,12 @@ describe('the Fluency entry', () => {
     expect(fluency()).toBeTruthy()
   })
 
+  it('keeps Play in plain view, not folded under More options (#201)', () => {
+    open(morse({ lessonProgress: allSettled() }))
+    expect(fluency()!.closest('details')).toBeNull()
+    expect(screen.getByText('Play records nothing against your Test.')).toBeTruthy()
+  })
+
   it('launches a fluency run on the topic', () => {
     const onStart = open(morse({ lessonProgress: allSettled() }))
     fireEvent.click(fluency()!)

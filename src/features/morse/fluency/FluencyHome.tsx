@@ -29,6 +29,7 @@ import {
   SEND_STAGES,
   SEND_STAGE_INFO,
   nextSendStage,
+  recommendedSendStage,
   sendBestKey,
   sendStageCleared,
   type SendStage,
@@ -97,7 +98,7 @@ export function FluencyHome({ progress, onProgress, onStart, onCopy, onSend, onF
   const headingRef = useRef<HTMLHeadingElement>(null)
   const store = progress ?? newFluencyProgress()
   const nextSend = nextSendStage(store)
-  const recommendedSend: SendStage = nextSend ?? 'messages'
+  const recommendedSend: SendStage = recommendedSendStage(store)
   const nextLevel = nextCopyLevel(store)
 
   const stats = useMemo(() => {

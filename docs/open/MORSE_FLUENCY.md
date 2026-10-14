@@ -8,7 +8,7 @@ governs the state boundaries this surface must not cross, and
 `MORSE_AUDIO_RUNTIME.md` still governs every Morse audio entry point including
 this one.
 
-**Last verified:** 2026-10-07
+**Last verified:** 2026-10-14 (S0 handoff added, #201)
 
 > **Misses lead — 2026-09-30.** `fluencyNeed` takes an optional focus set, and adds a bounded `FOCUS_NEED` (150) for a letter the learner is currently missing. The set is `morseFocusLetters`: a lesson letter still owed, or a Test direction whose last answer was wrong. Every Fluency run and the Copy *letters* level weight it. "Practise the letters you missed", from the topic page or a check's end screen, now opens a **keyed Fluency sprint over just those letters** (route `{ kind: 'fluency', mode: 'sprint', letters }`), not the reveal-and-self-grade practice run. It writes only `morseFluency`, as before.
 
@@ -33,6 +33,22 @@ check while the ladder is still moving — that is, once every letter has been p
 in Learn. Gated on acquisition rather than on completion deliberately: a
 learner waiting out a spacing interval before their qualifying check has
 finished learning the alphabet and should not be told there is nothing to do.
+
+Entry points (#201 S0, 2026-10-14, awaiting Pixel acceptance):
+
+- The Morse topic page shows *Send, copy and speed practice* in plain view
+  between the curriculum and the action bar once the alphabet is acquired and
+  the Test still leads. It is no longer folded under *More options*.
+- The final Learn screen (*Every letter covered*) adds a quiet **Send five
+  words** beside *Test me* when acquisition is ready.
+- The Test end screen leads with **Send five words** after a Test that banks the
+  Morse course, and offers a quiet **Play with words** for any other real Morse
+  result (held, repair, non-qualifying). A run withheld by acquisition offers
+  neither. Both route to the `fluency` run target with `send: 'words'`, so the
+  learner lands in Spotlight words with no chooser; leaving that run reaches the
+  Fluency home. None of these write evidence, and no schema changed.
+- When every Send stage is cleared the home recommends the stage with the lowest
+  recorded best (ties to the harder stage) instead of always *Short messages*.
 
 The gate reads `journeyFor(topic).acquisition.ready`, **not**
 `topic.acquisitionReadyAt`. The stored anchor postdates the programme, so a

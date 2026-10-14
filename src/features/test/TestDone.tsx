@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { statusLabel } from '../../shared/ui/StatusTag'
 import { targetsForItems } from '../../domain/study/practiceTargets'
+import { morseLessonPath } from '../../domain/morse/curriculum/lessonPath'
 import { fire } from '../../shared/haptics'
 import type { BankedAttempt } from './bankedAttempt'
 import type { Topic } from '../../domain/library/topic'
@@ -18,6 +19,7 @@ export function TestDone({
   missed,
   onExit,
   onPractice,
+  onPlayMorse,
   headingRef,
 }: {
   banked: BankedAttempt[]
@@ -26,6 +28,8 @@ export function TestDone({
   missed: Record<string, string[]>
   onExit: () => void
   onPractice?: (topicId: string, itemIds: string[]) => void
+  /** Hand a Morse learner straight into guided sending (#201): formative play, never evidence. */
+  onPlayMorse?: (topicId: string) => void
   headingRef: React.RefObject<HTMLHeadingElement | null>
 }) {
   const resolutions = banked.map((entry) => entry.resolution)
@@ -83,6 +87,25 @@ export function TestDone({
       return { topicId: topic.id, title: topic.title, itemIds }
     })
     .find((candidate) => candidate.itemIds.length > 0)
+
+  /**
+   * The next move for an alphabet learner (#201). A Test that banks the Morse
+   * course is the moment Play opens up, so it leads with the first sending run
+   * instead of "Back to today". Any other Morse result that ran for real
+   * (held, repaired, building toward a qualifying run) keeps Play discoverable
+   * at text weight: playing round words certifies and repairs nothing.
+   * A run withheld because the lesson is unfinished offers neither, since play
+   * is not open yet.
+   */
+  const morseResult = banked.find(
+    (entry) => !entry.withheldByAcquisition && morseLessonPath(entry.resolution.topic),
+  )
+  const morseCompleted = Boolean(
+    morseResult && !morseResult.nonQualifying && morseResult.resolution.completed,
+  )
+  const offerPlay = Boolean(morseResult && onPlayMorse)
+  // One primary per screen: a missed-item practice offer, being the repair, keeps it.
+  const playLeads = offerPlay && morseCompleted && !(practiceOffer && onPractice)
 
   return (
     <section className="session session-done">
@@ -179,8 +202,26 @@ export function TestDone({
         </div>
       )}
 
+      {offerPlay && morseResult && onPlayMorse && (
+        <div className="practice-offer play-offer">
+          {morseCompleted && (
+            <p>
+              <strong>Next: send your first words.</strong> Use the Morse key to send five short
+              words. Playing records nothing against your Test.
+            </p>
+          )}
+          <button
+            className={playLeads ? undefined : 'ghost'}
+            type="button"
+            onClick={() => onPlayMorse(morseResult.resolution.topic.id)}
+          >
+            {morseCompleted ? 'Send five words' : 'Play with words'}
+          </button>
+        </div>
+      )}
+
       <button
-        className={practiceOffer && onPractice ? 'ghost' : undefined}
+        className={(practiceOffer && onPractice) || offerPlay ? 'ghost' : undefined}
         type="button"
         onClick={onExit}
       >

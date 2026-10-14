@@ -1,6 +1,7 @@
 import type { Topic } from '../../domain/library/topic'
 import type { Mode } from '../../domain/study/mode'
 import { FLUENCY_MODES, type FluencyMode } from '../../domain/morse/fluency/session'
+import { SEND_STAGES, type SendStage } from '../../domain/morse/fluency/send'
 
 /**
  * The route model: what a destination is, whether an unknown value is one, and
@@ -60,7 +61,7 @@ export type RunTarget =
    * Fluency, optionally over just these letters — the keyed way to practise
    * what a check or a lesson missed. Letters absent means the whole alphabet.
    */
-  | { kind: 'fluency'; mode?: FluencyMode; letters?: string[] }
+  | { kind: 'fluency'; mode?: FluencyMode; letters?: string[]; send?: SendStage }
   /** A keyed review of the letters the finished course still owes (`startAfterCourse`). */
   | { kind: 'after-course' }
 
@@ -98,7 +99,8 @@ function isRunTarget(value: unknown): value is RunTarget {
   if (value.kind === 'fluency') {
     return (
       (value.mode === undefined || FLUENCY_MODES.includes(value.mode as FluencyMode)) &&
-      (value.letters === undefined || isIdList(value.letters))
+      (value.letters === undefined || isIdList(value.letters)) &&
+      (value.send === undefined || SEND_STAGES.includes(value.send as SendStage))
     )
   }
   if (value.kind === 'replay') return Number.isInteger(value.index) && (value.index as number) >= 0
@@ -167,7 +169,11 @@ function sameTarget(left: RunTarget | undefined, right: RunTarget | undefined): 
   if (left.kind === 'fluency' && right.kind === 'fluency') {
     // The home screen and a run are different places, and so are two modes,
     // and so are two letter sets.
-    return left.mode === right.mode && (left.letters ?? []).join() === (right.letters ?? []).join()
+    return (
+      left.mode === right.mode &&
+      left.send === right.send &&
+      (left.letters ?? []).join() === (right.letters ?? []).join()
+    )
   }
   if (left.kind === 'practice' && right.kind === 'practice') {
     // Two practice runs over different item sets are different routes. Without

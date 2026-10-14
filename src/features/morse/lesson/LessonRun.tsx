@@ -44,6 +44,7 @@ interface LessonRunProps {
   onExit: () => void
   onCheck: () => void
   onReference: () => void
+  onPlay?: () => void
 }
 
 /**
@@ -71,7 +72,7 @@ interface LessonRunProps {
  * asked to go back over Lesson 1 was handed a stripped quiz instead of the
  * lesson they were asking for.
  */
-export function LessonRun({ topicId, target, onExit, onCheck, onReference }: LessonRunProps) {
+export function LessonRun({ topicId, target, onExit, onCheck, onReference, onPlay }: LessonRunProps) {
   const { topics, updateTopic } = useLibrary()
   const topic = topics.find((candidate) => candidate.id === topicId)
   const placementRequired = Boolean(
@@ -189,6 +190,7 @@ export function LessonRun({ topicId, target, onExit, onCheck, onReference }: Les
       onExit={onExit}
       onTest={onCheck}
       onReference={onReference}
+      onPlay={onPlay}
     />
   )
 }

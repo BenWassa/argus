@@ -304,6 +304,7 @@
 .topic-action-bar { position: fixed; z-index: 10; bottom: calc(54px + env(safe-area-inset-bottom)); left: 0; right: 0; padding: var(--s-md) max(var(--s-lg), env(safe-area-inset-right)); background: var(--bg); border-top: 1px solid var(--line-strong); }
 .topic-action-bar .topic-primary { max-width: 760px; margin-inline: auto; text-align: center; font-size: var(--t-component); }
 .topic-action-bar.is-repair .topic-primary { background: var(--warning); }
+.topic-play { display: grid; justify-items: start; gap: var(--s-xs); padding-bottom: var(--s-md); }
 .topic-alternates { display: grid; justify-items: start; padding-bottom: var(--s-md); }
 .learn-support .fold { margin-top: var(--s-md); }
 .learn-support .fold[open] { padding-bottom: var(--s-lg); }
