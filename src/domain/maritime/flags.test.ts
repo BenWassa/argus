@@ -161,9 +161,9 @@ describe('asset manifest', () => {
     }
   })
 
-  it('records honestly that no flag has been compared with the authoritative depictions yet', () => {
-    // When a reviewer has made the comparison they fill `review`; until then this
-    // documents the gate rather than hiding it.
+  it('retains the final acceptance gate while source-comparison findings remain open', () => {
+    // NGA source inspection is recorded separately; final acceptance still
+    // needs disposition of illustrated proportions and current IMO comparison.
     expect(FLAG_MANIFEST.every((row) => row.review === null)).toBe(true)
   })
 })
