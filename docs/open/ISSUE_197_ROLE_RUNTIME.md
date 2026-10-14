@@ -1,6 +1,6 @@
 # Role receipts and Navigator runtime
 
-**Status:** implementation candidate, 2026-10-13; not released or deployed. Owner-supplied Navigator artwork and physical Pixel acceptance remain outstanding.
+**Status:** implemented on main via #203, 2026-10-13; not yet released or deployed. Owner-supplied Navigator artwork and physical Pixel acceptance remain outstanding.
 **Authority:** maintained runtime contract implementing ratified [#197 decisions](ISSUE_197_ROLE_DECISION_RECORD.md). Topic evidence and completion remain governed by [progress architecture](PROGRESS_ARCHITECTURE.md); Firebase isolation/conflicts remain governed by [#93](ISSUE_93_FIREBASE_PROGRESS_SYNC.md).
 
 ## Available roles
