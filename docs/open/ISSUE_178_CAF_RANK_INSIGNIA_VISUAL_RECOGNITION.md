@@ -5,6 +5,7 @@
 **Research authority:** #176 / `docs/closed/ISSUE_176_CAF_RANKS_INSIGNIA.md`  
 **Shared visual capability:** #146 / `docs/open/ISSUE_146_VISUAL_CONTENT_PRIMITIVES.md`  
 **Machine-readable preparation:** `src/domain/military/cafRankRecognitionPlan.ts`  
+**Alternatives research:** `docs/open/ISSUE_178_INSIGNIA_ALTERNATIVES.md` (advisory only; does not change the rights gate below).  
 **Verified:** 2026-10-06 against current Canada.ca rank pages, Dress Instructions and DND/CAF intellectual-property guidance.
 
 ## Decision
