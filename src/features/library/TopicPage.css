@@ -316,3 +316,69 @@
 .learn-section-lead { display: block; max-width: 65ch; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; text-transform: none; letter-spacing: normal; font-weight: var(--w-body); color: var(--subtle); padding-top: var(--s-xs); }
 .learn-section[open] .learn-section-lead { display: none; }
 .topic-recall-group-label { font-family: var(--font-mono); font-size: var(--t-component); letter-spacing: .12em; color: var(--topic-track); margin: var(--s-xl) 0 var(--s-sm); }
+
+
+/* #201: Play is a permanent entry on the Morse Topic page, not a second
+   dashboard. The docked topic action remains the one polished control. */
+.topic-play {
+  display: grid;
+  gap: var(--s-md);
+  margin-top: var(--s-xl);
+  max-width: 760px;
+}
+.topic-play h2,
+.topic-play h3,
+.topic-play p { margin: 0; }
+.topic-play h2 { font-size: var(--t-section); }
+.topic-play-feature {
+  display: grid;
+  gap: var(--s-sm);
+  padding: var(--s-lg);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--edge), var(--edge-under), var(--shadow-sm);
+}
+.topic-play-feature h3 { font-size: var(--t-component); }
+.topic-play-feature > p:not(.topic-play-kicker) {
+  color: var(--muted);
+  font-size: var(--t-small);
+  line-height: 1.5;
+}
+.topic-play-kicker {
+  color: var(--subtle);
+  font: var(--w-label) var(--t-readout) var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: var(--track-readout);
+}
+.topic-play-launch {
+  min-height: var(--control-h);
+  justify-self: stretch;
+  text-align: left;
+  margin-top: var(--s-xs);
+}
+.topic-play-choose { font-size: var(--t-component); }
+.topic-play-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-sm); }
+.topic-play-choice {
+  display: grid;
+  align-content: center;
+  gap: var(--s-xs);
+  min-width: 0;
+  min-height: 76px;
+  padding: var(--s-md);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  color: var(--ink);
+  text-align: left;
+  box-shadow: var(--edge), var(--edge-under);
+}
+.topic-play-choice:hover { background: var(--surface-2); border-color: var(--line-hover); }
+.topic-play-choice:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.topic-play-choice strong { font-size: var(--t-component); font-weight: var(--w-component); }
+.topic-play-choice span { font-size: var(--t-small); color: var(--muted); line-height: 1.35; }
+.topic-play-early { border-top: 1px solid var(--line); padding-top: var(--s-lg); }
+@media (max-width: 359px) {
+  .topic-play-choices { grid-template-columns: minmax(0, 1fr); }
+  .topic-play-choice { min-height: var(--control-h-lg); }
+}
