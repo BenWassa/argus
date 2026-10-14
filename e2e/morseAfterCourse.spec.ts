@@ -1,3 +1,4 @@
+import { readLocalLibrary } from './helpers/readLocalLibrary'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Page } from '@playwright/test'
@@ -115,7 +116,7 @@ test('a finished course goes over the letters it still owes, then its Test count
   await driveToEnd(page)
 
   await expect(page.getByRole('heading', { name: 'Every letter confirmed' })).toBeVisible()
-  const stored = await page.evaluate((key) => JSON.parse(window.localStorage.getItem(key) ?? '{}'), STORE_KEY)
+  const stored = await readLocalLibrary(page)
   const morse = (stored.topics as Topic[]).find((topic) => topic.id === MORSE_ID)
   expect(morse?.acquisitionReadyAt).toBeTruthy()
   // Learn still moved nothing on the ladder.

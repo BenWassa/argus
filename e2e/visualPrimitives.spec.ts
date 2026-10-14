@@ -1,3 +1,4 @@
+import { readLocalLibrary } from './helpers/readLocalLibrary'
 import { expect, test } from '@playwright/test'
 
 /**
@@ -108,12 +109,7 @@ test('Test asks each visual item as a graded choice with no self-grade, and scor
   // The last correct answer is acknowledged briefly, then the attempt banks.
   await expect(page.locator('.choice-card')).toHaveCount(0)
   const history = () =>
-    page.evaluate(
-      () =>
-        JSON.parse(localStorage.getItem('argus.library.v5')!).topics.find(
-          (t: { id: string }) => t.id === 'visual-e2e',
-        ).history,
-    )
+    readLocalLibrary(page).then((library) => library.topics.find((topic) => topic.id === 'visual-e2e')!.history)
   await expect.poll(async () => (await history()).length).toBe(1)
   expect((await history())[0]).toMatchObject({ correct: 2, total: 2 })
 })

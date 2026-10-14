@@ -1,3 +1,4 @@
+import { readLocalLibrary } from './helpers/readLocalLibrary'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Page } from '@playwright/test'
@@ -110,10 +111,7 @@ async function openFluency(page: Page) {
 }
 
 async function storedTopic(page: Page): Promise<Topic | null> {
-  return page.evaluate((key) => {
-    const raw = window.localStorage.getItem(key)
-    return raw ? (JSON.parse(raw).topics as Topic[])[0] : null
-  }, STORE_KEY)
+  return (await readLocalLibrary(page)).topics[0] ?? null
 }
 
 async function route(page: Page) {

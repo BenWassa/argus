@@ -40,7 +40,7 @@ export interface SyncableStore {
   removeTopic: (id: string) => void
   /** The account the local library belongs to; see `LibraryProvider`. */
   owner: string | null
-  bindOwner: (uid: string) => void
+  bindOwner: (uid: string) => void | Promise<void>
   catalogDelivered: readonly string[] | undefined
   mergeCatalogDelivered: (ids: readonly string[]) => void
   roleAwards?: readonly RoleAward[]
@@ -117,33 +117,52 @@ export function useSync(store: SyncableStore, injected?: SyncBackend) {
 
   useEffect(() => {
     if (!backend.configured || !watching) return
-    return backend.observeUser((next) => {
-      if (next) {
-        try {
-          // Before anything is shown or synced, the library on this device must
-          // be this account's. A library another account left here is parked,
-          // never pushed into this account's cloud copy (#93).
-          storeRef.current.bindOwner(next.uid)
-        } catch {
-          setUser(null)
-          setRecords(null)
-          ledger.current = {}
-          setState({
-            kind: 'error',
-            user: null,
-            message:
-              'This device could not set aside the library another account left here, so it will not open this one. Free some storage and sign in again.',
-          })
-          return
-        }
-        rememberSignedIn()
+    let active = true
+    let sequence = 0
+    const unsubscribe = backend.observeUser((next) => {
+      const generation = ++sequence
+      if (!next) {
+        pushedMeta.current = null
+        setUser(null)
+        setRecords(null)
+        ledger.current = {}
+        setState({ kind: 'signedOut' })
+        return
       }
-      pushedMeta.current = null
-      setUser(next)
+      // Auth callbacks must not open the gate or start remote subscriptions
+      // until the durable UID-bound local library has been loaded.
+      setUser(null)
       setRecords(null)
-      ledger.current = next ? loadLedger(next.uid) : {}
-      setState(next ? { kind: 'syncing', user: next } : { kind: 'signedOut' })
+      setState({ kind: 'restoring' })
+      const finish = () => {
+        if (!active || generation !== sequence) return
+        rememberSignedIn()
+        pushedMeta.current = null
+        ledger.current = loadLedger(next.uid)
+        setUser(next)
+        setState({ kind: 'syncing', user: next })
+      }
+      const fail = (error: unknown) => {
+        if (!active || generation !== sequence) return
+        setUser(null)
+        setRecords(null)
+        ledger.current = {}
+        setState({
+          kind: 'error',
+          user: null,
+          message: error instanceof Error ? error.message : 'The local library could not be opened for this account.',
+        })
+      }
+      try {
+        const binding = storeRef.current.bindOwner(next.uid)
+        // Legacy synchronous test stores retain synchronous observations, while
+        // the production provider with an async durable owner switch cannot
+        // expose the authenticated library before that promise completes.
+        if (binding && typeof binding.then === 'function') void binding.then(finish, fail)
+        else finish()
+      } catch (error) { fail(error) }
     })
+    return () => { active = false; ++sequence; unsubscribe() }
   }, [backend, watching])
 
   useEffect(() => {

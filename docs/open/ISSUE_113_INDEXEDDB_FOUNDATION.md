@@ -1,6 +1,6 @@
 # IndexedDB persistence foundation (#113 Lane A)
 
-**Status:** repository boundary merged via #205 and browser-tested, 2026-10-13; not yet connected to the production LibraryProvider or Firebase sync worker.
+**Status:** repository boundary merged via #205, 2026-10-13. Production LibraryProvider integration is under verification in draft PR #214; the durable Firebase sync worker is still separate work.
 **Authority:** maintained schema/repository contract under [#113 offline runtime](ISSUE_113_OFFLINE_FIRST_RUNTIME.md). [Progress architecture](PROGRESS_ARCHITECTURE.md) and the existing v5 parser remain semantic authorities.
 
 ## Schema v1
@@ -36,6 +36,6 @@ Connections close on version-change requests. A client cannot downgrade a newer 
 
 Forty real-Chromium checks across 320px phone, 390px phone, short landscape and desktop cover creation, legacy migration, interrupted verification, corruption preservation, update composition, atomic rollback, deletion/recreation, reload/offline database access, owner isolation, stale acknowledgements, failed acknowledgements, no-op writes and schema upgrades.
 
-Production provider integration must still make this database canonical and await commits before reporting successful learning actions. #113’s durable sync/retry, provisioned offline auth, cold offline shell/update tests and physical Pixel traces remain open. These repository checks do not establish the full production offline guarantee.
+PR #214 integrates the production provider with the canonical database, awaits local commits before publishing state, retains recoverable legacy bytes, and gates sync on asynchronous UID binding. It remains unmerged until its full CI and browser regressions pass. #113’s durable sync/retry, provisioned offline auth, cold offline shell/update tests and physical Pixel traces remain open. These repository checks do not establish the full production offline guarantee.
 
 Implementation references: [repository](../../src/infrastructure/persistence/indexedLibraryRepository.ts), [browser tests](../../e2e/indexedLibraryRepository.spec.ts). Durability behavior follows the [IndexedDB standard](https://www.w3.org/TR/IndexedDB/) and browser transaction completion events.

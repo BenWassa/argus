@@ -1,3 +1,4 @@
+import { readLocalLibrary, writeLocalLibrary } from './helpers/readLocalLibrary'
 import { expect, test } from '@playwright/test'
 
 // Layout and focus in a real browser: the shared dialog's centred mode must
@@ -61,16 +62,12 @@ for (const [title, boundary] of [
 test('a sources-only topic closes on browser Back without leaving the topic', async ({ page }) => {
   // NATO now has limits. A user-authored fixture keeps sources-only coverage
   // independent of future editorial changes to shipped Learn material.
-  await page.evaluate(() => {
-    const key = 'argus.library.v5'
-    const library = JSON.parse(localStorage.getItem(key)!)
-    library.topics.push({
+  const library = await readLocalLibrary(page)
+  await writeLocalLibrary(page, { ...library, topics: [...library.topics, {
       ...library.topics[0],
       id: 'sources-only-fixture', title: 'Sources-only fixture', origin: 'user',
       learn: { kind: 'concise', sources: [{ label: 'Reference', url: 'https://example.com/reference' }] },
-    })
-    localStorage.setItem(key, JSON.stringify(library))
-  })
+    }] })
   await page.reload()
   await page.getByRole('button', { name: /Sources-only fixture/ }).click()
   const opener = page.getByRole('button', { name: 'Sources', exact: true })

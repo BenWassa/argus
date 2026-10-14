@@ -9,7 +9,9 @@ import {
   type ReactNode,
 } from 'react'
 import {
+  adoptLegacyLessonSittings,
   emptyLibrary,
+  freshSeedLibrary,
   reconcileLoadedLibrary,
 } from '../../infrastructure/persistence/libraryMigrations'
 import {
@@ -19,6 +21,8 @@ import {
   saveLibrary,
   switchLibraryOwner,
 } from '../../infrastructure/persistence/localLibraryRepository'
+import { openIndexedLibraryRepository, type IndexedLibraryRepository } from '../../infrastructure/persistence/indexedLibraryRepository'
+import { parseLibrary } from '../../infrastructure/persistence/libraryParser'
 import { isDemoBuild } from '../../demo/demoMode'
 import { demoLibraryWithReport } from '../../demo/demoLibrary'
 import type { CatalogReconciliation } from '../../domain/library/catalog'
@@ -64,8 +68,8 @@ interface LibraryStore {
    */
   updateTopic: (id: string, update: (current: Topic) => Topic) => void
   removeTopic: (id: string) => void
-  replaceLibrary: (library: CurrentLibrary) => void
-  resetLibrary: () => void
+  replaceLibrary: (library: CurrentLibrary) => void | Promise<boolean>
+  resetLibrary: () => void | Promise<boolean>
   /** Catalog topics this library has been offered, for sync's library-level record. */
   catalogDelivered: readonly string[] | undefined
   /** The account this library belongs to, or null before any has signed in. */
@@ -74,7 +78,7 @@ interface LibraryStore {
    * Make the library on screen the signed-in account's own, parking another
    * account's. Throws when that cannot be done safely; see `switchLibraryOwner`.
    */
-  bindOwner: (uid: string) => void
+  bindOwner: (uid: string) => void | Promise<void>
   /**
    * Record catalog topics another device has already delivered. The set only
    * grows, so taking the union is the whole merge.
@@ -87,7 +91,7 @@ interface LibraryStore {
 
 const Ctx = createContext<LibraryStore | null>(null)
 
-export function LibraryProvider({ children }: { children: ReactNode }) {
+function DemoLibraryProvider({ children }: { children: ReactNode }) {
   const [loaded] = useState(loadLibraryWithReport)
   const [library, setLibrary] = useState<CurrentLibrary>(loaded.library)
   const [catalogReport, setCatalogReport] = useState<CatalogReconciliation>(loaded.report)
@@ -217,6 +221,239 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
   )
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
+}
+
+
+/** Owner-scoped migration inputs are read only. Legacy bytes are never deleted
+ * until a separate, explicitly verified cleanup is introduced. */
+function legacyFor(owner: string, previousOwner: string | null): { key: string; raw: string } | undefined {
+  if (previousOwner !== null && previousOwner !== owner) {
+    const key = `argus.library.parked.v1.${owner}`
+    const raw = localStorage.getItem(key)
+    return raw === null ? undefined : { key, raw }
+  }
+  for (const key of ['argus.library.v5', 'argus.library.v4', 'argus.library.v3', 'argus.library.v2']) {
+    const raw = localStorage.getItem(key)
+    if (raw !== null) return { key, raw }
+  }
+  return undefined
+}
+
+function migrationSeed(legacy: { key: string; raw: string } | undefined): CurrentLibrary {
+  if (!legacy) return freshSeedLibrary()
+  // Do not call the old localStorage loader: it promotes and overwrites bytes,
+  // and silently seeds after a parse failure.
+  let value: unknown
+  try { value = JSON.parse(legacy.raw) }
+  catch { throw new Error(`Cannot migrate ${legacy.key}; original data was preserved.`) }
+  const parsed = parseLibrary(value)
+  if (!parsed.ok) throw new Error(`Cannot migrate ${legacy.key}: ${parsed.error}. Original data was preserved.`)
+  return reconcileLoadedLibrary(parsed.library).library
+}
+
+/** Production: committed IndexedDB state is the only published learner state. */
+function IndexedLibraryProvider({ children }: { children: ReactNode }) {
+  const [library, setLibrary] = useState<CurrentLibrary>(() => freshSeedLibrary())
+  const [catalogReport, setCatalogReport] = useState<CatalogReconciliation>(
+    () => reconcileLoadedLibrary(freshSeedLibrary()).report,
+  )
+  const [owner, setOwner] = useState<string | null>(null)
+  const [ready, setReady] = useState(false)
+  const [failure, setFailure] = useState<string | null>(null)
+  const repository = useRef<IndexedLibraryRepository | null>(null)
+  const activeOwner = useRef<string | null>(null)
+  const queue = useRef<Promise<unknown>>(Promise.resolve())
+  const current = useRef(library)
+  current.current = library
+  // An unclaimed library stays separate from all UID namespaces.
+  const localOwner = '__argus_unclaimed_local__'
+
+  const install = useCallback((next: CurrentLibrary) => {
+    const reconciled = reconcileLoadedLibrary(next)
+    current.current = reconciled.library
+    setLibrary(reconciled.library)
+    setCatalogReport(reconciled.report)
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    let connection: IndexedLibraryRepository | null = null
+    void (async () => {
+      try {
+        const db = await openIndexedLibraryRepository()
+        connection = db
+        if (cancelled) { db.close(); return }
+        repository.current = db
+        const previous = libraryOwner()
+        const key = previous ?? localOwner
+        const existing = await db.read(key)
+        const legacy = existing ? undefined : legacyFor(key, previous)
+        await db.initialize(key, { seed: existing?.library ?? migrationSeed(legacy), legacy })
+        // Reconciliation and retired sitting adoption must be durable before
+        // any recovered topic is exposed. No old bytes are removed on failure.
+        const row = await db.update(key, (library) =>
+          reconcileLoadedLibrary(adoptLegacyLessonSittings(library)).library)
+        if (cancelled) return
+        clearAllLessonSittings()
+        activeOwner.current = key
+        setOwner(previous)
+        install(row.library)
+        setReady(true)
+      } catch (error) {
+        if (!cancelled) setFailure(error instanceof Error ? error.message : 'Local storage could not be opened.')
+      }
+    })()
+    return () => {
+      cancelled = true
+      // Do not close the database during a pending transaction.
+      void queue.current.finally(() => {
+        connection?.close()
+        if (repository.current === connection) repository.current = null
+      })
+    }
+  }, [install])
+
+  /** Serialize against IndexedDB, not a render-time snapshot. A rejected
+   * transaction never updates the visible library or outbox. */
+  const transact = useCallback((change: (previous: CurrentLibrary) => CurrentLibrary) => {
+    const run = async () => {
+      const db = repository.current
+      const key = activeOwner.current
+      if (!db || !key) throw new Error('Local storage is not ready.')
+      const row = await db.update(key, change)
+      if (activeOwner.current === key) install(row.library)
+      setFailure(null)
+    }
+    const result = queue.current.then(run).then(() => true, (error: unknown) => {
+      setFailure(error instanceof Error ? error.message : 'This change could not be saved.')
+      return false
+    })
+    queue.current = result
+    return result
+  }, [install])
+
+  const upsertTopic = useCallback((written: Topic) => {
+    const topic = normalizeWrittenTopic(written)
+    transact((prev) => {
+      const i = prev.topics.findIndex((t) => t.id === topic.id)
+      const topics = i < 0
+        ? [...prev.topics, { ...topic, origin: topic.origin ?? ('user' as const) }]
+        : prev.topics.map((t, at) => at === i ? topic : t)
+      return captureRoleAwards({ ...prev, topics })
+    })
+  }, [transact])
+
+  const updateTopic = useCallback((id: string, update: (current: Topic) => Topic) => {
+    transact((prev) => {
+      const at = prev.topics.findIndex((topic) => topic.id === id)
+      if (at < 0) return prev
+      const next = update(prev.topics[at])
+      if (next === prev.topics[at]) return prev
+      return captureRoleAwards({
+        ...prev, topics: prev.topics.map((t, i) => i === at ? normalizeWrittenTopic(next) : t),
+      })
+    })
+  }, [transact])
+
+  const removeTopic = useCallback((id: string) => {
+    transact((prev) => ({ ...prev, topics: prev.topics.filter((t) => t.id !== id) }))
+  }, [transact])
+
+  const replaceLibrary = useCallback((next: CurrentLibrary) => {
+    const reconciled = reconcileLoadedLibrary(next)
+    return transact((prev) => captureRoleAwards({
+      ...reconciled.library,
+      roleAwards: mergeRoleAwards(prev.roleAwards ?? [], reconciled.library.roleAwards ?? []),
+      roleAwardGeneration: prev.roleAwardGeneration ?? 0,
+    }))
+    // Sidecar is retired only after the canonical transaction succeeds.
+  }, [transact])
+
+  const resetLibrary = useCallback(() => {
+    return transact((prev) => ({
+      ...reconcileLoadedLibrary(emptyLibrary()).library,
+      roleAwards: [],
+      roleAwardGeneration: (prev.roleAwardGeneration ?? 0) + 1,
+    }))
+  }, [transact])
+
+  const bindOwner = useCallback(async (uid: string) => {
+    if (!uid || uid.length > 256) throw new Error('Invalid account identifier.')
+    await queue.current
+    const db = repository.current
+    const previousKey = activeOwner.current
+    if (!db || !previousKey) throw new Error('Local storage is unavailable.')
+    if (previousKey === uid) { setOwner(uid); return }
+    const previous = libraryOwner()
+    // An unclaimed local library is claimable exactly once; a library already
+    // assigned to another UID never becomes a seed for this UID.
+    const local = previous === null ? await db.read(previousKey) : null
+    const existing = await db.read(uid)
+    const legacy = existing || local ? undefined : legacyFor(uid, previous)
+    const seed = existing?.library ?? local?.library ?? migrationSeed(legacy)
+    await db.initialize(uid, { seed, ...(legacy ? { legacy } : {}) })
+    const row = await db.update(uid, (library) => reconcileLoadedLibrary(library).library)
+    // A failed owner marker is a failed account switch; never publish the new
+    // account using an ambiguous owner marker.
+    localStorage.setItem('argus.library.owner.v1', uid)
+    activeOwner.current = uid
+    clearAllLessonSittings()
+    install(row.library)
+    setOwner(uid)
+    setFailure(null)
+  }, [install])
+
+  const mergeCatalogDelivered = useCallback((ids: readonly string[]) => {
+    transact((prev) => {
+      const known = new Set(prev.catalogDelivered ?? [])
+      if (ids.every((id) => known.has(id))) return prev
+      return { ...prev, catalogDelivered: [...new Set([...known, ...ids])].sort() }
+    })
+  }, [transact])
+
+  const mergeAwards = useCallback((awards: readonly RoleAward[], generation: number) => {
+    transact((prev) => {
+      const localGeneration = prev.roleAwardGeneration ?? 0
+      if (generation < localGeneration) return prev
+      const merged = generation > localGeneration
+        ? mergeRoleAwards(awards)
+        : mergeRoleAwards(prev.roleAwards ?? [], awards)
+      if (generation === localGeneration && JSON.stringify(merged) === JSON.stringify(prev.roleAwards ?? [])) return prev
+      return { ...prev, roleAwards: merged, roleAwardGeneration: generation }
+    })
+  }, [transact])
+
+  const value = useMemo<LibraryStore>(() => ({
+    topics: library.topics, library, catalogReport, upsertTopic, updateTopic,
+    removeTopic, replaceLibrary, resetLibrary, catalogDelivered: library.catalogDelivered,
+    owner, bindOwner, mergeCatalogDelivered, roleAwards: library.roleAwards,
+    roleAwardGeneration: library.roleAwardGeneration, mergeRoleAwards: mergeAwards,
+  }), [library, catalogReport, upsertTopic, updateTopic, removeTopic, replaceLibrary,
+    resetLibrary, owner, bindOwner, mergeCatalogDelivered, mergeAwards])
+
+  if (failure && !ready) return <main role="alert">
+    <p>Argus cannot open the local learner library. Existing data has not been replaced.</p>
+    <p>{failure}</p>
+    <button onClick={() => window.location.reload()}>Retry</button>
+  </main>
+  if (!ready) return <main role="status">Opening your local library…</main>
+  return <Ctx.Provider value={value}>
+    {failure && <div role="alert" aria-live="assertive">
+      Progress was not saved on this device: {failure}
+    </div>}
+    {children}
+  </Ctx.Provider>
+}
+
+export function LibraryProvider({ children }: { children: ReactNode }) {
+  // Existing synchronous JSDOM fixtures test domain/UI behavior against the
+  // legacy repository. Dedicated transaction tests explicitly opt into the
+  // production provider; browser builds always use IndexedDB.
+  const useLegacyFixture = import.meta.env.MODE === 'test'
+    && !(globalThis as { __argusIndexedProviderTests?: boolean }).__argusIndexedProviderTests
+  return isDemoBuild() || useLegacyFixture
+    ? <DemoLibraryProvider>{children}</DemoLibraryProvider>
+    : <IndexedLibraryProvider>{children}</IndexedLibraryProvider>
 }
 
 export function useLibrary(): LibraryStore {
