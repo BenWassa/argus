@@ -2,7 +2,7 @@
 
 **Status:** shipped — text programme implemented 2026-10-06 (three topics, 28 scored items); audio remains #151.  
 **Issue:** #150  
-**Research authority:** `docs/open/ISSUE_139_RADIO_COMMUNICATIONS_AUDIO.md`
+**Research authority:** `docs/closed/ISSUE_139_RADIO_COMMUNICATIONS_AUDIO.md`
 
 ## Locked service boundary
 

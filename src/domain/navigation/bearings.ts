@@ -3,7 +3,7 @@
  *
  * One small pure module that every diagram and every answer key is derived
  * from, so a scored answer can never be a number somebody typed into a separate
- * prose key. The conventions are the ones `docs/open/ISSUE_140_COMPASS_BEARINGS_TOPO.md`
+ * prose key. The conventions are the ones `docs/closed/ISSUE_140_COMPASS_BEARINGS_TOPO.md`
  * §4 fixes:
  *
  * - bearings run clockwise from the stated north reference and are normalized

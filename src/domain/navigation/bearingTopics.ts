@@ -19,7 +19,7 @@ import {
  * The existing eight-point `cardinal-bearings` topic stays as the prerequisite
  * and is deliberately not touched here.
  *
- * Content authority is `docs/open/ISSUE_140_COMPASS_BEARINGS_TOPO.md`. Source-
+ * Content authority is `docs/closed/ISSUE_140_COMPASS_BEARINGS_TOPO.md`. Source-
  * backed facts (NRCan definitions, the east-positive declination convention,
  * the T/M/G distinction) are kept apart from Argus editorial choices (the
  * three-digit notation with a T/M/G suffix, the signed convergence `C`

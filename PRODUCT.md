@@ -78,7 +78,7 @@ Sync is deliberately narrow. It carries the record as the exact JSON the v5 stor
 
 Where a topic genuinely changed on two devices at once, **neither copy is overwritten**. Sync detects the conflict, leaves both devices exactly as they are, and names the topic in Profile for the owner to settle by export and import. A remote copy is likewise refused, not applied, if taking it would drop attempts or item evidence the local copy already holds — a learner's history only grows, so a shorter one is an older copy arriving late rather than a later edit.
 
-This is deliberate, and it is the policy `docs/open/ISSUE_93_FIREBASE_PROGRESS_SYNC.md` requires: silent last-write-wins is not acceptable for a record whose whole value is that it was actually earned. Explicit detection is the documented first-release position; field-level merge is the later option it leaves open.
+This is deliberate, and it is the policy `docs/closed/ISSUE_93_FIREBASE_PROGRESS_SYNC.md` requires: silent last-write-wins is not acceptable for a record whose whole value is that it was actually earned. Explicit detection is the documented first-release position; field-level merge is the later option it leaves open.
 
 Access is owner-only. Security Rules identify the owner by their verified Google address — every spelling one account may present, such as the `gmail.com`/`googlemail.com` pair, so a provider detail can never lock the real owner out — and key every path by their UID, so being signed in to Google is not authorization. No second account has a read or write path into the project. See `docs/open/CONTENT_INBOX.md` and `firestore.rules.template`.
 

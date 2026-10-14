@@ -3,7 +3,7 @@
 **Status:** reusable runtime implemented (see `docs/open/AUDIO_DRILLS_RUNTIME.md`); production pack still depends on #150  
 **Issue:** #151  
 **Depends on:** #150 for canonical programme scripts  
-**Research authority:** `docs/open/ISSUE_139_RADIO_COMMUNICATIONS_AUDIO.md`
+**Research authority:** `docs/closed/ISSUE_139_RADIO_COMMUNICATIONS_AUDIO.md`
 
 ## Owned capability
 

@@ -58,7 +58,7 @@ Signing in with Google keeps the library in step across the owner's own devices.
 
 The production build asks who you are before showing anything, so sign-in is not optional there. A build with no Firebase configuration — what the browser test suite runs against — has nothing to gate and stays entirely local.
 
-The **full offline-first runtime guarantee is active scope in #113**, not yet a claim about the current localStorage/service-worker implementation. #113 moves canonical persistence to IndexedDB, makes sync intent durable across restart, hardens provisioned-device offline auth startup and makes the production Vite app shell deterministic for cold offline launch. See `PRODUCT.md`, `docs/open/ISSUE_93_FIREBASE_PROGRESS_SYNC.md` and `docs/open/ISSUE_113_OFFLINE_FIRST_RUNTIME.md`.
+The **full offline-first runtime guarantee is active scope in #113**, not yet a claim about the current localStorage/service-worker implementation. #113 moves canonical persistence to IndexedDB, makes sync intent durable across restart, hardens provisioned-device offline auth startup and makes the production Vite app shell deterministic for cold offline launch. See `PRODUCT.md`, `docs/closed/ISSUE_93_FIREBASE_PROGRESS_SYNC.md` and `docs/open/ISSUE_113_OFFLINE_FIRST_RUNTIME.md`.
 
 ## Durable product and programme documentation
 
@@ -87,18 +87,18 @@ The **full offline-first runtime guarantee is active scope in #113**, not yet a 
 - `docs/closed/RELEASE_1_3_3.md` — v1.3.3 review, release-gate and verified Firebase Hosting delivery record.
 - `docs/open/LEARN_CONTENT_MODEL.md` — structured Learn schema/editorial contract.
 - `docs/open/AUDIO_DRILLS_RUNTIME.md` — maintained contract for prerecorded speech drills: audio stimulus and response modes, deterministic grading, separate listening evidence, transcript-assisted rule and the production asset-QA gate.
-- `docs/open/ISSUE_146_VISUAL_CONTENT_PRIMITIVES.md` — maintained contract for the shared visual Learn block, visual-choice items and the finite figure registry.
+- `docs/closed/ISSUE_146_VISUAL_CONTENT_PRIMITIVES.md` — maintained contract for the shared visual Learn block, visual-choice items and the finite figure registry.
 - `docs/closed/ISSUE_104_EDITORIAL_IDENTITY.md` — historical editorial framing from the completed #104 expansion programme.
 - `docs/closed/ISSUE_104_LIBRARY_EXPANSION_RESEARCH.md` — historical first-pass library research; its Batch A shipped as five catalog topics.
 - `docs/closed/ISSUE_104_FIELD_HUMAN_SKILLS_EXPANSION.md` — historical practical human-systems research; detailed candidate papers remain under `docs/open/library-research/` as source material.
 - `docs/closed/ISSUE_104_SCENARIO_ITEMS.md` — historical proposal for generic authored scenario items.
-- `docs/open/ISSUE_138_MARITIME_VISUAL_LITERACY.md` — active P0 research brief for vessel orientation, navigation lights/day shapes and signal flags.
-- `docs/open/ISSUE_139_RADIO_COMMUNICATIONS_AUDIO.md` — active P0 research brief for source-scoped radio procedure and audio drills.
-- `docs/open/ISSUE_140_COMPASS_BEARINGS_TOPO.md` — active P0 compass/bearings research plus the P1 topographic-map spike.
+- `docs/closed/ISSUE_138_MARITIME_VISUAL_LITERACY.md` — active P0 research brief for vessel orientation, navigation lights/day shapes and signal flags.
+- `docs/closed/ISSUE_139_RADIO_COMMUNICATIONS_AUDIO.md` — active P0 research brief for source-scoped radio procedure and audio drills.
+- `docs/closed/ISSUE_140_COMPASS_BEARINGS_TOPO.md` — active P0 compass/bearings research plus the P1 topographic-map spike.
 - [Topic-page revamp](docs/open/TOPIC_PAGE_REVAMP.md) — one-test completion, ordered recall, folded reference support and artwork delivery.
 - [Cloud visual guide and asset ledger](docs/closed/ISSUE_131_WMO_CLOUD_VISUAL_GUIDE.md) — shipped textual vocabulary Test with unscored, credited photographs.
 - `docs/closed/ISSUE_141_CLOUD_WEATHER_RECOGNITION.md` — completed cloud/weather recognition research authority; scored photographic recognition remains deferred.
-- `docs/open/ISSUE_127_TODAY_REDESIGN_CONCEPTS.md` — Home exploration history (#127); the selected implementation is maintained in #193.
+- `docs/closed/ISSUE_127_TODAY_REDESIGN_CONCEPTS.md` — Home exploration history (#127); the selected implementation is maintained in #193.
 - `docs/closed/LIBRARY_AUDIT.md` — reconciled shipped-library boundary/content audit.
 - `docs/closed/SEEDED_CONTENT_PROVENANCE.md` — authoritative source record and Test boundary for every shipped catalog topic.
 - `docs/open/CONTENT_INBOX.md` — content-inbox and curated-ingestion architecture, and the Firebase setup it needs.
@@ -109,7 +109,7 @@ The **full offline-first runtime guarantee is active scope in #113**, not yet a 
 - `docs/closed/MORSE_CODE_LEARNING_PRD.md` — dated Morse research/design baseline retained for rationale; later ratified decisions supersede its deliberately open implementation questions.
 - `docs/open/MORSE_PROGRAMME_PLAN.md` — current Morse programme decisions, workstream ownership and implementation status.
 - `docs/open/MORSE_CHARACTER_ORDER.md` — shipped character order/packet rule and verified Koch/CW Academy provenance comparison.
-- `docs/open/ISSUE_105_MORSE_PLACEMENT_ASSESSMENT.md` — maintained contract for fresh-start Morse placement, bounded confirmation, and evidence-safe progress application.
+- `docs/closed/ISSUE_105_MORSE_PLACEMENT_ASSESSMENT.md` — maintained contract for fresh-start Morse placement, bounded confirmation, and evidence-safe progress application.
 - `docs/open/MORSE_AUDIO_RUNTIME.md` — maintained Web Audio lifecycle and first-press regression contract for every Morse audio surface.
 - `docs/open/MORSE_FLUENCY.md` — maintained contract for the post-acquisition Fluency surface: the pinned character speed and Farnsworth ladder, the four modes, the automaticity measures, the haptic vocabulary and the formative-only evidence boundary.
 - `docs/open/MORSE_INTERMEDIATE_PATH.md` — maintained contract for Morse after the alphabet: the uncued Test floor, a full check or a short review whenever the learner chooses, Copy (letters to sentences, figures and punctuation), free play and the spacing ladder to 20 WPM.

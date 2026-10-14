@@ -1,6 +1,6 @@
 # Issue #140 — Compass, bearings, and topographic map literacy
 
-**Status:** research complete; implementation not started  
+**Status:** research complete; compass/bearings implementation shipped via #149. Topographic-map literacy remains deferred.  
 **Priority:** P0 compass/bearings; P1 topo spike  
 **Issue:** #140  
 **Roadmap:** `docs/LIBRARY_ROADMAP.md`  

@@ -1,8 +1,8 @@
 # Prerecorded speech drills — runtime contract (#151)
 
-**Status:** implemented on the feature branch, in review. This is the maintained contract for the reusable audio capability. It ships **no production speech**: the first listening pack is still blocked on #150's canonical scripts and on the TTS bake-off (see `docs/open/ISSUE_151_RADIO_AUDIO_DRILLS.md`).  
+**Status:** implemented on the feature branch, in review. This is the maintained contract for the reusable audio capability. It ships **no production speech**: the first listening pack is still blocked on #150's canonical scripts and on the TTS bake-off (see `docs/closed/ISSUE_151_RADIO_AUDIO_DRILLS.md`).  
 **Issue:** #151  
-**Research authority:** `docs/open/ISSUE_139_RADIO_COMMUNICATIONS_AUDIO.md` (§7 scoring, §8 capability, §10 asset/QA contract, §11 transcript and accessibility)  
+**Research authority:** `docs/closed/ISSUE_139_RADIO_COMMUNICATIONS_AUDIO.md` (§7 scoring, §8 capability, §10 asset/QA contract, §11 transcript and accessibility)  
 **Code:** `src/domain/audio/`, `src/features/audio/`, `src/infrastructure/persistence/audioParser.ts`
 
 ## What exists

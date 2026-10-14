@@ -17,7 +17,7 @@
  * would be a second definition of what a topic is, free to drift from the
  * first, and the evidence contract is precisely the thing that must not drift.
  *
- * **Nothing here silently discards progress.** `docs/open/ISSUE_93_FIREBASE_PROGRESS_SYNC.md`
+ * **Nothing here silently discards progress.** `docs/closed/ISSUE_93_FIREBASE_PROGRESS_SYNC.md`
  * rules out destructive last-write-wins outright, and allows a first release to
  * fall back to explicit conflict detection instead of a field-level merge. That
  * is what this is: where two devices both changed a topic, neither copy is

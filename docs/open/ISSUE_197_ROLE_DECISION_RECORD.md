@@ -91,7 +91,7 @@ Today `earned` is derived from local topic records, so deleting or importing top
 - Add a small **award receipt**: `{ roleId, roleVersion, earnedAt, topicIds }`, written the first time a derivation passes, stored with learner data, and carried through export, import and sync.
 - `earned` = a receipt exists **or** the live derivation passes. Retention decay and topic deletion never remove a receipt. Only the existing reset-all-data action does.
 - Role definitions are **versioned**. Adding a requirement creates v2 as an optional update; the learner keeps "Earned v1" and sees "2 new topics" for v2. Never un-earn.
-- Open check before building: how a new field interacts with the owner-only Firebase sync and its rules (conflicts are detected, not resolved). Verify against `docs/open/ISSUE_93_FIREBASE_PROGRESS_SYNC.md` first.
+- Open check before building: how a new field interacts with the owner-only Firebase sync and its rules (conflicts are detected, not resolved). Verify against `docs/closed/ISSUE_93_FIREBASE_PROGRESS_SYNC.md` first.
 - This also settles the gap for Communicator, which currently has no receipt.
 
 ### D7 — Roles UX

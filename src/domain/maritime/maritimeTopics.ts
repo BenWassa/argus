@@ -17,7 +17,7 @@ import {
  * The two shipped topics of Maritime I (#147): Navigation Lights & Aspect (16
  * scored items, with the vessel-orientation vocabulary as Learn-only
  * prerequisite) and Vessel Day Shapes (5). Content authority is
- * `docs/open/ISSUE_138_MARITIME_VISUAL_LITERACY.md`, which traces every item to
+ * `docs/closed/ISSUE_138_MARITIME_VISUAL_LITERACY.md`, which traces every item to
  * the Collision Regulations.
  *
  * The target competence is decoding standardized vessel information. It is not

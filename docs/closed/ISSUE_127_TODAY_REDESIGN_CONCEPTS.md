@@ -1,6 +1,6 @@
 # Issue #127 — Home redesign concepts
 
-**Status:** concept proposal / owner decision — not implemented, apart from the interim plate layout in §2
+**Status:** Closed design-history document. Superseded by #193; the selected Home redesign shipped in v1.5.0, with physical Pixel acceptance tracked in #193.
 
 > **Owner direction — 2026-10-07.** The root destination should be renamed **Home**. The September concept set below remains useful design history, but the preferred Home composition has changed after owner-reviewed mockups:
 >

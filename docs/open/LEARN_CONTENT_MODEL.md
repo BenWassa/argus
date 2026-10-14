@@ -208,7 +208,7 @@ An entry may have no fields; it may not have an empty label or text.
 
 ### The `visual` block and entry visuals (#146)
 
-A `visual` block renders one picture — a deterministic figure from the finite registry or a local `/media/` image — with its caption as HTML text. The same `Visual` may sit on a `LearnEntry`. Every visual has required alt text; essential explanation stays in surrounding HTML, never in image pixels. The shapes, validation, figure registry and the scored-item companions (`Item.choice`/`Item.stimulus`) are specified in `docs/open/ISSUE_146_VISUAL_CONTENT_PRIMITIVES.md`.
+A `visual` block renders one picture — a deterministic figure from the finite registry or a local `/media/` image — with its caption as HTML text. The same `Visual` may sit on a `LearnEntry`. Every visual has required alt text; essential explanation stays in surrounding HTML, never in image pixels. The shapes, validation, figure registry and the scored-item companions (`Item.choice`/`Item.stimulus`) are specified in `docs/closed/ISSUE_146_VISUAL_CONTENT_PRIMITIVES.md`.
 
 ### What to remember
 

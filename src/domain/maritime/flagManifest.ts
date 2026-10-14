@@ -29,7 +29,7 @@ export interface FlagManifestEntry {
 }
 
 const MEANING_SOURCE =
-  'IMO International Code of Signals (2005 ed.; 5th ed. 2021, errata March 2022); meaning as retained in docs/open/ISSUE_138_MARITIME_VISUAL_LITERACY.md §3D'
+  'IMO International Code of Signals (2005 ed.; 5th ed. 2021, errata March 2022); meaning as retained in docs/closed/ISSUE_138_MARITIME_VISUAL_LITERACY.md §3D'
 const DESIGN_AUTHORITY =
   'IMO International Code of Signals flag designs; independent check: NGA Pub. 102 depiction'
 

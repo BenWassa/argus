@@ -3,7 +3,7 @@
 **Status:** shipped in v1.3.2 (PR #155, merged 2026-10-01). The owner merged it on the strength of the cross-check below, which found and fixed two flags; the NGA Pub. 102 source comparison was recorded by PR #204 (2026-10-13), while current IMO proportion disposition and independent domain acceptance remain open; every manifest `review` stays `null`.  
 **Issue:** #148  
 **Depends on:** #146  
-**Research authority:** `docs/open/ISSUE_138_MARITIME_VISUAL_LITERACY.md` §3D  
+**Research authority:** `docs/closed/ISSUE_138_MARITIME_VISUAL_LITERACY.md` §3D  
 **Code:** `src/domain/maritime/flags.ts` (designs, meanings), `flagBank.ts`, `flagTopic.ts`, `flagManifest.ts`, `flagHash.ts`; figure kind `signal-flag`
 
 ## Locked boundary (met)

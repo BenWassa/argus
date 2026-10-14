@@ -3,7 +3,7 @@
 **Status:** shipped (PR #153, merged 2026-09-30).  
 **Issue:** #149  
 **Depends on:** #146  
-**Research authority:** `docs/open/ISSUE_140_COMPASS_BEARINGS_TOPO.md`  
+**Research authority:** `docs/closed/ISSUE_140_COMPASS_BEARINGS_TOPO.md`  
 **Code:** `src/domain/navigation/` (maths, banks, topic definitions), figure kinds in `src/domain/visual/figures.ts`
 
 ## Locked direction

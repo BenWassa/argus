@@ -3,7 +3,7 @@ import type { IdentifiedItem, Topic } from '../library/topic'
 
 /**
  * The three shipped text topics of the Canadian radio programme (#150). Content
- * authority is `docs/open/ISSUE_139_RADIO_COMMUNICATIONS_AUDIO.md`, with every
+ * authority is `docs/closed/ISSUE_139_RADIO_COMMUNICATIONS_AUDIO.md`, with every
  * scored answer checked against its controlling publication on 2026-10-06:
  *
  * - Radio Procedure: ISED RIC-22 only, the general Canadian radio substrate;
