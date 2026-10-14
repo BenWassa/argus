@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { lessonPackets, startLesson, type LessonRun } from '../../../domain/morse/curriculum/lesson'
 import { morseLessonPath } from '../../../domain/morse/curriculum/lessonPath'
@@ -74,7 +74,7 @@ function seedStore(value: Topic): void {
   })
 }
 
-function renderLesson(topic: Topic) {
+function renderLesson(topic: Topic, onPlay?: () => void) {
   seedStore(topic)
   return render(
     <LibraryProvider>
@@ -84,6 +84,7 @@ function renderLesson(topic: Topic) {
         onExit={vi.fn()}
         onTest={vi.fn()}
         onReference={vi.fn()}
+        onPlay={onPlay}
       />
     </LibraryProvider>,
   )
@@ -186,6 +187,22 @@ describe('a retrieval screen uses the screen it is given', () => {
     const section = document.querySelector('.morse-lesson')!
     expect(section.hasAttribute('data-step')).toBe(false)
     expect(screen.getByText('Every letter covered')).toBeTruthy()
+  })
+})
+
+describe('the final Learn screen hands off to play (#201)', () => {
+  it('offers sending beside Test, without claiming the alphabet is proved', () => {
+    const onPlay = vi.fn()
+    renderLesson(settledThrough(seededTopic(), lessonPackets().length), onPlay)
+    expect(screen.getByRole('button', { name: 'Test me' })).toBeTruthy()
+    expect(screen.getByText(/acquisition, not proof/)).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Send five words' }))
+    expect(onPlay).toHaveBeenCalledTimes(1)
+  })
+
+  it('stays absent when no play route is supplied', () => {
+    renderLesson(settledThrough(seededTopic(), lessonPackets().length))
+    expect(screen.queryByRole('button', { name: 'Send five words' })).toBeNull()
   })
 })
 

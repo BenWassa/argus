@@ -180,6 +180,19 @@ describe('fluency routes', () => {
     ).toBe(false)
   })
 
+  it('accepts a direct sending stage and rejects an unknown one', () => {
+    const send = (stage: string) => ({
+      ...run(),
+      target: { kind: 'fluency' as const, send: stage as never },
+    })
+    expect(isAppRoute(send('words'))).toBe(true)
+    expect(isAppRoute(send('dispatch'))).toBe(true)
+    expect(isAppRoute(send('marathon'))).toBe(false)
+    expect(
+      sameRoute(send('words'), { ...run(), target: { kind: 'fluency' as const } }),
+    ).toBe(false)
+  })
+
   it('treats the home screen and a mode as different places', () => {
     expect(sameRoute(run(), run('sprint'))).toBe(false)
     expect(sameRoute(run('sprint'), run('words'))).toBe(false)

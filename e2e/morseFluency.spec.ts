@@ -105,7 +105,6 @@ async function openTopic(page: Page, library = LIBRARY) {
 
 async function openFluency(page: Page) {
   await openTopic(page)
-  await page.locator('.topic-options summary').click()
   await page.getByRole('button', { name: /Send, copy and speed practice/ }).click()
   await expect(page.getByRole('heading', { name: 'After the alphabet' })).toBeVisible()
 }
@@ -195,8 +194,8 @@ async function runToSummary(page: Page) {
 test.describe('fluency', () => {
   test('is offered once the alphabet is acquired, beside a due check', async ({ page }) => {
     await openTopic(page)
+    // Play is in plain view (#201), not folded under More options.
     await expect(page.locator('.topic-options')).not.toHaveAttribute('open', '')
-    await page.locator('.topic-options summary').click()
     await expect(page.getByRole('button', { name: /Send, copy and speed practice/ })).toBeVisible()
     await expect(page.locator('.topic-primary')).toHaveText('Test')
   })

@@ -148,3 +148,24 @@ export function nextSendStage(
   }
   return SEND_STAGES.find((stage) => !sendStageCleared(progress, stage)) ?? null
 }
+
+/**
+ * The stage to suggest next (#201). The first uncleared stage while one exists;
+ * once every stage is cleared, the one with the lowest recorded best, so the
+ * suggestion tracks real evidence instead of pointing at the same stage forever.
+ * Ties go to the later, harder stage. A suggestion only: every stage stays open.
+ */
+export function recommendedSendStage(progress: MorseFluencyProgress | undefined): SendStage {
+  const next = nextSendStage(progress)
+  if (next) return next
+  let weakest: SendStage = SEND_STAGES[SEND_STAGES.length - 1]
+  let lowest = progress?.bests[sendBestKey(weakest)] ?? 0
+  for (const stage of [...SEND_STAGES].reverse()) {
+    const best = progress?.bests[sendBestKey(stage)] ?? 0
+    if (best < lowest) {
+      weakest = stage
+      lowest = best
+    }
+  }
+  return weakest
+}

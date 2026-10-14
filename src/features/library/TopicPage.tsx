@@ -234,6 +234,20 @@ export function TopicPage({
         </section>
       ) : null}
 
+      {/* Play is not a footnote (#201). Once the alphabet is acquired and the
+          check is the primary action, sending and copying sit in plain view
+          rather than behind "More options". A banked course already leads with
+          them, so this row would only repeat that primary. Acquisition
+          readiness makes it useful independently of scoring. */}
+      {runnable && afterAlphabet && !keepGoing && (
+        <div className="topic-play">
+          <button className="quiet topic-alt" type="button" onClick={openFluency}>
+            Send, copy and speed practice
+          </button>
+          <p className="topic-consequence">Play records nothing against your Test.</p>
+        </div>
+      )}
+
       {runnable && (course || practiceCount > 0) && (
         <details className="fold topic-options">
           <summary aria-label="More learning options">⋯ More options</summary>
@@ -280,15 +294,6 @@ export function TopicPage({
               {course
                 ? `Practise the letters you missed: ${morseFocusLetters(topic).join(' ')}`
                 : `Practise the ${practiceCount} ${practiceCount === 1 ? 'item' : 'items'} you missed`}
-            </button>
-          )}
-
-          {/* Acquisition readiness makes post-alphabet practice useful,
-              independently of scoring. Sending now leads this surface, with
-              Copy and speed drills alongside it. */}
-          {afterAlphabet && !keepGoing && (
-            <button className="quiet topic-alt" type="button" onClick={openFluency}>
-              Send, copy and speed practice
             </button>
           )}
 

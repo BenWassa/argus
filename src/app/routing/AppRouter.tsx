@@ -233,6 +233,7 @@ export function AppRouter() {
               key={`fluency-${route.topicIds[0]}`}
               topicId={route.topicIds[0]}
               initialMode={route.target.mode}
+              initialSend={route.target.send}
               letters={route.target.letters}
               onExit={goBack}
             />
@@ -271,6 +272,7 @@ export function AppRouter() {
               onExit={goBack}
               onCheck={() => start('test', route.topicIds, undefined, true)}
               onReference={() => openReference(route.topicIds[0])}
+              onPlay={() => start('learn', route.topicIds, { kind: 'fluency', send: 'words' }, true)}
             />
           ) : (
             <TestSession
@@ -281,6 +283,7 @@ export function AppRouter() {
               // Replaces the finished check in history rather than stacking on
               // top of it: Back from practice should reach whatever launched
               // the check, not a completed run that would restart on entry.
+              onPlayMorse={(topicId) => start('learn', [topicId], { kind: 'fluency', send: 'words' }, true)}
               onPractice={(topicId, itemIds) => {
                 // Morse is practised keyed and by ear: the missed letters go to
                 // a Fluency sprint over just those letters, not to the

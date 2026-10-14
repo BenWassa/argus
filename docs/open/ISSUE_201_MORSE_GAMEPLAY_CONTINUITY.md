@@ -1,6 +1,6 @@
 # Issue #201 — Continuous Morse gameplay, post-alphabet handoff and engagement
 
-**Status:** OPEN — owner problem confirmed on 2026-10-13; research-backed product/UX proposal and implementation plan only. **No changes to runtime behavior have been made under #201.**
+**Status:** OPEN — owner problem confirmed on 2026-10-13. **S0 (handoff and discoverability) implemented 2026-10-14 without the mandatory 390px mockup review, because the owner asked for autonomous end-to-end delivery; it remains subject to owner visual review and real-Pixel acceptance.** S1–S6 are unbuilt and unchanged below.
 **Issue:** [#201](https://github.com/BenWassa/argus/issues/201)
 **Authority:** Proposed future Morse continuation/engagement experience and implementation acceptance. Shipped behavior remains defined by [MORSE_FLUENCY.md](MORSE_FLUENCY.md), [MORSE_INTERMEDIATE_PATH.md](MORSE_INTERMEDIATE_PATH.md), [ISSUE_188_MORSE_SENDING_GAMEPLAY.md](ISSUE_188_MORSE_SENDING_GAMEPLAY.md), [PROGRESS_ARCHITECTURE.md](PROGRESS_ARCHITECTURE.md) and [MORSE_AUDIO_RUNTIME.md](MORSE_AUDIO_RUNTIME.md). Do **not** interpret this proposal as a shipped feature or an alteration to their evidence boundaries.
 **Audit:** current `main` as examined 2026-10-13; v1.5.0 shipped the initial guided Send/Copy/Fluency experience. Owner Pixel acceptance of #188 is **still outstanding**.
@@ -378,13 +378,15 @@ Avoid an unbounded event log or duplicate completion schema. Define parse/valida
 
 | Slice | Priority | Scope | Verification |
 | --- | --- | --- | --- |
-| **S0 — Handoff and discoverability** | **P0** | Qualified A–Z Test → direct first game; last lesson → clear Test vs optional game; Morse Topic recommendation + permanent Play choice; preserve banked/repair states | New e2e for final Learn, qualifying/nonqualifying/review/Test variations and direct routing. 320/390px screens. **No new games or schema** |
+| **S0 — Handoff and discoverability** | **P0 — implemented 2026-10-14 (partial; see note under table)** | Qualified A–Z Test → direct first game; last lesson → clear Test vs optional game; Morse Topic recommendation + permanent Play choice; preserve banked/repair states | New e2e for final Learn, qualifying/nonqualifying/review/Test variations and direct routing. 320/390px screens. **No new games or schema** |
 | **S1 — In-course play** | **P1** | Known-letter Spotlight rounds, contextual Try a word, eligibility selector from settled characters | Unit tests over every packet/placement/import and never-untaught material; no evidence writes |
 | **S2 — Smart continuation** | **P1** | Pure recommended-next derivation across Send/Copy/weak characters; contextual personal bests and honest skill headings | Priority precedence, all-cleared fallback, absent-data and incompatible-metric tests; single primary CTA |
 | **S3 — Milestone/record design and minimal durable schema** | **P1** | Ratify independent skill evidence/thresholds; ship only qualifying, meaningful permanent milestones and versioned contextual records | Import/export/Firebase compatibility, evidence-boundary tests, zero fabricated achievements |
 | **S4 — Distinct advanced loop** | **P2** | Copy & Relay as one coherent receive → respond scenario, reusing engines | Transcript/response compare, audio lifecycle, word-boundary safety, real Pixel validation |
 | **S5 — Content and creative options** | **P2** | Unfamiliar message packs and optional custom Free Transmission+, prioritizing what usability tests support | Corpus QA, provenance, exact diff, targetless Free Play stays intact |
 | **S6 — Formal advanced qualifications** | **Separate** | If ever desired, research authoritative scored boundaries for reception/sending, content sampling and hardware assumptions | Separate owner decision/issue; **not** #201 |
+
+**S0 delivery note (2026-10-14).** Shipped: Test-banked → *Send five words* (one tap into Spotlight words via the `fluency` run target's new `send` stage); final Learn screen → quiet *Send five words*; non-banked real Morse Test results → quiet *Play with words*; Play row moved out of *More options* on the Topic page; all-cleared Send recommendation now targets the weakest stage (an S2 fragment, pure and schema-free). Not shipped: the full Topic-page recommendation/skills layout in section 4, a specific-challenge primary label (the primary is still *Keep going*), Receive-side handoff, and the mockup review. No new games, no schema.
 
 **Do S0 before adding gameplay mechanics.** A sound starting UX may eliminate much of the perceived “ends after A–Z” problem with minimal runtime risk. Slice boundaries are planning recommendations, **not authorization to build now**.
 

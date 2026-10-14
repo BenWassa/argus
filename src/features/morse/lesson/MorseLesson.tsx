@@ -41,6 +41,7 @@ import {
 } from '../../../domain/morse/curriculum/checkpoints'
 import { completeSitting, morseReviewOf, withMorseReview } from '../../../domain/morse/curriculum/review'
 import { useLibrary } from '../../../services/library/LibraryProvider'
+import { journeyFor } from '../../../domain/study/journey'
 import type { Topic } from '../../../domain/library/topic'
 import { useKeyedResponse } from '../input/useKeyedResponse'
 import { MorseCheckpoint } from './MorseCheckpoint'
@@ -77,6 +78,8 @@ interface MorseLessonProps {
   onExit: () => void
   onTest: () => void
   onReference: () => void
+  /** Guided sending, offered beside Test once every letter is acquired (#201). */
+  onPlay?: () => void
 }
 
 export function MorseLesson({
@@ -86,6 +89,7 @@ export function MorseLesson({
   onExit,
   onTest,
   onReference,
+  onPlay,
 }: MorseLessonProps) {
   const { topics } = useLibrary()
   const record = useLessonRecord(topic.id, replay)
@@ -481,6 +485,11 @@ export function MorseLesson({
         <p className="lesson-lede">That is acquisition, not proof. The A–Z claim is earned in Test.</p>
         <div className="lesson-exits" inert={!armed}>
           <button type="button" onClick={onTest}>Test me</button>
+          {/* Play opens with acquisition, not with the Test: the letters can be
+              used in words now, and sending records nothing against the claim. */}
+          {onPlay && journeyFor(topicRef.current).acquisition.ready && (
+            <button className="ghost" type="button" onClick={onPlay}>Send five words</button>
+          )}
           <button className="ghost" type="button" onClick={onReference}>Morse alphabet</button>
         </div>
       </section>
