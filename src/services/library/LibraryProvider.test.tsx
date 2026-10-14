@@ -39,8 +39,8 @@ const now = new Date('2026-10-13T15:00:00Z')
 const ids = COMMUNICATOR.pathways.flatMap((path) => [...path.topicIds])
 const key = 'argus.library.v5'
 const ownerKey = '__argus_unclaimed_local__'
-beforeEach(() => { fixture.records.clear(); fixture.pending.clear(); fixture.failNext = false; localStorage.clear() })
-afterEach(() => cleanup())
+beforeEach(() => { (globalThis as { __argusIndexedProviderTests?: boolean }).__argusIndexedProviderTests = true; fixture.records.clear(); fixture.pending.clear(); fixture.failNext = false; localStorage.clear() })
+afterEach(() => { cleanup(); (globalThis as { __argusIndexedProviderTests?: boolean }).__argusIndexedProviderTests = false })
 
 function readyLibrary() {
   const library = freshSeedLibrary(now)
