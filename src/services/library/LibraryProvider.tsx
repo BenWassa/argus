@@ -78,7 +78,7 @@ interface LibraryStore {
    * Make the library on screen the signed-in account's own, parking another
    * account's. Throws when that cannot be done safely; see `switchLibraryOwner`.
    */
-  bindOwner: (uid: string) => Promise<void>
+  bindOwner: (uid: string) => void | Promise<void>
   /**
    * Record catalog topics another device has already delivered. The set only
    * grows, so taking the union is the whole merge.
@@ -157,7 +157,7 @@ function DemoLibraryProvider({ children }: { children: ReactNode }) {
     setCatalogReport(reset.report)
   }, [])
 
-  const bindOwner = useCallback(async (uid: string) => {
+  const bindOwner = useCallback((uid: string) => {
     const switched = switchLibraryOwner(uid, current.current)
     if (switched) {
       // A sitting in progress belongs to the account that started it.
