@@ -2,6 +2,7 @@
 
 **Status:** Selected A + B runtime merged via #195 and included in v1.5.0; real Pixel acceptance remains outstanding.
 **Issue:** [#188](https://github.com/BenWassa/argus/issues/188)  
+**Cross-mode continuation:** [#201 — continuous gameplay, post-A–Z handoff and long-term engagement](ISSUE_201_MORSE_GAMEPLAY_CONTINUITY.md) owns the next-action UX, permanently discoverable Play entry, in-course play, adaptive recommendations, skill readouts and future engagement roadmap. This #188 document remains the selected **already-merged** sending mechanics/Dispatch contract and outstanding real-Pixel acceptance.  
 **Reviewed against current `main`:** 2026-10-06  
 **Authority:** Maintained selected sending gameplay contract and deferred follow-on proposals. The selected Send implementation is merged; optional later modes remain unbuilt. For shipped behavior, `MORSE_WORD_CHECKPOINTS.md`, `MORSE_FLUENCY.md`, `MORSE_INTERMEDIATE_PATH.md`, `MORSE_AUDIO_RUNTIME.md` and `PROGRESS_ARCHITECTURE.md` remain authoritative. Historical #29 concerns formal, scored competency and is not re-opened.
 
