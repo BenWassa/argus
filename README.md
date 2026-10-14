@@ -67,6 +67,7 @@ The **full offline-first runtime guarantee is active scope in #113**, not yet a 
 - [Roles evaluation closeout](docs/closed/ROLES_SCREEN_EVALUATION.md) — Communicator MVP and SVG review, merge verification and deployment hold.
 - [Expanded role architecture research (#197)](docs/open/ISSUE_197_EXPANDED_ROLE_ARCHITECTURE_RESEARCH.md) — full 24-topic MECE Library inventory, cross-role matrix and proposed cognitive/technical/advanced/capstone learning lines; research only.
 - [Scored-content audit (#197)](docs/open/ISSUE_197_SCORED_CONTENT_AUDIT.md) — per-item audit of all 24 shipped topics: 342 items, 29.5% objective, application only in Navigation.
+- [IndexedDB persistence foundation](docs/open/ISSUE_113_INDEXEDDB_FOUNDATION.md) — native database/outbox boundary and browser verification; production integration remains open.
 - [Signal flag authoritative comparison](docs/open/ISSUE_148_PUB102_COMPARISON.md) — NGA comparison findings and remaining IMO/domain acceptance gates.
 - [Role receipt and Navigator runtime](docs/open/ISSUE_197_ROLE_RUNTIME.md) — permanent receipts, owner-only sync and two-role focus selector; implementation candidate with owner artwork pending.
 - [Role decision record (#197)](docs/open/ISSUE_197_ROLE_DECISION_RECORD.md) — owner-ratified names, achievement model, earnability gates and curriculum sequencing; artwork supplied by the owner.

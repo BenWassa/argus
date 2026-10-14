@@ -8,6 +8,8 @@
 >
 > **Relationship to #93:** #93 owns authenticated Firebase persistence, cloud recovery, owner isolation and conservative cross-device conflict behavior. #113 owns the local runtime required to make those cloud features optional during ordinary use: IndexedDB durability, atomic local writes, the durable sync outbox, deterministic offline app-shell caching, offline auth bootstrap behavior, storage lifecycle, sizing policy and offline UX. #113 must reuse #93's validated learner schema and conflict planner rather than create another sync model.
 
+**Foundation candidate — 2026-10-13:** [IndexedDB schema/repository](ISSUE_113_INDEXEDDB_FOUNDATION.md) implements and tests the local boundary, atomic cumulative sync intent and verified migration. It is not yet wired to production, so the acceptance criteria below remain open.
+
 ## Product contract
 
 Argus is to be **offline-first**, not merely tolerant of a temporary network failure.
