@@ -86,13 +86,14 @@ describe('production IndexedDB provider integration', () => {
   it('does not publish failed commits; warns the learner and keeps the durable previous record', async () => {
     const hook = await mounted()
     const original = hook.result.current.topics[0].title
+    const baselineRevision = fixture.pending.get(ownerKey)
     fixture.failNext = true
     act(() => hook.result.current.updateTopic(hook.result.current.topics[0].id, (topic) =>
       ({ ...topic, title: 'Unsaved value' })))
     await waitFor(() => expect(document.querySelector('[role="alert"]')?.textContent).toContain('Quota exceeded'))
     expect(hook.result.current.topics[0].title).toBe(original)
     expect(fixture.records.get(ownerKey)?.library.topics[0].title).toBe(original)
-    expect(fixture.pending.get(ownerKey)).toBe(1)
+    expect(fixture.pending.get(ownerKey)).toBe(baselineRevision)
   })
 
   it('keeps UID-owned records isolated when switching accounts', async () => {
