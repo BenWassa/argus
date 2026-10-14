@@ -34,6 +34,32 @@ describe('a direct sending entry (#201)', () => {
   })
 })
 
+describe('direct Topic-page Morse Play entries (#201)', () => {
+  it('opens receiving at its recommended Copy level, skipping the hub', () => {
+    render(
+      <LibraryProvider>
+        <FluencySurface topicId={MORSE_ID} initialCopy="common" onExit={() => undefined} />
+      </LibraryProvider>,
+    )
+    expect(screen.getByText('Hear it, write it')).toBeTruthy()
+    expect(screen.queryByText('After the alphabet')).toBeNull()
+  })
+
+  it('opens Free Play without creating a scored run', () => {
+    const onExit = vi.fn()
+    render(
+      <LibraryProvider>
+        <FluencySurface topicId={MORSE_ID} initialFree onExit={onExit} />
+      </LibraryProvider>,
+    )
+    expect(screen.getByRole('heading', { name: 'Free play' })).toBeTruthy()
+    expect(screen.getByText(/Nothing here is saved/)).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }))
+    expect(screen.getByText('After the alphabet')).toBeTruthy()
+    expect(onExit).not.toHaveBeenCalled()
+  })
+})
+
 describe('the sending recommendation once every stage is cleared', () => {
   it('points at the weakest stage rather than always Short messages', () => {
     const cleared: MorseFluencyProgress = {
