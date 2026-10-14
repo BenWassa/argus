@@ -134,27 +134,33 @@ export function useSync(store: SyncableStore, injected?: SyncBackend) {
       setUser(null)
       setRecords(null)
       setState({ kind: 'restoring' })
-      void Promise.resolve()
-        .then(() => storeRef.current.bindOwner(next.uid))
-        .then(() => {
-          if (!active || generation !== sequence) return
-          rememberSignedIn()
-          pushedMeta.current = null
-          ledger.current = loadLedger(next.uid)
-          setUser(next)
-          setState({ kind: 'syncing', user: next })
+      const finish = () => {
+        if (!active || generation !== sequence) return
+        rememberSignedIn()
+        pushedMeta.current = null
+        ledger.current = loadLedger(next.uid)
+        setUser(next)
+        setState({ kind: 'syncing', user: next })
+      }
+      const fail = (error: unknown) => {
+        if (!active || generation !== sequence) return
+        setUser(null)
+        setRecords(null)
+        ledger.current = {}
+        setState({
+          kind: 'error',
+          user: null,
+          message: error instanceof Error ? error.message : 'The local library could not be opened for this account.',
         })
-        .catch((error: unknown) => {
-          if (!active || generation !== sequence) return
-          setUser(null)
-          setRecords(null)
-          ledger.current = {}
-          setState({
-            kind: 'error',
-            user: null,
-            message: error instanceof Error ? error.message : 'The local library could not be opened for this account.',
-          })
-        })
+      }
+      try {
+        const binding = storeRef.current.bindOwner(next.uid)
+        // Legacy synchronous test stores retain synchronous observations, while
+        // the production provider with an async durable owner switch cannot
+        // expose the authenticated library before that promise completes.
+        if (binding && typeof binding.then === 'function') void binding.then(finish, fail)
+        else finish()
+      } catch (error) { fail(error) }
     })
     return () => { active = false; ++sequence; unsubscribe() }
   }, [backend, watching])
