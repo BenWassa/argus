@@ -193,6 +193,19 @@ describe('fluency routes', () => {
     ).toBe(false)
   })
 
+  it('accepts direct receiving and free-play routes without conflating them', () => {
+    const copy = { ...run(), target: { kind: 'fluency' as const, copy: 'common' as const } }
+    const free = { ...run(), target: { kind: 'fluency' as const, free: true as const } }
+    expect(isAppRoute(copy)).toBe(true)
+    expect(isAppRoute(free)).toBe(true)
+    expect(sameRoute(copy, free)).toBe(false)
+    expect(sameRoute(copy, { ...run(), target: { kind: 'fluency' as const, copy: 'letters' as const } })).toBe(false)
+    expect(sameRoute(free, run())).toBe(false)
+    expect(isAppRoute({ ...run(), target: { kind: 'fluency', copy: 'missing' } })).toBe(false)
+    expect(isAppRoute({ ...run(), target: { kind: 'fluency', free: false } })).toBe(false)
+    expect(isAppRoute({ ...run(), target: { kind: 'fluency', mode: 'sprint', free: true } })).toBe(false)
+  })
+
   it('treats the home screen and a mode as different places', () => {
     expect(sameRoute(run(), run('sprint'))).toBe(false)
     expect(sameRoute(run('sprint'), run('words'))).toBe(false)
