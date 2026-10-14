@@ -1,3 +1,4 @@
+import { readLocalLibrary } from './helpers/readLocalLibrary'
 import { expect, test, type Page } from '@playwright/test'
 
 /**
@@ -117,13 +118,7 @@ async function noSidewaysScroll(page: Page) {
   expect(overflow).toBeLessThanOrEqual(0)
 }
 
-const stored = (page: Page) =>
-  page.evaluate(
-    () =>
-      JSON.parse(localStorage.getItem('argus.library.v5')!).topics.find(
-        (t: { id: string }) => t.id === 'listening-e2e',
-      ),
-  )
+const stored = async (page: Page) => (await readLocalLibrary(page)).topics.find((topic) => topic.id === 'listening-e2e')!
 
 /** Answer the card on screen correctly and unaided, by whichever mode it is. */
 async function answerUnaided(page: Page) {
