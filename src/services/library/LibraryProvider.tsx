@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from 'react'
 import {
+  adoptLegacyLessonSittings,
   emptyLibrary,
   freshSeedLibrary,
   reconcileLoadedLibrary,
@@ -276,17 +277,24 @@ function IndexedLibraryProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let cancelled = false
+    let connection: IndexedLibraryRepository | null = null
     void (async () => {
       try {
         const db = await openIndexedLibraryRepository()
+        connection = db
         if (cancelled) { db.close(); return }
         repository.current = db
         const previous = libraryOwner()
         const key = previous ?? localOwner
         const existing = await db.read(key)
         const legacy = existing ? undefined : legacyFor(key, previous)
-        const row = await db.initialize(key, { seed: existing?.library ?? migrationSeed(legacy), legacy })
+        await db.initialize(key, { seed: existing?.library ?? migrationSeed(legacy), legacy })
+        // Reconciliation and retired sitting adoption must be durable before
+        // any recovered topic is exposed. No old bytes are removed on failure.
+        const row = await db.update(key, (library) =>
+          reconcileLoadedLibrary(adoptLegacyLessonSittings(library)).library)
         if (cancelled) return
+        clearAllLessonSittings()
         activeOwner.current = key
         setOwner(previous)
         install(row.library)
@@ -298,7 +306,10 @@ function IndexedLibraryProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true
       // Do not close the database during a pending transaction.
-      void queue.current.finally(() => { repository.current?.close(); repository.current = null })
+      void queue.current.finally(() => {
+        connection?.close()
+        if (repository.current === connection) repository.current = null
+      })
     }
   }, [install])
 
@@ -378,7 +389,8 @@ function IndexedLibraryProvider({ children }: { children: ReactNode }) {
     const existing = await db.read(uid)
     const legacy = existing || local ? undefined : legacyFor(uid, previous)
     const seed = existing?.library ?? local?.library ?? migrationSeed(legacy)
-    const row = await db.initialize(uid, { seed, ...(legacy ? { legacy } : {}) })
+    await db.initialize(uid, { seed, ...(legacy ? { legacy } : {}) })
+    const row = await db.update(uid, (library) => reconcileLoadedLibrary(library).library)
     // A failed owner marker is a failed account switch; never publish the new
     // account using an ambiguous owner marker.
     localStorage.setItem('argus.library.owner.v1', uid)
