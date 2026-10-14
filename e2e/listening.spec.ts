@@ -190,7 +190,7 @@ test('answering all three by ear banks a clean run to the listening record only'
   const saved = await stored(page)
   expect(saved.history[0]).toMatchObject({ correct: 3, total: 3 })
   for (const id of ['e-1', 'e-2', 'e-3']) {
-    expect(saved.audioEvidence[id]).toMatchObject({ attempts: 1, correct: 1, unassistedCorrect: 1, assistedAttempts: 0 })
+    expect(saved.audioEvidence![id]).toMatchObject({ attempts: 1, correct: 1, unassistedCorrect: 1, assistedAttempts: 0 })
   }
   expect(saved.itemEvidence).toEqual({}) // the listening claim is its own record
 })
@@ -224,7 +224,7 @@ test('revealing the transcript makes the answer practice, not listening evidence
   const saved = await stored(page)
   // Two heard unaided; the assisted one was correct but does not count.
   expect(saved.history[0]).toMatchObject({ correct: 2, total: 3 })
-  const records = Object.values(saved.audioEvidence) as { unassistedCorrect: number; assistedAttempts: number; correct: number }[]
+  const records = Object.values(saved.audioEvidence ?? {}) as { unassistedCorrect: number; assistedAttempts: number; correct: number }[]
   expect(records.filter((r) => r.unassistedCorrect === 1)).toHaveLength(2)
   expect(records.filter((r) => r.assistedAttempts === 1 && r.unassistedCorrect === 0 && r.correct === 1)).toHaveLength(1)
   expect(saved.itemEvidence).toEqual({})
