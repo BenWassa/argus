@@ -234,6 +234,8 @@ export function AppRouter() {
               topicId={route.topicIds[0]}
               initialMode={route.target.mode}
               initialSend={route.target.send}
+              initialCopy={route.target.copy}
+              initialFree={route.target.free}
               letters={route.target.letters}
               onExit={goBack}
             />
