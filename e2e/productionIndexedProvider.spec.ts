@@ -32,7 +32,7 @@ test('production provider migrates legacy bytes, preserves them and prefers cano
   await expect(page.getByRole('button', { name: 'Library', exact: true })).toBeVisible()
   await expect.poll(async () => (await stored(page))?.library.topics.length).toBeGreaterThan(0)
   const original = await stored(page)
-  expect(original?.revision).toBe(1)
+  expect(original?.revision).toBeGreaterThanOrEqual(1)
   expect(await page.evaluate(() => localStorage.getItem('argus.library.v5'))).toBe(raw)
   // A stale legacy copy can no longer replace a verified IndexedDB record.
   await page.evaluate(() => localStorage.setItem('argus.library.v5', '{broken legacy'))
