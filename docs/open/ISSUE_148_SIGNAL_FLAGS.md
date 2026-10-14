@@ -1,6 +1,6 @@
 # Issue #148 — Maritime II: selected signal flags
 
-**Status:** shipped in v1.3.2 (PR #155, merged 2026-10-01). The owner merged it on the strength of the cross-check below, which found and fixed two flags; the comparison with NGA Pub. 102 / the IMO Code is still open, so every manifest `review` stays `null`.  
+**Status:** shipped in v1.3.2 (PR #155, merged 2026-10-01). The owner merged it on the strength of the cross-check below, which found and fixed two flags; the NGA Pub. 102 source comparison was recorded by PR #204 (2026-10-13), while current IMO proportion disposition and independent domain acceptance remain open; every manifest `review` stays `null`.  
 **Issue:** #148  
 **Depends on:** #146  
 **Research authority:** `docs/open/ISSUE_138_MARITIME_VISUAL_LITERACY.md` §3D  
@@ -22,9 +22,9 @@ One catalog topic, `signal-flags` ("Signal Flags"), `tradecraft`, 12 forward obj
 
 ## The verification gate (still open)
 
-**2026-10-13 comparison:** the official NGA PDF is now reachable. [Pub. 102 comparison notes](ISSUE_148_PUB102_COMPARISON.md) record the inspected plate/meaning pages, qualitative matches and proportion differences needing current IMO disposition. This is source comparison, not final acceptance; manifest `review` fields remain `null`.
+**2026-10-13 comparison (PR #204):** the official NGA PDF is now reachable. [Pub. 102 comparison notes](ISSUE_148_PUB102_COMPARISON.md) record the inspected plate/meaning pages, qualitative matches and proportion differences needing current IMO disposition. This is source comparison, not final acceptance; manifest `review` fields remain `null`.
 
-At original implementation, the authoritative IMO and NGA depictions could not be reached, so designs were drawn from memory and later cross-checked against community redraws. The 2026-10-13 NGA comparison is recorded above, but illustrated proportion differences and comparison with current IMO artwork remain unresolved. Every manifest row therefore retains `review: null`; source inspection must not be confused with final acceptance.
+At original implementation, the authoritative IMO and NGA depictions could not be reached, so designs were drawn from memory and later cross-checked against community redraws. The 2026-10-13 NGA comparison is recorded above; the follow-up [review and gate ledger](ISSUE_147_148_MARITIME_DOMAIN_REVIEW.md) confirms that illustrated proportion differences and current IMO design comparison remain unresolved. Every manifest row therefore retains `review: null`; source inspection must not be confused with final acceptance.
 
 A reviewer should resolve the NGA comparison findings against the current IMO depiction, then fill in `review` for each accepted row. The original review checklist is retained below:
 
