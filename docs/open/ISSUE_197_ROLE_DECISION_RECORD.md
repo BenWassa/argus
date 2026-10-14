@@ -66,8 +66,8 @@ A role becomes earnable only when all six gates hold. These are owner-approved e
 
 | Role | G1 | G2 | G3 | G4 | G5 | G6 | Result |
 |---|---|---|---|---|---|---|---|
-| Communicator | 7 | 105 | 3 pathways | Signal Flags | 4 own | NATO lacks limitations | Pass after a Learn-only fix |
-| Navigator | 5 | 60 | 2 pathways | 44 apply items | 5 own | Compass Bearings lacks limitations | Pass after a Learn-only fix |
+| Communicator | 7 | 105 | 3 pathways | Signal Flags | 4 own | NATO Learn limits merged #203 | Pass |
+| Navigator | 5 | 60 | 2 pathways | 44 apply items | 5 own | Compass Learn limits merged #203 | Pass; owner artwork pending |
 | Mariner | 7 | 69 | 3 pathways | Lights, shapes, flags | 4 own | #147 and #148 domain reviews open | **Pass once #147 and #148 reviews close** |
 | Diver | 1 | 13 | no | no | — | — | Fail |
 | Responder | 1 | 5 | no | no | — | — | Fail |
