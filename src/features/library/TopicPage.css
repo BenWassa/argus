@@ -322,6 +322,7 @@
    dashboard. The docked topic action remains the one polished control. */
 .topic-play {
   display: grid;
+  justify-items: stretch;
   gap: var(--s-md);
   margin-top: var(--s-xl);
   max-width: 760px;
