@@ -8,6 +8,7 @@ import {
   libraryMetaJson,
   nextLedger,
   parseLibraryMeta,
+  parseRoleMeta,
   planSync,
   topicJson,
   type Ledger,
@@ -16,6 +17,7 @@ import {
 } from './syncPlanner'
 import { parseLibrary } from '../../infrastructure/persistence/libraryParser'
 import type { Topic } from '../../domain/library/topic'
+import { mergeRoleAwards, type RoleAward } from '../../domain/roles/awards'
 
 export type SyncState =
   | { kind: 'unconfigured' }
@@ -41,6 +43,9 @@ export interface SyncableStore {
   bindOwner: (uid: string) => void
   catalogDelivered: readonly string[] | undefined
   mergeCatalogDelivered: (ids: readonly string[]) => void
+  roleAwards?: readonly RoleAward[]
+  roleAwardGeneration?: number
+  mergeRoleAwards?: (awards: readonly RoleAward[], generation: number) => void
 }
 
 /** What a remote library-meta document holds, as the backend reports it. */
@@ -163,10 +168,19 @@ export function useSync(store: SyncableStore, injected?: SyncBackend) {
   useEffect(() => {
     if (!user || meta === undefined || store.owner !== user.uid) return
     const remote = meta ? parseLibraryMeta(meta.json) : []
+    const remoteRoles = meta ? parseRoleMeta(meta.json) : { awards: [], generation: 0 }
     // Unreadable library-level state is left alone for a build that can read it.
-    if (remote === null) return
+    if (remote === null || remoteRoles === null) return
     store.mergeCatalogDelivered(remote)
-    const canonical = libraryMetaJson([...(store.catalogDelivered ?? []), ...remote])
+    const localGeneration = store.roleAwardGeneration ?? 0
+    const generation = Math.max(localGeneration, remoteRoles.generation)
+    const awards = localGeneration === remoteRoles.generation
+      ? mergeRoleAwards(store.roleAwards ?? [], remoteRoles.awards)
+      : generation === localGeneration ? [...(store.roleAwards ?? [])] : remoteRoles.awards
+    store.mergeRoleAwards?.(awards, generation)
+    const carriesAwards = store.roleAwards !== undefined || store.roleAwardGeneration !== undefined || remoteRoles.generation > 0
+      || (meta !== null && meta !== undefined && JSON.parse(meta.json).roleAwards !== undefined)
+    const canonical = libraryMetaJson([...(store.catalogDelivered ?? []), ...remote], carriesAwards ? awards : undefined, carriesAwards ? generation : undefined)
     if (meta?.json === canonical || pushedMeta.current === canonical) return
     pushedMeta.current = canonical
     backend.pushMeta(user.uid, canonical, (meta?.revision ?? 0) + 1).catch((error: unknown) => {

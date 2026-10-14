@@ -1,7 +1,7 @@
 # #197 — Role names, achievement model and curriculum sequencing: decision record
 
-**Status:** recommended resolutions, 2026-10-08, **awaiting owner ratification**. Nothing here changes `src/domain/roles/definitions.ts`, makes a role earnable, or approves artwork.
-**Authority:** once ratified, the decisions below supersede the open questions in parent dossier §9. Until then they are recommendations backed by the [scored-content audit](ISSUE_197_SCORED_CONTENT_AUDIT.md).
+**Status:** D1–D9 ratified by the owner on 2026-10-13. Implementation is authorized; individual artwork acceptance and domain-review gates remain separate.
+**Authority:** the decisions below supersede the open questions in parent dossier §9 and guide implementation, backed by the [scored-content audit](ISSUE_197_SCORED_CONTENT_AUDIT.md).
 **Inputs:** [parent dossier](ISSUE_197_EXPANDED_ROLE_ARCHITECTURE_RESEARCH.md), [evidence and curriculum research](ISSUE_197_EVIDENCE_CURRICULUM_RESEARCH.md), [role UX research](ISSUE_197_ROLE_UX_ARCHITECTURE_RESEARCH.md), [#191](ISSUE_191_ROLE_DESIGNATIONS.md), [#192](ISSUE_192_ROLE_BADGE_ART.md). `docs/LIBRARY_ROADMAP.md` remains the implementation-priority authority.
 
 ## 1. Summary
@@ -30,7 +30,7 @@
 - A count of earned badges may **recommend** a capstone assessment but never **substitutes** for passing it, and never hard-blocks it.
 - XP, speed rewards and "Tier 1/2" language remain rejected. No JSOC or Special Forces ranks, patches or qualifications are implied anywhere.
 
-### D3 — Navigator and Mariner requirements (proposed locks)
+### D3 — Navigator and Mariner requirements (owner-locked)
 
 **Navigator v1** — claim: *"Recalls compass points and converts bearings between north references."* Five topics, two fully open pathways:
 
@@ -53,7 +53,7 @@ Evidence: 69 items, 67% objective, no application items. Signal Flags and both M
 
 ### D4 — Minimum bar for an earnable role
 
-A role becomes earnable only when all six gates hold. These are proposed editorial gates, validated against the three roles above, not a runtime contract.
+A role becomes earnable only when all six gates hold. These are owner-approved editorial gates, validated against the three roles above, not a runtime contract.
 
 | Gate | Rule |
 |---|---|
@@ -100,7 +100,7 @@ Keep the single Communicator detail view until a second role is earnable. When N
 
 ### D8 — Artwork order
 
-Art follows earnability. Navigator badge first, Mariner second, each PNG-first then audited SVG under #192. No badge art for Diver, Responder, Operator, Analyst or the capstone before their gates pass.
+Art follows earnability. Navigator badge first, Mariner second. The owner will create and supply the artwork; agents integrate and verify supplied assets under #192 rather than generate badge art. No badge art for Diver, Responder, Operator, Analyst or the capstone before their gates pass.
 
 ### D9 — Unassigned topics
 
@@ -114,7 +114,7 @@ Re-ranked by **gates closed per authored topic**, replacing the earlier research
 |---|---|---|---|---|
 | 0a | Learn-only `limitations` for NATO and Compass Bearings; role/manifest drift test | G6 for Communicator and Navigator | None scored | None |
 | 0b | Award receipt (D6) | Permanence | None | Sync-rules check |
-| 0c | **Navigator** live | — | None | Owner ratifies D3 and artwork |
+| 0c | **Navigator** live | — | None | D3 ratified; owner supplies and accepts artwork |
 | 0d | **Mariner** live | — | None | #147 and #148 domain reviews closed |
 | 1 | **Analyst**: Observation vs Inference, Bias Control, Situational Awareness I, plus OODA | G1–G4 | 3 new S1-vignette topics of at least 8 items each. With OODA that is 4 topics; G1 needs a fifth (candidate: Threat Recognition I after a safety review, or a new Decision Under Uncertainty topic) | Existing briefs in `docs/open/library-research/` are the sourced input; roadmap entry required first, since #104 is superseded |
 | 2 | **Diver**: Dive Hand Signals (VIS, objective), Buddy Briefing, Pressure and Equalisation Basics, Dive Planning Terms | G1–G5 | 4 new topics beside SCUBA Equipment | Independent dive-professional review; non-certifying limits |
@@ -128,16 +128,17 @@ Each new topic ships under the existing method in `docs/LIBRARY_RESEARCH_METHOD.
 
 ## 4. Ratification checklist (owner)
 
-- [ ] D1 names: keep the six; adopt **Analyst** as the working title; drop Technical Specialist; merge Field and Mission into **Integrator** (deferred)
-- [ ] D2 one flat learner-visible set, internal standard vs capstone
-- [ ] D3 Navigator and Mariner requirement sets and claim wording
-- [ ] D4 the six earnability gates
-- [ ] D6 receipt before the second role
-- [ ] D8 art order: Navigator, then Mariner
+- [x] D1 names: keep the six; adopt **Analyst** as the working title; drop Technical Specialist; merge Field and Mission into **Integrator** (deferred)
+- [x] D2 one flat learner-visible set, internal standard vs capstone
+- [x] D3 Navigator and Mariner requirement sets and claim wording
+- [x] D4 the six earnability gates
+- [x] D6 receipt before the second role
+- [x] D8 art order: Navigator, then Mariner; owner supplies artwork
 
 ## 5. Decision log
 
 | Date | Decision | Authority / notes |
 |---|---|---|
 | 2026-10-08 | Scored-content audit of all 24 topics complete; 342 items, 29.5% objective | [Audit](ISSUE_197_SCORED_CONTENT_AUDIT.md) |
-| 2026-10-08 | D1–D9 recommended | This record; **not yet ratified** |
+| 2026-10-08 | D1–D9 recommended | Historical recommendation, ratified below |
+| 2026-10-13 | D1–D9 ratified; owner creates artwork | Owner: “approve all. ill make the artwork myself”; art order and factual-review gates retained |

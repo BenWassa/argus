@@ -156,6 +156,10 @@ export function seedLibrary(): Library {
       })),
       learn: {
         kind: 'concise',
+        limitations: [
+          'This topic scores recall of the 26 letter-to-code-word mappings only. It does not assess pronunciation, listening accuracy or live radio procedure.',
+          'Completion is an Argus memory record, not an operating licence or professional communication qualification.',
+        ],
         overview: 'The NATO spelling alphabet assigns one standardized code word to each letter so letters can be distinguished more reliably in voice communication. The official spellings include Alfa and Juliett.',
         sources: [
           {
@@ -425,6 +429,10 @@ export function seedLibrary(): Library {
       items: BEARINGS.map(([prompt, answer]) => ({ prompt, answer })),
       learn: {
         kind: 'concise',
+        limitations: [
+          'This topic scores recall of the eight compass-point bearings only, with north represented as 0°.',
+          'It does not assess compass handling, route finding, position fixing, map reading or conversion between true, magnetic and grid north.',
+        ],
         overview: 'Bearings are measured clockwise from north. The eight cardinal/intercardinal points are spaced by 45°. This Test uses 0° for north; 360° represents the same direction after a full turn but is outside the chosen eight-value boundary.',
         sources: [
           {

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   libraryMetaJson,
+  mergeLibraryMetaJson,
   nextLedger,
   parseLibraryMeta,
   planSync,
@@ -10,6 +11,31 @@ import {
   type RemoteRecord,
 } from './syncPlanner'
 import type { Topic } from '../../domain/library/topic'
+
+describe('transactional role metadata merge', () => {
+  const communicator = { roleId: 'communicator', roleVersion: 1, earnedAt: '2026-10-13T12:00:00.000Z', topicIds: ['a'] }
+  const navigator = { ...communicator, roleId: 'navigator' }
+  it('preserves server awards when a stale client commits another role', () => {
+    const a = libraryMetaJson(['a'], [communicator], 0)
+    const b = libraryMetaJson(['b'], [navigator], 0)
+    const result = mergeLibraryMetaJson(b, a)
+    expect(JSON.parse(result)).toMatchObject({ catalogDelivered: ['a', 'b'], roleAwards: [communicator, navigator] })
+    expect(mergeLibraryMetaJson(a, b)).toBe(result)
+  })
+  it('keeps an explicit reset over stale writes and accepts later awards in its generation', () => {
+    const stale = libraryMetaJson([], [communicator], 0)
+    const reset = libraryMetaJson([], [], 1)
+    expect(mergeLibraryMetaJson(stale, reset)).toBe(reset)
+    expect(mergeLibraryMetaJson(reset, stale)).toBe(reset)
+    expect(mergeLibraryMetaJson(libraryMetaJson([], [navigator], 1), reset)).toBe(libraryMetaJson([], [navigator], 1))
+  })
+  it('refuses corrupt or future server metadata rather than replacing it', () => {
+    const local = libraryMetaJson([])
+    expect(() => mergeLibraryMetaJson(local, '{')).toThrow(/not overwritten/)
+    expect(() => mergeLibraryMetaJson(local, JSON.stringify({ version: 6, catalogDelivered: [] }))).toThrow(/not overwritten/)
+    expect(() => mergeLibraryMetaJson(local, JSON.stringify({ version: 5, catalogDelivered: [], futureField: true }))).toThrow(/not overwritten/)
+  })
+})
 
 /**
  * Sync is the only place two devices can disagree about the learner's record,

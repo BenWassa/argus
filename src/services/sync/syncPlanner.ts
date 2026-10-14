@@ -29,6 +29,7 @@
 
 import shippedCatalog from '../../domain/library/shippedCatalog.json'
 import type { Topic } from '../../domain/library/topic'
+import { mergeRoleAwards, parseRoleAwards, type RoleAward } from '../../domain/roles/awards'
 
 const SHIPPED_TOPIC_IDS = new Set<string>(shippedCatalog.topicIds)
 
@@ -80,8 +81,45 @@ export function topicJson(topic: Topic): string {
  * delivered so far, sorted and de-duplicated so two devices holding the same
  * set write the same text.
  */
-export function libraryMetaJson(catalogDelivered: readonly string[] | undefined): string {
-  return JSON.stringify({ version: 5, catalogDelivered: [...new Set(catalogDelivered ?? [])].sort() })
+export function libraryMetaJson(
+  catalogDelivered: readonly string[] | undefined,
+  roleAwards?: readonly RoleAward[],
+  roleAwardGeneration?: number,
+): string {
+  return JSON.stringify({
+    version: 5,
+    catalogDelivered: [...new Set(catalogDelivered ?? [])].sort(),
+    ...(roleAwards !== undefined ? { roleAwards: mergeRoleAwards(roleAwards) } : {}),
+    ...(roleAwardGeneration !== undefined ? { roleAwardGeneration } : {}),
+  })
+}
+
+export function parseRoleMeta(json: string): { awards: RoleAward[]; generation: number } | null {
+  try {
+    const raw = JSON.parse(json) as Record<string, unknown>
+    if (parseLibraryMeta(json) === null || Object.keys(raw).some((key) => !['version', 'catalogDelivered', 'roleAwards', 'roleAwardGeneration'].includes(key))) return null
+    const awards = parseRoleAwards(raw.roleAwards)
+    const generation = raw.roleAwardGeneration ?? 0
+    if (!awards || !Number.isSafeInteger(generation) || (generation as number) < 0) return null
+    return { awards, generation: generation as number }
+  } catch {
+    return null
+  }
+}
+
+/** Atomic backend merge: stale writers cannot erase independently earned awards. */
+export function mergeLibraryMetaJson(localJson: string, remoteJson: string | null): string {
+  const localIds = parseLibraryMeta(localJson)
+  const local = parseRoleMeta(localJson)
+  const remoteIds = remoteJson === null ? [] : parseLibraryMeta(remoteJson)
+  const remote = remoteJson === null ? { awards: [], generation: 0 } : parseRoleMeta(remoteJson)
+  if (!localIds || !local || !remoteIds || !remote) throw new Error('Library metadata is unreadable; it was not overwritten.')
+  const generation = Math.max(local.generation, remote.generation)
+  const awards = local.generation === remote.generation ? mergeRoleAwards(local.awards, remote.awards)
+    : generation === local.generation ? local.awards : remote.awards
+  const holdsAwards = generation > 0 || awards.length > 0
+    || 'roleAwards' in JSON.parse(localJson) || (remoteJson !== null && 'roleAwards' in JSON.parse(remoteJson))
+  return libraryMetaJson([...localIds, ...remoteIds], holdsAwards ? awards : undefined, holdsAwards ? generation : undefined)
 }
 
 /** The delivered catalog ids a remote meta record holds, or null if it cannot be read. */

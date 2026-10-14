@@ -3,6 +3,8 @@
 **Status:** owner-locked Nautical (current) family; independently layered vector merged via #196 and refined for v1.5.0; automated runtime checks passed, real-device QA and final owner vector-fidelity acceptance remain open — 2026-10-07.
 **Authority:** active visual-production proposal for role badges only. `DESIGN.md` / `DESIGN.json` remain the authority for the application UI.
 
+**Production ownership — 2026-10-13:** the owner will create and supply subsequent badge artwork. Navigator precedes Mariner under ratified #197 D8. Agents integrate and verify supplied files.
+
 ## 1. Purpose
 
 Create distinctive custom badges for Argus roles such as Communicator, Operator, Medic and Diver.

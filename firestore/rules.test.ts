@@ -17,9 +17,11 @@ import {
   serverTimestamp,
   setDoc,
   updateDoc,
+  runTransaction,
 } from 'firebase/firestore'
-import { afterAll, beforeAll, beforeEach, describe, it } from 'vitest'
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { renderRules } from '../scripts/renderRules.mjs'
+import { libraryMetaJson, mergeLibraryMetaJson } from '../src/services/sync/syncPlanner'
 
 /**
  * Security Rules are the trust boundary for everything the browser does to the
@@ -187,6 +189,34 @@ describe('the synced learning record', () => {
         updatedAt: serverTimestamp(),
       }),
     )
+  })
+
+  it('carries award receipts inside the existing envelope without widening owner access', async () => {
+    const path = `users/${AUTHORIZED_UID}/libraryMeta/library`
+    const payload = {
+      json: JSON.stringify({ version: 5, catalogDelivered: [], roleAwards: [{ roleId: 'communicator', roleVersion: 1, earnedAt: '2026-10-13T12:00:00.000Z', topicIds: ['nato-phonetic'] }], roleAwardGeneration: 0 }),
+      revision: 1,
+      updatedAt: serverTimestamp(),
+    }
+    await assertSucceeds(setDoc(doc(ownerDb(), path), payload))
+    await assertSucceeds(getDoc(doc(ownerDb(), path)))
+    const stranger = env.authenticatedContext(OTHER_UID, { email: 'other@example.test', email_verified: true }).firestore()
+    await assertFails(getDoc(doc(stranger, path)))
+    await assertFails(setDoc(doc(stranger, path), payload))
+    await assertFails(setDoc(doc(ownerDb(), `users/${OTHER_UID}/libraryMeta/library`), payload))
+    await assertFails(setDoc(doc(ownerDb(), path), { ...payload, updatedAt: new Date('2020-01-01') }))
+  })
+
+  it('transactionally retains awards from two simultaneous owner devices', async () => {
+    const db = ownerDb()
+    const ref = doc(db, `users/${AUTHORIZED_UID}/libraryMeta/library`)
+    await setDoc(ref, { json: libraryMetaJson([]), revision: 0, updatedAt: serverTimestamp() })
+    await Promise.all(['communicator', 'navigator'].map((roleId) => runTransaction(db, async (transaction) => {
+      const before = (await transaction.get(ref)).data()!
+      const json = libraryMetaJson([], [{ roleId, roleVersion: 1, earnedAt: '2026-10-13T12:00:00.000Z', topicIds: ['a'] }], 0)
+      transaction.set(ref, { json: mergeLibraryMetaJson(json, before.json), revision: before.revision + 1, updatedAt: serverTimestamp() })
+    })))
+    expect(JSON.parse((await getDoc(ref)).data()!.json).roleAwards.map((award: { roleId: string }) => award.roleId)).toEqual(['communicator', 'navigator'])
   })
 
   it('rejects a device that chooses its own clock', async () => {

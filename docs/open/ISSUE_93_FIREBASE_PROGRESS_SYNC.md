@@ -13,6 +13,8 @@ Status: **implemented — 2026-09-29** (mostly implemented 2026-09-18, progress-
 
 This document is the durable implementation scope for GitHub issue #93.
 
+**Role receipt extension — 2026-10-13 candidate:** [role runtime](ISSUE_197_ROLE_RUNTIME.md) adds validated awards and an explicit reset generation inside the existing library-meta JSON envelope. Owner-only paths, server timestamps and per-topic conservative conflicts are unchanged. The existing rules were verified with an award payload in the emulator; no production rules change is required.
+
 > **What has landed.** `src/services/sync/` carries the library to
 > `users/{uid}/library/{topicId}` for a signed-in owner, and back. It honours
 > the sections below on *local-first remains the interaction model*, *one

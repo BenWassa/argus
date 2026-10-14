@@ -1,6 +1,14 @@
 /** Stable, authored role taxonomy. Safe to import in browser-test Node without runtime catalog dependencies. */
 export const ROLE_IDS = ['communicator', 'navigator', 'mariner', 'diver', 'responder', 'operator'] as const
 
+export interface RoleDefinition {
+  id: (typeof ROLE_IDS)[number]
+  version: number
+  title: string
+  description: string
+  pathways: readonly { id: string; title: string; topicIds: readonly string[] }[]
+}
+
 /** Communicator v1: one earned badge, three fully open pathways, all seven requirements. */
 export const COMMUNICATOR = {
   id: 'communicator',
@@ -25,3 +33,17 @@ export const COMMUNICATOR = {
     },
   ],
 } as const
+
+/** Owner-ratified #197 D3. Artwork is supplied separately by the owner. */
+export const NAVIGATOR = {
+  id: 'navigator',
+  version: 1,
+  title: 'Navigator',
+  description: 'Recalls compass points and converts bearings between north references.',
+  pathways: [
+    { id: 'direction-bearings', title: 'Direction & Bearings', topicIds: ['cardinal-bearings', 'whole-circle-bearings', 'reciprocal-bearings'] },
+    { id: 'north-maps', title: 'North & Maps', topicIds: ['north-references-declination', 'grid-north-map-bearings'] },
+  ],
+} as const satisfies RoleDefinition
+
+export const AVAILABLE_ROLES: readonly RoleDefinition[] = [COMMUNICATOR, NAVIGATOR]

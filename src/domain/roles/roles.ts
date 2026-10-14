@@ -1,7 +1,9 @@
 import type { Topic } from '../library/topic'
 import { topicOrigin } from '../library/catalog'
 
-import { COMMUNICATOR, ROLE_IDS } from './definitions'
+import { COMMUNICATOR, ROLE_IDS, type RoleDefinition } from './definitions'
+import type { RoleAward } from './awards'
+import { catalogDefinition } from '../library/catalog'
 export { COMMUNICATOR, ROLE_IDS } from './definitions'
 export type RoleId = (typeof ROLE_IDS)[number]
 
@@ -28,6 +30,7 @@ export interface CommunicatorProgress {
   requiredCount: number
   earned: boolean
   needsRefresh: boolean
+  earnedVersion?: number
 }
 
 /** A bank is a permanent fact, independent of later repair status. */
@@ -35,9 +38,13 @@ export function wasBanked(topic: Topic | undefined): boolean {
   return Boolean(topic && (topic.completedAt || topic.drilledAt))
 }
 
-export function communicatorProgress(topics: readonly Topic[]): CommunicatorProgress {
+export function communicatorProgress(topics: readonly Topic[], awards: readonly RoleAward[] = []): CommunicatorProgress {
+  return roleProgress(COMMUNICATOR, topics, awards)
+}
+
+export function roleProgress(role: RoleDefinition, topics: readonly Topic[], awards: readonly RoleAward[] = []): CommunicatorProgress {
   const byId = new Map(topics.map((topic) => [topic.id, topic]))
-  const pathways = COMMUNICATOR.pathways.map((pathway): PathwayProgress => {
+  const pathways = role.pathways.map((pathway): PathwayProgress => {
     const requirements = pathway.topicIds.map((id): RoleTopicProgress => {
       const local = byId.get(id)
       // Do not award for a user-authored topic that collides with a shipped id.
@@ -45,7 +52,7 @@ export function communicatorProgress(topics: readonly Topic[]): CommunicatorProg
       const complete = wasBanked(topic)
       return {
         id,
-        title: topic?.title ?? id.replace(/-/g, ' '),
+        title: topic?.title ?? catalogDefinition(id)?.title ?? id.replace(/-/g, ' '),
         state: complete ? 'complete'
           : !topic ? 'unavailable'
             : topic.status !== 'unstarted' ? 'in-progress' : 'not-started',
@@ -64,13 +71,16 @@ export function communicatorProgress(topics: readonly Topic[]): CommunicatorProg
     }
   })
   const completeCount = pathways.reduce((sum, pathway) => sum + pathway.completeCount, 0)
-  const requiredCount = COMMUNICATOR.pathways.reduce((sum, pathway) => sum + pathway.topicIds.length, 0)
-  const earned = completeCount === requiredCount
+  const requiredCount = role.pathways.reduce((sum, pathway) => sum + pathway.topicIds.length, 0)
+  const receipt = awards.filter((award) => award.roleId === role.id).sort((a, b) => b.roleVersion - a.roleVersion)[0]
+  const liveEarned = requiredCount > 0 && completeCount === requiredCount
+  const earned = Boolean(receipt) || liveEarned
   return {
     pathways,
     completeCount,
     requiredCount,
     earned,
+    ...(receipt || liveEarned ? { earnedVersion: Math.max(liveEarned ? role.version : 0, receipt?.roleVersion ?? 0) } : {}),
     needsRefresh: earned && pathways.some((pathway) => pathway.topics.some((topic) => topic.needsRefresh)),
   }
 }
