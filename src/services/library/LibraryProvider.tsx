@@ -26,6 +26,7 @@ import { clearAllLessonSittings } from '../../domain/morse/curriculum/lessonSitt
 import { journeyFor } from '../../domain/study/journey'
 import type { Topic } from '../../domain/library/topic'
 import type { CurrentLibrary } from '../../domain/library/library'
+import { captureRoleAwards, mergeRoleAwards, type RoleAward } from '../../domain/roles/awards'
 
 /** Normalize legacy ordinary progress only as part of an explicit topic write. */
 function normalizeWrittenTopic(topic: Topic): Topic {
@@ -79,6 +80,9 @@ interface LibraryStore {
    * grows, so taking the union is the whole merge.
    */
   mergeCatalogDelivered: (ids: readonly string[]) => void
+  roleAwards: readonly RoleAward[] | undefined
+  roleAwardGeneration: number | undefined
+  mergeRoleAwards: (awards: readonly RoleAward[], generation: number) => void
 }
 
 const Ctx = createContext<LibraryStore | null>(null)
@@ -105,7 +109,7 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
         i === -1
           ? [...prev.topics, { ...topic, origin: topic.origin ?? ('user' as const) }]
           : prev.topics.map((t, at) => (at === i ? topic : t))
-      return { ...prev, topics }
+      return captureRoleAwards({ ...prev, topics })
     })
   }, [])
 
@@ -116,7 +120,7 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
       const written = update(prev.topics[at])
       if (written === prev.topics[at]) return prev
       const next = normalizeWrittenTopic(written)
-      return { ...prev, topics: prev.topics.map((topic, index) => (index === at ? next : topic)) }
+      return captureRoleAwards({ ...prev, topics: prev.topics.map((topic, index) => (index === at ? next : topic)) })
     })
   }, [])
 
@@ -131,7 +135,12 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
     // belongs to the replaced library and must not leak into the imported one.
     clearAllLessonSittings()
     const reconciled = reconcileLoadedLibrary(next)
-    setLibrary(reconciled.library)
+    // Import replaces topics, but cannot revoke awards already earned here.
+    setLibrary((prev) => captureRoleAwards({
+      ...reconciled.library,
+      roleAwards: mergeRoleAwards(prev.roleAwards ?? [], reconciled.library.roleAwards ?? []),
+      roleAwardGeneration: prev.roleAwardGeneration ?? 0,
+    }))
     setCatalogReport(reconciled.report)
   }, [])
 
@@ -140,7 +149,7 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
     clearAllLessonSittings()
     // Reset in a demo means back to the sample the visitor arrived at.
     const reset = isDemoBuild() ? demoLibraryWithReport() : reconcileLoadedLibrary(emptyLibrary())
-    setLibrary(reset.library)
+    setLibrary({ ...reset.library, roleAwards: [], roleAwardGeneration: (current.current.roleAwardGeneration ?? 0) + 1 })
     setCatalogReport(reset.report)
   }, [])
 
@@ -164,6 +173,16 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
     })
   }, [])
 
+  const mergeAwards = useCallback((awards: readonly RoleAward[], generation: number) => {
+    setLibrary((prev) => {
+      const localGeneration = prev.roleAwardGeneration ?? 0
+      if (generation < localGeneration) return prev
+      const merged = generation > localGeneration ? mergeRoleAwards(awards) : mergeRoleAwards(prev.roleAwards ?? [], awards)
+      if (generation === localGeneration && JSON.stringify(merged) === JSON.stringify(prev.roleAwards ?? [])) return prev
+      return { ...prev, roleAwards: merged, roleAwardGeneration: generation }
+    })
+  }, [])
+
   const value = useMemo(
     () => ({
       topics: library.topics,
@@ -178,6 +197,9 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
       owner,
       bindOwner,
       mergeCatalogDelivered,
+      roleAwards: library.roleAwards,
+      roleAwardGeneration: library.roleAwardGeneration,
+      mergeRoleAwards: mergeAwards,
     }),
     [
       library,
@@ -190,6 +212,7 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
       owner,
       bindOwner,
       mergeCatalogDelivered,
+      mergeAwards,
     ],
   )
 

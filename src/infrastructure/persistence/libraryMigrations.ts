@@ -13,6 +13,7 @@ import {
   type CatalogReconciliation,
 } from '../../domain/library/catalog'
 import { parseLibrary } from './libraryParser'
+import { captureRoleAwards } from '../../domain/roles/awards'
 
 /**
  * Where a library comes from when there is not one yet, and what a valid
@@ -322,12 +323,13 @@ export function reconcileLoadedLibrary(
   library: CurrentLibrary,
   now: Date = new Date(),
 ): { library: CurrentLibrary; report: CatalogReconciliation } {
-  return reconcileCatalog(
+  const reconciled = reconcileCatalog(
     refreshShippedLearn(
       refreshShippedScopes(renameShippedTitles(upgradeSeededScubaEquipment(absorbSeededMorseBaseline(library)))),
     ),
     now,
   )
+  return { ...reconciled, library: captureRoleAwards(reconciled.library, now) }
 }
 
 /**

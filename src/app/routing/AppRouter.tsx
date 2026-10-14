@@ -30,6 +30,7 @@ import {
 } from './history'
 import type { View } from './routes'
 import type { Mode } from '../../domain/study/mode'
+import type { RoleId } from '../../domain/roles/roles'
 
 function focusAfterTraversal(previous: AppRoute, next: AppRoute) {
   if (sameRoute(previous, next)) return
@@ -67,6 +68,7 @@ export function AppRouter() {
     restoreRoute(initialHistory?.route ?? ROOT_ROUTE, topics, false),
   )
   const [authorOnEntry, setAuthorOnEntry] = useState(false)
+  const [selectedRole, setSelectedRole] = useState<RoleId>('communicator')
 
   const routeRef = useRef(route)
   routeRef.current = route
@@ -332,7 +334,12 @@ export function AppRouter() {
         />
       )}
       {view === 'roles' && (
-        <RolesPage onOpenTopic={(id) => navigate({ kind: 'topic', topicId: id })} />
+        <RolesPage
+          selectedRole={selectedRole}
+          onSelectRole={setSelectedRole}
+          onOpenTopic={(id) => navigate({ kind: 'topic', topicId: id })}
+          onContinue={(action, id) => action === 'author' ? navigate({ kind: 'topic', topicId: id }) : start(action, [id])}
+        />
       )}
       {view === 'library' && (
         <LibraryPage

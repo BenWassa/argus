@@ -6,7 +6,7 @@
 **Related authorities:** [#191](ISSUE_191_ROLE_DESIGNATIONS.md) (merged Communicator contract), [#192](ISSUE_192_ROLE_BADGE_ART.md) (locked Nautical visual family), `src/domain/roles/definitions.ts`, `src/domain/library/shippedCatalog.json`; historical topic-archetype audit #8.
 
 
-**Audit and decisions (2026-10-08):** the full per-item [scored-content audit](ISSUE_197_SCORED_CONTENT_AUDIT.md) (342 items, 24 topics) is complete, and the [decision record](ISSUE_197_ROLE_DECISION_RECORD.md) recommends resolutions for the open decisions below. The recommendations await owner ratification; **the matrix and requirement states in this dossier are unchanged until then.**
+**Audit and decisions (2026-10-08):** the full per-item [scored-content audit](ISSUE_197_SCORED_CONTENT_AUDIT.md) (342 items, 24 topics) is complete, and the [decision record](ISSUE_197_ROLE_DECISION_RECORD.md) recommends resolutions for the open decisions below. The owner ratified D1–D9 on 2026-10-13 and will create the artwork. **The decision record supersedes this dossier’s proposed names and requirement states; the matrix remains research hypotheses, not an implementation contract.**
 
 **Deep research pass (2026-10-07):** Source-led findings, ten detailed role candidate briefs, curriculum proposals and a 25-source external evidence register are maintained in [#197 evidence and curriculum research](ISSUE_197_EVIDENCE_CURRICULUM_RESEARCH.md). Existing UI audit, options, accessibility, interactive scenarios, award persistence and prioritized mobile prototypes are in [#197 role UX and architecture research](ISSUE_197_ROLE_UX_ARCHITECTURE_RESEARCH.md). **Both are research only; neither approves new roles, implementation, art or a change in priority.** `docs/LIBRARY_ROADMAP.md` remains the implementation-priority authority.
 
@@ -219,7 +219,7 @@ Maintain an explicit state label:
 | 2026-10-07 | MECE Library categories distinct from overlapping roles | Owner conversation; conceptual taxonomy |
 | 2026-10-07 | Nautical medallion family; future PNG approval then layered SVG with rigorous fidelity QA | #192 and owner conversation |
 | 2026-10-07 | Research additional cognitive, technical, advanced and capstone lines; no approvals yet | #197 scope |
-| 2026-10-08 | Scored-content audit complete; D1–D9 recommended (Navigator then Mariner earnable from shipped content; Diver/Responder/Operator not earnable; Technical dropped; Field and Mission merged into one deferred capstone; award receipt before a second role) | [Decision record](ISSUE_197_ROLE_DECISION_RECORD.md); **awaiting ratification** |
+| 2026-10-08 | Scored-content audit complete; D1–D9 recommended (Navigator then Mariner earnable from shipped content; Diver/Responder/Operator not earnable; Technical dropped; Field and Mission merged into one deferred capstone; award receipt before a second role) | [Decision record](ISSUE_197_ROLE_DECISION_RECORD.md); ratified 2026-10-13; artwork owner-supplied |
 
 ## 12. Deep research findings and UX/UI avenues — 2026-10-07
 

@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest'
 import { seedLibrary } from '../library/catalogSeed'
 import { COMMUNICATOR, ROLE_IDS, communicatorProgress, wasBanked } from './roles'
 import type { Topic } from '../library/topic'
+import { catalogDefinitions, SHIPPED_CATALOG_TOPIC_IDS } from '../library/catalog'
+import { AVAILABLE_ROLES, NAVIGATOR } from './definitions'
+import { roleProgress } from './roles'
 
 const IDS: string[] = COMMUNICATOR.pathways.flatMap((path) => [...path.topicIds])
 function baseline(): Topic[] {
@@ -11,6 +14,24 @@ function baseline(): Topic[] {
 const complete = (topic: Topic): Topic => ({ ...topic, status: 'completed', completedAt: '2026-10-01T12:00:00Z' })
 
 describe('Communicator role', () => {
+  it('keeps every requirement in the shipped manifest with sourced Learn limits', () => {
+    const catalog = new Map(catalogDefinitions().map((topic) => [topic.id, topic]))
+    for (const id of AVAILABLE_ROLES.flatMap((role) => role.pathways.flatMap((path) => [...path.topicIds]))) {
+      expect(SHIPPED_CATALOG_TOPIC_IDS, `${id} is not shipped`).toContain(id)
+      expect(catalog.get(id)?.learn?.sources?.length, `${id} needs sources`).toBeGreaterThan(0)
+      expect(catalog.get(id)?.learn?.limitations?.length, `${id} needs limitations`).toBeGreaterThan(0)
+    }
+  })
+  it('locks Navigator to five distinct shipped topics and two fully open pathways', () => {
+    const ids = NAVIGATOR.pathways.flatMap((path) => [...path.topicIds])
+    expect(new Set(ids).size).toBe(5)
+    expect(NAVIGATOR.pathways.map((path) => path.topicIds.length)).toEqual([3, 2])
+    const topics = seedLibrary().topics.filter((topic) => ids.includes(topic.id as typeof ids[number]))
+      .map((topic) => complete({ ...topic, origin: 'catalog' }))
+    expect(topics.reduce((sum, topic) => sum + topic.items.length, 0)).toBe(60)
+    expect(roleProgress(NAVIGATOR, topics)).toMatchObject({ earned: true, completeCount: 5, requiredCount: 5 })
+    expect(roleProgress(NAVIGATOR, topics.slice(1)).earned).toBe(false)
+  })
   it('has six approved identities and seven unique v1 topics in three open pathways', () => {
     expect(ROLE_IDS).toEqual(['communicator', 'navigator', 'mariner', 'diver', 'responder', 'operator'])
     expect(IDS).toHaveLength(7)

@@ -7,6 +7,7 @@ import { unconfiguredSyncBackend, type SyncBackend, type SyncUser } from './sync
 import { libraryMetaJson, topicJson, type RemoteRecord } from './syncPlanner'
 import { seedLibrary } from '../../domain/library/catalogSeed'
 import type { Topic } from '../../domain/library/topic'
+import type { RoleAward } from '../../domain/roles/awards'
 
 /**
  * Applying a plan is genuinely asynchronous — a push is awaited before the
@@ -119,6 +120,46 @@ function fakeBackend(overrides: Partial<SyncBackend> = {}): SyncBackend & {
 }
 
 const OWNER: SyncUser = { uid: 'owner-uid', email: 'owner@example.test', displayName: 'Owner' }
+
+describe('award receipt metadata sync', () => {
+  const award: RoleAward = { roleId: 'communicator', roleVersion: 1, earnedAt: '2026-10-13T12:00:00.000Z', topicIds: ['topic-a'] }
+  it('recovers awards on an empty new device and pushes the union of concurrently earned roles', async () => {
+    const backend = fakeBackend()
+    const store = fakeStore([])
+    store.roleAwards = [{ ...award, roleId: 'navigator' }]
+    store.mergeRoleAwards = vi.fn()
+    renderHook(() => useSync(store, backend))
+    act(() => backend.emitUser(OWNER))
+    act(() => backend.emitMeta({ json: libraryMetaJson([], [award], 0), revision: 2 }))
+    await waitFor(() => expect(store.mergeRoleAwards).toHaveBeenCalledWith([award, { ...award, roleId: 'navigator' }], 0))
+    expect(JSON.parse(backend.metaPushed[0].json).roleAwards).toHaveLength(2)
+  })
+  it('pushes an explicit reset instead of restoring stale receipts', async () => {
+    const backend = fakeBackend()
+    const store = fakeStore([])
+    store.roleAwards = []
+    store.roleAwardGeneration = 1
+    store.mergeRoleAwards = vi.fn()
+    renderHook(() => useSync(store, backend))
+    act(() => backend.emitUser(OWNER))
+    act(() => backend.emitMeta({ json: libraryMetaJson([], [award], 0), revision: 2 }))
+    await waitFor(() => expect(backend.metaPushed).toHaveLength(1))
+    expect(JSON.parse(backend.metaPushed[0].json)).toMatchObject({ roleAwards: [], roleAwardGeneration: 1 })
+  })
+  it('takes a newer reset generation and does not overwrite unsupported or damaged receipts', async () => {
+    const backend = fakeBackend()
+    const store = fakeStore([])
+    store.roleAwards = [award]
+    store.mergeRoleAwards = vi.fn()
+    renderHook(() => useSync(store, backend))
+    act(() => backend.emitUser(OWNER))
+    act(() => backend.emitMeta({ json: libraryMetaJson([], [], 1), revision: 2 }))
+    await waitFor(() => expect(store.mergeRoleAwards).toHaveBeenCalledWith([], 1))
+    expect(backend.metaPushed).toHaveLength(0)
+    act(() => backend.emitMeta({ json: JSON.stringify({ version: 5, catalogDelivered: [], roleAwards: [{ ...award, roleVersion: -1 }] }), revision: 3 }))
+    expect(backend.metaPushed).toHaveLength(0)
+  })
+})
 
 function waitFor(assertion: () => void) {
   return rawWaitFor(assertion, { timeout: 5_000 })

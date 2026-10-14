@@ -1,4 +1,5 @@
 import type { Topic } from './topic'
+import type { RoleAward } from '../roles/awards'
 
 /**
  * A library: the topics this learner owns, and the record versions Argus
@@ -25,6 +26,9 @@ export interface CurrentLibrary {
    * topic is durable and reconciliation never resurrects it.
    */
   catalogDelivered?: string[]
+  roleAwards?: RoleAward[]
+  /** Explicit reset generation, not a timestamp or topic-conflict ordering rule. */
+  roleAwardGeneration?: number
 }
 
 /** The seed is itself a v5 record; storage remains the migration boundary. */

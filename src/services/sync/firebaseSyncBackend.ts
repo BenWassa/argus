@@ -1,5 +1,5 @@
 import { libraryCollectionPath, libraryMetaPath, type FirebaseWebConfig } from './syncConfig'
-import type { RemoteRecord } from './syncPlanner'
+import { mergeLibraryMetaJson, type RemoteRecord } from './syncPlanner'
 import type { SyncBackend, SyncUser, Unsubscribe } from './syncBackend'
 
 /**
@@ -169,10 +169,15 @@ export function firebaseSyncBackend(config: FirebaseWebConfig): SyncBackend {
 
     async pushMeta(uid, json, revision) {
       const { db, dbApi } = await services()
-      await dbApi.setDoc(dbApi.doc(db, libraryMetaPath(uid)), {
-        json,
-        revision,
-        updatedAt: dbApi.serverTimestamp(),
+      const ref = dbApi.doc(db, libraryMetaPath(uid))
+      await dbApi.runTransaction(db, async (transaction) => {
+        const current = (await transaction.get(ref)).data()
+        if (current && typeof current.json !== 'string') throw new Error('Library metadata is unreadable; it was not overwritten.')
+        transaction.set(ref, {
+          json: mergeLibraryMetaJson(json, current?.json ?? null),
+          revision: Math.max(revision, (typeof current?.revision === 'number' ? current.revision : 0) + 1),
+          updatedAt: dbApi.serverTimestamp(),
+        })
       })
     },
   }

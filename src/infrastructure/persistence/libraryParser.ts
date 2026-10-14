@@ -46,6 +46,7 @@ import {
 import { inferredOrigin } from '../../domain/library/catalog'
 import { parseChoice, parseVisual } from './visualParser'
 import { parseAudio, parseAudioEvidence, parseResponse } from './audioParser'
+import { parseRoleAwards } from '../../domain/roles/awards'
 
 /**
  * The import boundary: unknown JSON in, a valid `CurrentLibrary` or a reason
@@ -1080,6 +1081,11 @@ export function parseLibrary(value: unknown, now: Date = new Date()): ParseResul
   }
 
   const catalogDelivered = parseCatalogDelivered(raw.catalogDelivered)
+  const roleAwards = parseRoleAwards(raw.roleAwards)
+  if (roleAwards === null) return { ok: false, error: 'Invalid role award receipts.' }
+  if (raw.roleAwardGeneration !== undefined && (!Number.isSafeInteger(raw.roleAwardGeneration) || (raw.roleAwardGeneration as number) < 0)) {
+    return { ok: false, error: 'Invalid role award reset generation.' }
+  }
 
   return {
     ok: true,
@@ -1087,6 +1093,8 @@ export function parseLibrary(value: unknown, now: Date = new Date()): ParseResul
       version: 5,
       topics,
       ...(catalogDelivered ? { catalogDelivered } : {}),
+      ...(raw.roleAwards !== undefined ? { roleAwards } : {}),
+      ...(raw.roleAwardGeneration !== undefined ? { roleAwardGeneration: raw.roleAwardGeneration as number } : {}),
     },
   }
 }
