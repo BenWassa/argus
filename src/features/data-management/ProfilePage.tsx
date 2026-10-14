@@ -88,8 +88,10 @@ export function ProfilePage({ onBack }: { onBack: () => void }) {
   async function applyImport(file: File) {
     const result = parseLibrary(JSON.parse(await file.text()))
     if (!result.ok) return
-    replaceLibrary(result.library)
-    setMessage({ tone: 'ok', text: `Imported ${result.library.topics.length} topics.` })
+    const saved = await replaceLibrary(result.library)
+    setMessage(saved === false
+      ? { tone: 'error', text: 'Import was not saved on this device. Your previous library is intact.' }
+      : { tone: 'ok', text: `Imported ${result.library.topics.length} topics.` })
   }
 
   return (
@@ -205,9 +207,12 @@ export function ProfilePage({ onBack }: { onBack: () => void }) {
           confirmLabel="Reset data"
           onCancel={() => setConfirmReset(false)}
           onConfirm={() => {
-            resetLibrary()
             setConfirmReset(false)
-            setMessage({ tone: 'ok', text: 'Learning data reset. Shipped topics restored.' })
+            void Promise.resolve(resetLibrary()).then((saved) => {
+              setMessage(saved === false
+                ? { tone: 'error', text: 'Reset was not saved on this device. Your previous library is intact.' }
+                : { tone: 'ok', text: 'Learning data reset. Shipped topics restored.' })
+            })
           }}
         />
       )}
