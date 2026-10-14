@@ -98,7 +98,7 @@ describe('production IndexedDB provider integration', () => {
     const hook = await mounted()
     const id = hook.result.current.topics[0].id
     act(() => hook.result.current.updateTopic(id, (topic) => ({ ...topic, title: 'Account A' })))
-    await waitFor(() => expect(hook.result.current.topics[0].title).toBe('Account A')
+    await waitFor(() => expect(hook.result.current.topics[0].title).toBe('Account A'))
     await act(async () => { await hook.result.current.bindOwner('owner-a') })
     await act(async () => { await hook.result.current.bindOwner('owner-b') })
     expect(hook.result.current.topics[0].title).not.toBe('Account A')
