@@ -27,14 +27,16 @@ Learn teaches the alphabet and stops. Fluency is what a learner does after
 that: the same 26 characters, presented by ear, at a speed too fast to count
 them, with the gaps closing as they improve.
 
-It is reached from the Morse topic page once the alphabet is acquired — as the
-primary *Keep going* once the course is banked, and at text weight beside the
-check while the ladder is still moving — that is, once every letter has been produced unaided at least once
-in Learn. Gated on acquisition rather than on completion deliberately: a
+It is reached from the Morse topic page once the alphabet is acquired. The
+approved #201 UX slice proposes one concrete recommended Send challenge for a
+banked course and a persistent Play section with direct Send, Receive/Copy,
+Challenges and Free Play entries. Before Test qualification the Test or repair
+action remains primary; Play remains optional. This is gated on acquisition:
+every letter has been produced unaided at least once in Learn. Gated on acquisition rather than on completion deliberately: a
 learner waiting out a spacing interval before their qualifying check has
 finished learning the alphabet and should not be told there is nothing to do.
 
-Entry points (#201 S0, 2026-10-14, awaiting Pixel acceptance):
+Entry points (#201 S0 merged, 2026-10-14; following UX runtime PR pending, awaiting Pixel acceptance):
 
 - The Morse topic page shows *Send, copy and speed practice* in plain view
   between the curriculum and the action bar once the alphabet is acquired and
@@ -49,6 +51,19 @@ Entry points (#201 S0, 2026-10-14, awaiting Pixel acceptance):
   Fluency home. None of these write evidence, and no schema changed.
 - When every Send stage is cleared the home recommends the stage with the lowest
   recorded best (ties to the harder stage) instead of always *Short messages*.
+
+
+**Pending #201 embedded Play entry:** the owner approved using the existing
+Morse Topic page instead of a new destination. A follow-up PR changes the
+banked course's `Keep going` UI to a directly launched recommended Send
+stage; it shows four direct families on the Topic page, while leaving the
+current detailed Fluency hub and diagnostics in place. Its two new route
+parameters are `copy` (validated against `COPY_LEVELS`) and `free: true`;
+both preserve run-only formative behavior and return to the existing hub on
+exit. A developing learner with an unlocked word checkpoint gets a `Try a
+word` replay of that already-validated checkpoint. This is not the future
+generated known-letter game. Do not treat this paragraph as shipped until
+the implementation PR merges.
 
 The gate reads `journeyFor(topic).acquisition.ready`, **not**
 `topic.acquisitionReadyAt`. The stored anchor postdates the programme, so a
