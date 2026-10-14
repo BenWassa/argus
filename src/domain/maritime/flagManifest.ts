@@ -11,14 +11,11 @@ import type { FlagLetter } from './flags'
  * is deliberately re-pinned. It fences accidents; it does not prove a design is
  * correct.
  *
- * `review` is deliberately `null` for every flag. The authoritative depictions
- * (the IMO International Code of Signals and NGA Pub. 102) could not be reached
- * from the environments that produced and checked these redraws, so no flag has
- * been compared against them. A cross-check against the Wikimedia Commons
- * redraws (2026-09-30) found and fixed Oscar and Whiskey; it is recorded in the
- * issue note and is not a substitute for that review. The catalog topic should not ship until a reviewer has done that
- * comparison and filled this in; `docs/open/ISSUE_148_SIGNAL_FLAGS.md` lists what
- * to check.
+ * `review` remains null pending final acceptance. A rendered NGA Pub. 102
+ * comparison was completed on 2026-10-13, but illustrated proportion
+ * differences and current IMO comparison remain open. Source-inspection notes
+ * live in `docs/open/ISSUE_148_PUB102_COMPARISON.md`; they are not independent
+ * human/domain acceptance. Populate these fields only after that disposition.
  */
 export interface FlagManifestEntry {
   letter: FlagLetter
