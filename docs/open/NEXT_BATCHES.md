@@ -1,6 +1,6 @@
 # Next batches: implementation checkpoint
 
-**Status:** active work and owner gates, updated 2026-10-13.
+**Status:** active work and owner gates, updated 2026-10-14.
 **Authority:** execution checkpoint for the owner’s request to tackle the batches one by one. The [ratified #197 record](ISSUE_197_ROLE_DECISION_RECORD.md), [offline contract](ISSUE_113_OFFLINE_FIRST_RUNTIME.md) and Library Roadmap retain their respective product/implementation authority. This is not a release closeout.
 
 ## Completed repository work
@@ -37,3 +37,24 @@
 #203 CI passed web/browser/rules. The combined #205/#206 workflow passed web/browser/rules, including 40 native database checks and eight shell checks across four viewports. #207 additionally passed 74 focused role/persistence/sync tests and 16 Roles browser checks. These are automated checks, not Pixel or domain-review acceptance.
 
 No version, tag or deployment was changed. Production remains v1.5.0. Main now contains the merged follow-up source; #113 remains open and the full offline-first guarantee is not complete.
+
+## October 14 agent-batch PR checkpoint (pending review; not merged)
+
+This checkpoint supersedes the earlier *next engineering steps* as a work allocation, **not** as proof of completion or release. At the time of this audit six PRs were open. No PR below was merged, no issue closed, and production remains v1.5.0.
+
+| Lane | PR | Current evidence | Required gate before merge/close |
+|---|---|---|---|
+| Canadian radio #150 | [#210](https://github.com/BenWassa/argus/pull/210) | Corrects conditional DSC/MMSI wording with regression checks; source audit documented | Project CI, qualified Canadian radio/marine review; do not auto-close #150 |
+| Maritime #147/#148 | [#211](https://github.com/BenWassa/argus/pull/211) | Documents Canadian/IMO/NGA comparison and unresolved aground schematic/flag proportions | Documentation review; independent maritime domain acceptance still outstanding |
+| Persistent Morse Play #201 | [#212](https://github.com/BenWassa/argus/pull/212) | Six static token-faithful 390×844 SVG review mockups | Owner visual approval for complete proposed design; no UI rollout on design-doc merge |
+| Analyst Wave 1 #197 | [#213](https://github.com/BenWassa/argus/pull/213) | Four draft Human Factors S1 topics (36 objective items); with four-item OODA reaches proposed 5 topics/40 items | Owner scope approval, independent answer-key/source review, editorial/ethical gates; not earnable |
+| IndexedDB LibraryProvider #113 | [#214](https://github.com/BenWassa/argus/pull/214) **draft** | Moves production provider to local transactions with migration/account-isolation tests | Full CI and careful persistence safety review; durable cloud outbox drain/auth not in scope |
+| Morse Play implementation #201 | [#215](https://github.com/BenWassa/argus/pull/215) **draft** | Embedded Play entry, direct Send/Receive/Challenges/Free Play routes | Check design approval scope from #212, CI, behavioural tests, real Pixel acceptance |
+
+### Sequencing and housekeeping constraints
+
+1. Review smaller source/doc PRs #210/#211/#213 independently; a merge of research or fixes **does not** satisfy external domain/owner acceptance gates.
+2. Review #212 against the owner-approved direction and its remaining design decisions before accepting implementation #215; maintain separate real-device sign-off.
+3. Keep #214 draft until migration/corruption/recovery tests and full CI are resolved; only then start the separate outbox drain/retry, offline auth/bootstrap and Profile recovery lanes.
+4. Continue using `docs/open/` for live issue authority and `docs/closed/` only for fully accepted closeout. Do not move #113, #150, #188, #191, #192, #193, #197 or #201 prematurely. Research docs referencing #147/#148 remain open until domain sign-off.
+5. Do not tag or deploy production as part of housekeeping. Verify issue titles/descriptions and documentation links after merging each PR rather than batch-closing on PR merge alone.
