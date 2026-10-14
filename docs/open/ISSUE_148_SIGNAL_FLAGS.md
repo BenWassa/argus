@@ -22,6 +22,8 @@ One catalog topic, `signal-flags` ("Signal Flags"), `tradecraft`, 12 forward obj
 
 ## The verification gate (still open)
 
+**2026-10-13 comparison:** the official NGA PDF is now reachable. [Pub. 102 comparison notes](ISSUE_148_PUB102_COMPARISON.md) record the inspected plate/meaning pages, qualitative matches and proportion differences needing current IMO disposition. This is source comparison, not final acceptance; manifest `review` fields remain `null`.
+
 The authoritative flag depictions — the IMO *International Code of Signals* and NGA Pub. 102 — could not be reached from the environment that produced these redraws, and no reusable reference set was available from the registries that could be reached. The designs were drawn from memory of the standard flags. **No flag has been compared against an authoritative depiction**, so every manifest row has `review: null`, and a test documents that honestly.
 
 A reviewer should compare each flag with Pub. 102 (and the current IMO depiction where available), then fill in `review` for that row. Details most worth checking:
