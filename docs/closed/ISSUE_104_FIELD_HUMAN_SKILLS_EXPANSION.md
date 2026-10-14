@@ -1,6 +1,7 @@
 # Issue #104 — Field, behavioural and crisis-skill expansion
 
-**Status:** research / owner decision — scenario capability proposed, awaiting decision  
+**Status:** closed / historical; completed or superseded #104 research (2026-09-30).
+**Authority:** historical rationale only; current priorities and content policy are maintained in [Library roadmap](../LIBRARY_ROADMAP.md) and [research method](../LIBRARY_RESEARCH_METHOD.md).
 **Date:** 2026-09-17 (status updated 2026-09-25)  
 **Issue:** #104  
 **Implementation:** only the ACTS & PROVE recall layer has shipped (catalog topic `firearm-safety-acts-prove`); no scenario-based course has shipped  
@@ -8,7 +9,7 @@
 
 > **Status update — 2026-09-25.** Every spec in `library-research/` puts scenario application inside its completion claim, which the current self-scored item cannot score. None ships as specified. The ACTS & PROVE recall layer shipped under this paper's separate recall claims (§8.1 Q and R), pinned to the 2014 CFSC Student Handbook after the revalidation its spec required. Storage/transport (§8.1 S) and a recall-only PFA topic were deliberately held back. The smallest reusable scenario capability — decision C below — is proposed in `ISSUE_104_SCENARIO_ITEMS.md`.
 
-> Editorial framing for all #104 expansion work is defined in `docs/open/ISSUE_104_EDITORIAL_IDENTITY.md`: Argus should feel like an adult, evidence-based practical miscellany of useful things worth knowing and doing, with the childhood spirit of *The Dangerous Book for Boys* as inspiration for breadth and curiosity rather than audience, tone or factual authority.
+> Editorial framing for all #104 expansion work is defined in `docs/closed/ISSUE_104_EDITORIAL_IDENTITY.md`: Argus should feel like an adult, evidence-based practical miscellany of useful things worth knowing and doing, with the childhood spirit of *The Dangerous Book for Boys* as inspiration for breadth and curiosity rather than audience, tone or factual authority.
 
 ## Executive decision
 
