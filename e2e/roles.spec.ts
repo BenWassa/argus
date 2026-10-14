@@ -86,7 +86,7 @@ test('Navigator award survives deletion and reload; reset clears it', async ({ p
   await expect(page.getByText('Navigator earned', { exact: true })).toBeVisible()
   await expect(page.getByText('0 of 5 topics complete')).toBeVisible()
   await page.getByRole('button', { name: 'Home', exact: true }).click()
-  await page.getByRole('button', { name: /Profile/ }).click()
+  await page.getByRole('button', { name: 'Open profile', exact: true }).click()
   await page.getByRole('button', { name: 'Reset learning data' }).click()
   await page.getByRole('dialog', { name: 'Reset learning data' }).getByRole('button', { name: 'Reset data', exact: true }).click()
   await page.getByRole('button', { name: 'Roles', exact: true }).click()

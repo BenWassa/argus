@@ -59,12 +59,25 @@ for (const [title, boundary] of [
 
 
 test('a sources-only topic closes on browser Back without leaving the topic', async ({ page }) => {
-  await page.getByRole('button', { name: /NATO Alphabet/ }).click()
+  // NATO now has limits. A user-authored fixture keeps sources-only coverage
+  // independent of future editorial changes to shipped Learn material.
+  await page.evaluate(() => {
+    const key = 'argus.library.v5'
+    const library = JSON.parse(localStorage.getItem(key)!)
+    library.topics.push({
+      ...library.topics[0],
+      id: 'sources-only-fixture', title: 'Sources-only fixture', origin: 'user',
+      learn: { kind: 'concise', sources: [{ label: 'Reference', url: 'https://example.com/reference' }] },
+    })
+    localStorage.setItem(key, JSON.stringify(library))
+  })
+  await page.reload()
+  await page.getByRole('button', { name: /Sources-only fixture/ }).click()
   const opener = page.getByRole('button', { name: 'Sources', exact: true })
   await opener.click()
   await expect(page.getByRole('dialog', { name: 'Sources', exact: true })).toBeVisible()
   await page.goBack()
   await expect(page.getByRole('dialog')).toHaveCount(0)
-  await expect(page.locator('.topic-title')).toHaveText('NATO Alphabet')
+  await expect(page.locator('.topic-title')).toHaveText('Sources-only fixture')
   await expect(opener).toBeFocused()
 })
