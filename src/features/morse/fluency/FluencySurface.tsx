@@ -21,6 +21,10 @@ interface FluencySurfaceProps {
   initialMode?: FluencyMode
   /** Set when the route went straight into a sending stage (a handoff, not the hub). */
   initialSend?: SendStage
+  /** Opens the first receiving round directly from Morse Topic. */
+  initialCopy?: CopyLevel
+  /** Free transmission has no score or evidence write. */
+  initialFree?: true
   /** Set when the route asked to practise just these letters. */
   letters?: string[]
   onExit: () => void
@@ -40,7 +44,7 @@ interface FluencySurfaceProps {
  * write path, so an edit that reaches for `useLibrary` inside one of them
  * fails the suite rather than quietly widening what Fluency can touch.
  */
-export function FluencySurface({ topicId, initialMode, initialSend, letters, onExit }: FluencySurfaceProps) {
+export function FluencySurface({ topicId, initialMode, initialSend, initialCopy, initialFree, letters, onExit }: FluencySurfaceProps) {
   const { topics, updateTopic } = useLibrary()
   const topic = topics.find((candidate) => candidate.id === topicId)
   // Read once, when Fluency opens: what the learner is missing weights every
@@ -50,11 +54,13 @@ export function FluencySurface({ topicId, initialMode, initialSend, letters, onE
     (letters ?? []).filter((letter): letter is MorseLetter => /^[A-Z]$/.test(letter)),
   )
   const [mode, setMode] = useState<FluencyMode | null>(initialMode ?? null)
-  const [copy, setCopy] = useState<{ level: CopyLevel; run: number } | null>(null)
+  const [copy, setCopy] = useState<{ level: CopyLevel; run: number } | null>(
+    initialCopy ? { level: initialCopy, run: 0 } : null,
+  )
   const [send, setSend] = useState<{ stage: SendStage; run: number } | null>(
     initialSend ? { stage: initialSend, run: 0 } : null,
   )
-  const [free, setFree] = useState(false)
+  const [free, setFree] = useState(Boolean(initialFree))
 
   const commit = useCallback(
     (next: MorseFluencyProgress) => {
