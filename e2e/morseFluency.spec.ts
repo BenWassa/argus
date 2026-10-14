@@ -105,7 +105,9 @@ async function openTopic(page: Page, library = LIBRARY) {
 
 async function openFluency(page: Page) {
   await openTopic(page)
-  await page.getByRole('button', { name: /Send, copy and speed practice/ }).click()
+  await page.locator('.topic-play-choices').getByRole('button', { name: /Free Play/ }).click()
+  await expect(page.getByRole('heading', { name: 'Free play' })).toBeVisible()
+  await page.getByRole('button', { name: 'Close' }).click()
   await expect(page.getByRole('heading', { name: 'After the alphabet' })).toBeVisible()
 }
 
@@ -196,13 +198,16 @@ test.describe('fluency', () => {
     await openTopic(page)
     // Play is in plain view (#201), not folded under More options.
     await expect(page.locator('.topic-options')).not.toHaveAttribute('open', '')
-    await expect(page.getByRole('button', { name: /Send, copy and speed practice/ })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Play Morse' })).toBeVisible()
+    for (const label of ['Send', 'Receive', 'Challenges', 'Free Play']) {
+      await expect(page.locator('.topic-play-choices').getByRole('button', { name: new RegExp(label) })).toBeVisible()
+    }
     await expect(page.locator('.topic-primary')).toHaveText('Test')
   })
 
   test('leads between checks, with the Test as a short review', async ({ page }) => {
     await openTopic(page, betweenChecks())
-    await expect(page.locator('.topic-primary')).toHaveText('Keep going')
+    await expect(page.locator('.topic-primary')).toHaveText('Send five words')
     await expect(page.locator('.topic-options')).not.toHaveAttribute('open', '')
     await page.locator('.topic-options summary').click()
 
@@ -215,10 +220,8 @@ test.describe('fluency', () => {
     test.setTimeout(120_000)
     await openTopic(page, betweenChecks())
     const before = await storedTopic(page)
-    await page.locator('.topic-primary').click()
-    await expect(page.getByRole('heading', { name: 'After the alphabet' })).toBeVisible()
-
-    await page.getByRole('button', { name: /^Letters/ }).click()
+    await page.locator('.topic-play-choices').getByRole('button', { name: /Receive/ }).click()
+    await expect(page.getByText('Hear it, write it')).toBeVisible()
     for (let prompt = 0; prompt < 10; prompt += 1) {
       const play = page.getByRole('button', { name: /^Play$|Play once more/ })
       if (prompt === 0) await play.click()
@@ -245,7 +248,11 @@ test.describe('fluency', () => {
     test.setTimeout(90_000)
     await openTopic(page, betweenChecks())
     const before = await storedTopic(page)
+    // The main action skips the picker, while its hub remains available on
+    // exit. Send's formative writing semantics are unchanged.
     await page.locator('.topic-primary').click()
+    await expect(page.locator('.send-run')).toBeVisible()
+    await page.getByRole('button', { name: 'Fluency', exact: true }).click()
     await expect(page.getByRole('heading', { name: 'After the alphabet' })).toBeVisible()
 
     // Sending leads the post-alphabet surface rather than being hidden under
