@@ -283,8 +283,9 @@ function IndexedLibraryProvider({ children }: { children: ReactNode }) {
         repository.current = db
         const previous = libraryOwner()
         const key = previous ?? localOwner
-        const legacy = legacyFor(key, previous)
-        const row = await db.initialize(key, { seed: migrationSeed(legacy), legacy })
+        const existing = await db.read(key)
+        const legacy = existing ? undefined : legacyFor(key, previous)
+        const row = await db.initialize(key, { seed: existing?.library ?? migrationSeed(legacy), legacy })
         if (cancelled) return
         activeOwner.current = key
         setOwner(previous)
@@ -374,9 +375,10 @@ function IndexedLibraryProvider({ children }: { children: ReactNode }) {
     // An unclaimed local library is claimable exactly once; a library already
     // assigned to another UID never becomes a seed for this UID.
     const local = previous === null ? await db.read(previousKey) : null
-    const legacy = legacyFor(uid, previous)
-    const seed = local?.library ?? migrationSeed(legacy)
-    const row = await db.initialize(uid, { seed, ...(local ? {} : { legacy }) })
+    const existing = await db.read(uid)
+    const legacy = existing || local ? undefined : legacyFor(uid, previous)
+    const seed = existing?.library ?? local?.library ?? migrationSeed(legacy)
+    const row = await db.initialize(uid, { seed, ...(legacy ? { legacy } : {}) })
     // A failed owner marker is a failed account switch; never publish the new
     // account using an ambiguous owner marker.
     localStorage.setItem('argus.library.owner.v1', uid)
