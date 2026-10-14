@@ -63,7 +63,7 @@ describe('production IndexedDB provider integration', () => {
     await waitFor(() => expect(hook.result.current.roleAwards).toHaveLength(1))
     expect(localStorage.getItem(key)).toBe(JSON.stringify(old))
     expect(fixture.records.get(ownerKey)?.library.topics).toHaveLength(old.topics.length)
-    expect(fixture.pending.get(ownerKey)).toBe(1)
+    expect(fixture.pending.get(ownerKey)).toBe(fixture.records.get(ownerKey)?.revision)
     hook.unmount()
   })
 
@@ -71,6 +71,7 @@ describe('production IndexedDB provider integration', () => {
     const hook = await mounted()
     const id = hook.result.current.topics[0].id
     const previous = hook.result.current.topics[0]
+    const baselineRevision = fixture.records.get(ownerKey)!.revision
     act(() => {
       hook.result.current.updateTopic(id, (topic) => ({ ...topic, title: 'First title' }))
       hook.result.current.updateTopic(id, (topic) => ({ ...topic, scope: 'Second scope' }))
@@ -78,7 +79,7 @@ describe('production IndexedDB provider integration', () => {
     await waitFor(() => expect(hook.result.current.topics[0].scope).toBe('Second scope'))
     expect(hook.result.current.topics[0]).toMatchObject({ title: 'First title', scope: 'Second scope' })
     expect(fixture.records.get(ownerKey)?.library.topics[0].title).toBe('First title')
-    expect(fixture.pending.get(ownerKey)).toBe(3)
+    expect(fixture.pending.get(ownerKey)).toBe(baselineRevision + 2)
     expect(previous.title).not.toBe('First title')
   })
 
