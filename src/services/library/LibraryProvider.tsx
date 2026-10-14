@@ -432,7 +432,12 @@ function IndexedLibraryProvider({ children }: { children: ReactNode }) {
 }
 
 export function LibraryProvider({ children }: { children: ReactNode }) {
-  return isDemoBuild()
+  // Existing synchronous JSDOM fixtures test domain/UI behavior against the
+  // legacy repository. Dedicated transaction tests explicitly opt into the
+  // production provider; browser builds always use IndexedDB.
+  const useLegacyFixture = import.meta.env.MODE === 'test'
+    && !(globalThis as { __argusIndexedProviderTests?: boolean }).__argusIndexedProviderTests
+  return isDemoBuild() || useLegacyFixture
     ? <DemoLibraryProvider>{children}</DemoLibraryProvider>
     : <IndexedLibraryProvider>{children}</IndexedLibraryProvider>
 }
