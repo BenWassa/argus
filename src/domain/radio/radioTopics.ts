@@ -393,7 +393,7 @@ const marinePriorityLearn: LearnContent = {
   ],
   limitations: [
     'Memory of published structure only. Not emergency decision-making, DSC operation or certification.',
-    'RAMN describes a DSC distress-alert procedure, but its spoken call and message also specify how to proceed when no DSC alert has been sent. DSC operation is not taught or scored here.',
+    'Spoken distress calls can proceed when no DSC alert has been sent. DSC operation is not taught or scored.',
   ],
   sources: [
     RAMN_PART_4,
