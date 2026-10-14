@@ -70,6 +70,14 @@ describe('Marine Calling (RAMN 2026 §4.1.1)', () => {
 describe('Marine Priority Calls (RAMN 2026 §§4.1.2–4.1.4)', () => {
   const topic = marinePriorityCommunicationsTopic()
 
+  it('does not imply DSC is mandatory for all spoken distress calls', () => {
+    const limitations = topic.learn?.limitations ?? []
+    expect(limitations.join(' ')).toContain('when no DSC alert has been sent')
+    expect(limitations.join(' ')).toContain('DSC operation is not taught or scored')
+    expect(topic.items[4].answer).toContain('MMSI (if a DSC distress alert was sent)')
+    expect(topic.items[5].answer).toContain('MMSI (if a DSC distress alert was sent)')
+  })
+
   it('scores exactly nine items', () => {
     expect(topic.items).toHaveLength(9)
     expect(topic.items[0].answer).toBe('Distress → Urgency → Safety → All other communications')
