@@ -31,6 +31,7 @@ export interface CommunicatorProgress {
   earned: boolean
   needsRefresh: boolean
   earnedVersion?: number
+  upgradeRemainingCount?: number
 }
 
 /** A bank is a permanent fact, independent of later repair status. */
@@ -73,7 +74,16 @@ export function roleProgress(role: RoleDefinition, topics: readonly Topic[], awa
   const completeCount = pathways.reduce((sum, pathway) => sum + pathway.completeCount, 0)
   const requiredCount = role.pathways.reduce((sum, pathway) => sum + pathway.topicIds.length, 0)
   const receipt = awards.filter((award) => award.roleId === role.id).sort((a, b) => b.roleVersion - a.roleVersion)[0]
-  const liveEarned = requiredCount > 0 && completeCount === requiredCount
+  // A versioned optional extension reuses already proved requirements, even
+  // when their topic records have since been deleted. Current topic counts
+  // remain literal: the receipt does not recreate missing topics or history.
+  const proved = new Set(awards.filter((award) => award.roleId === role.id && award.roleVersion < role.version)
+    .flatMap((award) => award.topicIds))
+  for (const pathway of pathways) for (const topic of pathway.topics) {
+    if (topic.state === 'complete') proved.add(topic.id)
+  }
+  const remaining = role.pathways.flatMap((path) => [...path.topicIds]).filter((id) => !proved.has(id)).length
+  const liveEarned = requiredCount > 0 && remaining === 0
   const earned = Boolean(receipt) || liveEarned
   return {
     pathways,
@@ -81,6 +91,7 @@ export function roleProgress(role: RoleDefinition, topics: readonly Topic[], awa
     requiredCount,
     earned,
     ...(receipt || liveEarned ? { earnedVersion: Math.max(liveEarned ? role.version : 0, receipt?.roleVersion ?? 0) } : {}),
+    ...(receipt && receipt.roleVersion < role.version ? { upgradeRemainingCount: remaining } : {}),
     needsRefresh: earned && pathways.some((pathway) => pathway.topics.some((topic) => topic.needsRefresh)),
   }
 }

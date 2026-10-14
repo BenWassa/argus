@@ -54,8 +54,8 @@ export function captureRoleAwards(
 ): CurrentLibrary {
   const awards = [...(library.roleAwards ?? [])]
   for (const role of definitions) {
-    if (awards.some((award) => award.roleId === role.id && award.roleVersion === role.version)) continue
-    if (!roleProgress(role, library.topics).earned) continue
+    if (awards.some((award) => award.roleId === role.id && award.roleVersion >= role.version)) continue
+    if (roleProgress(role, library.topics, awards).earnedVersion !== role.version) continue
     awards.push({ roleId: role.id, roleVersion: role.version, earnedAt: now.toISOString(), topicIds: role.pathways.flatMap((path) => [...path.topicIds]).sort() })
   }
   return awards.length === (library.roleAwards?.length ?? 0) ? library : { ...library, roleAwards: mergeRoleAwards(awards) }

@@ -25,6 +25,22 @@ describe('permanent role receipts', () => {
     const v2 = { ...COMMUNICATOR, version: 2, pathways: [...COMMUNICATOR.pathways, { id: 'extra', title: 'Extra', topicIds: ['new-a', 'new-b'] }] }
     expect(roleProgress(v2, completedLibrary().topics, [receipt])).toMatchObject({ earned: true, requiredCount: 9, completeCount: 7, earnedVersion: 1 })
   })
+  it('requires only new requirements for an optional extension when old topics were deleted', () => {
+    const v2 = { ...COMMUNICATOR, version: 2, pathways: [...COMMUNICATOR.pathways, { id: 'extra', title: 'Extra', topicIds: ['new-a', 'new-b'] }] }
+    expect(roleProgress(v2, [], [receipt])).toMatchObject({ earned: true, earnedVersion: 1, completeCount: 0, upgradeRemainingCount: 2 })
+    const extra = ['new-a', 'new-b'].map((id) => ({ ...completedLibrary().topics[0], id, origin: 'catalog' as const }))
+    const library = { version: 5 as const, topics: extra, roleAwards: [receipt] }
+    const updated = captureRoleAwards(library, now, [v2])
+    expect(updated.roleAwards).toHaveLength(2)
+    expect(updated.roleAwards![1]).toMatchObject({ roleVersion: 2, topicIds: [...ids, 'new-a', 'new-b'].sort() })
+    expect(roleProgress(v2, extra, updated.roleAwards)).toMatchObject({ earned: true, earnedVersion: 2, completeCount: 2 })
+  })
+  it('does not downgrade a future receipt or claim a newer version for an incomplete update', () => {
+    const future = { ...receipt, roleVersion: 3 }
+    const library = { version: 5 as const, topics: completedLibrary().topics, roleAwards: [future] }
+    expect(captureRoleAwards(library, now)).toBe(library)
+    expect(communicatorProgress(library.topics, [future]).earnedVersion).toBe(3)
+  })
   it('round-trips receipts and reset generation without depending on surviving topics', () => {
     const library = { version: 5, topics: [], roleAwards: [receipt], roleAwardGeneration: 3 }
     expect(parseLibrary(JSON.parse(JSON.stringify(library)))).toEqual({ ok: true, library })
