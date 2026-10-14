@@ -72,8 +72,8 @@ export function RolesPage({ onOpenTopic, onContinue, selectedRole, onSelectRole 
           {progress.needsRefresh && (
             <p className="roles-award-refresh">Some topics need refreshing. Your badge remains earned.</p>
           )}
-          {progress.earnedVersion !== undefined && progress.earnedVersion !== role.version && (
-            <p className="roles-award-note">Earned v{progress.earnedVersion}. {progress.requiredCount - progress.completeCount} topics remaining for v{role.version}.</p>
+          {progress.earnedVersion !== undefined && progress.earnedVersion < role.version && (
+            <p className="roles-award-note">Earned v{progress.earnedVersion}. {progress.upgradeRemainingCount} topics remaining for v{role.version}.</p>
           )}
           {!progress.earned && (
             <p className="roles-award-note">Complete all {role.pathways.length === 3 ? 'three' : 'two'} pathways to earn {role.title}.</p>
