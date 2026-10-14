@@ -7,6 +7,8 @@
 
 [NGA Pub. 102, United States edition, revised 2020](https://msi.nga.mil/api/publications/download?key=16694273%2FSFH00000%2FPub102bk.pdf) was downloaded from the publisher and inspected as rendered pages: PDF page 2 (flag plate) and PDF page 26 (printed page 21, single-letter signals). The source became reachable in this session; the earlier environment’s access failure is historical.
 
+Downloaded source SHA-256: `b2814807c53ba87239ccbe98db360703556048064eae97aa630d98bcc548d687`.
+
 All twelve shipped flags’ colour placement, named patterns and retained practical meanings are consistent with these pages. This is a code-and-source comparison by Codex, not independent human/domain sign-off.
 
 ## Proportions needing disposition

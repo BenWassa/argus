@@ -1,6 +1,6 @@
 # IndexedDB persistence foundation (#113 Lane A)
 
-**Status:** repository boundary implemented and browser-tested, 2026-10-13; not yet connected to the production LibraryProvider or Firebase sync worker.
+**Status:** repository boundary merged via #205 and browser-tested, 2026-10-13; not yet connected to the production LibraryProvider or Firebase sync worker.
 **Authority:** maintained schema/repository contract under [#113 offline runtime](ISSUE_113_OFFLINE_FIRST_RUNTIME.md). [Progress architecture](PROGRESS_ARCHITECTURE.md) and the existing v5 parser remain semantic authorities.
 
 ## Schema v1

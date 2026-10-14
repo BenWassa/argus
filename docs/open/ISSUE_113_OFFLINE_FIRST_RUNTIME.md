@@ -1,6 +1,6 @@
 # Issue #113 — Offline-first runtime, IndexedDB persistence and durable sync
 
-> **Status: scoped, not implemented — 2026-09-18.**
+> **Status: partially implemented — 2026-10-13.** IndexedDB repository foundation (#205) and shell hardening (#206) are merged. The production provider still uses localStorage; canonical IndexedDB integration, durable sync/retry and provisioned offline auth remain open.
 >
 > **Authority:** this document is the durable implementation contract for GitHub issue [#113](https://github.com/BenWassa/argus/issues/113). It extends the local-first/cloud-mirror direction in `PRODUCT.md` and #93 without changing the learning/progress semantics defined by `docs/open/PROGRESS_ARCHITECTURE.md`.
 >
@@ -8,9 +8,9 @@
 >
 > **Relationship to #93:** #93 owns authenticated Firebase persistence, cloud recovery, owner isolation and conservative cross-device conflict behavior. #113 owns the local runtime required to make those cloud features optional during ordinary use: IndexedDB durability, atomic local writes, the durable sync outbox, deterministic offline app-shell caching, offline auth bootstrap behavior, storage lifecycle, sizing policy and offline UX. #113 must reuse #93's validated learner schema and conflict planner rather than create another sync model.
 
-**Foundation candidate — 2026-10-13:** [IndexedDB schema/repository](ISSUE_113_INDEXEDDB_FOUNDATION.md) implements and tests the local boundary, atomic cumulative sync intent and verified migration. It is not yet wired to production, so the acceptance criteria below remain open.
+**Merged foundation — 2026-10-13 (#205):** [IndexedDB schema/repository](ISSUE_113_INDEXEDDB_FOUNDATION.md) implements and tests the local boundary, atomic cumulative sync intent and verified migration. It is not yet wired to production, so the acceptance criteria below remain open.
 
-**Shell hardening candidate — 2026-10-13:** [generation-safe offline shell](ISSUE_113_OFFLINE_SHELL.md) builds on the already-existing precache generator and size report. It adds generation-pinned navigation, safe failed-install cleanup, prior-chunk retention and browser update-failure checks. Provisioned offline auth and canonical IndexedDB integration are still open.
+**Merged shell hardening — 2026-10-13 (#206):** [generation-safe offline shell](ISSUE_113_OFFLINE_SHELL.md) builds on the already-existing precache generator and size report. It adds generation-pinned navigation, safe failed-install cleanup, prior-chunk retention and browser update-failure checks. Provisioned offline auth and canonical IndexedDB integration are still open.
 
 ## Product contract
 

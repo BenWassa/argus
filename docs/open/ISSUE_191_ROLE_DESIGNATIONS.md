@@ -4,7 +4,7 @@
 **Authority:** maintained Communicator MVP contract and broader role-design proposals for #191. The owner-approved MVP is merged; unimplemented roles and alternatives remain proposals.
 **Companion asset lane:** #192 — custom role badge art system.
 
-**Ratified successor — 2026-10-13:** [#197 decision record](ISSUE_197_ROLE_DECISION_RECORD.md) now owns names, gates and sequencing. [Role runtime](ISSUE_197_ROLE_RUNTIME.md) documents the implementation candidate for permanent receipts and Navigator’s focus selector. Historical one-role MVP statements below describe v1.5.0, not the candidate. Owner supplies new artwork.
+**Ratified successor — 2026-10-13:** [#197 decision record](ISSUE_197_ROLE_DECISION_RECORD.md) now owns names, gates and sequencing. [Role runtime](ISSUE_197_ROLE_RUNTIME.md) documents the merged implementation (#203/#207) for permanent receipts and Navigator’s focus selector. Historical one-role MVP statements below describe v1.5.0, not the candidate. Owner supplies new artwork.
 
 ## 1. Owner direction
 

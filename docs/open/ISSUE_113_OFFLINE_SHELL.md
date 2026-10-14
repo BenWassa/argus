@@ -1,6 +1,6 @@
 # Production offline shell and update safety (#113 Lane C)
 
-**Status:** hardening candidate, 2026-10-13; browser verification complete, not released or deployed.
+**Status:** hardening merged via #206, 2026-10-13; browser verification complete, not yet released or deployed.
 **Authority:** maintained service-worker contract under [#113](ISSUE_113_OFFLINE_FIRST_RUNTIME.md). This proves app-shell availability, not provisioned Firebase offline auth or IndexedDB integration.
 
 ## Build and installation
