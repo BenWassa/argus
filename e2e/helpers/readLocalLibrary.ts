@@ -22,3 +22,28 @@ export async function readLocalLibrary(page: Page): Promise<CurrentLibrary> {
     } finally { db.close() }
   })
 }
+
+/** Fixture-only mutation of the canonical IndexedDB record, with sync intent. */
+export async function writeLocalLibrary(page: Page, library: CurrentLibrary): Promise<void> {
+  await page.evaluate(async (next) => {
+    const db = await new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open('argus.local.v1')
+      request.onsuccess = () => resolve(request.result)
+      request.onerror = () => reject(request.error)
+    })
+    try {
+      await new Promise<void>((resolve, reject) => {
+        const tx = db.transaction(['libraries', 'outbox'], 'readwrite')
+        const request = tx.objectStore('libraries').get('__argus_unclaimed_local__')
+        request.onsuccess = () => {
+          if (!request.result) { tx.abort(); return }
+          const row = { owner: '__argus_unclaimed_local__', revision: request.result.revision + 1, library: next }
+          tx.objectStore('libraries').put(row)
+          tx.objectStore('outbox').put({ ...row, deletedTopicIds: [] })
+        }
+        tx.oncomplete = () => resolve()
+        tx.onabort = () => reject(tx.error ?? new Error('Fixture transaction aborted.'))
+      })
+    } finally { db.close() }
+  }, library)
+}
