@@ -1,3 +1,4 @@
+import { readLocalLibrary, writeLocalLibrary } from './helpers/readLocalLibrary'
 import { expect, test } from '@playwright/test'
 import { seedLibrary } from '../src/domain/library/catalogSeed'
 import { COMMUNICATOR, NAVIGATOR } from '../src/domain/roles/definitions'
@@ -76,11 +77,8 @@ test('Navigator award survives deletion and reload; reset clears it', async ({ p
   await page.getByRole('button', { name: 'Roles', exact: true }).click()
   await page.getByRole('combobox', { name: 'Choose a role' }).selectOption('navigator')
   await expect(page.getByText('Navigator earned', { exact: true })).toBeVisible()
-  await page.evaluate((key) => {
-    const library = JSON.parse(localStorage.getItem(key)!)
-    library.topics = []
-    localStorage.setItem(key, JSON.stringify(library))
-  }, STORE)
+  const canonical = await readLocalLibrary(page)
+  await writeLocalLibrary(page, { ...canonical, topics: [] })
   await page.reload()
   await page.getByRole('combobox', { name: 'Choose a role' }).selectOption('navigator')
   await expect(page.getByText('Navigator earned', { exact: true })).toBeVisible()
