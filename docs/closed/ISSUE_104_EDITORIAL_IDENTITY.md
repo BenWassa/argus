@@ -1,6 +1,7 @@
 # Issue #104 — Editorial identity for library expansion
 
-**Status:** owner framing / research guidance  
+**Status:** closed / historical; completed or superseded #104 research (2026-09-30).
+**Authority:** historical rationale only; current priorities and content policy are maintained in [Library roadmap](../LIBRARY_ROADMAP.md) and [research method](../LIBRARY_RESEARCH_METHOD.md).
 **Issue:** #104  
 **Implementation:** guides the #104 first wave (six catalog topics shipped 2026-09-25) and the proposed scenario capability (`ISSUE_104_SCENARIO_ITEMS.md`)
 

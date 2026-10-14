@@ -1,6 +1,7 @@
 # Issue #104 — Argus library expansion research
 
-**Status:** research / owner decision — Batch A shipped; Batch B, the visual wave and the curriculum rule remain open  
+**Status:** closed / historical; completed or superseded #104 research (2026-09-30).
+**Authority:** historical rationale only; current priorities and content policy are maintained in [Library roadmap](../LIBRARY_ROADMAP.md) and [research method](../LIBRARY_RESEARCH_METHOD.md).
 **Date:** 2026-09-16 (status updated 2026-09-25)  
 **Issue:** #104  
 **Implementation:** Batch A shipped as five catalog topics (see status update below); nothing else in this paper is implemented

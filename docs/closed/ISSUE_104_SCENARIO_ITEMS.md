@@ -1,10 +1,11 @@
 # Issue #104 — Scenario items: the smallest capability that unlocks the field and human-skills courses
 
-**Status:** design proposal / owner decision — not implemented  
+**Status:** closed / historical; completed or superseded #104 research (2026-09-30).
+**Authority:** historical rationale only; current priorities and content policy are maintained in [Library roadmap](../LIBRARY_ROADMAP.md) and [research method](../LIBRARY_RESEARCH_METHOD.md).
 **Date:** 2026-09-25  
 **Issue:** #104  
 **Library format:** v5 today; this proposal requires v6  
-**Relationship:** answers owner decision C in `ISSUE_104_FIELD_HUMAN_SKILLS_EXPANSION.md` (§9, §13) for the eleven course specs in `library-research/`.
+**Relationship:** answers owner decision C in `ISSUE_104_FIELD_HUMAN_SKILLS_EXPANSION.md` (§9, §13) for the eleven course specs in `../open/library-research/`.
 
 ## Summary
 
