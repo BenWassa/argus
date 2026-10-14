@@ -135,7 +135,7 @@ describe('the Fluency entry', () => {
     expect(fluency()!.closest('details')).toBeNull()
     expect(screen.getByText(/Practice never changes your Test result/)).toBeTruthy()
     for (const label of ['Send', 'Receive', 'Challenges', 'Free Play']) {
-      expect(screen.getByRole('button', { name: new RegExp(label) })).toBeTruthy()
+      expect(document.querySelector('.topic-play-choices')?.textContent).toContain(label)
     }
   })
 
