@@ -38,23 +38,24 @@
 
 No version, tag or deployment was changed. Production remains v1.5.0. Main now contains the merged follow-up source; #113 remains open and the full offline-first guarantee is not complete.
 
-## October 14 agent-batch PR checkpoint (pending review; not merged)
+## October 14 housekeeping closeout — current execution state
 
-This checkpoint supersedes the earlier *next engineering steps* as a work allocation, **not** as proof of completion or release. At the time of this audit six PRs were open. No PR below was merged, no issue closed, and production remains v1.5.0.
+**Completed on `main`:** PR [#210](https://github.com/BenWassa/argus/pull/210) (radio DSC wording correction; CI passed), [#211](https://github.com/BenWassa/argus/pull/211) (maritime evidence and unresolved reviewer gate), [#213](https://github.com/BenWassa/argus/pull/213) (Analyst Wave 1 research), and [#216](https://github.com/BenWassa/argus/pull/216) (agent-work reconciliation). Direct housekeeping commit [`1339c85`](https://github.com/BenWassa/argus/commit/1339c85118745c1d90efe586e0d1583ade2bcc4c) archived ten completed issue specifications to `docs/closed/`, created open/closed folder indexes, and repaired in-repository references. GitHub issue links were updated separately.
 
-| Lane | PR | Current evidence | Required gate before merge/close |
+**Still open (do not merge without the named gate):**
+
+| Lane | PR | Status | Blocking gate |
 |---|---|---|---|
-| Canadian radio #150 | [#210](https://github.com/BenWassa/argus/pull/210) | Corrects conditional DSC/MMSI wording with regression checks; source audit documented | Project CI, qualified Canadian radio/marine review; do not auto-close #150 |
-| Maritime #147/#148 | [#211](https://github.com/BenWassa/argus/pull/211) | Documents Canadian/IMO/NGA comparison and unresolved aground schematic/flag proportions | Documentation review; independent maritime domain acceptance still outstanding |
-| Persistent Morse Play #201 | [#212](https://github.com/BenWassa/argus/pull/212) | Six static token-faithful 390×844 SVG review mockups | Owner visual approval for complete proposed design; no UI rollout on design-doc merge |
-| Analyst Wave 1 #197 | [#213](https://github.com/BenWassa/argus/pull/213) | Four draft Human Factors S1 topics (36 objective items); with four-item OODA reaches proposed 5 topics/40 items | Owner scope approval, independent answer-key/source review, editorial/ethical gates; not earnable |
-| IndexedDB LibraryProvider #113 | [#214](https://github.com/BenWassa/argus/pull/214) **draft** | Moves production provider to local transactions with migration/account-isolation tests | Full CI and careful persistence safety review; durable cloud outbox drain/auth not in scope |
-| Morse Play implementation #201 | [#215](https://github.com/BenWassa/argus/pull/215) **draft** | Embedded Play entry, direct Send/Receive/Challenges/Free Play routes | Check design approval scope from #212, CI, behavioural tests, real Pixel acceptance |
+| Morse UX review #201 | [#212](https://github.com/BenWassa/argus/pull/212) | CI passed; design proposal | Owner visual approval of the remaining mockup decisions |
+| IndexedDB LibraryProvider #113 | [#214](https://github.com/BenWassa/argus/pull/214) | **Draft; latest browser CI failed** (web/rules passed) | Resolve navigation/focus/practice browser regressions, then full CI and migration safety review |
+| Morse Play entry #201 | [#215](https://github.com/BenWassa/argus/pull/215) | Draft; CI passed | Confirm complete scope against approved design, then real Pixel acceptance |
 
-### Sequencing and housekeeping constraints
+**External acceptance remains open even after merging a document or corrective PR:** marine-radio #150 independent qualified review; maritime #147/#148 lights, day-shape and flag review; Analyst #197 source/answer-key/ethical review; Navigator artwork; CAF imagery rights; Morse real-device acceptance.
 
-1. Review smaller source/doc PRs #210/#211/#213 independently; a merge of research or fixes **does not** satisfy external domain/owner acceptance gates.
-2. Review #212 against the owner-approved direction and its remaining design decisions before accepting implementation #215; maintain separate real-device sign-off.
-3. Keep #214 draft until migration/corruption/recovery tests and full CI are resolved; only then start the separate outbox drain/retry, offline auth/bootstrap and Profile recovery lanes.
-4. Continue using `docs/open/` for live issue authority and `docs/closed/` only for fully accepted closeout. Do not move #113, #150, #188, #191, #192, #193, #197 or #201 prematurely. Research docs referencing #147/#148 remain open until domain sign-off.
-5. Do not tag or deploy production as part of housekeeping. Verify issue titles/descriptions and documentation links after merging each PR rather than batch-closing on PR merge alone.
+### Next engineering order
+
+1. Fix #214 browser failures and re-run all checks. Preserve migration bytes and account isolation; only merge after persistence review.
+2. Resolve #212 owner mockup decisions and confirm #215 implementation alignment, then validate on Pixel.
+3. Once #214 lands, work on separate durable outbox/retry, offline auth/bootstrap, and Profile recovery lanes.
+4. After #213 research sign-off, author/implement Analyst content in a separate workstream without making the role prematurely earnable.
+5. Maintain open and closed documentation indexes and release gate records. **No production release or issue closure is implied by these housekeeping changes.**
