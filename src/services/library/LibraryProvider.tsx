@@ -68,8 +68,8 @@ interface LibraryStore {
    */
   updateTopic: (id: string, update: (current: Topic) => Topic) => void
   removeTopic: (id: string) => void
-  replaceLibrary: (library: CurrentLibrary) => void
-  resetLibrary: () => void
+  replaceLibrary: (library: CurrentLibrary) => void | Promise<boolean>
+  resetLibrary: () => void | Promise<boolean>
   /** Catalog topics this library has been offered, for sync's library-level record. */
   catalogDelivered: readonly string[] | undefined
   /** The account this library belongs to, or null before any has signed in. */
@@ -324,10 +324,12 @@ function IndexedLibraryProvider({ children }: { children: ReactNode }) {
       if (activeOwner.current === key) install(row.library)
       setFailure(null)
     }
-    const result = queue.current.then(run)
-    queue.current = result.catch((error: unknown) => {
+    const result = queue.current.then(run).then(() => true, (error: unknown) => {
       setFailure(error instanceof Error ? error.message : 'This change could not be saved.')
+      return false
     })
+    queue.current = result
+    return result
   }, [install])
 
   const upsertTopic = useCallback((written: Topic) => {
@@ -359,7 +361,7 @@ function IndexedLibraryProvider({ children }: { children: ReactNode }) {
 
   const replaceLibrary = useCallback((next: CurrentLibrary) => {
     const reconciled = reconcileLoadedLibrary(next)
-    transact((prev) => captureRoleAwards({
+    return transact((prev) => captureRoleAwards({
       ...reconciled.library,
       roleAwards: mergeRoleAwards(prev.roleAwards ?? [], reconciled.library.roleAwards ?? []),
       roleAwardGeneration: prev.roleAwardGeneration ?? 0,
@@ -368,7 +370,7 @@ function IndexedLibraryProvider({ children }: { children: ReactNode }) {
   }, [transact])
 
   const resetLibrary = useCallback(() => {
-    transact((prev) => ({
+    return transact((prev) => ({
       ...reconcileLoadedLibrary(emptyLibrary()).library,
       roleAwards: [],
       roleAwardGeneration: (prev.roleAwardGeneration ?? 0) + 1,
