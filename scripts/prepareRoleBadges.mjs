@@ -3,7 +3,7 @@
  * Dependency-free, deterministic and used by local, demo and production builds.
  */
 import { createHash } from 'node:crypto'
-import { readFile, mkdir, writeFile } from 'node:fs/promises'
+import { readFile, mkdir, writeFile, unlink } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import { dirname, join, resolve } from 'node:path'
 import { inflateRawSync } from 'node:zlib'
@@ -85,7 +85,18 @@ export async function prepareRoleBadges() {
   }
   const badges = readApprovedZip(zip)
   await mkdir(outputDir, { recursive: true })
+  // Keep Mariner/Diver frozen inside the source ZIP, not the runtime precache.
+  // Existing generated copies must also be removed on developer machines.
+  for (const name of Object.keys(BADGE_HASHES)) {
+    if (name.startsWith('navigator_')) continue
+    try {
+      await unlink(join(outputDir, name))
+    } catch (error) {
+      if (error.code !== 'ENOENT') throw error
+    }
+  }
   for (const [name, png] of badges) {
+    if (!name.startsWith('navigator_')) continue
     const destination = join(outputDir, name)
     let existing
     try {
