@@ -1,6 +1,6 @@
 # Issue #192 — Custom role badge art system
 
-**Status:** owner-locked Nautical (current) family; independently layered vector merged via #196 and refined for v1.5.0; automated runtime checks passed, real-device QA and final owner vector-fidelity acceptance remain open — 2026-10-07.
+**Status:** Nautical art family owner-locked; Navigator, Mariner and Diver original PNG pairs approved and supplied on main (2026-10-15). Navigator raster integration in progress; Communicator SVG remains vetted and active, with replacement PNG not accepted. Real Pixel checks outstanding.
 **Authority:** active visual-production proposal for role badges only. `DESIGN.md` / `DESIGN.json` remain the authority for the application UI.
 
 **Production ownership — 2026-10-13:** the owner will create and supply subsequent badge artwork. Navigator precedes Mariner under ratified #197 D8. Agents integrate and verify supplied files.
@@ -208,3 +208,10 @@ Owner requested even wave shapes, symmetry and more clearance above the flags. B
 ## 17. Balanced compass rose (2026-10-07)
 
 Owner flagged the bottom compass shape. Its overlapping, uneven stars were replaced with one continuous eight-point rose centred at `(256,451)`. Four equal 38-unit cardinal tips alternate with four equal 27-unit intercardinal tips, with 11-unit valleys and sixteen light/dark facets meeting at the same centre. All tips now fit inside the ring; none protrudes through the bezel. Horizontal/vertical mirror symmetry and quarter-turn symmetry were verified, and the result was inspected at 512 px and 220 px. The stable `compass-rose` group remains intact. No deployment.
+
+
+## 16. Owner-approved PNG pairs — 2026-10-15
+
+The owner rejected the lossy-looking hand-reconstructed SVGs and locked the approved original PNG artwork for **Navigator, Mariner and Diver**. The two variants per role are full-colour `*_unlocked.png` (earned) and dark desaturated `*_locked.png` (not yet earned). Approved artwork is **frozen**; the files are not to be repainted or re-centred. `argus_navigator_mariner_diver_locked_unlocked.zip` is committed at the repository root (SHA-256 `f9c90c9b5f264d2a5411103fa23404bea33690460777b121a07896ad1512f094`). The six original 512×512 RGBA PNGs are reconstructed byte-for-byte at local/dev/demo/production build time by `scripts/prepareRoleBadges.mjs`, with per-file checksum verification; the output directory is ignored in Git. This works around the owner's ZIP-only upload without duplicating binary masters in Git.
+
+**Runtime boundary:** Only Navigator's badge is exposed now. The locked/earned file selection follows the same permanent award receipt as all other role UI; the pre-darkened PNG is not additionally desaturated or darkened by CSS. **Mariner and Diver remain unavailable**, with artwork staged for future curricula, not unlocked by these assets. Communicator retains the vetted SVG until its separate incorrect-raster signalling marks are corrected and owner-approved. The original ZIP is the authority, not earlier SVG drafts or later retouched previews. Browser and Pixel QA remain release gates. Do not change scored requirements or awards as part of artwork integration.

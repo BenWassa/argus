@@ -29,3 +29,8 @@ blob-report/
 
 # Local AI redesign handoffs
 /export/
+
+# Generated from the checked-in, owner-approved role badge ZIP
+/public/media/roles/navigator_*.png
+/public/media/roles/mariner_*.png
+/public/media/roles/diver_*.png

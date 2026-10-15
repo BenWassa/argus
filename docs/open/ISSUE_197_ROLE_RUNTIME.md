@@ -1,6 +1,6 @@
 # Role receipts and Navigator runtime
 
-**Status:** implemented on main via #203, 2026-10-13; not yet released or deployed. Owner-supplied Navigator artwork and physical Pixel acceptance remain outstanding.
+**Status:** role receipts and Navigator runtime on main via #203 (2026-10-13); owner-approved Navigator PNG supplied on main (2026-10-15) with integration pending focused PR; deployment and physical Pixel checks outstanding.
 **Authority:** maintained runtime contract implementing ratified [#197 decisions](ISSUE_197_ROLE_DECISION_RECORD.md). Topic evidence and completion remain governed by [progress architecture](PROGRESS_ARCHITECTURE.md); Firebase isolation/conflicts remain governed by [#93](../closed/ISSUE_93_FIREBASE_PROGRESS_SYNC.md).
 
 ## Available roles
@@ -14,7 +14,7 @@ Navigator’s claim is “Recalls compass points and converts bearings between n
 
 The native labelled role selector keeps one focused role. Continue chooses a refresh topic first, then an in-progress topic, then the first unstarted requirement, using the shared journey action. Opening a topic or returning from a run retains the selected role during the app session. Missing topics remain visibly unavailable; historical awards do not fabricate current topic completion counts.
 
-Navigator uses a text award until the owner supplies artwork. No generated badge or Communicator artwork is substituted. Artwork production and acceptance remain with the owner under [#192](ISSUE_192_ROLE_BADGE_ART.md).
+Navigator's owner-approved full-colour/dark PNG badge pair is supplied in the checked-in archive and wired to the earned/locked states in the focused PNG integration PR. Until that PR merges, main retains the text-only Navigator award. Mariner and Diver art is staged but their roles remain unavailable. Communicator retains its original vetted SVG. Asset provenance and acceptance are tracked by [#192](ISSUE_192_ROLE_BADGE_ART.md).
 
 ## Receipt lifecycle
 
