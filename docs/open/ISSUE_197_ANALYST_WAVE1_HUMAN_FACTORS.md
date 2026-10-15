@@ -151,4 +151,6 @@ Shared S1 contract: short fictional everyday context, exactly four unambiguous o
 
 **Automated checks now in place:** 36 items, unique ids/prompts/answers, four distinct options containing the key, forward choice only, key not the longest option in more than four items per topic, sources with https URL and note, two worked examples, and a parse-boundary round-trip. The Test card shuffles options per card, so authored option order and key position carry no information.
 
-**Still open before delivery:** independent second-rater key concordance on all 36 items; item-level source mapping by a second reviewer; a decision on the Analyst role id and claim; roadmap-authorised build issues; Pixel review of long vignettes at 320 px. None of these has been done.
+**Model second-rater (2026-10-15):** OpenAI Codex (codex-cli 0.162) answered all 36 vignettes blind, with keys removed and option order shuffled. It matched the authored key on 36 of 36, flagged none as ambiguous and gave confidence 5 throughout. This catches keys that contradict their vignettes, but it is not the human subject-matter review the gate requires. Unanimous top confidence also suggests the distractors may be easy; a human reviewer should judge difficulty.
+
+**Still open before delivery:** human independent key concordance on all 36 items; item-level source mapping by a second reviewer; a decision on the Analyst role id and claim; roadmap-authorised build issues; Pixel review of long vignettes at 320 px. None of these has been done.
