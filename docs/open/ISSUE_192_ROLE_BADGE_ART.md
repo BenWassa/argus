@@ -1,6 +1,6 @@
 # Issue #192 — Custom role badge art system
 
-**Status:** Nautical art family owner-locked; Navigator, Mariner and Diver original PNG pairs approved and supplied on main (2026-10-15). Navigator raster integration in progress; Communicator SVG remains vetted and active, with replacement PNG not accepted. Real Pixel checks outstanding.
+**Status:** Nautical art family owner-locked. Navigator, Mariner and Diver original PNG pairs approved and supplied (2026-10-15); Navigator and Mariner are wired into the app. The owner accepted the Communicator PNG pair on 2026-10-15 and it replaces the vetted SVG. Responder and Operator masters are staged in `argus_badge_partial_asset_package.zip`, not integrated. Real Pixel checks outstanding.
 **Authority:** active visual-production proposal for role badges only. `DESIGN.md` / `DESIGN.json` remain the authority for the application UI.
 
 **Production ownership — 2026-10-13:** the owner will create and supply subsequent badge artwork. Navigator precedes Mariner under ratified #197 D8. Agents integrate and verify supplied files.

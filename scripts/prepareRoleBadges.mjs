@@ -23,6 +23,10 @@ const BADGE_HASHES = Object.freeze({
   'diver_unlocked.png': '9a837cd3a941fc065f62f64498a0573434009e289f89b7aa0013fa53c6e7d998',
 })
 
+// Roles whose art ships in the app; keep in step with approved-pngs.json.
+const ENABLED_ROLES = ['navigator', 'mariner']
+const isEnabled = (name) => ENABLED_ROLES.some((role) => name.startsWith(role + '_'))
+
 function sha256(bytes) {
   return createHash('sha256').update(bytes).digest('hex')
 }
@@ -85,10 +89,10 @@ export async function prepareRoleBadges() {
   }
   const badges = readApprovedZip(zip)
   await mkdir(outputDir, { recursive: true })
-  // Keep Mariner/Diver frozen inside the source ZIP, not the runtime precache.
-  // Existing generated copies must also be removed on developer machines.
+  // Keep not-yet-available roles (Diver) frozen inside the source ZIP, not the
+  // runtime precache. Existing generated copies are removed on developer machines.
   for (const name of Object.keys(BADGE_HASHES)) {
-    if (name.startsWith('navigator_')) continue
+    if (isEnabled(name)) continue
     try {
       await unlink(join(outputDir, name))
     } catch (error) {
@@ -96,7 +100,7 @@ export async function prepareRoleBadges() {
     }
   }
   for (const [name, png] of badges) {
-    if (!name.startsWith('navigator_')) continue
+    if (!isEnabled(name)) continue
     const destination = join(outputDir, name)
     let existing
     try {

@@ -2,7 +2,6 @@
 .roles-selector{display:flex;align-items:center;flex-wrap:wrap;gap:var(--s-sm);color:var(--muted);font-size:var(--t-label)}
 .roles-selector select{min-height:44px;max-width:100%;color:var(--ink);background:var(--field);border:1px solid var(--line-strong);border-radius:var(--r-md);padding:8px 32px 8px 12px;font:inherit}
 .roles-continue{justify-self:start;max-width:100%;min-height:44px;white-space:normal;text-align:left}
-.roles-award.without-art{grid-template-columns:1fr;justify-items:start;text-align:left}
 .roles-head h1{margin:0}
 .roles-head p{max-width:55ch;margin:var(--s-sm) 0 0;color:var(--muted)}
 .roles-award{display:grid;grid-template-columns:minmax(0,220px) minmax(0,1fr);align-items:center;gap:var(--s-xl);padding:var(--s-lg);border:1px solid var(--line);border-radius:var(--r-xl);background:linear-gradient(160deg,var(--surface-2),var(--surface));box-shadow:var(--edge),var(--edge-under)}

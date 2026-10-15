@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { seedLibrary } from '../src/domain/library/catalogSeed'
-import { COMMUNICATOR, NAVIGATOR } from '../src/domain/roles/definitions'
+import { COMMUNICATOR, MARINER, NAVIGATOR } from '../src/domain/roles/definitions'
 
 const STORE = 'argus.library.v5'
 const IDS = new Set<string>(COMMUNICATOR.pathways.flatMap((path) => [...path.topicIds]))
@@ -49,7 +49,7 @@ test('focused role shows all three open pathways and no premature badge', async 
 test('Navigator selector offers only earnable roles and continues directly into a Test', async ({ page }) => {
   await openWith(page)
   const selector = page.getByRole('combobox', { name: 'Choose a role' })
-  await expect(selector.locator('option')).toHaveText(['Communicator', 'Navigator'])
+  await expect(selector.locator('option')).toHaveText(['Communicator', 'Navigator', 'Mariner'])
   await selector.selectOption('navigator')
   await expect(page.getByRole('heading', { name: 'Navigator', level: 1 })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Direction & Bearings' })).toBeVisible()
@@ -102,6 +102,37 @@ test('Navigator award survives deletion and reload; reset clears it', async ({ p
   await page.getByRole('combobox', { name: 'Choose a role' }).selectOption('navigator')
   await expect(page.getByText('Navigator not yet earned', { exact: true })).toBeVisible()
   await expect(page.locator('.roles-medallion.is-unearned.is-raster')).toHaveAttribute('src', /\/media\/roles\/navigator_locked\.png$/)
+})
+
+test('Mariner shows three open pathways with its approved badge and no premature award', async ({ page }) => {
+  await openWith(page)
+  await page.getByRole('combobox', { name: 'Choose a role' }).selectOption('mariner')
+  await expect(page.getByRole('heading', { name: 'Mariner', level: 1 })).toBeVisible()
+  for (const heading of ['Vessels & Signals', 'Sea & Sky', 'Marine Radio']) {
+    await expect(page.getByRole('heading', { name: heading, level: 2 })).toBeVisible()
+  }
+  await expect(page.locator('.role-topic button')).toHaveCount(7)
+  await expect(page.getByText('Mariner not yet earned', { exact: true })).toBeVisible()
+  const lockedBadge = page.locator('.roles-medallion.is-unearned.is-raster')
+  await expect(lockedBadge).toHaveAttribute('src', /\/media\/roles\/mariner_locked\.png$/)
+  await lockedBadge.evaluate((image: HTMLImageElement) => image.decode())
+  expect(await lockedBadge.evaluate((image: HTMLImageElement) => [image.naturalWidth, image.naturalHeight])).toEqual([512, 512])
+  expect(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)).toBe(false)
+})
+
+test('Mariner earns from completed topics and keeps its badge', async ({ page }) => {
+  const ids = new Set<string>(MARINER.pathways.flatMap((path) => [...path.topicIds]))
+  const library = { version: 5, topics: baseline.map((topic) => ids.has(topic.id) ? { ...topic, origin: 'catalog', status: 'completed', completedAt: '2026-10-15T12:00:00.000Z' } : topic), catalogDelivered: [...IDS, ...ids] }
+  await page.addInitScript(([value, key]) => {
+    if (!localStorage.getItem(key)) localStorage.setItem(key, value)
+    localStorage.setItem('argus-splash-seen', 'true')
+  }, [JSON.stringify(library), STORE] as const)
+  await page.goto('./')
+  await page.getByRole('button', { name: 'Roles', exact: true }).click()
+  await page.getByRole('combobox', { name: 'Choose a role' }).selectOption('mariner')
+  await expect(page.getByText('Mariner earned', { exact: true })).toBeVisible()
+  await expect(page.getByText('7 of 7 topics complete')).toBeVisible()
+  await expect(page.locator('.roles-medallion.is-earned.is-raster')).toHaveAttribute('src', /\/media\/roles\/mariner_unlocked\.png$/)
 })
 
 test('earned award stays earned after retention decay', async ({ page }) => {

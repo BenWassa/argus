@@ -8,7 +8,7 @@
 - Housekeeping: #198, #199, #185 and #200 merged; obsolete #104 redirects removed; historical banners/references repaired; Morse marked shipped. `fix/communicator-symbols` deleted. #126/#127 closed; #193 remains open for Pixel acceptance.
 - Role decisions: D1–D9 ratified by the owner. The owner will create artwork.
 - Navigator/receipts: #203/#207 merged. Learn limits, role/manifest drift checks, permanent versioned awards, import/export/account isolation, transactional metadata sync, explicit reset generations, optional-version proof reuse and the two-role focus/Continue UI are implemented. Navigator’s award is text-only pending artwork.
-- Maritime: #204 merged. Official NGA plate/meaning source inspected; unresolved proportions and current IMO comparison recorded. No flags are marked finally accepted and Mariner is not available.
+- Maritime: #204 merged. Official NGA plate/meaning source inspected; unresolved proportions and current IMO comparison recorded. No flags are marked finally accepted. Mariner ships on an owner waiver of the independent review (2026-10-15); the owner reviews the deployed content.
 - Offline foundations: #205 native owner-isolated IndexedDB repository/outbox and #206 generation-safe app shell are merged. The database boundary is not yet the production provider’s storage mechanism.
 
 ## Next engineering steps
@@ -25,7 +25,7 @@
 |---|---|
 | Navigator artwork | Owner-supplied artwork and acceptance; no agent-generated substitute |
 | Communicator fidelity | Owner acceptance of the existing vector’s fidelity remains separate from role-policy ratification |
-| Mariner | Domain-informed second review of #147 light/day-shape keys; disposition of the #148 current IMO flag comparison/proportions |
+| Mariner (post-deploy) | Owner review of the deployed #147 light/day-shape keys and #148 flags; disposition of the current IMO flag comparison/proportions. Corrections ship as a versioned optional update |
 | v1.5.0 Pixel | Continuous Morse timing/word gaps, first-press audio, interruption/backgrounding, installed-PWA navigation and high-DPI badge checks |
 | #113 Pixel | Production offline bootstrap, cold restart, durable Morse/Test writes, prolonged pending state, reconnect and sync/recovery traces after integration |
 | CAF/DND imagery | Written permission covering the intended repo/PWA use; #185 research does not remove this gate |

@@ -1,6 +1,6 @@
 # Role receipts and Navigator runtime
 
-**Status:** role receipts and Navigator runtime on main via #203 (2026-10-13); owner-approved Navigator PNG supplied on main (2026-10-15) with integration pending focused PR; deployment and physical Pixel checks outstanding.
+**Status:** role receipts and Navigator runtime on main via #203 (2026-10-13); Navigator PNGs on main via #217; Mariner runtime and Communicator PNG replacement added 2026-10-15 on the Mariner branch. Deployment and physical Pixel checks outstanding.
 **Authority:** maintained runtime contract implementing ratified [#197 decisions](ISSUE_197_ROLE_DECISION_RECORD.md). Topic evidence and completion remain governed by [progress architecture](PROGRESS_ARCHITECTURE.md); Firebase isolation/conflicts remain governed by [#93](../closed/ISSUE_93_FIREBASE_PROGRESS_SYNC.md).
 
 ## Available roles
@@ -10,11 +10,11 @@ Communicator v1 retains its seven topics and three pathways. Navigator v1 has fi
 - Direction & Bearings: `cardinal-bearings`, `whole-circle-bearings`, `reciprocal-bearings`.
 - North & Maps: `north-references-declination`, `grid-north-map-bearings`.
 
-Navigator’s claim is “Recalls compass points and converts bearings between north references.” It does not claim practical wayfinding, position fixing or navigation qualification. Mariner remains unavailable pending the independent reviews documented in #147/#148; Diver, Responder, Operator and Analyst remain outside the learner UI.
+Navigator’s claim is “Recalls compass points and converts bearings between north references.” It does not claim practical wayfinding, position fixing or navigation qualification. Mariner v1 has seven topics and three fully open pathways (D3): Vessels & Signals (`navigation-lights`, `vessel-day-shapes`, `signal-flags`), Sea & Sky (`beaufort-wind-scale`, `cloud-genera`) and Marine Radio (`marine-vhf-routine-calling`, `marine-vhf-priority-communications`). Its claim is “Recognises vessel lights, shapes and flags, marine weather terms and marine radio call structures”, with 69 items. **Gate disposition (owner, 2026-10-15):** Mariner ships before the independent #147/#148 maritime reviews close; the owner will review the deployed content. This deliberately overrides D4's G6 requirement for Mariner, so those reviews remain open and any correction they produce lands as a versioned optional update (D6). Diver, Responder, Operator and Analyst remain outside the learner UI.
 
 The native labelled role selector keeps one focused role. Continue chooses a refresh topic first, then an in-progress topic, then the first unstarted requirement, using the shared journey action. Opening a topic or returning from a run retains the selected role during the app session. Missing topics remain visibly unavailable; historical awards do not fabricate current topic completion counts.
 
-Navigator's owner-approved full-colour/dark PNG badge pair is supplied in the checked-in archive and wired to the earned/locked states in the focused PNG integration PR. Until that PR merges, main retains the text-only Navigator award. Mariner and Diver art is staged but their roles remain unavailable. Communicator retains its original vetted SVG. Asset provenance and acceptance are tracked by [#192](ISSUE_192_ROLE_BADGE_ART.md).
+Navigator and Mariner use the owner-approved full-colour/dark PNG pairs from the checked-in archive (`npm run badges:prepare` verifies all six masters and emits only available roles). Diver art stays staged. Communicator now uses the owner-accepted PNG pair (440 px, resized from the 1254 px masters, committed under `public/media/roles/`), replacing the vetted SVG; the SVG is archived under `docs/closed/assets/roles/`. The new Communicator artwork's flag and Morse symbols were not re-vetted against ITU-R M.1677 or NGA Pub. 102. Asset provenance and acceptance are tracked by [#192](ISSUE_192_ROLE_BADGE_ART.md).
 
 ## Receipt lifecycle
 
