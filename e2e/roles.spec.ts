@@ -55,7 +55,11 @@ test('Navigator selector offers only earnable roles and continues directly into 
   await expect(page.getByRole('heading', { name: 'Direction & Bearings' })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'North & Maps' })).toBeVisible()
   await expect(page.locator('.role-topic button')).toHaveCount(5)
-  await expect(page.locator('.roles-medallion')).toHaveCount(0)
+  const lockedBadge = page.locator('.roles-medallion.is-unearned.is-raster')
+  await expect(lockedBadge).toHaveCount(1)
+  await expect(lockedBadge).toHaveAttribute('src', /\/media\/roles\/navigator_locked\.png$/)
+  await lockedBadge.evaluate((image: HTMLImageElement) => image.decode())
+  expect(await lockedBadge.evaluate((image: HTMLImageElement) => [image.naturalWidth, image.naturalHeight])).toEqual([512, 512])
   expect(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)).toBe(false)
   const continueButton = page.getByRole('button', { name: /^Continue:/ })
   await expect(continueButton).toBeVisible()
@@ -76,6 +80,10 @@ test('Navigator award survives deletion and reload; reset clears it', async ({ p
   await page.getByRole('button', { name: 'Roles', exact: true }).click()
   await page.getByRole('combobox', { name: 'Choose a role' }).selectOption('navigator')
   await expect(page.getByText('Navigator earned', { exact: true })).toBeVisible()
+  const earnedBadge = page.locator('.roles-medallion.is-earned.is-raster')
+  await expect(earnedBadge).toHaveAttribute('src', /\/media\/roles\/navigator_unlocked\.png$/)
+  await earnedBadge.evaluate((image: HTMLImageElement) => image.decode())
+  expect(await earnedBadge.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBe(512)
   await page.evaluate((key) => {
     const library = JSON.parse(localStorage.getItem(key)!)
     library.topics = []
@@ -85,6 +93,7 @@ test('Navigator award survives deletion and reload; reset clears it', async ({ p
   await page.getByRole('combobox', { name: 'Choose a role' }).selectOption('navigator')
   await expect(page.getByText('Navigator earned', { exact: true })).toBeVisible()
   await expect(page.getByText('0 of 5 topics complete')).toBeVisible()
+  await expect(page.locator('.roles-medallion.is-earned.is-raster')).toHaveAttribute('src', /\/media\/roles\/navigator_unlocked\.png$/)
   await page.getByRole('button', { name: 'Home', exact: true }).click()
   await page.getByRole('button', { name: 'Open profile', exact: true }).click()
   await page.getByRole('button', { name: 'Reset learning data' }).click()
@@ -92,6 +101,7 @@ test('Navigator award survives deletion and reload; reset clears it', async ({ p
   await page.getByRole('button', { name: 'Roles', exact: true }).click()
   await page.getByRole('combobox', { name: 'Choose a role' }).selectOption('navigator')
   await expect(page.getByText('Navigator not yet earned', { exact: true })).toBeVisible()
+  await expect(page.locator('.roles-medallion.is-unearned.is-raster')).toHaveAttribute('src', /\/media\/roles\/navigator_locked\.png$/)
 })
 
 test('earned award stays earned after retention decay', async ({ page }) => {

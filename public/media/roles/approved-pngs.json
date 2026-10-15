@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "family": "Argus Nautical",
+  "sourceArchive": "argus_navigator_mariner_diver_locked_unlocked.zip",
+  "sourceSHA256": "f9c90c9b5f264d2a5411103fa23404bea33690460777b121a07896ad1512f094",
+  "generation": "npm run badges:prepare verifies all six approved masters; emits only Navigator before dev, production and demo builds",
+  "statePolicy": {
+    "locked": "approved dark PNG; no second CSS desaturation",
+    "earned": "owner-approved full-colour PNG"
+  },
+  "roles": {
+    "navigator": {
+      "runtimeEnabled": true,
+      "locked": "navigator_locked.png",
+      "earned": "navigator_unlocked.png"
+    },
+    "mariner": {
+      "runtimeEnabled": false,
+      "locked": "mariner_locked.png",
+      "earned": "mariner_unlocked.png"
+    },
+    "diver": {
+      "runtimeEnabled": false,
+      "locked": "diver_locked.png",
+      "earned": "diver_unlocked.png"
+    }
+  }
+}

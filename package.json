@@ -4,6 +4,10 @@
   "version": "1.5.1",
   "type": "module",
   "scripts": {
+    "badges:prepare": "node scripts/prepareRoleBadges.mjs",
+    "predev": "npm run badges:prepare",
+    "prebuild": "npm run badges:prepare",
+    "prebuild:demo": "npm run badges:prepare",
     "dev": "vite",
     "build": "tsc -b && vite build && npm run size:report",
     "test": "vitest run",
