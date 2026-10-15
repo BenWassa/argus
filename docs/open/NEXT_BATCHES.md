@@ -17,7 +17,7 @@
 2. Integrate the durable ledger/outbox with the existing conservative sync planner. Handle partial acknowledgements, conflicts, bounded retries, reconnect/restart drain and owner isolation without losing a newer queued revision.
 3. Add provisioned-owner offline auth/bootstrap, including new-device connection-required behavior and corrupt/missing-local cloud recovery before seeding.
 4. Complete Profile status/retry/recovery and the end-to-end offline learner traces. Build precaching and footprint reporting already existed; shell update safety is now covered separately.
-5. Author Wave 1’s bounded S1 vignette topics from the existing Human Factors briefs. Plan four new topics beside OODA to meet the five-topic gate, with at least 40 total scored items. Ratification is complete, but no new scored topic was registered by this checkpoint.
+5. Wave 1’s four S1 vignette topics are authored and staged (2026-10-15) in `src/domain/humanFactors/`, outside the seed and manifest, with Decision Under Uncertainty I as the fifth topic. Next: independent answer-key review, then ship by registering them. See [Wave 1 §8](ISSUE_197_ANALYST_WAVE1_HUMAN_FACTORS.md).
 
 ## Owner and external gates
 

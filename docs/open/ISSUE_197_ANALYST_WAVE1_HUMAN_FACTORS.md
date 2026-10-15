@@ -1,11 +1,11 @@
 # #197 Analyst — Wave 1 bounded Human Factors research specification
 
-**Status:** research candidate; documentation-only proposal, 2026-10-14. **Not an implementation authorization or earnable-role contract.**
+**Status:** content authored and staged 2026-10-15 (see §8); not delivered and not an earnable role. Originally a documentation-only proposal, 2026-10-14.
 **Authority:** [ratified #197 decisions](ISSUE_197_ROLE_DECISION_RECORD.md), [scored audit](ISSUE_197_SCORED_CONTENT_AUDIT.md), [`LIBRARY_ROADMAP.md`](../LIBRARY_ROADMAP.md), [`LIBRARY_RESEARCH_METHOD.md`](../LIBRARY_RESEARCH_METHOD.md). Reuses #104 research; does not supersede roadmap priorities.
 
 ## 1. Decision summary
 
-**Recommend revise → owner/independent subject-matter review → separate build decisions**, not shipping immediately. Use four deliberately bounded objective-choice S1 topics, **nine scored items each** (36 proposed items). Existing shipped `ooda-loop` has **four self-scored definition/sequence items**, verified by the October 8 scored-content audit; together **5 topics / 40 items**, meeting the numerical G1/G2 minima **only if all four drafts are implemented and approved**. This is a proposed allocation, not 40 implemented items; no role is currently earnable. Prefer *Decision Under Uncertainty I* over Threat Recognition I for the fifth topic because it avoids the additional professional threat-assessment and safety-validation burden. That choice remains editorial, not owner-ratified.
+**Recommend revise → owner/independent subject-matter review → separate build decisions**, not shipping immediately. *Update 2026-10-15: the owner chose Decision Under Uncertainty I as the fifth topic and asked to start; the content is authored and staged (§8) and still awaits independent review.* Use four deliberately bounded objective-choice S1 topics, **nine scored items each** (36 proposed items). Existing shipped `ooda-loop` has **four self-scored definition/sequence items**, verified by the October 8 scored-content audit; together **5 topics / 40 items**, meeting the numerical G1/G2 minima **only if all four drafts are implemented and approved**. This is a proposed allocation, not 40 implemented items; no role is currently earnable. Prefer *Decision Under Uncertainty I* over Threat Recognition I for the fifth topic because it avoids the additional professional threat-assessment and safety-validation burden. That choice remains editorial, not owner-ratified.
 
 ## 2. Proposed role composition, scope and remaining gates
 
@@ -56,7 +56,7 @@ Shared S1 contract: short fictional everyday context, exactly four unambiguous o
 
 **Provisional completion claim:** Identifies biased selection of evidence and chooses an evidence-check or calibrated revision in authored examples.
 **Explicit limitations:** Does not eliminate implicit bias, establish reduced field error, or qualify psychological or behavioural assessment.
-**Authority leads:** [Nickerson, confirmation bias review](https://doi.org/10.1037/1089-2680.2.2.175); [Tversky & Kahneman, judgment under uncertainty](https://pubmed.ncbi.nlm.nih.gov/17835457/); [Ontario PI ethics syllabus](https://www.ontario.ca/document/training-syllabus-private-investigators/section-6-ethical-reasoning-and-decision-making).
+**Authority leads:** [Nickerson, confirmation bias review](https://doi.org/10.1037/1089-2680.2.2.175); [Tversky & Kahneman, judgment under uncertainty](https://pubmed.ncbi.nlm.nih.gov/17835457/); [Ontario PI ethics syllabus](https://www.ontario.ca/document/training-syllabus-private-investigators/section-6-principles-ethical-reasoning-and-decision-making).
 **Content boundary:** 9 independent S1 items; Learn-only definitions and two contrasting worked examples; first application to authored contexts, then mixed contexts. No images/audio/assets required. Scenario ambiguity resolved in stem, not by subjective marking.
 
 | # | Authored vignette / question | Key (correct answer) | Distractors (incorrect) |
@@ -139,3 +139,16 @@ Shared S1 contract: short fictional everyday context, exactly four unambiguous o
 - **Implementation owner:** separate scoped decisions after roadmap approval; no role earnability or badge until all six D4 gates demonstrably pass.
 
 **Change scope:** documentation/research only; no source, runtime, role definitions, scoring, asset, deployment or library-manifest modification.
+## 8. Implementation status (2026-10-15)
+
+**Authority for answer keys:** the implemented items in `src/domain/humanFactors/humanFactorsTopics.ts` now supersede the sample tables in §4. The samples were a starting point; many keys were visibly the longest, most qualified option and several distractors were obviously absurd, so every vignette was rewritten with similar-length plausible distractors and a clearer single best answer. The §4 tables are retained as research provenance only.
+
+**What exists:** four topics, nine four-option items each, Learn overview, two contrasting worked examples, `limitations` and `sources` per topic (ids `observation-vs-inference`, `bias-control`, `situational-awareness-i`, `decision-under-uncertainty-i`). Decision Under Uncertainty I replaced the original weaker items (the “30% uncertainty” item became an explicit 4%–16% range; the absurd “bias worksheet” distractor was removed).
+
+**Staged deliberately:** the topics are not in `catalogSeed.ts` or `shippedCatalog.json`. A test fails if they are, so shipping is a visible, reviewed change. Releasing them means spreading `humanFactorsTopics()` into the seed, adding the four ids to the manifest, and deleting the staging test.
+
+**Defects found while implementing:** the §3 link to the Ontario PI ethics syllabus returned 404; the correct page is `…/section-6-principles-ethical-reasoning-and-decision-making` and is now used everywhere. The Nickerson DOI blocks automated fetches (HTTP 403) and was not machine-verified.
+
+**Automated checks now in place:** 36 items, unique ids/prompts/answers, four distinct options containing the key, forward choice only, key not the longest option in more than four items per topic, sources with https URL and note, two worked examples, and a parse-boundary round-trip. The Test card shuffles options per card, so authored option order and key position carry no information.
+
+**Still open before delivery:** independent second-rater key concordance on all 36 items; item-level source mapping by a second reviewer; a decision on the Analyst role id and claim; roadmap-authorised build issues; Pixel review of long vignettes at 320 px. None of these has been done.
