@@ -5,7 +5,7 @@ interface ConfirmProps {
   /** Say exactly what is about to be lost, and what survives. */
   body: string
   confirmLabel: string
-  onConfirm: () => void
+  onConfirm: () => void | Promise<void>
   onCancel: () => void
 }
 

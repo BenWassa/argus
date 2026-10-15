@@ -251,9 +251,11 @@ export function LibraryPage({
           body={`"${pendingDelete.title}" and its test history will be removed from this device. Export your library first if you want a copy.`}
           confirmLabel="Delete topic"
           onCancel={() => setPendingDelete(null)}
-          onConfirm={() => {
-            removeTopic(pendingDelete.id)
-            setAnnouncement(`${pendingDelete.title} deleted.`)
+          onConfirm={async () => {
+            const title = pendingDelete.title
+            const committed = await removeTopic(pendingDelete.id)
+            if (committed === false) return
+            setAnnouncement(`${title} deleted.`)
             setPendingDelete(null)
           }}
         />

@@ -110,6 +110,9 @@ async function openTopic(page: Page) {
 
 test('initial root replaces the document entry and current-section taps add no Back stop', async ({ page }) => {
   await openApp(page)
+  // The app mounts after its local IndexedDB bootstrap, so the first navigation
+  // entry is written asynchronously rather than at the load event.
+  await expect.poll(() => navigationState(page)).not.toBeNull()
 
   const initial = await navigationState(page)
   expect(initial).toMatchObject({

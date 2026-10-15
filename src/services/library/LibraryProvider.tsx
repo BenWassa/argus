@@ -67,7 +67,7 @@ interface LibraryStore {
    * topic that no longer exists is dropped rather than recreating it.
    */
   updateTopic: (id: string, update: (current: Topic) => Topic) => void
-  removeTopic: (id: string) => void
+  removeTopic: (id: string) => void | Promise<boolean>
   replaceLibrary: (library: CurrentLibrary) => void | Promise<boolean>
   resetLibrary: () => void | Promise<boolean>
   /** Catalog topics this library has been offered, for sync's library-level record. */
@@ -356,7 +356,7 @@ function IndexedLibraryProvider({ children }: { children: ReactNode }) {
   }, [transact])
 
   const removeTopic = useCallback((id: string) => {
-    transact((prev) => ({ ...prev, topics: prev.topics.filter((t) => t.id !== id) }))
+    return transact((prev) => ({ ...prev, topics: prev.topics.filter((t) => t.id !== id) }))
   }, [transact])
 
   const replaceLibrary = useCallback((next: CurrentLibrary) => {
