@@ -61,3 +61,9 @@ No version, tag or deployment was changed. Production remains v1.5.0. Main now c
 3. Once #214 lands, work on separate durable outbox/retry, offline auth/bootstrap, and Profile recovery lanes.
 4. After #213 research sign-off, author/implement Analyst content in a separate workstream without making the role prematurely earnable.
 5. Maintain open and closed documentation indexes and release gate records. **No production release or issue closure is implied by these housekeeping changes.**
+
+## October 15 integration checkpoint — supersedes earlier PR-state tables
+
+Owner-authorized integration merged #220, #212 (including approval/path cleanup), #219 (staged Analyst and human-review packs), #218 (Mariner and PNGs, with status cleanup) and #215 (bounded Morse S1A). Combined main is `08ee4f2`. The earlier tables above retain checkpoint history and do not describe these PRs as still open.
+
+#214 remains draft and excluded from the release: conflicting remote branch, failed browser CI and remote-adoption durability sequencing require the active #113 lane. Do not claim full offline-first behavior. No Analyst topics or scuba references enter the learner catalog. CAF permission, Pixel acceptance and independent domain/content reviews remain in the [consolidated checklist](HUMAN_ACCEPTANCE_CHECKLIST.md).
