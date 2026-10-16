@@ -9,6 +9,7 @@ import { parseLibrary } from '../../infrastructure/persistence/libraryParser'
 import { LibraryProvider, useLibrary } from '../../services/library/LibraryProvider'
 import type { RunTarget } from '../../app/routing/routes'
 import type { ItemLessonStore } from '../../domain/morse/progress'
+import { lessonPackets } from '../../domain/morse/curriculum/lesson'
 import { TopicPage } from './TopicPage'
 
 const STORE_KEY = 'argus.library.v5'
@@ -94,8 +95,8 @@ function open(topic: Topic, onStart = vi.fn()) {
   return onStart
 }
 
-const fluency = () => screen.queryByRole('button', { name: /Send, copy and speed practice|Keep going/ })
-const keepGoing = () => screen.queryByRole('button', { name: /Keep going/ })
+const fluency = () => screen.queryByRole('heading', { name: 'Play Morse' })
+const primary = () => document.querySelector<HTMLButtonElement>('.topic-action-bar .topic-primary')
 const quickReview = () => screen.queryByRole('button', { name: /Quick review/ })
 
 beforeEach(() => localStorage.clear())
@@ -132,29 +133,31 @@ describe('the Fluency entry', () => {
   it('keeps Play in plain view, not folded under More options (#201)', () => {
     open(morse({ lessonProgress: allSettled() }))
     expect(fluency()!.closest('details')).toBeNull()
-    expect(screen.getByText('Play records nothing against your Test.')).toBeTruthy()
+    expect(screen.getByText(/Practice never changes your Test result/)).toBeTruthy()
+    for (const label of ['Send', 'Receive', 'Challenges', 'Free Play']) {
+      expect(document.querySelector('.topic-play-choices')?.textContent).toContain(label)
+    }
   })
 
   it('launches a fluency run on the topic', () => {
     const onStart = open(morse({ lessonProgress: allSettled() }))
-    fireEvent.click(fluency()!)
-    expect(onStart).toHaveBeenCalledWith('learn', [MORSE_ID], { kind: 'fluency' })
+    fireEvent.click(document.querySelector<HTMLButtonElement>('.topic-play-launch')!)
+    expect(onStart).toHaveBeenCalledWith('learn', [MORSE_ID], { kind: 'fluency', send: 'words' })
   })
 
   it('stays text weight while a scheduled check is due, because only the check can earn', () => {
     open(morse({ lessonProgress: allSettled() }))
-    expect(fluency()!.className).toContain('topic-alt')
-    expect(keepGoing()).toBeNull()
-    expect(screen.getByRole('button', { name: /^Test/ }).className).toContain('topic-primary')
+    expect(document.querySelector('.topic-play-launch')?.className).toContain('ghost')
+    expect(primary()!.textContent).toBe('Test')
   })
 
   it('leads a banked course, beside a full scored check and a quick review of weak letters', () => {
     const onStart = open(morse({ status: 'completed', completedAt: new Date().toISOString(), acquisitionReadyAt: new Date().toISOString() }))
-    expect(keepGoing()!.className).toContain('topic-primary')
-    expect(keepGoing()!.textContent).toBe('Keep going')
+    expect(primary()!.className).toContain('topic-primary')
+    expect(primary()!.textContent).toBe('Send five words')
 
-    fireEvent.click(keepGoing()!)
-    expect(onStart).toHaveBeenLastCalledWith('learn', [MORSE_ID], { kind: 'fluency' })
+    fireEvent.click(primary()!)
+    expect(onStart).toHaveBeenLastCalledWith('learn', [MORSE_ID], { kind: 'fluency', send: 'words' })
 
     expect(quickReview()!.className).toContain('topic-alt')
     fireEvent.click(quickReview()!)
@@ -189,14 +192,40 @@ describe('the Fluency entry', () => {
   })
 
   it('names the next copy level from the learner\'s own bests', () => {
-    open(
+    const onStart = open(
       morse({
         status: 'completed', completedAt: new Date().toISOString(),
         acquisitionReadyAt: new Date().toISOString(),
         morseFluency: { rung: 6, characters: {}, bests: { 'copy:letters': 95, 'copy:common': 91 } },
       }),
     )
-    expect(keepGoing()!.textContent).toBe('Keep going')
+    expect(primary()!.textContent).toBe('Send five words')
+    fireEvent.click(screen.getByRole('button', { name: /Receive/ }))
+    // Both earlier Copy levels are cleared, so the next is Everyday words.
+    // Topic Play launches it directly rather than routing through the hub.
+    // No status or Test evidence is changed merely by opening it.
+    expect(onStart).toHaveBeenLastCalledWith('learn', [MORSE_ID], { kind: 'fluency', copy: 'words' })
+  })
+
+  it('routes each Play family directly without opening the Fluency hub', () => {
+    const onStart = open(morse({ lessonProgress: allSettled() }))
+    fireEvent.click(screen.getByRole('button', { name: /Challenges/ }))
+    expect(onStart).toHaveBeenLastCalledWith('learn', [MORSE_ID], { kind: 'fluency', mode: 'sprint' })
+    fireEvent.click(screen.getByRole('button', { name: /Free Play/ }))
+    expect(onStart).toHaveBeenLastCalledWith('learn', [MORSE_ID], { kind: 'fluency', free: true })
+  })
+
+  it('offers only packet-validated unlocked word checkpoints to developing learners', () => {
+    const known = new Set(lessonPackets().slice(0, 4).flatMap((packet) => packet.novel))
+    const progress: ItemLessonStore = {}
+    for (const item of seededMorse().items) {
+      if (item.id && known.has(item.prompt as never)) progress[item.id] = 'settled'
+    }
+    const onStart = open(morse({ lessonProgress: progress }))
+    expect(fluency()).toBeNull()
+    const play = screen.getByRole('button', { name: /Try a word/ })
+    fireEvent.click(play)
+    expect(onStart).toHaveBeenLastCalledWith('learn', [MORSE_ID], { kind: 'checkpoint', afterLesson: 4 })
   })
 
   it('stays absent for a topic that is not the course, even once completed', () => {

@@ -2,6 +2,7 @@ import type { Topic } from '../../domain/library/topic'
 import type { Mode } from '../../domain/study/mode'
 import { FLUENCY_MODES, type FluencyMode } from '../../domain/morse/fluency/session'
 import { SEND_STAGES, type SendStage } from '../../domain/morse/fluency/send'
+import { COPY_LEVELS, type CopyLevel } from '../../domain/morse/fluency/copy'
 
 /**
  * The route model: what a destination is, whether an unknown value is one, and
@@ -61,7 +62,7 @@ export type RunTarget =
    * Fluency, optionally over just these letters — the keyed way to practise
    * what a check or a lesson missed. Letters absent means the whole alphabet.
    */
-  | { kind: 'fluency'; mode?: FluencyMode; letters?: string[]; send?: SendStage }
+  | { kind: 'fluency'; mode?: FluencyMode; letters?: string[]; send?: SendStage; copy?: CopyLevel; free?: true }
   /** A keyed review of the letters the finished course still owes (`startAfterCourse`). */
   | { kind: 'after-course' }
 
@@ -97,10 +98,16 @@ function isRunTarget(value: unknown): value is RunTarget {
     return value.itemIds === undefined || isIdList(value.itemIds)
   }
   if (value.kind === 'fluency') {
+    // Exactly one optional direct destination. Older hub and sprint routes
+    // remain valid; malformed competing destinations cannot start a run.
+    const choices = [value.mode, value.send, value.copy, value.free].filter((entry) => entry !== undefined).length
     return (
+      choices <= 1 &&
       (value.mode === undefined || FLUENCY_MODES.includes(value.mode as FluencyMode)) &&
       (value.letters === undefined || isIdList(value.letters)) &&
-      (value.send === undefined || SEND_STAGES.includes(value.send as SendStage))
+      (value.send === undefined || SEND_STAGES.includes(value.send as SendStage)) &&
+      (value.copy === undefined || COPY_LEVELS.includes(value.copy as CopyLevel)) &&
+      (value.free === undefined || value.free === true)
     )
   }
   if (value.kind === 'replay') return Number.isInteger(value.index) && (value.index as number) >= 0
@@ -172,6 +179,8 @@ function sameTarget(left: RunTarget | undefined, right: RunTarget | undefined): 
     return (
       left.mode === right.mode &&
       left.send === right.send &&
+      left.copy === right.copy &&
+      left.free === right.free &&
       (left.letters ?? []).join() === (right.letters ?? []).join()
     )
   }

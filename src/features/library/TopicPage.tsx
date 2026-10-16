@@ -23,6 +23,8 @@ import type { RunTarget } from '../../app/routing/routes'
 import { hasPractice, practiceItemCount } from '../../domain/study/practiceTargets'
 import { REVIEW_LENGTH, isReviewTopic } from '../../domain/study/review'
 import { morseFocusLetters } from '../../domain/morse/fluency/focus'
+import { recommendedSendStage, SEND_STAGE_INFO } from '../../domain/morse/fluency/send'
+import { nextCopyLevel } from '../../domain/morse/fluency/copy'
 import type { Mode } from '../../domain/study/mode'
 import type { Topic } from '../../domain/library/topic'
 import './TopicPage.css'
@@ -89,9 +91,30 @@ export function TopicPage({
   const afterAlphabet = course && acquisition.ready
   const keepGoing = afterAlphabet && journey.primaryLabel === KEEP_GOING
   const reviewable = isReviewTopic(topic)
+  const recommendedSend = afterAlphabet ? recommendedSendStage(topic.morseFluency) : null
+  const sendDetail = recommendedSend ? SEND_STAGE_INFO[recommendedSend] : null
+  const copyNext = nextCopyLevel(topic.morseFluency) ?? 'sentences'
+  // Reuse only already-unlocked, packet-validated word checkpoints in the
+  // acquisition phase. New free-form known-letter rounds remain a separate
+  // #201 slice, rather than accidentally exposing letters not yet learned.
+  const beginnerCheckpoint = !afterAlphabet
+    ? [...(checkpoints ?? [])].reverse().find((checkpoint) => checkpoint.unlocked)
+    : undefined
 
-  function openFluency() {
-    onStart('learn', [topic.id], { kind: 'fluency' })
+  function openSend() {
+    if (recommendedSend) onStart('learn', [topic.id], { kind: 'fluency', send: recommendedSend })
+  }
+
+  function openCopy() {
+    onStart('learn', [topic.id], { kind: 'fluency', copy: copyNext })
+  }
+
+  function openRecognition() {
+    onStart('learn', [topic.id], { kind: 'fluency', mode: 'sprint' })
+  }
+
+  function openFreePlay() {
+    onStart('learn', [topic.id], { kind: 'fluency', free: true })
   }
 
   // How many items a check has left outstanding, counted in items rather than
@@ -171,6 +194,54 @@ export function TopicPage({
         </div>
       )}
 
+
+      {/* The owner-approved #201 Play entry lives on this Topic page,
+          before the long finite curriculum. It never changes Test evidence.
+          The action bar remains the only polished primary on the screen. */}
+      {course && afterAlphabet && sendDetail && (
+        <section className="topic-play" aria-labelledby="topic-play-title">
+          <h2 id="topic-play-title">Play Morse</h2>
+          <div className="topic-play-feature">
+            <p className="topic-play-kicker">Recommended next</p>
+            <h3>{sendDetail.title}</h3>
+            <p>{sendDetail.purpose}</p>
+            <button className="ghost topic-play-launch" type="button" onClick={openSend}>
+              {recommendedSend === 'words' ? 'Send five words' : `Play ${sendDetail.title}`} →
+            </button>
+          </div>
+          <h3 className="topic-play-choose">Choose an activity</h3>
+          <div className="topic-play-choices">
+            <button type="button" className="topic-play-choice" onClick={openSend}>
+              <strong>Send</strong><span>See text, key Morse</span>
+            </button>
+            <button type="button" className="topic-play-choice" onClick={openCopy}>
+              <strong>Receive</strong><span>Hear Morse, write text</span>
+            </button>
+            <button type="button" className="topic-play-choice" onClick={openRecognition}>
+              <strong>Challenges</strong><span>Speed and recognition</span>
+            </button>
+            <button type="button" className="topic-play-choice" onClick={openFreePlay}>
+              <strong>Free Play</strong><span>Make your own message</span>
+            </button>
+          </div>
+          <p className="topic-consequence">Repeat any game whenever you like. Practice never changes your Test result.</p>
+        </section>
+      )}
+
+      {course && !afterAlphabet && beginnerCheckpoint && (
+        <section className="topic-play topic-play-early" aria-labelledby="topic-play-early-title">
+          <h2 id="topic-play-early-title">Play with known letters</h2>
+          <p className="topic-consequence">Replay a word checkpoint with a short warm-up. Every word uses only letters from lessons you've already reached.</p>
+          <button
+            className="ghost topic-play-launch"
+            type="button"
+            onClick={() => onStart('learn', [topic.id], { kind: 'checkpoint', afterLesson: beginnerCheckpoint.afterLesson })}
+          >
+            Try a word →
+          </button>
+        </section>
+      )}
+
       {course && path && checkpoints ? (
         <section className="topic-body" aria-labelledby="topic-course-head">
           <div className="topic-body-head">
@@ -233,20 +304,6 @@ export function TopicPage({
           {topic.learn && <LearnSupport content={topic.learn} />}
         </section>
       ) : null}
-
-      {/* Play is not a footnote (#201). Once the alphabet is acquired and the
-          check is the primary action, sending and copying sit in plain view
-          rather than behind "More options". A banked course already leads with
-          them, so this row would only repeat that primary. Acquisition
-          readiness makes it useful independently of scoring. */}
-      {runnable && afterAlphabet && !keepGoing && (
-        <div className="topic-play">
-          <button className="quiet topic-alt" type="button" onClick={openFluency}>
-            Send, copy and speed practice
-          </button>
-          <p className="topic-consequence">Play records nothing against your Test.</p>
-        </div>
-      )}
 
       {runnable && (course || practiceCount > 0) && (
         <details className="fold topic-options">
@@ -321,8 +378,12 @@ export function TopicPage({
 
       {runnable && (
         <div className={`topic-action-bar${journey.phase === 'repair' ? ' is-repair' : topic.status === 'completed' || topic.status === 'drilled' ? ' is-banked' : ''}`}>
-          <button className="topic-primary" type="button" onClick={keepGoing ? openFluency : course && journey.action === 'learn' ? startCurrentMorseLesson : startCheck}>
-            {course ? journey.primaryLabel : journey.phase === 'repair' ? 'Repair' : topic.status === 'completed' || topic.status === 'drilled' ? 'Test again' : 'Test'}
+          <button className="topic-primary" type="button" onClick={keepGoing ? openSend : course && journey.action === 'learn' ? startCurrentMorseLesson : startCheck}>
+            {course
+              ? keepGoing && sendDetail
+                ? recommendedSend === 'words' ? 'Send five words' : `Play ${sendDetail.title}`
+                : journey.primaryLabel
+              : journey.phase === 'repair' ? 'Repair' : topic.status === 'completed' || topic.status === 'drilled' ? 'Test again' : 'Test'}
           </button>
         </div>
       )}
