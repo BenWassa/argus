@@ -1,14 +1,14 @@
 # Morse Fluency — the post-acquisition surface
 
-**Status:** base implemented under #119; guided Send extension merged via #195 and included in v1.5.0; real Pixel acceptance remains outstanding.
+**Status:** #221 adaptive practice and shared corrections released in v1.5.3; base implemented under #119; guided Send extension merged via #195 and included in v1.5.0; real Pixel acceptance remains outstanding.
 
-**Authority:** maintained Fluency contract; #221 navigation and shared corrections are implemented for review. `MORSE_PROGRAMME_PLAN.md`
+**Authority:** maintained Fluency contract; #221 navigation and shared corrections are released in v1.5.3. `MORSE_PROGRAMME_PLAN.md`
 still governs the A–Z acquisition programme, `PROGRESS_ARCHITECTURE.md` still
 governs the state boundaries this surface must not cross, and
 `MORSE_AUDIO_RUNTIME.md` still governs every Morse audio entry point including
 this one.
 
-**Last verified:** 2026-10-16 (#221 implementation in review; physical Pixel acceptance outstanding)
+**Last verified:** 2026-10-16 (#221 released in v1.5.3; physical Pixel acceptance outstanding)
 
 > **Misses lead — 2026-09-30.** `fluencyNeed` takes an optional focus set, and adds a bounded `FOCUS_NEED` (150) for a letter the learner is currently missing. The set is `morseFocusLetters`: a lesson letter still owed, or a Test direction whose last answer was wrong. Every Fluency run and the Copy *letters* level weight it. "Practise the letters you missed", from the topic page or a check's end screen, now opens a **keyed Fluency sprint over just those letters** (route `{ kind: 'fluency', mode: 'sprint', letters }`), not the reveal-and-self-grade practice run. It writes only `morseFluency`, as before.
 
@@ -53,7 +53,7 @@ Entry points (#201 S0 merged, 2026-10-14; following UX runtime PR pending, await
   recorded best (ties to the harder stage) instead of always *Short messages*.
 
 
-**Topic entry and #221 consolidation (implementation in review):** Morse Topic
+**Topic entry and #221 consolidation (v1.5.3):** Morse Topic
 carries Practice letters, Send, Receive and Free Play directly. Its one primary
 still follows the existing formal journey or recommended Send stage. Acquired
 Lessons are folded, and A–Z reference remains direct. More options preserves
