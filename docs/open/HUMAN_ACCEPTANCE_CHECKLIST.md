@@ -5,6 +5,8 @@
 
 ## How to use
 
+Current released review baseline: **v1.5.2**, tag commit `65d3d45`, deployed 2026-10-15. Record any later candidate changes before testing. Release alone does not pass any item below.
+
 Before the session, record the reviewed branch/commit, app version, deployment URL, Pixel model, Android/Chrome versions and installed-PWA status. For each completed check record reviewer name/qualification where relevant, date, result, evidence link and defects. Use **pass / fail / blocked / not run**, never an empty implied pass. Any changed reviewed source invalidates affected checks until rechecked.
 
 ### 1. Scuba references — #132

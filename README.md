@@ -62,6 +62,8 @@ The **full offline-first runtime guarantee is active scope in #113**, not yet a 
 
 ## Durable product and programme documentation
 
+- [Release v1.5.2](docs/closed/RELEASE_1_5_2.md) — Morse Play entry, Mariner/PNG delivery, staged review packs and verified Hosting deployment; human acceptance remains open.
+
 - [Release v1.5.0](docs/closed/RELEASE_1_5_0.md) — integrated Morse, Home and Communicator Roles release, deployment verification and remaining device acceptance.
 
 - [Roles evaluation closeout](docs/closed/ROLES_SCREEN_EVALUATION.md) — Communicator MVP and SVG review, merge verification and deployment hold.
