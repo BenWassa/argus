@@ -5,7 +5,7 @@
 
 ## 1. Decision summary
 
-**Recommend revise → owner/independent subject-matter review → separate build decisions**, not shipping immediately. *Update 2026-10-15: the owner chose Decision Under Uncertainty I as the fifth topic and asked to start; the content is authored and staged (§8) and still awaits independent review.* Use four deliberately bounded objective-choice S1 topics, **nine scored items each** (36 proposed items). Existing shipped `ooda-loop` has **four self-scored definition/sequence items**, verified by the October 8 scored-content audit; together **5 topics / 40 items**, meeting the numerical G1/G2 minima **only if all four drafts are implemented and approved**. This is a proposed allocation, not 40 implemented items; no role is currently earnable. Prefer *Decision Under Uncertainty I* over Threat Recognition I for the fifth topic because it avoids the additional professional threat-assessment and safety-validation burden. That choice remains editorial, not owner-ratified.
+**Recommend revise → owner/independent subject-matter review → separate build decisions**, not shipping immediately. *Update 2026-10-15: the owner chose Decision Under Uncertainty I as the fifth topic and asked to start; the content is authored and staged (§8) and still awaits independent review.* Use four deliberately bounded objective-choice S1 topics, **nine scored items each** (36 proposed items). Existing shipped `ooda-loop` has **four self-scored definition/sequence items**, verified by the October 8 scored-content audit; together **5 topics / 40 items**, meeting the numerical G1/G2 minima **only if all four drafts are implemented and approved**. The four new topics are implemented only as staged source; the 40-item role composition remains proposed and no role is currently earnable. Prefer *Decision Under Uncertainty I* over Threat Recognition I for the fifth topic because it avoids the additional professional threat-assessment and safety-validation burden. The owner selected that fifth topic on 2026-10-15; exact role pathways, claim and delivery gates remain separate.
 
 ## 2. Proposed role composition, scope and remaining gates
 
@@ -132,13 +132,13 @@ Shared S1 contract: short fictional everyday context, exactly four unambiguous o
 
 ## 7. Unresolved review gates and handoff
 
-- **Owner:** approve Decision Under Uncertainty I as fifth topic vs alternative; approve exact two-pathway structure and bounded role claim. Analyst title remains working, not a professional credential.
+- **Owner:** Decision Under Uncertainty I was selected as the fifth topic on 2026-10-15. Approval of the exact two-pathway structure and bounded role claim remains pending. Analyst title remains working, not a professional credential.
 - **Independent domain/content reviewer:** audit all 36 individual keys, source support, nontrivial difficulty, ethical boundary and examples where alternative action is equally defensible; split or reject ambiguous items.
 - **Methodology:** nine samples per topic meet the numeric goal but may be too shallow for reliable competence; verify exposure diversity and item quality rather than padding; expand if testing demonstrates weakness, with a separately approved stable boundary.
 - **Safety:** no profiling, mental-health/deception/violence forecasts, professional assessment or emergency-response instruction; prioritize actual emergency procedures where the vignette establishes danger.
 - **Implementation owner:** separate scoped decisions after roadmap approval; no role earnability or badge until all six D4 gates demonstrably pass.
 
-**Change scope:** documentation/research only; no source, runtime, role definitions, scoring, asset, deployment or library-manifest modification.
+**Original research scope:** documentation only. The separately authorized staged implementation in §8 adds source and tests without catalog registration, learner delivery, role earnability or deployment.
 ## 8. Implementation status (2026-10-15)
 
 **Authority for answer keys:** the implemented items in `src/domain/humanFactors/humanFactorsTopics.ts` now supersede the sample tables in §4. The samples were a starting point; many keys were visibly the longest, most qualified option and several distractors were obviously absurd, so every vignette was rewritten with similar-length plausible distractors and a clearer single best answer. The §4 tables are retained as research provenance only.
