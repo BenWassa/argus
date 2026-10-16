@@ -1,9 +1,9 @@
 # #201 — Persistent Morse Play UX · owner review
-**Status:** PROPOSED / NOT APPROVED · design-only after merged PR #209 (S0). **No runtime changes authorized.**
+**Status:** architecture approved 2026-10-14; exact visual treatment and runtime/device acceptance pending. Design reference after merged PR #209 (S0). The [owner decision](https://github.com/BenWassa/argus/pull/212#issuecomment-6169915961) approves an embedded Play section on the Morse Topic page and a separate focused implementation PR; it does not approve every mockup detail or unrelated UI/scoring changes. This PR contains no runtime implementation.
 **Source authority:** `DESIGN.md`, `DESIGN.json`, `src/styles/tokens.css`, `docs/open/ISSUE_201_MORSE_GAMEPLAY_CONTINUITY.md`; existing shipped behavior: `MORSE_FLUENCY.md`, #188 and merged #209.
-**Mockups:** [A: returning Play](../mockups/201-play-returning.svg) · [B: beginner](../mockups/201-play-beginner.svg) · [C: active sending](../mockups/201-play-active.svg) · [D: miss/result](../mockups/201-play-result.svg) · [E: alphabet handoff](../mockups/201-play-handoff.svg). Each is a standalone **390 × 844** SVG viewport. Illustrative content and measurements only; no fabricated learner history is intended as actual user data.
+**Mockups:** [A: returning Play](assets/morse-play/201-play-returning.svg) · [B: beginner](assets/morse-play/201-play-beginner.svg) · [C: active sending](assets/morse-play/201-play-active.svg) · [D: round result](assets/morse-play/201-play-result.svg) · [E: in-round miss](assets/morse-play/201-play-miss.svg) · [F: alphabet handoff](assets/morse-play/201-play-handoff.svg). Each is a standalone **390 × 844** SVG viewport. Illustrative content and measurements only; no fabricated learner history is intended as actual user data.
 
-## Proposed information architecture
+## Approved information architecture; proposed detailed treatment
 Keep the **Morse Topic page** the authoritative entry. Add a persistent, named **Play Morse** section rather than a competing app-level dashboard. Once A–Z is acquired, the top Play area has exactly **one concrete recommended challenge**, directly launched, with **Send**, **Receive (Copy)**, **Challenges (speed/recognition)** and **Free Play** accessible without nesting under More. Keep the finite Learn/Test/repair actions visible and independent. Optional activities are never locked behind the suggested next action.
 
 For a beginner, **Continue alphabet** remains primary; show a quiet **Try a word** only if a valid target can be composed entirely from authoritatively acquired letters. Otherwise say **Play becomes available as you learn letters**, with no disabled false promise. Free Play may be independently exposed only if existing runtime permits it; do not silently unlock the post-A–Z sending stages.
@@ -29,7 +29,8 @@ For a beginner, **Continue alphabet** remains primary; show a quiet **Try a word
 Use only actual store snapshots and validated formative progress. Eligibility first (acquired roster and mode-specific supported material). Candidate ranking: unfinished supported stage → last recorded weakness if enough samples → next supported difficulty → replay of a specific best / unfamiliar challenge. Preference is **advisory**, never gate. Missing or imported/partial stats fall back to a deterministic eligible introduction; do not reconstruct scores or claim fluency. Send, Receive and Recognition remain separate formative measurements. Rendering recommendation must have a valid direct route, and completed runs must return to this same context.
 
 ## Acceptance criteria for the subsequent implementation PR (NOT this PR)
-- [ ] Owner selects/approves exact 390px mockup treatment **before implementation**; any changes to proposed copy/state hierarchy reviewed separately.
+- [x] Owner approved the embedded Topic-page Play architecture on 2026-10-14 (decision linked above).
+- [ ] Exact 390px mockup treatment and any changes to proposed copy/state hierarchy receive separate owner review; architecture approval alone does not satisfy this visual gate.
 - [ ] #209 existing handoff preserved and regression-tested for qualified, acquired-unqualified, repair/review and multi-topic Test results.
 - [ ] Topic shows one concrete direct-play primary after A–Z; all four plain-language family entries are visible and accessible without More.
 - [ ] Beginner entry uses authoritative eligible learned-character set and validates every prompt; no hard-coded lesson thresholds or exposure to unlearned symbols.
@@ -41,4 +42,4 @@ Use only actual store snapshots and validated formative progress. Eligibility fi
 - [ ] Browser e2e at 320/390, keyboard/screen-reader/reduced-motion and real Pixel acceptance. #188 real Pixel acceptance remains independently outstanding.
 
 ## Owner decisions at visual gate
-Approve or request changes to **(1)** topic-page embedded Play panel vs dedicated Play route, **(2)** placement of skill readouts relative to four mode links, **(3)** the key-active/miss/result visual density, **(4)** beginner Try a word presentation. **No new UI code is included in this PR.**
+The embedded Topic-page architecture is approved. Remaining visual decisions are **(1)** placement of skill readouts relative to four mode links, **(2)** the key-active/miss/result visual density, and **(3)** beginner Try a word presentation. **No new UI code is included in this PR.**
