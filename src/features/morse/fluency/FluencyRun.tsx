@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { MorseAudioPlayer } from '../../../domain/morse/audio'
-import { canonicalPattern } from '../../../domain/morse/testing/acquisitionProfile'
 import {
   answerFluency,
   currentPrompt,
@@ -22,6 +21,8 @@ import {
 import { fluencyTiming, nextRung, previousRung, type FluencyRung } from '../../../domain/morse/fluency/timing'
 import type { MorseLetter } from '../../../domain/morse/code'
 import { MorseWordKeyInput } from '../input/MorseWordKeyInput'
+import { MorseCharacterSupport } from '../MorseCharacterSupport'
+import { useMorseAudio } from '../useMorseAudio'
 import { useKeyedResponse } from '../input/useKeyedResponse'
 import { fire } from '../../../shared/haptics'
 import './Fluency.css'
@@ -100,6 +101,7 @@ export function FluencyRun({ mode, rung, progress, focus, only, onProgress, onEx
   const pendingProgress = useRef(progress)
 
   const prompt = currentPrompt(run)
+  const correctionAudio = useMorseAudio()
   const complete = fluencyComplete(run)
   const timing = fluencyTiming(run.rung)
 
@@ -238,6 +240,11 @@ export function FluencyRun({ mode, rung, progress, focus, only, onProgress, onEx
     onExit()
   }
 
+  function continueCorrection() {
+    correctionAudio.stop()
+    acknowledge()
+  }
+
   const bar = (position: string | null) => (
     <div className="session-bar">
       <p>
@@ -300,7 +307,7 @@ export function FluencyRun({ mode, rung, progress, focus, only, onProgress, onEx
           </p>
 
           <button className="ghost" type="button" onClick={onExit}>
-            Back to fluency
+            Done
           </button>
         </div>
       </section>
@@ -372,14 +379,12 @@ export function FluencyRun({ mode, rung, progress, focus, only, onProgress, onEx
                 {/* The pattern for the first character that broke. Showing
                     every pattern in a six-letter word buries the one thing
                     the learner needs to look at. */}
-                <span className="mono fluency-pattern">
-                  {(() => {
-                    const brokeAt = feedback.marks.findIndex((mark) => !mark)
-                    const at = brokeAt === -1 ? 0 : brokeAt
-                    return `${feedback.text[at]} is ${canonicalPattern(feedback.patterns[at] ?? '')}`
-                  })()}
-                </span>
-                <button type="button" className="lesson-next" onClick={acknowledge} disabled={!holding}>
+                {(() => {
+                  const brokeAt = feedback.marks.findIndex((mark) => !mark)
+                  const at = brokeAt === -1 ? 0 : brokeAt
+                  return <MorseCharacterSupport glyph={feedback.text[at]} pattern={feedback.patterns[at] ?? ''} playing={correctionAudio.sounding?.glyph === feedback.text[at]} onToggle={() => correctionAudio.toggle(feedback.text[at])} audioError={correctionAudio.audioError} />
+                })()}
+                <button type="button" className="lesson-next" onClick={continueCorrection} disabled={!holding}>
                   Continue
                 </button>
               </>

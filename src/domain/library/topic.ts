@@ -5,6 +5,7 @@ import type {
   MorseReviewProgress,
 } from '../morse/progress'
 import type { MorseFluencyProgress } from '../morse/fluency/progress'
+import type { MorsePractice } from '../morse/practice'
 import type { LearnContent } from '../learning/content'
 import type { ItemChoice, Visual } from '../visual/visual'
 import type { AudioStimulus, ItemResponse } from '../audio/audio'
@@ -163,6 +164,12 @@ export interface Topic {
    * retention state or completion.
    */
   morseFluency?: MorseFluencyProgress
+  /**
+   * Formative, direction-specific Morse practice (#221). Additive within v5:
+   * absent means the learner has no recorded practice; it carries no dates and
+   * never changes acquisition evidence, history, or completion.
+   */
+  morsePractice?: MorsePractice
   /**
    * When progressive acquisition first became ready — for Morse, when every
    * required item had been produced unaided at least once in Learn (#67).

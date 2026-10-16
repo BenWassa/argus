@@ -647,7 +647,7 @@ describe('opening Morse lands on the curriculum', () => {
     // right when the page had nothing better to be. The curriculum is better,
     // and a long lookup deserves its own surface rather than the top of this one.
     expect(document.querySelectorAll('.morse-ref-card')).toHaveLength(0)
-    expect(screen.getByRole('button', { name: 'Morse alphabet' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'A–Z reference' })).toBeTruthy()
     expect(document.body.textContent).not.toContain('Show all 26 items')
   })
 

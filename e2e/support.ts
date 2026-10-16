@@ -201,6 +201,11 @@ export async function cardNumber(page: Page): Promise<number> {
  * its replays and checkpoints are one tap further in.
  */
 export async function openFinishedLessons(page: Page) {
+  const lessonsSummary = page.getByText('Lessons', { exact: true })
+  await expect(lessonsSummary).toBeVisible()
+  const lessonsSection = lessonsSummary.locator('xpath=..')
+  if ((await lessonsSection.getAttribute('open')) === null) await lessonsSummary.click()
+
   const fold = page.locator('.morse-path-fold')
   await expect(fold).toBeVisible()
   if ((await fold.getAttribute('open')) === null) await fold.locator('summary').click()

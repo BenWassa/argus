@@ -130,7 +130,7 @@ test('the alphabet round-trip preserves the topic and its unfinished confirmatio
   await page.evaluate(() => window.history.back())
   await expect(page.getByRole('heading', { name: morse.title, level: 1 })).toBeVisible()
   expect((await state(page)).index).toBe(1)
-  await page.getByRole('button', { name: 'Morse alphabet' }).click()
+  await page.getByRole('button', { name: 'A–Z reference' }).click()
   await expect(page.getByRole('heading', { name: 'Morse alphabet', level: 1 })).toBeVisible()
   expect(await state(page)).toMatchObject({ index: 2, route: { kind: 'reference', topicId: MORSE_ID, origin: { kind: 'topic', topicId: MORSE_ID } } })
 
@@ -147,6 +147,7 @@ test('the alphabet round-trip preserves the topic and its unfinished confirmatio
 test('opening Morse lands on the curriculum, with the alphabet a step away', async ({ page }) => {
   await openApp(page)
   await openMorseTopic(page)
+  await openFinishedLessons(page)
 
   const path = page.getByRole('list', { name: 'Morse curriculum' })
   await expect(path.locator('.morse-path-lesson')).toHaveCount(13)
@@ -156,7 +157,7 @@ test('opening Morse lands on the curriculum, with the alphabet a step away', asy
 
   // Twenty-six lookup cards no longer sit above the curriculum on this page.
   await expect(page.locator('.morse-ref-card')).toHaveCount(0)
-  await page.getByRole('button', { name: 'Morse alphabet' }).click()
+  await page.getByRole('button', { name: 'A–Z reference' }).click()
   await expect(page.getByRole('heading', { name: 'Morse alphabet', level: 1 })).toBeVisible()
   expect(await state(page)).toMatchObject({
     index: 3,
@@ -296,7 +297,7 @@ test('reference cards keep the phone hierarchy without horizontal overflow', asy
   test.skip(!testInfo.project.name.startsWith('phone-'), 'phone-width rendering contract')
   await openApp(page)
   await openMorseTopic(page)
-  await page.getByRole('button', { name: 'Morse alphabet' }).click()
+  await page.getByRole('button', { name: 'A–Z reference' }).click()
 
   await expect(page.getByRole('heading', { name: 'Morse alphabet', level: 1 })).toBeVisible()
   await expect(page.getByText('Show all 26 items')).toHaveCount(0)
@@ -307,7 +308,7 @@ test('reference cards keep the phone hierarchy without horizontal overflow', asy
   await expect(page.locator('.morse-ref-card.is-extra')).toHaveCount(14)
   await expect(cards.first().locator('.morse-ref-letter')).toHaveText('A')
   await expect(cards.first().locator('.morse-ref-pattern')).toContainText('· —')
-  await expect(cards.first().locator('.morse-ref-mnemonic')).toHaveText('A LONG')
+  await expect(cards.first().locator('.morse-phrase')).toHaveAttribute('aria-label', /A LONG/)
   const play = cards.first().getByRole('button', { name: 'Play A Morse' })
   await expect(play).toBeVisible()
   expect(await play.evaluate((button) => Math.min(button.getBoundingClientRect().width, button.getBoundingClientRect().height))).toBeGreaterThanOrEqual(44)
@@ -323,7 +324,7 @@ test('reference cards keep the phone hierarchy without horizontal overflow', asy
 test('reference playback does not write learner state', async ({ page }) => {
   await openApp(page)
   await openMorseTopic(page)
-  await page.getByRole('button', { name: 'Morse alphabet' }).click()
+  await page.getByRole('button', { name: 'A–Z reference' }).click()
 
   const before = await page.evaluate((key) => window.localStorage.getItem(key), STORE_KEY)
   await page.getByRole('button', { name: 'Play A Morse' }).click()

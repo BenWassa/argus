@@ -74,7 +74,7 @@ export function FluencySurface({ topicId, initialMode, initialSend, initialCopy,
   const progress = topic.morseFluency
 
   if (free) {
-    return <FreePlay rung={(progress ?? newFluencyProgress()).rung} onExit={() => setFree(false)} />
+    return <FreePlay rung={(progress ?? newFluencyProgress()).rung} onExit={() => initialFree ? onExit() : setFree(false)} />
   }
 
   if (send) {
@@ -87,7 +87,7 @@ export function FluencySurface({ topicId, initialMode, initialSend, initialCopy,
         onStage={(stage) =>
           setSend((previous) => ({ stage, run: (previous?.run ?? 0) + 1 }))
         }
-        onExit={() => setSend(null)}
+        onExit={() => initialSend ? onExit() : setSend(null)}
       />
     )
   }
@@ -103,7 +103,7 @@ export function FluencySurface({ topicId, initialMode, initialSend, initialCopy,
         focus={focus}
         onProgress={commit}
         onLevel={(level) => setCopy((previous) => ({ level, run: (previous?.run ?? 0) + 1 }))}
-        onExit={() => setCopy(null)}
+        onExit={() => initialCopy ? onExit() : setCopy(null)}
       />
     )
   }
@@ -119,6 +119,7 @@ export function FluencySurface({ topicId, initialMode, initialSend, initialCopy,
         only={only}
         onProgress={commit}
         onExit={() => {
+          if (initialMode) { onExit(); return }
           // The letters were for the run the learner came to practise; Fluency
           // after it is the whole alphabet again.
           setOnly([])

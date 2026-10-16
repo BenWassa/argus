@@ -874,6 +874,63 @@ describe('post-acquisition fluency statistics are durable and portable (#119)', 
   })
 })
 
+describe('formative Morse practice is durable and portable (#221)', () => {
+  const PRACTICE = {
+    schemaVersion: 1,
+    sequence: { key: 3, read: 2, listen: 1 },
+    characters: {
+      key: { E: { outcomes: [true, false], shown: 2, lastShownSequence: 3 } },
+      read: { T: { outcomes: [true], shown: 1, lastShownSequence: 2 } },
+      listen: { A: { outcomes: [false], shown: 1, lastShownSequence: 1 } },
+    },
+  }
+
+  function parsed(morsePractice: unknown) {
+    const result = parseLibrary({ version: 5, topics: [currentTopic({ morsePractice })] })
+    if (!result.ok) throw new Error(result.error)
+    return result.library.topics[0]
+  }
+
+  function rejection(morsePractice: unknown): string {
+    const result = parseLibrary({ version: 5, topics: [currentTopic({ morsePractice })] })
+    if (result.ok) throw new Error('Expected the import to be rejected.')
+    return result.error
+  }
+
+  it('round-trips direction-specific practice without touching evidence or history', () => {
+    const topic = currentTopic({
+      morsePractice: PRACTICE,
+      history: [{ at: timestamp, correct: 1, total: 1, resolvedTo: 'drilled' }],
+      acquisitionReadyAt: timestamp,
+    })
+    const imported = parseLibrary({ version: 5, topics: [topic] })
+    expect(imported.ok).toBe(true)
+    if (!imported.ok) return
+    const exported = JSON.parse(JSON.stringify(imported.library))
+    const roundTripped = parseLibrary(exported)
+    expect(roundTripped).toEqual(imported)
+    if (roundTripped.ok) {
+      expect(roundTripped.library.topics[0].morsePractice).toEqual(PRACTICE)
+      expect(roundTripped.library.topics[0].history).toEqual(topic.history)
+      expect(roundTripped.library.topics[0].acquisitionReadyAt).toBe(timestamp)
+      expect(roundTripped.library.topics[0].itemEvidence).toEqual(imported.library.topics[0].itemEvidence)
+    }
+  })
+
+  it('reads old records as no practice and normalises an empty current record to absent', () => {
+    expect(parsed(undefined).morsePractice).toBeUndefined()
+    expect(parsed({ schemaVersion: 1, sequence: { key: 0, read: 0, listen: 0 }, characters: { key: {}, read: {}, listen: {} } }).morsePractice)
+      .toBeUndefined()
+  })
+
+  it('rejects unsupported schemas and corrupt practice instead of dropping it', () => {
+    expect(rejection({ ...PRACTICE, schemaVersion: 2 })).toContain('Unsupported practice schema version')
+    expect(rejection({ ...PRACTICE, sequence: { ...PRACTICE.sequence, listen: 'later' } })).toContain('Invalid listen sequence')
+    expect(rejection({ ...PRACTICE, characters: { ...PRACTICE.characters, key: { '?': { outcomes: [], shown: 0, lastShownSequence: 0 } } } }))
+      .toContain('Invalid key character record')
+  })
+})
+
 /**
  * The attempt log, validated like every other durable field.
  *

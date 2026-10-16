@@ -10,6 +10,8 @@ import {
 import type { CueRung } from '../../domain/study/cueLadder'
 import type { CueNote } from './cueNote'
 import { MorsePhrase } from '../morse/MorsePhrase'
+import { MorseCharacterSupport } from '../morse/MorseCharacterSupport'
+import { useMorseAudio } from '../morse/useMorseAudio'
 import { MorseKeyInput, useKeyedResponse } from '../morse/keyedResponse'
 
 export interface ProgressiveAnswer {
@@ -87,6 +89,7 @@ export function ProgressiveCard({
   const pending = useRef<ProgressiveAnswer | null>(null)
   const onAnswerRef = useRef(onAnswer)
   onAnswerRef.current = onAnswer
+  const correctionAudio = useMorseAudio()
 
   /**
    * The same keyed-answer lifecycle Learn and the word checkpoints use: a hit
@@ -104,6 +107,11 @@ export function ProgressiveCard({
     pending.current = null
     if (answer) onAnswerRef.current(answer)
   })
+
+  function continueCorrection() {
+    correctionAudio.stop()
+    acknowledge()
+  }
 
   const keying = rung.direction === 'prompt-to-answer'
   const prompt = useMemo(() => promptFor(rung, character), [rung, character])
@@ -277,21 +285,7 @@ export function ProgressiveCard({
                 </span>
               )}
             </p>
-            <p className="test-correction-row">
-              <span className="test-correction-label">Answer</span>
-              {keying ? (
-                <>
-                  <span className="test-correction-value mono" aria-hidden="true">
-                    {canonicalPattern(character.pattern)}
-                  </span>
-                  <span className="sr-only">{character.reading}</span>
-                </>
-              ) : (
-                <span className="test-correction-value test-correction-glyph">
-                  {character.glyph}
-                </span>
-              )}
-            </p>
+            <MorseCharacterSupport glyph={character.glyph} pattern={character.pattern} className="test-correction-support" playing={correctionAudio.sounding?.glyph === character.glyph} onToggle={() => correctionAudio.toggle(character.glyph)} audioError={correctionAudio.audioError} />
           </div>
           {/* Said after the correction, never before it: the thing to read
               first is what the answer actually was. */}
@@ -300,7 +294,7 @@ export function ProgressiveCard({
             ref={continueRef}
             className="test-next"
             type="button"
-            onClick={acknowledge}
+            onClick={continueCorrection}
             disabled={!holding}
           >
             Continue

@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-import { canonicalPattern } from '../../../domain/morse/testing/acquisitionProfile'
 import { MORSE_LETTERS, type MorseLetter } from '../../../domain/morse/code'
 import {
   nextCheckpointRunState,
@@ -7,6 +6,8 @@ import {
   type MorseWordCheckpoint,
 } from '../../../domain/morse/curriculum/checkpoints'
 import { MorseKeyInput } from '../input/MorseKeyInput'
+import { MorseCharacterSupport } from '../MorseCharacterSupport'
+import { useMorseAudio } from '../useMorseAudio'
 import { useKeyedResponse } from '../input/useKeyedResponse'
 import './MorseCheckpoint.css'
 
@@ -40,6 +41,7 @@ export function MorseCheckpoint({ checkpoint, onExit, onContinue, continueLabel 
   const [feedback, setFeedback] = useState<CheckpointFeedback | null>(null)
   const [attempts, setAttempts] = useState(0)
   const [correctAnswers, setCorrectAnswers] = useState(0)
+  const correctionAudio = useMorseAudio()
   const headingRef = useRef<HTMLHeadingElement>(null)
   const targetRef = useRef<HTMLDivElement>(null)
 
@@ -47,6 +49,11 @@ export function MorseCheckpoint({ checkpoint, onExit, onContinue, continueLabel 
     setFeedback(null)
     setRun((current) => nextCheckpointRunState(checkpoint, current))
   })
+
+  function continueCorrection() {
+    correctionAudio.stop()
+    acknowledge()
+  }
 
   const complete = run.phase === 'complete'
   const word = run.phase === 'word' ? checkpoint.words[run.wordIndex] : null
@@ -160,12 +167,10 @@ export function MorseCheckpoint({ checkpoint, onExit, onContinue, continueLabel 
             <strong>{feedback.correct ? 'Correct' : 'Miss'}</strong>
             {!feedback.correct && (
               <>
-                <span>
-                  {feedback.letter} is <span className="mono">{canonicalPattern(MORSE_LETTERS[feedback.letter])}</span>
-                </span>
+                <MorseCharacterSupport glyph={feedback.letter} pattern={MORSE_LETTERS[feedback.letter]} playing={correctionAudio.sounding?.glyph === feedback.letter} onToggle={() => correctionAudio.toggle(feedback.letter)} audioError={correctionAudio.audioError} />
                 {/* The same rule as Learn: a correction ends when the learner
                     says it does, never on a timer they did not set. */}
-                <button type="button" className="lesson-next" onClick={acknowledge} disabled={!holding}>
+                <button type="button" className="lesson-next" onClick={continueCorrection} disabled={!holding}>
                   Continue
                 </button>
               </>

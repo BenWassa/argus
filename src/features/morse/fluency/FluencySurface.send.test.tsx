@@ -16,7 +16,7 @@ afterEach(() => {
 })
 
 describe('a direct sending entry (#201)', () => {
-  it('opens the named stage without the chooser, and leaves to the hub', () => {
+  it('opens the named stage without the chooser, and exits to the Topic route', () => {
     const onExit = vi.fn()
     render(
       <LibraryProvider>
@@ -26,23 +26,25 @@ describe('a direct sending entry (#201)', () => {
     expect(screen.getByText('Spotlight words')).toBeTruthy()
     expect(screen.getByRole('heading', { level: 1 }).textContent).toMatch(/^Send [A-Z]+ in Morse\.$/)
 
-    // Leaving the run lands on the Play hub, not out of Morse entirely.
-    fireEvent.click(screen.getByRole('button', { name: 'Fluency' }))
-    expect(onExit).not.toHaveBeenCalled()
+    // A direct Topic launch returns to its Topic origin.
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }))
+    expect(onExit).toHaveBeenCalledTimes(1)
     expect(screen.getByText('Spotlight words')).toBeTruthy()
-    expect(screen.getByText('Dispatch')).toBeTruthy()
   })
 })
 
 describe('direct Topic-page Morse Play entries (#201)', () => {
   it('opens receiving at its recommended Copy level, skipping the hub', () => {
+    const onExit = vi.fn()
     render(
       <LibraryProvider>
-        <FluencySurface topicId={MORSE_ID} initialCopy="common" onExit={() => undefined} />
+        <FluencySurface topicId={MORSE_ID} initialCopy="common" onExit={onExit} />
       </LibraryProvider>,
     )
     expect(screen.getByText('Hear it, write it')).toBeTruthy()
     expect(screen.queryByText('After the alphabet')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }))
+    expect(onExit).toHaveBeenCalledTimes(1)
   })
 
   it('opens Free Play without creating a scored run', () => {
@@ -55,8 +57,19 @@ describe('direct Topic-page Morse Play entries (#201)', () => {
     expect(screen.getByRole('heading', { name: 'Free play' })).toBeTruthy()
     expect(screen.getByText(/Nothing here is saved/)).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Close' }))
-    expect(screen.getByText('After the alphabet')).toBeTruthy()
-    expect(onExit).not.toHaveBeenCalled()
+    expect(onExit).toHaveBeenCalledTimes(1)
+  })
+
+  it('opens a direct recognition run and exits to its Topic route', () => {
+    const onExit = vi.fn()
+    render(
+      <LibraryProvider>
+        <FluencySurface topicId={MORSE_ID} initialMode="sprint" onExit={onExit} />
+      </LibraryProvider>,
+    )
+    expect(screen.getByRole('button', { name: 'Close' })).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }))
+    expect(onExit).toHaveBeenCalledTimes(1)
   })
 })
 

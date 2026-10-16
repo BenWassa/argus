@@ -1,3 +1,4 @@
+import { LetterPracticeSurface } from '../../features/morse/practice/LetterPracticeSurface'
 import { useEffect, useRef, useState } from 'react'
 import { AppShell } from '../../shared/layout/AppShell'
 import { useLibrary } from '../../services/library/LibraryProvider'
@@ -225,6 +226,12 @@ export function AppRouter() {
     // Fluency is the post-acquisition surface. Like practice it is formative,
     // so it rides the `learn` mode rather than introducing a third mode some
     // future switch could mistake for scored.
+    if (route.mode === 'learn' && route.target?.kind === 'letter-practice') {
+      return <div className="app-shell session-shell"><main id="main" tabIndex={-1}>
+        <LetterPracticeSurface key={route.topicIds[0]} topicId={route.topicIds[0]} onExit={goBack} />
+      </main></div>
+    }
+
     if (route.mode === 'learn' && route.target?.kind === 'fluency') {
       return (
         <div className="app-shell session-shell">

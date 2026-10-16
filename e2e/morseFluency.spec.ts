@@ -103,12 +103,18 @@ async function openTopic(page: Page, library = LIBRARY) {
   await expect(page.locator('.topic-title')).toBeVisible()
 }
 
-async function openFluency(page: Page) {
+async function openLegacyFluencyHome(page: Page) {
   await openTopic(page)
-  await page.locator('.topic-play-choices').getByRole('button', { name: /Free Play/ }).click()
-  await expect(page.getByRole('heading', { name: 'Free play' })).toBeVisible()
-  await page.getByRole('button', { name: 'Close' }).click()
+  await page.locator('.topic-options summary').click()
+  await page.getByRole('button', { name: 'Listening settings' }).click()
   await expect(page.getByRole('heading', { name: 'After the alphabet' })).toBeVisible()
+}
+
+async function openChallenges(page: Page) {
+  await openTopic(page)
+  await page.locator('.topic-options summary').click()
+  await page.locator('.topic-options').getByRole('button', { name: 'Challenges' }).click()
+  await expect(page.locator('.fluency-run')).toBeVisible()
 }
 
 async function storedTopic(page: Page): Promise<Topic | null> {
@@ -196,12 +202,14 @@ async function runToSummary(page: Page) {
 test.describe('fluency', () => {
   test('is offered once the alphabet is acquired, beside a due check', async ({ page }) => {
     await openTopic(page)
-    // Play is in plain view (#201), not folded under More options.
+    // Direct routes are in plain view; Challenges stays in More options.
     await expect(page.locator('.topic-options')).not.toHaveAttribute('open', '')
     await expect(page.getByRole('heading', { name: 'Play Morse' })).toBeVisible()
-    for (const label of ['Send', 'Receive', 'Challenges', 'Free Play']) {
+    for (const label of ['Practice letters', 'Send', 'Receive', 'Free Play']) {
       await expect(page.locator('.topic-play-choices').getByRole('button', { name: new RegExp(label) })).toBeVisible()
     }
+    await page.locator('.topic-options summary').click()
+    await expect(page.locator('.topic-options').getByRole('button', { name: 'Challenges' })).toBeVisible()
     await expect(page.locator('.topic-primary')).toHaveText('Test')
   })
 
@@ -244,25 +252,22 @@ test.describe('fluency', () => {
     expect(after?.history).toEqual(before?.history)
   })
 
+  test('opens Free Play directly and returns to the Topic without saving', async ({ page }) => {
+    await openTopic(page)
+    const before = await storedTopic(page)
+    await page.locator('.topic-play-choices').getByRole('button', { name: 'Free Play' }).click()
+    await expect(page.getByRole('heading', { name: 'Free play' })).toBeVisible()
+    await page.getByRole('button', { name: 'Close' }).click()
+    await expect(page.locator('.topic-title')).toBeVisible()
+    expect(await storedTopic(page)).toEqual(before)
+  })
+
   test('sends visible words with the shared key and keeps the run formative', async ({ page }, testInfo) => {
     test.setTimeout(90_000)
     await openTopic(page, betweenChecks())
     const before = await storedTopic(page)
-    // The main action skips the picker, while its hub remains available on
-    // exit. Send's formative writing semantics are unchanged.
+    // The main action opens Send directly. Its formative writing semantics are unchanged.
     await page.locator('.topic-primary').click()
-    await expect(page.locator('.send-run')).toBeVisible()
-    await page.getByRole('button', { name: 'Fluency', exact: true }).click()
-    await expect(page.getByRole('heading', { name: 'After the alphabet' })).toBeVisible()
-
-    // Sending leads the post-alphabet surface rather than being hidden under
-    // the listening drills.
-    const sendHeading = page.getByRole('heading', { name: 'Send — see it, key it' })
-    const copyHeading = page.getByRole('heading', { name: 'Copy — hear it, write it down' })
-    await expect(sendHeading).toBeVisible()
-    expect((await sendHeading.boundingBox())!.y).toBeLessThan((await copyHeading.boundingBox())!.y)
-
-    await page.getByRole('button', { name: /Spotlight words/ }).click()
     await expect(page.locator('.send-run')).toBeVisible()
     await expect(page.locator('.morse-key')).toBeVisible()
 
@@ -312,7 +317,7 @@ test.describe('fluency', () => {
   test('continuous sending decodes pauses and explicit word gaps without saving incomplete rounds', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'phone-390', 'One phone exercises the shared continuous input path.')
     test.setTimeout(90_000)
-    await openFluency(page)
+    await openLegacyFluencyHome(page)
     const before = await storedTopic(page)
     for (const title of ['Word flow', 'Dispatch']) {
       await page.getByText('Choose another sending stage', { exact: true }).click()
@@ -328,7 +333,8 @@ test.describe('fluency', () => {
         await page.mouse.up()
         await page.waitForTimeout(1150)
         await expect(page.locator('.send-output-value')).toHaveText('A')
-        await page.getByRole('button', { name: 'Fluency', exact: true }).click()
+        await page.getByRole('button', { name: 'Close', exact: true }).click()
+        await expect(page.getByRole('heading', { name: 'After the alphabet' })).toBeVisible()
         await page.getByText('Choose another sending stage', { exact: true }).click()
         await page.getByRole('button', { name: /Word flow/ }).click()
       }
@@ -354,14 +360,14 @@ test.describe('fluency', () => {
       if (title === 'Dispatch') await page.getByRole('button', { name: 'Finish', exact: true }).click()
       await expect(page.getByText('Received as sent')).toBeVisible()
       await expect(page.locator('.send-compare dd').nth(1)).toHaveText(target)
-      await page.getByRole('button', { name: 'Fluency', exact: true }).click()
+      await page.getByRole('button', { name: 'Close', exact: true }).click()
       await expect(page.getByRole('heading', { name: 'After the alphabet' })).toBeVisible()
     }
     expect(await storedTopic(page)).toEqual(before)
   })
 
   test('pins the character speed and offers only the spacing', async ({ page }) => {
-    await openFluency(page)
+    await openLegacyFluencyHome(page)
     await expect(page.getByText(/characters always at 20 WPM/)).toBeVisible()
 
     // The bottom of the ladder: there is no way further down.
@@ -373,7 +379,7 @@ test.describe('fluency', () => {
   })
 
   test('remembers the rung across a reload without touching anything else', async ({ page }) => {
-    await openFluency(page)
+    await openLegacyFluencyHome(page)
     const before = await storedTopic(page)
     await page.getByRole('button', { name: 'Less room between characters' }).click()
     await expect.poll(async () => (await storedTopic(page))?.morseFluency?.rung).toBe(7)
@@ -390,11 +396,8 @@ test.describe('fluency', () => {
     // gated by the #87 response boundary. That is genuinely slow, and it is
     // the point: nothing here is driven through a test-only path.
     test.setTimeout(150_000)
-    await openFluency(page)
+    await openChallenges(page)
     const before = await storedTopic(page)
-
-    await page.getByRole('button', { name: /^Sprint/ }).click()
-    await expect(page.locator('.fluency-run')).toBeVisible()
 
     // Ten prompts, each played and then keyed back. The answer is never on
     // screen before the learner gives it, so the only way to know what to key
@@ -423,9 +426,7 @@ test.describe('fluency', () => {
   })
 
   test('never prints the prompt before it is answered', async ({ page }) => {
-    await openFluency(page)
-    await page.getByRole('button', { name: /^Sprint/ }).click()
-    await expect(page.locator('.fluency-run')).toBeVisible()
+    await openChallenges(page)
 
     // A sound-first surface. If the target were on screen this would be a
     // reading exercise, and the whole measurement would be meaningless.
@@ -434,15 +435,9 @@ test.describe('fluency', () => {
     expect(text).not.toMatch(/\b[A-Z]\b/)
   })
 
-  test('falls back to its origin rather than restarting a run', async ({ page }) => {
-    await openFluency(page)
-    await page.getByRole('button', { name: /^Sprint/ }).click()
-    await expect(page.locator('.fluency-run')).toBeVisible()
+  test('keeps the explicit listening settings route available as the legacy Fluency home', async ({ page }) => {
+    await openLegacyFluencyHome(page)
     expect((await route(page)).target?.kind).toBe('fluency')
-
-    await page.reload()
-    // The run held its queue in memory, so the entry resolves to the topic it
-    // was launched from instead of fabricating a fresh one.
-    await expect(page.locator('.fluency-run')).toHaveCount(0)
+    await expect(page.getByRole('heading', { name: 'After the alphabet' })).toBeVisible()
   })
 })

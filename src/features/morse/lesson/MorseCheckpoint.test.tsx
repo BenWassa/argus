@@ -51,9 +51,12 @@ describe('Morse word checkpoint surface', () => {
     expect(code).toContain('locked={!armed}')
     // The dismissal lives inside the miss branch and is driven by the hook's
     // own hold state, so it can never appear beside a hit.
-    expect(code).toContain('onClick={acknowledge} disabled={!holding}')
+    expect(code).toContain('onClick={continueCorrection} disabled={!holding}')
+    expect(code).toContain('function continueCorrection()')
+    expect(code).toContain('correctionAudio.stop()')
+    expect(code).toContain('acknowledge()')
     const missBranch = code.slice(code.indexOf('{!feedback.correct && ('), code.indexOf('morse-checkpoint-answer'))
-    expect(missBranch).toContain('onClick={acknowledge}')
+    expect(missBranch).toContain('onClick={continueCorrection}')
   })
 
   it('never requeues a miss and reports a small local summary', () => {

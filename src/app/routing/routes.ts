@@ -52,6 +52,7 @@ export type ParentRoute =
  * either way, so a reloaded entry falling back to its origin loses nothing.
  */
 export type RunTarget =
+  | { kind: 'letter-practice' }
   | { kind: 'lesson' }
   /** A Test run the learner chose as the short unscored review (`review.ts`). */
   | { kind: 'review' }
@@ -93,6 +94,7 @@ function isMode(value: unknown): value is Mode {
 
 function isRunTarget(value: unknown): value is RunTarget {
   if (!isRecord(value)) return false
+  if (value.kind === 'letter-practice') return true
   if (value.kind === 'lesson' || value.kind === 'review' || value.kind === 'after-course') return true
   if (value.kind === 'practice') {
     return value.itemIds === undefined || isIdList(value.itemIds)

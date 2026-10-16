@@ -23,8 +23,9 @@ import type { RunTarget } from '../../app/routing/routes'
 import { hasPractice, practiceItemCount } from '../../domain/study/practiceTargets'
 import { REVIEW_LENGTH, isReviewTopic } from '../../domain/study/review'
 import { morseFocusLetters } from '../../domain/morse/fluency/focus'
-import { recommendedSendStage, SEND_STAGE_INFO } from '../../domain/morse/fluency/send'
-import { nextCopyLevel } from '../../domain/morse/fluency/copy'
+import { recommendedSendStage, SEND_STAGE_INFO, SEND_STAGES, type SendStage } from '../../domain/morse/fluency/send'
+import { COPY_LEVELS, COPY_LEVEL_INFO, nextCopyLevel, type CopyLevel } from '../../domain/morse/fluency/copy'
+import { FLUENCY_MODES, type FluencyMode } from '../../domain/morse/fluency/session'
 import type { Mode } from '../../domain/study/mode'
 import type { Topic } from '../../domain/library/topic'
 import './TopicPage.css'
@@ -101,6 +102,10 @@ export function TopicPage({
     ? [...(checkpoints ?? [])].reverse().find((checkpoint) => checkpoint.unlocked)
     : undefined
 
+  function openLetterPractice() {
+    onStart('learn', [topic.id], { kind: 'letter-practice' })
+  }
+
   function openSend() {
     if (recommendedSend) onStart('learn', [topic.id], { kind: 'fluency', send: recommendedSend })
   }
@@ -111,6 +116,22 @@ export function TopicPage({
 
   function openRecognition() {
     onStart('learn', [topic.id], { kind: 'fluency', mode: 'sprint' })
+  }
+
+  function openSendStage(stage: SendStage) {
+    onStart('learn', [topic.id], { kind: 'fluency', send: stage })
+  }
+
+  function openCopyLevel(level: CopyLevel) {
+    onStart('learn', [topic.id], { kind: 'fluency', copy: level })
+  }
+
+  function openFluencyMode(mode: FluencyMode) {
+    onStart('learn', [topic.id], { kind: 'fluency', mode })
+  }
+
+  function openListeningSettings() {
+    onStart('learn', [topic.id], { kind: 'fluency' })
   }
 
   function openFreePlay() {
@@ -155,7 +176,7 @@ export function TopicPage({
         <span aria-hidden="true">←</span> Library
       </button>
 
-      <TopicHero topic={topic} />
+      {!course && <TopicHero topic={topic} />}
       <header className="topic-head">
         <h1 ref={heading} tabIndex={-1} className="topic-title">
           {topic.title}
@@ -170,7 +191,7 @@ export function TopicPage({
             all of them. */}
         <p className="topic-state">
           <span className="topic-state-meta tabular">
-            {topic.items.length} {topic.items.length === 1 ? 'item' : 'items'}
+            {course ? `A–Z · ${acquisition.settled} of 26 learned` : `${topic.items.length} ${topic.items.length === 1 ? 'item' : 'items'}`}
           </span>
           <span className={`topic-state-label${journey.phase === 'repair' ? ' is-repair' : topic.status === 'completed' || topic.status === 'drilled' ? ' is-banked' : ''}`}>
             {journey.statusLabel}
@@ -201,31 +222,26 @@ export function TopicPage({
       {course && afterAlphabet && sendDetail && (
         <section className="topic-play" aria-labelledby="topic-play-title">
           <h2 id="topic-play-title">Play Morse</h2>
-          <div className="topic-play-feature">
-            <p className="topic-play-kicker">Recommended next</p>
-            <h3>{sendDetail.title}</h3>
-            <p>{sendDetail.purpose}</p>
-            <button className="ghost topic-play-launch" type="button" onClick={openSend}>
-              {recommendedSend === 'words' ? 'Send five words' : `Play ${sendDetail.title}`} →
-            </button>
-          </div>
-          <h3 className="topic-play-choose">Choose an activity</h3>
           <div className="topic-play-choices">
+            <button type="button" className="topic-play-choice" aria-label="Practice letters" onClick={openLetterPractice}>
+              <strong>Practice letters</strong><span>Key, read or listen</span>
+            </button>
             <button type="button" className="topic-play-choice" onClick={openSend}>
               <strong>Send</strong><span>See text, key Morse</span>
             </button>
             <button type="button" className="topic-play-choice" onClick={openCopy}>
               <strong>Receive</strong><span>Hear Morse, write text</span>
             </button>
-            <button type="button" className="topic-play-choice" onClick={openRecognition}>
-              <strong>Challenges</strong><span>Speed and recognition</span>
-            </button>
             <button type="button" className="topic-play-choice" onClick={openFreePlay}>
               <strong>Free Play</strong><span>Make your own message</span>
             </button>
           </div>
-          <p className="topic-consequence">Repeat any game whenever you like. Practice never changes your Test result.</p>
+
         </section>
+      )}
+
+      {course && !afterAlphabet && (
+        <button className="ghost" type="button" onClick={openLetterPractice}>Practice letters</button>
       )}
 
       {course && !afterAlphabet && beginnerCheckpoint && (
@@ -247,10 +263,12 @@ export function TopicPage({
           <div className="topic-body-head">
             <h2 id="topic-course-head">Curriculum</h2>
             <button className="quiet" type="button" onClick={() => onReference(topic.id)}>
-              Morse alphabet
+              A–Z reference
             </button>
           </div>
 
+          <details className="fold" open={!afterAlphabet}>
+            <summary>Lessons</summary>
           <MorsePath
             path={path}
             checkpoints={checkpoints}
@@ -272,6 +290,8 @@ export function TopicPage({
             owed={acquisition.owed}
             onGoOver={startGoingOver}
           />
+
+          </details>
 
           {/* The course's own explanatory support, which had nowhere to be.
               `LearnSupport` was rendered only in the ordinary-topic branch
@@ -309,6 +329,33 @@ export function TopicPage({
         <details className="fold topic-options">
           <summary aria-label="More learning options">⋯ More options</summary>
           <div className="topic-alternates">
+          {afterAlphabet && <button type="button" className="quiet topic-alt" onClick={openRecognition}>Challenges</button>}
+          {afterAlphabet && (
+            <section className="topic-advanced-morse" aria-label="More Morse activities">
+              <h3>More Morse activities</h3>
+              <button type="button" className="quiet topic-alt" onClick={openListeningSettings}>
+                Listening settings
+              </button>
+              <h4>Send</h4>
+              {SEND_STAGES.map((stage) => (
+                <button key={stage} type="button" className="quiet topic-alt" onClick={() => openSendStage(stage)}>
+                  Send: {SEND_STAGE_INFO[stage].title}
+                </button>
+              ))}
+              <h4>Receive</h4>
+              {COPY_LEVELS.map((level) => (
+                <button key={level} type="button" className="quiet topic-alt" onClick={() => openCopyLevel(level)}>
+                  Receive: {COPY_LEVEL_INFO[level].title}
+                </button>
+              ))}
+              <h4>Challenges</h4>
+              {FLUENCY_MODES.filter((mode) => mode !== 'sprint').map((mode) => (
+                <button key={mode} type="button" className="quiet topic-alt" onClick={() => openFluencyMode(mode)}>
+                  Challenge: {mode[0].toUpperCase() + mode.slice(1)}
+                </button>
+              ))}
+            </section>
+          )}
           {/* A banked course is checked when the learner chooses. The full
               check is scored and can send the topic to repair; the review asks
               the weakest letters and moves nothing. */}

@@ -17,7 +17,7 @@ function source(file: string): string {
 
 describe('the Morse alphabet is complete and alphabetical', () => {
   it('lists all 26 letters, A to Z, in alphabetical order', () => {
-    const shown = [...html.matchAll(/<span class="morse-ref-letter" aria-hidden="true">([A-Z])<\/span>/g)]
+    const shown = [...html.matchAll(/<span class="morse-character-support-glyph morse-ref-letter" aria-hidden="true">([A-Z])<\/span>/g)]
       .map((match) => match[1])
     expect(shown).toHaveLength(26)
     expect(shown).toEqual([...letters].sort())

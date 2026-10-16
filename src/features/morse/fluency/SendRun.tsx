@@ -1,6 +1,6 @@
+import { correctionLetter } from '../../../domain/morse/correction'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { MORSE_LETTERS, decodePattern, type MorseLetter } from '../../../domain/morse/code'
-import { canonicalPattern } from '../../../domain/morse/testing/acquisitionProfile'
 import { judgeCopy, type CopyJudgement } from '../../../domain/morse/fluency/copy'
 import {
   FREE_LETTER_PAUSE_MS,
@@ -23,6 +23,8 @@ import {
 import { fire } from '../../../shared/haptics'
 import { MORSE_MAX_ELEMENTS, MorseKeyInput } from '../input/MorseKeyInput'
 import { useKeyedResponse } from '../input/useKeyedResponse'
+import { MorseCharacterSupport } from '../MorseCharacterSupport'
+import { useMorseAudio } from '../useMorseAudio'
 import './SendRun.css'
 
 interface SendRunProps {
@@ -78,6 +80,7 @@ export function SendRun({
   const [runSeed] = useState(() => seed ?? Date.now())
   const prompts = useMemo(() => sendPrompts(stage, runSeed), [runSeed, stage])
   const meta = SEND_STAGE_INFO[stage]
+  const correctionAudio = useMorseAudio()
 
   const [phase, setPhase] = useState<RunPhase>('sending')
   const [promptIndex, setPromptIndex] = useState(0)
@@ -123,6 +126,11 @@ export function SendRun({
 
     beginReview(judgeCopy(word, spotlightGivenRef.current))
   })
+
+  function continueSpotlightCorrection() {
+    correctionAudio.stop()
+    keyed.acknowledge()
+  }
 
   const clearPause = useCallback(() => {
     if (pauseTimer.current !== null) clearTimeout(pauseTimer.current)
@@ -233,6 +241,7 @@ export function SendRun({
   }
 
   function nextFromReview() {
+    correctionAudio.stop()
     if (!review) return
     const all = [...judgements, review]
     if (promptIndex + 1 < prompts.length) {
@@ -300,7 +309,7 @@ export function SendRun({
       <section className="session send-run send-summary">
         <div className="session-bar">
           <p><span className="session-topic">Send</span></p>
-          <button className="ghost small" type="button" onClick={onExit}>Fluency</button>
+          <button className="ghost small" type="button" onClick={onExit}>Close</button>
         </div>
 
         <div className="send-summary-card">
@@ -319,7 +328,7 @@ export function SendRun({
               Repeat
             </button>
             <button className="quiet" type="button" onClick={onExit}>
-              Back to Fluency
+              Done
             </button>
           </div>
         </div>
@@ -335,7 +344,7 @@ export function SendRun({
           <span className="session-count" aria-label={`Prompt ${promptIndex + 1} of ${prompts.length}`}>
             {promptIndex + 1}<span className="session-count-of">/{prompts.length}</span>
           </span>
-          <button className="ghost small" type="button" onClick={onExit}>Fluency</button>
+          <button className="ghost small" type="button" onClick={onExit}>Close</button>
         </div>
 
         <div className="send-review-card">
@@ -354,6 +363,13 @@ export function SendRun({
               <dd>{review.given || '—'}</dd>
             </div>
           </dl>
+
+          {(() => {
+            const glyph = correctionLetter(review.expected, review.given)
+            return glyph ? <MorseCharacterSupport glyph={glyph}
+              playing={correctionAudio.sounding?.glyph === glyph}
+              onToggle={() => correctionAudio.toggle(glyph)} audioError={correctionAudio.audioError} /> : null
+          })()}
 
           <p className="send-review-score tabular">{Math.round(review.accuracy * 100)}% this prompt</p>
 
@@ -377,7 +393,7 @@ export function SendRun({
         <span className="session-count" aria-label={`Prompt ${promptIndex + 1} of ${prompts.length}`}>
           {promptIndex + 1}<span className="session-count-of">/{prompts.length}</span>
         </span>
-        <button className="ghost small" type="button" onClick={onExit}>Fluency</button>
+        <button className="ghost small" type="button" onClick={onExit}>Close</button>
       </div>
 
       <div className="send-stage" data-kind={meta.interaction}>
@@ -411,16 +427,11 @@ export function SendRun({
                   <strong>{spotlightFeedback.correct ? 'Correct' : 'Miss'}</strong>
                   {!spotlightFeedback.correct && (
                     <>
-                      <span>
-                        {spotlightFeedback.letter} is{' '}
-                        <span className="mono">
-                          {canonicalPattern(MORSE_LETTERS[spotlightFeedback.letter])}
-                        </span>
-                      </span>
+                      <MorseCharacterSupport glyph={spotlightFeedback.letter} pattern={MORSE_LETTERS[spotlightFeedback.letter]} playing={correctionAudio.sounding?.glyph === spotlightFeedback.letter} onToggle={() => correctionAudio.toggle(spotlightFeedback.letter)} audioError={correctionAudio.audioError} />
                       <button
                         className="ghost small"
                         type="button"
-                        onClick={keyed.acknowledge}
+                        onClick={continueSpotlightCorrection}
                         disabled={!keyed.holding}
                       >
                         Continue

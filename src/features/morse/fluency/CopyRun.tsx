@@ -1,7 +1,8 @@
+import { correctionLetter } from '../../../domain/morse/correction'
 import type { MorseLetter } from '../../../domain/morse/code'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { MorseAudioPlayer } from '../../../domain/morse/audio'
-import { MORSE_FIGURES, MORSE_PUNCTUATION } from '../../../domain/morse/code'
+import { MORSE_FIGURES, MORSE_LETTERS, MORSE_PUNCTUATION } from '../../../domain/morse/code'
 import { canonicalPattern } from '../../../domain/morse/testing/acquisitionProfile'
 import {
   COPY_CLEAR_ACCURACY,
@@ -18,6 +19,8 @@ import {
 import { recordFluencyBest, type MorseFluencyProgress } from '../../../domain/morse/fluency/progress'
 import { fluencyTiming, type FluencyRung } from '../../../domain/morse/fluency/timing'
 import { fire } from '../../../shared/haptics'
+import { MorseCharacterSupport } from '../MorseCharacterSupport'
+import { useMorseAudio } from '../useMorseAudio'
 import './Fluency.css'
 
 interface CopyRunProps {
@@ -73,6 +76,7 @@ type Phase =
  */
 export function CopyRun({ level, rung, progress, focus, onProgress, onLevel, onExit }: CopyRunProps) {
   const info = COPY_LEVEL_INFO[level]
+  const correctionAudio = useMorseAudio()
   const [prompts] = useState(() => copyPrompts(level, progress, Date.now(), focus))
   const [at, setAt] = useState(0)
   const [phase, setPhase] = useState<Phase>(() => (info.introduces ? { kind: 'intro' } : { kind: 'asking' }))
@@ -138,6 +142,7 @@ export function CopyRun({ level, rung, progress, focus, onProgress, onLevel, onE
   }
 
   function advance() {
+    correctionAudio.stop()
     const next = at + 1
     setTyped('')
     setPlays(0)
@@ -275,7 +280,7 @@ export function CopyRun({ level, rung, progress, focus, onProgress, onLevel, onE
             Nothing here changed your saved progress, your check evidence or your completion.
           </p>
           <button className="ghost" type="button" onClick={onExit}>
-            Back to fluency
+            Done
           </button>
         </div>
       </section>
@@ -284,6 +289,7 @@ export function CopyRun({ level, rung, progress, focus, onProgress, onLevel, onE
 
   if (!prompt) return null
   const judgement = phase.kind === 'feedback' ? phase.judgement : null
+  const correctionGlyph = judgement && !judgement.correct ? correctionLetter(judgement.expected, judgement.given) : null
 
   return (
     <section className="session fluency-run copy-run" data-step="check">
@@ -366,6 +372,15 @@ export function CopyRun({ level, rung, progress, focus, onProgress, onLevel, onE
                 <p className="copy-given mono">
                   You wrote <span>{judgement.given || '—'}</span>
                 </p>
+                {correctionGlyph && (
+                  <MorseCharacterSupport
+                    glyph={correctionGlyph}
+                    pattern={MORSE_LETTERS[correctionGlyph]}
+                    playing={correctionAudio.sounding?.glyph === correctionGlyph}
+                    onToggle={() => correctionAudio.toggle(correctionGlyph)}
+                    audioError={correctionAudio.audioError}
+                  />
+                )}
                 <button type="button" className="lesson-next" onClick={advance}>
                   Continue
                 </button>

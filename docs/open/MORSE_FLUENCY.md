@@ -2,13 +2,13 @@
 
 **Status:** base implemented under #119; guided Send extension merged via #195 and included in v1.5.0; real Pixel acceptance remains outstanding.
 
-**Authority:** maintained Fluency contract; guided Send describes the pending candidate. `MORSE_PROGRAMME_PLAN.md`
+**Authority:** maintained Fluency contract; #221 navigation and shared corrections are implemented for review. `MORSE_PROGRAMME_PLAN.md`
 still governs the A–Z acquisition programme, `PROGRESS_ARCHITECTURE.md` still
 governs the state boundaries this surface must not cross, and
 `MORSE_AUDIO_RUNTIME.md` still governs every Morse audio entry point including
 this one.
 
-**Last verified:** 2026-10-14 (S0 handoff added, #201)
+**Last verified:** 2026-10-16 (#221 implementation in review; physical Pixel acceptance outstanding)
 
 > **Misses lead — 2026-09-30.** `fluencyNeed` takes an optional focus set, and adds a bounded `FOCUS_NEED` (150) for a letter the learner is currently missing. The set is `morseFocusLetters`: a lesson letter still owed, or a Test direction whose last answer was wrong. Every Fluency run and the Copy *letters* level weight it. "Practise the letters you missed", from the topic page or a check's end screen, now opens a **keyed Fluency sprint over just those letters** (route `{ kind: 'fluency', mode: 'sprint', letters }`), not the reveal-and-self-grade practice run. It writes only `morseFluency`, as before.
 
@@ -47,23 +47,25 @@ Entry points (#201 S0 merged, 2026-10-14; following UX runtime PR pending, await
   Morse course, and offers a quiet **Play with words** for any other real Morse
   result (held, repair, non-qualifying). A run withheld by acquisition offers
   neither. Both route to the `fluency` run target with `send: 'words'`, so the
-  learner lands in Spotlight words with no chooser; leaving that run reaches the
-  Fluency home. None of these write evidence, and no schema changed.
+  learner lands in Spotlight words with no chooser; leaving a direct run returns
+  to its originating Topic or handoff route. None of these write evidence, and no schema changed.
 - When every Send stage is cleared the home recommends the stage with the lowest
   recorded best (ties to the harder stage) instead of always *Short messages*.
 
 
-**Pending #201 embedded Play entry:** the owner approved using the existing
-Morse Topic page instead of a new destination. A follow-up PR changes the
-banked course's `Keep going` UI to a directly launched recommended Send
-stage; it shows four direct families on the Topic page, while leaving the
-current detailed Fluency hub and diagnostics in place. Its two new route
-parameters are `copy` (validated against `COPY_LEVELS`) and `free: true`;
-both preserve run-only formative behavior and return to the existing hub on
-exit. A developing learner with an unlocked word checkpoint gets a `Try a
-word` replay of that already-validated checkpoint. This is not the future
-generated known-letter game. Do not treat this paragraph as shipped until
-the implementation PR merges.
+**Topic entry and #221 consolidation (implementation in review):** Morse Topic
+carries Practice letters, Send, Receive and Free Play directly. Its one primary
+still follows the existing formal journey or recommended Send stage. Acquired
+Lessons are folded, and A–Z reference remains direct. More options preserves
+all Send stages, Receive levels and recognition modes as direct routes;
+Listening settings deliberately retains the older Fluency home for its pace
+dial and diagnostics. Direct activity exits return to their originating route,
+while activities launched inside that optional home return there. Shared
+`MorseCharacterSupport` supplies character corrections without changing grading.
+A developing learner still has the unlocked `Try a word` replay. The separate
+`letter-practice` route records only `morsePractice`, not auditory Fluency
+statistics or formal evidence. See [#221](ISSUE_221_MORSE_UX_CONSOLIDATION.md)
+for the maintained state contract, captures and remaining device acceptance.
 
 The gate reads `journeyFor(topic).acquisition.ready`, **not**
 `topic.acquisitionReadyAt`. The stored anchor postdates the programme, so a

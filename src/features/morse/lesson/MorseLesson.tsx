@@ -46,6 +46,7 @@ import type { Topic } from '../../../domain/library/topic'
 import { useKeyedResponse } from '../input/useKeyedResponse'
 import { MorseCheckpoint } from './MorseCheckpoint'
 import { MorseBeatGrammarNote } from '../MorsePhrase'
+import { MorseCharacterSupport } from '../MorseCharacterSupport'
 import { useMorseAudio } from '../useMorseAudio'
 import { CharacterStage, ListeningCheckStep, StepLabel, VisualCheckStep } from './LessonSteps'
 import { useLessonRecord } from './useLessonRecord'
@@ -600,10 +601,9 @@ export function MorseLesson({
         <div className="lesson-feedback" role="status" aria-live="assertive">
           <p className="lesson-verdict">Not that one</p>
           <p className="lesson-correction">You chose {shownListeningFeedback.response || 'no letter'}. The sound was {shownListeningFeedback.glyph}:</p>
-          <CharacterStage glyph={shownListeningFeedback.glyph} pattern={shownListeningFeedback.pattern}
+          <MorseCharacterSupport glyph={shownListeningFeedback.glyph} pattern={shownListeningFeedback.pattern}
             playing={sounding?.glyph === shownListeningFeedback.glyph}
-            activeIndex={sounding?.glyph === shownListeningFeedback.glyph ? sounding.index : null}
-            onToggle={() => toggle(shownListeningFeedback.glyph)} />
+            onToggle={() => toggle(shownListeningFeedback.glyph)} audioError={audioError} />
           <button className="lesson-next" type="button" onClick={continueFromMiss} disabled={!holding}>Continue</button>
         </div>
       )}
@@ -612,8 +612,8 @@ export function MorseLesson({
         <div className="lesson-feedback" role="status" aria-live="assertive">
           <p className="lesson-verdict">Not that one</p>
           <p className="lesson-correction">You keyed <span className="mono">{feedback.response ? canonicalPattern(feedback.response) : '—'}</span>. {feedback.glyph} is:</p>
-          <CharacterStage glyph={feedback.glyph} pattern={feedback.pattern} playing={sounding?.glyph === feedback.glyph}
-            activeIndex={sounding?.glyph === feedback.glyph ? sounding.index : null} onToggle={() => toggle(feedback.glyph)} />
+          <MorseCharacterSupport glyph={feedback.glyph} pattern={feedback.pattern} playing={sounding?.glyph === feedback.glyph}
+            onToggle={() => toggle(feedback.glyph)} audioError={audioError} />
           <button className="lesson-next" type="button" onClick={continueFromMiss} disabled={!holding}>Continue</button>
         </div>
       )}
