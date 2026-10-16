@@ -455,7 +455,7 @@ const awarenessLearn: LearnContent = {
       note: 'Jurisdictional anchor for observing the environment and recording what is seen. Occupational syllabus, not proof of civilian transfer.',
     },
     {
-      label: 'Wolfe et al. (2005) — Low target prevalence is a stubborn source of errors in visual search tasks',
+      label: 'Wolfe et al. (2007) — Low target prevalence is a stubborn source of errors in visual search tasks',
       url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC2662480/',
       note: 'Laboratory evidence that rare targets are often missed. Basis for the statement that attention has limits.',
     },

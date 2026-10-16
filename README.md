@@ -67,6 +67,12 @@ The **full offline-first runtime guarantee is active scope in #113**, not yet a 
 - [Roles evaluation closeout](docs/closed/ROLES_SCREEN_EVALUATION.md) — Communicator MVP and SVG review, merge verification and deployment hold.
 - [Expanded role architecture research (#197)](docs/open/ISSUE_197_EXPANDED_ROLE_ARCHITECTURE_RESEARCH.md) — full 24-topic MECE Library inventory, cross-role matrix and proposed cognitive/technical/advanced/capstone learning lines; research only.
 - [Scored-content audit (#197)](docs/open/ISSUE_197_SCORED_CONTENT_AUDIT.md) — per-item audit of all 24 shipped topics: 342 items, 29.5% objective, application only in Navigation.
+- [Analyst blind review](docs/open/ISSUE_197_ANALYST_HUMAN_REVIEW.md) and [separate facilitator key](docs/open/ISSUE_197_ANALYST_REVIEW_KEY.md) — 36 staged questions; human acceptance pending.
+- [Radio reviewer worksheet](docs/open/ISSUE_150_HUMAN_REVIEW.md) — 28 scored items and independent qualified review record.
+- [CAF permission request draft](docs/open/ISSUE_178_PERMISSION_REQUEST_DRAFT.md) — intended-use text and 57-image metadata inventory; not submitted.
+- [Morse next-slice recommendation](docs/open/ISSUE_201_NEXT_SLICE_RECOMMENDATION.md) — validate the existing S1A draft; [scope/CI review](docs/open/ISSUE_201_S1A_SCOPE_REVIEW.md) distinguishes approved architecture from pending visual/device checks.
+- [Scuba asset review](docs/open/ISSUE_132_SCUBA_ASSET_REVIEW.md) — four sourced photo candidates and two remaining image briefs; Learn-only scope.
+- [Human acceptance checklist](docs/open/HUMAN_ACCEPTANCE_CHECKLIST.md) — one review session for prepared scuba, Analyst, radio, badge, Pixel, offline and permission gates.
 - [Next-batch checkpoint](docs/open/NEXT_BATCHES.md) — completed merges, remaining offline integration and owner/external gates.
 - [Offline shell and update safety](docs/open/ISSUE_113_OFFLINE_SHELL.md) — generation-pinned navigation and failed-update verification; merged hardening.
 - [IndexedDB persistence foundation](docs/open/ISSUE_113_INDEXEDDB_FOUNDATION.md) — native database/outbox boundary and browser verification; production integration remains open.
