@@ -274,6 +274,8 @@ Only after owner approval:
 
 ## 14. Decisions still required
 
+> **Superseded 2026-10-15.** The owner ratified D1–D9 on 2026-10-13; see the [#197 decision record](ISSUE_197_ROLE_DECISION_RECORD.md), which now answers these questions: the screen is Roles, the first earnable roles are Communicator and Navigator (Mariner followed on 2026-10-15), Medic and the global rank system are not pursued, versioning follows the permanent-receipt policy (D6), and tiers are rejected (D2). Kept below as the historical question list; do not treat any box as open.
+
 - [ ] Final screen name: Roles vs another label.
 - [ ] First earnable roles.
 - [ ] Exact Operator boundary.
