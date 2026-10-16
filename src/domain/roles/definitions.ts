@@ -46,4 +46,20 @@ export const NAVIGATOR = {
   ],
 } as const satisfies RoleDefinition
 
-export const AVAILABLE_ROLES: readonly RoleDefinition[] = [COMMUNICATOR, NAVIGATOR]
+/**
+ * Owner-ratified #197 D3. The owner accepted release before the independent
+ * #147/#148 maritime reviews close and will review the deployed content.
+ */
+export const MARINER = {
+  id: 'mariner',
+  version: 1,
+  title: 'Mariner',
+  description: 'Recognises vessel lights, shapes and flags, marine weather terms and marine radio call structures.',
+  pathways: [
+    { id: 'vessels-signals', title: 'Vessels & Signals', topicIds: ['navigation-lights', 'vessel-day-shapes', 'signal-flags'] },
+    { id: 'sea-sky', title: 'Sea & Sky', topicIds: ['beaufort-wind-scale', 'cloud-genera'] },
+    { id: 'marine-radio', title: 'Marine Radio', topicIds: ['marine-vhf-routine-calling', 'marine-vhf-priority-communications'] },
+  ],
+} as const satisfies RoleDefinition
+
+export const AVAILABLE_ROLES: readonly RoleDefinition[] = [COMMUNICATOR, NAVIGATOR, MARINER]

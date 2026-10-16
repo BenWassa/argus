@@ -1,6 +1,6 @@
 # Issue #192 — Custom role badge art system
 
-**Status:** Nautical art family owner-locked; Navigator, Mariner and Diver original PNG pairs approved and supplied on main (2026-10-15). Navigator raster integration in progress; Communicator SVG remains vetted and active, with replacement PNG not accepted. Real Pixel checks outstanding.
+**Status:** Nautical art family owner-locked. Navigator, Mariner and Diver original PNG pairs approved and supplied (2026-10-15); Navigator and Mariner are wired into the app. The owner accepted the Communicator PNG pair on 2026-10-15 and it replaces the vetted SVG. Responder and Operator masters are staged in `argus_badge_partial_asset_package.zip`, not integrated. Real Pixel checks outstanding.
 **Authority:** active visual-production proposal for role badges only. `DESIGN.md` / `DESIGN.json` remain the authority for the application UI.
 
 **Production ownership — 2026-10-13:** the owner will create and supply subsequent badge artwork. Navigator precedes Mariner under ratified #197 D8. Agents integrate and verify supplied files.
@@ -160,12 +160,14 @@ For every final badge:
 - [x] Owner-selected family — Nautical (current).
 - [ ] One approved master per v1 role.
 - [x] Small-scale rasterized vector/reference comparison (32–512 px; runtime device QA outstanding).
-- [x] Production asset format decision — genuinely layered standalone SVG.
+- [x] Production asset format decision — owner-authorized PNG pairs (§18); layered SVG retained as historical evidence.
 - [x] Manifest/provenance record.
 - [x] Integration notes for #191.
 
 
 ## 12. Approved visual direction — 2026-10-07
+
+**Historical production notes (§§12–17):** these sections record the former SVG approach and its QA. The 2026-10-15 owner-authorized PNG replacement in §18 supersedes their runtime format, vector-fidelity gate, symbol-verification claims for displayed artwork, and old deployment holds. The retained SVG remains reference evidence; its verification does not transfer to the PNGs.
 
 **Nautical (current)** was selected over CAF-inspired, minimal and other families. The original concept's high-detail circular medallion is the authority: substantial relief, rope edge, brushed metal, deep navy enamel, gold relief, limited teal wave accents. Communicator's central subjects: radio mast/transmission arcs, abstract signal flags, Morse-like marks, waves and compass rose. Do not use official CAF insignia, crowns, trade badges or protected service logos.
 
@@ -176,7 +178,7 @@ Only fully completed roles receive the **earned** full-colour badge. An unearned
 
 ## 13. Layered SVG reconstruction — 2026-10-07
 
-The user approved continuing with a **real animatable SVG**, rather than importing the generated PNG as the sole production asset. PR #196 now replaces the first provisional flat placeholder with a manually authored, fully vector medallion in `public/media/roles/communicator.svg` (~20 KB). It follows the locked Nautical family; it is not claimed to be a pixel-perfect replica of the original photorealistic reference.
+The user approved continuing with a **real animatable SVG**, rather than importing the generated PNG as the sole production asset. PR #196 replaced the first provisional flat placeholder with a manually authored, fully vector medallion originally in `public/media/roles/communicator.svg` (~20 KB), now archived as [`communicator-vetted-v5.svg`](../closed/assets/roles/communicator-vetted-v5.svg). It follows the locked Nautical family; it is not claimed to be a pixel-perfect replica of the original photorealistic reference.
 
 **Actual editable vector groups:** `badge-body`, `rope-border` (106 reusable modeled braid segments), `enamel-field`, `mast-assembly`, `signal-arcs` (individual left/right groups), `signal-flags` (individual flags), `morse-code` (left/right), `sea-waves` (back/mid/front), `rim-clasps`, `compass-rose`. All artwork is original SVG path/circle/rect geometry with gradients and filters: no data URI, embedded bitmap, traced protected art, HTML foreign object, downloaded font or official emblem. Outer medallion geometry is transparent beyond the badge perimeter; the source remains square 512 viewBox.
 
@@ -184,7 +186,7 @@ The user approved continuing with a **real animatable SVG**, rather than importi
 
 **QA:** SVG parsed and rasterized at 512, 220, 96, 48 and 32 px in the working environment. The 32 px badge reads as a medallion and mast, but flags and Morse marks intentionally require larger presentation. Review at 220 px remains the primary target. A vector-to-approved-raster side-by-side is available for owner review outside the repository. CI/browser suite, native mobile (Pixel), high-DPI rasterization of SVG filters, screen-reader interpretation and animation triggers should be verified on the PR before merge. The current preferred approach does **not** require importing the pre-generated WebP masters to achieve an editable vector.
 
-**Status gate:** this fulfills the SVG production **candidate**, not final visual acceptance. Do not close #192 or describe the badge as an exact production reproduction until owner accepts the vector's fidelity and mobile/browser checks pass. `public/media/roles/manifest.json` records asset details and the Git blob SHA.
+**Historical status gate (superseded by §18):** this fulfilled an SVG production **candidate**, not final visual acceptance. Vector-fidelity acceptance and mobile/browser checks were outstanding at that stage; the former v5 manifest recorded asset details and the Git blob SHA. Section 18 records the later PNG choice and remaining device QA.
 
 
 ## 14. Vetted symbols and reference refinement (2026-10-07)
@@ -195,11 +197,11 @@ The owner requested checking the SVG against the PNG reference and chose four ac
 - The four flags follow the [NGA Pub. 102 inside-cover flag plate](https://msi.nga.mil/api/publications/download?key=16694273%2FSFH00000%2FPub102bk.pdf): November has sixteen alternating blue/white squares; Zulu has yellow top, blue fly, red bottom and black hoist triangles; Victor has a red diagonal cross on white; Alfa has white at the hoist, blue at the fly and an actual swallowtail notch. The previous quartered checker, invented diagonal colours, and rectangular Alfa-like split were replaced.
 - The rim now uses wider twisted rope strands, the top keeper has the reference's pointed crest, and the lower compass tip has more viewport clearance. Stable parent layer IDs and the existing earned/unearned treatment are preserved. No bitmap is embedded and the reference PNG is untouched.
 
-Regression checks inspect the actual SVG Morse shapes/order, dot/dash dimensions and gaps against the runtime alphabet, plus flag geometry. Both material states were inspected at 512 px and in the mobile Roles screen. This is an artwork correction only; completion semantics and the deployment hold remain unchanged. Updated provenance and the asset blob hash are recorded in `public/media/roles/manifest.json`.
+Historical regression checks inspected the actual SVG Morse shapes/order, dot/dash dimensions and gaps against the runtime alphabet, plus flag geometry. Both material states were inspected at 512 px and in the mobile Roles screen. This was an artwork correction only; completion semantics and the then-current deployment hold were unchanged. The former v5 manifest recorded SVG provenance and the asset blob hash. The current v6 manifest describes the replacement PNGs; the SVG checks were removed when the runtime SVG was archived.
 
 ## 15. Retained reference source
 
-The original [locked/earned PNG reference](assets/roles/communicator-locked-earned-reference.png) is retained under `docs/open/assets/roles/`, outside the public runtime asset tree. Its original filename and SHA-256 are recorded in `public/media/roles/manifest.json`; moving and renaming it did not change its pixels. The source sheet guides composition and material, while §14 governs the corrected Morse and flag symbols.
+The original [locked/earned PNG reference](assets/roles/communicator-locked-earned-reference.png) is retained under `docs/open/assets/roles/`, outside the public runtime asset tree. Its original filename was `ChatGPT Image Oct 7, 2026, 10_23_13 PM.png`, with SHA-256 `5ca25a6a03586b02ff476959ea79f3524c0c0f2e251444d80aa48d39d65819d2` (recorded in the former v5 manifest); moving and renaming it did not change its pixels. The source sheet guided composition and material. Section 14 describes corrected symbols in the archived SVG only, not the current owner-accepted PNGs.
 
 ## 16. Symmetric radio waves (2026-10-07)
 
@@ -212,6 +214,12 @@ Owner flagged the bottom compass shape. Its overlapping, uneven stars were repla
 
 ## 18. Owner-approved PNG pairs — 2026-10-15
 
-The owner rejected the lossy-looking hand-reconstructed SVGs and locked the approved original PNG artwork for **Navigator, Mariner and Diver**. The two variants per role are full-colour `*_unlocked.png` (earned) and dark desaturated `*_locked.png` (not yet earned). Approved artwork is **frozen**; the files are not to be repainted or re-centred. `argus_navigator_mariner_diver_locked_unlocked.zip` is committed at the repository root (SHA-256 `f9c90c9b5f264d2a5411103fa23404bea33690460777b121a07896ad1512f094`). At local/dev/demo/production build time, `scripts/prepareRoleBadges.mjs` checksum-verifies **all six** original 512×512 RGBA PNGs against the source ZIP but emits **only Navigator's locked and unlocked images** into `public/media/roles`. Mariner/Diver stay archived, avoiding wasted precache space until eligible; any previously generated copies are removed automatically. Generated PNGs are ignored in Git. This works around the owner's ZIP-only upload without duplicating binary masters in Git.
+The owner rejected the lossy-looking hand-reconstructed SVGs and locked the approved original PNG artwork for **Navigator, Mariner and Diver**. The two variants per role are full-colour `*_unlocked.png` (earned) and dark desaturated `*_locked.png` (not yet earned). Approved artwork is **frozen**; the files are not to be repainted or re-centred. `argus_navigator_mariner_diver_locked_unlocked.zip` is committed at the repository root (SHA-256 `f9c90c9b5f264d2a5411103fa23404bea33690460777b121a07896ad1512f094`). At local/dev/demo/production build time, `scripts/prepareRoleBadges.mjs` checksum-verifies **all six** original 512×512 RGBA PNGs against the source ZIP but emits **Navigator's and Mariner's locked and unlocked images** into `public/media/roles`. Diver stays archived, avoiding wasted precache space until eligible; any previously generated copies are removed automatically. Generated PNGs are ignored in Git. This works around the owner's ZIP-only upload without duplicating binary masters in Git.
 
-**Runtime boundary:** Only Navigator's badge is exposed now. The locked/earned file selection follows the same permanent award receipt as all other role UI; the pre-darkened PNG is not additionally desaturated or darkened by CSS. **Mariner and Diver remain unavailable**, with artwork staged for future curricula, not unlocked by these assets. Communicator retains the vetted SVG until its separate incorrect-raster signalling marks are corrected and owner-approved. The original ZIP is the authority, not earlier SVG drafts or later retouched previews. Browser and Pixel QA remain release gates. Do not change scored requirements or awards as part of artwork integration.
+**Runtime boundary:** Communicator, Navigator and Mariner are available roles with earned/locked PNG pairs; Diver remains unavailable and its artwork stays archived. Locked/earned selection follows permanent role-award receipts. The pre-darkened PNGs are not additionally desaturated or darkened by CSS. The source ZIP remains the authority for Navigator/Mariner/Diver masters; agents must not repaint or re-centre approved artwork.
+
+**Communicator replacement:** the owner authorized “pngs replace” on 2026-10-15, as recorded in the [#197 decision record](ISSUE_197_ROLE_DECISION_RECORD.md). Its 1254×1254 masters come from `argus_badge_partial_asset_package.zip`; the committed runtime pair is resized to 440×440 to stay within the app-shell precache budget. [`manifest.json`](../../public/media/roles/manifest.json) records archive/master hashes. The vetted SVG is retained under `docs/closed/assets/roles/communicator-vetted-v5.svg` and no longer renders in the app. Owner approval resolves the former vector-fidelity choice; it does not establish flag/Morse accuracy in the PNG. Those symbols were not re-vetted against ITU-R M.1677 or NGA Pub. 102; the visible checker is 2×2 rather than the archived November flag's 4×4. Treat the badge as decorative art, not a technically verified signalling reference. No new owner approval gate is introduced by this note.
+
+**Mariner disposition:** the owner authorized “do mariner ill check when deployed” on 2026-10-15. This explicitly waives the pre-release #147/#148 independent-review gate for Mariner only; it does not grant maritime domain acceptance or close either review. The seven existing topics form the three pathways in the [runtime contract](ISSUE_197_ROLE_RUNTIME.md). Any correction follows the ratified versioned optional-update policy (D6). Other independent content reviews remain open.
+
+Automated build/browser checks are recorded in PR #218. Physical Pixel, installed-PWA and high-DPI artwork checks remain outstanding. Do not close #192 on the strength of PNG selection or CI alone. Role completion semantics and scored topic content are unchanged by the artwork replacement.

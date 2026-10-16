@@ -1,6 +1,6 @@
 # Maritime #147/#148 — outstanding domain-review evidence and disposition
 
-**Review date:** 2026-10-14. **Status:** source-based follow-up only; **independent maritime domain acceptance NOT granted**. Supersedes neither the #138 scope nor the already-recorded [NGA rendered comparison](ISSUE_148_PUB102_COMPARISON.md) from PR #204. No scored content, diagram geometry, manifest acceptance, or release gate changed in this review.
+**Review date:** 2026-10-14. **Status:** source-based follow-up only; **independent maritime domain acceptance NOT granted**. The owner released Mariner on 2026-10-15 without it and will review the deployed content; the gates below stay open. Supersedes neither the #138 scope nor the already-recorded [NGA rendered comparison](ISSUE_148_PUB102_COMPARISON.md) from PR #204. No scored content, diagram geometry, manifest acceptance, or release gate changed in this review.
 
 ## Source hierarchy and evidence
 
@@ -33,7 +33,7 @@ All **12** selected letters A/B/D/F/J/L/M/O/U/V/W/Y have matching identifying co
 - Obtain or inspect the **current IMO full-colour flag plate** and distinguish normative requirements from non-dimensioned illustration choices; settle every proportional discrepancy explicitly.
 - Conduct separate domain-informed visual review of each flag and its scored wording; record reviewer, date, editions and accepted discrepancies before setting **any** `flagManifest.review` field. Leave all `review: null` meanwhile.
 - Retain all twelve selected signals, their stable item IDs and provenance; do not claim that a selected subset is an official sub-code.
-- Keep **Mariner role availability/acceptance blocked** pending both #147 and #148 independent gates. Ship history is not acceptance.
+- **Mariner is available** under the owner's 2026-10-15 waiver; this is a release decision, not review acceptance. Ship history is not acceptance.
 
 ## Changes authorized by this pass
 

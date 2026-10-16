@@ -12,6 +12,12 @@ interface Props {
   onSelectRole: (roleId: RoleId) => void
 }
 
+const BOUNDARY: Partial<Record<RoleId, string>> = {
+  communicator: 'Not professional radio or marine certification.',
+  navigator: 'Not a navigation qualification or evidence of practical wayfinding.',
+  mariner: 'Not a marine certification or evidence of applying the collision regulations.',
+}
+
 function RoleTopicRow({ topic, onOpenTopic }: { topic: RoleTopicProgress; onOpenTopic: Props['onOpenTopic'] }) {
   const unavailable = topic.state === 'unavailable'
   const status = topic.needsRefresh ? 'Refresh needed'
@@ -37,14 +43,9 @@ export function RolesPage({ onOpenTopic, onContinue, selectedRole, onSelectRole 
   const { topics, roleAwards } = useLibrary()
   const role = AVAILABLE_ROLES.find((candidate) => candidate.id === selectedRole) ?? AVAILABLE_ROLES[0]
   const progress = useMemo(() => roleProgress(role, topics, roleAwards), [role, topics, roleAwards])
-  // Only approved, available role artwork is rendered. Mariner/Diver assets are
-  // staged from the ZIP but their role curricula are not yet earnable.
-  // Communicator retains its vetted SVG until a corrected raster is approved.
-  const badgeSource = role.id === 'communicator'
-    ? `${import.meta.env.BASE_URL}media/roles/communicator.svg`
-    : role.id === 'navigator'
-      ? `${import.meta.env.BASE_URL}media/roles/navigator_${progress.earned ? 'unlocked' : 'locked'}.png`
-      : null
+  // Only owner-approved raster art for available roles is rendered. Diver art
+  // is staged but its curriculum is not yet earnable.
+  const badgeSource = `${import.meta.env.BASE_URL}media/roles/${role.id}_${progress.earned ? 'unlocked' : 'locked'}.png`
   const requirements = progress.pathways.flatMap((path) => path.topics)
   const next = requirements.find((topic) => topic.needsRefresh)
     ?? requirements.find((topic) => topic.state === 'in-progress')
@@ -62,14 +63,14 @@ export function RolesPage({ onOpenTopic, onContinue, selectedRole, onSelectRole 
         <h1>{role.title}</h1>
         <p>{role.description}</p>
       </header>
-      <section className={`roles-award ${badgeSource ? '' : 'without-art'}`} aria-label={`${role.title} achievement`}>
-        {badgeSource && <img
+      <section className="roles-award" aria-label={`${role.title} achievement`}>
+        <img
           src={badgeSource}
-          className={`roles-medallion ${progress.earned ? 'is-earned' : 'is-unearned'} ${role.id === 'navigator' ? 'is-raster' : ''}`}
+          className={`roles-medallion ${progress.earned ? 'is-earned' : 'is-unearned'} is-raster`}
           alt=""
           width={220}
           height={220}
-        />}
+        />
         <div className="roles-award-copy">
           <strong className="roles-award-status">
             {`${role.title} ${progress.earned ? 'earned' : 'not yet earned'}`}
@@ -113,7 +114,7 @@ export function RolesPage({ onOpenTopic, onContinue, selectedRole, onSelectRole 
           </section>
         ))}
       </div>
-      <p className="roles-boundary">Argus learning designation only. {role.id === 'navigator' ? 'Not a navigation qualification or evidence of practical wayfinding.' : 'Not professional radio or marine certification.'}</p>
+      <p className="roles-boundary">Argus learning designation only. {BOUNDARY[role.id] ?? ''}</p>
     </div>
   )
 }
