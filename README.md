@@ -72,6 +72,7 @@ The **full offline-first runtime guarantee is active scope in #113**, not yet a 
 - [CAF permission request draft](docs/open/ISSUE_178_PERMISSION_REQUEST_DRAFT.md) — intended-use text and 57-image metadata inventory; not submitted.
 - [Morse next-slice recommendation](docs/open/ISSUE_201_NEXT_SLICE_RECOMMENDATION.md) — validate the existing S1A draft; [scope/CI review](docs/open/ISSUE_201_S1A_SCOPE_REVIEW.md) distinguishes approved architecture from pending visual/device checks.
 - [Scuba asset review](docs/open/ISSUE_132_SCUBA_ASSET_REVIEW.md) — four sourced photo candidates and two remaining image briefs; Learn-only scope.
+- [Pre-release PR review](docs/open/PRE_RELEASE_PR_REVIEW.md) — merge readiness, prepared cleanup and the outstanding offline durability blocker.
 - [Human acceptance checklist](docs/open/HUMAN_ACCEPTANCE_CHECKLIST.md) — one review session for prepared scuba, Analyst, radio, badge, Pixel, offline and permission gates.
 - [Next-batch checkpoint](docs/open/NEXT_BATCHES.md) — completed merges, remaining offline integration and owner/external gates.
 - [Offline shell and update safety](docs/open/ISSUE_113_OFFLINE_SHELL.md) — generation-pinned navigation and failed-update verification; merged hardening.
