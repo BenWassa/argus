@@ -115,6 +115,7 @@ The **full offline-first runtime guarantee is active scope in #113**, not yet a 
 - `docs/open/MORSE_INTERMEDIATE_PATH.md` — maintained contract for Morse after the alphabet: the uncued Test floor, a full check or a short review whenever the learner chooses, Copy (letters to sentences, figures and punctuation), free play and the spacing ladder to 20 WPM.
 - `docs/open/ISSUE_188_MORSE_SENDING_GAMEPLAY.md` — maintained guided Send and Dispatch scope, with later modes and in-course enhancements explicitly deferred.
 - [Morse continuous gameplay and engagement (#201)](docs/open/ISSUE_201_MORSE_GAMEPLAY_CONTINUITY.md) — active UX/implementation proposal for post-A–Z handoff, visible permanent Play entry, optional known-letter play, independent skill tracks, adaptive next challenges and repeatable progression; **not yet shipped**.
+- [Persistent Morse Play visual reference (#212)](docs/open/ISSUE_201_PERSISTENT_PLAY_UX_REVIEW.md) — embedded Topic-page architecture approved; six static mockups retain pending detailed visual and runtime/device acceptance.
 - `docs/closed/ISSUE_119_MORSE_POST_ACQUISITION_FLUENCY_RESEARCH.md` — the sources, architecture audit and rejected options behind `MORSE_FLUENCY.md`.
 - `docs/open/ISSUE_113_OFFLINE_FIRST_RUNTIME.md` — active contract for IndexedDB local authority, durable sync/outbox, deterministic offline PWA launch, storage lifecycle and content-size/download policy.
 - `docs/closed/MORSE_PROVENANCE_RECONCILIATION.md` — provenance/doc-reconciliation closeout for the pre-#28 documentation lane.
