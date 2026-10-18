@@ -1,15 +1,18 @@
-/* Today opens on the work. The largest type states what the schedule is asking
-   for, because naming the view is what the navigation already does. */
-.today-head {
+/* Home (#246) on the screen kit. The wordmark masthead is a ScreenHeader whose
+   title is the stamped ARGUS; the readout is one raised plate; every active
+   topic is a solid plate. No translucent fill, gradient or texture. */
+.screen-header.today-head {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: var(--s-xs) var(--s-md);
 }
 
+/* The wordmark never breaks; at enlarged text the date and profile drop under it. */
+.today-head .screen-header-title-row { flex: 0 0 auto; }
+
 .today-brand {
-  margin: 0;
   font-family: var(--font-display);
   font-size: var(--t-wordmark);
   font-weight: var(--w-page);
@@ -32,13 +35,14 @@
   place-items: center;
   border: 1px solid var(--line);
   border-radius: var(--r-pill);
-  background: var(--surface-2);
+  background: var(--plate-raised);
   color: var(--muted);
-  box-shadow: var(--shadow-sm);
+  box-shadow: none;
 }
 
 .today-profile:hover {
   border-color: var(--line-hover);
+  background: var(--surface-3);
   color: var(--ink);
 }
 
@@ -60,22 +64,32 @@
   white-space: nowrap;
 }
 
+/* The readout: one raised plate divided by hairlines, so it reads as a single
+   instrument panel. Each cell draws its own right and bottom hairline in the
+   solid line colour; the strip is pulled 1px past the plate so the outer ones
+   are clipped, and a wrapped or odd cell count never leaves an unlit gap. */
+.home-panel {
+  margin: var(--s-xl) 0 var(--s-2xl);
+  padding: 0;
+  overflow: hidden;
+}
 
 .home-readout {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--s-lg) var(--s-md);
-  margin: var(--s-xl) 0 var(--s-2xl);
-  padding: var(--s-lg) 0;
-  border-block: 1px solid var(--line);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(5.5rem, 1fr));
+  margin: 0 -1px -1px 0;
 }
+
 .home-readout > div {
   display: flex;
-  flex: 1 1 5.5rem;
   min-width: 0;
   flex-direction: column-reverse;
+  justify-content: flex-end;
   gap: var(--s-xs);
+  padding: var(--s-md);
+  box-shadow: inset -1px -1px 0 var(--line);
 }
+
 .home-readout dt {
   font-family: var(--font-mono);
   font-size: var(--t-readout);
@@ -84,95 +98,131 @@
   text-transform: uppercase;
   color: var(--muted);
 }
+
 .home-readout dd {
   margin: 0;
   font-family: var(--font-mono);
   font-size: var(--t-component);
-  font-weight: var(--w-component);
+  font-weight: 700;
   color: var(--ink);
   overflow-wrap: anywhere;
 }
+
 .home-section-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--s-md);
 }
+
+/* The shelf label speaks in the readout voice, as the Library's does. */
 .home-section-bar h2 {
-  font-size: var(--t-component);
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  font-weight: var(--w-label);
+  letter-spacing: var(--track-readout);
+  line-height: 1.2;
+  text-transform: uppercase;
   color: var(--muted);
 }
+
 .index.docket {
   display: grid;
-  gap: var(--s-md);
-  margin-top: var(--s-md);
+  gap: var(--s-sm);
+  margin-top: var(--s-sm);
   border-top: 0;
 }
+
+/* The plate is the control: the kit's plate classes on a button. `.index-row`
+   is kept for the shared selectors, so the plate fill and line are restated
+   here at its specificity, whichever stylesheet loads last. */
+.index-row.plate-raised {
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--plate-raised);
+  box-shadow: var(--shadow-sm);
+}
+
+.index-row.plate-repair { border-color: var(--warning); }
+
 .index-row.today-plate {
   grid-template-columns: 56px minmax(0, 1fr);
   align-items: center;
   gap: var(--s-lg);
   padding: var(--s-lg);
-  border: 1px solid var(--line);
-  border-radius: var(--r-xl);
-  background: var(--surface-2);
-  box-shadow: var(--shadow-sm);
-  transition: border-color var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
+  transition: border-color var(--t-fast) var(--ease), background var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
 }
+
 .index-row.today-plate::after { content: none; }
+
 .index-row.today-plate:hover {
   border-color: var(--line-hover);
   background: var(--surface-3);
 }
+
+.index-row.today-plate.plate-repair:hover { border-color: var(--warning); }
+
 .index-row.today-plate:active {
   transform: translateY(1px);
   box-shadow: var(--press);
 }
-.home-topic-copy { display: grid; gap: var(--s-sm); min-width: 0; }
+
+.home-topic-copy { display: grid; gap: var(--s-xs); min-width: 0; }
+
 .today-plate-title {
   font-size: var(--t-component);
   line-height: 1.3;
   overflow-wrap: anywhere;
 }
+
 .home-topic-reading {
   font-family: var(--font-mono);
-  font-size: var(--t-label);
+  font-size: var(--t-readout);
+  font-weight: var(--w-label);
+  letter-spacing: var(--track-readout);
   line-height: 1.4;
+  text-transform: uppercase;
   color: var(--muted);
 }
+
 .home-topic-reading.is-repair { color: var(--warning); }
 .home-topic-reading.is-repair::before { content: '\25C6\00a0'; }
+
+/* The ring: a solid recessed disc, a line-coloured track and an arc in the
+   topic's track colour. Repair alone is copper. */
 .home-dial {
   position: relative;
   display: grid;
   place-items: center;
   width: 56px;
   height: 56px;
+  border: 1px solid var(--line);
   border-radius: var(--r-pill);
   background: var(--field);
-  box-shadow: var(--engrave);
 }
-.home-dial svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+
+.home-dial svg { position: absolute; inset: -1px; width: calc(100% + 2px); height: calc(100% + 2px); transform: rotate(-90deg); }
 .home-dial circle { fill: none; stroke-width: 3; }
 .home-dial-track { stroke: var(--line-strong); }
-/* Rings fill in the topic's track colour; repair alone is copper. */
 .home-dial-arc { stroke: var(--track-hue, var(--ink)); stroke-linecap: round; }
 .home-dial-stage { stroke: var(--track-hue, var(--muted)); stroke-dasharray: 3 9; }
 .home-dial.is-complete .home-dial-stage { stroke: var(--track-hue, var(--complete)); stroke-dasharray: none; }
-.home-dial.is-repair .home-dial-stage { stroke: var(--warning); }
+.home-dial.is-repair .home-dial-stage { stroke: var(--warning); stroke-dasharray: none; }
 .home-dial-mark { color: var(--muted); font-family: var(--font-mono); font-size: var(--t-component); }
 .home-dial.is-complete .home-dial-mark { color: var(--track-hue, var(--muted)); }
 .home-dial.is-repair .home-dial-mark { color: var(--warning); }
-.home-add.quiet {
+
+/* The one signal-yellow action on Home: the global button, full width. */
+.home-add {
   display: block;
-  min-height: 44px;
+  width: 100%;
+  min-height: var(--control-h-lg);
   margin-top: var(--s-xl);
-  padding: var(--s-sm) 0;
-  text-align: left;
-  color: var(--ink);
 }
+
 .home-empty { display: grid; justify-items: start; gap: var(--s-lg); }
-.today-note { color: var(--muted); }
+.today-note { color: var(--ink); }
+
 @media (prefers-reduced-motion: reduce) {
   .index-row.today-plate { transition: none; }
 }

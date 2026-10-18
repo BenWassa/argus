@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import type { Topic } from '../../domain/library/topic'
 import { seedLibrary } from '../../domain/library/catalogSeed'
+import { readFileSync } from 'node:fs'
 import { Today } from './Today'
 
 const state = vi.hoisted(() => ({ topics: [] as Topic[], ready: false, addRequest: vi.fn() }))
@@ -36,6 +37,26 @@ describe('Home', () => {
     fireEvent.click(screen.getByRole('button', { name: 'See all' }))
     expect(view.onGoToLibrary).toHaveBeenCalledOnce()
     expect(state.topics).toEqual(before)
+  })
+
+  it('draws every plate solid on the kit, with copper and a diamond only for repair', () => {
+    state.topics = [{ ...building('one'), status: 'decayed', completedAt: '2026-09-01T12:00:00Z' }, building('two')]
+    const view = open()
+    const plates = [...view.container.querySelectorAll<HTMLElement>('.today-plate')]
+    expect(plates).toHaveLength(2)
+    for (const plate of plates) expect(plate.className).toContain('plate plate-raised')
+    expect(view.container.querySelectorAll('.plate-repair')).toHaveLength(1)
+    expect(view.container.querySelector('.plate-repair .home-topic-reading.is-repair')?.textContent).toBe('Needs repair')
+    expect(view.container.querySelector('.home-panel.plate')).toBeTruthy()
+    expect(view.container.querySelector('h1.today-brand')?.textContent).toBe('ARGUS')
+    expect(view.container.querySelector('details')).toBeNull()
+  })
+
+  it('keeps Home and Library styles free of alpha fills, gradients and texture', () => {
+    for (const file of ['src/features/today/Today.css', 'src/features/library/LibraryPage.css']) {
+      const css = readFileSync(file, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '')
+      expect(css, file).not.toMatch(/rgba?\(|hsla?\(|gradient|backdrop-filter|--grain|--machining|--convex|--sheen|--engrave/)
+    }
   })
 
   it('keeps the readout and a library path in an empty state, with deterministic authoring fallback', () => {
