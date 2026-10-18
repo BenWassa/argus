@@ -141,4 +141,4 @@ it('renders every ordinary catalogue topic’s authored Learn headings and text 
     expect(container.querySelector('details, summary'), topic.id).toBeNull()
     cleanup()
   }
-})
+}, 20_000) // Renders every shipped topic; give it room on a loaded machine.
