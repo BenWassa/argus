@@ -195,6 +195,17 @@ test.describe('fluency', () => {
     await expect(page.locator('.topic-primary, .topic-options')).toHaveCount(0)
   })
 
+  test('keeps the Listen key in view beside the prompt in short landscape', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'landscape-short', 'Only short landscape lays the prompt beside the key.')
+    await openChallenges(page)
+    await expect(page.locator('.morse-key')).toBeInViewport({ ratio: 1 })
+    const overflow = await page.evaluate(() => ({
+      scroll: document.documentElement.scrollWidth,
+      client: document.documentElement.clientWidth,
+    }))
+    expect(overflow.scroll).toBeLessThanOrEqual(overflow.client)
+  })
+
   test('keeps the banked Test on the path and later tiers available', async ({ page }) => {
     await openTopic(page, betweenChecks())
     await expect(page.getByRole('button', { name: 'A–Z Test, banked, current' })).toBeVisible()
