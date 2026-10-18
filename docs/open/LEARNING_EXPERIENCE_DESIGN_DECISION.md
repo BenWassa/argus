@@ -55,9 +55,9 @@
 
 Scope reviewed: `PRODUCT.md`, `DESIGN.md`, `README.md`,
 `docs/closed/SCREEN_INVENTORY_REVIEW.md`, `docs/open/PROGRESS_ARCHITECTURE.md`,
-`docs/closed/PROGRAMME.md`, `docs/open/MORSE_LESSON.md`, `docs/open/MORSE_PROGRAMME_PLAN.md`,
-`docs/open/MORSE_CUE_LADDER.md`, `docs/open/MORSE_WORD_CHECKPOINTS.md`,
-`docs/open/MORSE_CHARACTER_ORDER.md`, `docs/open/NAVIGATION_HISTORY.md`,
+`docs/closed/PROGRAMME.md`, `docs/open/morse/MORSE_LESSON.md`, `docs/open/morse/MORSE_PROGRAMME_PLAN.md`,
+`docs/open/morse/MORSE_CUE_LADDER.md`, `docs/open/morse/MORSE_WORD_CHECKPOINTS.md`,
+`docs/open/morse/MORSE_CHARACTER_ORDER.md`, `docs/open/NAVIGATION_HISTORY.md`,
 `docs/open/LEARN_CONTENT_MODEL.md`, `docs/closed/LIBRARY_AUDIT.md`; `src/app/App.tsx`,
 `src/app/routing/routes.ts`, `src/domain/study/journey.ts`, `src/domain/study/scheduling.ts`,
 `src/domain/study/cueLadder.ts`, `src/domain/library/topic.ts`, the Today/Library/Topic/Progress/Data
@@ -584,7 +584,7 @@ Therefore this redesign may **not**:
   topic with its own criterion;
 - let a word or phrase satisfy any part of the printed 26-unit claim.
 
-Word checkpoints stay exactly what `docs/open/MORSE_WORD_CHECKPOINTS.md` says they
+Word checkpoints stay exactly what `docs/open/morse/MORSE_WORD_CHECKPOINTS.md` says they
 are: formative, ephemeral, non-gating application inside the printed topic. Making
 them path entries changes their visibility, not their semantics.
 

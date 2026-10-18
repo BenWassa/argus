@@ -27,20 +27,22 @@ Sibling features may import Morse root files only. Current sibling consumers use
 
 The sole `DEEP_FEATURE_IMPORTS` exception is `src/features/library/TopicPage.tsx -> src/features/morse/lesson/MorsePath`. It is recorded debt and must not grow. Tests are exempt from the production import rules. The app layer may compose internal surfaces directly: `AppRouter` imports `fluency/FluencySurface`, rather than a root re-export. Domain Morse code has no React dependency.
 
-Contract: [Morse lesson](../../../docs/open/MORSE_LESSON.md)
+Documentation: [Morse hub — reading order, contracts and history](../../../docs/open/morse/README.md)
 
-Contract: [Word checkpoints](../../../docs/open/MORSE_WORD_CHECKPOINTS.md)
+Contract: [Morse lesson](../../../docs/open/morse/MORSE_LESSON.md)
 
-Contract: [Fluency](../../../docs/open/MORSE_FLUENCY.md)
+Contract: [Word checkpoints](../../../docs/open/morse/MORSE_WORD_CHECKPOINTS.md)
 
-Contract: [Intermediate path](../../../docs/open/MORSE_INTERMEDIATE_PATH.md)
+Contract: [Fluency](../../../docs/open/morse/MORSE_FLUENCY.md)
 
-Contract: [Shared corrections and adaptive letter practice](../../../docs/open/ISSUE_221_MORSE_UX_CONSOLIDATION.md)
+Contract: [Intermediate path](../../../docs/open/morse/MORSE_INTERMEDIATE_PATH.md)
 
-Contract: [Morse audio runtime](../../../docs/open/MORSE_AUDIO_RUNTIME.md)
+Contract: [Shared corrections and adaptive letter practice](../../../docs/open/morse/ISSUE_221_MORSE_UX_CONSOLIDATION.md)
 
-Contract: [Mnemonic grammar](../../../docs/open/MORSE_MNEMONIC_GRAMMAR.md)
+Contract: [Morse audio runtime](../../../docs/open/morse/MORSE_AUDIO_RUNTIME.md)
 
-Contract: [Verbal mnemonics](../../../docs/open/MORSE_VERBAL_MNEMONICS.md)
+Contract: [Mnemonic grammar](../../../docs/open/morse/MORSE_MNEMONIC_GRAMMAR.md)
+
+Contract: [Verbal mnemonics](../../../docs/open/morse/MORSE_VERBAL_MNEMONICS.md)
 
 Contract: [Progress architecture](../../../docs/open/PROGRESS_ARCHITECTURE.md)

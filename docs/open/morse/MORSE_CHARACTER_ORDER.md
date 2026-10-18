@@ -3,7 +3,7 @@
 **Status:** implemented (#26); maintained contract for the shipped character order.
 
 Workstream 3 (#26). Implements **P1 (ratified)** and **P2 (default)** from
-`docs/open/MORSE_PROGRAMME_PLAN.md` and records the comparison requested by the Morse
+`docs/open/morse/MORSE_PROGRAMME_PLAN.md` and records the comparison requested by the Morse
 research PRD.
 
 Code: `src/domain/morse/curriculum/packetOrder.ts`. Tests: `src/domain/morse/curriculum/packetOrder.test.ts`.

@@ -8,7 +8,7 @@ Original content-rewrite baseline: `c1cc753eb89c9aa5379d1a885892703cf20e65ba`
 
 The Learn/Test + content-quality product work is implemented. This document is a
 programme closeout/ledger, not the authority for the newer Morse architecture.
-Morse-specific work is tracked under #21 and `docs/open/MORSE_PROGRAMME_PLAN.md`.
+Morse-specific work is tracked under #21 and `docs/open/morse/MORSE_PROGRAMME_PLAN.md`.
 
 The current durable library boundary is **v5**, introduced later by Morse
 workstream #24. The original #7 programme produced v4 structured Learn content;

@@ -8,8 +8,8 @@
 
 Selection and independent per-direction histories live in `src/domain/morse/practice.ts`. The run receives its progress callback; the surface preserves every other topic field. Help does not count as an independent outcome, and Listen requires completed, uninterrupted playback. This formative record is separate from Fluency statistics and scored Test evidence.
 
-Contract: [Adaptive practice and shared corrections](../../../../docs/open/ISSUE_221_MORSE_UX_CONSOLIDATION.md)
+Contract: [Adaptive practice and shared corrections](../../../../docs/open/morse/ISSUE_221_MORSE_UX_CONSOLIDATION.md)
 
 Contract: [Progress architecture](../../../../docs/open/PROGRESS_ARCHITECTURE.md)
 
-Contract: [Morse audio runtime](../../../../docs/open/MORSE_AUDIO_RUNTIME.md)
+Contract: [Morse audio runtime](../../../../docs/open/morse/MORSE_AUDIO_RUNTIME.md)

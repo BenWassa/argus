@@ -71,22 +71,24 @@ debt and shared study practice targets. Curriculum does not depend on fluency.
 Scored retention and completion authority remain in `domain/study`; formative
 lesson and fluency records do not supply scored evidence.
 
-Contract: [Lesson policy](../../../docs/open/MORSE_LESSON.md)
+Documentation: [Morse hub — reading order, contracts and history](../../../docs/open/morse/README.md)
 
-Contract: [Character order](../../../docs/open/MORSE_CHARACTER_ORDER.md)
+Contract: [Lesson policy](../../../docs/open/morse/MORSE_LESSON.md)
 
-Contract: [Cue ladder](../../../docs/open/MORSE_CUE_LADDER.md)
+Contract: [Character order](../../../docs/open/morse/MORSE_CHARACTER_ORDER.md)
 
-Contract: [Mnemonic grammar](../../../docs/open/MORSE_MNEMONIC_GRAMMAR.md)
+Contract: [Cue ladder](../../../docs/open/morse/MORSE_CUE_LADDER.md)
 
-Contract: [Verbal mnemonics](../../../docs/open/MORSE_VERBAL_MNEMONICS.md)
+Contract: [Mnemonic grammar](../../../docs/open/morse/MORSE_MNEMONIC_GRAMMAR.md)
 
-Contract: [Audio runtime](../../../docs/open/MORSE_AUDIO_RUNTIME.md)
+Contract: [Verbal mnemonics](../../../docs/open/morse/MORSE_VERBAL_MNEMONICS.md)
 
-Contract: [Word checkpoints](../../../docs/open/MORSE_WORD_CHECKPOINTS.md)
+Contract: [Audio runtime](../../../docs/open/morse/MORSE_AUDIO_RUNTIME.md)
 
-Contract: [Fluency](../../../docs/open/MORSE_FLUENCY.md)
+Contract: [Word checkpoints](../../../docs/open/morse/MORSE_WORD_CHECKPOINTS.md)
 
-Contract: [Intermediate path](../../../docs/open/MORSE_INTERMEDIATE_PATH.md)
+Contract: [Fluency](../../../docs/open/morse/MORSE_FLUENCY.md)
 
-Contract: [Programme plan](../../../docs/open/MORSE_PROGRAMME_PLAN.md)
+Contract: [Intermediate path](../../../docs/open/morse/MORSE_INTERMEDIATE_PATH.md)
+
+Contract: [Programme plan](../../../docs/open/morse/MORSE_PROGRAMME_PLAN.md)

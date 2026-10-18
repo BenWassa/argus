@@ -234,7 +234,7 @@ review tightened that wording:
 
 Therefore P1 remains unchanged, but the rationale does not depend on an
 unsupported fixed Koch list or on calling Fundamental a character-order
-curriculum. See `docs/open/MORSE_CHARACTER_ORDER.md` for the full source record.
+curriculum. See `docs/open/morse/MORSE_CHARACTER_ORDER.md` for the full source record.
 
 ## P2 — packet composition
 
@@ -402,7 +402,7 @@ repoint old content at new artwork.
 
 #119 is deliberately not a child of this plan's numbering. The A–Z acquisition
 programme it documents is complete; #119 asks what comes after it. Its contract
-is `docs/open/MORSE_FLUENCY.md`, with the research behind it in
+is `docs/open/morse/MORSE_FLUENCY.md`, with the research behind it in
 `docs/closed/ISSUE_119_MORSE_POST_ACQUISITION_FLUENCY_RESEARCH.md`.
 
 Nothing in that workstream changes any decision recorded here. Fluency is
@@ -459,7 +459,7 @@ not the source of the full Argus A–Z phrase set.
 
 ## #48/#51/#52/#56/#75/#76/#77/#78 — current Learn contract
 
-The full record is `docs/open/MORSE_LESSON.md`. In summary:
+The full record is `docs/open/morse/MORSE_LESSON.md`. In summary:
 
 - **Learn** is a guided lesson: introduce two new characters, retrieve them
   shortly after, reteach a miss and bring it back after intervening material,

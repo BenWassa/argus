@@ -2,7 +2,7 @@
 
 **Status:** released 2026-10-16; Firebase Hosting and the separate Pages demo deployed and live asset bytes verified. Physical Pixel acceptance remains open.
 
-**Authority:** historical release record. Maintained Morse behavior is documented in [#221](../open/ISSUE_221_MORSE_UX_CONSOLIDATION.md), [Morse Fluency](../open/MORSE_FLUENCY.md) and [progress architecture](../open/PROGRESS_ARCHITECTURE.md).
+**Authority:** historical release record. Maintained Morse behavior is documented in [#221](../open/morse/ISSUE_221_MORSE_UX_CONSOLIDATION.md), [Morse Fluency](../open/morse/MORSE_FLUENCY.md) and [progress architecture](../open/PROGRESS_ARCHITECTURE.md).
 
 ## Source and scope
 

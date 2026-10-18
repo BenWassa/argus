@@ -27,7 +27,7 @@ import './MorsePhrase.css'
  * or `—` (held, three units) directly beneath it. A learner reads the beat
  * structure off the marks rather than inferring it from how a particular
  * English speaker would say the word, which is what
- * `docs/open/MORSE_VERBAL_MNEMONICS.md` always claimed and what #44's card had
+ * `docs/open/morse/MORSE_VERBAL_MNEMONICS.md` always claimed and what #44's card had
  * removed.
  *
  * The alignment also answers the repetition complaint. `ZOOM ZOOM ZIP ZIP`
