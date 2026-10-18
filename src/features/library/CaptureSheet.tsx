@@ -1,5 +1,6 @@
 import { useId, useState } from 'react'
 import { Dialog } from '../../shared/ui/Dialog'
+import './Sheets.css'
 import { TRACK_LABELS } from '../../shared/ui/trackLabels'
 import {
   EMPTY_CAPTURE,
@@ -80,14 +81,10 @@ export function CaptureSheet({ onSubmit, onClose, onCaptured }: CaptureSheetProp
             enterKeyHint="done"
             readOnly={submitting}
             placeholder="An idea, a link, or a link and a note"
-            aria-describedby={state.error ? errorId : `${fieldId}-help`}
+            aria-describedby={state.error ? errorId : undefined}
             aria-invalid={state.error ? true : undefined}
             onChange={(e) => setState((current) => typeText(current, e.target.value))}
           />
-          <p className="help" id={`${fieldId}-help`}>
-            This is a note to yourself, not a topic. Nothing here is scheduled, scored or counted
-            until it has been researched and shipped.
-          </p>
         </div>
 
         <div className="field-row">
@@ -110,7 +107,6 @@ export function CaptureSheet({ onSubmit, onClose, onCaptured }: CaptureSheetProp
               </option>
             ))}
           </select>
-          <p className="help">Optional. Auto lets ingestion decide where it belongs.</p>
         </div>
 
         {state.error && (
@@ -120,7 +116,7 @@ export function CaptureSheet({ onSubmit, onClose, onCaptured }: CaptureSheetProp
         )}
 
         <div className="actions">
-          <button className="ghost" type="button" onClick={onClose} disabled={submitting}>
+          <button className="quiet" type="button" onClick={onClose} disabled={submitting}>
             Cancel
           </button>
           <button type="submit" disabled={submitting || !canSubmit(state)}>
