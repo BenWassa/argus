@@ -98,7 +98,7 @@ describe('reduced motion', () => {
       screen.getByRole('button', { name: 'Mark correct' }).click()
     })
     await settled(second)
-    expect(screen.getByLabelText('Card 3 of 5')).toBeTruthy()
+    expect(screen.getByLabelText('2 of 5')).toBeTruthy()
   })
 
   it('keeps the answer-confidentiality invariant across the whole deck', async () => {
@@ -120,7 +120,7 @@ describe('reduced motion', () => {
       }
     }
 
-    await waitFor(() => expect(document.querySelector('.session-done')).not.toBeNull(), {
+    await waitFor(() => expect(document.querySelector('.test-done')).not.toBeNull(), {
       timeout: 8000,
     })
     expect(answersInDocument()).toEqual([])
@@ -137,7 +137,7 @@ describe('reduced motion', () => {
     })
     expect(promptNow()).toBe(first)
     await settled(first)
-    expect(screen.getByLabelText('Card 2 of 26')).toBeTruthy()
+    expect(screen.getByLabelText('1 of 26')).toBeTruthy()
   })
 
   it('banks the same attempt it would have banked with motion on', async () => {
@@ -148,7 +148,7 @@ describe('reduced motion', () => {
       press(card === 0 ? 'ArrowLeft' : 'ArrowRight')
       if (card < 4) await settled(prompt)
     }
-    await waitFor(() => expect(document.querySelector('.session-done')).not.toBeNull(), {
+    await waitFor(() => expect(document.querySelector('.test-done')).not.toBeNull(), {
       timeout: 8000,
     })
     const stored = JSON.parse(localStorage.getItem(STORE_KEY)!).topics as Topic[]

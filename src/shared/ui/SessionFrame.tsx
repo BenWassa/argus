@@ -52,12 +52,23 @@ export function SessionCorrect({ target, announce = true }: { target?: string; a
   return <div className="session-correct" role={announce ? "status" : undefined}><span aria-hidden="true">{target && `${target} `}✓</span><span className="sr-only">Correct</span></div>
 }
 
-export function RoundResult({ correct, total, onAgain, onDone, extra }: { correct: number; total: number; onAgain: () => void; onDone: () => void; extra?: ReactNode }) {
+/**
+ * The end of a run: one reading and its actions. `onAgain` is optional because
+ * not every run can be repeated (a scored Test); without it, Done is the one
+ * primary action. The labels default to Again and Done and may name a
+ * consequence instead, such as "Practise 2 items".
+ */
+export function RoundResult({ correct, total, onAgain, onDone, extra, againLabel = 'Again', doneLabel = 'Done' }: {
+  correct: number; total: number; onAgain?: () => void; onDone: () => void; extra?: ReactNode; againLabel?: string; doneLabel?: string
+}) {
   const heading = useRef<HTMLHeadingElement>(null)
   useEffect(() => { heading.current?.focus({ preventScroll: true }) }, [])
   return <div className="session-round-result">
     <h1 ref={heading} tabIndex={-1} className="session-round-reading" aria-label={`${correct} of ${total} correct`}>{correct} / {total}</h1>
     {extra}
-    <div className="session-round-actions"><button type="button" onClick={onAgain}>Again</button><button type="button" className="ghost" onClick={onDone}>Done</button></div>
+    <div className="session-round-actions">
+      {onAgain && <button type="button" onClick={onAgain}>{againLabel}</button>}
+      <button type="button" className={onAgain ? 'ghost' : undefined} onClick={onDone}>{doneLabel}</button>
+    </div>
   </div>
 }

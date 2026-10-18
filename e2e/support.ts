@@ -188,11 +188,11 @@ export async function assertNoAnswerLeaked(page: Page, minimumPrompts = 1) {
   }
 }
 
-/** The card counter in the session bar, as a number. */
+/** The card now on screen, as a number: the frame's progress counts answered cards, so it is one more. */
 export async function cardNumber(page: Page): Promise<number> {
-  const label = (await page.locator('.session-count').first().getAttribute('aria-label')) ?? ''
+  const label = (await page.locator('.session-frame-progress').first().getAttribute('aria-label')) ?? ''
   const match = /(\d+) of/.exec(label)
-  return match ? Number(match[1]) : Number.NaN
+  return match ? Number(match[1]) + 1 : Number.NaN
 }
 
 /** Finished lessons and checkpoints remain visible on the Morse topic page. */

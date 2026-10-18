@@ -136,7 +136,7 @@ describe('answer confidentiality', () => {
       }
     }
 
-    await waitFor(() => expect(document.querySelector('.session-done')).not.toBeNull(), {
+    await waitFor(() => expect(document.querySelector('.test-done')).not.toBeNull(), {
       timeout: 8000,
     })
     expect(answersInDocument()).toEqual([])
@@ -169,9 +169,9 @@ describe('one gesture, one grade', () => {
     })
 
     expect(promptNow()).toBe(first)
-    expect(screen.getByLabelText('Card 1 of 26')).toBeTruthy()
+    expect(screen.getByLabelText('0 of 26')).toBeTruthy()
     await settled(first)
-    expect(screen.getByLabelText('Card 2 of 26')).toBeTruthy()
+    expect(screen.getByLabelText('1 of 26')).toBeTruthy()
   })
 
   it('cannot be double-scored through the accessible grade actions', async () => {
@@ -188,7 +188,7 @@ describe('one gesture, one grade', () => {
 
     expect(promptNow()).toBe(first)
     await settled(first)
-    expect(screen.getByLabelText('Card 2 of 5')).toBeTruthy()
+    expect(screen.getByLabelText('1 of 5')).toBeTruthy()
   })
 
   it('records one answer per card and banks the attempt it actually ran', async () => {
@@ -203,7 +203,7 @@ describe('one gesture, one grade', () => {
       if (card < 4) await settled(prompt)
     }
 
-    await waitFor(() => expect(document.querySelector('.session-done')).not.toBeNull(), {
+    await waitFor(() => expect(document.querySelector('.test-done')).not.toBeNull(), {
       timeout: 8000,
     })
     const history = storedTopic('primary-survey').history
@@ -226,7 +226,7 @@ describe('keyboard and screen-reader grading', () => {
         press(keys[card])
         if (card < 4) await settled(prompt)
       }
-      await waitFor(() => expect(document.querySelector('.session-done')).not.toBeNull(), {
+      await waitFor(() => expect(document.querySelector('.test-done')).not.toBeNull(), {
         timeout: 8000,
       })
       const history = storedTopic('primary-survey').history
@@ -284,7 +284,7 @@ describe('which decks get the swipe-first treatment', () => {
     expect(rail.textContent).toContain('Correct →')
     expect(rail.getAttribute('aria-hidden')).toBe('true')
     expect(document.querySelector('.grade-hint')?.className).toContain('is-visible')
-    expect(screen.getByText(/Swipe the card/)).toBeTruthy()
+    expect(screen.queryByText(/Swipe the card/)).toBeNull()
   })
 
   it('leaves a long-answer procedural deck its visible buttons', () => {
@@ -305,7 +305,7 @@ describe('which decks get the swipe-first treatment', () => {
     })
     expect(promptNow()).toBe(first)
     await settled(first)
-    expect(screen.getByLabelText('Card 2 of 4')).toBeTruthy()
+    expect(screen.getByLabelText('1 of 4')).toBeTruthy()
   })
 })
 
@@ -322,7 +322,7 @@ describe('topic boundaries', () => {
       if (card < 12) await settled(prompt)
     }
 
-    await waitFor(() => expect(document.querySelector('.session-done')).not.toBeNull(), {
+    await waitFor(() => expect(document.querySelector('.test-done')).not.toBeNull(), {
       timeout: 8000,
     })
 
