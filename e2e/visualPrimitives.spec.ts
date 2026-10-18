@@ -73,9 +73,7 @@ test('Learn shows the visual with its caption and the text alternative, without 
   await page.locator('.nav-btn', { hasText: 'Library' }).click()
   await page.getByRole('button', { name: /Visual e2e/ }).click()
 
-  const summary = page.locator('summary', { hasText: 'Reading a dial' })
-  await expect(summary).toBeVisible()
-  await summary.click()
+  await expect(page.getByRole('heading', { name: 'Reading a dial' })).toBeVisible()
   await expect(
     page.getByRole('img', { name: 'A compass dial with one pointer, A, between north and east.' }).first(),
   ).toBeVisible()

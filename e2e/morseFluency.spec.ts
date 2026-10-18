@@ -105,14 +105,12 @@ async function openTopic(page: Page, library = LIBRARY) {
 
 async function openLegacyFluencyHome(page: Page) {
   await openTopic(page)
-  await page.locator('.topic-options summary').click()
   await page.getByRole('button', { name: 'Listening settings' }).click()
   await expect(page.getByRole('heading', { name: 'After the alphabet' })).toBeVisible()
 }
 
 async function openChallenges(page: Page) {
   await openTopic(page)
-  await page.locator('.topic-options summary').click()
   await page.locator('.topic-options').getByRole('button', { name: 'Challenges' }).click()
   await expect(page.locator('.fluency-run')).toBeVisible()
 }
@@ -202,13 +200,12 @@ async function runToSummary(page: Page) {
 test.describe('fluency', () => {
   test('is offered once the alphabet is acquired, beside a due check', async ({ page }) => {
     await openTopic(page)
-    // Direct routes are in plain view; Challenges stays in More options.
-    await expect(page.locator('.topic-options')).not.toHaveAttribute('open', '')
+    // Direct routes are in plain view; Challenges stays visible in More options.
+    await expect(page.getByRole('heading', { name: 'More options', exact: true })).toBeVisible()
     await expect(page.getByRole('heading', { name: 'Play Morse' })).toBeVisible()
     for (const label of ['Practice letters', 'Send', 'Receive', 'Free Play']) {
       await expect(page.locator('.topic-play-choices').getByRole('button', { name: new RegExp(label) })).toBeVisible()
     }
-    await page.locator('.topic-options summary').click()
     await expect(page.locator('.topic-options').getByRole('button', { name: 'Challenges' })).toBeVisible()
     await expect(page.locator('.topic-primary')).toHaveText('Test')
   })
@@ -216,8 +213,7 @@ test.describe('fluency', () => {
   test('leads between checks, with the Test as a short review', async ({ page }) => {
     await openTopic(page, betweenChecks())
     await expect(page.locator('.topic-primary')).toHaveText('Send five words')
-    await expect(page.locator('.topic-options')).not.toHaveAttribute('open', '')
-    await page.locator('.topic-options summary').click()
+    await expect(page.getByRole('heading', { name: 'More options', exact: true })).toBeVisible()
 
     await page.getByRole('button', { name: /Quick review/ }).click()
     await expect(page.locator('.session-count')).toHaveText('1/10')
@@ -320,7 +316,6 @@ test.describe('fluency', () => {
     await openLegacyFluencyHome(page)
     const before = await storedTopic(page)
     for (const title of ['Word flow', 'Dispatch']) {
-      await page.getByText('Choose another sending stage', { exact: true }).click()
       await page.getByRole('button', { name: new RegExp(title) }).click()
       if (title === 'Word flow') {
         // A hold is still part of the letter, even when longer than the idle pause.
@@ -335,7 +330,6 @@ test.describe('fluency', () => {
         await expect(page.locator('.send-output-value')).toHaveText('A')
         await page.getByRole('button', { name: 'Close', exact: true }).click()
         await expect(page.getByRole('heading', { name: 'After the alphabet' })).toBeVisible()
-        await page.getByText('Choose another sending stage', { exact: true }).click()
         await page.getByRole('button', { name: /Word flow/ }).click()
       }
       const target = (await page.locator('.send-target').getAttribute('aria-label'))!.replace(/^Send /, '')

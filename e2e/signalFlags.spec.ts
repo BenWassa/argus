@@ -40,10 +40,7 @@ const KEY: [RegExp, string][] = [
 test('Learn groups the twelve flags by use, shows each with its text, and does not scroll sideways', async ({ page }) => {
   await openTopic(page)
   for (const heading of ['Warnings to others', 'Vessel state', 'Assistance', 'Pairs that get mixed up', 'Alphabetical reference']) {
-    const fold = page.locator('details').filter({ has: page.locator('summary', { hasText: heading }) }).first()
-    await expect(fold).not.toHaveAttribute('open', '')
-    await fold.locator('summary').click()
-    await expect(fold).toHaveAttribute('open', '')
+    await expect(page.getByRole('heading', { name: heading, exact: true })).toBeVisible()
   }
   await expect(page.locator('.learn-entry')).toHaveCount(12)
   await expect(page.locator('.learn-entry .figure-signal-flag')).toHaveCount(12)

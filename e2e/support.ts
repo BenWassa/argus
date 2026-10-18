@@ -195,19 +195,8 @@ export async function cardNumber(page: Page): Promise<number> {
   return match ? Number(match[1]) : Number.NaN
 }
 
-/**
- * Open the folded run of finished lessons on the Morse topic page. A learner
- * who has finished the alphabet sees the whole run collapsed into one row, so
- * its replays and checkpoints are one tap further in.
- */
+/** Finished lessons and checkpoints remain visible on the Morse topic page. */
 export async function openFinishedLessons(page: Page) {
-  const lessonsSummary = page.getByText('Lessons', { exact: true })
-  await expect(lessonsSummary).toBeVisible()
-  const lessonsSection = lessonsSummary.locator('xpath=..')
-  if ((await lessonsSection.getAttribute('open')) === null) await lessonsSummary.click()
-
-  const fold = page.locator('.morse-path-fold')
-  await expect(fold).toBeVisible()
-  if ((await fold.getAttribute('open')) === null) await fold.locator('summary').click()
-  await expect(fold).toHaveAttribute('open', '')
+  await expect(page.getByRole('heading', { name: 'Lessons', exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Replay lesson 1', exact: true })).toBeVisible()
 }

@@ -136,8 +136,9 @@ export function MorseReference({ onExit }: { onExit: () => void }) {
       <h1 ref={headingRef} tabIndex={-1} className="morse-ref-title">Morse alphabet</h1>
 
       <p className="morse-ref-lede">
-        Letter, pattern, mnemonic, sound. This is a reference: use it whenever you want, and it
-        changes nothing about your progress.
+        Dits last one unit, dahs three; gaps within letters last one, between letters three, between words seven.
+        Lessons introduce letters in pairs, then practise recall with less support.
+        Test is the scored A–Z check.
       </p>
 
       <MorseReferenceCards />

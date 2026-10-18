@@ -159,7 +159,6 @@ export function FluencyHome({ progress, onProgress, onStart, onCopy, onSend, onF
                 {sendMeta.title}
                 <span className="copy-next-tag">{nextSend ? 'Next' : 'Recommended'}</span>
               </span>
-              <span className="fluency-mode-purpose">{sendMeta.purpose}</span>
               <span className="fluency-mode-meta tabular">
                 {sendMeta.length} prompts
                 {best !== undefined && ` · best ${best}%`}
@@ -169,8 +168,8 @@ export function FluencyHome({ progress, onProgress, onStart, onCopy, onSend, onF
           )
         })()}
 
-        <details className="fluency-stage-picker">
-          <summary>Choose another sending stage</summary>
+        <section className="fluency-stage-picker">
+          <h3>Sending stages</h3>
           <ol className="fluency-modes">
             {SEND_STAGES.filter((stage) => stage !== recommendedSend).map((stage) => {
               const sendMeta = SEND_STAGE_INFO[stage]
@@ -183,7 +182,6 @@ export function FluencyHome({ progress, onProgress, onStart, onCopy, onSend, onF
                     onClick={() => onSend(stage)}
                   >
                     <span className="fluency-mode-title">{sendMeta.title}</span>
-                    <span className="fluency-mode-purpose">{sendMeta.purpose}</span>
                     <span className="fluency-mode-meta tabular">
                       {sendMeta.length} prompts
                       {best !== undefined && ` · best ${best}%`}
@@ -194,7 +192,7 @@ export function FluencyHome({ progress, onProgress, onStart, onCopy, onSend, onF
               )
             })}
           </ol>
-        </details>
+        </section>
       </section>
 
       {/* The one listening dial, shared by Copy and the speed drills.
@@ -255,7 +253,6 @@ export function FluencyHome({ progress, onProgress, onStart, onCopy, onSend, onF
                       </span>
                     )}
                   </span>
-                  <span className="fluency-mode-purpose">{meta.purpose}</span>
                   <span className="fluency-mode-meta tabular">
                     {meta.length} prompts
                     {best !== undefined && ` · best ${best}%`}
@@ -274,9 +271,6 @@ export function FluencyHome({ progress, onProgress, onStart, onCopy, onSend, onF
         </h2>
         <button className="fluency-mode" type="button" onClick={onFreePlay}>
           <span className="fluency-mode-title">Free play</span>
-          <span className="fluency-mode-purpose">
-            Key your own words and sentences and see what they spell, or type anything and hear it.
-          </span>
           <span className="fluency-mode-meta">No target, no score, nothing saved</span>
         </button>
       </section>
@@ -293,7 +287,6 @@ export function FluencyHome({ progress, onProgress, onStart, onCopy, onSend, onF
               <li key={mode}>
                 <button className="fluency-mode" type="button" onClick={() => onStart(mode)}>
                   <span className="fluency-mode-title">{meta.title}</span>
-                  <span className="fluency-mode-purpose">{meta.purpose}</span>
                   <span className="fluency-mode-meta tabular">
                     {fluencyRunLength(mode)} prompts
                     {best !== undefined && ` · best ${meta.best(best)}`}

@@ -40,16 +40,6 @@ interface MorsePathProps {
  * row now carries one word at text weight saying what a tap does, and a locked
  * row carries nothing at all: it is dimmed, and it is not a control.
  */
-/**
- * How many finished lessons may sit above the current one before the rest are
- * folded away. One is enough to show the path has a history and a direction;
- * the topic header above this list is already tall.
- */
-const VISIBLE_COMPLETED_BEFORE_CURRENT = 1
-
-/** Folding one row into one row saves nothing, so it takes two to be worth it. */
-const MINIMUM_WORTH_FOLDING = 2
-
 function pad(value: number): string {
   return String(value).padStart(2, '0')
 }
@@ -183,37 +173,12 @@ export function MorsePath({
   )
   const firstCheckpoint = checkpoints[0]?.afterLesson
 
-  /**
-   * The finished run, folded.
-   *
-   * Thirteen lessons, four checkpoints and a Test is eighteen rows. With five
-   * lessons done, the row the learner came to press sat below the fold of an
-   * 844px screen. So the finished stretch collapses into one row, leaving the
-   * current lesson near the top of the list.
-   *
-   * Only the *completed* run collapses. Everything ahead stays visible, locked
-   * rows included: seeing the end of a finite curriculum is the premise of the
-   * product. Once every lesson is done the whole run folds, because what comes
-   * next is the Test and fluency, not thirteen replays — and the full index is
-   * one tap away inside the fold.
-   */
-  const currentIndex = path.findIndex((lesson) => lesson.state === 'current')
-  const allDone = path.length > 0 && path.every((lesson) => lesson.state === 'completed')
-  const candidate = allDone ? path.length : currentIndex - VISIBLE_COMPLETED_BEFORE_CURRENT
-  const foldedCount =
-    candidate >= MINIMUM_WORTH_FOLDING &&
-    path.slice(0, candidate).every((lesson) => lesson.state === 'completed')
-      ? candidate
-      : 0
-  const folded = path.slice(0, foldedCount)
-  const shown = path.slice(foldedCount)
-
-  const withCheckpoint = (lesson: MorseLessonPathItem, onlyUnlocked = false) => {
+  const withCheckpoint = (lesson: MorseLessonPathItem) => {
     const checkpoint = checkpointAfter.get(lesson.number)
     return (
       <Fragment key={lesson.index}>
         <LessonRow lesson={lesson} onLesson={onLesson} />
-        {checkpoint && (!onlyUnlocked || checkpoint.unlocked) && (
+        {checkpoint && (
           <CheckpointRow
             checkpoint={checkpoint}
             first={checkpoint.afterLesson === firstCheckpoint}
@@ -226,33 +191,7 @@ export function MorsePath({
 
   return (
     <ol className="morse-path" aria-label="Morse curriculum">
-      {folded.length > 0 && (
-        <li className="morse-path-item morse-path-folded">
-          <details className="morse-path-fold">
-            <summary>
-              <span className="morse-path-number tabular" aria-hidden="true">
-                ✓
-              </span>
-              <span className="morse-path-main">
-                <span className="morse-path-fold-title">Lessons 1–{folded.length} done</span>
-                <span className="morse-path-fold-letters">
-                  {folded.flatMap((lesson) => lesson.novel).join(' ')}
-                </span>
-              </span>
-              <span className="morse-path-fold-chevron" aria-hidden="true">
-                ›
-              </span>
-            </summary>
-            {/* A checkpoint whose milestone falls inside the folded run travels
-                with it, rather than disappearing from the page. */}
-            <ol className="morse-path morse-path-nested">
-              {folded.map((lesson) => withCheckpoint(lesson, true))}
-            </ol>
-          </details>
-        </li>
-      )}
-
-      {shown.map((lesson) => withCheckpoint(lesson))}
+      {path.map((lesson) => withCheckpoint(lesson))}
 
       {/* After the thirteen lessons: the letters the course still owes, named,
           so the learner can see exactly what one more sitting is for. */}
@@ -277,11 +216,6 @@ export function MorsePath({
         className={`morse-path-check${ready ? ' is-ready' : ''}`}
         mark="A–Z"
         title={<strong className="morse-path-checkpoint-title">Test</strong>}
-        note={
-          ready
-            ? 'Every letter, both directions, no support'
-            : 'Open early — an early run does not move the ladder'
-        }
         cue={ready ? 'Start' : 'Try early'}
         label={ready ? 'Start the A to Z test' : 'Try the A to Z test early'}
         onPress={onCheck}

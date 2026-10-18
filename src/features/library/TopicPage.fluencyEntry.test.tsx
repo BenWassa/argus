@@ -211,7 +211,6 @@ describe('the Fluency entry', () => {
 
   it('routes each Play family directly without opening the Fluency hub', () => {
     const onStart = open(morse({ lessonProgress: allSettled() }))
-    fireEvent.click(screen.getByText('⋯ More options'))
     fireEvent.click(screen.getByRole('button', { name: /Challenges/ }))
     expect(onStart).toHaveBeenLastCalledWith('learn', [MORSE_ID], { kind: 'fluency', mode: 'sprint' })
     fireEvent.click(screen.getByRole('button', { name: /Free Play/ }))
@@ -220,7 +219,6 @@ describe('the Fluency entry', () => {
 
   it('keeps every sending stage, copy level and recognition mode directly reachable', () => {
     const onStart = open(morse({ lessonProgress: allSettled() }))
-    fireEvent.click(screen.getByText('⋯ More options'))
 
     for (const stage of SEND_STAGES) {
       fireEvent.click(screen.getByRole('button', { name: `Send: ${SEND_STAGE_INFO[stage].title}` }))
