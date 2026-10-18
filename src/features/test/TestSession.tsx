@@ -809,8 +809,6 @@ export function TestSession({ topicIds, review = false, onExit, onPractice, onPl
               )}
             </span>
             <span className="flip-face flip-back">
-              <motion.span className="flip-wash flip-wash-miss" style={{ opacity: missStrength }} aria-hidden="true" />
-              <motion.span className="flip-wash flip-wash-hit" style={{ opacity: hitStrength }} aria-hidden="true" />
               <span className="flip-label">Answer</span>
               {/* The answer text exists in the document only while this card is
                   revealed or leaving. An unrevealed card has no answer to leak. */}

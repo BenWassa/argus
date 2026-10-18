@@ -106,7 +106,7 @@
   font-size: var(--t-label);
   font-weight: var(--w-body);
   letter-spacing: 0.01em;
-  color: color-mix(in srgb, var(--accent-ink) 74%, transparent);
+  color: var(--accent-ink);
 }
 
 /* Available, not recommended. It never takes the primary's shape. */
@@ -229,8 +229,8 @@
 .topic-track-survival { --topic-track: var(--survival); }
 .topic-track-tradecraft { --topic-track: var(--tradecraft); }
 .topic-hero { margin-bottom: var(--s-xl); }
-.topic-hero-fallback { display: grid; place-items: center; aspect-ratio: 16 / 9; max-height: 260px; border-radius: var(--r-lg); background: radial-gradient(ellipse at 50% 35%, color-mix(in oklch, var(--topic-track) 22%, var(--surface-2)), var(--bg)); border: 1px solid var(--line); }
-.topic-hero-fallback img { width: 112px; height: 112px; opacity: .9; }
+.topic-hero-fallback { display: grid; place-items: center; aspect-ratio: 16 / 9; max-height: 260px; border-radius: var(--r-lg); background: color-mix(in oklch, var(--topic-track) 22%, var(--surface-2)); border: 1px solid var(--line); }
+.topic-hero-fallback .topic-icon { width: 112px; height: 112px; }
 .topic-hero-fallback span { font-size: 5rem; color: var(--topic-track); }
 .topic-hero .visual { margin: 0; }
 .topic-state { padding-top: 0; border: 0; gap: var(--s-sm); }

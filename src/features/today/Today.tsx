@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type CSSProperties } from 'react'
 import { useLibrary } from '../../services/library/LibraryProvider'
 import { dueEntries, journeysFor, type JourneyEntry } from '../../domain/study/journey'
 import { hasStarted } from '../../domain/study/libraryGroups'
@@ -51,7 +51,7 @@ export function Today({ onOpenTopic, onGoToLibrary, onAuthorTopic, onOpenProfile
           <ul className="index docket">
             {active.slice(0, 3).map((entry) => (
               <li className="today-entry" key={entry.topic.id}>
-                <button type="button" className="index-row today-plate" data-repair={entry.journey.phase === 'repair' || undefined} onClick={() => onOpenTopic(entry.topic.id)}>
+                <button type="button" className="index-row today-plate" data-repair={entry.journey.phase === 'repair' || undefined} style={{ '--track-hue': `var(--${entry.topic.track})` } as CSSProperties} onClick={() => onOpenTopic(entry.topic.id)}>
                   <ProgressRing progress={homeProgress(entry.topic, entry.journey)} />
                   <span className="home-topic-copy">
                     <span className="index-title today-plate-title">{entry.topic.title}</span>
@@ -89,7 +89,7 @@ function ProgressRing({ progress }: { progress: HomeProgress }) {
         {ratio !== null ? <circle className="home-dial-arc" cx="28" cy="28" r="23" strokeDasharray={circumference} strokeDashoffset={circumference * (1 - ratio)} /> :
           <circle className="home-dial-stage" cx="28" cy="28" r="23" />}
       </svg>
-      <span className="home-dial-mark">{progress.kind === 'repair' ? '!' : progress.kind === 'complete' ? '✓' : '·'}</span>
+      <span className="home-dial-mark">{progress.kind === 'repair' ? '◆' : progress.kind === 'complete' ? '✓' : '·'}</span>
     </span>
   )
 }
