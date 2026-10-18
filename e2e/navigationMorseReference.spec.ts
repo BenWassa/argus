@@ -87,7 +87,7 @@ async function keyPattern(page: Page, pattern: string) {
 async function openMorseTopic(page: Page) {
   await page.getByRole('button', { name: 'Library', exact: true }).click()
   await page.locator(`[data-row="${MORSE_ID}"]`).click()
-  await expect(page.getByRole('heading', { name: morse.title, level: 1 })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'International Morse Code', level: 1 })).toBeVisible()
 }
 
 async function finishCheckpointWarmups(page: Page) {
@@ -121,22 +121,22 @@ test('the alphabet round-trip preserves the topic and its unfinished confirmatio
   // Completed lessons still owe confirmation. The primary opens that task;
   // alphabet lookup belongs to the Topic page, not the live retrieval screen.
   await page.locator('.docket .index-row').click()
-  await expect(page.getByRole('heading', { name: morse.title, level: 1 })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'International Morse Code', level: 1 })).toBeVisible()
   expect(await state(page)).toMatchObject({ index: 1, route: { kind: 'topic', topicId: MORSE_ID } })
-  await page.locator('.topic-primary').click()
+  await page.getByRole('button', { name: 'A–Z Test, Confirm letters, current' }).click()
   await expect(page.locator('.morse-key')).toBeVisible()
   expect(await state(page)).toMatchObject({ index: 2, route: { kind: 'run', mode: 'learn' } })
 
   await page.evaluate(() => window.history.back())
-  await expect(page.getByRole('heading', { name: morse.title, level: 1 })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'International Morse Code', level: 1 })).toBeVisible()
   expect((await state(page)).index).toBe(1)
-  await page.getByRole('button', { name: 'A–Z reference' }).click()
+  await page.getByRole('button', { name: 'A–Z', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Morse alphabet', level: 1 })).toBeVisible()
   expect(await state(page)).toMatchObject({ index: 2, route: { kind: 'reference', topicId: MORSE_ID, origin: { kind: 'topic', topicId: MORSE_ID } } })
 
   await page.evaluate(() => window.history.back())
-  await expect(page.getByRole('heading', { name: morse.title, level: 1 })).toBeFocused()
-  await expect(page.locator('.topic-primary')).toContainText('Go over missed letters')
+  await expect(page.getByRole('heading', { name: 'International Morse Code', level: 1 })).toBeFocused()
+  await expect(page.getByRole('button', { name: 'A–Z Test, Confirm letters, current' })).toBeVisible()
   expect((await state(page)).index).toBe(1)
 
   await page.evaluate(() => window.history.back())
@@ -149,15 +149,15 @@ test('opening Morse lands on the curriculum, with the alphabet a step away', asy
   await openMorseTopic(page)
   await openFinishedLessons(page)
 
-  const path = page.getByRole('list', { name: 'Morse curriculum' })
-  await expect(path.locator('.morse-path-lesson')).toHaveCount(13)
-  await expect(path.locator('.morse-path-checkpoint')).toHaveCount(4)
-  await expect(path.locator('.morse-path-check')).toHaveCount(1)
+  const path = page.getByRole('list', { name: 'Course path' })
+  await expect(path.locator('.morse-progress-lesson')).toHaveCount(13)
+  await expect(path.locator('.morse-progress-checkpoint')).toHaveCount(4)
+  await expect(path.locator('.morse-progress-test')).toHaveCount(1)
   expect(await state(page)).toMatchObject({ index: 2, route: { kind: 'topic', topicId: MORSE_ID } })
 
   // Twenty-six lookup cards no longer sit above the curriculum on this page.
   await expect(page.locator('.morse-ref-card')).toHaveCount(0)
-  await page.getByRole('button', { name: 'A–Z reference' }).click()
+  await page.getByRole('button', { name: 'A–Z', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Morse alphabet', level: 1 })).toBeVisible()
   expect(await state(page)).toMatchObject({
     index: 3,
@@ -165,7 +165,7 @@ test('opening Morse lands on the curriculum, with the alphabet a step away', asy
   })
 
   await page.evaluate(() => window.history.back())
-  const heading = page.getByRole('heading', { name: morse.title, level: 1 })
+  const heading = page.getByRole('heading', { name: 'International Morse Code', level: 1 })
   await expect(heading).toBeVisible()
   await expect(heading).toBeFocused()
 })
@@ -177,7 +177,7 @@ test('a lesson replay reruns the real lesson, writes nothing and returns to the 
   const before = await page.evaluate((key) => window.localStorage.getItem(key), STORE_KEY)
   const onTopic = await state(page)
   await openFinishedLessons(page)
-  await page.getByRole('button', { name: 'Replay lesson 1', exact: true }).click()
+  await page.getByRole('button', { name: 'Lesson 1, E and I, done', exact: true }).click()
 
   // #117: the same lesson, not a stripped quiz. The first-exposure
   // introduction is back, with the rhythmic mnemonic, the canonical notation
@@ -203,7 +203,7 @@ test('a lesson replay reruns the real lesson, writes nothing and returns to the 
   await expect(page.locator('.lesson-check, .lesson-introduce')).toBeVisible()
 
   await page.getByRole('button', { name: 'Close' }).click()
-  await expect(page.getByRole('heading', { name: morse.title, level: 1 })).toBeFocused()
+  await expect(page.getByRole('heading', { name: 'International Morse Code', level: 1 })).toBeFocused()
   expect(await page.evaluate((key) => window.localStorage.getItem(key), STORE_KEY)).toBe(before)
   expect(await state(page)).toEqual(onTopic)
 })
@@ -215,7 +215,7 @@ test('unlocked word checkpoint holds a miss until dismissed and never mutates sa
   const before = await page.evaluate((key) => window.localStorage.getItem(key), STORE_KEY)
   const onTopic = await state(page)
   await openFinishedLessons(page)
-  await page.getByRole('button', { name: 'Start word checkpoint after lesson 4' }).click()
+  await page.getByRole('button', { name: 'Words after Lesson 4, reached' }).click()
 
   await expect(page.getByText('Checkpoint', { exact: true })).toBeVisible()
   await expect(page.getByText('1/4', { exact: true })).toBeVisible()
@@ -259,9 +259,9 @@ test('unlocked word checkpoint holds a miss until dismissed and never mutates sa
   expect(await page.evaluate((key) => window.localStorage.getItem(key), STORE_KEY)).toBe(before)
 
   await page.getByRole('button', { name: 'Back to lessons' }).click()
-  await expect(page.getByRole('heading', { name: morse.title, level: 1 })).toBeFocused()
+  await expect(page.getByRole('heading', { name: 'International Morse Code', level: 1 })).toBeFocused()
   await openFinishedLessons(page)
-  await expect(page.getByRole('button', { name: 'Start word checkpoint after lesson 4' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Words after Lesson 4, reached' })).toBeVisible()
   expect(await page.evaluate((key) => window.localStorage.getItem(key), STORE_KEY)).toBe(before)
   expect(await state(page)).toEqual(onTopic)
 })
@@ -271,7 +271,7 @@ test('word checkpoint remains usable at phone width and 200% text with the whole
   await openApp(page)
   await openMorseTopic(page)
   await openFinishedLessons(page)
-  await page.getByRole('button', { name: 'Start word checkpoint after lesson 4' }).click()
+  await page.getByRole('button', { name: 'Words after Lesson 4, reached' }).click()
   await finishCheckpointWarmups(page)
 
   const target = page.locator('.morse-checkpoint-target')
@@ -297,7 +297,7 @@ test('reference cards keep the phone hierarchy without horizontal overflow', asy
   test.skip(!testInfo.project.name.startsWith('phone-'), 'phone-width rendering contract')
   await openApp(page)
   await openMorseTopic(page)
-  await page.getByRole('button', { name: 'A–Z reference' }).click()
+  await page.getByRole('button', { name: 'A–Z', exact: true }).click()
 
   await expect(page.getByRole('heading', { name: 'Morse alphabet', level: 1 })).toBeVisible()
   await expect(page.getByText('Show all 26 items')).toHaveCount(0)
@@ -324,7 +324,7 @@ test('reference cards keep the phone hierarchy without horizontal overflow', asy
 test('reference playback does not write learner state', async ({ page }) => {
   await openApp(page)
   await openMorseTopic(page)
-  await page.getByRole('button', { name: 'A–Z reference' }).click()
+  await page.getByRole('button', { name: 'A–Z', exact: true }).click()
 
   const before = await page.evaluate((key) => window.localStorage.getItem(key), STORE_KEY)
   await page.getByRole('button', { name: 'Play A Morse' }).click()

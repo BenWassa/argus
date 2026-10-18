@@ -7,6 +7,8 @@ import './MorseProgressPath.css'
 interface MorseProgressPathProps {
   topic: Topic
   onAction: (action: MorseProgressAction) => void
+  /** The topic keeps its nine fixed controls; standalone paths may offer a return control. */
+  showJump?: boolean
 }
 
 /** Lessons are round; the two tests are square, and each test has its own mark. */
@@ -35,7 +37,7 @@ function NodeWords({ node }: { node: MorseProgressNode }) {
 }
 
 /** A straight projection of the course, with no local unlock or progress state. */
-export function MorseProgressPath({ topic, onAction }: MorseProgressPathProps) {
+export function MorseProgressPath({ topic, onAction, showJump = true }: MorseProgressPathProps) {
   const path = morseProgressPath(topic)
   const listRef = useRef<HTMLOListElement>(null)
   const currentRef = useRef<HTMLButtonElement>(null)
@@ -62,7 +64,7 @@ export function MorseProgressPath({ topic, onAction }: MorseProgressPathProps) {
     const resize = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure)
     resize?.observe(list)
     window.addEventListener('resize', measure)
-    const observer = typeof IntersectionObserver === 'undefined' ? null : new IntersectionObserver(([entry]) => {
+    const observer = !showJump || typeof IntersectionObserver === 'undefined' ? null : new IntersectionObserver(([entry]) => {
       if (entry) setJump(entry.isIntersecting ? null : entry.boundingClientRect.top < (entry.rootBounds?.top ?? 0) ? '↑' : '↓')
     })
     observer?.observe(current)
@@ -71,7 +73,7 @@ export function MorseProgressPath({ topic, onAction }: MorseProgressPathProps) {
       observer?.disconnect()
       window.removeEventListener('resize', measure)
     }
-  }, [topic, currentId])
+  }, [topic, currentId, showJump])
 
   if (!path) return null
   const current = path.nodes.find((node) => node.id === currentId)!
@@ -106,11 +108,14 @@ export function MorseProgressPath({ topic, onAction }: MorseProgressPathProps) {
                   {isCurrent && <span className="morse-progress-go" aria-hidden="true">Start</span>}
                 </button>
               )}
+              {node.kind === 'test' && node.earlyRunPossible && (
+                <button className="quiet" type="button" onClick={() => onAction(node.testAction)}>Test A–Z early</button>
+              )}
             </li>
           )
         })}
       </ol>
-      {jump && <button type="button" className="morse-progress-jump"
+      {showJump && jump && <button type="button" className="morse-progress-jump"
         onClick={() => currentRef.current?.scrollIntoView?.({ block: 'center', behavior: 'instant' })}>
         {current.label} {jump}
       </button>}

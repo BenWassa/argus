@@ -19,10 +19,10 @@ test('direct letter practice, durable isolation, correction and return', async (
     if (info.project.name.startsWith('phone-')) await page.screenshot({ path: `${folder}/${info.project.name}-before.png`, fullPage: true })
     return
   }
-  await expect(page.getByRole('button', { name: 'Practice letters', exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Read', exact: true })).toBeVisible()
   if (info.project.name.startsWith('phone-')) await page.screenshot({ path: `${folder}/${info.project.name}-topic.png`, fullPage: true })
   const before = await page.evaluate(() => JSON.parse(localStorage.getItem('argus.library.v5')!).topics[0])
-  await page.getByRole('button', { name: 'Practice letters', exact: true }).click()
+  await page.getByRole('button', { name: 'Read', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Practice letters' })).toBeVisible()
   await page.getByRole('button', { name: 'Read', exact: true }).click()
   if (info.project.name.startsWith('phone-')) await page.screenshot({ path: `${folder}/${info.project.name}-active.png`, fullPage: true })
@@ -39,7 +39,7 @@ test('direct letter practice, durable isolation, correction and return', async (
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
   await page.getByRole('button', { name: 'Continue', exact: true }).click()
   await page.getByRole('button', { name: 'Close', exact: true }).click()
-  await expect(page.getByRole('button', { name: 'Practice letters', exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Read', exact: true })).toBeVisible()
 })
 
 test('a complete read round repeats freely and large text fits', async ({ page }, info) => {
@@ -50,7 +50,7 @@ test('a complete read round repeats freely and large text fits', async ({ page }
   await page.goto('./')
   await page.getByRole('button', { name: 'Library', exact: true }).click()
   await page.getByRole('button', { name: /Morse/ }).first().click()
-  await page.getByRole('button', { name: 'Practice letters', exact: true }).click()
+  await page.getByRole('button', { name: 'Read', exact: true }).click()
   await page.getByRole('button', { name: 'Read', exact: true }).click()
   for (let n = 1; n <= 10; n++) {
     await expect(page.locator('.session-count')).toHaveText(`${n} / 10`)

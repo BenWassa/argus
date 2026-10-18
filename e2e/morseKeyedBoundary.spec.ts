@@ -82,7 +82,7 @@ async function openCheckpoint(page: Page) {
   await page.getByRole('button', { name: 'Library', exact: true }).click()
   await page.locator(`[data-row="${MORSE_ID}"]`).click()
   await openFinishedLessons(page)
-  await page.getByRole('button', { name: 'Start word checkpoint after lesson 4' }).click()
+  await page.getByRole('button', { name: 'Words after Lesson 4, reached' }).click()
   await expect(page.getByText('1/4', { exact: true })).toBeVisible()
 }
 

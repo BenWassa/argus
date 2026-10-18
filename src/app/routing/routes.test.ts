@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { isAppRoute, restoreRoute, sameRoute, type AppRoute } from './routes'
+import { isAppRoute, liveRoute, restoreRoute, sameRoute, type AppRoute } from './routes'
 import type { Topic } from '../../domain/library/topic'
 
 describe('the route model', () => {
@@ -220,5 +220,18 @@ describe('fluency routes', () => {
   it('is not resumable and falls back to its origin', () => {
     const topics = [{ id: 'morse' } as never]
     expect(restoreRoute(run('sprint'), topics, false)).toEqual(origin)
+  })
+})
+
+describe('retired Morse hub history', () => {
+  it('normalizes live, reloaded and traversed hub entries to the topic', () => {
+    const topics = [{ id: 'morse' }] as Topic[]
+    const route: AppRoute = { kind: 'run', mode: 'learn', topicIds: ['morse'],
+      origin: { kind: 'section', view: 'library' }, target: { kind: 'fluency' } }
+    const topic = { kind: 'topic', topicId: 'morse' }
+    expect(liveRoute(route, topics)).toEqual(topic)
+    expect(restoreRoute(route, topics, false)).toEqual(topic)
+    expect(restoreRoute(route, topics, true)).toEqual(topic)
+    expect(restoreRoute(route, [], true)).toEqual({ kind: 'section', view: 'library' })
   })
 })

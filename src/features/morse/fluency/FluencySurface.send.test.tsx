@@ -2,9 +2,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { LibraryProvider } from '../../../services/library/LibraryProvider'
-import { newFluencyProgress, type MorseFluencyProgress } from '../../../domain/morse/fluency/progress'
-import { SEND_STAGES, sendBestKey } from '../../../domain/morse/fluency/send'
-import { FluencyHome } from './FluencyHome'
 import { FluencySurface } from './FluencySurface'
 
 const MORSE_ID = 'international-morse-letters-printed'
@@ -70,35 +67,5 @@ describe('direct Topic-page Morse Play entries (#201)', () => {
     expect(screen.getByRole('button', { name: 'Close' })).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Close' }))
     expect(onExit).toHaveBeenCalledTimes(1)
-  })
-})
-
-describe('the sending recommendation once every stage is cleared', () => {
-  it('points at the weakest stage rather than always Short messages', () => {
-    const cleared: MorseFluencyProgress = {
-      ...newFluencyProgress(),
-      bests: Object.fromEntries(
-        SEND_STAGES.map((stage) => [sendBestKey(stage), stage === 'flow' ? 91 : 100]),
-      ),
-    }
-    const onSend = vi.fn()
-    render(
-      <LibraryProvider>
-        <FluencyHome
-          progress={cleared}
-          onProgress={() => undefined}
-          onStart={() => undefined}
-          onCopy={() => undefined}
-          onSend={onSend}
-          onFreePlay={() => undefined}
-          onExit={() => undefined}
-        />
-      </LibraryProvider>,
-    )
-    expect(screen.getByText('Recommended')).toBeTruthy()
-    const lead = document.querySelector('.copy-next-tag')!.closest('button')!
-    expect(lead.textContent).toContain('Word flow')
-    fireEvent.click(lead)
-    expect(onSend).toHaveBeenCalledWith('flow')
   })
 })

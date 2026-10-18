@@ -85,7 +85,7 @@ afterEach(() => {
 describe('fresh Morse placement entry', () => {
   it('offers New, Some and Most before the first lesson starts', () => {
     renderFresh()
-    fireEvent.click(screen.getByRole('button', { name: /start lesson/i }))
+    fireEvent.click(screen.getByRole('button', { name: 'Skip ahead' }))
 
     expect(screen.getByRole('dialog', { name: 'Check your Morse level' })).toBeTruthy()
     expect(screen.getByRole('button', { name: /New to Morse/i })).toBeTruthy()
@@ -95,7 +95,7 @@ describe('fresh Morse placement entry', () => {
 
   it('New to Morse bypasses placement and launches the canonical lesson run', () => {
     const onStart = renderFresh()
-    fireEvent.click(screen.getByRole('button', { name: /start lesson/i }))
+    fireEvent.click(screen.getByRole('button', { name: 'Skip ahead' }))
     fireEvent.click(screen.getByRole('button', { name: /New to Morse/i }))
 
     expect(onStart).toHaveBeenCalledWith('learn', [MORSE_ID], { kind: 'lesson' })
@@ -104,7 +104,7 @@ describe('fresh Morse placement entry', () => {
 
   it('closing the assessment before a result leaves learner progress untouched', () => {
     renderFresh()
-    fireEvent.click(screen.getByRole('button', { name: /start lesson/i }))
+    fireEvent.click(screen.getByRole('button', { name: 'Skip ahead' }))
     fireEvent.click(screen.getByRole('button', { name: /Know some Morse/i }))
     expect(screen.getByRole('dialog', { name: 'Morse placement check' })).toBeTruthy()
 
@@ -130,7 +130,7 @@ describe('fresh Morse placement entry', () => {
       </LibraryProvider>,
     )
 
-    fireEvent.click(screen.getByRole('button', { name: /continue lesson/i }))
+    fireEvent.click(screen.getByRole('button', { name: 'Start, current' }))
 
     expect(screen.queryByRole('dialog', { name: 'Check your Morse level' })).toBeNull()
     expect(onStart).toHaveBeenCalledWith('learn', [MORSE_ID], { kind: 'lesson' })

@@ -40,7 +40,10 @@ function focusAfterTraversal(previous: AppRoute, next: AppRoute) {
     // a topic. Wait two frames so its local openId state has committed before
     // restoring the heading focus target.
     window.requestAnimationFrame(() => {
-      window.requestAnimationFrame(() => document.querySelector<HTMLElement>('.topic-title')?.focus())
+      window.requestAnimationFrame(() => {
+        const heading = document.querySelector<HTMLElement>('.topic-title')
+        heading?.focus({ preventScroll: Boolean(heading.closest('.topic-morse')) })
+      })
     })
     return
   }
@@ -113,7 +116,7 @@ export function AppRouter() {
       // A completed/exited run has no persistent in-progress state to restore.
       // Forward into its old entry is therefore declined rather than replaying
       // Learn/Test side effects or creating a fresh scored attempt.
-      if (direction > 0 && state.route.kind === 'run') {
+      if (direction > 0 && state.route.kind === 'run' && liveRoute(state.route, topicsRef.current).kind === 'run') {
         window.history.back()
         return
       }
@@ -184,7 +187,7 @@ export function AppRouter() {
     if (topicIds.length === 0) return
     const current = routeRef.current
     const origin = replace && current.kind === 'run' ? current.origin : parentFor(current)
-    navigate({ kind: 'run', mode, topicIds, origin, target }, replace)
+    navigate(liveRoute({ kind: 'run', mode, topicIds, origin, target }, topicsRef.current), replace)
   }
 
   /**

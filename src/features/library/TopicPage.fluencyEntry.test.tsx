@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { SHIPPED_CATALOG_TOPIC_IDS } from '../../domain/library/catalog'
 import { seedLibrary } from '../../domain/library/catalogSeed'
 import type { Topic } from '../../domain/library/topic'
@@ -10,9 +10,6 @@ import { LibraryProvider, useLibrary } from '../../services/library/LibraryProvi
 import type { RunTarget } from '../../app/routing/routes'
 import type { ItemLessonStore } from '../../domain/morse/progress'
 import { lessonPackets } from '../../domain/morse/curriculum/lesson'
-import { SEND_STAGES, SEND_STAGE_INFO } from '../../domain/morse/fluency/send'
-import { COPY_LEVELS, COPY_LEVEL_INFO } from '../../domain/morse/fluency/copy'
-import { FLUENCY_MODES } from '../../domain/morse/fluency/session'
 import { TopicPage } from './TopicPage'
 
 const STORE_KEY = 'argus.library.v5'
@@ -98,183 +95,71 @@ function open(topic: Topic, onStart = vi.fn()) {
   return onStart
 }
 
-const fluency = () => screen.queryByRole('heading', { name: 'Play Morse' })
-const primary = () => document.querySelector<HTMLButtonElement>('.topic-action-bar .topic-primary')
-const quickReview = () => screen.queryByRole('button', { name: /Quick review/ })
 
 beforeEach(() => localStorage.clear())
-afterEach(() => {
-  cleanup()
-  localStorage.clear()
-})
+afterEach(() => { cleanup(); localStorage.clear() })
 
-describe('the Fluency entry', () => {
-  it('is absent before the alphabet is acquired', () => {
-    open(morse({}))
-    expect(fluency()).toBeNull()
-  })
-
-  it('appears once the acquisition anchor is recorded', () => {
-    open(morse({ acquisitionReadyAt: '2026-02-01T00:00:00.000Z' }))
-    expect(fluency()).toBeTruthy()
-  })
-
-  /**
-   * The regression this file exists for.
-   *
-   * `acquisitionReadyAt` postdates the programme, so a learner who finished
-   * the alphabet before the field existed has every letter settled and no
-   * timestamp. Gating on the raw field hid Fluency from exactly the learner it
-   * was built for — the one who has already finished. `journeyFor` resolves
-   * the derived and stored answers into one, and that is what the page reads.
-   */
-  it('appears for a finished learner whose record predates the anchor', () => {
-    open(morse({ lessonProgress: allSettled(), acquisitionReadyAt: undefined }))
-    expect(fluency()).toBeTruthy()
-  })
-
-  it('keeps Play in plain view, not folded under More options (#201)', () => {
-    open(morse({ lessonProgress: allSettled() }))
-    expect(fluency()!.closest('details')).toBeNull()
-    for (const label of ['Practice letters', 'Send', 'Receive', 'Free Play']) {
-      expect(document.querySelector('.topic-play-choices')?.textContent).toContain(label)
+describe('one Morse topic screen', () => {
+  it('opens fresh on Start, with locked modes and a separate placement offer', () => {
+    const onStart = open(morse({ status: 'unstarted', learningAt: null }))
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('International Morse Code')
+    expect(screen.getByRole('img', { name: '0 of 26 letters' })).toBeTruthy()
+    for (const name of ['Key', 'Listen', 'Read', 'Free play']) {
+      expect(screen.getByRole('button', { name }).getAttribute('aria-disabled')).toBe('true')
     }
+    fireEvent.click(screen.getByRole('button', { name: 'Key' }))
+    expect(onStart).not.toHaveBeenCalled()
+    expect(screen.getByRole('button', { name: 'Skip ahead' })).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Start, current' }))
+    expect(onStart).toHaveBeenCalledWith('learn', [MORSE_ID], { kind: 'lesson' })
+    expect(screen.queryByRole('dialog')).toBeNull()
   })
 
-  it('launches a fluency run on the topic', () => {
-    const onStart = open(morse({ lessonProgress: allSettled() }))
-    fireEvent.click(document.querySelector<HTMLButtonElement>('.topic-play-choices button:nth-child(2)')!)
-    expect(onStart).toHaveBeenCalledWith('learn', [MORSE_ID], { kind: 'fluency', send: 'words' })
+  it('uses settled letters mid-course and starts the current lesson and reached word check', () => {
+    const known = new Set(lessonPackets().slice(0, 4).flatMap(packet => packet.novel))
+    const progress: ItemLessonStore = {}
+    for (const item of seededMorse().items) if (item.id && known.has(item.prompt as never)) progress[item.id] = 'settled'
+    const onStart = open(morse({ lessonProgress: progress }))
+    expect(screen.getByRole('img', { name: '8 of 26 letters' })).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: /Lesson 5, .*current/ }))
+    expect(onStart).toHaveBeenLastCalledWith('learn', [MORSE_ID], { kind: 'lesson' })
+    fireEvent.click(screen.getByRole('button', { name: 'Words after Lesson 4, reached' }))
+    expect(onStart).toHaveBeenLastCalledWith('learn', [MORSE_ID], { kind: 'checkpoint', afterLesson: 4 })
+    fireEvent.click(screen.getByRole('button', { name: 'Read' }))
+    expect(onStart).toHaveBeenLastCalledWith('learn', [MORSE_ID], { kind: 'letter-practice' })
+    expect(screen.queryByRole('button', { name: 'Skip ahead' })).toBeNull()
   })
 
-  it('stays text weight while a scheduled check is due, because only the check can earn', () => {
-    open(morse({ lessonProgress: allSettled() }))
-    expect(document.querySelector('.topic-play-choices button:nth-child(2)')?.className).toContain('topic-play-choice')
-    expect(primary()!.textContent).toBe('Test')
-  })
-
-  it('leads a banked course, beside a full scored check and a quick review of weak letters', () => {
-    const onStart = open(morse({ status: 'completed', completedAt: new Date().toISOString(), acquisitionReadyAt: new Date().toISOString() }))
-    expect(primary()!.className).toContain('topic-primary')
-    expect(primary()!.textContent).toBe('Send five words')
-
-    fireEvent.click(primary()!)
-    expect(onStart).toHaveBeenLastCalledWith('learn', [MORSE_ID], { kind: 'fluency', send: 'words' })
-
-    expect(quickReview()!.className).toContain('topic-alt')
-    fireEvent.click(quickReview()!)
-    expect(onStart).toHaveBeenLastCalledWith('test', [MORSE_ID], { kind: 'review' })
-
-    const fullTest = screen.getByRole('button', { name: /Full test/ })
-    expect(fullTest.className).toContain('topic-alt')
-    fireEvent.click(fullTest)
+  it('keeps a finished pre-anchor learner active with nine controls outside the path', () => {
+    const onStart = open(morse({ lessonProgress: allSettled(), status: 'completed', completedAt: '2026-01-01T00:00:00Z' }))
+    expect(screen.getByRole('img', { name: '26 of 26 letters' })).toBeTruthy()
+    const controls = [...document.querySelectorAll('button')].filter(button => !button.closest('.morse-progress-path'))
+    expect(controls).toHaveLength(9)
+    expect(document.querySelector('.topic-action-bar, .topic-options, .topic-play, .topic-state, .topic-scope')).toBeNull()
+    expect(screen.queryByRole('heading', { name: 'Curriculum' })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: /A–Z Test, banked, current/ }))
     expect(onStart).toHaveBeenLastCalledWith('test', [MORSE_ID])
-  })
-
-  it('practises a banked course\'s missed letters keyed, over just those letters', () => {
-    const q = seededMorse().items.find((item) => item.prompt === 'Q')!
-    const onStart = open(morse({
-      status: 'completed',
-      completedAt: new Date().toISOString(),
-      acquisitionReadyAt: new Date().toISOString(),
-      itemEvidence: {
-        [q.id!]: {
-          cue: 'free',
-          directions: {
-            'prompt-to-answer': {
-              attempts: 1, correct: 0, unassistedCorrect: 0, consecutiveCorrect: 0,
-              lastAt: '2026-09-01T00:00:00.000Z', lastLatencyMs: 900,
-            },
-          },
-        },
-      },
-    }))
-    fireEvent.click(screen.getByRole('button', { name: /Practise the letters you missed: Q/ }))
-    expect(onStart).toHaveBeenLastCalledWith('learn', [MORSE_ID], { kind: 'fluency', mode: 'sprint', letters: ['Q'] })
-  })
-
-  it('names the next copy level from the learner\'s own bests', () => {
-    const onStart = open(
-      morse({
-        status: 'completed', completedAt: new Date().toISOString(),
-        acquisitionReadyAt: new Date().toISOString(),
-        morseFluency: { rung: 6, characters: {}, bests: { 'copy:letters': 95, 'copy:common': 91 } },
-      }),
-    )
-    expect(primary()!.textContent).toBe('Send five words')
-    fireEvent.click(within(document.querySelector('.topic-play-choices')!).getByRole('button', { name: /Receive/ }))
-    // Both earlier Copy levels are cleared, so the next is Everyday words.
-    // Topic Play launches it directly rather than routing through the hub.
-    // No status or Test evidence is changed merely by opening it.
-    expect(onStart).toHaveBeenLastCalledWith('learn', [MORSE_ID], { kind: 'fluency', copy: 'words' })
-  })
-
-  it('routes each Play family directly without opening the Fluency hub', () => {
-    const onStart = open(morse({ lessonProgress: allSettled() }))
-    fireEvent.click(screen.getByRole('button', { name: /Challenges/ }))
-    expect(onStart).toHaveBeenLastCalledWith('learn', [MORSE_ID], { kind: 'fluency', mode: 'sprint' })
-    fireEvent.click(screen.getByRole('button', { name: /Free Play/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Lesson 1, E and I, done/ }))
+    expect(onStart).toHaveBeenLastCalledWith('learn', [MORSE_ID], { kind: 'replay', index: 0 })
+    fireEvent.click(screen.getByRole('button', { name: 'Words, Key, available' }))
+    expect(onStart).toHaveBeenLastCalledWith('learn', [MORSE_ID], { kind: 'fluency', send: 'words' })
+    fireEvent.click(screen.getByRole('button', { name: 'Free play' }))
     expect(onStart).toHaveBeenLastCalledWith('learn', [MORSE_ID], { kind: 'fluency', free: true })
   })
 
-  it('keeps every sending stage, copy level and recognition mode directly reachable', () => {
-    const onStart = open(morse({ lessonProgress: allSettled() }))
-
-    for (const stage of SEND_STAGES) {
-      fireEvent.click(screen.getByRole('button', { name: `Send: ${SEND_STAGE_INFO[stage].title}` }))
-      expect(onStart).toHaveBeenLastCalledWith('learn', [MORSE_ID], { kind: 'fluency', send: stage })
-    }
-    for (const level of COPY_LEVELS) {
-      fireEvent.click(screen.getByRole('button', { name: `Receive: ${COPY_LEVEL_INFO[level].title}` }))
-      expect(onStart).toHaveBeenLastCalledWith('learn', [MORSE_ID], { kind: 'fluency', copy: level })
-    }
-    for (const mode of FLUENCY_MODES.filter((candidate) => candidate !== 'sprint')) {
-      const label = `Challenge: ${mode[0].toUpperCase()}${mode.slice(1)}`
-      fireEvent.click(screen.getByRole('button', { name: label }))
-      expect(onStart).toHaveBeenLastCalledWith('learn', [MORSE_ID], { kind: 'fluency', mode })
-    }
-    fireEvent.click(screen.getByRole('button', { name: 'Listening settings' }))
-    expect(onStart).toHaveBeenLastCalledWith('learn', [MORSE_ID], { kind: 'fluency' })
-  })
-
-  it('offers only packet-validated unlocked word checkpoints to developing learners', () => {
-    const known = new Set(lessonPackets().slice(0, 4).flatMap((packet) => packet.novel))
-    const progress: ItemLessonStore = {}
-    for (const item of seededMorse().items) {
-      if (item.id && known.has(item.prompt as never)) progress[item.id] = 'settled'
-    }
-    const onStart = open(morse({ lessonProgress: progress }))
-    expect(fluency()).toBeNull()
-    const play = screen.getByRole('button', { name: /Try a word/ })
-    fireEvent.click(play)
-    expect(onStart).toHaveBeenLastCalledWith('learn', [MORSE_ID], { kind: 'checkpoint', afterLesson: 4 })
-  })
-
-  it('stays absent for a topic that is not the course, even once completed', () => {
-    const parsed = parseLibrary(seedLibrary())
-    if (!parsed.ok) throw new Error(parsed.error)
-    const nato = parsed.library.topics.find((topic) => topic.id === 'nato-phonetic')
-    if (!nato) throw new Error('Missing NATO topic.')
-    const completed: Topic = {
-      ...nato,
-      status: 'completed',
-      learningAt: '2026-01-01T00:00:00.000Z',
-      drilledAt: '2026-01-10T00:00:00.000Z',
-      completedAt: '2026-02-01T00:00:00.000Z',
-      acquisitionReadyAt: '2026-02-01T00:00:00.000Z',
-    }
-    localStorage.setItem(
-      STORE_KEY,
-      JSON.stringify({ version: 5, topics: [completed], catalogDelivered: [...SHIPPED_CATALOG_TOPIC_IDS] }),
-    )
-    render(
-      <LibraryProvider>
-        <NatoHarness />
-      </LibraryProvider>,
-    )
-    // The page rendered — this is a real assertion about an ordinary topic,
-    // not a vacuously empty tree.
+  it('keeps the ordinary topic reference and docked Test', () => {
+    render(<LibraryProvider><NatoHarness /></LibraryProvider>)
     expect(screen.getByRole('heading', { level: 1 })).toBeTruthy()
-    expect(fluency()).toBeNull()
+    expect(document.querySelector('.topic-action-bar')).toBeTruthy()
+    expect(screen.queryByRole('list', { name: 'Course path' })).toBeNull()
+    expect(screen.queryByRole('navigation', { name: 'Play' })).toBeNull()
+  })
+
+  it('offers early Test without writing progress merely by browsing', () => {
+    const onStart = open(morse({}))
+    const before = localStorage.getItem(STORE_KEY)
+    fireEvent.click(screen.getByRole('button', { name: 'Test A–Z early' }))
+    expect(onStart).toHaveBeenCalledWith('test', [MORSE_ID])
+    expect(localStorage.getItem(STORE_KEY)).toBe(before)
   })
 })
