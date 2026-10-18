@@ -5,18 +5,19 @@ import { useLibrary } from '../../services/library/LibraryProvider'
 import { morseProgressPath } from '../../domain/morse/curriculum/progressPath'
 import { statusLabel } from '../../shared/ui/StatusTag'
 import { ScreenHeader } from '../../shared/ui/ScreenHeader'
+import { ProgressSpine, type SpineRow, type SpineState } from '../../shared/ui/ProgressSpine'
+import { ModeTray } from '../../shared/ui/ModeTray'
 import { topicIcon } from './topicIcon'
 import { TopicGlyph } from './TopicGlyph'
-import { sequenceFor } from '../../domain/library/catalog'
-import { LearnSupport } from '../learn/LearnSupport'
+import { settledCount, topicItemGroups, type ItemStanding, type TopicItemEntry } from './topicItems'
 import { SourcesAndLimits } from '../learn/SourcesAndLimits'
+import { hasReading } from '../learn/TopicReading'
 import { VisualView } from '../visual/VisualView'
 import { listeningCoverage } from '../../domain/audio/evidence'
 import { AudioReference } from '../audio/AudioReference'
 import { MorseProgressPath, MorseModeTray, morseRunAction } from '../morse/play'
 import { MorsePlacementDialog } from '../morse/MorsePlacementDialog'
 import { applyMorsePlacement, canOfferMorsePlacement } from '../../domain/morse/placement'
-import '../learn/Reading.css'
 import type { RunTarget } from '../../app/routing/routes'
 import { hasPractice, practiceItemCount } from '../../domain/study/practiceTargets'
 import type { Mode } from '../../domain/study/mode'
@@ -40,7 +41,7 @@ function stamp(iso: string): string {
   })
 }
 
-/** Morse opens on its path; ordinary topics keep their complete reference. */
+/** Morse opens on its path; ordinary topics open on their items, with the same screen kit. */
 export function TopicPage({
   topic,
   onBack,
@@ -51,30 +52,18 @@ export function TopicPage({
 }: TopicPageProps) {
   const { updateTopic } = useLibrary()
   const heading = useRef<HTMLHeadingElement>(null)
-  const actionBar = useRef<HTMLDivElement>(null)
   const [placementOpen, setPlacementOpen] = useState(false)
   const runnable = topic.items.length > 0
   const path = runnable ? morseProgressPath(topic) : null
   const course = Boolean(path)
-  const sequence = sequenceFor(topic)
   // Browsing reads the durable record without starting acquisition or Test.
   const journey = journeyFor(topic)
+  const repair = journey.phase === 'repair'
+  const banked = !repair && (topic.status === 'completed' || topic.status === 'drilled')
+  const settled = course ? 0 : settledCount(topic)
   const listening = listeningCoverage(topic.items, topic.audioEvidence)
   const practiceCount = hasPractice(topic) ? practiceItemCount(topic) : 0
   const offersPlacement = path?.nodes.some(node => node.kind === 'start' && node.offersPlacement) && canOfferMorsePlacement(topic)
-
-  useLayoutEffect(() => {
-    // Ordinary topics dock one Test; the Morse tray reserves its own height.
-    const bar = actionBar.current
-    if (!bar) return
-    const reserve = () => bar.closest<HTMLElement>('.topic')?.style.setProperty(
-      '--topic-action-height', `${bar.getBoundingClientRect().height}px`,
-    )
-    reserve()
-    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(reserve)
-    observer?.observe(bar)
-    return () => observer?.disconnect()
-  }, [runnable, course])
 
   useLayoutEffect(() => {
     // Keep the path's initial current-row scroll when focusing its page title.
@@ -99,23 +88,18 @@ export function TopicPage({
         progress={{ value: journey.acquisition.settled, max: 26, label: `${journey.acquisition.settled} of 26 letters` }}
         readout={`${journey.acquisition.settled} / 26`}>
         {offersPlacement && <button className="quiet topic-morse-placement" type="button" onClick={() => setPlacementOpen(true)}>Skip ahead</button>}
-      </ScreenHeader> : <>
-        <div>
-          <button className="quiet topic-back" type="button" aria-label="Back to previous screen" onClick={onBack}>
-            <span aria-hidden="true">←</span> Back
-          </button>
-        </div>
-        <TopicHero topic={topic} />
-        <header className="topic-head">
-          <h1 ref={heading} tabIndex={-1} className="topic-title">{topic.title}</h1>
-          <p className="topic-scope">{sequence && topic.track !== 'survival' ? `${topic.items.length} rules, in order.` : topic.scope}</p>
-          <p className="topic-state">
-            <span className="topic-state-meta tabular">{topic.items.length} {topic.items.length === 1 ? 'item' : 'items'}</span>
-            <span className={`topic-state-label${journey.phase === 'repair' ? ' is-repair' : topic.status === 'completed' || topic.status === 'drilled' ? ' is-banked' : ''}`}>{journey.statusLabel}</span>
-          </p>
-          {listening.total > 0 && <p className="topic-detail topic-listening">Listening: {listening.unaided} of {listening.total} answered by ear, unaided</p>}
-        </header>
-      </>}
+      </ScreenHeader> : <ScreenHeader ref={heading} titleClassName="topic-title" title={topic.title}
+        className={banked ? 'is-banked' : undefined}
+        onBack={onBack}
+        glyph={topicIcon(topic.id) ? <TopicGlyph topicId={topic.id} /> : undefined}
+        progress={runnable ? { value: settled, max: topic.items.length, label: `${settled} of ${topic.items.length} ${topic.items.length === 1 ? 'item' : 'items'} settled` } : undefined}
+        readout={runnable ? `${settled} / ${topic.items.length}` : undefined}>
+        <p className={`topic-state${repair ? ' is-repair' : banked ? ' is-banked' : ''}`}>
+          {repair ? <span className="topic-state-mark" aria-hidden="true">◆</span> : banked ? <span className="topic-state-mark" aria-hidden="true">✓</span> : null}
+          <span className="topic-state-label">{journey.statusLabel}</span>
+        </p>
+        {listening.total > 0 && <p className="topic-listening">Listening · {listening.unaided} / {listening.total} unaided</p>}
+      </ScreenHeader>}
 
       {!runnable && <div className="topic-unfinished">
         <p>This topic has no items yet. Add them as <code>prompt | answer</code>, one per line.</p>
@@ -125,36 +109,13 @@ export function TopicPage({
       {course ? <>
         <MorseModeTray className="topic-morse-tray" topic={topic} onStart={(_mode, entry) => { if (entry) startMorse(entry) }} />
         <MorseProgressPath topic={topic} onAction={startMorse} showJump={false} />
-      </> : runnable ? <section className="topic-body" aria-labelledby="topic-reference-head">
-        <RecallReference topic={topic} heading="What to remember" />
-        {topic.learn && <LearnSupport content={topic.learn} />}
-      </section> : null}
+      </> : runnable ? <>
+        <TopicTray topic={topic} label={repair ? 'Repair' : banked ? 'Test again' : 'Test'}
+          practiceCount={practiceCount} onStart={onStart} onReference={onReference} />
+        <TopicItems topic={topic} />
+      </> : null}
 
-      {!course && runnable && practiceCount > 0 && <section className="topic-options" aria-labelledby="topic-options-head">
-        <h2 id="topic-options-head">More options</h2>
-        <div className="topic-alternates">
-          <button className="quiet topic-alt" type="button" onClick={() => onStart('learn', [topic.id], { kind: 'practice' })}>
-            Practise the {practiceCount} {practiceCount === 1 ? 'item' : 'items'} you missed
-          </button>
-        </div>
-      </section>}
-
-      {!course && runnable && <div ref={actionBar} className={`topic-action-bar${journey.phase === 'repair' ? ' is-repair' : topic.status === 'completed' || topic.status === 'drilled' ? ' is-banked' : ''}`}>
-        <button className="topic-primary" type="button" onClick={() => onStart('test', [topic.id])}>
-          {journey.phase === 'repair' ? 'Repair' : topic.status === 'completed' || topic.status === 'drilled' ? 'Test again' : 'Test'}
-        </button>
-      </div>}
-
-      {!course && topic.history.length > 0 && <section className="topic-history">
-        <h2>History, {topic.history.length} {topic.history.length === 1 ? 'attempt' : 'attempts'}</h2>
-        <ol className="topic-history-list">
-          {[...topic.history].reverse().map(attempt => <li key={attempt.at}>
-            <span className="tabular">{stamp(attempt.at)}</span>
-            <span className="tabular">{attempt.correct}/{attempt.total}</span>
-            <span className="topic-history-resolved">{statusLabel(attempt.resolvedTo)}</span>
-          </li>)}
-        </ol>
-      </section>}
+      {!course && topic.history.length > 0 && <AttemptPips topic={topic} />}
       {!course && topic.completedAt && <p className="topic-earned">First completed · {stamp(topic.completedAt)}</p>}
       <div className="topic-admin">
         <button className="quiet" type="button" onClick={onEdit}>{course ? 'Edit' : 'Edit topic'}</button>
@@ -178,51 +139,134 @@ export function TopicPage({
   )
 }
 
-function TopicHero({ topic }: { topic: Topic }) {
-  const icon = topicIcon(topic.id)
+const SPINE_STATE: Record<ItemStanding, SpineState> = {
+  settled: 'done',
+  repair: 'repair',
+  missed: 'reached',
+  seen: 'reached',
+  unseen: 'reached',
+}
+
+const STANDING_WORDS: Record<ItemStanding, string> = {
+  settled: 'settled',
+  repair: 'needs repair',
+  missed: 'missed last time',
+  seen: 'tested',
+  unseen: 'not tested yet',
+}
+
+/** A group's node takes the weakest standing among its items. */
+function groupState(entries: TopicItemEntry[]): SpineState {
+  if (entries.some(entry => entry.standing === 'repair')) return 'repair'
+  return entries.length > 0 && entries.every(entry => entry.standing === 'settled') ? 'done' : 'reached'
+}
+
+/**
+ * The complete scored set as reading, one row per item on the shared spine.
+ * There is no forced path, so no row is the position; rows are not controls.
+ */
+function TopicItems({ topic }: { topic: Topic }) {
+  const groups = topicItemGroups(topic)
+  const rows: SpineRow[] = groups.flatMap((group, groupIndex) => {
+    const heading: SpineRow[] = group.label ? [{
+      id: `group-${groupIndex}`,
+      shape: 'square',
+      state: groupState(group.entries),
+      label: group.label,
+      accessibleLabel: `${group.label}, ${group.entries.length} ${group.entries.length === 1 ? 'rule' : 'rules'}`,
+      group: true,
+      plate: true,
+      className: `topic-item-group${group.entries.every(entry => entry.standing === 'unseen') ? ' is-unseen' : ''}`,
+    }] : []
+    return [...heading, ...group.entries.map(({ item, marker, standing }, index): SpineRow => {
+      const visual = Boolean(item.stimulus || item.audio)
+      return {
+        id: item.id ?? `${groupIndex}-${index}`,
+        shape: 'round',
+        mark: standing === 'settled' && !group.label ? '✓' : marker,
+        state: SPINE_STATE[standing],
+        // A pictured item's picture is its prompt; the authored question
+        // wording is for the Test card, so the row names the answer.
+        label: item.stimulus ? item.answer : item.prompt,
+        detail: item.stimulus ? undefined : item.answer,
+        accessibleLabel: `${item.prompt}: ${item.answer}, ${STANDING_WORDS[standing]}`,
+        group: true,
+        className: `topic-item is-${standing}${visual ? ' has-visual' : ''}`,
+        after: visual ? <div className="topic-item-visual">
+          {item.stimulus && <VisualView visual={item.stimulus} compact />}
+          {item.audio && <AudioReference item={item as typeof item & { audio: NonNullable<typeof item.audio> }} />}
+        </div> : undefined,
+      }
+    })]
+  })
+  return <ProgressSpine rows={rows} label="Items" className="topic-items" />
+}
+
+/** An open page: the reading this topic carries. */
+const PAGE = <svg width="40" height="28" viewBox="0 0 40 28" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinejoin="round" focusable="false">
+  <path d="M20 6C15 2.5 8 2 3 3v21c5-1 12-.5 17 3 5-3.5 12-4 17-3V3c-5-1-12-.5-17 3Z" />
+  <path d="M20 6v21" />
+</svg>
+
+interface TopicTrayProps {
+  topic: Topic
+  label: string
+  practiceCount: number
+  onStart: TopicPageProps['onStart']
+  onReference: TopicPageProps['onReference']
+}
+
+/** Learn and Practice in the topic's track colour; Test in the action colour. */
+function TopicTray({ topic, label, practiceCount, onStart, onReference }: TopicTrayProps) {
   return (
-    <div className="topic-hero">
-      {topic.hero ? <VisualView key={topic.id} visual={topic.hero} /> : (
-        <div className="topic-hero-fallback" aria-hidden="true">
-          {icon ? <TopicGlyph topicId={topic.id} /> : <span>{topic.title.slice(0, 1)}</span>}
-        </div>
-      )}
-    </div>
+    <ModeTray label="Study" className="topic-tray" tiles={[
+      {
+        id: 'learn',
+        label: 'Learn',
+        stimulus: PAGE,
+        colour: 'var(--topic-track)',
+        ink: 'var(--topic-track-ink)',
+        disabled: !hasReading(topic),
+        onSelect: () => onReference(topic.id),
+      },
+      {
+        id: 'practice',
+        label: 'Practice',
+        stimulus: <span className="topic-tile-count">{practiceCount || '—'}</span>,
+        colour: 'var(--topic-track)',
+        ink: 'var(--topic-track-ink)',
+        disabled: practiceCount === 0,
+        onSelect: () => onStart('learn', [topic.id], { kind: 'practice' }),
+      },
+      {
+        id: 'test',
+        label,
+        stimulus: <span className="topic-tile-count">{topic.items.length}</span>,
+        colour: 'var(--action)',
+        ink: 'var(--action-ink)',
+        onSelect: () => onStart('test', [topic.id]),
+      },
+    ]} />
   )
 }
 
-/** The complete scored set, as reading. */
-function RecallReference({ topic, heading }: { topic: Topic; heading: string }) {
-  const groups = sequenceFor(topic)?.groups
-  const sets = groups ? groups.map(group => ({
-    label: group.label,
-    entries: group.itemIds.map((id, i) => ({ item: topic.items.find(item => item.id === id)!, marker: Array.from(group.letters)[i] })),
-  })) : [{ label: undefined, entries: topic.items.map((item, i) => ({ item, marker: String(i + 1).padStart(2, '0') })) }]
+/** Every attempt as one pip, filled to its score. A reading, not a list to scan. */
+function AttemptPips({ topic }: { topic: Topic }) {
+  const count = topic.history.length
   return (
-    <div className="topic-reference">
-      <h2 id="topic-reference-head" className="topic-reference-head">{heading}</h2>
-      {sets.map((set, groupIndex) => <div className="topic-recall-group" key={set.label ?? groupIndex}>
-      {set.label && <h3 className="topic-recall-group-label">{set.label}</h3>}
-      <ol className="topic-recall-cards">
-        {set.entries.map(({ item, marker }, i) => (
-          <li key={item.id ?? `${item.prompt}-${i}`} className={item.stimulus || item.audio ? 'has-visual' : undefined}>
-            <span className="topic-recall-marker tabular">{marker}</span>
-            {item.stimulus && (
-              <div className="sheet-visual">
-                <VisualView visual={item.stimulus} compact />
-              </div>
-            )}
-            {item.audio && (
-              <div className="sheet-visual">
-                <AudioReference item={item as typeof item & { audio: NonNullable<typeof item.audio> }} />
-              </div>
-            )}
-            <span className="topic-recall-prompt">{item.prompt}</span>
-            <span className="topic-recall-answer">{item.answer}</span>
+    <section className="topic-history" aria-labelledby="topic-history-head">
+      <h2 id="topic-history-head" className="topic-history-head">{count} {count === 1 ? 'attempt' : 'attempts'}</h2>
+      <ol className="topic-pips">
+        {topic.history.map((attempt, index) => {
+          const share = attempt.total > 0 ? Math.max(0, Math.min(1, attempt.correct / attempt.total)) : 0
+          return <li key={`${attempt.at}-${index}`}>
+            <span className="topic-pip" role="img"
+              aria-label={`${stamp(attempt.at)}: ${attempt.correct} of ${attempt.total}, ${statusLabel(attempt.resolvedTo)}`}>
+              <span style={{ height: `${share * 100}%` }} />
+            </span>
           </li>
-        ))}
+        })}
       </ol>
-      </div>)}
-    </div>
+    </section>
   )
 }

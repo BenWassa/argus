@@ -49,11 +49,15 @@ for (const [title, boundary] of [
   ['Primary Survey', 'not first-aid or clinical training'],
   ['Firearm Safety', 'not handling a firearm'],
 ]) {
-  test(`${title} keeps its safety scope visible with support visible`, async ({ page }) => {
+  test(`${title} keeps its safety scope in the sources sheet and visible on Learn`, async ({ page }) => {
     await page.getByRole('button', { name: new RegExp(title) }).click()
+    await page.getByRole('button', { name: 'Sources and limitations', exact: true }).click()
+    await expect(page.getByRole('dialog', { name: 'Sources and limitations' }).locator('section').first()).toContainText(boundary)
+    await page.keyboard.press('Escape')
+    await page.getByRole('navigation', { name: 'Study' }).getByRole('button', { name: 'Learn', exact: true }).click()
     await expect(page.locator('.topic-scope')).toContainText(boundary)
     await expect(page.locator('.topic-scope')).toBeVisible()
-    await expect(page.locator('.topic details, .topic summary')).toHaveCount(0)
+    await expect(page.locator('.topic-reading details, .topic-reading summary')).toHaveCount(0)
   })
 }
 

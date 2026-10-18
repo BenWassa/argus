@@ -25,8 +25,8 @@ async function openTopic(page: Page, title: string) {
 
 /** Opening content is learning; the one action starts Test directly. */
 async function startTest(page: Page) {
-  const primary = page.locator('.topic-primary')
-  await expect(primary).toHaveText('Test')
+  const primary = page.locator('.topic-tray [data-tile-id="test"]')
+  await expect(primary.locator('.mode-tray-label')).toHaveText('Test')
   await primary.click()
 }
 
@@ -40,9 +40,8 @@ async function noSidewaysScroll(page: Page) {
 for (const topic of TOPICS) {
   test(`${topic.title}: Learn reads without sideways scroll and lists its bank`, async ({ page }) => {
     await openTopic(page, topic.title)
-    await expect(page.locator('.topic-recall-cards > li')).toHaveCount(topic.items)
-    await expect(page.locator('.topic-recall-cards > li.has-visual')).toHaveCount(topic.figures)
-    await expect(page.locator('#topic-reference-head')).toHaveText('What to remember')
+    await expect(page.locator('.topic-items .topic-item')).toHaveCount(topic.items)
+    await expect(page.locator('.topic-items .topic-item.has-visual')).toHaveCount(topic.figures)
     // Limitations state the boundary outside any picture.
     await page.getByRole('button', { name: 'Sources and limitations' }).click()
     await expect(page.locator('.sources-notes')).toContainText('does not show that you can navigate safely')
