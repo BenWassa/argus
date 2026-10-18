@@ -15,12 +15,6 @@ if (import.meta.env.DEV) {
 
 const root = createRoot(document.getElementById('root')!)
 
-if (import.meta.env.DEV && new URLSearchParams(window.location.search).get('preview') === 'morse-play') {
-  void import('./dev/morsePlay/MorsePlayPreview').then(({ MorsePlayPreview }) => {
-    root.render(<StrictMode><MorsePlayPreview /></StrictMode>)
-  })
-} else {
-  root.render(<StrictMode><App /></StrictMode>)
-}
+root.render(<StrictMode><App /></StrictMode>)
 
 registerServiceWorker()

@@ -33,28 +33,6 @@
   color: var(--subtle);
 }
 
-/* The primary bar is #51's guaranteed finite sitting target. Packet readiness is
-   stated separately in text and remains durable acquisition state.
-
-   It is drawn as an engraved track with a polished inlay running along it: the
-   one meter in the app whose fill is the accent, because closing this sitting's
-   finite boundary is exactly what the screen is asking for. */
-.lesson-progress {
-  block-size: 6px;
-  border-radius: var(--r-pill);
-  background: var(--field);
-  box-shadow: var(--engrave);
-  overflow: hidden;
-}
-
-.lesson-progress-fill {
-  display: block;
-  block-size: 100%;
-  border-radius: inherit;
-  background: var(--gradient-primary);
-  transition: inline-size 220ms ease;
-}
-
 /* The panel base, given the roomier padding a single dominant task earns, a
    tone of lift and its bevel: this is the one object on a lesson screen. */
 .lesson-stage {
@@ -156,7 +134,7 @@
 
 /* The bar's standing margin is sized for screens that carry a title under it.
    A retrieval screen carries a task, and the gap read as a hole. */
-.morse-lesson[data-step] .session-bar {
+.morse-lesson[data-step] .session-frame-header {
   margin-bottom: var(--s-lg);
 }
 
@@ -357,12 +335,6 @@
 .lesson-exits {
   display: grid;
   gap: var(--s-sm);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .lesson-progress-fill {
-    transition: none;
-  }
 }
 
 /*

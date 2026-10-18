@@ -46,7 +46,7 @@ describe('Morse word checkpoint surface', () => {
     expect(code).not.toContain('setTimeout(')
     expect(code).not.toContain('MORSE_CHECKPOINT_FEEDBACK_MS')
     expect(code).toContain('nextCheckpointRunState(checkpoint, current)')
-    expect(code).toContain("feedback.correct ? 'Correct' : 'Miss'")
+    expect(code).toContain('<SessionCorrect target={feedback.letter} announce={false} />')
     expect(code).toContain('inert={!armed}')
     expect(code).toContain('locked={!armed}')
     // The dismissal lives inside the miss branch and is driven by the hook's
@@ -65,7 +65,7 @@ describe('Morse word checkpoint surface', () => {
     expect(code).not.toContain('retriedTargets')
     expect(code).not.toContain('withCheckpointRetry')
     expect(code).toContain('{correctAnswers} of {attempts} correct')
-    expect(code).toContain('Nothing here changed saved progress.')
+    expect(code).toContain('<SessionFrame {...frame}')
   })
 
   it('is structurally ephemeral and has no durable learner-state write path', () => {

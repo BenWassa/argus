@@ -10,7 +10,6 @@ import {
 } from '../../../domain/morse/fluency/freePlay'
 import {
   SEND_STAGE_INFO,
-  nextSendStage,
   sendBestKey,
   sendPrompts,
   sendRunScore,
@@ -25,6 +24,7 @@ import { MORSE_MAX_ELEMENTS, MorseKeyInput } from '../input/MorseKeyInput'
 import { useKeyedResponse } from '../input/useKeyedResponse'
 import { MorseCharacterSupport } from '../MorseCharacterSupport'
 import { useMorseAudio } from '../useMorseAudio'
+import { SessionFrame, SessionCorrect, RoundResult } from '../session/SessionFrame'
 import './SendRun.css'
 
 interface SendRunProps {
@@ -77,7 +77,7 @@ export function SendRun({
   onExit,
   seed,
 }: SendRunProps) {
-  const [runSeed] = useState(() => seed ?? Date.now())
+  const [runSeed] = useState(() => seed ?? 0)
   const prompts = useMemo(() => sendPrompts(stage, runSeed), [runSeed, stage])
   const meta = SEND_STAGE_INFO[stage]
   const correctionAudio = useMorseAudio()
@@ -303,55 +303,23 @@ export function SendRun({
     )
   }
 
+  const frame = { kind: 'key' as const, title: 'Key', onClose: onExit, progress: { current: phase === 'done' ? prompts.length : promptIndex + 1, total: prompts.length } }
   if (phase === 'done' && done) {
-    const next = nextSendStage(progress, stage)
-    return (
-      <section className="session send-run send-summary">
-        <div className="session-bar">
-          <p><span className="session-topic">Send</span></p>
-          <button className="ghost small" type="button" onClick={onExit}>Close</button>
-        </div>
-
-        <div className="send-summary-card">
-          <p className="send-kicker">Round complete</p>
-          <h1>{meta.title}</h1>
-          <p className="send-score tabular">{done.score}%</p>
-          <p className="send-summary-copy">
-            {done.improved ? 'New personal best.' : 'Round saved to your formative bests.'}
-          </p>
-
-          <div className="send-summary-actions">
-            <button type="button" onClick={() => onStage(next ?? stage)}>
-              {next ? `Next: ${SEND_STAGE_INFO[next].title}` : 'Another run'}
-            </button>
-            <button className="ghost" type="button" onClick={() => onStage(stage)}>
-              Repeat
-            </button>
-            <button className="quiet" type="button" onClick={onExit}>
-              Done
-            </button>
-          </div>
-        </div>
-      </section>
-    )
+    return <SessionFrame {...frame} className="send-run send-summary">
+      <RoundResult correct={judgements.filter(judgement => judgement.correct).length} total={prompts.length} onAgain={() => onStage(stage)} onDone={onExit} />
+    </SessionFrame>
   }
 
   if (phase === 'review' && review) {
     return (
-      <section className="session send-run send-review">
-        <div className="session-bar">
-          <p><span className="session-topic">Send</span></p>
-          <span className="session-count" aria-label={`Prompt ${promptIndex + 1} of ${prompts.length}`}>
-            {promptIndex + 1}<span className="session-count-of">/{prompts.length}</span>
-          </span>
-          <button className="ghost small" type="button" onClick={onExit}>Close</button>
-        </div>
+      <SessionFrame {...frame} className="send-run send-review">
 
         <div className="send-review-card">
           <p className="send-kicker">{review.correct ? 'Clean transmission' : 'Review'}</p>
           <h1 className={review.correct ? 'is-correct' : undefined}>
             {review.correct ? 'Received as sent' : 'Compare what arrived'}
           </h1>
+          {review.correct && <SessionCorrect target={review.expected} />}
 
           <dl className="send-compare">
             <div>
@@ -377,7 +345,7 @@ export function SendRun({
             {promptIndex + 1 < prompts.length ? 'Next' : 'Finish round'}
           </button>
         </div>
-      </section>
+      </SessionFrame>
     )
   }
 
@@ -387,27 +355,13 @@ export function SendRun({
       : undefined
 
   return (
-    <section className="session send-run">
-      <div className="session-bar">
-        <p><span className="session-topic">Send</span></p>
-        <span className="session-count" aria-label={`Prompt ${promptIndex + 1} of ${prompts.length}`}>
-          {promptIndex + 1}<span className="session-count-of">/{prompts.length}</span>
-        </span>
-        <button className="ghost small" type="button" onClick={onExit}>Close</button>
-      </div>
+    <SessionFrame {...frame} className="send-run">
 
       <div className="send-stage" data-kind={meta.interaction}>
         <header className="send-stage-head">
           <p className="send-kicker">{meta.title}</p>
           <h1 className="sr-only">Send {target} in Morse.</h1>
           {renderTarget()}
-          <p className="send-purpose">
-            {meta.interaction === 'spotlight'
-              ? 'Key the highlighted letter. Correct letters advance automatically.'
-              : stage === 'flow'
-                ? 'Pause to finish each letter. The word is reviewed after its last letter.'
-                : 'Pause to finish a letter. Use Space between words, then finish the message.'}
-          </p>
         </header>
 
         <div className="send-output">
@@ -424,7 +378,7 @@ export function SendRun({
             <div className="send-feedback-slot" aria-live="assertive">
               {spotlightFeedback ? (
                 <div className={`send-feedback ${spotlightFeedback.correct ? 'is-correct' : 'is-wrong'}`}>
-                  <strong>{spotlightFeedback.correct ? 'Correct' : 'Miss'}</strong>
+                  {spotlightFeedback.correct ? <SessionCorrect target={spotlightFeedback.letter} announce={false} /> : <strong>Miss</strong>}
                   {!spotlightFeedback.correct && (
                     <>
                       <MorseCharacterSupport glyph={spotlightFeedback.letter} pattern={MORSE_LETTERS[spotlightFeedback.letter]} playing={correctionAudio.sounding?.glyph === spotlightFeedback.letter} onToggle={() => correctionAudio.toggle(spotlightFeedback.letter)} audioError={correctionAudio.audioError} />
@@ -481,6 +435,6 @@ export function SendRun({
           </div>
         )}
       </div>
-    </section>
+    </SessionFrame>
   )
 }

@@ -7,13 +7,15 @@ import { useKeyedResponse } from '../input/useKeyedResponse'
 import { MorsePlayButton } from '../MorsePlayButton'
 import { MorseCharacterSupport } from '../MorseCharacterSupport'
 import { useMorseAudio } from '../useMorseAudio'
+import { SessionFrame, SessionCorrect, RoundResult } from '../session/SessionFrame'
 import './LetterPractice.css'
 
-export function LetterPracticeRun({ eligible, initialProgress = newMorsePractice(), onProgress, onAnother, onExit }: {
-  eligible: MorseLetter[]; initialProgress?: MorsePractice; onProgress: (next: MorsePractice) => void; onAnother: () => void; onExit: () => void
+export function LetterPracticeRun({ eligible, initialProgress = newMorsePractice(), onProgress, onAnother, onExit, direction: fixedDirection }: {
+  direction?: PracticeDirection; eligible: MorseLetter[]; initialProgress?: MorsePractice; onProgress: (next: MorsePractice) => void; onAnother: () => void; onExit: () => void
 }) {
-  const [direction, setDirection] = useState<PracticeDirection>('key')
-  const [selection, setSelection] = useState(() => selectPracticeLetter(initialProgress, 'key', eligible, { recent: [] }))
+  const [direction, setDirection] = useState<PracticeDirection>(fixedDirection ?? 'key')
+  const [selection, setSelection] = useState(() => selectPracticeLetter(initialProgress, fixedDirection ?? 'key', eligible, { recent: [] }))
+  const [correctCount, setCorrectCount] = useState(0)
   const [count, setCount] = useState(0)
   const [recent, setRecent] = useState<MorseLetter[]>([])
   const [result, setResult] = useState<boolean | null>(null)
@@ -67,16 +69,16 @@ export function LetterPracticeRun({ eligible, initialProgress = newMorsePractice
     audio.stop()
     const correct = direction === 'key' ? value === pattern : value.trim().toUpperCase() === glyph
     const next = recordPracticeOutcome(selection.progress, direction, glyph, correct, !helped)
+    if (correct) setCorrectCount(n => n + 1)
     progress.current = next; onProgress(next); setResult(correct); response.answered(correct)
   }
-  if (done) return <section className="session letter-practice"><h1>Round complete</h1><p>10 letters practised</p>
-    <button onClick={onAnother}>Another round</button><button className="ghost" onClick={onExit}>Back to Morse</button></section>
-  return <section className="session letter-practice">
-    <div className="session-bar"><span className="session-topic">Morse</span><span className="session-count">{count + 1} / 10</span><button className="ghost small" onClick={onExit}>Close</button></div>
-    <h1>Practice letters</h1>
-    <div className="letter-practice-directions" aria-label="Practice direction" inert={result !== null}>
+  const title = direction[0].toUpperCase() + direction.slice(1)
+  if (done) return <SessionFrame kind={direction} title={title} progress={{ current: 10, total: 10 }} onClose={onExit} className="letter-practice">
+    <RoundResult correct={correctCount} total={10} onAgain={onAnother} onDone={onExit} /></SessionFrame>
+  return <SessionFrame kind={direction} title={title} progress={{ current: count + 1, total: 10 }} onClose={onExit} className="letter-practice">
+    {!fixedDirection && <div className="letter-practice-directions" aria-label="Practice direction" inert={result !== null}>
       {(['key', 'read', 'listen'] as const).map(d => <button className="ghost" key={d} aria-pressed={d === direction} onClick={() => changeDirection(d)}>{d[0].toUpperCase() + d.slice(1)}</button>)}
-    </div>
+    </div>}
     {result === null && <>
       <div className="letter-practice-stimulus">
         {direction === 'key' ? <p className="lesson-glyph">{glyph}</p> : direction === 'read' ? <p className="morse-notation" aria-label={spokenRhythm(pattern)}>{canonicalNotation(pattern)}</p> :
@@ -87,10 +89,10 @@ export function LetterPracticeRun({ eligible, initialProgress = newMorsePractice
         <label className="letter-practice-entry">Letter<input ref={input} className="field" value={entry} maxLength={1} autoComplete="off" autoCapitalize="characters" spellCheck={false} disabled={!response.armed || (direction === 'listen' && (!heard || !!audio.sounding || !!audio.audioError))} onChange={e => { setEntry(e.target.value); if(e.target.value.trim()) submit(e.target.value) }} /></label>}
       {!helped && <button className="quiet" disabled={!response.armed} onClick={() => setHelped(true)}>Help</button>}
     </>}
-    {result === true && <p role="status">Correct</p>}
+    {result === true && <SessionCorrect target={glyph} />}
     {result === false && <div className="letter-practice-correction"><p role="status">Try this letter</p>
       <MorseCharacterSupport glyph={glyph} playing={!!audio.sounding} onToggle={() => audio.toggle(glyph)} />
       <button ref={continuation} disabled={!response.holding} onClick={response.acknowledge}>Continue</button></div>}
-    {audio.audioError && <p role="status">{audio.audioError} Choose Read or Key to continue without sound.</p>}
-  </section>
+    {audio.audioError && <p role="status">{audio.audioError}</p>}
+  </SessionFrame>
 }

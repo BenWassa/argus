@@ -14,6 +14,7 @@ import type { Topic } from '../../domain/library/topic'
 import { MorseKeyInput } from './input/MorseKeyInput'
 import { MorseWordKeyInput } from './input/MorseWordKeyInput'
 import { useKeyedResponse } from './input/useKeyedResponse'
+import { SessionFrame, SessionCorrect } from './session/SessionFrame'
 import './MorsePlacement.css'
 
 interface MorsePlacementDialogProps {
@@ -107,30 +108,25 @@ export function MorsePlacementDialog({
   }
 
   if (run.complete && result) {
-    const placedAny = result.throughLesson > 0
     const full = result.nextLesson === null
     return (
-      <Dialog title="Placement complete" onClose={onClose} closeLabel="Close placement result">
-        <div className="morse-placement-result">
-          <p className="morse-placement-result-title">
-            {full
-              ? 'Alphabet lessons complete'
-              : `Start at Lesson ${result.nextLesson}`}
-          </p>
-          <p>
-            {full
-              ? 'Your check covered the A–Z lesson material. Formal Test and retention requirements are unchanged.'
-              : placedAny
-                ? `Lessons 1–${result.throughLesson} are now marked complete from this check.`
-                : 'The check found an early gap, so Argus will start with the first lesson.'}
-          </p>
-          <p className="help tabular">
-            {result.promptCount} prompts · {result.retries} {result.retries === 1 ? 'recheck' : 'rechecks'}
-          </p>
-          <button type="button" onClick={() => onContinue(result)}>
-            {full ? 'Back to course' : `Start Lesson ${result.nextLesson}`}
-          </button>
-        </div>
+      <Dialog title="Placement complete" onClose={onClose} hideHeader>
+        <SessionFrame kind="lesson" title="Placement" onClose={onClose} className="morse-placement-session">
+          <div className="morse-placement-result">
+            <p className="morse-placement-result-title">
+              {full
+                ? 'Alphabet lessons complete'
+                : `Start at Lesson ${result.nextLesson}`}
+            </p>
+            <span className="help">Formal Test unchanged</span>
+            <p className="help tabular">
+              {result.promptCount} prompts · {result.retries} {result.retries === 1 ? 'recheck' : 'rechecks'}
+            </p>
+            <button type="button" onClick={() => onContinue(result)}>
+              {full ? 'Back to course' : `Start Lesson ${result.nextLesson}`}
+            </button>
+          </div>
+        </SessionFrame>
       </Dialog>
     )
   }
@@ -139,62 +135,64 @@ export function MorsePlacementDialog({
 
   const word = target.kind === 'word' ? target.word ?? '' : null
   return (
-    <Dialog title="Morse placement check" onClose={onClose} closeLabel="Exit placement check">
-      <div
-        className="morse-placement-question"
-        data-phase={phase}
-        ref={targetRef}
-        tabIndex={-1}
-        aria-label={word ? `Key the word ${word}` : `Key the Morse pattern for ${target.letter}`}
-      >
-        <p className="morse-placement-meta tabular">
-          Question {run.promptCount + 1} · {run.experience === 'some' ? 'Some experience' : 'Most letters'}
-        </p>
-        <p className="lesson-task">
-          {target.retry ? 'One more check' : word ? 'Key the whole word' : 'Key this letter'}
-        </p>
+    <Dialog title="Morse placement check" onClose={onClose} hideHeader>
+      <SessionFrame kind="lesson" title="Placement" onClose={onClose} className="morse-placement-session">
+        <div
+          className="morse-placement-question"
+          data-phase={phase}
+          ref={targetRef}
+          tabIndex={-1}
+          aria-label={word ? `Key the word ${word}` : `Key the Morse pattern for ${target.letter}`}
+        >
+          <p className="morse-placement-meta tabular">
+            Question {run.promptCount + 1} · {run.experience === 'some' ? 'Some experience' : 'Most letters'}
+          </p>
+          <p className="lesson-task">
+            {target.retry ? 'One more check' : word ? 'Key the whole word' : 'Key this letter'}
+          </p>
 
-        {word ? (
-          <>
-            <p className="morse-placement-word" aria-hidden="true">{word}</p>
-            <h3 className="sr-only">Key the whole word {word}.</h3>
-          </>
-        ) : (
-          <>
-            <p className="morse-placement-letter" aria-hidden="true">{target.letter}</p>
-            <h3 className="sr-only">Key the Morse pattern for {target.letter}.</h3>
-          </>
-        )}
+          {word ? (
+            <>
+              <p className="morse-placement-word" aria-hidden="true">{word}</p>
+              <h3 className="sr-only">Key the whole word {word}.</h3>
+            </>
+          ) : (
+            <>
+              <p className="morse-placement-letter" aria-hidden="true">{target.letter}</p>
+              <h3 className="sr-only">Key the Morse pattern for {target.letter}.</h3>
+            </>
+          )}
 
-        {feedback ? (
-          <div className={`morse-placement-feedback${feedback.correct ? ' is-correct' : ' is-wrong'}`} role="status" aria-live="assertive">
-            <strong>{feedback.correct ? 'Correct' : 'Not quite'}</strong>
-            {!feedback.correct && <span>{feedback.letter} will come back after other prompts.</span>}
-          </div>
-        ) : (
-          <div className="morse-placement-key" inert={!armed}>
-            {word ? (
-              <MorseWordKeyInput
-                key={`${run.experience}-${run.index}-${word}`}
-                word={word}
-                locked={!armed}
-                onSubmit={answer}
-              />
-            ) : (
-              <MorseKeyInput
-                key={`${run.experience}-${run.index}-${target.letter}`}
-                expectedLength={expectedMorsePlacementPattern(target).length}
-                locked={!armed}
-                onSubmit={answer}
-              />
-            )}
-          </div>
-        )}
+          {feedback ? (
+            <div className={`morse-placement-feedback${feedback.correct ? ' is-correct' : ' is-wrong'}`} role="status" aria-live="assertive">
+              {feedback.correct ? <SessionCorrect target={feedback.letter} announce={false} /> : <strong>Not quite</strong>}
+              {!feedback.correct && <span>Recheck {feedback.letter}</span>}
+            </div>
+          ) : (
+            <div className="morse-placement-key" inert={!armed}>
+              {word ? (
+                <MorseWordKeyInput
+                  key={`${run.experience}-${run.index}-${word}`}
+                  word={word}
+                  locked={!armed}
+                  onSubmit={answer}
+                />
+              ) : (
+                <MorseKeyInput
+                  key={`${run.experience}-${run.index}-${target.letter}`}
+                  expectedLength={expectedMorsePlacementPattern(target).length}
+                  locked={!armed}
+                  onSubmit={answer}
+                />
+              )}
+            </div>
+          )}
 
-        {feedback?.correct && (
-          <span className="sr-only">{canonicalPattern(expectedMorsePlacementPattern(target))}</span>
-        )}
-      </div>
+          {feedback?.correct && (
+            <span className="sr-only">{canonicalPattern(expectedMorsePlacementPattern(target))}</span>
+          )}
+        </div>
+      </SessionFrame>
     </Dialog>
   )
 }

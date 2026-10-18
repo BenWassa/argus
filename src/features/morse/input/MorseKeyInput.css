@@ -49,8 +49,9 @@
  */
 .morse-key,
 .morse-key:hover {
-  border-color: var(--accent);
-  background: var(--gradient-primary);
+  border-color: var(--session-colour, var(--action, var(--accent)));
+  background: var(--session-colour, var(--action, var(--accent)));
+  color: var(--session-ink, var(--action-ink, var(--accent-ink)));
 }
 
 @media (hover: hover) and (pointer: fine) {

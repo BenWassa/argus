@@ -54,7 +54,7 @@ describe('LetterPracticeRun', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Help' }))
     expect(document.querySelector('.morse-character-support')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Key correct' }))
-    expect(screen.getByRole('status').textContent).toBe('Correct')
+    expect(screen.getByText('Correct')).toBeTruthy()
     expect(onProgress).toHaveBeenCalled()
     expect(onProgress.mock.lastCall?.[0].characters.key.E?.outcomes).toEqual([])
   })
@@ -66,10 +66,10 @@ describe('LetterPracticeRun', () => {
     expect((screen.getByRole('button', { name: 'Continue' }) as HTMLButtonElement).disabled).toBe(false)
     act(() => vi.advanceTimersByTime(5_000))
     expect((screen.getByRole('button', { name: 'Continue' }) as HTMLButtonElement).disabled).toBe(false)
-    expect(screen.getByText('1 / 10')).toBeTruthy()
+    expect(screen.getByRole('progressbar', { name: '1 of 10' })).toBeTruthy()
     expect(onProgress.mock.lastCall?.[0].characters.key.E?.outcomes).toEqual([false])
     fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
-    expect(screen.getByText('2 / 10')).toBeTruthy()
+    expect(screen.getByRole('progressbar', { name: '2 of 10' })).toBeTruthy()
   })
 
   it('requires replay after a page interruption or stopping the listening stimulus', () => {
@@ -94,7 +94,7 @@ describe('LetterPracticeRun', () => {
     expect(onProgress.mock.lastCall?.[0].characters.read.E?.outcomes).toEqual([true])
     expect(onProgress.mock.lastCall?.[0].characters.key.E).toBeUndefined()
     finishCorrectDwell()
-    expect(screen.getByText('2 / 10')).toBeTruthy()
+    expect(screen.getByRole('progressbar', { name: '2 of 10' })).toBeTruthy()
 
     fireEvent.click(screen.getByRole('button', { name: 'Listen' }))
     act(() => vi.advanceTimersByTime(MORSE_TRANSITION_MS))

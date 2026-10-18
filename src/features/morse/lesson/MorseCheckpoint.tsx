@@ -9,6 +9,7 @@ import { MorseKeyInput } from '../input/MorseKeyInput'
 import { MorseCharacterSupport } from '../MorseCharacterSupport'
 import { useMorseAudio } from '../useMorseAudio'
 import { useKeyedResponse } from '../input/useKeyedResponse'
+import { SessionFrame, SessionCorrect } from '../session/SessionFrame'
 import './MorseCheckpoint.css'
 
 interface MorseCheckpointProps {
@@ -82,28 +83,17 @@ export function MorseCheckpoint({ checkpoint, onExit, onContinue, continueLabel 
     answered(correct)
   }
 
-  /**
-   * One word for what this is and one number for where it sits, matching the
-   * lesson bar. `Checkpoint after lesson 13` named the same thing three times
-   * over and put the number in the middle of a sentence, where it is the one
-   * place a glance cannot find it.
-   */
-  const bar = (position: string | null) => (
-    <div className="session-bar">
-      <p><span className="session-topic">Checkpoint</span></p>
-      {position && <span className="session-count tabular">{position}</span>}
-      <button className="ghost small" type="button" onClick={onExit}>Close</button>
-    </div>
-  )
+  const total = checkpoint.warmups.length + checkpoint.words.reduce((count, word) => count + word.length, 0)
+  const current = run.phase === 'complete' ? total : run.phase === 'warmup' ? run.warmupIndex
+    : checkpoint.warmups.length + checkpoint.words.slice(0, run.wordIndex).reduce((count, word) => count + word.length, 0) + run.characterIndex
+  const frame = { kind: 'checkpoint' as const, title: 'Word check', progress: { current, total }, onClose: onExit }
 
   if (complete) {
     return (
-      <section className="session morse-lesson morse-checkpoint">
-        {bar(null)}
+      <SessionFrame {...frame} className="morse-lesson morse-checkpoint">
         <div className="morse-checkpoint-summary">
           <h1 ref={headingRef} tabIndex={-1}>Checkpoint done</h1>
           <p><strong>{correctAnswers} of {attempts} correct</strong></p>
-          <p className="lesson-foot">Nothing here changed saved progress.</p>
           {onContinue ? (
             <div className="lesson-exits" inert={!armed}>
               <button type="button" onClick={onContinue}>{continueLabel ?? 'Keep going'}</button>
@@ -113,22 +103,18 @@ export function MorseCheckpoint({ checkpoint, onExit, onContinue, continueLabel 
             <button type="button" disabled={!armed} onClick={onExit}>Back to lessons</button>
           )}
         </div>
-      </section>
+      </SessionFrame>
     )
   }
 
   if (!letter) return null
 
-  const position = run.phase === 'warmup'
-    ? `${run.warmupIndex + 1}/${checkpoint.warmups.length}`
-    : `${run.wordIndex + 1}/${checkpoint.words.length}`
   const targetKey = run.phase === 'warmup'
     ? `warmup-${run.warmupIndex}`
     : `word-${run.wordIndex}-${run.characterIndex}`
 
   return (
-    <section className="session morse-lesson morse-checkpoint" data-step="check">
-      {bar(position)}
+    <SessionFrame {...frame} className="morse-lesson morse-checkpoint" data-step="check">
 
       <div
         className="morse-checkpoint-target"
@@ -164,7 +150,7 @@ export function MorseCheckpoint({ checkpoint, onExit, onContinue, continueLabel 
             role="status"
             aria-live="assertive"
           >
-            <strong>{feedback.correct ? 'Correct' : 'Miss'}</strong>
+            {feedback.correct ? <SessionCorrect target={feedback.letter} announce={false} /> : <strong>Miss</strong>}
             {!feedback.correct && (
               <>
                 <MorseCharacterSupport glyph={feedback.letter} pattern={MORSE_LETTERS[feedback.letter]} playing={correctionAudio.sounding?.glyph === feedback.letter} onToggle={() => correctionAudio.toggle(feedback.letter)} audioError={correctionAudio.audioError} />
@@ -189,6 +175,6 @@ export function MorseCheckpoint({ checkpoint, onExit, onContinue, continueLabel 
           </div>
         )}
       </div>
-    </section>
+    </SessionFrame>
   )
 }

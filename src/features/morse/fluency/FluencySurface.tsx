@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react'
 import { useLibrary } from '../../../services/library/LibraryProvider'
 import {
   newFluencyProgress,
+  setFluencyRung,
   type MorseFluencyProgress,
 } from '../../../domain/morse/fluency/progress'
 import type { FluencyMode } from '../../../domain/morse/fluency/session'
@@ -11,9 +12,9 @@ import { morseFocusLetters } from '../../../domain/morse/fluency/focus'
 import type { MorseLetter } from '../../../domain/morse/code'
 import { CopyRun } from './CopyRun'
 import { FreePlay } from './FreePlay'
-import { FluencyHome } from './FluencyHome'
 import { FluencyRun } from './FluencyRun'
 import { SendRun } from './SendRun'
+import { ListeningSpacing } from './ListeningSpacing'
 
 interface FluencySurfaceProps {
   topicId: string
@@ -33,16 +34,7 @@ interface FluencySurfaceProps {
 /**
  * The one place Fluency is allowed to write.
  *
- * `FluencyHome` and `FluencyRun` import no store at all. This wrapper holds
- * the only `updateTopic` call in the feature, and it writes exactly one field.
- * That is the same structural boundary `PracticeRun` uses — a surface that
- * cannot reach durable state cannot corrupt it — adapted for a surface that
- * legitimately keeps statistics: instead of "writes nothing", the guarantee is
- * "writes `morseFluency` and nothing else, from one function".
- *
- * `FluencySurface.test.tsx` asserts that the run and home modules import no
- * write path, so an edit that reaches for `useLibrary` inside one of them
- * fails the suite rather than quietly widening what Fluency can touch.
+ * Runs import no store. This wrapper writes only `morseFluency`.
  */
 export function FluencySurface({ topicId, initialMode, initialSend, initialCopy, initialFree, letters, onExit }: FluencySurfaceProps) {
   const { topics, updateTopic } = useLibrary()
@@ -50,17 +42,17 @@ export function FluencySurface({ topicId, initialMode, initialSend, initialCopy,
   // Read once, when Fluency opens: what the learner is missing weights every
   // run, and a practise-missed entry asks only those letters, in its first run.
   const [focus] = useState<ReadonlySet<MorseLetter>>(() => new Set(topic ? morseFocusLetters(topic) : []))
-  const [only, setOnly] = useState<MorseLetter[]>(() =>
+  const [only] = useState<MorseLetter[]>(() =>
     (letters ?? []).filter((letter): letter is MorseLetter => /^[A-Z]$/.test(letter)),
   )
-  const [mode, setMode] = useState<FluencyMode | null>(initialMode ?? null)
+  const mode = initialMode ?? null
   const [copy, setCopy] = useState<{ level: CopyLevel; run: number } | null>(
     initialCopy ? { level: initialCopy, run: 0 } : null,
   )
   const [send, setSend] = useState<{ stage: SendStage; run: number } | null>(
     initialSend ? { stage: initialSend, run: 0 } : null,
   )
-  const [free, setFree] = useState(Boolean(initialFree))
+  const free = Boolean(initialFree)
 
   const commit = useCallback(
     (next: MorseFluencyProgress) => {
@@ -72,9 +64,11 @@ export function FluencySurface({ topicId, initialMode, initialSend, initialCopy,
   if (!topic) return null
 
   const progress = topic.morseFluency
+  const current = progress ?? newFluencyProgress()
+  const spacing = <ListeningSpacing rung={current.rung} onChange={(rung) => commit(setFluencyRung(current, rung))} />
 
   if (free) {
-    return <FreePlay rung={(progress ?? newFluencyProgress()).rung} onExit={() => initialFree ? onExit() : setFree(false)} />
+    return <FreePlay rung={(progress ?? newFluencyProgress()).rung} onExit={onExit} />
   }
 
   if (send) {
@@ -82,12 +76,13 @@ export function FluencySurface({ topicId, initialMode, initialSend, initialCopy,
       <SendRun
         key={`send-${send.stage}-${send.run}`}
         stage={send.stage}
+        seed={send.run}
         progress={progress ?? newFluencyProgress()}
         onProgress={commit}
         onStage={(stage) =>
           setSend((previous) => ({ stage, run: (previous?.run ?? 0) + 1 }))
         }
-        onExit={() => initialSend ? onExit() : setSend(null)}
+        onExit={onExit}
       />
     )
   }
@@ -98,12 +93,14 @@ export function FluencySurface({ topicId, initialMode, initialSend, initialCopy,
         // A new key per run, so "Another run" draws fresh material.
         key={`copy-${copy.level}-${copy.run}`}
         level={copy.level}
+        seed={copy.run}
         rung={(progress ?? newFluencyProgress()).rung}
         progress={progress ?? newFluencyProgress()}
         focus={focus}
+        toolbar={spacing}
         onProgress={commit}
         onLevel={(level) => setCopy((previous) => ({ level, run: (previous?.run ?? 0) + 1 }))}
-        onExit={() => initialCopy ? onExit() : setCopy(null)}
+        onExit={onExit}
       />
     )
   }
@@ -111,33 +108,18 @@ export function FluencySurface({ topicId, initialMode, initialSend, initialCopy,
   if (mode) {
     return (
       <FluencyRun
-        key={`${mode}-${progress?.rung ?? 'first'}`}
+        key={mode}
         mode={mode}
         rung={(progress ?? newFluencyProgress()).rung}
         progress={progress ?? newFluencyProgress()}
         focus={focus}
         only={only}
+        toolbar={spacing}
         onProgress={commit}
-        onExit={() => {
-          if (initialMode) { onExit(); return }
-          // The letters were for the run the learner came to practise; Fluency
-          // after it is the whole alphabet again.
-          setOnly([])
-          setMode(null)
-        }}
+        onExit={onExit}
       />
     )
   }
 
-  return (
-    <FluencyHome
-      progress={progress}
-      onProgress={commit}
-      onStart={setMode}
-      onCopy={(level) => setCopy({ level, run: 0 })}
-      onSend={(stage) => setSend({ stage, run: 0 })}
-      onFreePlay={() => setFree(true)}
-      onExit={onExit}
-    />
-  )
+  return null
 }

@@ -41,13 +41,21 @@ describe('Morse progress path', () => {
     expect(screen.getByText('◆ Needs repair')).toBeTruthy()
   })
 
-  it('keeps all locked rows and pips inert, including the early Test descriptor', () => {
+  it('keeps all locked rows and pips inert', () => {
     const onAction = vi.fn()
     const { container } = render(<MorseProgressPath topic={morseTopic()} onAction={onAction} />)
     const locked = container.querySelectorAll('[aria-disabled="true"]')
     expect(locked.length).toBeGreaterThan(0)
     for (const row of locked) fireEvent.click(row)
     expect(onAction).not.toHaveBeenCalled()
+  })
+
+  it('offers the separate early Test descriptor without unlocking the milestone', () => {
+    const onAction = vi.fn()
+    render(<MorseProgressPath topic={morseTopic()} onAction={onAction} />)
+    expect(screen.getByRole('button', { name: 'A–Z Test, locked, locked' }).getAttribute('aria-disabled')).toBe('true')
+    fireEvent.click(screen.getByRole('button', { name: 'Test A–Z early' }))
+    expect(onAction).toHaveBeenCalledExactlyOnceWith({ kind: 'test', early: true })
   })
 
   it('forwards reached lesson and checkpoint actions and each available or cleared tier pip', () => {
@@ -103,6 +111,15 @@ describe('Morse progress path', () => {
     unmount()
     expect(disconnect).toHaveBeenCalledOnce()
     HTMLElement.prototype.scrollIntoView = original
+  })
+
+  it('can leave navigation to the topic without adding a floating control', () => {
+    const observer = vi.fn()
+    vi.stubGlobal('IntersectionObserver', observer)
+    render(<MorseProgressPath topic={morseTopic(5)} onAction={vi.fn()} showJump={false} />)
+    expect(observer).not.toHaveBeenCalled()
+    expect(document.querySelector('.morse-progress-jump')).toBeNull()
+    expect(document.querySelector('[aria-current="step"]')).toBeTruthy()
   })
 
   it('renders unsupported topics as nothing without observer APIs', () => {

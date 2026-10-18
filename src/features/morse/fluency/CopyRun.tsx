@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { correctionLetter } from '../../../domain/morse/correction'
 import type { MorseLetter } from '../../../domain/morse/code'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -5,8 +6,6 @@ import { MorseAudioPlayer } from '../../../domain/morse/audio'
 import { MORSE_FIGURES, MORSE_LETTERS, MORSE_PUNCTUATION } from '../../../domain/morse/code'
 import { canonicalPattern } from '../../../domain/morse/testing/acquisitionProfile'
 import {
-  COPY_CLEAR_ACCURACY,
-  COPY_LEVELS,
   COPY_LEVEL_INFO,
   COPY_PLAYS_PER_PROMPT,
   copyBestKey,
@@ -21,9 +20,12 @@ import { fluencyTiming, type FluencyRung } from '../../../domain/morse/fluency/t
 import { fire } from '../../../shared/haptics'
 import { MorseCharacterSupport } from '../MorseCharacterSupport'
 import { useMorseAudio } from '../useMorseAudio'
+import { SessionFrame, SessionCorrect, RoundResult } from '../session/SessionFrame'
 import './Fluency.css'
 
 interface CopyRunProps {
+  /** Between-round controls on the result screen (Listen's spacing). */
+  toolbar?: ReactNode
   level: CopyLevel
   rung: FluencyRung
   progress: MorseFluencyProgress
@@ -33,6 +35,7 @@ interface CopyRunProps {
   onProgress: (next: MorseFluencyProgress) => void
   onLevel: (level: CopyLevel) => void
   onExit: () => void
+  seed?: number
 }
 
 /** A correct copy holds for the scale-2 budget, then moves on by itself. */
@@ -41,17 +44,10 @@ const CORRECT_HOLD_MS = 900
 const INTRODUCTIONS = {
   figures: {
     heading: 'The ten figures',
-    lines: [
-      'Every figure is five marks long, so you are listening for where the switch from dits to dahs falls.',
-      '1 to 5 start with dits: the figure is how many dits come first. 6 to 9 start with dahs: take away 5 and that is how many dahs come first. 0 is five dahs.',
-    ],
     table: MORSE_FIGURES,
   },
   punctuation: {
     heading: 'Four marks of punctuation',
-    lines: [
-      'The full stop is A three times. The comma and the question mark are both symmetrical — the comma is dahs outside, the question mark is dits outside. The slash is D and N run together.',
-    ],
     table: MORSE_PUNCTUATION,
   },
 } as const
@@ -74,10 +70,10 @@ type Phase =
  * Imports no store, no scheduler and no evidence recorder, for the same reason
  * `FluencyRun` does not; `FluencyBoundary.test.ts` holds both to it.
  */
-export function CopyRun({ level, rung, progress, focus, onProgress, onLevel, onExit }: CopyRunProps) {
+export function CopyRun({ level, rung, progress, focus, onProgress, onLevel, onExit, toolbar, seed = 0 }: CopyRunProps) {
   const info = COPY_LEVEL_INFO[level]
   const correctionAudio = useMorseAudio()
-  const [prompts] = useState(() => copyPrompts(level, progress, Date.now(), focus))
+  const [prompts] = useState(() => copyPrompts(level, progress, seed, focus))
   const [at, setAt] = useState(0)
   const [phase, setPhase] = useState<Phase>(() => (info.introduces ? { kind: 'intro' } : { kind: 'asking' }))
   const [typed, setTyped] = useState('')
@@ -85,7 +81,6 @@ export function CopyRun({ level, rung, progress, focus, onProgress, onLevel, onE
   const [playing, setPlaying] = useState(false)
   const [audioError, setAudioError] = useState<string | null>(null)
   const [judgements, setJudgements] = useState<CopyJudgement[]>([])
-  const [crested, setCrested] = useState(false)
 
   const playerRef = useRef<MorseAudioPlayer | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -174,38 +169,21 @@ export function CopyRun({ level, rung, progress, focus, onProgress, onLevel, onE
     // A first run is a baseline, not a best; celebrating it would make the
     // scale-4 moment the most common one on the surface.
     if (result.improved && hadBest) {
-      setCrested(true)
       fire('crest')
     }
     onProgress(result.progress)
   }, [phase, progress, level, score, onProgress])
 
-  const bar = (position: string | null) => (
-    <div className="session-bar">
-      <p>
-        <span className="session-topic">Copy · {info.title}</span>
-      </p>
-      {position && <span className="session-count tabular">{position}</span>}
-      <button className="ghost small" type="button" onClick={onExit}>
-        Close
-      </button>
-    </div>
-  )
+  const frame = { kind: 'listen' as const, title: 'Listen', onClose: onExit, progress: { current: phase.kind === 'done' ? prompts.length : at + 1, total: prompts.length } }
 
   if (phase.kind === 'intro' && info.introduces) {
     const intro = INTRODUCTIONS[info.introduces]
     return (
-      <section className="session fluency-run copy-run">
-        {bar(null)}
+      <SessionFrame {...frame} className="fluency-run copy-run">
         <div className="fluency-head">
           <h1 ref={headingRef} tabIndex={-1}>
             {intro.heading}
           </h1>
-          {intro.lines.map((line) => (
-            <p key={line} className="lede-text">
-              {line}
-            </p>
-          ))}
         </div>
         <ul className="copy-table" aria-label={intro.heading}>
           {Object.entries(intro.table).map(([glyph, pattern]) => (
@@ -217,7 +195,6 @@ export function CopyRun({ level, rung, progress, focus, onProgress, onLevel, onE
             </li>
           ))}
         </ul>
-        <p className="note copy-table-note">Tap any of them to hear it.</p>
         {audioError && (
           <p className="fluency-audio-error" role="status">
             {audioError}
@@ -233,58 +210,14 @@ export function CopyRun({ level, rung, progress, focus, onProgress, onLevel, onE
         >
           Start copying
         </button>
-      </section>
+      </SessionFrame>
     )
   }
 
   if (phase.kind === 'done') {
-    const cleared = score >= COPY_CLEAR_ACCURACY * 100
-    const exact = judgements.filter((judgement) => judgement.correct).length
-    const following = COPY_LEVELS[COPY_LEVELS.indexOf(level) + 1]
-    return (
-      <section className="session fluency-run copy-run">
-        {bar(null)}
-        <div className="fluency-summary">
-          <h1 ref={headingRef} tabIndex={-1}>
-            {info.title} done
-          </h1>
-          <p className="fluency-score">
-            <strong className="tabular">{score}%</strong> of characters copied
-          </p>
-          <p className="fluency-metric tabular">
-            {exact} of {judgements.length} exactly right
-          </p>
-          {crested && (
-            <p className="fluency-crest" role="status">
-              Personal best.
-            </p>
-          )}
-          {cleared && following ? (
-            <>
-              <p className="note">Ninety percent or better. {COPY_LEVEL_INFO[following].title} is next.</p>
-              <button type="button" onClick={() => onLevel(following)}>
-                Go on to {COPY_LEVEL_INFO[following].title.toLowerCase()}
-              </button>
-            </>
-          ) : cleared ? (
-            <p className="note">
-              Every level at ninety percent or better. Take the spacing down a notch and go round again.
-            </p>
-          ) : (
-            <p className="note">Ninety percent clears the level. Another run draws new material.</p>
-          )}
-          <button className={cleared && following ? 'ghost' : undefined} type="button" onClick={() => onLevel(level)}>
-            Another run
-          </button>
-          <p className="lesson-foot">
-            Nothing here changed your saved progress, your check evidence or your completion.
-          </p>
-          <button className="ghost" type="button" onClick={onExit}>
-            Done
-          </button>
-        </div>
-      </section>
-    )
+    return <SessionFrame {...frame} className="fluency-run copy-run">
+      <RoundResult extra={toolbar} correct={judgements.filter(judgement => judgement.correct).length} total={prompts.length} onAgain={() => onLevel(level)} onDone={onExit} />
+    </SessionFrame>
   }
 
   if (!prompt) return null
@@ -292,8 +225,7 @@ export function CopyRun({ level, rung, progress, focus, onProgress, onLevel, onE
   const correctionGlyph = judgement && !judgement.correct ? correctionLetter(judgement.expected, judgement.given) : null
 
   return (
-    <section className="session fluency-run copy-run" data-step="check">
-      {bar(`${at + 1}/${prompts.length}`)}
+    <SessionFrame {...frame} className="fluency-run copy-run" data-step="check">
 
       <div className="fluency-target">
         <h1 className="sr-only">Listen, then type what you heard.</h1>
@@ -359,7 +291,7 @@ export function CopyRun({ level, rung, progress, focus, onProgress, onLevel, onE
             role="status"
             aria-live="assertive"
           >
-            <strong>{judgement.correct ? 'Correct' : `${Math.round(judgement.accuracy * 100)}%`}</strong>
+            {judgement.correct ? <SessionCorrect target={judgement.expected} announce={false} /> : <strong>{Math.round(judgement.accuracy * 100)}%</strong>}
             <p className="copy-expected">
               {judgement.words.map((word, index) => (
                 <span key={index} className={word.ok ? undefined : 'is-wrong-char'}>
@@ -389,6 +321,6 @@ export function CopyRun({ level, rung, progress, focus, onProgress, onLevel, onE
           </div>
         )}
       </div>
-    </section>
+    </SessionFrame>
   )
 }

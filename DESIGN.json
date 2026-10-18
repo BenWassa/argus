@@ -3,6 +3,15 @@
   "generatedAt": "2026-10-17T00:00:00Z",
   "title": "Design System: Argus",
   "extensions": {
+    "morseTopic": {
+      "issue": 230,
+      "header": "Back, A–Z reference, title, solid 8px settled-letter bar and settled / 26",
+      "primary": "Current path row only; no docked duplicate",
+      "modes": "Key, Listen, Read, Free play; opaque tray above phone navigation, normal flow above path at 980px",
+      "placement": "Skip ahead opens placement; Start enters the first lesson",
+      "footer": "Edit, Delete, Sources and limitations",
+      "history": "Legacy Fluency hub entries normalize to the Morse topic"
+    },
     "colorMeta": {
       "bg": {
         "role": "neutral",
