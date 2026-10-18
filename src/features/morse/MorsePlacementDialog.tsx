@@ -14,7 +14,7 @@ import type { Topic } from '../../domain/library/topic'
 import { MorseKeyInput } from './input/MorseKeyInput'
 import { MorseWordKeyInput } from './input/MorseWordKeyInput'
 import { useKeyedResponse } from './input/useKeyedResponse'
-import { SessionFrame, SessionCorrect } from './session/SessionFrame'
+import { SessionFrame, SessionCorrect } from '../../shared/ui/SessionFrame'
 import './MorsePlacement.css'
 
 interface MorsePlacementDialogProps {

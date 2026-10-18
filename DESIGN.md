@@ -289,7 +289,7 @@ Two ways to engage a topic. Learn exposes the material; Test is the only recall 
 ### Topic page contract
 An ordinary topic opens with an optional local `Visual` hero or a 16:9 track-tinted fallback using its recognition icon. The title, scope and one line of state follow. Ordered learning topics use a concise rule count at the top. Survival topics keep their full authored safety scope visible; the complete scope is also available in the Sources and limitations sheet. The complete scored set comes next as compact, open recall cards, with numbered markers or authored sequence letters and item stimuli. These are visible reference material, never flip cards.
 
-Ordinary-topic explanatory sections, overview and case studies remain visible in editorial flow. A quiet centred footer control opens scope, limitations as bullets, then sources, in a centred modal. All authored ordinary Learn content remains available. Morse keeps a short course explanation on the A–Z reference page. On ordinary topics the phone primary remains fixed above navigation, and secondary actions remain under More options. Morse instead has Back and A–Z controls, a title and a solid 8px settled-letter bar with a settled / 26 reading. Its straight path owns the body and opens at the current node, which is the sole primary action. Key, Listen, Read and Free play form an opaque tray fixed above phone navigation and placed above the path at desktop widths (980px and up). The footer contains Edit, Delete and Sources and limitations. Start enters the existing new-learner transition directly; Skip ahead opens placement. There is no second Morse chooser or docked primary. Historical hub entries normalize in place to the topic.
+Ordinary-topic explanatory sections, overview and case studies remain visible in editorial flow. A quiet centred footer control opens scope, limitations as bullets, then sources, in a centred modal. All authored ordinary Learn content remains available. Morse keeps a short course explanation on the A–Z reference page. On ordinary topics the phone primary remains fixed above navigation, and secondary actions remain under More options. Morse instead has Back and A–Z controls, a title and a solid 8px settled-letter bar with a settled / 26 reading. Its straight path owns the body and opens at the current node, which marks position only: there is no forced path, and every reached node is equally tappable (#242). Key, Listen, Read and Free play form an opaque tray fixed above phone navigation and placed above the path at desktop widths (980px and up). The footer contains Edit, Delete and Sources and limitations. Begin enters the existing new-learner transition directly; Skip ahead opens placement. There is no second Morse chooser or docked primary. Historical hub entries normalize in place to the topic.
 
 **Test Conceals; Reference Reveals.** Test keeps the answer hidden until reveal. Topic recall cards show prompt and answer together; their compact reference treatment must remain distinct from the focused Test card.
 
@@ -362,9 +362,18 @@ The Morse course is one straight vertical line, top to bottom, opening scrolled 
 
 - **Lessons** have round nodes. State (done, current, locked) is carried by fill and ring, and by position on the line.
 - **Milestones**: word checks and the A–Z Test break the rhythm. Each is a full-width plate that crosses the spine with a **square** node, a flag for a word check and `A–Z` for the Test, and an uppercase label. The A–Z Test is the largest. Shape, width and label say "this is a test", so the meaning never rests on colour.
-- **The current row** is a raised plate with a solid Signal node and the one `Start` action.
+- **The current row** is a raised plate with a solid Signal node. It says "you are here" and sets where the path opens; it carries no `Start` chip, and every reached row is equally tappable (#242).
 
 The path is a progress visualisation, not gamification: it carries no XP, streak, heart or gem, and it never reads a clock.
+
+### Screen kit
+The Signal on Slate structure is the standard for every screen (#243). Build from these in `src/shared/ui/` before writing screen-local chrome.
+
+- **`ScreenHeader`**: quiet `← Back`, optional trailing quiet actions, one focusable h1 with an optional glyph, and an optional lit bar with a mono reading. Every screen that is not a session.
+- **`ProgressSpine`**: one straight line of rows; round nodes for steps, square for tests, plates for milestones, a group row for inline controls. The position row marks where you are and where the line opens; it is never the only thing to press. Any finite sequence.
+- **`ModeTray`**: solid stimulus tiles, one or two words each, fixed above phone navigation and in flow from 980px. It reserves its own height. Locked is a plate with a line and a lock. Ways into practice, never more than one row.
+- **`Plate`** (`.plate`, `.plate-raised`, `.plate-repair`): an opaque container, one fill step and a 1px solid line. Repair takes copper in the full hairline.
+- **`SessionFrame`**, **`SessionCorrect`**, **`RoundResult`**: the full-screen run. Morse modes take their mode colour; Test takes the action colour; Practice passes its track colour as `colour` and `ink`.
 
 ### Stat strip
 One bordered container divided by hairlines, reading as a single instrument panel. Every figure is a reading, so every figure is mono.

@@ -49,7 +49,7 @@ import { MorseCharacterSupport } from '../MorseCharacterSupport'
 import { useMorseAudio } from '../useMorseAudio'
 import { CharacterStage, ListeningCheckStep, StepLabel, VisualCheckStep } from './LessonSteps'
 import { useLessonRecord } from './useLessonRecord'
-import { SessionFrame, SessionCorrect } from '../session/SessionFrame'
+import { SessionFrame, SessionCorrect } from '../../../shared/ui/SessionFrame'
 import './MorseLesson.css'
 
 /** The #78/#90 word-checkpoint milestones, tied to the checkpoint curriculum. */

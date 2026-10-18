@@ -1,7 +1,10 @@
 import { useEffect, useRef, type ComponentPropsWithoutRef, type CSSProperties, type ReactNode } from 'react'
 import './SessionFrame.css'
 
-type SessionKind = 'key' | 'listen' | 'read' | 'free' | 'lesson' | 'checkpoint'
+/** Morse modes take their own colour; every other kind takes the action colour unless given a pair. */
+export type SessionKind = 'key' | 'listen' | 'read' | 'free' | 'lesson' | 'checkpoint' | 'test' | 'practice'
+
+const MODE_KINDS = new Set<SessionKind>(['key', 'listen', 'read', 'free'])
 
 interface SessionFrameProps extends ComponentPropsWithoutRef<'section'> {
   kind: SessionKind
@@ -10,16 +13,25 @@ interface SessionFrameProps extends ComponentPropsWithoutRef<'section'> {
   onClose: () => void
   /** Session-level controls under the header, such as Listen's spacing. */
   toolbar?: ReactNode
+  /** A solid fill token for this session, such as `var(--learning)`; overrides the kind's colour. */
+  colour?: string
+  /** The ink that reads on `colour`. */
+  ink?: string
+}
+
+function sessionColours(kind: SessionKind): { colour: string; ink: string } {
+  const token = MODE_KINDS.has(kind) ? `mode-${kind}` : 'action'
+  return { colour: `var(--${token}, var(--accent))`, ink: `var(--${token}-ink, var(--accent-ink))` }
 }
 
 /** Shared session chrome. Progress describes this run, never learning evidence. */
-export function SessionFrame({ kind, title, progress, onClose, toolbar, children, className = '', style, ...props }: SessionFrameProps) {
-  const mode = kind === 'lesson' || kind === 'checkpoint' ? 'action' : `mode-${kind}`
+export function SessionFrame({ kind, title, progress, onClose, toolbar, colour, ink, children, className = '', style, ...props }: SessionFrameProps) {
+  const derived = sessionColours(kind)
   const total = Math.max(0, progress?.total ?? 0)
   const current = Math.min(total, Math.max(0, progress?.current ?? 0))
   return (
     <section {...props} className={`session session-frame ${className}`} data-session-kind={kind}
-      style={{ '--session-colour': `var(--${mode}, var(--accent))`, '--session-ink': `var(--${mode}-ink, var(--accent-ink))`, ...style } as CSSProperties}>
+      style={{ '--session-colour': colour ?? derived.colour, '--session-ink': ink ?? derived.ink, ...style } as CSSProperties}>
       <header className="session-frame-header">
         <span className="session-frame-title">{title}</span>
         <div className="session-frame-progress" role={progress ? 'progressbar' : undefined}

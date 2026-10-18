@@ -1,0 +1,21 @@
+/* Plates (#243). Every container is opaque: a fill step and a solid 1px line.
+   Use the class directly on a control that needs to look like a plate. */
+.plate {
+  padding: var(--s-md);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  color: var(--ink);
+  background: var(--plate);
+}
+
+/* One step up, with the small neutral shadow a started plate carries. */
+.plate-raised {
+  background: var(--plate-raised);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Decay takes copper in the full hairline, never a side stripe. Pair it with
+   the ◆ glyph and the words "Needs repair". */
+.plate-repair {
+  border-color: var(--warning);
+}

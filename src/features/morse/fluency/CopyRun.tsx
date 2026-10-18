@@ -20,7 +20,7 @@ import { fluencyTiming, type FluencyRung } from '../../../domain/morse/fluency/t
 import { fire } from '../../../shared/haptics'
 import { MorseCharacterSupport } from '../MorseCharacterSupport'
 import { useMorseAudio } from '../useMorseAudio'
-import { SessionFrame, SessionCorrect, RoundResult } from '../session/SessionFrame'
+import { SessionFrame, SessionCorrect, RoundResult } from '../../../shared/ui/SessionFrame'
 import './Fluency.css'
 
 interface CopyRunProps {

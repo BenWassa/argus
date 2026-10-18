@@ -378,3 +378,45 @@
   min-width: 0;
   overflow-wrap: anywhere;
 }
+
+/* Inside the shared session frame. */
+.session-frame .free-play-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 4px;
+  background: var(--field);
+  border: 1px solid var(--line);
+}
+
+.session-frame .free-play-tabs button {
+  min-height: 44px;
+  background: var(--plate, var(--surface));
+  color: var(--ink);
+  box-shadow: none;
+}
+
+.session-frame .free-play-tabs [aria-selected='true'] {
+  background: var(--session-colour);
+  color: var(--session-ink);
+}
+
+.free-play-tabs svg {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+  vertical-align: middle;
+  margin-inline-end: 8px;
+}
+
+.listening-spacing {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-sm);
+}
+
+.listening-spacing-value {
+  margin-inline-end: auto;
+  font-size: var(--t-small);
+  color: var(--muted);
+}

@@ -29,13 +29,21 @@ describe('Morse progress path', () => {
     expect(onAction).toHaveBeenCalledExactlyOnceWith(path.nodes.find((node) => node.id === path.currentNodeId)!.action)
   })
 
+  it.each(['fresh', 'mid', 'banked'])('marks the %s position without a Start chip (#242)', (state) => {
+    const { container } = render(<MorseProgressPath topic={modeTopicFixtures()[state]} onAction={vi.fn()} />)
+    const current = container.querySelector('[aria-current="step"]')!
+    expect(current.classList.contains('is-position')).toBe(true)
+    expect(container.querySelector('.morse-progress-go')).toBeNull()
+    expect(current.textContent).not.toMatch(/\bStart\b/)
+  })
+
   it('gives milestones square nodes, uppercase names, distinct marks and a named repair state', () => {
     render(<MorseProgressPath topic={modeTopicFixtures().repair} onAction={vi.fn()} />)
     for (const label of screen.getAllByText('WORD CHECK')) {
-      expect(label.closest('button')!.querySelector('.morse-progress-node-square svg')).not.toBeNull()
+      expect(label.closest('button')!.querySelector('.spine-node-square svg')).not.toBeNull()
     }
     // The A–Z Test is told apart from a word check by its own mark, not by colour.
-    const test = screen.getByText('A–Z TEST').closest('button')!.querySelector('.morse-progress-node-square')!
+    const test = screen.getByText('A–Z TEST').closest('button')!.querySelector('.spine-node-square')!
     expect(test.textContent).toBe('A–Z')
     expect(test.querySelector('svg')).toBeNull()
     expect(screen.getByText('◆ Needs repair')).toBeTruthy()
@@ -118,7 +126,7 @@ describe('Morse progress path', () => {
     vi.stubGlobal('IntersectionObserver', observer)
     render(<MorseProgressPath topic={morseTopic(5)} onAction={vi.fn()} showJump={false} />)
     expect(observer).not.toHaveBeenCalled()
-    expect(document.querySelector('.morse-progress-jump')).toBeNull()
+    expect(document.querySelector('.spine-jump')).toBeNull()
     expect(document.querySelector('[aria-current="step"]')).toBeTruthy()
   })
 

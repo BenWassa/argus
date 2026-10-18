@@ -7,7 +7,7 @@ import { useKeyedResponse } from '../input/useKeyedResponse'
 import { MorsePlayButton } from '../MorsePlayButton'
 import { MorseCharacterSupport } from '../MorseCharacterSupport'
 import { useMorseAudio } from '../useMorseAudio'
-import { SessionFrame, SessionCorrect, RoundResult } from '../session/SessionFrame'
+import { SessionFrame, SessionCorrect, RoundResult } from '../../../shared/ui/SessionFrame'
 import './LetterPractice.css'
 
 export function LetterPracticeRun({ eligible, initialProgress = newMorsePractice(), onProgress, onAnother, onExit, direction: fixedDirection }: {
