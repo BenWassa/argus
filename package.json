@@ -1,7 +1,7 @@
 {
   "name": "argus",
   "private": true,
-  "version": "1.5.3",
+  "version": "1.5.4",
   "type": "module",
   "scripts": {
     "badges:prepare": "node scripts/prepareRoleBadges.mjs",
