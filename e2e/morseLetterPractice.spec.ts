@@ -14,7 +14,7 @@ test('direct letter practice, durable isolation, correction and return', async (
   await page.goto('./')
   await page.getByRole('button', { name: 'Library', exact: true }).click()
   await page.getByRole('button', { name: /Morse/ }).first().click()
-  const folder = 'docs/open/assets/morse-221'
+  const folder = 'docs/open/morse/assets/morse-221'
   if (process.env.ARGUS_221_BASELINE) {
     if (info.project.name.startsWith('phone-')) await page.screenshot({ path: `${folder}/${info.project.name}-before.png`, fullPage: true })
     return
@@ -60,12 +60,12 @@ test('a complete read round repeats freely and large text fits', async ({ page }
     await expect(page.getByRole('status')).toHaveText('Correct')
   }
   await expect(page.getByRole('heading', { name: 'Round complete' })).toBeVisible()
-  if (info.project.name.startsWith('phone-')) await page.screenshot({ path: `docs/open/assets/morse-221/${info.project.name}-complete.png`, fullPage: true })
+  if (info.project.name.startsWith('phone-')) await page.screenshot({ path: `docs/open/morse/assets/morse-221/${info.project.name}-complete.png`, fullPage: true })
   await page.getByRole('button', { name: 'Another round' }).click()
   await expect(page.locator('.session-count')).toHaveText('1 / 10')
   await page.evaluate(() => { document.documentElement.style.fontSize = '200%' })
   await page.getByRole('button', { name: 'Help' }).click()
-  if (info.project.name.startsWith('phone-')) await page.screenshot({ path: `docs/open/assets/morse-221/${info.project.name}-large-text.png`, fullPage: true })
+  if (info.project.name.startsWith('phone-')) await page.screenshot({ path: `docs/open/morse/assets/morse-221/${info.project.name}-large-text.png`, fullPage: true })
   const overflowing = await page.evaluate(() => [...document.querySelectorAll('*')].filter(el => el.getBoundingClientRect().right > innerWidth + 1).map(el => `${el.tagName}.${el.className}: ${el.getBoundingClientRect().right}`))
   expect(overflowing).toEqual([])
 })

@@ -20,8 +20,8 @@ keyed inputs and response lifecycle. It writes no learner progress.
 `MorseLesson.css` stays imported by `MorseLesson.tsx`; the existing stylesheet
 order and shared step classes remain together.
 
-Contract: [Morse lesson](../../../../docs/open/MORSE_LESSON.md)
+Contract: [Morse lesson](../../../../docs/open/morse/MORSE_LESSON.md)
 
-Contract: [Word checkpoints](../../../../docs/open/MORSE_WORD_CHECKPOINTS.md)
+Contract: [Word checkpoints](../../../../docs/open/morse/MORSE_WORD_CHECKPOINTS.md)
 
-Contract: [Audio runtime](../../../../docs/open/MORSE_AUDIO_RUNTIME.md)
+Contract: [Audio runtime](../../../../docs/open/morse/MORSE_AUDIO_RUNTIME.md)

@@ -24,7 +24,7 @@
  * ## The policy, and why each parameter has the value it has
  *
  * **Packet ordering and new-item load.** Reused verbatim from the ratified P1/P2
- * decisions in `docs/open/MORSE_CHARACTER_ORDER.md`: complexity-ascending with
+ * decisions in `docs/open/morse/MORSE_CHARACTER_ORDER.md`: complexity-ascending with
  * final-element confusables split, two novel characters per packet, up to five
  * characters on the packet roster. #48 does not re-litigate them; it stops
  * presenting a packet as five cards to scroll and starts presenting it as a

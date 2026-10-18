@@ -208,7 +208,7 @@ shaping as sample playback. To preserve the first key sound on mobile, the key
 starts its oscillator in the direct press event before waiting for
 `AudioContext.resume()`; a quick release still sounds its canonical element
 once before it is committed. Audio failure remains non-blocking to categorical
-key entry. `docs/open/MORSE_AUDIO_RUNTIME.md` is the maintained cross-surface
+key entry. `docs/open/morse/MORSE_AUDIO_RUNTIME.md` is the maintained cross-surface
 lifecycle and device-acceptance contract.
 
 Pointer cancellation/lost capture produces no element. The key suppresses
@@ -331,7 +331,7 @@ when all listening is skipped or unavailable.
 
 ## Packet ordering, weak items and interleaving
 
-P1/P2 from `docs/open/MORSE_CHARACTER_ORDER.md` remain authoritative:
+P1/P2 from `docs/open/morse/MORSE_CHARACTER_ORDER.md` remain authoritative:
 complexity-ascending ordering with final-element confusables separated, two novel
 characters per packet, and up to five characters on a roster.
 
@@ -529,7 +529,7 @@ the Morse Topic page instead of the generic `Show all 26 items` disclosure; all
 - the compact audio control remains touch-sized and accessible;
 - no mnemonic/SVG/audio cue leaks into the formal uncued Test boundary.
 
-See `docs/open/MORSE_VERBAL_MNEMONICS.md` for mnemonic grammar and provenance.
+See `docs/open/morse/MORSE_VERBAL_MNEMONICS.md` for mnemonic grammar and provenance.
 
 ## Structural safeguards
 

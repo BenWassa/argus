@@ -2,7 +2,7 @@
 
 **Status:** OPEN — #209 S0 merged. On 2026-10-14 the owner approved the embedded Topic-page Play direction; [#212](https://github.com/BenWassa/argus/pull/212) contains the 390px visual review reference. A focused follow-up PR implements direct Play access, named next challenge and replay of already-unlocked beginner word checkpoints. This is **not shipped or Pixel-accepted until the runtime PR merges and device review occurs**. Remaining adaptive practice, generated early rounds, milestones and advanced extensions are unbuilt.
 **Issue:** [#201](https://github.com/BenWassa/argus/issues/201)
-**Authority:** Proposed future Morse continuation/engagement experience and implementation acceptance. Shipped behavior remains defined by [MORSE_FLUENCY.md](MORSE_FLUENCY.md), [MORSE_INTERMEDIATE_PATH.md](MORSE_INTERMEDIATE_PATH.md), [ISSUE_188_MORSE_SENDING_GAMEPLAY.md](ISSUE_188_MORSE_SENDING_GAMEPLAY.md), [PROGRESS_ARCHITECTURE.md](PROGRESS_ARCHITECTURE.md) and [MORSE_AUDIO_RUNTIME.md](MORSE_AUDIO_RUNTIME.md). Do **not** interpret this proposal as a shipped feature or an alteration to their evidence boundaries.
+**Authority:** Proposed future Morse continuation/engagement experience and implementation acceptance. Shipped behavior remains defined by [MORSE_FLUENCY.md](MORSE_FLUENCY.md), [MORSE_INTERMEDIATE_PATH.md](MORSE_INTERMEDIATE_PATH.md), [ISSUE_188_MORSE_SENDING_GAMEPLAY.md](ISSUE_188_MORSE_SENDING_GAMEPLAY.md), [PROGRESS_ARCHITECTURE.md](../PROGRESS_ARCHITECTURE.md) and [MORSE_AUDIO_RUNTIME.md](MORSE_AUDIO_RUNTIME.md). Do **not** interpret this proposal as a shipped feature or an alteration to their evidence boundaries.
 **Audit:** current `main` as examined 2026-10-13; v1.5.0 shipped the initial guided Send/Copy/Fluency experience. Owner Pixel acceptance of #188 is **still outstanding**.
 **Related:** #188 (existing sending-game delivery/Pixel acceptance), #119 (closed Fluency research), #21 (historical alphabet programme), #29 (historical/deferred formal auditory/sending competency), #191/#197 (Roles architecture), #113 (offline-first runtime).
 
@@ -333,7 +333,7 @@ This is a **candidate ranking** requiring user testing and concrete event-data d
 
 ## 8. Design system and interaction contract
 
-Source of truth: [DESIGN.md](../../DESIGN.md), [DESIGN.json](../../DESIGN.json), `src/styles/tokens.css`, existing Morse input and Run components. Mockups cannot authorize new palette tokens.
+Source of truth: [DESIGN.md](../../../DESIGN.md), [DESIGN.json](../../../DESIGN.json), `src/styles/tokens.css`, existing Morse input and Run components. Mockups cannot authorize new palette tokens.
 
 - **Gunmetal:** `#101215` page; `#16191d`/`#1d2126` restrained plates; `#0b0d10` recessed fields.
 - One polished-steel **primary/current** emphasis per screen. Use existing Mineral/Clay correctness/error semantics. Reserve Tarnish for repair/decay, never streak rewards.
@@ -452,8 +452,8 @@ Record usability findings and real-device defects on #201/#188 without assuming 
 
 **Shipped contracts and issue history**
 - [#188 sending gameplay](https://github.com/BenWassa/argus/issues/188), [maintained sending design](ISSUE_188_MORSE_SENDING_GAMEPLAY.md).
-- [Morse Fluency](MORSE_FLUENCY.md), [Intermediate path](MORSE_INTERMEDIATE_PATH.md), [Morse programme plan](MORSE_PROGRAMME_PLAN.md), [Progress architecture](PROGRESS_ARCHITECTURE.md), [Audio runtime](MORSE_AUDIO_RUNTIME.md).
-- [#119 post-acquisition research](https://github.com/BenWassa/argus/issues/119), [archived research](../closed/ISSUE_119_MORSE_POST_ACQUISITION_FLUENCY_RESEARCH.md).
+- [Morse Fluency](MORSE_FLUENCY.md), [Intermediate path](MORSE_INTERMEDIATE_PATH.md), [Morse programme plan](MORSE_PROGRAMME_PLAN.md), [Progress architecture](../PROGRESS_ARCHITECTURE.md), [Audio runtime](MORSE_AUDIO_RUNTIME.md).
+- [#119 post-acquisition research](https://github.com/BenWassa/argus/issues/119), [archived research](../../closed/ISSUE_119_MORSE_POST_ACQUISITION_FLUENCY_RESEARCH.md).
 - [#21 acquisition](https://github.com/BenWassa/argus/issues/21), [#29 deferred formal competency](https://github.com/BenWassa/argus/issues/29).
 - [#113 offline-first](https://github.com/BenWassa/argus/issues/113), [#191 role architecture](https://github.com/BenWassa/argus/issues/191), [#197 expanded role research](https://github.com/BenWassa/argus/issues/197).
 

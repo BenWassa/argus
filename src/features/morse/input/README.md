@@ -19,6 +19,6 @@ clears the response while retaining the context.
 whole word. `useKeyedResponse.ts` owns the parent surface's feedback and
 transition gate: hits advance on a timer; misses wait for acknowledgement.
 
-Contract: [Morse lesson](../../../../docs/open/MORSE_LESSON.md)
+Contract: [Morse lesson](../../../../docs/open/morse/MORSE_LESSON.md)
 
-Contract: [Audio runtime](../../../../docs/open/MORSE_AUDIO_RUNTIME.md)
+Contract: [Audio runtime](../../../../docs/open/morse/MORSE_AUDIO_RUNTIME.md)

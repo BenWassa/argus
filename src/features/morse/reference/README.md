@@ -15,6 +15,6 @@ receives no topic or progress mutation callback and writes no learning state.
 The file remains together because its card helpers and captions form one small
 lookup presentation.
 
-Contract: [Morse lesson and reference](../../../../docs/open/MORSE_LESSON.md)
+Contract: [Morse lesson and reference](../../../../docs/open/morse/MORSE_LESSON.md)
 
-Contract: [Audio runtime](../../../../docs/open/MORSE_AUDIO_RUNTIME.md)
+Contract: [Audio runtime](../../../../docs/open/morse/MORSE_AUDIO_RUNTIME.md)

@@ -23,12 +23,12 @@ Run views delegate state to their matching hook. Domain `send`, `copy` and `sess
 
 The evidence boundary is `onProgress -> FluencySurface.commit -> updateTopic`, which spreads the current topic and changes only `morseFluency`. Drills accumulate character statistics until completion; Copy and Send save their formative best at completion. Home spacing changes use the same adapter. Free Play saves nothing. These writes never update scored Test evidence, retention clocks, attempts, acquisition or completion. `FluencyBoundary.test.ts` checks both views and extracted hooks; component tests exercise the existing run flows.
 
-Contract: [Fluency](../../../../docs/open/MORSE_FLUENCY.md)
+Contract: [Fluency](../../../../docs/open/morse/MORSE_FLUENCY.md)
 
-Contract: [Intermediate path](../../../../docs/open/MORSE_INTERMEDIATE_PATH.md)
+Contract: [Intermediate path](../../../../docs/open/morse/MORSE_INTERMEDIATE_PATH.md)
 
-Contract: [Guided sending](../../../../docs/open/ISSUE_188_MORSE_SENDING_GAMEPLAY.md)
+Contract: [Guided sending](../../../../docs/open/morse/ISSUE_188_MORSE_SENDING_GAMEPLAY.md)
 
-Contract: [Morse audio runtime](../../../../docs/open/MORSE_AUDIO_RUNTIME.md)
+Contract: [Morse audio runtime](../../../../docs/open/morse/MORSE_AUDIO_RUNTIME.md)
 
 Contract: [Progress architecture](../../../../docs/open/PROGRESS_ARCHITECTURE.md)

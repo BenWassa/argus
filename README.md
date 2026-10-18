@@ -73,7 +73,6 @@ The **full offline-first runtime guarantee is active scope in #113**, not yet a 
 - [Analyst blind review](docs/open/ISSUE_197_ANALYST_HUMAN_REVIEW.md) and [separate facilitator key](docs/open/ISSUE_197_ANALYST_REVIEW_KEY.md) — 36 staged questions; human acceptance pending.
 - [Radio reviewer worksheet](docs/open/ISSUE_150_HUMAN_REVIEW.md) — 28 scored items and independent qualified review record.
 - [CAF permission request draft](docs/open/ISSUE_178_PERMISSION_REQUEST_DRAFT.md) — intended-use text and 57-image metadata inventory; not submitted.
-- [Morse next-slice recommendation](docs/open/ISSUE_201_NEXT_SLICE_RECOMMENDATION.md) — validate the existing S1A draft; [scope/CI review](docs/open/ISSUE_201_S1A_SCOPE_REVIEW.md) distinguishes approved architecture from pending visual/device checks.
 - [Scuba asset review](docs/open/ISSUE_132_SCUBA_ASSET_REVIEW.md) — four sourced photo candidates and two remaining image briefs; Learn-only scope.
 - [Pre-release PR review](docs/closed/PRE_RELEASE_PR_REVIEW.md) — merge readiness, prepared cleanup and the outstanding offline durability blocker.
 - [Human acceptance checklist](docs/open/HUMAN_ACCEPTANCE_CHECKLIST.md) — one review session for prepared scuba, Analyst, radio, badge, Pixel, offline and permission gates.
@@ -83,7 +82,6 @@ The **full offline-first runtime guarantee is active scope in #113**, not yet a 
 - [Signal flag authoritative comparison](docs/open/ISSUE_148_PUB102_COMPARISON.md) — NGA comparison findings and remaining IMO/domain acceptance gates.
 - [Role receipt and Navigator runtime](docs/open/ISSUE_197_ROLE_RUNTIME.md) — permanent receipts, owner-only sync and two-role focus selector; merged implementation with owner artwork pending.
 - [Role decision record (#197)](docs/open/ISSUE_197_ROLE_DECISION_RECORD.md) — owner-ratified names, achievement model, earnability gates and curriculum sequencing; artwork supplied by the owner.
-- [Combined Morse and Home candidate](docs/closed/MORSE_HOME_RELEASE_CANDIDATE.md) — historical pre-release scope and merge evidence, superseded by v1.5.0.
 - [Selected Home implementation](docs/open/ISSUE_193_HOME_REDESIGN.md) — combined candidate behavior and remaining Pixel acceptance.
 - [Next release review](docs/closed/NEXT_RELEASE_REVIEW.md) — historical v1.4.0 baseline and options that informed the v1.5.0 release.
 - `docs/README.md` — documentation lifecycle and open/closed housekeeping.
@@ -116,22 +114,28 @@ The **full offline-first runtime guarantee is active scope in #113**, not yet a 
 - `docs/open/REDESIGN_INPUT_AUDIT.md` — current factual screen, state, issue-reconciliation, acceptance, and redesign-risk input package.
 - `docs/open/TARGETED_PRACTICE.md` — the formative practice run: its evidence boundary, how it selects what to practise, and why it is not called repair.
 - `docs/closed/PROGRAMME.md` — Learn/Test + content-quality programme closeout.
-- `docs/closed/MORSE_CODE_LEARNING_PRD.md` — dated Morse research/design baseline retained for rationale; later ratified decisions supersede its deliberately open implementation questions.
-- `docs/open/MORSE_PROGRAMME_PLAN.md` — current Morse programme decisions, workstream ownership and implementation status.
-- `docs/open/MORSE_CHARACTER_ORDER.md` — shipped character order/packet rule and verified Koch/CW Academy provenance comparison.
-- `docs/closed/ISSUE_105_MORSE_PLACEMENT_ASSESSMENT.md` — maintained contract for fresh-start Morse placement, bounded confirmation, and evidence-safe progress application.
-- `docs/open/MORSE_AUDIO_RUNTIME.md` — maintained Web Audio lifecycle and first-press regression contract for every Morse audio surface.
-- `docs/open/MORSE_FLUENCY.md` — maintained contract for the post-acquisition Fluency surface: the pinned character speed and Farnsworth ladder, the four modes, the automaticity measures, the haptic vocabulary and the formative-only evidence boundary.
-- `docs/open/MORSE_INTERMEDIATE_PATH.md` — maintained contract for Morse after the alphabet: the uncued Test floor, a full check or a short review whenever the learner chooses, Copy (letters to sentences, figures and punctuation), free play and the spacing ladder to 20 WPM.
-- `docs/open/ISSUE_188_MORSE_SENDING_GAMEPLAY.md` — maintained guided Send and Dispatch scope, with later modes and in-course enhancements explicitly deferred.
-- [Morse UX consolidation and adaptive letter practice (#221)](docs/open/ISSUE_221_MORSE_UX_CONSOLIDATION.md) — implementation record, formative-state contract and mobile review evidence; physical Pixel acceptance remains open.
-- [Morse continuous gameplay and engagement (#201)](docs/open/ISSUE_201_MORSE_GAMEPLAY_CONTINUITY.md) — active UX/implementation proposal for post-A–Z handoff, visible permanent Play entry, optional known-letter play, independent skill tracks, adaptive next challenges and repeatable progression; **not yet shipped**.
-- [Persistent Morse Play visual reference (#212)](docs/open/ISSUE_201_PERSISTENT_PLAY_UX_REVIEW.md) — embedded Topic-page architecture approved; six static mockups retain pending detailed visual and runtime/device acceptance.
-- `docs/closed/ISSUE_119_MORSE_POST_ACQUISITION_FLUENCY_RESEARCH.md` — the sources, architecture audit and rejected options behind `MORSE_FLUENCY.md`.
 - `docs/open/ISSUE_113_OFFLINE_FIRST_RUNTIME.md` — active contract for IndexedDB local authority, durable sync/outbox, deterministic offline PWA launch, storage lifecycle and content-size/download policy.
-- `docs/closed/MORSE_PROVENANCE_RECONCILIATION.md` — provenance/doc-reconciliation closeout for the pre-#28 documentation lane.
 
 `argus-prd.md` is the original July 2026 vision document. Where it describes superseded runtime/schema details, `PRODUCT.md` and the durable programme documents above govern current implemented behaviour.
+
+## Morse documentation
+
+- [Morse documentation hub](docs/open/morse/README.md) — reading order, contracts, historical records, code map and maintenance rules.
+- [Morse next-slice recommendation](docs/open/morse/ISSUE_201_NEXT_SLICE_RECOMMENDATION.md) — validate the existing S1A draft; [scope/CI review](docs/open/morse/ISSUE_201_S1A_SCOPE_REVIEW.md) distinguishes approved architecture from pending visual/device checks.
+- [Combined Morse and Home candidate](docs/closed/MORSE_HOME_RELEASE_CANDIDATE.md) — historical pre-release scope and merge evidence, superseded by v1.5.0.
+- `docs/closed/MORSE_CODE_LEARNING_PRD.md` — dated Morse research/design baseline retained for rationale; later ratified decisions supersede its deliberately open implementation questions.
+- `docs/open/morse/MORSE_PROGRAMME_PLAN.md` — current Morse programme decisions, workstream ownership and implementation status.
+- `docs/open/morse/MORSE_CHARACTER_ORDER.md` — shipped character order/packet rule and verified Koch/CW Academy provenance comparison.
+- `docs/closed/ISSUE_105_MORSE_PLACEMENT_ASSESSMENT.md` — maintained contract for fresh-start Morse placement, bounded confirmation, and evidence-safe progress application.
+- `docs/open/morse/MORSE_AUDIO_RUNTIME.md` — maintained Web Audio lifecycle and first-press regression contract for every Morse audio surface.
+- `docs/open/morse/MORSE_FLUENCY.md` — maintained contract for the post-acquisition Fluency surface: the pinned character speed and Farnsworth ladder, the four modes, the automaticity measures, the haptic vocabulary and the formative-only evidence boundary.
+- `docs/open/morse/MORSE_INTERMEDIATE_PATH.md` — maintained contract for Morse after the alphabet: the uncued Test floor, a full check or a short review whenever the learner chooses, Copy (letters to sentences, figures and punctuation), free play and the spacing ladder to 20 WPM.
+- `docs/open/morse/ISSUE_188_MORSE_SENDING_GAMEPLAY.md` — maintained guided Send and Dispatch scope, with later modes and in-course enhancements explicitly deferred.
+- [Morse UX consolidation and adaptive letter practice (#221)](docs/open/morse/ISSUE_221_MORSE_UX_CONSOLIDATION.md) — implementation record, formative-state contract and mobile review evidence; physical Pixel acceptance remains open.
+- [Morse continuous gameplay and engagement (#201)](docs/open/morse/ISSUE_201_MORSE_GAMEPLAY_CONTINUITY.md) — active UX/implementation proposal for post-A–Z handoff, visible permanent Play entry, optional known-letter play, independent skill tracks, adaptive next challenges and repeatable progression; **not yet shipped**.
+- [Persistent Morse Play visual reference (#212)](docs/open/morse/ISSUE_201_PERSISTENT_PLAY_UX_REVIEW.md) — embedded Topic-page architecture approved; six static mockups retain pending detailed visual and runtime/device acceptance.
+- `docs/closed/ISSUE_119_MORSE_POST_ACQUISITION_FLUENCY_RESEARCH.md` — the sources, architecture audit and rejected options behind `MORSE_FLUENCY.md`.
+- `docs/closed/MORSE_PROVENANCE_RECONCILIATION.md` — provenance/doc-reconciliation closeout for the pre-#28 documentation lane.
 
 ## Application structure
 

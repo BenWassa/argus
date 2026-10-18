@@ -2,7 +2,7 @@
 
 **Status:** Research complete; implemented as the Fluency surface
 
-**Authority:** Research and rationale only. `docs/open/MORSE_FLUENCY.md` is the
+**Authority:** Research and rationale only. `docs/open/morse/MORSE_FLUENCY.md` is the
 maintained contract for what actually shipped and governs where the two differ.
 `MORSE_PROGRAMME_PLAN.md`, `PROGRESS_ARCHITECTURE.md` and
 `MORSE_AUDIO_RUNTIME.md` are unchanged by this workstream.
@@ -1134,7 +1134,7 @@ convention, **[S]** specification/platform data, **[C]** trainer convention.
   and [Farnsworth timing — justlearnmorsecode.com](https://justlearnmorsecode.com/farnsworth.html)
   — ARRL adoption; use for practice and test transmissions up to 18 WPM;
   typical 18–20 WPM character against 5–10 WPM effective.
-- **[I]** `docs/open/MORSE_CHARACTER_ORDER.md` §"Provenance comparison" — the
+- **[I]** `docs/open/morse/MORSE_CHARACTER_ORDER.md` §"Provenance comparison" — the
   repository's own verified Koch and CW Academy provenance record, including
   the primary Koch 1936 bibliographic citation, the Long Island CW Club
   secondary review, and the **repository wording rule** this document follows:
@@ -1167,7 +1167,7 @@ convention, **[S]** specification/platform data, **[C]** trainer convention.
 `src/features/test/TestSession.tsx`; `src/features/practice/PracticeRun.tsx`;
 `src/domain/study/evidence.ts`, `cueLadder.ts`;
 `src/infrastructure/persistence/libraryParser.ts`;
-`docs/open/MORSE_PROGRAMME_PLAN.md`, `MORSE_AUDIO_RUNTIME.md`,
+`docs/open/morse/MORSE_PROGRAMME_PLAN.md`, `MORSE_AUDIO_RUNTIME.md`,
 `MORSE_WORD_CHECKPOINTS.md`, `TARGETED_PRACTICE.md`,
 `PROGRESS_ARCHITECTURE.md`, `MORSE_CHARACTER_ORDER.md`,
 `ISSUE_105_MORSE_PLACEMENT_ASSESSMENT.md`.
