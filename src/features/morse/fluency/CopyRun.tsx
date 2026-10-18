@@ -24,7 +24,7 @@ import { SessionFrame, SessionCorrect, RoundResult } from '../session/SessionFra
 import './Fluency.css'
 
 interface CopyRunProps {
-  /** Session-level controls rendered under the frame header. */
+  /** Between-round controls on the result screen (Listen's spacing). */
   toolbar?: ReactNode
   level: CopyLevel
   rung: FluencyRung
@@ -174,7 +174,7 @@ export function CopyRun({ level, rung, progress, focus, onProgress, onLevel, onE
     onProgress(result.progress)
   }, [phase, progress, level, score, onProgress])
 
-  const frame = { kind: 'listen' as const, title: 'Listen', onClose: onExit, toolbar, progress: { current: phase.kind === 'done' ? prompts.length : at + 1, total: prompts.length } }
+  const frame = { kind: 'listen' as const, title: 'Listen', onClose: onExit, progress: { current: phase.kind === 'done' ? prompts.length : at + 1, total: prompts.length } }
 
   if (phase.kind === 'intro' && info.introduces) {
     const intro = INTRODUCTIONS[info.introduces]
@@ -216,7 +216,7 @@ export function CopyRun({ level, rung, progress, focus, onProgress, onLevel, onE
 
   if (phase.kind === 'done') {
     return <SessionFrame {...frame} className="fluency-run copy-run">
-      <RoundResult correct={judgements.filter(judgement => judgement.correct).length} total={prompts.length} onAgain={() => onLevel(level)} onDone={onExit} />
+      <RoundResult extra={toolbar} correct={judgements.filter(judgement => judgement.correct).length} total={prompts.length} onAgain={() => onLevel(level)} onDone={onExit} />
     </SessionFrame>
   }
 

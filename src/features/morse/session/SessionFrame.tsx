@@ -40,11 +40,12 @@ export function SessionCorrect({ target, announce = true }: { target?: string; a
   return <div className="session-correct" role={announce ? "status" : undefined}><span aria-hidden="true">{target && `${target} `}✓</span><span className="sr-only">Correct</span></div>
 }
 
-export function RoundResult({ correct, total, onAgain, onDone }: { correct: number; total: number; onAgain: () => void; onDone: () => void }) {
+export function RoundResult({ correct, total, onAgain, onDone, extra }: { correct: number; total: number; onAgain: () => void; onDone: () => void; extra?: ReactNode }) {
   const heading = useRef<HTMLHeadingElement>(null)
   useEffect(() => { heading.current?.focus({ preventScroll: true }) }, [])
   return <div className="session-round-result">
     <h1 ref={heading} tabIndex={-1} className="session-round-reading" aria-label={`${correct} of ${total} correct`}>{correct} / {total}</h1>
+    {extra}
     <div className="session-round-actions"><button type="button" onClick={onAgain}>Again</button><button type="button" className="ghost" onClick={onDone}>Done</button></div>
   </div>
 }

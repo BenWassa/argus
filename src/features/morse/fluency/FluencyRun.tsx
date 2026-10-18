@@ -29,7 +29,7 @@ import { SessionFrame, SessionCorrect, RoundResult } from '../session/SessionFra
 import './Fluency.css'
 
 interface FluencyRunProps {
-  /** Session-level controls rendered under the frame header. */
+  /** Between-round controls on the result screen (Listen's spacing). */
   toolbar?: ReactNode
   mode: FluencyMode
   rung: FluencyRung
@@ -230,7 +230,7 @@ export function FluencyRun({ mode, rung, progress, focus, only, onProgress, onEx
     acknowledge()
   }
 
-  const frame = { kind: 'listen' as const, title: 'Listen', onClose: onExit, toolbar, progress: { current: complete ? fluencyRunLength(mode) : run.at + 1, total: fluencyRunLength(mode) } }
+  const frame = { kind: 'listen' as const, title: 'Listen', onClose: onExit, progress: { current: complete ? fluencyRunLength(mode) : run.at + 1, total: fluencyRunLength(mode) } }
 
   function again() {
     correctionAudio.stop()
@@ -250,7 +250,7 @@ export function FluencyRun({ mode, rung, progress, focus, only, onProgress, onEx
 
   if (complete) {
     return <SessionFrame {...frame} className="morse-lesson fluency-run">
-      <RoundResult correct={outcome.correct} total={outcome.prompts} onAgain={again} onDone={onExit} />
+      <RoundResult extra={toolbar} correct={outcome.correct} total={outcome.prompts} onAgain={again} onDone={onExit} />
     </SessionFrame>
   }
 

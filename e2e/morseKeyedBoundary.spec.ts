@@ -146,13 +146,15 @@ test('the key keeps its own material through a press and never latches a touch s
   const material = () => key.evaluate((element) => {
     const style = getComputedStyle(element)
     return {
-      background: style.backgroundImage,
+      background: `${style.backgroundImage} ${style.backgroundColor}`,
+      fill: style.backgroundColor,
       highlight: style.getPropertyValue('-webkit-tap-highlight-color'),
     }
   })
 
   const resting = await material()
-  expect(resting.background).toContain('gradient')
+  // Signal on Slate: the key is a solid, opaque fill in the session's colour.
+  expect(resting.fill).not.toMatch(/rgba\(0, 0, 0, 0\)|transparent/)
   // Chrome paints a blue wash over a tapped control unless this is cleared.
   expect(resting.highlight).toMatch(/rgba\(0, 0, 0, 0\)|transparent/)
 
@@ -162,7 +164,7 @@ test('the key keeps its own material through a press and never latches a touch s
   await page.mouse.down()
 
   // Held down: the key reports itself depressed, and its material is the same
-  // brass it was at rest rather than a different hue.
+  // fill it was at rest rather than a different hue.
   await expect(key).toHaveAttribute('data-pressed', 'true')
   expect((await material()).background).toBe(resting.background)
 

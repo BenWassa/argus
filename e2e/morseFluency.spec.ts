@@ -167,7 +167,7 @@ async function keyUntilAnswered(page: Page) {
  */
 async function runToSummary(page: Page) {
   for (let step = 0; step < 60; step += 1) {
-    if ((await page.locator('.fluency-summary').count()) > 0) return
+    if ((await page.locator('.session-round-result').count()) > 0) return
 
     const cont = page.getByRole('button', { name: 'Continue' })
     if ((await cont.count()) > 0) {
@@ -274,8 +274,8 @@ test.describe('fluency', () => {
       await page.getByRole('button', { name: prompt < 4 ? 'Next' : 'Finish round' }).click()
     }
 
-    await expect(page.locator('.send-summary-card')).toBeVisible()
-    await expect(page.getByText('100%')).toBeVisible()
+    await expect(page.locator('.session-round-result')).toBeVisible()
+    await expect(page.locator('.session-round-reading')).toHaveText('5 / 5')
 
     const after = await storedTopic(page)
     expect(after?.morseFluency?.bests['send:words']).toBe(100)
@@ -359,8 +359,7 @@ test.describe('fluency', () => {
     // being right, and a miss exercises the correction path too.
     await runToSummary(page)
 
-    await expect(page.locator('.fluency-summary')).toBeVisible()
-    await expect(page.getByText(/changed your saved progress/)).toBeVisible()
+    await expect(page.locator('.session-round-result')).toBeVisible()
 
     const after = await storedTopic(page)
     // Something was learned about the learner…

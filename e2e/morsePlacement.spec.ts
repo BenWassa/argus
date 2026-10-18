@@ -75,7 +75,7 @@ test('placement grades a complete keyed pattern directly and abandons cleanly', 
 
   await keyElement(page, pattern[0] as '.' | '-')
   await expect(page.getByRole('button', { name: 'Check pattern' })).toHaveCount(0)
-  await expect(page.getByRole('status')).toContainText('Correct')
+  await expect(page.getByRole('dialog', { name: 'Morse placement check' }).getByRole('status')).toContainText('Correct')
 
   await page.getByRole('button', { name: 'Close' }).click()
   await expect(page.locator('.session-frame-title').filter({ hasText: /^Placement$/ })).toHaveCount(0)

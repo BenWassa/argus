@@ -108,7 +108,7 @@ export function FluencySurface({ topicId, initialMode, initialSend, initialCopy,
   if (mode) {
     return (
       <FluencyRun
-        key={`${mode}-${progress?.rung ?? 'first'}`}
+        key={mode}
         mode={mode}
         rung={(progress ?? newFluencyProgress()).rung}
         progress={progress ?? newFluencyProgress()}
