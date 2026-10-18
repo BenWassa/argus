@@ -3,6 +3,8 @@ import { useLibrary } from '../../services/library/LibraryProvider'
 import { roleProgress, type RoleId, type RoleTopicProgress } from '../../domain/roles/roles'
 import { AVAILABLE_ROLES } from '../../domain/roles/definitions'
 import { journeyFor, type TopicAction } from '../../domain/study/journey'
+import { ScreenHeader } from '../../shared/ui/ScreenHeader'
+import { Plate } from '../../shared/ui/Plate'
 import './RolesPage.css'
 
 interface Props {
@@ -20,19 +22,19 @@ const BOUNDARY: Partial<Record<RoleId, string>> = {
 
 function RoleTopicRow({ topic, onOpenTopic }: { topic: RoleTopicProgress; onOpenTopic: Props['onOpenTopic'] }) {
   const unavailable = topic.state === 'unavailable'
-  const status = topic.needsRefresh ? 'Needs repair'
+  const repair = topic.needsRefresh
+  const status = repair ? 'Needs repair'
     : topic.state === 'complete' ? 'Complete'
     : topic.state === 'in-progress' ? 'In progress'
     : unavailable ? 'Not available' : 'Not started'
   return (
     <li className="role-topic">
-      <button type="button" disabled={unavailable} onClick={() => onOpenTopic(topic.id)}>
-        <span className={`role-topic-mark ${topic.state === 'complete' ? 'is-done' : ''}`} aria-hidden="true">
+      <button type="button" className={`role-topic-plate plate${repair ? ' plate-repair' : ''}`} disabled={unavailable} onClick={() => onOpenTopic(topic.id)}>
+        <span className={`role-topic-mark ${topic.state === 'complete' && !repair ? 'is-done' : ''}`} aria-hidden="true">
           {topic.state === 'complete' ? '✓' : '○'}
         </span>
         <span className="role-topic-title">{topic.title}</span>
-        <span className="role-topic-state">{status}</span>
-        {!unavailable && <span className="role-topic-chevron" aria-hidden="true">›</span>}
+        <span className={`role-topic-state${repair ? ' is-repair' : ''}`}>{status}</span>
       </button>
     </li>
   )
@@ -53,17 +55,15 @@ export function RolesPage({ onOpenTopic, onContinue, selectedRole, onSelectRole 
   const nextTopic = next && topics.find((topic) => topic.id === next.id)
   return (
     <div className="roles-page">
-      <label className="roles-selector">
-        <span>Choose a role</span>
-        <select value={role.id} onChange={(event) => onSelectRole(event.target.value as RoleId)}>
-          {AVAILABLE_ROLES.map((candidate) => <option key={candidate.id} value={candidate.id}>{candidate.title}</option>)}
-        </select>
-      </label>
-      <header className="roles-head">
-        <h1>{role.title}</h1>
-        <p>{role.description}</p>
-      </header>
-      <section className="roles-award" aria-label={`${role.title} achievement`}>
+      <ScreenHeader
+        title={role.title}
+        actions={
+          <select className="roles-selector field" aria-label="Choose a role" value={role.id} onChange={(event) => onSelectRole(event.target.value as RoleId)}>
+            {AVAILABLE_ROLES.map((candidate) => <option key={candidate.id} value={candidate.id}>{candidate.title}</option>)}
+          </select>
+        }
+      />
+      <Plate as="section" variant={progress.earned ? 'raised' : 'default'} className="roles-award" aria-label={`${role.title} achievement`}>
         <img
           src={badgeSource}
           className={`roles-medallion ${progress.earned ? 'is-earned' : 'is-unearned'} is-raster`}
@@ -79,29 +79,21 @@ export function RolesPage({ onOpenTopic, onContinue, selectedRole, onSelectRole 
             {progress.completeCount} of {progress.requiredCount} topics complete
           </p>
           {progress.needsRefresh && (
-            <p className="roles-award-refresh">Some topics need repair. Your badge remains earned.</p>
+            <p className="roles-award-refresh">Needs repair</p>
           )}
           {progress.earnedVersion !== undefined && progress.earnedVersion < role.version && (
             <p className="roles-award-note">Earned v{progress.earnedVersion}. {progress.upgradeRemainingCount} topics remaining for v{role.version}.</p>
           )}
-          {!progress.earned && (
-            <p className="roles-award-note">Complete all {role.pathways.length === 3 ? 'three' : 'two'} pathways to earn {role.title}.</p>
-          )}
         </div>
-      </section>
+      </Plate>
       {nextTopic && <button className="roles-continue" type="button" onClick={() => next?.state === 'not-started' ? onOpenTopic(nextTopic.id) : onContinue(journeyFor(nextTopic).action, nextTopic.id)}>
         {next?.needsRefresh ? 'Repair' : next?.state === 'not-started' ? 'Start' : 'Continue'}: {nextTopic.title}
       </button>}
       <div className="roles-pathways">
-        {progress.pathways.map((pathway, index) => (
+        {progress.pathways.map((pathway) => (
           <section className="roles-pathway" key={pathway.id} aria-labelledby={`roles-${pathway.id}`}>
             <div className="roles-path-heading">
-              <div>
-                <h2 id={`roles-${pathway.id}`}>{pathway.title}</h2>
-                <p className="roles-path-subtitle">
-                  {index === 0 ? 'Suggested starting point · All topics open' : 'All topics open'}
-                </p>
-              </div>
+              <h2 id={`roles-${pathway.id}`}>{pathway.title}</h2>
               <p className="roles-path-count">
                 {pathway.state === 'complete' ? 'Complete' : `${pathway.completeCount} of ${pathway.topics.length}`}
               </p>

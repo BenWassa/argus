@@ -18,7 +18,7 @@ export function Confirm({ title, body, confirmLabel, onConfirm, onCancel }: Conf
     <Dialog title={title} onClose={onCancel} closeLabel={`Cancel ${title.toLowerCase()}`}>
       <p>{body}</p>
       <div className="actions">
-        <button className="ghost" type="button" onClick={onCancel}>
+        <button className="quiet" type="button" onClick={onCancel}>
           Cancel
         </button>
         <button className="danger" type="button" onClick={onConfirm}>
