@@ -82,7 +82,7 @@ async function storedTopic(page: Page) {
  */
 async function runDeck(page: Page, wrongCount: number) {
   for (let i = 0; i < nato.items.length; i += 1) {
-    if ((await page.locator('.session-done').count()) > 0) break
+    if ((await page.locator('.test-done').count()) > 0) break
     await expect(page.locator('.flip-card')).toBeVisible()
     const prompt = await page.locator('#prompt-heading').textContent()
     await page.keyboard.press(' ')
@@ -94,14 +94,14 @@ async function runDeck(page: Page, wrongCount: number) {
     await expect
       .poll(
         async () => {
-          if ((await page.locator('.session-done').count()) > 0) return 'done'
+          if ((await page.locator('.test-done').count()) > 0) return 'done'
           return page.locator('#prompt-heading').textContent().catch(() => null)
         },
         { timeout: 15000 },
       )
       .not.toBe(prompt)
   }
-  await expect(page.locator('.session-done')).toBeVisible()
+  await expect(page.locator('.test-done')).toBeVisible()
 }
 
 async function startCheck(page: Page) {
@@ -175,7 +175,7 @@ test('practice hands back to the check rather than banking on its own', async ({
 
   await expect(page.getByRole('heading', { name: 'Practice done' })).toBeVisible()
   const summary = await page.locator('.practice-summary').textContent()
-  expect(summary).toContain('Nothing was recorded and nothing moved')
+  expect(summary).toContain('Nothing recorded')
 
   await page.getByRole('button', { name: 'Take the check' }).click()
   await expect(page.locator('.flip-card')).toBeVisible()

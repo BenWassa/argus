@@ -1,7 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
-import { createRef } from 'react'
 import { seedLibrary } from '../../domain/library/catalogSeed'
 import type { Topic } from '../../domain/library/topic'
 import type { Resolution } from '../../domain/study/scheduling'
@@ -40,7 +39,7 @@ function renderDone(banked: BankedAttempt[], onPlayMorse = vi.fn(), missed: Reco
       missed={missed}
       onExit={vi.fn()}
       onPlayMorse={onPlayMorse}
-      headingRef={createRef<HTMLHeadingElement>()}
+      score={{ correct: 3, total: 4 }}
     />,
   )
   return onPlayMorse
@@ -54,6 +53,7 @@ describe('the Test end screen hands Morse learners to play', () => {
     const send = screen.getByRole('button', { name: 'Send five words' })
     expect(send.className).not.toContain('ghost')
     expect(screen.getByRole('button', { name: 'Back to today' }).className).toContain('ghost')
+    expect(screen.getByRole('heading', { name: '3 of 4 correct' })).toBeTruthy()
     fireEvent.click(send)
     expect(onPlay).toHaveBeenCalledWith(MORSE.id)
   })

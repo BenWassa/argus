@@ -5,10 +5,6 @@
   padding-bottom: max(var(--s-lg), env(safe-area-inset-bottom));
 }
 
-.rapid-session .session-bar {
-  margin-bottom: var(--s-lg);
-}
-
 /* The stage owns the perspective, so the card flips against a fixed vanishing
    point instead of carrying its own and skewing as it turns. */
 .card-stage {
@@ -138,7 +134,7 @@ button.flip-card:active {
   border-radius: var(--r-xl);
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-sm);
 }
 
 /* Both faces are solid plates: a fill step and a 1px line, with no sheen and no
@@ -303,14 +299,6 @@ button.flip-card:active {
   clip-path: none;
 }
 
-.recall-shortcuts {
-  min-height: 1.2em;
-  margin-top: var(--s-sm);
-  font-size: var(--t-label);
-  color: var(--subtle);
-  text-align: center;
-}
-
 @media (min-width: 680px) {
   .rapid-session {
     min-height: auto;
@@ -330,9 +318,9 @@ button.flip-card:active {
     gap: var(--s-md);
   }
 
-  .rapid-session .session-bar {
+  .rapid-session .session-frame-header {
     grid-column: 1 / -1;
-    margin-bottom: 0;
+    margin-block-end: 0;
   }
 
   .card-stage {
@@ -361,10 +349,6 @@ button.flip-card:active {
     font-size: var(--t-readout);
   }
 
-  .recall-shortcuts {
-    align-self: start;
-    margin-top: 0;
-  }
 }
 
 /* No motion is load-bearing: the faces swap instantly and the answer is still
@@ -661,27 +645,6 @@ button.flip-card:active {
 .test-next {
   min-height: var(--control-h-lg);
   margin-block-start: var(--s-sm);
-}
-
-/* The offer to practise what a check just missed (#92 batch 5).
- *
- * Sits below the outcome copy and above `Back to today`, so the screen still
- * reads as an account of what happened first and an invitation second. It
- * carries no accent: the accent marks banking a completion, and a miss is not an
- * event to mark. */
-.practice-offer {
-  display: grid;
-  gap: var(--s-sm);
-  justify-items: start;
-  /* The panel base, lifted a tone and bevelled so it reads as an offer sitting
-     on the end screen rather than as another paragraph of it. */
-  background: var(--surface-2);
-  box-shadow: var(--edge);
-}
-
-.practice-offer p {
-  margin: 0;
-  color: var(--muted);
 }
 
 /*

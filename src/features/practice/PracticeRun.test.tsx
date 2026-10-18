@@ -166,7 +166,7 @@ describe('the end of a run', () => {
     runToEnd()
     expect(screen.getByRole('button', { name: 'Take the check' })).toBeTruthy()
     expect(document.querySelector('.practice-summary')?.textContent).toContain(
-      'Nothing was recorded and nothing moved',
+      'Nothing recorded',
     )
   })
 })
