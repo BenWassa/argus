@@ -62,11 +62,11 @@ async function runDeck(wrongPrompts: Set<string>, topic: Topic = NATO) {
     // Let the exit animation settle into the next card or the end screen.
     await waitFor(() =>
       expect(
-        promptNow() !== prompt || document.querySelector('.session-done') !== null,
+        promptNow() !== prompt || document.querySelector('.test-done') !== null,
       ).toBe(true),
     )
   }
-  await waitFor(() => expect(document.querySelector('.session-done')).not.toBeNull())
+  await waitFor(() => expect(document.querySelector('.test-done')).not.toBeNull())
 }
 
 beforeEach(() => {
@@ -109,7 +109,7 @@ describe('offering practice after a check', () => {
 
     await runDeck(new Set(), SMALL)
 
-    expect(document.querySelector('.practice-offer')).toBeNull()
+    expect(screen.queryByRole('button', { name: /Practi[sc]e \d+ items?/ })).toBeNull()
     expect(onPractice).not.toHaveBeenCalled()
   }, 30000)
 
@@ -124,7 +124,7 @@ describe('offering practice after a check', () => {
 
     expect(screen.getByRole('button', { name: 'Practise 1 item' })).toBeTruthy()
     // The offer names a count, never the answer key it was drawn from.
-    const offer = document.querySelector('.practice-offer')?.textContent ?? ''
+    const offer = screen.getByRole('button', { name: 'Practise 1 item' }).textContent ?? ''
     expect(offer).not.toContain(ANSWER_FOR.get(NATO.items[1].prompt))
   }, 30000)
 
@@ -141,7 +141,7 @@ describe('offering practice after a check', () => {
 
     await runDeck(new Set([SMALL.items[0].prompt]), SMALL)
 
-    expect(document.querySelector('.practice-offer')).toBeNull()
+    expect(screen.queryByRole('button', { name: /Practi[sc]e \d+ items?/ })).toBeNull()
     const back = screen.getByRole('button', { name: 'Back to today' })
     expect(back.className).not.toContain('ghost')
   }, 30000)

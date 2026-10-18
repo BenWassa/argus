@@ -63,6 +63,7 @@
 
 .session-round-actions {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
   gap: var(--s-md);
 }

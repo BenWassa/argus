@@ -1,0 +1,24 @@
+/* The Test result is a RoundResult in the shared session frame: one reading,
+   the ladder outcome as short lines, and the next step. */
+
+.test-done .test-outcome {
+  max-width: 34ch;
+  margin: 0 auto var(--s-sm);
+  color: var(--muted);
+}
+
+.test-done .session-round-result {
+  display: grid;
+  justify-items: center;
+  gap: var(--s-sm);
+}
+
+.test-done .session-round-actions {
+  margin-block-start: var(--s-md);
+}
+
+/* The reading takes focus when the result opens, for screen readers; it is
+   not a control, so it carries no ring. */
+.test-done .session-round-reading:focus {
+  outline: none;
+}
