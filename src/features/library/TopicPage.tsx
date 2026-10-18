@@ -5,6 +5,7 @@ import { useLibrary } from '../../services/library/LibraryProvider'
 import { morseProgressPath } from '../../domain/morse/curriculum/progressPath'
 import { statusLabel } from '../../shared/ui/StatusTag'
 import { topicIcon } from './topicIcon'
+import { TopicGlyph } from './TopicGlyph'
 import { sequenceFor } from '../../domain/library/catalog'
 import { LearnSupport } from '../learn/LearnSupport'
 import { SourcesAndLimits } from '../learn/SourcesAndLimits'
@@ -186,7 +187,7 @@ function TopicHero({ topic }: { topic: Topic }) {
     <div className="topic-hero">
       {topic.hero ? <VisualView key={topic.id} visual={topic.hero} /> : (
         <div className="topic-hero-fallback" aria-hidden="true">
-          {icon ? <img src={icon} alt="" /> : <span>{topic.title.slice(0, 1)}</span>}
+          {icon ? <TopicGlyph topicId={topic.id} /> : <span>{topic.title.slice(0, 1)}</span>}
         </div>
       )}
     </div>

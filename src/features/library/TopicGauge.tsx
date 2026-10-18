@@ -6,16 +6,17 @@ import { gaugeFill, gaugeLabel, gaugeReading } from './gaugeReading'
 /**
  * One topic's progress, as an instrument reads it.
  *
- * The track is cut into the chassis rather than laid on it — `--field` and
- * `--engrave` exist for exactly this and the tokens say so — and it fills in
- * steel. Never the accent, and never a semantic colour: lighting one would
+ * The track is cut into the chassis rather than laid on it (`--field` and
+ * `--engrave`) and it fills in a solid colour: the topic's track colour
+ * (`--track-hue`), so a row's gauge, its icon and its stud read as the same
+ * topic. Never the action colour, and never a semantic one: lighting one would
  * light every row, and a red/green fill would turn a schedule into a
- * scoreboard. Completion is the one state that changes the fill, to the settled
- * slate that means "no longer the thing in progress".
+ * scoreboard. A track is a category, not a grade, so this colours the schedule
+ * without turning it into a scoreboard.
  *
- * The fill takes the topic's track metal (`--track-hue`), so a row's gauge and
- * its stud read as the same object. A track is a category, not a grade, so this
- * colours the schedule without turning it into a scoreboard.
+ * Completion keeps the track colour and a full bar, and its reading leads with
+ * a check (`is-banked`), so "banked" is a glyph and a word, not a change of
+ * colour.
  *
  * `variant` is density, not meaning. A row sets the reading beside a short bar,
  * because a bar with no units on a list of titles is a shape to decode. The
@@ -43,6 +44,7 @@ export function TopicGauge({
   // that is running at zero, which is a different and false statement.
   if (reading.kind === 'none' || fill === null || label === null) return null
 
+  const labelClass = `gauge-label tabular${reading.kind === 'complete' ? ' is-banked' : ''}`
   const hue = { '--track-hue': `var(--${topic.track})` } as CSSProperties
 
   const track = (
@@ -64,7 +66,7 @@ export function TopicGauge({
     return (
       <span className="gauge gauge-row" style={hue}>
         {track}
-        <span className="gauge-label tabular">{label}</span>
+        <span className={labelClass}>{label}</span>
       </span>
     )
   }
@@ -72,7 +74,7 @@ export function TopicGauge({
   return (
     <div className="gauge gauge-page" style={hue}>
       {track}
-      <p className="gauge-label tabular">{caption ?? label}</p>
+      <p className={labelClass}>{caption ?? label}</p>
     </div>
   )
 }

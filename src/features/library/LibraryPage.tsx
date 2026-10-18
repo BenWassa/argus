@@ -14,6 +14,7 @@ import { useTopicCapture } from './useTopicCapture'
 import type { Mode } from '../../domain/study/mode'
 import { TRACKS, type Topic } from '../../domain/library/topic'
 import { topicIcon } from './topicIcon'
+import { TopicGlyph } from './TopicGlyph'
 import './LibraryPage.css'
 
 interface LibraryProps {
@@ -511,7 +512,7 @@ function Row({ entry, order, started, onOpen }: RowProps) {
         data-repair={repair || undefined}
         onClick={onOpen}
       >
-        {icon && <img className="topic-icon" src={icon} alt="" aria-hidden="true" />}
+        {icon && <TopicGlyph topicId={topic.id} />}
         <span className="index-title">{topic.title}</span>
         {repair ? (
           <span className="lib-row-reading lib-repair">Needs repair</span>

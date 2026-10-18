@@ -77,7 +77,6 @@ export function SignInScreen({
     <main className="signin" id="main" tabIndex={-1}>
       <section className="signin-shell" aria-labelledby="signin-title">
         <div className="signin-media" aria-hidden="true">
-          <img className="signin-media-backdrop" src={poster} alt="" draggable={false} />
           <img
             className={`signin-poster${videoReady && !mediaFailed ? ' is-covered' : ''}`}
             src={poster}
