@@ -1,3 +1,8 @@
+.morse-placement-session {
+  min-height: 0;
+  padding: 0;
+}
+
 .morse-placement-intro,
 .morse-placement-result,
 .morse-placement-question {

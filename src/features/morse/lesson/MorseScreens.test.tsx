@@ -138,10 +138,10 @@ describe('the course keeps rationale on its reference page', () => {
 })
 
 describe('the mark grammar is explained at first meeting, not every time', () => {
-  it('appears while the notation is new', () => {
+  it('keeps the notation lecture off the session', () => {
     renderLesson(settledThrough(seededTopic(), 0))
-    expect(document.querySelector('.lesson-grammar')).toBeTruthy()
-    expect(document.body.textContent).toContain('ZOOM ZOOM ZIP ZIP')
+    expect(document.querySelector('.lesson-grammar')).toBeNull()
+    expect(document.body.textContent).not.toContain('ZOOM ZOOM ZIP ZIP')
   })
 
   it('is gone by the time the learner has met a lesson’s worth of letters', () => {
@@ -175,7 +175,7 @@ describe('the final Learn screen hands off to play (#201)', () => {
     const onPlay = vi.fn()
     renderLesson(settledThrough(seededTopic(), lessonPackets().length), onPlay)
     expect(screen.getByRole('button', { name: 'Test me' })).toBeTruthy()
-    expect(screen.getByText(/acquisition, not proof/)).toBeTruthy()
+    expect(screen.getByText('Every letter covered')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Send five words' }))
     expect(onPlay).toHaveBeenCalledTimes(1)
   })

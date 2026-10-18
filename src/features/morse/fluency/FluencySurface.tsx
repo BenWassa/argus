@@ -82,6 +82,7 @@ export function FluencySurface({ topicId, initialMode, initialSend, initialCopy,
       <SendRun
         key={`send-${send.stage}-${send.run}`}
         stage={send.stage}
+        seed={send.run}
         progress={progress ?? newFluencyProgress()}
         onProgress={commit}
         onStage={(stage) =>
@@ -98,6 +99,7 @@ export function FluencySurface({ topicId, initialMode, initialSend, initialCopy,
         // A new key per run, so "Another run" draws fresh material.
         key={`copy-${copy.level}-${copy.run}`}
         level={copy.level}
+        seed={copy.run}
         rung={(progress ?? newFluencyProgress()).rung}
         progress={progress ?? newFluencyProgress()}
         focus={focus}

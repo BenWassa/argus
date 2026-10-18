@@ -57,8 +57,7 @@ describe('a copy run', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
     }
 
-    await waitFor(() => expect(screen.getByRole('heading', { name: 'Letters done' })).toBeTruthy())
-    expect(screen.getByText(/0 of 10 exactly right/)).toBeTruthy()
+    await waitFor(() => expect(screen.getByRole('heading', { name: '0 of 10 correct' })).toBeTruthy())
     expect(onProgress).toHaveBeenCalledTimes(1)
     expect(onProgress.mock.calls[0][0].bests['copy:letters']).toBe(0)
     // A first run is a baseline, not a personal best.
@@ -66,12 +65,11 @@ describe('a copy run', () => {
   })
 
   it('shows the first differing target letter only when a same-length copy keeps positions aligned', async () => {
-    const seed = 841
+    const seed = 0
     const target = copyPrompts('words', newFluencyProgress(), seed)[0]
     const expectedLetter = target[target.length - 1]
     const replacement = expectedLetter === 'Z' ? 'Y' : 'Z'
     const given = `${target.slice(0, -1)}${replacement}`
-    vi.spyOn(Date, 'now').mockReturnValue(seed)
 
     renderLevel('words')
     fireEvent.click(screen.getByRole('button', { name: 'Play' }))
@@ -83,9 +81,8 @@ describe('a copy run', () => {
   })
 
   it('omits a character cue when an insertion or deletion makes positions ambiguous', async () => {
-    const seed = 841
+    const seed = 0
     const target = copyPrompts('words', newFluencyProgress(), seed)[0]
-    vi.spyOn(Date, 'now').mockReturnValue(seed)
 
     renderLevel('words')
     fireEvent.click(screen.getByRole('button', { name: 'Play' }))
@@ -97,10 +94,9 @@ describe('a copy run', () => {
   })
 
   it('omits a character cue when multiple substitutions leave alignment ambiguous', async () => {
-    const seed = 841
+    const seed = 0
     const target = copyPrompts('words', newFluencyProgress(), seed)[0]
     const firstTwo = Array.from(target.slice(0, 2), (character) => character === 'Z' ? 'Y' : 'Z').join('')
-    vi.spyOn(Date, 'now').mockReturnValue(seed)
 
     renderLevel('words')
     fireEvent.click(screen.getByRole('button', { name: 'Play' }))

@@ -106,9 +106,9 @@ describe('fresh Morse placement entry', () => {
     renderFresh()
     fireEvent.click(screen.getByRole('button', { name: /start lesson/i }))
     fireEvent.click(screen.getByRole('button', { name: /Know some Morse/i }))
-    expect(screen.getByRole('dialog', { name: 'Morse placement check' })).toBeTruthy()
+    expect(screen.getByText('Placement')).toBeTruthy()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Exit placement check' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }))
 
     const stored = JSON.parse(localStorage.getItem(STORE_KEY) ?? '{}') as { topics?: Topic[] }
     const topic = stored.topics?.find((candidate) => candidate.id === MORSE_ID)

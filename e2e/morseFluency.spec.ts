@@ -240,7 +240,7 @@ test.describe('fluency', () => {
       await page.waitForTimeout(1000)
     }
 
-    await expect(page.getByRole('heading', { name: 'Letters done' })).toBeVisible()
+    await expect(page.locator('.session-round-reading')).toBeVisible()
     const after = await storedTopic(page)
     expect(after?.morseFluency?.bests['copy:letters']).toBeGreaterThanOrEqual(0)
     expect(after?.status).toBe(before?.status)
@@ -252,7 +252,7 @@ test.describe('fluency', () => {
     await openTopic(page)
     const before = await storedTopic(page)
     await page.locator('.topic-play-choices').getByRole('button', { name: 'Free Play' }).click()
-    await expect(page.getByRole('heading', { name: 'Free play' })).toBeVisible()
+    await expect(page.locator('.session-frame-title').filter({ hasText: /^Free play$/ })).toBeVisible()
     await page.getByRole('button', { name: 'Close' }).click()
     await expect(page.locator('.topic-title')).toBeVisible()
     expect(await storedTopic(page)).toEqual(before)

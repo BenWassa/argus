@@ -45,11 +45,11 @@ import { journeyFor } from '../../../domain/study/journey'
 import type { Topic } from '../../../domain/library/topic'
 import { useKeyedResponse } from '../input/useKeyedResponse'
 import { MorseCheckpoint } from './MorseCheckpoint'
-import { MorseBeatGrammarNote } from '../MorsePhrase'
 import { MorseCharacterSupport } from '../MorseCharacterSupport'
 import { useMorseAudio } from '../useMorseAudio'
 import { CharacterStage, ListeningCheckStep, StepLabel, VisualCheckStep } from './LessonSteps'
 import { useLessonRecord } from './useLessonRecord'
+import { SessionFrame, SessionCorrect } from '../session/SessionFrame'
 import './MorseLesson.css'
 
 /** The #78/#90 word-checkpoint milestones, tied to the checkpoint curriculum. */
@@ -161,23 +161,6 @@ export function MorseLesson({
   const hasFeedback = Boolean(run.feedback || listeningFeedback)
   const step = hasFeedback ? null : currentStep(run)
   const packetProgress = lessonProgressCount(run)
-  /**
-   * Whether the `·`/`—` mark grammar still needs explaining on the spot.
-   *
-   * The note used to appear under every introduction — twenty-six times across
-   * the course, plus every replay — always illustrated with `ZOOM ZOOM ZIP ZIP`,
-   * a letter other than the one being taught. Explaining the notation is a
-   * first-meeting job, not a permanent caption competing with the mnemonic it
-   * is describing.
-   *
-   * The test is about the learner rather than the lesson's position, which is
-   * what makes it right for someone placed into the middle of the course: they
-   * told the placement check they already know Morse, and a learner who is
-   * genuinely new has always met fewer than a lesson's worth of characters when
-   * they first see this. Everyone else keeps it permanently under
-   * `How this course works` on the topic page.
-   */
-  const notationIsNew = introducedGlyphs(live).length < 3
   /**
    * Which character this slot asks by ear, chosen by listening need across the
    * whole roster rather than by whichever one the printed queue offered (#90
@@ -413,38 +396,13 @@ export function MorseLesson({
     setAudioNotice(null)
   }
 
-  // Replay is named once, in the bar, where it stays visible for the whole run.
-  // It belongs there rather than on every screen: the learner needs to know
-  // which run they are in, not to be reminded at every step that it does not
-  // count.
-  /**
-   * One word for what this is, one number for where you are, and the way out.
-   *
-   * It used to carry `Lesson 4 of 13` and `7 retrievals` stacked on top of each
-   * other, which is two sentences and three numbers to say one thing. The
-   * retrieval count in particular measured nothing the learner was working
-   * towards — it went up whatever happened, and the lesson does not end on it.
-   * What is left is the position in a finite course, which is the only number
-   * on this screen worth reading, and it sits where a page number belongs.
-   */
-  const bar = (
-    <div className="session-bar">
-      <p>
-        <span className="session-topic">{run.finished || run.afterCourse ? 'Morse' : 'Lesson'}</span>
-        {/* Its own element with real whitespace around it, so the line reads as
-            two facts to a screen reader too rather than as `LessonReplay`. */}
-        {replay && <> <span className="session-mode">Replay</span></>}
-        {run.afterCourse && <> <span className="session-mode">Going over</span></>}
-      </p>
-      {!run.finished && !run.afterCourse && (
-        <span className="session-count tabular" aria-label={`Lesson ${run.packetIndex + 1} of ${run.packetCount}`}>
-          {run.packetIndex + 1}
-          <span className="session-count-of" aria-hidden="true">/{run.packetCount}</span>
-        </span>
-      )}
-      <button className="ghost small" type="button" onClick={onExit}>Close</button>
-    </div>
-  )
+  const frame = {
+    kind: 'lesson' as const,
+    title: run.finished ? 'Lessons' : run.afterCourse ? 'Review' : `Lesson ${run.packetIndex + 1}`,
+    'data-replay': replay || undefined,
+    progress: { current: packetProgress.done, total: packetProgress.total },
+    onClose: onExit,
+  }
 
   if (runningCheckpoint) {
     return (
@@ -458,32 +416,21 @@ export function MorseLesson({
   }
 
   if (checkpointInvite) {
-    const { checkpoint } = checkpointInvite
-    const wordCount = checkpoint.words.length
     return (
-      <section className="session morse-lesson">
-        {bar}
+      <SessionFrame {...frame} className="morse-lesson">
         <h1 ref={headingRef} tabIndex={-1} className="lesson-title">Checkpoint</h1>
-        <p className="lesson-lede">Real words, in letters you already know.</p>
-        <p className="lesson-foot">
-          {checkpoint.warmups.length} warm-ups, then {wordCount === 1 ? 'one word' : `${wordCount} words`}. Optional.
-        </p>
         <div className="lesson-exits" inert={!armed}>
           <button type="button" onClick={startInvitedCheckpoint}>Start</button>
           <button className="ghost" type="button" onClick={skipInvitedCheckpoint}>Skip</button>
         </div>
-      </section>
+      </SessionFrame>
     )
   }
 
   if (run.finished) {
     return (
-      <section className="session morse-lesson">
-        {bar}
+      <SessionFrame {...frame} className="morse-lesson">
         <h1 ref={headingRef} tabIndex={-1} className="lesson-title">Every letter covered</h1>
-        {/* Trimmed hard, but not past the claim it exists to refuse to make:
-            Learn finishing is acquisition, and the A–Z claim is still Test's. */}
-        <p className="lesson-lede">That is acquisition, not proof. The A–Z claim is earned in Test.</p>
         <div className="lesson-exits" inert={!armed}>
           <button type="button" onClick={onTest}>Test me</button>
           {/* Play opens with acquisition, not with the Test: the letters can be
@@ -493,7 +440,7 @@ export function MorseLesson({
           )}
           <button className="ghost" type="button" onClick={onReference}>Morse alphabet</button>
         </div>
-      </section>
+      </SessionFrame>
     )
   }
 
@@ -502,16 +449,10 @@ export function MorseLesson({
     // straight off the topic as it stands now.
     const still = owedLetters(topicRef.current)
     return (
-      <section className="session morse-lesson">
-        {bar}
+      <SessionFrame {...frame} className="morse-lesson">
         <h1 ref={headingRef} tabIndex={-1} className="lesson-title">
           {still.length === 0 ? 'Every letter confirmed' : 'Letters gone over'}
         </h1>
-        <p className="lesson-lede">
-          {still.length === 0
-            ? 'The course is ready for its Test.'
-            : `Still to confirm: ${still.join(' ')}. Another round counts as a new sitting.`}
-        </p>
         <div className="lesson-exits" inert={!armed}>
           {still.length === 0 ? (
             <>
@@ -525,32 +466,22 @@ export function MorseLesson({
             </>
           )}
         </div>
-        <p className="lesson-foot">Nothing in Learn is scored.</p>
-      </section>
+      </SessionFrame>
     )
   }
 
   if (run.complete) {
     const last = run.packetIndex + 1 >= run.packetCount
     return (
-      <section className="session morse-lesson">
-        {bar}
+      <SessionFrame {...frame} className="morse-lesson">
         <h1 ref={headingRef} tabIndex={-1} className="lesson-title">
           Lesson {run.packetIndex + 1} {replay ? 'replayed' : 'done'}
         </h1>
-        <p className="lesson-lede">
-          {last ? 'That was the last lesson.' : 'Next lesson brings two new letters.'}
-        </p>
         <div className="lesson-exits" inert={!armed}>
           <button type="button" onClick={nextPacket}>{last ? 'Finish' : 'Next lesson'}</button>
           <button className="ghost" type="button" onClick={onExit}>Stop here</button>
         </div>
-        {/* One line, and only the one the learner cannot infer: what this run
-            did and did not change. */}
-        <p className="lesson-foot">
-          {replay ? 'A replay records nothing.' : 'Nothing in Learn is scored.'}
-        </p>
-      </section>
+      </SessionFrame>
     )
   }
 
@@ -558,8 +489,8 @@ export function MorseLesson({
   const shownListeningFeedback = listeningFeedback
 
   return (
-    <section
-      className="session morse-lesson"
+    <SessionFrame {...frame}
+      className="morse-lesson"
       data-phase={phase}
       // `data-step` marks the screens whose whole job is one retrieval, so the
       // stylesheet can bring the answer down into thumb reach instead of
@@ -567,32 +498,10 @@ export function MorseLesson({
       // excluded on purpose: a correction is read from the top down.
       data-step={!hasFeedback && step ? step.kind : undefined}
     >
-      {bar}
       <h1 ref={headingRef} tabIndex={-1} className="sr-only">
         {run.afterCourse ? 'Morse, going over missed letters' : `Morse lesson, packet ${run.packetIndex + 1} of ${run.packetCount}`}
       </h1>
-      {/* The one piece of progress worth showing inside a lesson, shown rather
-          than spelled out. `Lesson progress: 2 of 5 settled` was a sentence
-          carrying two numbers that mattered less than the bar does. */}
-      <div
-        className="lesson-progress"
-        role="progressbar"
-        aria-valuenow={packetProgress.done}
-        aria-valuemin={0}
-        aria-valuemax={packetProgress.total}
-        aria-label="Letters settled this lesson"
-      >
-        <span
-          className="lesson-progress-fill"
-          style={{ inlineSize: `${packetProgress.total === 0 ? 0 : (packetProgress.done / packetProgress.total) * 100}%` }}
-        />
-      </div>
-
-      {(feedback?.correct || shownListeningFeedback?.correct) && (
-        <div className="lesson-feedback is-correct" role="status" aria-live="polite">
-          <p className="lesson-verdict">Correct</p>
-        </div>
-      )}
+      {(feedback?.correct || shownListeningFeedback?.correct) && <SessionCorrect target={feedback?.glyph ?? shownListeningFeedback?.glyph} />}
 
       {/* Both corrections hold until `Continue`. Nothing about a miss is on a
           clock any more, so there is no dwell for a learner to lose a
@@ -600,7 +509,7 @@ export function MorseLesson({
       {shownListeningFeedback && !shownListeningFeedback.correct && (
         <div className="lesson-feedback" role="status" aria-live="assertive">
           <p className="lesson-verdict">Not that one</p>
-          <p className="lesson-correction">You chose {shownListeningFeedback.response || 'no letter'}. The sound was {shownListeningFeedback.glyph}:</p>
+          <p className="lesson-correction">Chose {shownListeningFeedback.response || 'no letter'} · Sound {shownListeningFeedback.glyph}</p>
           <MorseCharacterSupport glyph={shownListeningFeedback.glyph} pattern={shownListeningFeedback.pattern}
             playing={sounding?.glyph === shownListeningFeedback.glyph}
             onToggle={() => toggle(shownListeningFeedback.glyph)} audioError={audioError} />
@@ -611,7 +520,7 @@ export function MorseLesson({
       {feedback && !feedback.correct && (
         <div className="lesson-feedback" role="status" aria-live="assertive">
           <p className="lesson-verdict">Not that one</p>
-          <p className="lesson-correction">You keyed <span className="mono">{feedback.response ? canonicalPattern(feedback.response) : '—'}</span>. {feedback.glyph} is:</p>
+          <p className="lesson-correction">You keyed <span className="mono">{feedback.response ? canonicalPattern(feedback.response) : '—'}</span> · {feedback.glyph}</p>
           <MorseCharacterSupport glyph={feedback.glyph} pattern={feedback.pattern} playing={sounding?.glyph === feedback.glyph}
             onToggle={() => toggle(feedback.glyph)} audioError={audioError} />
           <button className="lesson-next" type="button" onClick={continueFromMiss} disabled={!holding}>Continue</button>
@@ -623,7 +532,6 @@ export function MorseLesson({
           <StepLabel>New letter</StepLabel>
           <CharacterStage glyph={step.entry.glyph} pattern={step.entry.pattern} playing={sounding?.glyph === step.entry.glyph}
             activeIndex={sounding?.glyph === step.entry.glyph ? sounding.index : null} onToggle={() => toggle(step.entry.glyph)} />
-          {notationIsNew && <MorseBeatGrammarNote className="lesson-grammar" />}
           <button
             className="lesson-next"
             type="button"
@@ -646,6 +554,6 @@ export function MorseLesson({
       )}
 
       {(audioNotice || audioError) && <p className="morse-audio-error" role="status">{audioNotice ?? `${audioError} Continuing visually.`}</p>}
-    </section>
+    </SessionFrame>
   )
 }

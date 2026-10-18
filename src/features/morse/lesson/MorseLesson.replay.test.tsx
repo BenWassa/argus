@@ -152,15 +152,15 @@ describe('#117 replay reruns the canonical acquisition course', () => {
     seedStore(finishedLearner())
     renderReplay(0)
 
-    expect(screen.getByLabelText(`Lesson 1 of ${lessonPackets().length}`)).toBeTruthy()
-    expect(screen.getByText('Replay')).toBeTruthy()
+    expect(screen.getByText('Lesson 1', { exact: true })).toBeTruthy()
+    expect(document.querySelector('[data-session-kind="lesson"]')).toBeTruthy()
   })
 
   it('shows the packet the printed curriculum shows, at any position', () => {
     seedStore(finishedLearner())
     renderReplay(4)
 
-    expect(screen.getByLabelText(`Lesson 5 of ${lessonPackets().length}`)).toBeTruthy()
+    expect(screen.getByText('Lesson 5', { exact: true })).toBeTruthy()
     const run = startReplayLesson(finishedLearner(), 4)
     expect(run!.entries.filter((entry) => entry.novel).map((entry) => entry.glyph)).toEqual([
       ...lessonPackets()[4].novel,
@@ -264,8 +264,8 @@ describe('#117 replay leaves every earned fact exactly as it found it', () => {
     await driveLesson()
 
     fireEvent.click(screen.getByRole('button', { name: 'Next lesson' }))
-    expect(screen.getByLabelText(`Lesson 2 of ${lessonPackets().length}`)).toBeTruthy()
-    expect(screen.getByText('Replay')).toBeTruthy()
+    expect(screen.getByText('Lesson 2', { exact: true })).toBeTruthy()
+    expect(document.querySelector('[data-session-kind="lesson"]')).toBeTruthy()
   })
 
   it('says what a replay did and did not do, without first-time language', async () => {
@@ -273,7 +273,7 @@ describe('#117 replay leaves every earned fact exactly as it found it', () => {
     await driveLesson()
 
     expect(
-      screen.getByText('A replay records nothing.'),
+      screen.getByText('Lesson 1 replayed'),
     ).toBeTruthy()
     expect(screen.queryByText('Nothing in Learn is scored.')).toBeNull()
   })

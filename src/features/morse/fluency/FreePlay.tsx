@@ -12,6 +12,7 @@ import {
 } from '../../../domain/morse/fluency/freePlay'
 import { fluencyTiming, type FluencyRung } from '../../../domain/morse/fluency/timing'
 import { MORSE_MAX_ELEMENTS, MorseKeyInput } from '../input/MorseKeyInput'
+import { SessionFrame } from '../session/SessionFrame'
 import './Fluency.css'
 
 interface FreePlayProps {
@@ -41,11 +42,9 @@ export function FreePlay({ rung, onExit }: FreePlayProps) {
   const pauseTimer = useRef<number | null>(null)
   const playTimer = useRef<number | null>(null)
   const entryRef = useRef('')
-  const headingRef = useRef<HTMLHeadingElement>(null)
 
   useEffect(() => {
     playerRef.current = new MorseAudioPlayer()
-    headingRef.current?.focus({ preventScroll: true })
     return () => {
       if (pauseTimer.current !== null) window.clearTimeout(pauseTimer.current)
       if (playTimer.current !== null) window.clearTimeout(playTimer.current)
@@ -150,26 +149,7 @@ export function FreePlay({ rung, onExit }: FreePlayProps) {
   const hear = playableText(typed)
 
   return (
-    <section className="session fluency-home free-play">
-      <div className="session-bar">
-        <p>
-          <span className="session-topic">Free play</span>
-        </p>
-        <button className="ghost small" type="button" onClick={onExit}>
-          Close
-        </button>
-      </div>
-
-      <header className="fluency-head">
-        <h1 ref={headingRef} tabIndex={-1}>
-          Free play
-        </h1>
-        <p className="lede-text">
-          Nothing to get right. Key your own words and see what they spell, or type anything and
-          hear it. Nothing here is saved.
-        </p>
-      </header>
-
+    <SessionFrame kind="free" title="Free play" onClose={onExit} className="fluency-home free-play">
       <div className="free-play-tabs" role="tablist" aria-label="Free play" onKeyDown={onTabKeyDown}>
         <button
           type="button"
@@ -181,7 +161,7 @@ export function FreePlay({ rung, onExit }: FreePlayProps) {
           className={side === 'key' ? undefined : 'ghost'}
           onClick={() => selectSide('key')}
         >
-          Key it
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8h5v8H3zm7 0h5v8h-5zm8-5h3v18h-3z" /></svg>Key
         </button>
         <button
           type="button"
@@ -193,7 +173,7 @@ export function FreePlay({ rung, onExit }: FreePlayProps) {
           className={side === 'hear' ? undefined : 'ghost'}
           onClick={() => selectSide('hear')}
         >
-          Hear it
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 9h3v6H2zm5-4h3v14H7zm5-3h3v20h-3zm5 4h3v12h-3zm5 3h2v6h-2z" /></svg>Listen
         </button>
       </div>
 
@@ -222,7 +202,6 @@ export function FreePlay({ rung, onExit }: FreePlayProps) {
             {entry && <span className="free-play-cursor" aria-hidden="true">▍</span>}
           </p>
 
-          <p className="note">Pause to finish a letter. Space between words.</p>
 
           <MorseKeyInput
             expectedLength={MORSE_MAX_ELEMENTS}
@@ -277,7 +256,7 @@ export function FreePlay({ rung, onExit }: FreePlayProps) {
           />
           {hear.unsupported.length > 0 && (
             <p className="note">
-              No Morse here for {hear.unsupported.join(' ')} — {hear.unsupported.length === 1 ? 'it is' : 'they are'} skipped.
+              Skipped: {hear.unsupported.join(' ')}
             </p>
           )}
           <div className="free-play-actions">
@@ -293,7 +272,6 @@ export function FreePlay({ rung, onExit }: FreePlayProps) {
           {audioError}
         </p>
       )}
-      <p className="note free-play-foot">Plays at your spacing: {rung} WPM, characters at 20.</p>
-    </section>
+    </SessionFrame>
   )
 }

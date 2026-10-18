@@ -54,8 +54,8 @@ describe('direct Topic-page Morse Play entries (#201)', () => {
         <FluencySurface topicId={MORSE_ID} initialFree onExit={onExit} />
       </LibraryProvider>,
     )
-    expect(screen.getByRole('heading', { name: 'Free play' })).toBeTruthy()
-    expect(screen.getByText(/Nothing here is saved/)).toBeTruthy()
+    expect(screen.getByText('Free play')).toBeTruthy()
+    expect(screen.queryByText(/Nothing here is saved/)).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'Close' }))
     expect(onExit).toHaveBeenCalledTimes(1)
   })

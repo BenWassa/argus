@@ -109,7 +109,7 @@ test('a finished course goes over the letters it still owes, then its Test count
   await expect(page.getByRole('button', { name: 'Go over Y, Q' })).toBeVisible()
 
   await page.locator('.topic-primary').click()
-  await expect(page.locator('.session-mode')).toHaveText('Going over')
+  await expect(page.locator('.session-frame-title')).toHaveText('Review')
   // The keyed run asks the owed letters, and introduces nothing.
   await expect(page.getByRole('button', { name: 'Got it' })).toHaveCount(0)
   await driveToEnd(page)

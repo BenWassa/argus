@@ -15,16 +15,16 @@ import {
 import {
   recordFluencyAnswer,
   recordFluencyBest,
-  setFluencyRung,
   type MorseFluencyProgress,
 } from '../../../domain/morse/fluency/progress'
-import { fluencyTiming, nextRung, previousRung, type FluencyRung } from '../../../domain/morse/fluency/timing'
+import { fluencyTiming, type FluencyRung } from '../../../domain/morse/fluency/timing'
 import type { MorseLetter } from '../../../domain/morse/code'
 import { MorseWordKeyInput } from '../input/MorseWordKeyInput'
 import { MorseCharacterSupport } from '../MorseCharacterSupport'
 import { useMorseAudio } from '../useMorseAudio'
 import { useKeyedResponse } from '../input/useKeyedResponse'
 import { fire } from '../../../shared/haptics'
+import { SessionFrame, SessionCorrect, RoundResult } from '../session/SessionFrame'
 import './Fluency.css'
 
 interface FluencyRunProps {
@@ -50,13 +50,6 @@ interface FluencyRunProps {
   onExit: () => void
 }
 
-const MODE_TITLES: Record<FluencyMode, string> = {
-  sprint: 'Sprint',
-  ladder: 'Ladder',
-  words: 'Words',
-  groups: 'Groups',
-}
-
 /**
  * One post-acquisition run.
  *
@@ -80,7 +73,7 @@ const MODE_TITLES: Record<FluencyMode, string> = {
  */
 export function FluencyRun({ mode, rung, progress, focus, only, onProgress, onExit }: FluencyRunProps) {
   const [run, setRun] = useState<FluencyRunState>(() =>
-    startFluencyRun(mode, rung, progress, Date.now(), focus, only),
+    startFluencyRun(mode, rung, progress, Object.values(progress.characters).reduce((count, character) => count + (character?.heard ?? 0), 0), focus, only),
   )
   // The answered prompt's own patterns travel with the verdict: by the time it
   // renders the run has advanced, and `prompt` is already the next question.
@@ -90,9 +83,7 @@ export function FluencyRun({ mode, rung, progress, focus, only, onProgress, onEx
   const [playing, setPlaying] = useState(false)
   const [audioError, setAudioError] = useState<string | null>(null)
   const [characterIndex, setCharacterIndex] = useState(0)
-  const [crested, setCrested] = useState(false)
 
-  const headingRef = useRef<HTMLHeadingElement>(null)
   const playerRef = useRef<MorseAudioPlayer | null>(null)
   const stimulusEndedAt = useRef<number | null>(null)
   const replayed = useRef(false)
@@ -100,15 +91,16 @@ export function FluencyRun({ mode, rung, progress, focus, only, onProgress, onEx
   /** Accumulates across the run and is written once, at the end. */
   const pendingProgress = useRef(progress)
 
-  const prompt = currentPrompt(run)
+  const prompt = currentPrompt(run) ?? (feedback ? { text: feedback.text, patterns: feedback.patterns } : null)
   const correctionAudio = useMorseAudio()
-  const complete = fluencyComplete(run)
+  const complete = fluencyComplete(run) && feedback === null
   const timing = fluencyTiming(run.rung)
 
   // `answerFluency` has already advanced the run by the time feedback shows,
   // so the only thing left for the lifecycle to do is clear the result and
   // re-arm. The gate itself is `armed`, exactly as in Learn and the checkpoints.
-  const { phase, armed, holding, answered, acknowledge } = useKeyedResponse(() => {
+  const round = useRef(0)
+  const { phase, armed, holding, answered, acknowledge, reset: resetResponse } = useKeyedResponse(() => {
     setFeedback(null)
     setCharacterIndex(0)
   })
@@ -136,10 +128,6 @@ export function FluencyRun({ mode, rung, progress, focus, only, onProgress, onEx
       window.removeEventListener('pagehide', onHidden)
     }
   }, [])
-
-  useEffect(() => {
-    if (complete) headingRef.current?.focus({ preventScroll: true })
-  }, [complete])
 
   const play = useCallback(
     async (isReplay: boolean) => {
@@ -228,97 +216,45 @@ export function FluencyRun({ mode, rung, progress, focus, only, onProgress, onEx
       improved = result.improved
     }
     if (improved) {
-      setCrested(true)
       fire('crest')
     }
+    pendingProgress.current = store
     onProgress(store)
   }, [complete, onProgress, outcome, run])
-
-  function advanceRung(direction: 1 | -1) {
-    const target = direction === 1 ? nextRung(run.rung) : previousRung(run.rung)
-    onProgress(setFluencyRung(pendingProgress.current, target))
-    onExit()
-  }
 
   function continueCorrection() {
     correctionAudio.stop()
     acknowledge()
   }
 
-  const bar = (position: string | null) => (
-    <div className="session-bar">
-      <p>
-        <span className="session-topic">{MODE_TITLES[mode]}</span>
-      </p>
-      {position && <span className="session-count tabular">{position}</span>}
-      <button className="ghost small" type="button" onClick={onExit}>
-        Close
-      </button>
-    </div>
-  )
+  const frame = { kind: 'listen' as const, title: 'Listen', onClose: onExit, progress: { current: complete ? fluencyRunLength(mode) : run.at + 1, total: fluencyRunLength(mode) } }
+
+  function again() {
+    correctionAudio.stop()
+    playerRef.current?.cancel()
+    setPlaying(false)
+    setAudioError(null)
+    stimulusEndedAt.current = null
+    replayed.current = false
+    interrupted.current = false
+    round.current += 1
+    setRun(startFluencyRun(mode, rung, pendingProgress.current, round.current, focus, only))
+    setFeedback(null)
+    setCharacterIndex(0)
+    committed.current = false
+    resetResponse()
+  }
 
   if (complete) {
-    return (
-      <section className="session morse-lesson fluency-run">
-        {bar(null)}
-        <div className="fluency-summary">
-          <h1 ref={headingRef} tabIndex={-1}>
-            {MODE_TITLES[mode]} done
-          </h1>
-
-          <p className="fluency-score">
-            <strong className="tabular">
-              {outcome.correct} of {outcome.prompts}
-            </strong>{' '}
-            correct
-          </p>
-
-          {outcome.medianLatencyMs !== null && (
-            <p className="fluency-metric tabular">
-              {(outcome.medianLatencyMs / 1000).toFixed(2)}s typical response
-            </p>
-          )}
-
-          {outcome.longestStreak > 1 && (
-            <p className="fluency-metric tabular">{outcome.longestStreak} in a row</p>
-          )}
-
-          {crested && (
-            <p className="fluency-crest" role="status">
-              Personal best.
-            </p>
-          )}
-
-          {/* An offer, never a gate. The learner owns the rung; this only says
-              what the run suggests. */}
-          {mode === 'ladder' && outcome.cleanForAdvance && (
-            <button type="button" onClick={() => advanceRung(1)}>
-              Try {nextRung(run.rung)} WPM spacing
-            </button>
-          )}
-          {mode === 'ladder' && !outcome.cleanForAdvance && run.rung > 6 && (
-            <button className="ghost" type="button" onClick={() => advanceRung(-1)}>
-              Ease back to {previousRung(run.rung)} WPM spacing
-            </button>
-          )}
-
-          <p className="lesson-foot">
-            Nothing here changed your saved progress, your check evidence or your completion.
-          </p>
-
-          <button className="ghost" type="button" onClick={onExit}>
-            Done
-          </button>
-        </div>
-      </section>
-    )
+    return <SessionFrame {...frame} className="morse-lesson fluency-run">
+      <RoundResult correct={outcome.correct} total={outcome.prompts} onAgain={again} onDone={onExit} />
+    </SessionFrame>
   }
 
   if (!prompt) return null
 
   return (
-    <section className="session morse-lesson fluency-run" data-step="check">
-      {bar(`${run.at + 1}/${fluencyRunLength(mode)}`)}
+    <SessionFrame {...frame} className="morse-lesson fluency-run" data-step="check">
 
       <div className="fluency-target" data-phase={phase}>
         <h1 className="sr-only">
@@ -361,7 +297,7 @@ export function FluencyRun({ mode, rung, progress, focus, only, onProgress, onEx
             role="status"
             aria-live="assertive"
           >
-            <strong>{feedback.correct ? 'Correct' : 'Miss'}</strong>
+            {feedback.correct ? <SessionCorrect target={feedback.text} announce={false} /> : <strong>Miss</strong>}
             {/* The word is the headline of a word miss, and the broken
                 character is marked inside it rather than replacing it. */}
             <span className="fluency-answer">
@@ -405,6 +341,6 @@ export function FluencyRun({ mode, rung, progress, focus, only, onProgress, onEx
           </div>
         )}
       </div>
-    </section>
+    </SessionFrame>
   )
 }

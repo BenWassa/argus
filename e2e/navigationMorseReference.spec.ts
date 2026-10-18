@@ -92,13 +92,13 @@ async function openMorseTopic(page: Page) {
 
 async function finishCheckpointWarmups(page: Page) {
   await keyPattern(page, '.')
-  await expect(page.getByText('2/4', { exact: true })).toBeVisible({ timeout: 2_000 })
+  await expect(page.getByRole('progressbar', { name: '1 of 8', exact: true })).toBeVisible({ timeout: 2_000 })
   await keyPattern(page, '-')
-  await expect(page.getByText('3/4', { exact: true })).toBeVisible({ timeout: 2_000 })
+  await expect(page.getByRole('progressbar', { name: '2 of 8', exact: true })).toBeVisible({ timeout: 2_000 })
   await keyPattern(page, '.-')
-  await expect(page.getByText('4/4', { exact: true })).toBeVisible({ timeout: 2_000 })
+  await expect(page.getByRole('progressbar', { name: '3 of 8', exact: true })).toBeVisible({ timeout: 2_000 })
   await keyPattern(page, '..-')
-  await expect(page.getByText('1/1', { exact: true })).toBeVisible({ timeout: 2_000 })
+  await expect(page.getByRole('progressbar', { name: '4 of 8', exact: true })).toBeVisible({ timeout: 2_000 })
 }
 
 test('the alphabet round-trip preserves the topic and its unfinished confirmation route', async ({ page }) => {
@@ -182,8 +182,8 @@ test('a lesson replay reruns the real lesson, writes nothing and returns to the 
   // #117: the same lesson, not a stripped quiz. The first-exposure
   // introduction is back, with the rhythmic mnemonic, the canonical notation
   // and the sound that teach the letter.
-  await expect(page.getByLabel('Lesson 1 of 13')).toBeVisible()
-  await expect(page.locator('.session-mode')).toHaveText('Replay')
+  await expect(page.locator('.session-frame-title').filter({ hasText: /^Lesson 1$/ })).toBeVisible()
+  await expect(page.locator('.session-frame')).toHaveAttribute('data-replay', 'true')
   await expect(page.getByText('New letter', { exact: true })).toBeVisible()
   await expect(page.locator('.morse-phrase')).toBeVisible()
   await expect(page.locator('.morse-notation')).toBeVisible()
@@ -217,8 +217,8 @@ test('unlocked word checkpoint holds a miss until dismissed and never mutates sa
   await openFinishedLessons(page)
   await page.getByRole('button', { name: 'Start word checkpoint after lesson 4' }).click()
 
-  await expect(page.getByText('Checkpoint', { exact: true })).toBeVisible()
-  await expect(page.getByText('1/4', { exact: true })).toBeVisible()
+  await expect(page.locator('.session-frame-title').filter({ hasText: /^Word check$/ })).toBeVisible()
+  await expect(page.getByRole('progressbar', { name: '0 of 8', exact: true })).toBeVisible()
 
   // E expects one element. A dah is immediately a miss: there is no edit
   // opportunity, the correction then stands until it is dismissed, and #115
@@ -226,16 +226,16 @@ test('unlocked word checkpoint holds a miss until dismissed and never mutates sa
   await keyPattern(page, '-')
   await expect(page.getByRole('status')).toContainText('Miss')
   // The correction holds: the counter has not moved off 1/4 on its own.
-  await expect(page.getByText('1/4', { exact: true })).toBeVisible()
+  await expect(page.getByRole('progressbar', { name: '0 of 8', exact: true })).toBeVisible()
   await continueFromMiss(page)
-  await expect(page.getByText('2/4', { exact: true })).toBeVisible({ timeout: MISS_TRANSITION_TIMEOUT })
+  await expect(page.getByRole('progressbar', { name: '1 of 8', exact: true })).toBeVisible({ timeout: MISS_TRANSITION_TIMEOUT })
 
   await keyPattern(page, '-')
-  await expect(page.getByText('3/4', { exact: true })).toBeVisible({ timeout: 2_000 })
+  await expect(page.getByRole('progressbar', { name: '2 of 8', exact: true })).toBeVisible({ timeout: 2_000 })
   await keyPattern(page, '.-')
-  await expect(page.getByText('4/4', { exact: true })).toBeVisible({ timeout: 2_000 })
+  await expect(page.getByRole('progressbar', { name: '3 of 8', exact: true })).toBeVisible({ timeout: 2_000 })
   await keyPattern(page, '..-')
-  await expect(page.getByText('1/1', { exact: true })).toBeVisible({ timeout: 2_000 })
+  await expect(page.getByRole('progressbar', { name: '4 of 8', exact: true })).toBeVisible({ timeout: 2_000 })
 
   const word = page.locator('.morse-checkpoint-word')
   await expect(word).toHaveText('TIME')
@@ -255,7 +255,6 @@ test('unlocked word checkpoint holds a miss until dismissed and never mutates sa
 
   await expect(page.getByRole('heading', { name: 'Checkpoint done' })).toBeVisible({ timeout: 2_000 })
   await expect(page.getByText('6 of 8 correct')).toBeVisible()
-  await expect(page.getByText(/changed saved progress/)).toBeVisible()
   expect(await page.evaluate((key) => window.localStorage.getItem(key), STORE_KEY)).toBe(before)
 
   await page.getByRole('button', { name: 'Back to lessons' }).click()

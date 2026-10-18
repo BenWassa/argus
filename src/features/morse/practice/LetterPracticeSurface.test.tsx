@@ -51,10 +51,9 @@ describe('LetterPracticeSurface', () => {
   it('offers a clear exit when no letters are eligible', () => {
     storeTopic(preparedTopic(false))
     const onExit = renderSurface()
-    expect(screen.getByRole('heading', { name: 'Practice letters' })).toBeTruthy()
-    expect(screen.getByText('Learn your first letters to start a practice round.')).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'Learn letters first' })).toBeTruthy()
     expect(screen.queryByText('1 / 10')).toBeNull()
-    fireEvent.click(screen.getByRole('button', { name: 'Back to Morse' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }))
     expect(onExit).toHaveBeenCalledOnce()
   })
 

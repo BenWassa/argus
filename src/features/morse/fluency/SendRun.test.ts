@@ -38,8 +38,8 @@ describe('guided Morse sending surface', () => {
   })
 
   it('uses the Argus session grammar instead of an arcade skin', () => {
-    expect(source).toContain('className="session send-run"')
-    expect(source).toContain('className="session-bar"')
+    expect(source).toContain('className="send-run"')
+    expect(source).toContain('<SessionFrame {...frame}')
     expect(source).toContain('<MorseKeyInput')
     expect(css).toContain('var(--field)')
     expect(css).toContain('var(--surface)')

@@ -120,10 +120,8 @@ test('Lesson 4 completion surfaces the checkpoint invitation automatically, gate
   await openLessonFour(page)
   await driveLessonFourToInvitation(page)
 
-  // The invitation names itself in one word and gives its length underneath,
-  // rather than repeating the lesson number the bar already carries.
+  // The invitation keeps only its title and two choices.
   await expect(page.getByRole('heading', { name: 'Checkpoint' })).toBeVisible()
-  await expect(page.getByText(/Real words/)).toBeVisible()
   const start = page.getByRole('button', { name: 'Start', exact: true })
   const skip = page.getByRole('button', { name: 'Skip', exact: true })
 
@@ -137,7 +135,7 @@ test('Lesson 4 completion surfaces the checkpoint invitation automatically, gate
   // Skipping returns to the completed lesson; continuing starts Lesson 5.
   await expect(page.getByRole('heading', { name: 'Lesson 4 done' })).toBeVisible()
   await page.getByRole('button', { name: 'Next lesson', exact: true }).click()
-  await expect(page.getByLabel('Lesson 5 of 13')).toBeVisible()
+  await expect(page.locator('.session-frame-title').filter({ hasText: /^Lesson 5$/ })).toBeVisible()
 })
 
 test('starting the invitation goes directly into the checkpoint', async ({ page }) => {
@@ -146,7 +144,7 @@ test('starting the invitation goes directly into the checkpoint', async ({ page 
   await expect(page.getByRole('button', { name: 'Start', exact: true })).toBeEnabled({ timeout: 2_000 })
 
   await page.getByRole('button', { name: 'Start', exact: true }).click()
-  await expect(page.getByText('1/4', { exact: true })).toBeVisible()
+  await expect(page.getByRole('progressbar', { name: '0 of 8', exact: true })).toBeVisible()
 
   // The exit seam back into the interrupted lesson is covered at unit level
   // (`MorseLesson.test.tsx`); this only needs to prove the real page reached
@@ -162,7 +160,7 @@ test('the checkpoint remains available on the path after the automatic invitatio
 
   await expect(page.getByRole('heading', { name: 'Lesson 4 done' })).toBeVisible()
   await page.getByRole('button', { name: 'Next lesson', exact: true }).click()
-  await expect(page.getByLabel('Lesson 5 of 13')).toBeVisible()
+  await expect(page.locator('.session-frame-title').filter({ hasText: /^Lesson 5$/ })).toBeVisible()
   await page.getByRole('button', { name: 'Close' }).click()
 
   // Skipping is non-gating and leaves the checkpoint on the curriculum, which
