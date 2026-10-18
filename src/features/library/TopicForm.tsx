@@ -235,14 +235,14 @@ export function TopicForm({
 
         <div className="field-row">
           <label htmlFor={ids.scope}>Scope</label>
-          <p className="help">Where does this topic end? Argus only holds topics that can be finished.</p>
+          <p className="help" id={`${ids.scope}-help`}>Where does this topic end? For example: the four cardinal compass points and their degree values.</p>
           <textarea
             id={ids.scope}
             className="field"
             rows={2}
             value={scope}
             onChange={(e) => setScope(e.target.value)}
-            {...invalid('scope')}
+            {...invalid('scope', `${ids.scope}-help`)}
           />
           {errors.scope && (
             <p className="error" id="scope-error">
@@ -270,7 +270,7 @@ export function TopicForm({
         <div className="field-row">
           <label htmlFor={ids.items}>Items</label>
           <p className="help" id={`${ids.items}-help`}>
-            One per line, written as <code>prompt | answer</code>.
+            One per line, written as <code>prompt | answer</code>. For example: <code>North | 0°</code>.
           </p>
           <textarea
             id={ids.items}

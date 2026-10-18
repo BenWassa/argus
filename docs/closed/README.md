@@ -6,3 +6,5 @@ This folder archives completed GitHub issue specifications, prior research, rele
 - Maritime #147/#148 implementation is closed, but [independent domain review](../open/ISSUE_147_148_MARITIME_DOMAIN_REVIEW.md) remains live.
 - #151's audio-drill runtime issue is closed; the production voice/audio pack still has outstanding source and listening-review gates.
 - #127's Home exploration is superseded by #193, which tracks the shipped redesign's Pixel acceptance.
+
+- [Impeccable screen review, 17 October 2026](IMPECCABLE_UI_REVIEW_2026_10_17.md): completed multi-agent critique, fixes and UX/UI re-review.

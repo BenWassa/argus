@@ -58,4 +58,40 @@ describe('free play', () => {
     expect(screen.getByText(/No Morse here for &/)).toBeTruthy()
     expect((screen.getByRole('button', { name: 'Play' }) as HTMLButtonElement).disabled).toBe(false)
   })
+
+  it('moves between associated tabs with arrow keys and keeps one tab stop', () => {
+    render(<FreePlay rung={6} onExit={() => undefined} />)
+    const keyTab = screen.getByRole('tab', { name: 'Key it' })
+    const hearTab = screen.getByRole('tab', { name: 'Hear it' })
+    keyTab.focus()
+    fireEvent.keyDown(keyTab, { key: 'ArrowRight' })
+    expect(document.activeElement).toBe(hearTab)
+    expect(hearTab.getAttribute('aria-selected')).toBe('true')
+    expect(keyTab.tabIndex).toBe(-1)
+    expect(screen.getByRole('tabpanel').getAttribute('aria-labelledby')).toBe(hearTab.id)
+    fireEvent.keyDown(hearTab, { key: 'Home' })
+    expect(document.activeElement).toBe(keyTab)
+    expect(keyTab.getAttribute('aria-selected')).toBe('true')
+  })
+
+  it('preserves native Space activation on focused buttons', async () => {
+    render(<FreePlay rung={6} onExit={() => undefined} />)
+    await letter('.')
+    const clear = screen.getByRole('button', { name: 'Clear' })
+    clear.focus()
+    expect(fireEvent.keyDown(clear, { key: ' ' })).toBe(true)
+    expect(spelled()).toBe('Spelled: E')
+  })
+
+
+  it('keeps the current letter open while the next element is held', async () => {
+    render(<FreePlay rung={6} onExit={() => undefined} />)
+    key('.')
+    await act(async () => { await vi.advanceTimersByTimeAsync(FREE_LETTER_PAUSE_MS - 1) })
+    fireEvent.pointerDown(screen.getByRole('button', { name: /Morse key/ }), { button: 0, pointerId: 1 })
+    await act(async () => { await vi.advanceTimersByTimeAsync(FREE_LETTER_PAUSE_MS) })
+    expect(document.querySelector('.free-play-cursor')).not.toBeNull()
+    expect(spelled()).toBe('Nothing keyed yet')
+  })
+
 })

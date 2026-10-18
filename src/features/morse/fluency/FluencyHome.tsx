@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import {
   allLatencies,
   coefficientOfVariation,
@@ -96,6 +96,9 @@ const MODES: Record<FluencyMode, { title: string; purpose: string; best: (value:
  */
 export function FluencyHome({ progress, onProgress, onStart, onCopy, onSend, onFreePlay, onExit }: FluencyHomeProps) {
   const headingRef = useRef<HTMLHeadingElement>(null)
+  useEffect(() => {
+    headingRef.current?.focus({ preventScroll: true })
+  }, [])
   const store = progress ?? newFluencyProgress()
   const nextSend = nextSendStage(store)
   const recommendedSend: SendStage = recommendedSendStage(store)
@@ -198,7 +201,7 @@ export function FluencyHome({ progress, onProgress, onStart, onCopy, onSend, onF
           Guided Send uses the learner's own keying and is deliberately
           unaffected by this setting. */}
       <div className="fluency-rung">
-        <p className="fluency-rung-label">
+        <p className="fluency-rung-label" aria-live="polite" aria-atomic="true">
           Listening spacing <span className="tabular">{store.rung} WPM</span>
         </p>
         <p className="note">{rungDescription(store.rung)} · characters always at 20 WPM</p>

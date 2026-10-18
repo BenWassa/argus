@@ -116,10 +116,9 @@
   --t-body: 0.98rem;
   --t-small: 0.85rem;
   --t-label: 0.72rem;
-  /* The readout step. Mono is wider than the sans at the same size, so the
-     instrument voice is set one notch smaller and less tracked than a sans
-     label would be, or a row of them will not fit a 320px screen. */
-  --t-readout: 0.68rem;
+  /* Readouts retain a 12px floor at default text size. Compact tracking and
+     wrapping preserve that legibility on narrow screens. */
+  --t-readout: 0.75rem;
   --track-readout: 0.055em;
 
   /* Weights. A sans has to work harder than a serif did to read as display, so

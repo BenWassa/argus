@@ -58,8 +58,21 @@ export function TopicPage({
 }: TopicPageProps) {
   const { updateTopic } = useLibrary()
   const heading = useRef<HTMLHeadingElement>(null)
+  const actionBar = useRef<HTMLDivElement>(null)
   const [placementOpen, setPlacementOpen] = useState(false)
   const runnable = topic.items.length > 0
+
+  useLayoutEffect(() => {
+    const bar = actionBar.current
+    if (!bar) return
+    const reserve = () => bar.closest<HTMLElement>('.topic')?.style.setProperty(
+      '--topic-action-height', `${bar.getBoundingClientRect().height}px`,
+    )
+    reserve()
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(reserve)
+    observer?.observe(bar)
+    return () => observer?.disconnect()
+  }, [runnable])
 
   const path = runnable ? morseLessonPath(topic) : null
   const checkpoints = path ? morseWordCheckpointPath(topic) : null
@@ -172,8 +185,8 @@ export function TopicPage({
 
   return (
     <article className={`topic topic-track-${topic.track}`}>
-      <button className="quiet topic-back" type="button" aria-label="Back to Library" onClick={onBack}>
-        <span aria-hidden="true">←</span> Library
+      <button className="quiet topic-back" type="button" aria-label="Back to previous screen" onClick={onBack}>
+        <span aria-hidden="true">←</span> Back
       </button>
 
       {!course && <TopicHero topic={topic} />}
@@ -424,7 +437,7 @@ export function TopicPage({
       )}
 
       {runnable && (
-        <div className={`topic-action-bar${journey.phase === 'repair' ? ' is-repair' : topic.status === 'completed' || topic.status === 'drilled' ? ' is-banked' : ''}`}>
+        <div ref={actionBar} className={`topic-action-bar${journey.phase === 'repair' ? ' is-repair' : topic.status === 'completed' || topic.status === 'drilled' ? ' is-banked' : ''}`}>
           <button className="topic-primary" type="button" onClick={keepGoing ? openSend : course && journey.action === 'learn' ? startCurrentMorseLesson : startCheck}>
             {course
               ? keepGoing && sendDetail

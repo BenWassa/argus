@@ -20,7 +20,7 @@ const BOUNDARY: Partial<Record<RoleId, string>> = {
 
 function RoleTopicRow({ topic, onOpenTopic }: { topic: RoleTopicProgress; onOpenTopic: Props['onOpenTopic'] }) {
   const unavailable = topic.state === 'unavailable'
-  const status = topic.needsRefresh ? 'Refresh needed'
+  const status = topic.needsRefresh ? 'Needs repair'
     : topic.state === 'complete' ? 'Complete'
     : topic.state === 'in-progress' ? 'In progress'
     : unavailable ? 'Not available' : 'Not started'
@@ -79,7 +79,7 @@ export function RolesPage({ onOpenTopic, onContinue, selectedRole, onSelectRole 
             {progress.completeCount} of {progress.requiredCount} topics complete
           </p>
           {progress.needsRefresh && (
-            <p className="roles-award-refresh">Some topics need refreshing. Your badge remains earned.</p>
+            <p className="roles-award-refresh">Some topics need repair. Your badge remains earned.</p>
           )}
           {progress.earnedVersion !== undefined && progress.earnedVersion < role.version && (
             <p className="roles-award-note">Earned v{progress.earnedVersion}. {progress.upgradeRemainingCount} topics remaining for v{role.version}.</p>
@@ -89,8 +89,8 @@ export function RolesPage({ onOpenTopic, onContinue, selectedRole, onSelectRole 
           )}
         </div>
       </section>
-      {nextTopic && <button className="roles-continue" type="button" onClick={() => onContinue(journeyFor(nextTopic).action, nextTopic.id)}>
-        {next?.needsRefresh ? 'Refresh' : 'Continue'}: {nextTopic.title}
+      {nextTopic && <button className="roles-continue" type="button" onClick={() => next?.state === 'not-started' ? onOpenTopic(nextTopic.id) : onContinue(journeyFor(nextTopic).action, nextTopic.id)}>
+        {next?.needsRefresh ? 'Repair' : next?.state === 'not-started' ? 'Start' : 'Continue'}: {nextTopic.title}
       </button>}
       <div className="roles-pathways">
         {progress.pathways.map((pathway, index) => (

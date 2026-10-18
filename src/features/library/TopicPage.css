@@ -284,7 +284,7 @@
 }
 
 /* Topic content leads; one fixed action remains within thumb reach. */
-.topic { --topic-track: var(--learning); padding-bottom: 96px; }
+.topic { --topic-track: var(--learning); padding-bottom: calc(var(--topic-action-height, 96px) + var(--s-lg)); }
 .topic-track-survival { --topic-track: var(--survival); }
 .topic-track-tradecraft { --topic-track: var(--tradecraft); }
 .topic-hero { margin-bottom: var(--s-xl); }
@@ -301,7 +301,7 @@
 .topic-recall-prompt { font-weight: var(--w-label); overflow-wrap: anywhere; }
 .topic-recall-answer { grid-column: 2; color: var(--muted); line-height: 1.5; overflow-wrap: anywhere; }
 .topic-recall-cards .sheet-visual { grid-column: 2; min-width: 0; }
-.topic-action-bar { position: fixed; z-index: 10; bottom: calc(54px + env(safe-area-inset-bottom)); left: 0; right: 0; padding: var(--s-md) max(var(--s-lg), env(safe-area-inset-right)); background: var(--bg); border-top: 1px solid var(--line-strong); }
+.topic-action-bar { position: fixed; z-index: 10; bottom: var(--nav-clearance, calc(80px + env(safe-area-inset-bottom))); left: 0; right: 0; padding: var(--s-md) max(var(--s-lg), env(safe-area-inset-right)); background: var(--bg); border-top: 1px solid var(--line-strong); }
 .topic-action-bar .topic-primary { max-width: 760px; margin-inline: auto; text-align: center; font-size: var(--t-component); }
 .topic-action-bar.is-repair .topic-primary { background: var(--warning); }
 .topic-play { display: grid; justify-items: start; gap: var(--s-xs); padding-bottom: var(--s-md); }
@@ -382,4 +382,8 @@
 @media (max-width: 359px) {
   .topic-play-choices { grid-template-columns: minmax(0, 1fr); }
   .topic-play-choice { min-height: var(--control-h-lg); }
+}
+
+.topic :is(button, summary, a, input, select, textarea) {
+  scroll-margin-bottom: calc(var(--nav-clearance, 90px) + var(--topic-action-height, 96px) + var(--s-lg));
 }

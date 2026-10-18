@@ -127,13 +127,12 @@
   margin-bottom: var(--s-xl);
 }
 
-/* The wordmark is the instrument's nameplate, so it is stamped in the readout
-   voice rather than set as a title. */
+/* The nameplate shares the native display voice used on Home. */
 .signin-mark {
   margin: 0;
-  font-family: "Black Ops One", system-ui, sans-serif;
+  font-family: var(--font-display);
   font-size: var(--t-wordmark);
-  font-weight: 400;
+  font-weight: var(--w-page);
   font-style: normal;
   line-height: 1;
   text-transform: uppercase;

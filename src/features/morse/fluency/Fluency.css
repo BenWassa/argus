@@ -143,12 +143,13 @@
 
 .copy-answer {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: var(--s-sm);
   width: 100%;
 }
 
 .copy-input {
+  min-width: 0;
   font-size: var(--t-component);
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -190,7 +191,7 @@
 
 .copy-table {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 8.5rem), 1fr));
   gap: var(--s-sm);
   width: min(100%, 36rem);
   margin: 0 auto;
@@ -523,5 +524,28 @@
 }
 
 .free-play-text::placeholder {
+  text-transform: none;
+}
+
+/* A long answer and a large-text submit label must both fit a phone. */
+@media (max-width: 480px) {
+  .copy-answer {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.fluency-head,
+.fluency-section,
+.fluency-mode,
+.free-play-body {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* These are section names, rather than secondary numerical readouts. */
+.fluency-section > .fluency-stats-title {
+  color: var(--ink);
+  font-size: var(--t-component);
+  letter-spacing: normal;
   text-transform: none;
 }
