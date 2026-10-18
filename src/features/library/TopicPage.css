@@ -1,118 +1,45 @@
-/* One topic, one page.
+/* One topic, one page (#244). Every topic is built from the screen kit: a
+   ScreenHeader with its settled bar, the items (or the Morse course) on a
+   ProgressSpine, and a ModeTray. The order is the order of the task: where
+   this stands, the material itself, and the ways into it. */
 
-   The old sheet opened on a definition list of five internal progress fields and
-   two equally-weighted mode buttons, then folded the material away underneath.
-   The order here is the order of the task: what this is, where it stands, the
-   one thing to do, and then the material itself. */
-
-.topic-back {
-  margin-bottom: var(--s-md);
-  padding-left: 0;
-}
+/* Track colour, and the ink that reads on it as a solid tile fill. The inks are
+   the mode inks of the same hue; TopicPage.colour.test.ts holds them to 4.5:1. */
+.topic-track-learning { --topic-track: var(--learning); --topic-track-ink: var(--mode-listen-ink); }
+.topic-track-survival { --topic-track: var(--survival); --topic-track-ink: var(--mode-free-ink); }
+.topic-track-tradecraft { --topic-track: var(--tradecraft); --topic-track-ink: var(--mode-read-ink); }
 
 .topic-title { overflow-wrap: anywhere; }
+.topic-title:focus { outline: none; }
 
-.topic-title:focus {
-  outline: none;
-}
+/* ------------------------------------------------------------- header -- */
 
-.topic-head {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--s-md);
-}
+.topic .screen-header-glyph .topic-icon { width: 32px; height: 32px; }
 
-/* The boundary is the reason the topic exists, so it is set as content in the
-   serif rather than as a muted caption under the title. */
-.topic-scope {
-  max-width: 42ch;
+/* A topic reading fills in its track colour, never the action colour; a banked
+   topic fills in Settled slate (DESIGN.md, Engraved tracks). Morse keeps the
+   lit track of its course. */
+.topic:not(.topic-morse) .screen-header-track > span { background: var(--topic-track); }
+.topic:not(.topic-morse) .screen-header.is-banked .screen-header-track > span { background: var(--complete); }
+
+.topic-state,
+.topic-listening,
+.topic-earned,
+.topic-history-head {
   margin: 0;
-  font-family: var(--font-display);
-  font-size: var(--t-component);
-  font-weight: var(--w-body);
-  line-height: 1.4;
-  letter-spacing: -0.006em;
-  color: var(--muted);
-}
-
-/* One line of state, replacing a seven-row table of internal dimensions. The
-   dimensions still exist and still disagree usefully; the learner was never the
-   one who needed to hold all four at once. */
-.topic-state {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: var(--s-sm) var(--s-md);
-  margin: 0;
-  padding-top: var(--s-md);
-  border-top: 1px solid var(--line);
   font-family: var(--font-mono);
   font-size: var(--t-readout);
   font-weight: var(--w-label);
   letter-spacing: var(--track-readout);
   text-transform: uppercase;
-}
-
-.topic-state-label {
-  color: var(--ink);
-}
-
-/* Repair reads in warning on Today and in Library, so it reads in warning here.
-   It routes work; it does not scold. */
-.topic-state-label.is-repair {
-  color: var(--warning);
-}
-
-.topic-state-meta {
-  color: var(--subtle);
-}
-
-.topic-detail {
-  max-width: 52ch;
-  margin: 0;
-  font-size: var(--t-small);
-  line-height: 1.45;
   color: var(--muted);
 }
 
-/* ------------------------------------------------------------- action -- */
+.topic-state { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--s-xs); color: var(--ink); }
 
-.topic-act {
-  display: grid;
-  justify-items: start;
-  gap: var(--s-sm);
-  margin-top: var(--s-xl);
-}
-
-/* The one lit surface on this page. There is no second button of the same shape
-   beside it, because the journey already chose and a matched pair would ask the
-   learner to make a decision that has been made. */
-.topic-primary {
-  display: grid;
-  gap: 3px;
-  width: 100%;
-  min-height: var(--control-h-lg);
-  padding: var(--s-md) var(--s-lg);
-  text-align: left;
-  box-shadow: var(--edge), var(--shadow-key);
-}
-
-.topic-primary-verb {
-  font-size: var(--t-component);
-  font-weight: var(--w-component);
-}
-
-.topic-primary-note {
-  font-size: var(--t-label);
-  font-weight: var(--w-body);
-  letter-spacing: 0.01em;
-  color: var(--accent-ink);
-}
-
-/* Available, not recommended. It never takes the primary's shape. */
-.topic-alt {
-  padding-left: 0;
-}
+/* Repair reads in copper on Today and in Library, so it reads in copper here,
+   always behind its diamond. It routes work; it does not scold. */
+.topic-state.is-repair { color: var(--warning); }
 
 .topic-unfinished {
   display: grid;
@@ -121,85 +48,81 @@
   margin-top: var(--s-lg);
 }
 
-.topic-unfinished p {
-  color: var(--muted);
+.topic-unfinished p { color: var(--muted); }
+
+/* -------------------------------------------------------------- items -- */
+
+.topic-items { margin-top: var(--s-lg); }
+.topic-items .spine-label { font-size: var(--t-component); }
+.topic-items .spine-detail { font-size: var(--t-small); line-height: 1.45; }
+.topic-items .spine-node { font-family: var(--font-mono); font-size: 14px; }
+
+/* Untested items sit on the line ahead, not as reached steps. */
+.topic-items .is-unseen > .spine-node { border-color: var(--spine-ahead); color: var(--muted); }
+
+/* Group headings (ACTS, PROVE) are square milestone plates. */
+.topic-items .topic-item-group { min-height: 56px; }
+.topic-items .topic-item-group .spine-label {
+  font-family: var(--font-mono);
+  font-size: var(--t-component);
+  letter-spacing: 0.12em;
 }
 
-/* --------------------------------------------------------------- body -- */
-
-/* The material, or the curriculum. Whichever this topic has, it is the page
-   rather than a disclosure on it or a separate route that repeats it. */
-.topic-body {
-  margin-top: var(--s-2xl);
-  padding-top: var(--s-lg);
-  border-top: 1px solid var(--line-strong);
+/* A stimulus sits under its row, clear of the line. */
+.topic-item-visual {
+  display: grid;
+  gap: var(--s-sm);
+  min-width: 0;
+  padding: 0 var(--s-sm) var(--s-sm) 70px;
 }
 
-.topic-body-head {
+.topic-item-visual .visual { margin: 0; }
+
+/* ------------------------------------------------------------- tray -- */
+
+.topic-tray .mode-tray-stimulus { max-width: 100%; min-width: 0; }
+
+
+.topic-tile-count {
+  font-family: var(--font-mono);
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ----------------------------------------------------------- history -- */
+
+.topic-history { display: grid; gap: var(--s-sm); margin-top: var(--s-xl); }
+
+.topic-pips {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--s-md);
-}
-
-.topic-body-head h2 {
+  gap: 6px;
   margin: 0;
-  font-family: var(--font-display);
-  font-size: var(--t-section);
-  font-weight: var(--w-section);
+  padding: 0;
+  list-style: none;
 }
 
-.topic-reference-head {
-  margin: 0 0 var(--s-sm);
-  font-size: var(--t-label);
-  font-weight: var(--w-label);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--subtle);
+/* A recessed field filled from the bottom to the attempt's share correct. */
+.topic-pip {
+  position: relative;
+  display: block;
+  width: 16px;
+  height: 32px;
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  background: var(--field);
 }
 
-/* Structured support comes first and needs air before the finite set begins,
-   so the boundary between explanation and scored material stays legible. */
-.topic-body .learn-support .topic-reference {
-  margin-top: var(--s-2xl);
-  padding-top: var(--s-lg);
-  border-top: 2px solid var(--line-strong);
+.topic-pip > span {
+  position: absolute;
+  inset: auto 0 0;
+  background: var(--ink);
 }
 
-
-.topic-earned {
-  margin-top: var(--s-lg);
-  font: var(--w-label) var(--t-readout) var(--font-mono);
-  font-variant-numeric: tabular-nums;
-  color: var(--muted);
-}
-
-.topic-history-list {
-  padding-bottom: var(--s-md);
-  border-top: 1px solid var(--line);
-}
-
-.topic-history-list li {
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: var(--s-md);
-  padding: 9px 0;
-  border-bottom: 1px solid var(--line);
-  font-size: var(--t-label);
-  font-variant-numeric: tabular-nums;
-}
-
-.topic-history-list li:last-child {
-  border-bottom: 0;
-}
-
-.topic-history-resolved {
-  min-width: 8ch;
-  text-align: right;
-  color: var(--muted);
-}
+.topic-earned { margin-top: var(--s-md); }
 
 /* -------------------------------------------------------------- admin -- */
 
@@ -210,66 +133,15 @@
   margin-top: var(--s-2xl);
 }
 
-.topic-admin .quiet.is-danger {
-  color: var(--danger);
-}
-
-.topic-admin .quiet.is-danger:hover {
-  color: var(--danger-2);
-}
-
-@media (min-width: 980px) {
-  .topic-primary {
-    max-width: 420px;
-  }
-}
-
-/* Topic content leads; one fixed action remains within thumb reach. */
-.topic { --topic-track: var(--learning); }
-/* Ordinary topics reserve the docked Test; the Morse mode tray reserves itself. */
-.topic:not(.topic-morse) { padding-bottom: calc(var(--topic-action-height, 96px) + var(--s-lg)); }
-.topic-track-survival { --topic-track: var(--survival); }
-.topic-track-tradecraft { --topic-track: var(--tradecraft); }
-.topic-hero { margin-bottom: var(--s-xl); }
-.topic-hero-fallback { display: grid; place-items: center; aspect-ratio: 16 / 9; max-height: 260px; border-radius: var(--r-lg); background: color-mix(in oklch, var(--topic-track) 22%, var(--surface-2)); border: 1px solid var(--line); }
-.topic-hero-fallback .topic-icon { width: 112px; height: 112px; }
-.topic-hero-fallback span { font-size: 5rem; color: var(--topic-track); }
-.topic-hero .visual { margin: 0; }
-.topic-state { padding-top: 0; border: 0; gap: var(--s-sm); }
-.topic-state-meta::after { content: ' ·'; }
-.topic-body { margin-top: var(--s-xl); padding-top: 0; border: 0; }
-.topic-recall-cards { display: grid; gap: var(--s-sm); list-style: none; padding: 0; margin: var(--s-md) 0 0; }
-.topic-recall-cards li { display: grid; grid-template-columns: 2.2rem minmax(0, 1fr); gap: var(--s-xs) var(--s-sm); padding: var(--s-lg) var(--s-md); border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface); }
-.topic-recall-marker { grid-row: 1 / span 3; color: var(--topic-track); font-family: var(--font-mono); }
-.topic-recall-prompt { font-weight: var(--w-label); overflow-wrap: anywhere; }
-.topic-recall-answer { grid-column: 2; color: var(--muted); line-height: 1.5; overflow-wrap: anywhere; }
-.topic-recall-cards .sheet-visual { grid-column: 2; min-width: 0; }
-.topic-action-bar { position: fixed; z-index: 10; bottom: var(--nav-clearance, calc(80px + env(safe-area-inset-bottom))); left: 0; right: 0; padding: var(--s-md) max(var(--s-lg), env(safe-area-inset-right)); background: var(--bg); border-top: 1px solid var(--line-strong); }
-.topic-action-bar .topic-primary { max-width: 760px; margin-inline: auto; text-align: center; font-size: var(--t-component); }
-.topic-action-bar.is-repair .topic-primary { background: var(--warning); }
-.topic-alternates { display: grid; justify-items: start; padding-bottom: var(--s-md); }
-@media (min-width: 980px) {
-  .topic-action-bar { left: var(--rail); bottom: 0; padding-bottom: var(--s-lg); }
-  .topic-recall-cards { max-width: 760px; }
-}
-.topic-recall-group-label { font-family: var(--font-mono); font-size: var(--t-component); letter-spacing: .12em; color: var(--topic-track); margin: var(--s-xl) 0 var(--s-sm); }
-
-
-.topic:not(.topic-morse) :is(button, a, input, select, textarea) {
-  scroll-margin-bottom: calc(var(--nav-clearance, 90px) + var(--topic-action-height, 96px) + var(--s-lg));
-}
-
-.topic-options,
-.topic-history { margin-top: var(--s-xl); }
-.topic-options h2,
-.topic-history h2 { font-size: var(--t-component); }
+.topic-admin .quiet.is-danger { color: var(--danger); }
+.topic-admin .quiet.is-danger:hover { color: var(--danger-2); }
 
 /* Morse: ScreenHeader, ModeTray and ProgressSpine own the layout. The tray is
    fixed above phone navigation, reserves its own height, and sits above the
-   path at desktop widths. */
+   path at desktop widths. Ordinary topics take the same arrangement. */
 .topic-morse-reference { font-weight: 700; }
 .topic-morse-placement { justify-self: start; padding-left: 0; }
 .topic-morse .morse-progress-path { margin-top: var(--s-lg); }
 @media (min-width: 980px) {
-  .topic-morse { max-width: 760px; }
+  .topic { max-width: 760px; }
 }

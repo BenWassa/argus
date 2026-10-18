@@ -192,7 +192,7 @@ test.describe('fluency', () => {
       await expect(page.getByRole('navigation', { name: 'Play' }).getByRole('button', { name, exact: true })).toBeVisible()
     }
     await expect(page.getByRole('button', { name: 'A–Z Test, available, current' })).toBeVisible()
-    await expect(page.locator('.topic-primary, .topic-options')).toHaveCount(0)
+    await expect(page.locator('.topic-tray')).toHaveCount(0)
   })
 
   test('keeps the Listen key in view beside the prompt in short landscape', async ({ page }, testInfo) => {

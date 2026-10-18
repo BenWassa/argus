@@ -68,6 +68,7 @@ export type RunTarget =
 export type AppRoute =
   | ParentRoute
   | { kind: 'run'; mode: Mode; topicIds: string[]; origin: ParentRoute; target?: RunTarget }
+  /** A topic's reference: Morse's A–Z alphabet, or an ordinary topic's Learn reading (#244). */
   | { kind: 'reference'; topicId: string; origin: ParentRoute }
 
 /** Today is the docket, and the final Argus boundary before platform exit. */
