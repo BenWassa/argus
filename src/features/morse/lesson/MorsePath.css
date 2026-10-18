@@ -25,8 +25,7 @@
 
 /* The row. A button when it leads somewhere, a plain block when it is locked,
    and the same grid either way so locked and open rows line up. */
-.morse-path-row,
-.morse-path-fold summary {
+.morse-path-row {
   display: grid;
   grid-template-columns: 2.75rem minmax(0, 1fr) auto;
   align-items: center;
@@ -193,76 +192,8 @@ button.morse-path-row:hover .morse-path-cue {
   inset-block-end: 0;
 }
 
-/* --------------------------------------------------- the finished run -- */
-
-/* The completed stretch, collapsed into one row that keeps the spine and the
-   row rhythm, so the fold reads as part of the sequence. */
-.morse-path-fold summary {
-  list-style: none;
-  cursor: pointer;
-}
-
-.morse-path-fold summary::-webkit-details-marker {
-  display: none;
-}
-
-.morse-path-fold summary:hover {
-  background: var(--surface-2);
-}
-
-.morse-path-fold summary:focus-visible {
-  outline: 2px solid var(--accent-2);
-  outline-offset: -2px;
-}
-
-.morse-path-folded .morse-path-number {
-  color: var(--complete);
-}
-
-.morse-path-fold-title {
-  font-size: var(--t-small);
-  font-weight: var(--w-component);
-  color: var(--muted);
-}
-
-.morse-path-fold-letters {
-  font-family: var(--font-mono);
-  font-size: var(--t-readout);
-  letter-spacing: var(--track-readout);
-  color: var(--subtle);
-  overflow-wrap: anywhere;
-}
-
-.morse-path-fold-chevron {
-  font-size: 1.1rem;
-  line-height: 1;
-  color: var(--subtle);
-  transition: transform var(--t-fast) var(--ease);
-}
-
-.morse-path-fold[open] .morse-path-fold-chevron {
-  transform: rotate(90deg);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .morse-path-fold-chevron {
-    transition: none;
-  }
-}
-
-/* The nested list sits inside the fold's spine, so it drops its own top rule
-   and its last divider. */
-.morse-path-nested {
-  margin: 0;
-}
-
-.morse-path-nested .morse-path-item:last-child {
-  border-bottom: 0;
-}
-
 @media (max-width: 380px) {
-  .morse-path-row,
-  .morse-path-fold summary {
+  .morse-path-row {
     grid-template-columns: 2.4rem minmax(0, 1fr) auto;
     column-gap: var(--s-sm);
   }

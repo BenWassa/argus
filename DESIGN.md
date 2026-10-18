@@ -130,8 +130,8 @@ components:
 
 # Design System: Argus
 
-**Status:** current design contract with Morse/Home (#195) and Communicator Roles (#196) merged on 2026-10-07; released and deployment-verified in v1.5.0 on 2026-10-07; real Pixel acceptance remains outstanding.
-**Authority:** design context. `docs/open/TOPIC_PAGE_REVAMP.md` and `docs/open/LIBRARY_COMPACT_TOPICS.md` own the pending topic-page and provenance contracts.
+**Status:** current design contract, including the #227 no-fold rule (2026-10-17), with Morse/Home (#195) and Communicator Roles (#196) merged on 2026-10-07; released and deployment-verified in v1.5.0 on 2026-10-07; real Pixel acceptance remains outstanding.
+**Authority:** design context. The #227 no-fold rule supersedes earlier disclosure guidance; `docs/open/ISSUE_225_UI_OVERHAUL.md` tracks integration and browser acceptance. `docs/open/TOPIC_PAGE_REVAMP.md` and `docs/open/LIBRARY_COMPACT_TOPICS.md` own the pending topic-page and provenance contracts.
 
 ## 1. Overview
 
@@ -204,7 +204,7 @@ A restrained strategy: cool near-black neutrals carry almost the entire surface,
 ### Named Rules
 **The Two-Voice Rule.** Mono means a reading; sans means language. A button verb never uses the mono, and a status word never uses the sans. The one place this is explicit is the session bar, where the deck's *name* and the *End test* control stay sans inside an element that is otherwise mono. Mixing them destroys the only signal that tells the eye which is which.
 
-**The No-Eyebrow Rule.** Headings do not get an eyebrow label above them. Eyebrow-weight type is reserved for genuine metadata: track labels, item counts, session kickers. Topic support folds use descriptive summaries; the former Briefing and Concise support labels are omitted.
+**The No-Eyebrow Rule.** Headings do not get an eyebrow label above them. Eyebrow-weight type is reserved for genuine metadata: track labels, item counts, session kickers. Topic support uses descriptive native headings; the former Briefing and Concise support labels are omitted.
 
 **Tabular figures everywhere.** Any number that updates in place (counts, positions, scores, dates) carries `font-variant-numeric: tabular-nums`, so digits never reflow the layout around them.
 
@@ -236,13 +236,13 @@ Two ways to engage a topic. Learn exposes the material; Test is the only recall 
 
 | Mode | Surface | Records |
 |---|---|---|
-| **Learn** | The topic page itself for an ordinary topic: hero, title, one-line state and visible recall cards, followed by closed support folds, concealing no scored material. A guided lesson for a curriculum topic. | Opening ordinary content writes nothing. Curriculum lessons own acquisition writes. |
+| **Learn** | The topic page itself for an ordinary topic: hero, title, one-line state and visible recall cards, followed by visible explanatory support, concealing no scored material. A guided lesson for a curriculum topic. | Opening ordinary content writes nothing. Curriculum lessons own acquisition writes. |
 | **Test** | Flashcards with a 3D flip, every scored item once, self-scored | Records the attempt; one clean eligible Test banks the topic |
 
 ### Topic page contract
-An ordinary topic opens with an optional local `Visual` hero or a 16:9 track-tinted fallback using its recognition icon. The title, scope and one line of state follow. Ordered learning topics use a concise rule count at the top. Survival topics keep their full authored safety scope visible; the complete scope is also available in a Scope and limits fold. The complete scored set comes next as compact, open recall cards, with numbered markers or authored sequence letters and item stimuli. These are visible reference material, never flip cards.
+An ordinary topic opens with an optional local `Visual` hero or a 16:9 track-tinted fallback using its recognition icon. The title, scope and one line of state follow. Ordered learning topics use a concise rule count at the top. Survival topics keep their full authored safety scope visible; the complete scope is also available in the Sources and limitations sheet. The complete scored set comes next as compact, open recall cards, with numbered markers or authored sequence letters and item stimuli. These are visible reference material, never flip cards.
 
-Explanatory sections, overview and case studies expand through native details, closed by default. A quiet centred footer control opens limitations as bullets, then sources, in a centred modal. Text remains authored content; folding does not remove it. On phone the primary action is fixed above navigation and safe-area padding, with space reserved at the end of the page. Secondary learning actions live in More options. Morse retains its curriculum path and lesson/placement gate with the same compact header.
+Ordinary-topic explanatory sections, overview and case studies remain visible in editorial flow. A quiet centred footer control opens scope, limitations as bullets, then sources, in a centred modal. All authored ordinary Learn content remains available. Morse keeps a short course explanation on the A–Z reference page. On phone the primary action is fixed above navigation and safe-area padding, with space reserved at the end of the page. Secondary learning actions remain visible under More options until the mode tiles replace them. Morse retains its curriculum path and lesson/placement gate with the same compact header.
 
 **Test Conceals; Reference Reveals.** Test keeps the answer hidden until reveal. Topic recall cards show prompt and answer together; their compact reference treatment must remain distinct from the focused Test card.
 
@@ -253,6 +253,10 @@ Explanatory sections, overview and case studies expand through native details, c
 ## 6. Components
 
 All state transitions are 150–220ms on properties only, never layout, and collapse under `prefers-reduced-motion`.
+
+### Named Rules
+
+**The No-Fold Rule.** Content is either visible or it lives on its own page; nothing is folded.
 
 ### Buttons
 Controls are hardware. At rest they protrude: a lit top edge, a dark lower lip, a shadow beneath. Held, they drop into the chassis — the surface moves down a pixel and the shadow moves inside it.
@@ -277,8 +281,8 @@ The richer Learn layer is a compact reference briefing, not an article template 
 
 - Maximum prose measure stays near 68ch; overview copy may use a slightly larger reading size (`--t-lede`), while longer explanatory body copy uses the normal body voice.
 - Structure is native and visible: headings, paragraphs, unordered/ordered lists, definition lists and compact tables.
-- Whole-framework/procedure case studies are continuous reading inside a native fold. They are not one card per stage or one panel per term.
-- The finite recall set leads under `What to remember`; optional explanatory support follows in closed folds.
+- Whole-framework/procedure case studies are continuous reading under descriptive native headings. They are not one card per stage or one panel per term.
+- The finite recall set leads under `What to remember`; optional explanatory support follows openly.
 - A repeated reference whose unit is the entry (Beaufort's forces) uses the `entries` block: the marker is the heaviest element, then the title, a mono meta line, and labelled fields stacked beneath, never in columns.
 - Sources and limitations remain available in a centred modal through one quiet footer control. Safety boundaries remain visible in the topic scope.
 - Tables wrap content aggressively and may scroll inside their own focusable wrapper at extreme text scaling. The page itself must not overflow horizontally at 200% text scaling.

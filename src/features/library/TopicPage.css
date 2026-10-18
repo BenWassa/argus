@@ -114,14 +114,6 @@
   padding-left: 0;
 }
 
-.topic-consequence {
-  max-width: 52ch;
-  margin: 0;
-  font-size: var(--t-small);
-  line-height: 1.45;
-  color: var(--subtle);
-}
-
 .topic-unfinished {
   display: grid;
   justify-items: start;
@@ -178,71 +170,20 @@
 
 .topic-earned {
   margin-top: var(--s-lg);
-  font-size: var(--t-small);
+  font: var(--w-label) var(--t-readout) var(--font-mono);
+  font-variant-numeric: tabular-nums;
   color: var(--muted);
 }
 
-/* --------------------------------------------------------------- fold -- */
-
-/* Detail the page holds but does not lead with. Native disclosure, because a
-   disclosure is exactly what this is. */
-.fold {
-  margin-top: var(--s-xl);
-  border-block: 1px solid var(--line);
-}
-
-.fold summary {
-  padding: var(--s-md) 0;
-  font-size: var(--t-label);
-  font-weight: var(--w-label);
-  letter-spacing: 0.045em;
-  text-transform: uppercase;
-  color: var(--muted);
-  cursor: pointer;
-}
-
-.fold summary:hover {
-  color: var(--ink);
-}
-
-.fold summary:focus-visible {
-  outline: 2px solid var(--accent-2);
-  outline-offset: 2px;
-}
-
-/* The course's explanatory support, folded. Open, it is reading, so it takes
-   the reading measure rather than running the full width of the path above it. */
-.topic-course-notes[open] {
-  padding-bottom: var(--s-lg);
-}
-
-.topic-course-rule {
-  max-width: 62ch;
-  margin: 0 0 var(--s-lg);
-  font-size: var(--t-small);
-  line-height: 1.45;
-  color: var(--muted);
-}
-
-.topic-course-notes .learn-support,
-.topic-course-grammar {
-  max-width: 62ch;
-}
-
-.topic-course-grammar {
-  margin: var(--s-lg) 0 0;
-  font-size: var(--t-small);
-  color: var(--muted);
-}
-
-.fold-history {
+.topic-history-list {
   padding-bottom: var(--s-md);
   border-top: 1px solid var(--line);
 }
 
-.fold-history li {
+.topic-history-list li {
   display: flex;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: var(--s-md);
   padding: 9px 0;
   border-bottom: 1px solid var(--line);
@@ -250,11 +191,11 @@
   font-variant-numeric: tabular-nums;
 }
 
-.fold-history li:last-child {
+.topic-history-list li:last-child {
   border-bottom: 0;
 }
 
-.fold-resolved {
+.topic-history-resolved {
   min-width: 8ch;
   text-align: right;
   color: var(--muted);
@@ -306,15 +247,10 @@
 .topic-action-bar.is-repair .topic-primary { background: var(--warning); }
 .topic-play { display: grid; justify-items: start; gap: var(--s-xs); padding-bottom: var(--s-md); }
 .topic-alternates { display: grid; justify-items: start; padding-bottom: var(--s-md); }
-.learn-support .fold { margin-top: var(--s-md); }
-.learn-support .fold[open] { padding-bottom: var(--s-lg); }
-.fold summary { min-height: 44px; }
 @media (min-width: 980px) {
   .topic-action-bar { left: var(--rail); bottom: 0; padding-bottom: var(--s-lg); }
   .topic-recall-cards { max-width: 760px; }
 }
-.learn-section-lead { display: block; max-width: 65ch; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; text-transform: none; letter-spacing: normal; font-weight: var(--w-body); color: var(--subtle); padding-top: var(--s-xs); }
-.learn-section[open] .learn-section-lead { display: none; }
 .topic-recall-group-label { font-family: var(--font-mono); font-size: var(--t-component); letter-spacing: .12em; color: var(--topic-track); margin: var(--s-xl) 0 var(--s-sm); }
 
 
@@ -377,13 +313,17 @@
 .topic-play-choice:hover { background: var(--surface-2); border-color: var(--line-hover); }
 .topic-play-choice:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .topic-play-choice strong { font-size: var(--t-component); font-weight: var(--w-component); }
-.topic-play-choice span { font-size: var(--t-small); color: var(--muted); line-height: 1.35; }
 .topic-play-early { border-top: 1px solid var(--line); padding-top: var(--s-lg); }
 @media (max-width: 359px) {
   .topic-play-choices { grid-template-columns: minmax(0, 1fr); }
   .topic-play-choice { min-height: var(--control-h-lg); }
 }
 
-.topic :is(button, summary, a, input, select, textarea) {
+.topic :is(button, a, input, select, textarea) {
   scroll-margin-bottom: calc(var(--nav-clearance, 90px) + var(--topic-action-height, 96px) + var(--s-lg));
 }
+
+.topic-options,
+.topic-history { margin-top: var(--s-xl); }
+.topic-options h2,
+.topic-history h2 { font-size: var(--t-component); }

@@ -376,20 +376,20 @@ describe('partially acquired Morse is never routed to Test', () => {
     }
   })
 
-  it('offers Test on the Topic page only as an explicitly non-advancing path entry', () => {
+  it('offers Test on the Topic page as an early path entry', () => {
     const partial = acquire(resolveStudy(blank(MORSE_ID), new Date(Date.now() - 6 * DAY)), 3)
     install([partial])
     renderTopicPage(partial)
 
     // Exactly one prominent control, and it is the lesson. The scored run is
     // still reachable, from its own place at the end of the curriculum, and it
-    // states its consequence there rather than as a standing second button.
+    // leaves the consequence to the Test end screen.
     expect(document.querySelectorAll('.topic-primary')).toHaveLength(1)
     expect(document.querySelector('.topic-primary')?.textContent).toContain('lesson')
 
     const check = document.querySelector('.morse-path-check')
     expect(check?.querySelector('.morse-path-cue')?.textContent).toBe('Try early')
-    expect(check?.textContent).toContain('does not move the ladder')
+    expect(check?.querySelector('.morse-path-note')).toBeNull()
   })
 
   it('reads acquisition progress in its own units, never as a retention gap', () => {
@@ -574,7 +574,7 @@ describe('ordinary topic browsing and enrollment', () => {
     expect(document.querySelector('.flip-card')).toBeNull()
   })
 
-  it('puts the scored set before closed briefing folds, with its boundary visible', () => {
+  it('puts the scored set before visible briefing support, with its boundary visible', () => {
     const briefed = blank('ooda-loop')
     renderTopicPage(briefed)
 
@@ -584,8 +584,8 @@ describe('ordinary topic browsing and enrollment', () => {
     const reference = document.querySelector('.topic-reference')!
     const support = document.querySelector('.learn-support')!
     expect(reference.compareDocumentPosition(support) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-    expect(support.querySelectorAll('details')).not.toHaveLength(0)
-    expect(support.querySelector('details[open]')).toBeNull()
+    expect(support.querySelector('h3')).toBeTruthy()
+    expect(support.querySelector('details, summary')).toBeNull()
   })
 
   it('keeps page-open side-effect free and starts only on the deliberate action', async () => {

@@ -12,7 +12,6 @@ import { SourcesAndLimits } from '../learn/SourcesAndLimits'
 import { VisualView } from '../visual/VisualView'
 import { listeningCoverage } from '../../domain/audio/evidence'
 import { AudioReference } from '../audio/AudioReference'
-import { MorseBeatGrammarNote } from '../morse/MorsePhrase'
 import { MorsePath } from '../morse/lesson/MorsePath'
 import { MorsePlacementDialog } from '../morse/MorsePlacementDialog'
 import { applyMorsePlacement, canOfferMorsePlacement } from '../../domain/morse/placement'
@@ -47,7 +46,7 @@ function stamp(iso: string): string {
   })
 }
 
-/** Content first, explanatory support folded, one persistent action. */
+/** Visible reference and support, with one persistent action. */
 export function TopicPage({
   topic,
   onBack,
@@ -237,16 +236,16 @@ export function TopicPage({
           <h2 id="topic-play-title">Play Morse</h2>
           <div className="topic-play-choices">
             <button type="button" className="topic-play-choice" aria-label="Practice letters" onClick={openLetterPractice}>
-              <strong>Practice letters</strong><span>Key, read or listen</span>
+              <strong>Practice letters</strong>
             </button>
             <button type="button" className="topic-play-choice" onClick={openSend}>
-              <strong>Send</strong><span>See text, key Morse</span>
+              <strong>Send</strong>
             </button>
             <button type="button" className="topic-play-choice" onClick={openCopy}>
-              <strong>Receive</strong><span>Hear Morse, write text</span>
+              <strong>Receive</strong>
             </button>
             <button type="button" className="topic-play-choice" onClick={openFreePlay}>
-              <strong>Free Play</strong><span>Make your own message</span>
+              <strong>Free Play</strong>
             </button>
           </div>
 
@@ -260,7 +259,6 @@ export function TopicPage({
       {course && !afterAlphabet && beginnerCheckpoint && (
         <section className="topic-play topic-play-early" aria-labelledby="topic-play-early-title">
           <h2 id="topic-play-early-title">Play with known letters</h2>
-          <p className="topic-consequence">Replay a word checkpoint with a short warm-up. Every word uses only letters from lessons you've already reached.</p>
           <button
             className="ghost topic-play-launch"
             type="button"
@@ -280,8 +278,7 @@ export function TopicPage({
             </button>
           </div>
 
-          <details className="fold" open={!afterAlphabet}>
-            <summary>Lessons</summary>
+          <h3>Lessons</h3>
           <MorsePath
             path={path}
             checkpoints={checkpoints}
@@ -303,44 +300,17 @@ export function TopicPage({
             owed={acquisition.owed}
             onGoOver={startGoingOver}
           />
-
-          </details>
-
-          {/* The course's own explanatory support, which had nowhere to be.
-              `LearnSupport` was rendered only in the ordinary-topic branch
-              below, so for a curriculum topic the authored overview — what a
-              dit and a dah are, how the spacing works, how the lesson chooses
-              what to show next, and what the completion claim does and does not
-              cover — was written, shipped and displayed nowhere at all.
-
-              It is a fold rather than a band of prose: the curriculum is what
-              this page is for, and this is the thing you come back to once,
-              when something stops making sense. The mark grammar joins it here,
-              because the lesson now explains that only at first meeting. */}
-          {course && (
-            <details className="fold topic-course-notes">
-              <summary>How this course works</summary>
-              <p className="topic-course-rule">
-                Replays and word checkpoints run the same lessons and record nothing at all. Test
-                is the only place the A–Z claim is proved.
-              </p>
-              {sequence && <details className="fold"><summary>Scope and limits</summary><p className="topic-course-rule">{topic.scope}</p></details>}
-          {topic.learn && <LearnSupport content={topic.learn} />}
-              <MorseBeatGrammarNote className="topic-course-grammar" />
-            </details>
-          )}
         </section>
       ) : runnable ? (
         <section className="topic-body" aria-labelledby="topic-reference-head">
           <RecallReference topic={topic} heading="What to remember" />
-          {sequence && <details className="fold"><summary>Scope and limits</summary><p className="topic-course-rule">{topic.scope}</p></details>}
           {topic.learn && <LearnSupport content={topic.learn} />}
         </section>
       ) : null}
 
       {runnable && (course || practiceCount > 0) && (
-        <details className="fold topic-options">
-          <summary aria-label="More learning options">⋯ More options</summary>
+        <section className="topic-options" aria-labelledby="topic-options-head">
+          <h2 id="topic-options-head">More options</h2>
           <div className="topic-alternates">
           {afterAlphabet && <button type="button" className="quiet topic-alt" onClick={openRecognition}>Challenges</button>}
           {afterAlphabet && (
@@ -433,7 +403,7 @@ export function TopicPage({
             </button>
           )}
           </div>
-        </details>
+        </section>
       )}
 
       {runnable && (
@@ -449,28 +419,28 @@ export function TopicPage({
       )}
 
       {topic.history.length > 0 && (
-        <details className="fold">
-          <summary>
+        <section className="topic-history">
+          <h2>
             History, {topic.history.length}{' '}
             {topic.history.length === 1 ? 'attempt' : 'attempts'}
-          </summary>
-          <ol className="fold-history">
+          </h2>
+          <ol className="topic-history-list">
             {[...topic.history].reverse().map((attempt) => (
               <li key={attempt.at}>
                 <span className="tabular">{stamp(attempt.at)}</span>
                 <span className="tabular">
                   {attempt.correct}/{attempt.total}
                 </span>
-                <span className="fold-resolved">{statusLabel(attempt.resolvedTo)}</span>
+                <span className="topic-history-resolved">{statusLabel(attempt.resolvedTo)}</span>
               </li>
             ))}
           </ol>
-        </details>
+        </section>
       )}
 
       {topic.completedAt && (
         <p className="topic-earned">
-          First completed {stamp(topic.completedAt)}. That stays true whatever happens next.
+          First completed · {stamp(topic.completedAt)}
         </p>
       )}
 
@@ -484,7 +454,7 @@ export function TopicPage({
           Delete topic
         </button>
       </div>
-      {topic.learn && <SourcesAndLimits content={topic.learn} />}
+      <SourcesAndLimits content={topic.learn} scope={topic.scope} />
       {placementOpen && course && (
         <MorsePlacementDialog
           topic={topic}

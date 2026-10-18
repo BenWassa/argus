@@ -49,7 +49,10 @@ describe('the Morse alphabet is complete and alphabetical', () => {
   it('keeps the reference focused on letter, pattern, phrase and sound rather than duplicating the Learn SVG', () => {
     expect(html).not.toContain('morse-mnemonic')
     expect(html).not.toContain('morse-mnemonic-svg')
-    expect(html).toContain('Letter, pattern, mnemonic, sound')
+    expect(html).toContain('Dits last one unit, dahs three')
+    expect(html).toContain('Lessons introduce letters in pairs')
+    expect(html).toContain('Test is the scored A–Z check.')
+    expect(html).not.toContain('<details')
   })
 
   it('agrees with the canonical ITU table on every written pattern', () => {
@@ -68,7 +71,6 @@ describe('the Morse alphabet is complete and alphabetical', () => {
     expect(html).not.toContain('aria-expanded')
     expect(html).not.toContain('lesson-option')
     expect(html).not.toContain('flip-card')
-    expect(html).toContain('changes nothing about your progress')
     expect(html).toContain('proved in Test')
   })
 })

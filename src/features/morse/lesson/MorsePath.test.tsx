@@ -112,10 +112,11 @@ describe('states are distinguishable and reachable', () => {
     expect(props.onLesson).toHaveBeenCalledWith(0, false)
   })
 
-  it('keeps the Test reachable before readiness, and names the consequence there', () => {
+  it('keeps the Test reachable before readiness with a short action cue', () => {
     const props = renderPath({ ready: false })
     const check = document.querySelector('.morse-path-check') as HTMLElement
-    expect(check.textContent).toContain('does not move the ladder')
+    expect(check.querySelector('.morse-path-cue')?.textContent).toBe('Try early')
+    expect(check.querySelector('.morse-path-note')).toBeNull()
     fireEvent.click(check.querySelector('button.morse-path-row') as HTMLElement)
     expect(props.onCheck).toHaveBeenCalled()
   })

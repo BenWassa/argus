@@ -16,13 +16,13 @@ function firearm() {
 }
 
 describe('topic reference page', () => {
-  it('groups every visible rule in Test order, keeps support folded and browsing inert', () => {
+  it('groups every visible rule in Test order, keeps support open and browsing inert', () => {
     const topic = firearm()
     const onStart = vi.fn()
     const { container } = render(<TopicPage topic={topic} onStart={onStart} onBack={vi.fn()} onReference={vi.fn()} onEdit={vi.fn()} onDelete={vi.fn()} />)
     expect([...container.querySelectorAll('.topic-recall-marker')].map(node => node.textContent).join('')).toBe('ACTSPROVE')
     expect(container.querySelectorAll('.topic-recall-cards > li')).toHaveLength(9)
-    expect(container.querySelector('details[open]')).toBeNull()
+    expect(container.querySelector('details, summary')).toBeNull()
     expect(container.querySelector('.topic-scope')?.textContent).toBe(topic.scope)
     expect(container.textContent).toContain(topic.scope)
     expect(container.querySelector('.topic-hero-fallback')).toBeTruthy()
@@ -50,4 +50,15 @@ describe('topic page provenance', () => {
     const article = container.querySelector('article')!
     expect(article.lastElementChild?.textContent).toBe('Sources and limitations')
   })
+})
+
+
+it('puts the full scope first in the sources sheet without hiding the survival header', () => {
+  const topic = firearm()
+  render(<TopicPage topic={topic} onStart={vi.fn()} onBack={vi.fn()} onReference={vi.fn()} onEdit={vi.fn()} onDelete={vi.fn()} />)
+  fireEvent.click(screen.getByRole('button', { name: 'Sources and limitations' }))
+  const firstSection = screen.getByRole('dialog').querySelector('section')!
+  expect(firstSection.querySelector('h3')?.textContent).toBe('Scope and limits')
+  expect(firstSection.textContent).toContain(topic.scope)
+  expect(document.querySelector('.topic-scope')?.textContent).toBe(topic.scope)
 })
