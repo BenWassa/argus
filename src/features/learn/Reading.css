@@ -195,7 +195,7 @@
 }
 
 .learn-table-wrap:focus-visible {
-  outline: 3px solid color-mix(in srgb, var(--accent) 38%, transparent);
+  outline: 3px solid var(--action);
   outline-offset: 3px;
 }
 

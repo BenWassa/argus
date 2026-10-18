@@ -26,31 +26,6 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Tooth on the page ground. Without it the dark fill reads as a flat void;
-   with it the app sits on a substrate. Non-interactive, never animated. */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  opacity: 0.04;
-  background-image: var(--grain);
-  background-repeat: repeat;
-}
-
-/* The brushed finish over the tooth: machining marks all running one way, and
-   the light a curved panel catches from above. Fixed rather than scrolled, so
-   the 1px marks never moire against moving content, and never animated. */
-body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background-image: var(--machining), var(--convex);
-}
-
 .app-shell {
   position: relative;
   z-index: 1;
@@ -166,7 +141,7 @@ button {
   font-weight: var(--w-component);
   letter-spacing: 0.005em;
   color: var(--accent-ink);
-  background: var(--gradient-primary);
+  background: var(--action);
   box-shadow: var(--shadow-sm);
   cursor: pointer;
   transition: background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease),
@@ -191,20 +166,18 @@ button:disabled {
 
 button.ghost {
   color: var(--ink);
-  background: var(--gradient-ghost);
+  background: var(--surface-2);
   border-color: var(--line-strong);
-  border-top-color: var(--line-hover);
-  box-shadow: var(--edge), var(--edge-under), var(--shadow-sm);
+  box-shadow: var(--shadow-sm);
 }
 
 button.ghost:hover {
-  background: var(--gradient-ghost-hover);
+  background: var(--surface-3);
   border-color: var(--line-hover);
 }
 
 button.ghost:active {
   background: var(--surface-2);
-  border-top-color: var(--line-strong);
   box-shadow: var(--press);
 }
 
@@ -379,18 +352,16 @@ button:where(.panel, .fluency-mode) {
   box-shadow: var(--engrave);
 }
 
-/* Filled in the topic's track metal where the caller names one, steel where it
-   does not. The fill grows in from the left once, when the gauge appears: the
-   reading arriving, not decoration, and transform-only so nothing reflows. */
+/* Filled in the topic's track colour where the caller names one, a neutral
+   slate where it does not. A solid fill: the track colour is the topic's, so
+   the bar reads as that topic's. The fill grows in from the left once, when the
+   gauge appears: the reading arriving, not decoration, and transform-only so
+   nothing reflows. */
 .gauge-fill {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(
-    180deg,
-    var(--track-hue, var(--muted)),
-    color-mix(in oklch, var(--track-hue, var(--muted)) 55%, var(--line-hover))
-  );
+  background: var(--track-hue, var(--muted));
   transform-origin: left center;
   transition: none;
   animation: gauge-fill-in 640ms var(--ease) both;
@@ -409,9 +380,11 @@ button:where(.panel, .fluency-mode) {
   }
 }
 
-/* Settled, not lit. A banked topic has stopped being the thing in motion. */
-.gauge-complete .gauge-fill {
-  background: linear-gradient(180deg, var(--complete), var(--line-hover));
+/* Banked: the bar is full in the topic's own colour and the reading leads with
+   a check, so the state is a glyph and a word as well as a full bar. */
+.gauge-label.is-banked::before {
+  content: '\2713\00a0';
+  color: var(--track-hue, var(--ink));
 }
 
 .gauge-page {
@@ -433,7 +406,7 @@ button:where(.panel, .fluency-mode) {
 
 /* ---------------------------------------------------------------- stud -- */
 
-/* The stud: a lit, bevelled bead of a started topic's track metal, set on
+/* The stud: a solid bead of a started topic's track colour, set on
    the title's first line wherever a topic is a plate (Library, Today). The
    caller sets --track-hue; an unstarted Library plate carries none, because it
    already sits under a heading in its track's metal. */
@@ -443,13 +416,7 @@ button:where(.panel, .fluency-mode) {
   /* Centred on the title's first line box (size x 1.3 leading, halved). */
   margin-top: calc(var(--t-component) * 0.65 - 2.5px);
   border-radius: var(--r-pill);
-  background: radial-gradient(
-    circle at 38% 30%,
-    color-mix(in oklch, var(--track-hue) 55%, var(--accent)),
-    var(--track-hue) 55%,
-    color-mix(in oklch, var(--track-hue) 50%, var(--bg))
-  );
-  box-shadow: var(--edge-under), var(--shadow-sm);
+  background: var(--track-hue);
   transition: transform var(--t-base) var(--ease);
 }
 
@@ -503,8 +470,8 @@ main:focus {
   display: flex;
   border: 1px solid var(--line-strong);
   border-radius: var(--r-xl);
-  background: linear-gradient(180deg, var(--surface-2), var(--surface));
-  box-shadow: var(--edge), var(--edge-under), var(--shadow-sm);
+  background: var(--surface-2);
+  box-shadow: var(--shadow-sm);
   padding: var(--s-xs);
 }
 
@@ -800,23 +767,26 @@ main:focus {
   justify-items: start;
 }
 
+/* Controls sit above the banked plate's cast shadow so they keep their own
+   solid fill. */
+.session-done button {
+  position: relative;
+}
+
 .session-done h1:focus {
   outline: none;
 }
 
 /* The completion moment: the one event the product exists to produce, and the
-   only place the polish is spent on something other than an action. A stamped
-   plate — sheen across it, light caught along the top edge. */
+   only place the polish is spent on something other than an action. A solid
+   raised plate; the accent is carried by the title. */
 .banked {
   width: 100%;
   padding: var(--s-xl);
   border: 1px solid var(--line-hover);
   border-radius: var(--r-lg);
-  background:
-    radial-gradient(110% 90% at 50% -10%, var(--accent-wash), transparent 62%),
-    var(--sheen),
-    linear-gradient(180deg, var(--surface-4), var(--surface-2));
-  box-shadow: var(--edge), var(--shadow-lift);
+  background: var(--surface-3);
+  box-shadow: var(--shadow-lift);
   /* The plate already carries the product's one accent moment in its fill; it
      used to arrive fully formed, same as the plain transition lines beneath
      it. This is the same entrance Fluency's personal-best crest uses — a
@@ -886,8 +856,8 @@ main:focus {
   flex-direction: column;
   border: 1px solid var(--line-strong);
   border-radius: var(--r-xl) var(--r-xl) 0 0;
-  background: linear-gradient(180deg, var(--surface-2), var(--surface));
-  box-shadow: var(--edge), var(--shadow-lift);
+  background: var(--surface-2);
+  box-shadow: var(--shadow-lift);
 }
 
 .backdrop.is-centred {
@@ -993,9 +963,9 @@ main:focus {
     border: 0;
     border-radius: 0;
     border-right: 1px solid var(--line-strong);
-    /* The rail is attached on the left, so the light and the shadow it casts
-       both turn ninety degrees with it. */
-    box-shadow: inset 1px 0 0 rgb(255 255 255 / 5%), 4px 0 18px rgb(0 0 0 / 30%);
+    /* The rail is attached on the left, so the shadow it casts turns ninety
+       degrees with it. */
+    box-shadow: 4px 0 18px rgb(0 0 0 / 30%);
   }
 
   .nav .brand {

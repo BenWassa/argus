@@ -32,9 +32,9 @@
   place-items: center;
   border: 1px solid var(--line);
   border-radius: var(--r-pill);
-  background: var(--gradient-ghost);
+  background: var(--surface-2);
   color: var(--muted);
-  box-shadow: var(--edge), var(--edge-under), var(--shadow-sm);
+  box-shadow: var(--shadow-sm);
 }
 
 .today-profile:hover {
@@ -113,17 +113,16 @@
   align-items: center;
   gap: var(--s-lg);
   padding: var(--s-lg);
-  border: 1px solid var(--line-strong);
-  border-top-color: var(--line-hover);
+  border: 1px solid var(--line);
   border-radius: var(--r-xl);
-  background: var(--sheen), var(--gradient-ghost);
-  box-shadow: var(--edge), var(--edge-under), var(--shadow-sm);
+  background: var(--surface-2);
+  box-shadow: var(--shadow-sm);
   transition: border-color var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
 }
 .index-row.today-plate::after { content: none; }
 .index-row.today-plate:hover {
   border-color: var(--line-hover);
-  background: var(--sheen), var(--gradient-ghost-hover);
+  background: var(--surface-3);
 }
 .index-row.today-plate:active {
   transform: translateY(1px);
@@ -142,6 +141,7 @@
   color: var(--muted);
 }
 .home-topic-reading.is-repair { color: var(--warning); }
+.home-topic-reading.is-repair::before { content: '\25C6\00a0'; }
 .home-dial {
   position: relative;
   display: grid;
@@ -155,11 +155,13 @@
 .home-dial svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
 .home-dial circle { fill: none; stroke-width: 3; }
 .home-dial-track { stroke: var(--line-strong); }
-.home-dial-arc { stroke: var(--ink); stroke-linecap: round; }
-.home-dial-stage { stroke: var(--muted); stroke-dasharray: 3 9; }
-.home-dial.is-complete .home-dial-stage { stroke: var(--complete); stroke-dasharray: none; }
+/* Rings fill in the topic's track colour; repair alone is copper. */
+.home-dial-arc { stroke: var(--track-hue, var(--ink)); stroke-linecap: round; }
+.home-dial-stage { stroke: var(--track-hue, var(--muted)); stroke-dasharray: 3 9; }
+.home-dial.is-complete .home-dial-stage { stroke: var(--track-hue, var(--complete)); stroke-dasharray: none; }
 .home-dial.is-repair .home-dial-stage { stroke: var(--warning); }
 .home-dial-mark { color: var(--muted); font-family: var(--font-mono); font-size: var(--t-component); }
+.home-dial.is-complete .home-dial-mark { color: var(--track-hue, var(--muted)); }
 .home-dial.is-repair .home-dial-mark { color: var(--warning); }
 .home-add.quiet {
   display: block;

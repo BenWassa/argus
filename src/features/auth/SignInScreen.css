@@ -1,4 +1,4 @@
-/* #102: one HAUS-style opening shell, translated into Argus materials. */
+/* #102: one opening shell. Solid plates on the slate ground (#232). */
 
 .signin {
   position: relative;
@@ -13,9 +13,7 @@
     max(var(--s-lg), env(safe-area-inset-left));
   overflow: hidden;
   text-align: center;
-  background:
-    radial-gradient(circle at 50% 6%, var(--accent-wash), transparent 34%),
-    linear-gradient(180deg, var(--surface) 0%, var(--bg) 46%, var(--field) 100%);
+  background: var(--bg);
 }
 
 .signin-shell {
@@ -27,7 +25,7 @@
   border-radius: calc(var(--r-xl) + 6px);
   color: var(--ink);
   background: var(--surface);
-  box-shadow: var(--edge), var(--shadow-lift);
+  box-shadow: var(--shadow-lift);
   animation: signin-enter 520ms var(--ease) both;
 }
 
@@ -39,24 +37,11 @@
   background: var(--surface-2);
 }
 
-.signin-media-backdrop {
-  position: absolute;
-  inset: -12%;
-  z-index: 0;
-  width: 124%;
-  height: 124%;
-  object-fit: cover;
-  opacity: 0.68;
-  filter: blur(28px) saturate(0.4) brightness(0.4);
-  transform: scale(1.04);
-}
-
-/* The source photography is warm sepia and olive brass — a field-manual
-   still life shot under tungsten light, not gunmetal. Regrading it here
-   rather than re-shooting it: desaturating and dimming the plate, then
-   replacing whatever hue survives with the product's own steel-blue via a
-   colour blend, so the image sits in the same cold light as everything
-   else on the page instead of importing its own warm one. */
+/* The source photography is warm sepia and olive brass. Regrading it here
+   rather than re-shooting it: desaturating and dimming the photograph, then
+   replacing whatever hue survives with the product's slate via a colour blend,
+   so the image sits in the same cool light as everything else on the page. It
+   is a treatment of the image itself; the plate behind it is solid. */
 .signin-poster,
 .signin-video {
   position: absolute;
@@ -152,24 +137,23 @@ button.signin-action {
   justify-content: center;
   gap: 11px;
   padding: 14px 20px;
-  border: 1px solid var(--line-strong);
-  border-top-color: var(--line-hover);
+  border: 1px solid var(--action);
   border-radius: var(--r-xl);
-  color: var(--ink);
-  background: var(--gradient-ghost);
-  box-shadow: var(--edge), var(--edge-under), var(--shadow-sm);
+  color: var(--action-ink);
+  background: var(--action);
+  box-shadow: var(--shadow-sm);
 }
 
 button.signin-action:hover {
-  border-color: var(--line-hover);
-  background: var(--surface-3);
-  box-shadow: var(--edge), 0 10px 24px rgb(0 0 0 / 24%);
+  border-color: var(--action-edge);
+  background: var(--action);
+  box-shadow: var(--shadow-key);
   transform: translateY(-1px);
 }
 
 button.signin-action:active {
-  background: var(--surface-4);
   transform: translateY(1px);
+  box-shadow: var(--press-lit);
 }
 
 button.signin-action:disabled {
@@ -184,12 +168,27 @@ button.signin-action:disabled {
   flex: 0 0 20px;
 }
 
+/* The brand-colour G sits on a solid light disc so it keeps its own colours on
+   the action fill. */
+.signin-google-mark {
+  box-sizing: content-box;
+  padding: 5px;
+  border-radius: var(--r-pill);
+  background: var(--ink);
+}
+
 .signin-spinner {
   display: inline-block;
   border: 2px solid var(--line-strong);
-  border-top-color: var(--accent-2);
+  border-top-color: var(--action);
   border-radius: 50%;
   animation: signin-spin 720ms linear infinite;
+}
+
+/* On the action fill the arc is the dark ink, the ring the fill itself. */
+button.signin-action .signin-spinner {
+  border-color: var(--action);
+  border-top-color: var(--action-ink);
 }
 
 /* Holds the sign-in control's own height, so restoring a session never moves
@@ -216,10 +215,10 @@ button.signin-action:disabled {
   width: min(21rem, 100%);
   margin-top: var(--s-md);
   padding: 9px 11px;
-  border: 1px solid color-mix(in srgb, var(--danger) 36%, var(--line));
+  border: 1px solid var(--danger);
   border-radius: var(--r-md);
   color: var(--danger-2);
-  background: color-mix(in srgb, var(--danger) 8%, var(--surface-2));
+  background: var(--surface-2);
   font-size: var(--t-small);
   line-height: 1.4;
   animation: signin-error-in var(--t-base) var(--ease) both;

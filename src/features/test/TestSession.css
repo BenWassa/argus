@@ -138,56 +138,23 @@ button.flip-card:active {
   border-radius: var(--r-xl);
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-  box-shadow: var(--edge), var(--edge-under), var(--shadow);
+  box-shadow: var(--shadow);
 }
 
-/* A stamped plate: the sheen a flat panel catches as it turns, over the depth
-   gradient that gives it thickness. */
+/* Both faces are solid plates: a fill step and a 1px line, with no sheen and no
+   gradient. */
 .flip-front {
-  background:
-    var(--sheen),
-    linear-gradient(160deg, var(--surface-3), var(--surface));
+  background: var(--surface-2);
 }
 
-/* The answer face is the one catching the light: it is the thing you came
-   for. */
+/* The answer face is one fill step up and takes the action colour as its edge:
+   it is the current state of the card, the thing you came for. */
 .flip-back {
   position: relative;
   overflow: hidden;
   transform: rotateY(180deg);
-  border-color: color-mix(in srgb, var(--accent) 34%, var(--line-strong));
-  background:
-    radial-gradient(circle at 50% 36%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 54%),
-    var(--sheen),
-    linear-gradient(160deg, var(--surface-3), var(--surface));
-}
-
-/* The card itself trends toward the pending grade, from the edge it is being
-   dragged toward. An edge gradient rather than a flood: the answer stays the
-   most legible thing on the card. */
-.flip-wash {
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-}
-
-.flip-wash-miss {
-  background: linear-gradient(
-    to right,
-    color-mix(in srgb, var(--danger) 46%, transparent),
-    color-mix(in srgb, var(--danger) 10%, transparent) 42%,
-    transparent 72%
-  );
-}
-
-.flip-wash-hit {
-  background: linear-gradient(
-    to left,
-    color-mix(in srgb, var(--ok) 46%, transparent),
-    color-mix(in srgb, var(--ok) 10%, transparent) 42%,
-    transparent 72%
-  );
+  border-color: var(--action);
+  background: var(--surface-3);
 }
 
 /* One step brighter than the other readouts in the product, because this one
@@ -243,6 +210,10 @@ button.flip-card:active {
 }
 
 .recall-actions {
+  /* Above the card's cast shadow, so the grading buttons stay their own solid
+     fill instead of being darkened where the shadow falls on them. */
+  position: relative;
+  z-index: 1;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--s-sm);
