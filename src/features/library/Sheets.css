@@ -1,0 +1,67 @@
+/* Library sheets (#247): Add menu, Want to learn and the topic form. Solid
+   plates inside an opaque sheet. These selectors are doubled with `.sheet` so
+   they win over the older .add-menu rules still held in LibraryPage.css. */
+.sheet .add-menu {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: var(--s-sm);
+}
+
+.sheet .add-menu-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-sm);
+  min-height: 96px;
+  padding: var(--s-md);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  text-align: center;
+  color: var(--ink);
+  background: var(--surface-2);
+  box-shadow: none;
+}
+
+.sheet .add-menu-option:hover {
+  border-color: var(--line-hover);
+  background: var(--surface-3);
+}
+
+.sheet .add-menu-option:active {
+  background: var(--surface-3);
+  box-shadow: var(--press);
+}
+
+.add-menu-mark {
+  width: 28px;
+  height: 28px;
+  color: var(--ink);
+}
+
+.sheet .add-menu-option-title {
+  font-size: var(--t-component);
+  font-weight: var(--w-component);
+  overflow-wrap: anywhere;
+}
+
+/* Form fields in a sheet: a recessed field on the sheet, a mono hint under it. */
+.sheet .field-row .help {
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  letter-spacing: var(--track-readout);
+}
+
+.sheet .field-row .count {
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  letter-spacing: var(--track-readout);
+  font-variant-numeric: tabular-nums;
+}
+
+.sheet .field-row .error { color: var(--danger); }
+
+.sheet .sheet-note {
+  margin: 0;
+  color: var(--ink);
+}
