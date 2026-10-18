@@ -16,8 +16,8 @@ async function openTopic(page: Page, title: string) {
 }
 
 async function startTest(page: Page) {
-  const primary = page.locator('.topic-primary')
-  await expect(primary).toHaveText('Test')
+  const primary = page.locator('.topic-tray [data-tile-id="test"]')
+  await expect(primary.locator('.mode-tray-label')).toHaveText('Test')
   await primary.click()
 }
 
@@ -57,8 +57,8 @@ for (const [title, items, figures] of [
 ] as const) {
   test(`${title}: Learn shows its bank and diagrams with no sideways scroll`, async ({ page }) => {
     await openTopic(page, title)
-    await expect(page.locator('.topic-recall-cards > li')).toHaveCount(items)
-    await expect(page.locator('.topic-recall-cards > li.has-visual')).toHaveCount(figures)
+    await expect(page.locator('.topic-items .topic-item')).toHaveCount(items)
+    await expect(page.locator('.topic-items .topic-item.has-visual')).toHaveCount(figures)
     await page.getByRole('button', { name: 'Sources and limitations' }).click()
     await expect(page.locator('.sources-notes')).toContainText('does not show that you can navigate safely')
     await expect(page.locator('.sources-notes')).toContainText('proves nothing')
@@ -68,6 +68,9 @@ for (const [title, items, figures] of [
 
 test('the Learn-only orientation prerequisite and the light sectors are taught before any scoring', async ({ page }) => {
   await openTopic(page, 'Navigation Lights & Aspect')
+  // The scored set is the topic page; the teaching is its Learn screen.
+  await expect(page.locator('.topic-items .topic-item')).toHaveCount(16)
+  await page.getByRole('navigation', { name: 'Study' }).getByRole('button', { name: 'Learn', exact: true }).click()
   const orient = page.getByRole('heading', { name: 'Orient the vessel' })
   await expect(orient).toBeVisible()
   await expect(page.locator('.learn-definitions dt').filter({ hasText: '22.5° abaft the beam' })).toBeVisible()
@@ -75,8 +78,6 @@ test('the Learn-only orientation prerequisite and the light sectors are taught b
   await expect(page.getByRole('heading', { name: 'How the light sectors work' })).toBeVisible()
   await expect(page.locator('.figure-sector')).toHaveCount(4)
   for (const sector of await page.locator('.figure-sector').all()) await expect(sector).toBeVisible()
-  // The scored set remains visible before the visible explanatory support.
-  await expect(page.locator('#topic-reference-head')).toHaveText('What to remember')
 })
 
 test('day shapes: answering every shape correctly banks a clean run', async ({ page }) => {

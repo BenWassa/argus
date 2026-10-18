@@ -30,8 +30,8 @@ for (const [title, items] of [
   test(`${title}: shows its ${items} items and reads without sideways scroll`, async ({ page }) => {
     await openTopic(page, title)
     await expect(page.locator('.topic-title')).toHaveText(title)
-    await expect(page.locator('.topic-state-meta')).toContainText(`${items} items`)
-    await expect(page.locator('.topic-recall-cards > li')).toHaveCount(items)
+    await expect(page.locator('.screen-header-readout')).toHaveText(`0 / ${items}`)
+    await expect(page.locator('.topic-items .topic-item')).toHaveCount(items)
     await noSidewaysScroll(page)
     await page.getByRole('button', { name: 'Sources and limitations' }).click()
     await expect(page.locator('.sources-notes')).toContainText('Not')
@@ -54,8 +54,8 @@ const PRIORITY_KEY: [RegExp, string][] = [
 
 test('answering all nine Marine Priority Calls correctly banks a clean run, with long options readable', async ({ page }) => {
   await openTopic(page, 'Marine Priority Calls')
-  const primary = page.locator('.topic-primary')
-  await expect(primary).toHaveText('Test')
+  const primary = page.locator('.topic-tray [data-tile-id="test"]')
+  await expect(primary.locator('.mode-tray-label')).toHaveText('Test')
   await primary.click()
 
   const seen = new Set<string>()

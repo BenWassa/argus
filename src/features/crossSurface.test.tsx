@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { homeProgress } from '../domain/study/home'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { LibraryProvider } from '../services/library/LibraryProvider'
 import { SHIPPED_CATALOG_TOPIC_IDS } from '../domain/library/catalog'
@@ -23,6 +23,7 @@ import type { Topic } from '../domain/library/topic'
 import { Today } from './today/Today'
 import { LibraryPage } from './library/LibraryPage'
 import { TopicPage } from './library/TopicPage'
+import { TopicReading } from './learn/TopicReading'
 
 /**
  * The surface-consistency contract (#62, #69, #70).
@@ -219,7 +220,11 @@ function topicPrimary(topic: Topic): string {
     if (lesson) return `Continue lesson ${lesson[1]}`
     return current.classList.contains('morse-progress-test') ? 'Test' : label
   }
-  return document.querySelector('.topic-primary')?.textContent?.trim() ?? ''
+  return topicTestLabel()
+}
+
+function topicTestLabel(): string {
+  return document.querySelector('.topic-tray [data-tile-id="test"] .mode-tray-label')?.textContent?.trim() ?? ''
 }
 
 function topicSchedule(topic: Topic): string {
@@ -398,7 +403,7 @@ describe('partially acquired Morse is never routed to Test', () => {
     expect(document.querySelectorAll('[aria-current="step"]')).toHaveLength(1)
     expect(document.querySelector('[aria-current="step"]')?.getAttribute('aria-label')).toMatch(/^Lesson /)
     expect(screen.getByRole('button', { name: 'Test A–Z early' })).toBeTruthy()
-    expect(document.querySelector('.topic-primary')).toBeNull()
+    expect(document.querySelector('.topic-tray')).toBeNull()
   })
 
   it('reads acquisition progress in its own units, never as a retention gap', () => {
@@ -574,26 +579,37 @@ describe('ordinary topic browsing and enrollment', () => {
     const ordinary = blank('cardinal-bearings')
     renderTopicPage(ordinary)
 
-    // The separate reading route repeated this page's title, scope and every
-    // item. The material is now the body of the page, visible and unconcealed,
-    // which is what a surface that hides nothing should look like.
-    expect(document.querySelectorAll('.topic-recall-cards > li')).toHaveLength(ordinary.items.length)
+    // The complete scored set is the body of the page, one spine row per item,
+    // visible and unconcealed: a surface that hides nothing.
+    expect(document.querySelectorAll('.topic-items .topic-item')).toHaveLength(ordinary.items.length)
+    expect(screen.getByRole('list', { name: 'Items' })).toBeTruthy()
     expect(document.body.textContent).not.toContain('Show all')
     expect(document.querySelector('.morse-progress-path')).toBeNull()
-    // Reference cards expose answers; the concealed-answer Test card is absent.
+    // Reference rows expose answers; the concealed-answer Test card is absent.
     expect(document.querySelector('.flip-card')).toBeNull()
+    for (const item of ordinary.items) expect(document.body.textContent).toContain(item.answer)
   })
 
-  it('puts the scored set before visible briefing support, with its boundary visible', () => {
+  it('keeps visible briefing support on its own Learn screen, with its boundary visible', () => {
     const briefed = blank('ooda-loop')
-    renderTopicPage(briefed)
+    const onReference = vi.fn()
+    render(
+      <LibraryProvider>
+        <TopicPage topic={briefed} onBack={() => undefined} onStart={() => undefined}
+          onReference={onReference} onEdit={() => undefined} onDelete={() => undefined} />
+      </LibraryProvider>,
+    )
+    // The topic page carries the scored set; the explanation is one tile away.
+    expect(document.querySelector('.learn-support')).toBeNull()
+    expect(document.querySelectorAll('.topic-items .topic-item')).toHaveLength(briefed.items.length)
+    fireEvent.click(screen.getByRole('button', { name: 'Learn' }))
+    expect(onReference).toHaveBeenCalledWith(briefed.id)
+    cleanup()
 
-    expect(document.querySelector('.learn-support')).not.toBeNull()
-    expect(screen.getByRole('heading', { name: 'What to remember', level: 2 })).toBeTruthy()
-    expect(document.querySelectorAll('.topic-recall-cards > li')).toHaveLength(briefed.items.length)
-    const reference = document.querySelector('.topic-reference')!
+    render(<TopicReading topic={briefed} onBack={() => undefined} />)
     const support = document.querySelector('.learn-support')!
-    expect(reference.compareDocumentPosition(support) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(support).not.toBeNull()
+    expect(document.querySelector('.topic-scope')?.textContent).toBe(briefed.scope)
     expect(support.querySelector('h3')).toBeTruthy()
     expect(support.querySelector('details, summary')).toBeNull()
   })
@@ -611,8 +627,8 @@ describe('ordinary topic browsing and enrollment', () => {
     )
     expect(beforeBrowse).toEqual(fresh)
     renderTopicPage(fresh)
-    expect(document.querySelector('.topic-primary')?.textContent).toBe('Test')
-    expect(document.querySelectorAll('.topic-recall-cards > li')).toHaveLength(fresh.items.length)
+    expect(topicTestLabel()).toBe('Test')
+    expect(document.querySelectorAll('.topic-items .topic-item')).toHaveLength(fresh.items.length)
     await waitFor(() => {
       const stored = JSON.parse(localStorage.getItem(STORE_KEY) ?? '{}') as { topics?: Topic[] }
       expect(stored.topics?.find((topic) => topic.id === fresh.id)).toEqual(beforeBrowse)
@@ -638,7 +654,7 @@ describe('ordinary topic browsing and enrollment', () => {
     expect(journey.advancementEligible).toBe(false)
 
     renderTopicPage(empty)
-    expect(document.querySelector('.topic-primary')).toBeNull()
+    expect(document.querySelector('.topic-tray')).toBeNull()
     expect(document.body.textContent).toContain('no items yet')
     expect(screen.getByRole('button', { name: 'Add items' })).toBeTruthy()
   })

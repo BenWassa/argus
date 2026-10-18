@@ -147,10 +147,10 @@ describe('one Morse topic screen', () => {
     expect(onStart).toHaveBeenLastCalledWith('learn', [MORSE_ID], { kind: 'fluency', free: true })
   })
 
-  it('keeps the ordinary topic reference and docked Test', () => {
+  it('keeps the ordinary topic reference and its own tray', () => {
     render(<LibraryProvider><NatoHarness /></LibraryProvider>)
     expect(screen.getByRole('heading', { level: 1 })).toBeTruthy()
-    expect(document.querySelector('.topic-action-bar')).toBeTruthy()
+    expect(screen.getByRole('navigation', { name: 'Study' })).toBeTruthy()
     expect(screen.queryByRole('list', { name: 'Course path' })).toBeNull()
     expect(screen.queryByRole('navigation', { name: 'Play' })).toBeNull()
   })

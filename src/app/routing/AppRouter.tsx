@@ -11,6 +11,7 @@ import { LessonRun } from '../../features/morse/lesson/LessonRun'
 import { PracticeRun } from '../../features/practice/PracticeRun'
 import { FluencySurface } from '../../features/morse/fluency/FluencySurface'
 import { MorseReference } from '../../features/morse/reference/MorseReference'
+import { TopicReading } from '../../features/learn/TopicReading'
 import { morseLessonPath } from '../../domain/morse/curriculum/lessonPath'
 import {
   ROOT_ROUTE,
@@ -321,6 +322,17 @@ export function AppRouter() {
           )}
         </main>
       </div>
+    )
+  }
+
+  // The reference route names a topic. Morse's is its A–Z alphabet; every
+  // other topic's is its Learn reading, a screen inside the shell.
+  const readingTopic = route.kind === 'reference' ? topics.find((candidate) => candidate.id === route.topicId) : undefined
+  if (route.kind === 'reference' && readingTopic && !morseLessonPath(readingTopic)) {
+    return (
+      <AppShell view="library" onNavigate={navigateSection}>
+        <TopicReading key={readingTopic.id} topic={readingTopic} onBack={goBack} />
+      </AppShell>
     )
   }
 
