@@ -50,6 +50,9 @@
 
 .learn-blocks {
   display: grid;
+  /* A single shrinkable column: otherwise one long unbreakable term sets the
+     column to its own width and pushes the page sideways at 200% text. */
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--s-md);
   margin-top: var(--s-md);
 }
@@ -61,6 +64,7 @@
 .learn-case-takeaway {
   max-width: 68ch;
   line-height: 1.65;
+  overflow-wrap: anywhere;
 }
 
 .learn-list {
@@ -570,4 +574,14 @@
   .morse-cards {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
+
+/* Headings, overview and scope are always visible; at 200% text on a 320px
+   phone a long word or slashed pair must wrap rather than push the page
+   sideways. */
+.learn-support :is(h3, h4),
+.learn-overview,
+.topic-scope {
+  overflow-wrap: anywhere;
+  hyphens: auto;
 }

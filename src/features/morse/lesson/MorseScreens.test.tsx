@@ -125,35 +125,15 @@ beforeEach(() => {
 
 afterEach(cleanup)
 
-describe('the course explains itself somewhere reachable', () => {
-  it('renders the authored Morse support on the topic page instead of nowhere at all', () => {
-    const topic = settledThrough(seededTopic(), 4)
-    expect(topic.learn).toBeTruthy()
-    renderTopic(topic)
-
-    // It was written, shipped, and displayed on no surface: `LearnSupport` only
-    // ever rendered in the ordinary-topic branch, which a curriculum never takes.
-    const fold = screen.getByText('How this course works')
-    expect(fold.tagName).toBe('SUMMARY')
-    expect(document.querySelector('.learn-support')).toBeTruthy()
-    expect(document.body.textContent).toContain('Morse dits (.) last one unit')
-    expect(document.body.textContent).toContain('How the lesson works')
-  })
-
-  it('keeps the mark grammar permanently available there', () => {
+describe('the course keeps rationale on its reference page', () => {
+  it('shows lessons without course notes on the topic page', () => {
     renderTopic(settledThrough(seededTopic(), 4))
-    expect(document.querySelector('.topic-course-grammar')).toBeTruthy()
-    expect(document.body.textContent).toContain('ZOOM ZOOM ZIP ZIP')
-  })
-
-  it('folds it rather than pushing the curriculum down the page', () => {
-    renderTopic(settledThrough(seededTopic(), 4))
-    const details = document.querySelector('.topic-course-notes') as HTMLDetailsElement
-    expect(details.tagName).toBe('DETAILS')
-    expect(details.open).toBe(false)
-    // The curriculum still comes first: the path is the reason for the page.
-    const path = document.querySelector('.morse-path')!
-    expect(path.compareDocumentPosition(details) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'A–Z reference' })).toBeTruthy()
+    expect(document.querySelector('.morse-path')).toBeTruthy()
+    expect(document.querySelector('.learn-support')).toBeNull()
+    expect(document.querySelector('details, summary')).toBeNull()
+    expect(screen.queryByText('How this course works')).toBeNull()
+    expect(screen.queryByText('How the lesson works')).toBeNull()
   })
 })
 
@@ -207,50 +187,32 @@ describe('the final Learn screen hands off to play (#201)', () => {
 })
 
 describe('the curriculum opens on where the learner actually is', () => {
-  it('folds the finished run above the current lesson', () => {
+  it('keeps the finished run visible above the current lesson', () => {
     renderPath(settledThrough(seededTopic(), 5))
-
-    const fold = document.querySelector('.morse-path-fold') as HTMLDetailsElement
-    expect(fold).toBeTruthy()
-    expect(fold.open).toBe(false)
-    expect(screen.getByText(/Lessons 1–4 done/)).toBeTruthy()
-
-    // The current lesson is now near the top rather than under five Replay rows.
-    // Scoped to the outer list: the folded lessons keep their own rows inside it.
-    const rows = [
-      ...document.querySelectorAll('ol[aria-label="Morse curriculum"] > .morse-path-item'),
-    ]
-    const currentIndex = rows.findIndex((row) => row.classList.contains('is-current'))
-    expect(currentIndex).toBeGreaterThan(-1)
-    // Two rows now precede lesson 6: the fold and lesson 5. Unfolded it was
-    // six, which put the row at 945px on an 844px phone; it now sits at 771.
-    expect(currentIndex).toBe(2)
+    expect(document.querySelector('details, summary')).toBeNull()
+    expect(document.querySelectorAll('.morse-path-lesson')).toHaveLength(lessonPackets().length)
+    expect(screen.getByRole('button', { name: 'Replay lesson 1' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Continue lesson 6' })).toBeTruthy()
   })
 
-  it('keeps every folded lesson replayable, and its checkpoint with it', () => {
+  it('keeps every finished lesson replayable, and its checkpoint with it', () => {
     renderPath(settledThrough(seededTopic(), 9))
 
     expect(screen.getByRole('button', { name: /^Replay lesson 1$/ })).toBeTruthy()
-    // The lesson-4 checkpoint sits inside the folded run and must travel with
-    // it rather than vanishing from the page.
+    // Finished checkpoints remain available alongside their lessons.
     expect(
       screen.getByRole('button', { name: 'Start word checkpoint after lesson 4' }),
     ).toBeTruthy()
   })
 
-  it('shows everything ahead, and folds the whole run once the course is finished', () => {
+  it('shows the entire path before and after course acquisition', () => {
     renderPath(settledThrough(seededTopic(), 5))
-    // Seeing the end of a finite curriculum is the premise: nothing ahead folds.
     expect(document.querySelectorAll('.morse-path-item.is-locked').length).toBeGreaterThan(0)
-
     cleanup()
     renderPath(settledThrough(seededTopic(), lessonPackets().length))
-    // Thirteen replay rows are not what a finished learner came for; the Test
-    // is. The full index is still there, one tap into the fold.
-    const fold = document.querySelector('.morse-path-fold') as HTMLDetailsElement
-    expect(fold.open).toBe(false)
-    expect(screen.getByText(`Lessons 1–${lessonPackets().length} done`)).toBeTruthy()
-    expect(fold.querySelectorAll('.morse-path-lesson')).toHaveLength(lessonPackets().length)
+    expect(document.querySelector('details, summary')).toBeNull()
+    expect(document.querySelectorAll('.morse-path-lesson')).toHaveLength(lessonPackets().length)
+    expect(document.querySelector('.morse-path-check button')).toBeTruthy()
   })
 
   it('states the checkpoint’s nature once rather than on all four rows', () => {

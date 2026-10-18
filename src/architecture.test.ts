@@ -145,3 +145,12 @@ describe('a feature owns its internals', () => {
     expect([...DEEP_FEATURE_IMPORTS].sort()).toEqual([...live].sort())
   })
 })
+
+
+describe('feature content stays visible', () => {
+  it('contains no native accordions', () => {
+    for (const absolute of sources.filter((path) => asPath(path).startsWith('src/features/'))) {
+      expect(readFileSync(absolute, 'utf8'), asPath(absolute)).not.toMatch(/<(?:details|summary)\b/i)
+    }
+  })
+})

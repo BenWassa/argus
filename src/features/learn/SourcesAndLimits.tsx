@@ -6,16 +6,16 @@ import './SourcesAndLimits.css'
 /**
  * Provenance and caveats, one tap from the foot of the page and nowhere in the
  * body (#166). Every source and limitation stays, verbatim; only their
- * prominence changes. Renders nothing for a topic that has neither.
+ * prominence changes. Scope leads when supplied by the topic page.
  */
-export function SourcesAndLimits({ content }: { content: LearnContent }) {
+export function SourcesAndLimits({ content, scope }: { content?: LearnContent; scope?: string }) {
   const [open, setOpen] = useState(false)
-  const limitations = content.limitations ?? []
-  const sources = content.sources ?? []
-  if (limitations.length === 0 && sources.length === 0) return null
+  const limitations = content?.limitations ?? []
+  const sources = content?.sources ?? []
+  if (!scope && limitations.length === 0 && sources.length === 0) return null
 
   const label =
-    limitations.length > 0 && sources.length > 0
+    scope || (limitations.length > 0 && sources.length > 0)
       ? 'Sources and limitations'
       : sources.length > 0 ? 'Sources' : 'Limitations'
 
@@ -27,6 +27,7 @@ export function SourcesAndLimits({ content }: { content: LearnContent }) {
       {open && (
         <Dialog title={label} centred closeLabel={`Close ${label.toLowerCase()}`} onClose={() => setOpen(false)}>
           <div className="learn-notes sources-notes">
+            {scope && <section><h3>Scope and limits</h3><p>{scope}</p></section>}
             {limitations.length > 0 && (
               <section>
                 <h3>Limitations</h3>

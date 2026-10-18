@@ -85,11 +85,6 @@
   font-weight: var(--w-section);
 }
 
-.fluency-mode-purpose {
-  color: var(--muted);
-  font-size: var(--t-small);
-}
-
 .fluency-mode-meta {
   margin-top: var(--s-xs);
   color: var(--subtle);
@@ -114,18 +109,9 @@
   border-top: 1px solid var(--line);
 }
 
-.fluency-stage-picker > summary {
-  display: flex;
-  align-items: center;
-  min-height: var(--control-h);
-  color: var(--muted);
-  font-size: var(--t-small);
-  cursor: pointer;
-}
-
-.fluency-stage-picker[open] > summary {
-  margin-bottom: var(--s-sm);
-  color: var(--ink);
+.fluency-stage-picker > h3 {
+  margin-block: var(--s-md);
+  font-size: var(--t-component);
 }
 
 .copy-next-tag {
