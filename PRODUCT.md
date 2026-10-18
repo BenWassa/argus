@@ -1,6 +1,6 @@
 # Product
 
-**Status:** current product contract with Morse/Home (#195) and Communicator Roles (#196) merged on 2026-10-07; released and deployment-verified in v1.5.0 on 2026-10-07; real Pixel acceptance remains outstanding.
+**Status:** current product contract with Morse/Home (#195) and Communicator Roles (#196) merged on 2026-10-07; released and deployment-verified in v1.5.0 on 2026-10-07; real Pixel acceptance remains outstanding. Design Principle 5 and the brand personality were updated on 2026-10-17 for the Signal on Slate visual standard (#225/#226); see `DESIGN.md`.
 **Authority:** product context. Maintained behaviour contracts live in `docs/open/`; the compact-topic and topic-page documents own the shipped #166 behaviour.
 
 ## Register
@@ -94,7 +94,7 @@ Success, twelve months in: 40–60 completed topics that the owner can still rec
 
 ## Brand Personality
 
-Capable. Deliberate. Unshowy. The interface should disappear into the task the way a well-kept field manual does — present when needed, silent otherwise. It earns trust through restraint and precision, not through reassurance copy or ceremony.
+Capable. Deliberate. Clear. The interface should get out of the way of the task the way a well-kept field manual does: you see what to do and what you are looking at without reading about it. It earns trust through clarity and precision, not through reassurance copy or ceremony.
 
 The tradecraft and survival tracks pull hard toward military, prepper, or tactical-game visual language; the product explicitly refuses that pull. The framing throughout is competence, not catastrophe — this is a memory tool, not a bunker simulator.
 
@@ -104,10 +104,10 @@ The tradecraft and survival tracks pull hard toward military, prepper, or tactic
 - The generic AI-generated dashboard: a hero, four equal metric cards, a grid of identical rounded topic cards. Flagged directly in design critique as "category-interchangeable" — recognizable ingredients, generic composition.
 - Repetitive card scaffolding used as a default container for everything (stats, topics, modes, panels) — it flattens hierarchy instead of establishing it.
 - Military, survivalist, or "prepper" visual language: tactical iconography, rugged/camo textures, alarm-red urgency, game-like HUD elements.
-- Gamification: streaks, XP, leaderboards, indiscriminate badges, shame-based nudging for missed days. The narrowly approved exception is one finite, evidence-backed badge per completed Argus role (#191); pathways earn no badges. Retention decay is information, not punishment. The ten-answer Morse Learn sitting is a finite retrieval budget and is named as one — earlier copy called it `XP`, which implied a currency the product does not have.
+- Gamification: streaks, XP, leaderboards, indiscriminate badges, shame-based nudging for missed days. The narrowly approved exception is one finite, evidence-backed badge per completed Argus role (#191); pathways earn no badges. The Morse progress path is a progress visualisation, not gamification. Retention decay is information, not punishment. The ten-answer Morse Learn sitting is a finite retrieval budget and is named as one — earlier copy called it `XP`, which implied a currency the product does not have.
 - A single aggregate progress percentage. Acquisition, evidence, retention and completion answer different questions; one number combining them would be precise and untrue.
 - Desktop-as-widened-mobile: cosmetic breakpoint scaling instead of a real task-oriented desktop layout (side rail, dense authoring views).
-- Decorative gradients, ornamental rings, and non-functional visual flourish anywhere in the Test loop.
+- Decorative gradients, ornamental rings, translucent colour washes, glow, and non-functional visual flourish anywhere in the Test loop.
 
 ## Design Principles
 
@@ -115,7 +115,7 @@ The tradecraft and survival tracks pull hard toward military, prepper, or tactic
 2. **Task-first over showcase-first.** The interface opens to "what's due" and "start Test," not to a summary or a pitch. Marketing-page instincts (heroes, slogans, eyebrows) are actively rejected on functional screens.
 3. **Retention over exposure, decay as routing not punishment.** One clean eligible Test banks the topic, and a banked topic can be checked whenever the learner chooses; a failed check is decay. No rung, availability or label waits on elapsed time. Surfacing decay is diagnostic information, framed the same way as any other status, never as a failure state.
 4. **Portable and owner-owned.** Full JSON export/import is a first-class feature, not a settings-page afterthought — including optional structured Learn support. The interface should never make data feel trapped.
-5. **Restraint reads as competence.** One accent color, minimal chrome, and native typography carry the "capable and deliberate" tone. Restraint is not the same as flatness: the interface earns its calm through material, real typographic hierarchy, and one lit surface per view, not by removing contrast until everything sits at the same pitch.
+5. **Clarity reads as competence.** One action colour says what to do next. Solid plates, large readable type and few words carry the "capable and deliberate" tone, and colour is spent on meaning and wayfinding (Morse modes, subject tracks, states such as decay) rather than withheld. A tile shows what the task will put in front of you instead of describing it. Clarity is not the same as sparseness: the interface keeps real contrast and typographic hierarchy, with one lifted surface per view, and does not remove colour until everything sits at the same pitch.
 6. **The form must not lie about the content.** A card shape promises a concealed answer; a list promises scannability. Matching the surface to the actual task is a correctness requirement, not a style choice. Learn support therefore uses editorial structure, never concealed-answer styling.
 
 ## Accessibility & Inclusion
