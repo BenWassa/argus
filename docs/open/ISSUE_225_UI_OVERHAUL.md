@@ -23,6 +23,18 @@
 | Which game modes on the surface? | **By direction: Key · Listen · Read · Free play.** Each mode auto-picks the learner's level. Practice letters, Send stages, Receive levels and Challenges merge into them; the separate hub goes. |
 | How far off grey gunmetal? | **Colour on the dark chassis.** Keep the dark base; give each Morse mode and each track a vivid hue; give the primary action a real hue. This reverses DESIGN.md's One Accent, One Warm Colour and No Track-as-Background rules. |
 
+## Design philosophy (owner direction, 2026-10-17, second pass)
+
+After the first mocks the owner said the design is *"too dark"*, the icons look *"cheap"*, containers must not use *"partial transparency"*, the path should be *"a straight line … top to bottom"*, modes go *"on the bottom"*, and tests need *"visual differentiation … along the way"*. Every overhaul surface follows these rules:
+
+1. **Show the stimulus.** A mode tile shows exactly what that mode puts in front of you first. **Key** shows a letter (you see `A`, you key it). **Listen** shows a sound wave (you hear it). **Read** shows dits and dashes (you see `·−−`, you name it). **Free play** shows your own text appearing at a cursor. No metaphor icons and no thin decorative strokes: glyphs are bold, filled and pixel-aligned.
+2. **Solid plates, real contrast.** Every container is opaque: either a step on the chassis ramp or a solid action/mode fill with contrast-checked ink. No alpha washes, translucent borders, glows or gradients standing in for colour. Hierarchy comes from fill steps, size and weight.
+3. **A lighter chassis.** The near-black gunmetal goes. The base lifts to **Slate** (or **Light**; the owner picks from the mocks) so plates read as objects and colour has something to sit on.
+4. **One straight spine, top to bottom.** The path is a single vertical line on the left, with Lesson 1 at the top and later tiers at the bottom. Rows read left to right: node, letters, label. The line is the action colour where it is done and neutral where it lies ahead. The screen opens scrolled to the current row: a raised full-width plate carrying the one primary action (`Start`).
+5. **Tests are milestones.** Word checks and the A–Z Test break the rhythm. Each is a full-width plate that crosses the spine, with a square flag node and an uppercase label, where lessons have round nodes. The A–Z Test is the largest. State (done/current/locked) uses the same colours as lessons; shape, width and label carry "this is a test", so the meaning never rests on colour.
+6. **Modes live at the bottom.** Four tiles, one word each, sit in a fixed tray above navigation (**Tray layout, decided**). The path owns the rest of the screen.
+7. **Few, large words.** Labels are one or two title-case words. Letters and numbers are large. No sentences in the tray or on the path beyond a word check's one line.
+
 ## Baseline critique (Morse surfaces), 2026-10-17
 
 Method: `impeccable critique` in the product register, run on real Chromium renders of the current `main` (`464c36f`) at 390×844 for three seeded learners (fresh, mid-course after lesson 5, finished course), plus source inspection. The deterministic detector (`npx impeccable --json`) on `src/features/{morse,library,today}` returned 48 advisories, all `design-system-font-size` (type-ramp drift), and no banned patterns. The LLM assessment was run inline rather than as an isolated sub-agent, so treat the score as one reviewer's judgment. #233 re-runs it with isolated assessments.
@@ -65,7 +77,7 @@ Full-page captures overlay the fixed dock and navigation mid-page; that is a cap
 | [#227](https://github.com/BenWassa/argus/issues/227) | Remove every accordion; cut page-level prose | 1 | none | none | `impeccable distill`, `clarify` |
 | [#228](https://github.com/BenWassa/argus/issues/228) | Morse modes by direction (domain → tiles) | 1 (domain), 2 (tiles) | #226 for tiles | **Approve 4-tile mock** | `impeccable shape`, `distill` |
 | [#229](https://github.com/BenWassa/argus/issues/229) | Morse progress path (model → component) | 1 (model), 2 (component) | #226, #228 tiers | **Approve path mock** | `impeccable craft`, `animate` |
-| [#230](https://github.com/BenWassa/argus/issues/230) | Morse topic composition; delete hub and old path | 3 | #227, #228, #229, #226 | **Pick Stack or Tray layout** | `impeccable layout`, `distill` |
+| [#230](https://github.com/BenWassa/argus/issues/230) | Morse topic composition; delete hub and old path | 3 | #227, #228, #229, #226 | Tray layout decided 2026-10-17 | `impeccable layout`, `distill` |
 | [#231](https://github.com/BenWassa/argus/issues/231) | One session frame; mode colour; no instruction prose | 4 | #226, #228 | none | `impeccable distill`, `clarify`, `animate` |
 | [#232](https://github.com/BenWassa/argus/issues/232) | Colour across Home, Library, Topic, Test, Roles, sign-in | 3 | #226 + palette approval | none | `impeccable colorize` |
 | [#233](https://github.com/BenWassa/argus/issues/233) | Acceptance: critique re-score, polish, audit, Pixel | 5 | all | **Pixel sign-off** | `impeccable critique`, `polish`, `audit` |
