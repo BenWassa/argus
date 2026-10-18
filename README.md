@@ -54,6 +54,8 @@ The production site is **https://argus-b7a5a.web.app**, on Firebase Hosting. Git
 
 ## Sync
 
+The [Apple Home Screen sign-in investigation](docs/open/APPLE_PWA_GOOGLE_SIGN_IN.md) records the reported Google sign-in failure, confirmed implementation gaps and the coordinated remediation still required.
+
 Signing in with Google keeps the library in step across the owner's own devices. The copy in the browser remains the interaction authority, and signing out leaves that local copy untouched. Where the same topic changed on two devices, neither copy is overwritten — the conflict is reported in Profile.
 
 The production build asks who you are before showing anything, so sign-in is not optional there. A build with no Firebase configuration — what the browser test suite runs against — has nothing to gate and stays entirely local.

@@ -6,6 +6,7 @@ This folder contains maintained specifications, active implementation plans, and
 - **Consolidated human review:** [acceptance checklist](HUMAN_ACCEPTANCE_CHECKLIST.md), with links to reviewer packs and permission draft.
 - **Morse UX consolidation:** [#221 implementation and mobile evidence](ISSUE_221_MORSE_UX_CONSOLIDATION.md), with physical Pixel acceptance outstanding.
 - **Current implementation queue:** [NEXT_BATCHES.md](NEXT_BATCHES.md).
+- **Apple Home Screen sign-in:** [investigation and remediation requirements](APPLE_PWA_GOOGLE_SIGN_IN.md); device verification and implementation outstanding.
 - **Independent maritime review:** [#147/#148 review](ISSUE_147_148_MARITIME_DOMAIN_REVIEW.md). Implementations #147 and #148 are closed, but maritime approval and Mariner earnability remain outstanding.
 - **Archived issue-specific contracts:** [docs/closed](../closed/README.md).
 
