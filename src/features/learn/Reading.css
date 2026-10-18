@@ -504,17 +504,28 @@
   stroke-width: 1.5;
 }
 
+/* Dits and dahs are told apart by a solid fill, never by opacity: a dit is
+   the read-mode colour and a dah the action colour. Both clear 3:1 against
+   the surface plate, and the shapes (dot and bar) differ as well, so colour
+   is never the only cue. */
 .morse-mnemonic-element {
-  fill: var(--accent);
   /* Illumination is colour only. Nothing here translates, scales or rotates,
      so the sequence is conveyed identically with motion suppressed. */
-  transition: fill 90ms linear, opacity 90ms linear;
-  opacity: 0.82;
+  transition: fill 90ms linear;
 }
 
+.morse-mnemonic-dit {
+  fill: var(--mode-read);
+}
+
+.morse-mnemonic-dah {
+  fill: var(--action);
+}
+
+/* The element being sounded lights to full ink, a solid fill that no resting
+   dit or dah shares. */
 .morse-mnemonic-element.is-sounding {
-  fill: var(--accent-2);
-  opacity: 1;
+  fill: var(--ink);
 }
 
 .morse-canonical {

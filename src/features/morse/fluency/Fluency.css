@@ -378,3 +378,125 @@
   min-width: 0;
   overflow-wrap: anywhere;
 }
+
+/* ---- short landscape --------------------------------------------------- */
+
+/* A short landscape display has width to spare and no height: the prompt and
+   its Play control sit beside the key (or the typed answer) rather than above
+   it, the same arrangement the Morse checkpoint uses, so the first key press
+   is reachable without a scroll. */
+@media (orientation: landscape) and (max-height: 560px) and (min-width: 600px) {
+  .fluency-run[data-step] {
+    padding-block: var(--s-md);
+    gap: var(--s-sm);
+  }
+
+  .fluency-run[data-step] .session-bar {
+    margin-bottom: var(--s-sm);
+  }
+
+  .fluency-run .fluency-target {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+    grid-template-rows: auto auto auto;
+    align-content: start;
+    align-items: center;
+    justify-items: center;
+    gap: var(--s-sm) var(--s-lg);
+    width: min(100%, 44rem);
+  }
+
+  .fluency-run .fluency-target > .lesson-task {
+    grid-column: 1;
+    grid-row: 1;
+    align-self: end;
+  }
+
+  .fluency-run .fluency-target > .fluency-listen {
+    grid-column: 1;
+    grid-row: 2;
+    align-self: start;
+  }
+
+  .fluency-run .fluency-target > .fluency-audio-error {
+    grid-column: 1;
+    grid-row: 3;
+  }
+
+  .fluency-run .fluency-target > .fluency-answer-area,
+  .fluency-run .fluency-target > .fluency-feedback {
+    grid-column: 2;
+    grid-row: 1 / span 3;
+    align-self: start;
+    min-width: 0;
+  }
+
+  /* Copy keeps its field above the verdict, both in the right-hand column. */
+  .fluency-run .fluency-target > .copy-answer {
+    grid-column: 2;
+    grid-row: 1;
+    min-width: 0;
+  }
+
+  .fluency-run .fluency-target > .copy-feedback {
+    grid-column: 2;
+    grid-row: 2 / span 2;
+  }
+
+  .fluency-answer {
+    font-size: clamp(1.8rem, 6vw, 2.6rem);
+  }
+
+  .copy-expected {
+    font-size: 1.6rem;
+  }
+
+  .fluency-feedback {
+    gap: var(--s-xs);
+  }
+
+  /* A keyed miss carries the whole correction (the word, the broken
+     character's pattern and its Continue button). It takes the full width and
+     lays the verdict beside the pattern, because the Play control it replaces
+     is not asking for anything while the learner reads it. */
+  .fluency-run .fluency-target:has(> .fluency-feedback:not(.copy-feedback)) > .lesson-task,
+  .fluency-run .fluency-target:has(> .fluency-feedback:not(.copy-feedback)) > .fluency-listen {
+    display: none;
+  }
+
+  .fluency-run .fluency-target > .fluency-feedback:not(.copy-feedback) {
+    grid-column: 1 / -1;
+    grid-row: 1 / span 3;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+    grid-auto-flow: row;
+    align-items: center;
+    justify-items: center;
+    gap: var(--s-xs) var(--s-lg);
+    padding: var(--s-sm) var(--s-md);
+  }
+
+  .fluency-feedback:not(.copy-feedback) > strong {
+    grid-column: 1;
+    grid-row: 1;
+    align-self: end;
+  }
+
+  .fluency-feedback:not(.copy-feedback) > .fluency-answer {
+    grid-column: 1;
+    grid-row: 2;
+    align-self: start;
+  }
+
+  .fluency-feedback:not(.copy-feedback) > .morse-character-support {
+    grid-column: 2;
+    grid-row: 1 / span 3;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .fluency-feedback:not(.copy-feedback) > .lesson-next {
+    grid-column: 1;
+    grid-row: 3;
+    align-self: start;
+  }
+}
