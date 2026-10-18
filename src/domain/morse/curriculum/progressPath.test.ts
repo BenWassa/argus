@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { journeyFor } from '../../study/journey'
 import { modeTopicFixtures, morseTopic } from '../__fixtures__/modeTopics'
-import { MORSE_TIERS, levelsFor, modeEntry } from '../modes'
+import { MORSE_TIERS, levelsFor, modeAvailability, modeEntry } from '../modes'
 import { lessonPackets } from './lesson'
 import { morseWordCheckpoints } from './checkpoints'
 import { morseProgressPath } from './progressPath'
@@ -68,6 +68,7 @@ describe('Morse progress path', () => {
     ] as const) {
       const test = morseProgressPath(fixtures[name])!.nodes.find((node) => node.kind === 'test')!
       expect(test).toMatchObject({ testState: state, earlyRunPossible: early, testAction: { kind: 'test', early } })
+      if (state !== 'locked') expect(test.action).toEqual({ kind: 'test', early })
     }
     const afterCourse = morseProgressPath(fixtures.afterCourse)!
     expect(afterCourse.currentNodeId).toBe('test')
@@ -97,8 +98,32 @@ describe('Morse progress path', () => {
         if (pip.action) expect(pip.action.entry).toEqual(modeEntry(topic, pip.mode, pip.action.entry.levelId!))
       }
     }
-    const locked = morseProgressPath(modeTopicFixtures().mid)!.nodes.filter((node) => node.kind === 'tier')
-    expect(locked.every((node) => node.state === 'locked' && node.pips.every((pip) => pip.action === null))).toBe(true)
+  })
+
+  it('locks tier pips only when their mode is unavailable, including during acquisition', () => {
+    for (const topic of Object.values(modeTopicFixtures())) {
+      for (const node of morseProgressPath(topic)!.nodes) {
+        if (node.kind !== 'tier') continue
+        for (const pip of node.pips) {
+          const available = modeAvailability(topic, pip.mode) === 'available'
+          expect(pip.state === 'locked').toBe(!available)
+          expect(pip.action !== null).toBe(available)
+        }
+        expect(node.state).toBe(node.pips.every((pip) => pip.state === 'cleared') ? 'done'
+          : node.pips.some((pip) => pip.state === 'available') ? 'reached' : 'locked')
+      }
+    }
+  })
+
+  it('keeps a banked learner at the Test regardless of formative tier clears', () => {
+    for (const topic of [modeTopicFixtures().banked, modeTopicFixtures().advanced]) {
+      const path = morseProgressPath(topic)!
+      expect(path.currentNodeId).toBe('test')
+      expect(path.nodes.filter((node) => node.state === 'current')).toEqual([
+        expect.objectContaining({ id: 'test', kind: 'test', testState: 'banked', action: { kind: 'test', early: false } }),
+      ])
+      expect(path.nodes.filter((node) => node.kind === 'tier').every((node) => node.state !== 'locked')).toBe(true)
+    }
   })
 
   it('returns no Morse path for unsupported content', () => {

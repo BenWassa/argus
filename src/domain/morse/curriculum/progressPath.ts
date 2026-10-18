@@ -42,6 +42,7 @@ export type MorseProgressNode = ProgressNode & (
 
 export interface MorseProgressPath {
   nodes: MorseProgressNode[]
+  /** Learner position for scrolling, independent of which activities are available. */
   currentNodeId: string
 }
 
