@@ -4,6 +4,7 @@ import { resolveStudy } from '../../domain/study/scheduling'
 import { useLibrary } from '../../services/library/LibraryProvider'
 import { morseProgressPath } from '../../domain/morse/curriculum/progressPath'
 import { statusLabel } from '../../shared/ui/StatusTag'
+import { ScreenHeader } from '../../shared/ui/ScreenHeader'
 import { topicIcon } from './topicIcon'
 import { TopicGlyph } from './TopicGlyph'
 import { sequenceFor } from '../../domain/library/catalog'
@@ -63,6 +64,7 @@ export function TopicPage({
   const offersPlacement = path?.nodes.some(node => node.kind === 'start' && node.offersPlacement) && canOfferMorsePlacement(topic)
 
   useLayoutEffect(() => {
+    // Ordinary topics dock one Test; the Morse tray reserves its own height.
     const bar = actionBar.current
     if (!bar) return
     const reserve = () => bar.closest<HTMLElement>('.topic')?.style.setProperty(
@@ -91,32 +93,29 @@ export function TopicPage({
 
   return (
     <article className={`topic topic-track-${topic.track}${course ? ' topic-morse' : ''}`}>
-      <div className={course ? 'topic-morse-controls' : undefined}>
-        <button className="quiet topic-back" type="button" aria-label="Back to previous screen" onClick={onBack}>
-          <span aria-hidden="true">←</span> Back
-        </button>
-        {course && <button className="quiet topic-morse-reference" type="button" onClick={() => onReference(topic.id)}>A–Z</button>}
-      </div>
-      {!course && <TopicHero topic={topic} />}
-      <header className="topic-head">
-        <h1 ref={heading} tabIndex={-1} className="topic-title">{topic.title}</h1>
-        {course ? <>
-          <div className="topic-morse-progress">
-            <div className="topic-morse-progress-track" role="img" aria-label={`${journey.acquisition.settled} of 26 letters`}>
-              <span style={{ width: `${journey.acquisition.settled / 26 * 100}%` }} />
-            </div>
-            <span className="topic-morse-count">{journey.acquisition.settled} / 26</span>
-          </div>
-          {offersPlacement && <button className="quiet topic-morse-placement" type="button" onClick={() => setPlacementOpen(true)}>Skip ahead</button>}
-        </> : <>
+      {course ? <ScreenHeader ref={heading} titleClassName="topic-title" title={topic.title}
+        onBack={onBack}
+        actions={<button className="quiet topic-morse-reference" type="button" onClick={() => onReference(topic.id)}>A–Z</button>}
+        progress={{ value: journey.acquisition.settled, max: 26, label: `${journey.acquisition.settled} of 26 letters` }}
+        readout={`${journey.acquisition.settled} / 26`}>
+        {offersPlacement && <button className="quiet topic-morse-placement" type="button" onClick={() => setPlacementOpen(true)}>Skip ahead</button>}
+      </ScreenHeader> : <>
+        <div>
+          <button className="quiet topic-back" type="button" aria-label="Back to previous screen" onClick={onBack}>
+            <span aria-hidden="true">←</span> Back
+          </button>
+        </div>
+        <TopicHero topic={topic} />
+        <header className="topic-head">
+          <h1 ref={heading} tabIndex={-1} className="topic-title">{topic.title}</h1>
           <p className="topic-scope">{sequence && topic.track !== 'survival' ? `${topic.items.length} rules, in order.` : topic.scope}</p>
           <p className="topic-state">
             <span className="topic-state-meta tabular">{topic.items.length} {topic.items.length === 1 ? 'item' : 'items'}</span>
             <span className={`topic-state-label${journey.phase === 'repair' ? ' is-repair' : topic.status === 'completed' || topic.status === 'drilled' ? ' is-banked' : ''}`}>{journey.statusLabel}</span>
           </p>
           {listening.total > 0 && <p className="topic-detail topic-listening">Listening: {listening.unaided} of {listening.total} answered by ear, unaided</p>}
-        </>}
-      </header>
+        </header>
+      </>}
 
       {!runnable && <div className="topic-unfinished">
         <p>This topic has no items yet. Add them as <code>prompt | answer</code>, one per line.</p>
@@ -124,9 +123,7 @@ export function TopicPage({
       </div>}
 
       {course ? <>
-        <div ref={actionBar} className="topic-morse-tray">
-          <MorseModeTray topic={topic} onStart={(_mode, entry) => { if (entry) startMorse(entry) }} />
-        </div>
+        <MorseModeTray className="topic-morse-tray" topic={topic} onStart={(_mode, entry) => { if (entry) startMorse(entry) }} />
         <MorseProgressPath topic={topic} onAction={startMorse} showJump={false} />
       </> : runnable ? <section className="topic-body" aria-labelledby="topic-reference-head">
         <RecallReference topic={topic} heading="What to remember" />

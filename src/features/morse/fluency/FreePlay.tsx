@@ -12,7 +12,7 @@ import {
 } from '../../../domain/morse/fluency/freePlay'
 import { fluencyTiming, type FluencyRung } from '../../../domain/morse/fluency/timing'
 import { MORSE_MAX_ELEMENTS, MorseKeyInput } from '../input/MorseKeyInput'
-import { SessionFrame } from '../session/SessionFrame'
+import { SessionFrame } from '../../../shared/ui/SessionFrame'
 import './Fluency.css'
 
 interface FreePlayProps {

@@ -1,0 +1,75 @@
+/* Mode tray (#243). Solid stimulus tiles, one word or two, no subtitle. Fixed
+   above phone navigation; in flow from 980px. */
+.mode-tray-dock {
+  position: fixed;
+  z-index: 10;
+  bottom: var(--nav-clearance, 90px);
+  left: 0;
+  right: 0;
+  background: var(--bg);
+}
+
+/* The tray reserves its own height on the screen that holds it, and keeps
+   focused controls clear of it. */
+:has(> .mode-tray-dock) {
+  padding-bottom: calc(var(--mode-tray-height, 112px) + var(--s-lg));
+}
+
+:has(> .mode-tray-dock) :is(button, a, input, select, textarea) {
+  scroll-margin-bottom: calc(var(--nav-clearance, 90px) + var(--mode-tray-height, 112px) + var(--s-lg));
+}
+
+.mode-tray {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 8px;
+  max-width: 760px;
+  margin-inline: auto;
+  padding: 8px;
+  border-top: 1px solid var(--line);
+  background: var(--bg);
+}
+
+.mode-tray-tile,
+.mode-tray-tile:hover,
+.mode-tray-tile:active {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 44px;
+  min-height: 88px;
+  padding: 12px 2px;
+  border: 0;
+  border-radius: 16px;
+  color: var(--tile-ink);
+  background: var(--tile-fill);
+  box-shadow: none;
+  transition: transform 150ms var(--ease);
+}
+
+/* Locked: a plate with a line and a lock, never a faded colour. */
+.mode-tray-tile[aria-disabled='true'] {
+  color: var(--muted);
+  background: var(--plate);
+  border: 1px solid var(--line);
+  cursor: default;
+  transform: none;
+}
+
+.mode-tray-stimulus { display: grid; place-items: center; height: 32px; }
+.mode-tray-label { font-size: 14px; font-weight: 700; line-height: 1.2; overflow-wrap: anywhere; }
+.mode-tray-lock { position: absolute; top: 6px; right: 6px; }
+.mode-tray-tile:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+@media (min-width: 980px) {
+  .mode-tray-dock { position: static; margin-top: var(--s-lg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mode-tray-tile { transition: none; }
+  .mode-tray-tile:active { transform: none; }
+}

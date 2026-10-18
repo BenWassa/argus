@@ -1,0 +1,76 @@
+/* Screen header (#243): Back and quiet actions, one title, one settled bar. */
+.screen-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s-md);
+}
+
+.screen-header-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-md);
+}
+
+.screen-header-back { padding-left: 0; }
+
+.screen-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-sm);
+  margin-left: auto;
+}
+
+.screen-header-actions button { min-width: 44px; }
+
+.screen-header-title-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-sm);
+  min-width: 0;
+}
+
+.screen-header-glyph {
+  display: grid;
+  flex: none;
+  place-items: center;
+}
+
+.screen-header-title {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.screen-header-title:focus { outline: none; }
+
+.screen-header-progress {
+  display: flex;
+  align-items: center;
+  gap: var(--s-md);
+}
+
+/* A recessed field with a solid action fill: the lit track. */
+.screen-header-track {
+  flex: 1;
+  height: 8px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--field);
+}
+
+.screen-header-track > span {
+  display: block;
+  height: 100%;
+  background: var(--action);
+}
+
+.screen-header-readout {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  white-space: nowrap;
+}

@@ -225,7 +225,9 @@
 }
 
 /* Topic content leads; one fixed action remains within thumb reach. */
-.topic { --topic-track: var(--learning); padding-bottom: calc(var(--topic-action-height, 96px) + var(--s-lg)); }
+.topic { --topic-track: var(--learning); }
+/* Ordinary topics reserve the docked Test; the Morse mode tray reserves itself. */
+.topic:not(.topic-morse) { padding-bottom: calc(var(--topic-action-height, 96px) + var(--s-lg)); }
 .topic-track-survival { --topic-track: var(--survival); }
 .topic-track-tradecraft { --topic-track: var(--tradecraft); }
 .topic-hero { margin-bottom: var(--s-xl); }
@@ -253,7 +255,7 @@
 .topic-recall-group-label { font-family: var(--font-mono); font-size: var(--t-component); letter-spacing: .12em; color: var(--topic-track); margin: var(--s-xl) 0 var(--s-sm); }
 
 
-.topic :is(button, a, input, select, textarea) {
+.topic:not(.topic-morse) :is(button, a, input, select, textarea) {
   scroll-margin-bottom: calc(var(--nav-clearance, 90px) + var(--topic-action-height, 96px) + var(--s-lg));
 }
 
@@ -262,24 +264,12 @@
 .topic-options h2,
 .topic-history h2 { font-size: var(--t-component); }
 
-/* The phone tray clears measured navigation; desktop puts modes above the path. */
-.topic-morse {
-  padding-bottom: calc(var(--topic-action-height, 112px) + var(--nav-clearance, 90px) + var(--s-lg));
-}
-.topic-morse-controls { display: flex; align-items: center; justify-content: space-between; gap: var(--s-md); margin-bottom: var(--s-md); }
-.topic-morse-controls .topic-back { margin-bottom: 0; }
-.topic-morse-reference { min-width: 44px; min-height: 44px; font-weight: 700; }
-.topic-morse-progress { display: flex; align-items: center; gap: var(--s-md); }
-.topic-morse-progress-track { flex: 1; height: 8px; overflow: hidden; border: 1px solid var(--line); background: var(--field); border-radius: 4px; }
-.topic-morse-progress-track span { display: block; height: 100%; background: var(--action); }
-.topic-morse-count { font-family: var(--font); font-variant-numeric: tabular-nums; font-weight: 700; white-space: nowrap; }
+/* Morse: ScreenHeader, ModeTray and ProgressSpine own the layout. The tray is
+   fixed above phone navigation, reserves its own height, and sits above the
+   path at desktop widths. */
+.topic-morse-reference { font-weight: 700; }
 .topic-morse-placement { justify-self: start; padding-left: 0; }
-.topic-morse-tray { position: fixed; z-index: 10; bottom: var(--nav-clearance, 90px); left: 0; right: 0; background: var(--bg); }
-.topic-morse-tray .morse-mode-tray { max-width: 760px; margin-inline: auto; }
 .topic-morse .morse-progress-path { margin-top: var(--s-lg); }
-.topic-morse :is(button, a) { scroll-margin-bottom: calc(var(--nav-clearance, 90px) + var(--topic-action-height, 112px) + var(--s-lg)); }
 @media (min-width: 980px) {
-  .topic-morse { max-width: 760px; padding-bottom: var(--s-lg); }
-  .topic-morse-tray { position: static; margin-top: var(--s-lg); }
-  .topic-morse :is(button, a) { scroll-margin-bottom: var(--s-lg); }
+  .topic-morse { max-width: 760px; }
 }

@@ -25,7 +25,7 @@ import { MorseCharacterSupport } from '../MorseCharacterSupport'
 import { useMorseAudio } from '../useMorseAudio'
 import { useKeyedResponse } from '../input/useKeyedResponse'
 import { fire } from '../../../shared/haptics'
-import { SessionFrame, SessionCorrect, RoundResult } from '../session/SessionFrame'
+import { SessionFrame, SessionCorrect, RoundResult } from '../../../shared/ui/SessionFrame'
 import './Fluency.css'
 
 interface FluencyRunProps {

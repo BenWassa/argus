@@ -345,3 +345,13 @@
     transition: none;
   }
 }
+
+/* Inside the shared session frame. */
+.session-frame .send-review-card {
+  background: var(--plate-raised, var(--surface-2));
+  box-shadow: none;
+}
+
+.session-frame .send-review-card h1.is-correct {
+  color: var(--session-colour);
+}

@@ -5,7 +5,7 @@ import { journeyFor } from '../../../domain/study/journey'
 import type { MorseLetter } from '../../../domain/morse/code'
 import { newMorsePractice, type PracticeDirection } from '../../../domain/morse/practice'
 import { LetterPracticeRun } from './LetterPracticeRun'
-import { SessionFrame } from '../session/SessionFrame'
+import { SessionFrame } from '../../../shared/ui/SessionFrame'
 
 /** The only write path in letter practice: formative observations alone. */
 export function LetterPracticeSurface({ topicId, onExit, direction }: { direction?: PracticeDirection; topicId: string; onExit: () => void }) {

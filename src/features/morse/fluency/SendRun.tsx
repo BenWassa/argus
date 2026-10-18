@@ -24,7 +24,7 @@ import { MORSE_MAX_ELEMENTS, MorseKeyInput } from '../input/MorseKeyInput'
 import { useKeyedResponse } from '../input/useKeyedResponse'
 import { MorseCharacterSupport } from '../MorseCharacterSupport'
 import { useMorseAudio } from '../useMorseAudio'
-import { SessionFrame, SessionCorrect, RoundResult } from '../session/SessionFrame'
+import { SessionFrame, SessionCorrect, RoundResult } from '../../../shared/ui/SessionFrame'
 import './SendRun.css'
 
 interface SendRunProps {

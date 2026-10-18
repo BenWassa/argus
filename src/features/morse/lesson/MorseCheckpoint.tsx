@@ -9,7 +9,7 @@ import { MorseKeyInput } from '../input/MorseKeyInput'
 import { MorseCharacterSupport } from '../MorseCharacterSupport'
 import { useMorseAudio } from '../useMorseAudio'
 import { useKeyedResponse } from '../input/useKeyedResponse'
-import { SessionFrame, SessionCorrect } from '../session/SessionFrame'
+import { SessionFrame, SessionCorrect } from '../../../shared/ui/SessionFrame'
 import './MorseCheckpoint.css'
 
 interface MorseCheckpointProps {

@@ -1,4 +1,5 @@
 import { FLUENCY_RUNGS, nextRung, previousRung, type FluencyRung } from '../../../domain/morse/fluency/timing'
+import './Fluency.css'
 
 /**
  * The one listening dial, moved from the retired Fluency hub into the Listen

@@ -16,7 +16,7 @@ describe('Morse mode tray', () => {
     for (const { label } of MORSE_MODES) {
       const tile = screen.getByRole('button', { name: label })
       expect(tile.getAttribute('aria-disabled')).toBe('true')
-      expect(tile.querySelector('.morse-mode-lock')).not.toBeNull()
+      expect(tile.querySelector('.mode-tray-lock')).not.toBeNull()
       fireEvent.click(tile)
     }
     expect(onStart).not.toHaveBeenCalled()
