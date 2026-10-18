@@ -59,8 +59,8 @@ function sourceFiles(root: string): string[] {
 
 function importsOf(path: string): string[] {
   const source = readFileSync(path, 'utf8')
-  return [...source.matchAll(/from\s+'([^']+)'|import\('([^']+)'\)/g)]
-    .map((match) => match[1] ?? match[2])
+  return [...source.matchAll(/(?:from\s*|import\s*\(\s*|import\s*)['"]([^'"]+)['"]/g)]
+    .map((match) => match[1])
     .filter((specifier) => specifier.startsWith('.'))
 }
 
@@ -71,6 +71,17 @@ const layerOf = (path: string) => path.split('/')[1]
 const sources = sourceFiles(SRC)
 
 describe('the layers point one way', () => {
+  it('keeps development fixtures behind the main entry point', () => {
+    for (const absolute of sources) {
+      const file = asPath(absolute)
+      if (file === 'src/main.tsx' || file.startsWith('src/dev/')) continue
+      for (const specifier of importsOf(absolute)) {
+        const target = asPath(normalize(join(dirname(absolute), specifier)))
+        expect(target.startsWith('src/dev/'), `${file} imports ${target}`).toBe(false)
+      }
+    }
+  })
+
   it('has found the source tree it is checking', () => {
     expect(sources.length).toBeGreaterThan(50)
   })

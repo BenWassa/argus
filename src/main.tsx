@@ -13,10 +13,12 @@ if (import.meta.env.DEV) {
   }
 }
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
-
-registerServiceWorker()
+const root = createRoot(document.getElementById('root')!)
+if (import.meta.env.DEV && new URLSearchParams(window.location.search).get('palette') === 'sheet') {
+  void import('./dev/palette/PaletteSheet').then(({ PaletteSheet }) => {
+    root.render(<StrictMode><PaletteSheet /></StrictMode>)
+  })
+} else {
+  root.render(<StrictMode><App /></StrictMode>)
+  registerServiceWorker()
+}
