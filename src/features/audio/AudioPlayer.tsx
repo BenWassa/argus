@@ -44,13 +44,19 @@ export function AudioPlayer({ src, label, onPlay, onUnavailable }: AudioPlayerPr
     function stop() {
       try {
         element?.pause()
+        setState(previous => previous === 'playing' ? 'ended' : previous)
       } catch {
         // A detached or unsupported element has nothing to stop.
       }
     }
-    // A backgrounded page must not keep talking.
+    // Switching tabs and locking a phone do not reliably fire pagehide.
+    function onVisibilityChange() {
+      if (document.hidden) stop()
+    }
+    document.addEventListener('visibilitychange', onVisibilityChange)
     window.addEventListener('pagehide', stop)
     return () => {
+      document.removeEventListener('visibilitychange', onVisibilityChange)
       window.removeEventListener('pagehide', stop)
       stop()
     }

@@ -14,6 +14,7 @@
   display: flex;
   gap: var(--s-sm);
   align-items: center;
+  min-height: 44px;
   margin-bottom: var(--s-lg);
   font-size: var(--t-small);
   cursor: pointer;

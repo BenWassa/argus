@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react'
 import { MorseAudioPlayer } from '../../../domain/morse/audio'
 import { canonicalPattern } from '../../../domain/morse/testing/acquisitionProfile'
 import {
@@ -29,6 +29,7 @@ type Side = 'key' | 'hear'
  */
 export function FreePlay({ rung, onExit }: FreePlayProps) {
   const [side, setSide] = useState<Side>('key')
+  const tabsId = useId()
   const [tokens, setTokens] = useState<FreeToken[]>([])
   const [entry, setEntry] = useState('')
   const [letterToken, setLetterToken] = useState(0)
@@ -96,7 +97,8 @@ export function FreePlay({ rung, onExit }: FreePlayProps) {
   useEffect(() => {
     if (side !== 'key') return
     function onKeyDown(event: KeyboardEvent) {
-      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return
+      if (event.target instanceof Element && event.target.closest('input, textarea, select, button, a, [contenteditable], [role="tab"]')) return
+      if (event.altKey || event.ctrlKey || event.metaKey || event.repeat) return
       if (event.key === ' ') {
         event.preventDefault()
         space()
@@ -130,6 +132,20 @@ export function FreePlay({ rung, onExit }: FreePlayProps) {
     setPlaying(false)
   }
 
+  function selectSide(next: Side) {
+    finishLetter()
+    stop()
+    setSide(next)
+  }
+
+  function onTabKeyDown(event: ReactKeyboardEvent<HTMLDivElement>) {
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return
+    event.preventDefault()
+    const next = event.key === 'Home' ? 'key' : event.key === 'End' ? 'hear' : side === 'key' ? 'hear' : 'key'
+    selectSide(next)
+    document.getElementById(`${tabsId}-${next}-tab`)?.focus()
+  }
+
   const keyedText = tokensText(tokens)
   const hear = playableText(typed)
 
@@ -154,32 +170,35 @@ export function FreePlay({ rung, onExit }: FreePlayProps) {
         </p>
       </header>
 
-      <div className="free-play-tabs" role="tablist" aria-label="Free play">
+      <div className="free-play-tabs" role="tablist" aria-label="Free play" onKeyDown={onTabKeyDown}>
         <button
           type="button"
           role="tab"
+          id={`${tabsId}-key-tab`}
+          aria-controls={`${tabsId}-panel`}
+          tabIndex={side === 'key' ? 0 : -1}
           aria-selected={side === 'key'}
           className={side === 'key' ? undefined : 'ghost'}
-          onClick={() => setSide('key')}
+          onClick={() => selectSide('key')}
         >
           Key it
         </button>
         <button
           type="button"
           role="tab"
+          id={`${tabsId}-hear-tab`}
+          aria-controls={`${tabsId}-panel`}
+          tabIndex={side === 'hear' ? 0 : -1}
           aria-selected={side === 'hear'}
           className={side === 'hear' ? undefined : 'ghost'}
-          onClick={() => {
-            finishLetter()
-            setSide('hear')
-          }}
+          onClick={() => selectSide('hear')}
         >
           Hear it
         </button>
       </div>
 
       {side === 'key' ? (
-        <div className="free-play-body" role="tabpanel" aria-label="Key it">
+        <div className="free-play-body" role="tabpanel" id={`${tabsId}-panel`} aria-labelledby={`${tabsId}-key-tab`}>
           <p className="free-play-output mono" aria-live="polite" aria-label={keyedText ? `Spelled: ${keyedText}` : 'Nothing keyed yet'}>
             {tokens.length === 0 && !entry ? (
               <span className="free-play-placeholder">Start keying</span>
@@ -209,6 +228,10 @@ export function FreePlay({ rung, onExit }: FreePlayProps) {
             expectedLength={MORSE_MAX_ELEMENTS}
             advanceToken={letterToken}
             locked={playing}
+            onPressStart={() => {
+              if (pauseTimer.current !== null) window.clearTimeout(pauseTimer.current)
+              pauseTimer.current = null
+            }}
             onEntry={onEntry}
             onSubmit={finishLetter}
           />
@@ -237,7 +260,7 @@ export function FreePlay({ rung, onExit }: FreePlayProps) {
           </div>
         </div>
       ) : (
-        <div className="free-play-body" role="tabpanel" aria-label="Hear it">
+        <div className="free-play-body" role="tabpanel" id={`${tabsId}-panel`} aria-labelledby={`${tabsId}-hear-tab`}>
           <label className="sr-only" htmlFor="free-play-text">
             Text to hear
           </label>

@@ -46,7 +46,7 @@ test('focused role shows all three open pathways and no premature badge', async 
   expect(overflow).toBe(false)
 })
 
-test('Navigator selector offers only earnable roles and continues directly into a Test', async ({ page }) => {
+test('Navigator selector offers only earnable roles and starts with the topic reference', async ({ page }) => {
   await openWith(page)
   const selector = page.getByRole('combobox', { name: 'Choose a role' })
   await expect(selector.locator('option')).toHaveText(['Communicator', 'Navigator', 'Mariner'])
@@ -61,10 +61,12 @@ test('Navigator selector offers only earnable roles and continues directly into 
   await lockedBadge.evaluate((image: HTMLImageElement) => image.decode())
   expect(await lockedBadge.evaluate((image: HTMLImageElement) => [image.naturalWidth, image.naturalHeight])).toEqual([512, 512])
   expect(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)).toBe(false)
-  const continueButton = page.getByRole('button', { name: /^Continue:/ })
+  const continueButton = page.getByRole('button', { name: /^Start:/ })
   await expect(continueButton).toBeVisible()
+  const nextTitle = (await continueButton.innerText()).replace(/^Start: /, '')
   await continueButton.click()
-  await expect(page.locator('.session-shell')).toBeVisible()
+  await expect(page.locator('.topic-title')).toHaveText(nextTitle)
+  await expect(page.locator('.session-shell')).toHaveCount(0)
   await page.goBack()
   await expect(page.getByRole('heading', { name: 'Navigator', level: 1 })).toBeVisible()
 })
@@ -139,7 +141,7 @@ test('earned award stays earned after retention decay', async ({ page }) => {
   await openWith(page, true, true)
   await expect(page.getByText('Communicator earned', { exact: true })).toBeVisible()
   await expect(page.getByText('7 of 7 topics complete')).toBeVisible()
-  await expect(page.getByText('Some topics need refreshing. Your badge remains earned.')).toBeVisible()
+  await expect(page.getByText('Some topics need repair. Your badge remains earned.')).toBeVisible()
   await expect(page.locator('.roles-medallion.is-earned')).toBeVisible()
   await page.locator('.roles-medallion').evaluate((image: HTMLImageElement) => image.decode())
   await expect(page.locator('.roles-path-count', { hasText: 'Complete' })).toHaveCount(3)

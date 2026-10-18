@@ -54,7 +54,7 @@ Use the [radio reviewer pack](ISSUE_150_HUMAN_REVIEW.md) and maintained [maritim
 - [ ] First press produces Morse audio reliably after cold open and after interruption.
 - [ ] Sending timing, word gaps, touch release/cancel, background/foreground and interrupted sessions behave correctly.
 - [ ] Final Learn, qualified Test, nonqualifying/review/repair and returning Morse states offer truthful actions; direct “Send five words” launches the named challenge.
-- [ ] Owner reviews actual 390px active/miss/result/handoff states against #212/#215. Embedded architecture already has owner approval; record exact visual acceptance separately. Use the [S1A scope review](ISSUE_201_S1A_SCOPE_REVIEW.md) for combined navigation, checkpoint and imported-state checks.
+- [ ] Owner reviews actual 390px active/miss/result/handoff states against #212/#215. Embedded architecture already has owner approval; record exact visual acceptance separately. Use the [S1A scope review](morse/ISSUE_201_S1A_SCOPE_REVIEW.md) for combined navigation, checkpoint and imported-state checks.
 
 ### 6. Offline / sync — #113 after integration
 

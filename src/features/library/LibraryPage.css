@@ -27,7 +27,7 @@
   gap: var(--s-xs);
   width: 44px;
   transform: translateY(-50%);
-  transition: width var(--t-fast) var(--ease);
+  transition: none;
 }
 
 .lib-search-box.is-open {
@@ -172,21 +172,8 @@
 
 /* ------------------------------------------------------------------ rows -- */
 
-/* Arrival. The list rises into place once, top first, so opening Library
-   reads as a drawer sliding out rather than a page swapping. Transform and
-   opacity only; the stagger is capped so a long library is never waited on. */
-.lib-entry {
-  animation: lib-row-in 300ms var(--ease) both;
-  animation-delay: calc(var(--order, 0) * 24ms);
-}
-
-@keyframes lib-row-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-}
-
+/* Topics are available immediately when Library opens. Progress gauges keep
+   their own state feedback without delaying the list's readability. */
 /* Each topic is a stamped plate. A started topic's plate is raised, bevelled
    top and bottom; one not yet started sits flush with the chassis. The whole
    plate is the control, so there is no chevron: a plate already says "press". */
@@ -356,7 +343,7 @@
 .lib-fab {
   position: fixed;
   right: max(var(--s-lg), env(safe-area-inset-right));
-  bottom: calc(72px + var(--s-lg) + env(safe-area-inset-bottom));
+  bottom: calc(var(--nav-clearance, 80px) + var(--s-lg));
   z-index: 25;
   width: 56px;
   height: 56px;
@@ -430,3 +417,6 @@
   font-size: var(--t-small);
   color: var(--subtle);
 }
+
+/* Long names must reflow inside the plate at enlarged text sizes. */
+.lib-row .index-title { min-width: 0; overflow-wrap: anywhere; }

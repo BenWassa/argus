@@ -14,7 +14,7 @@
 Test floor, reviews the learner chooses, guided Send, Copy, figures and
 punctuation, free play and the extended spacing ladder. `MORSE_FLUENCY.md` still governs
 the Fluency surface this extends; `MORSE_CUE_LADDER.md` still governs the
-ladder for anyone mid-curriculum; `PROGRESS_ARCHITECTURE.md` still governs the
+ladder for anyone mid-curriculum; `../PROGRESS_ARCHITECTURE.md` still governs the
 state boundaries none of this crosses.
 
 **Last verified:** shipped status reconciled 2026-10-13; physical Pixel acceptance remains unperformed.

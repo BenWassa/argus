@@ -1,0 +1,133 @@
+/* Owns the shared fluency shell and Home mode/spacing controls. */
+.fluency-home,
+.fluency-run {
+  display: grid;
+  align-content: start;
+  gap: var(--s-lg);
+  padding-bottom: max(var(--s-2xl), env(safe-area-inset-bottom));
+}
+
+.fluency-head {
+  display: grid;
+  gap: var(--s-sm);
+  width: min(100%, 36rem);
+  margin-inline: auto;
+}
+
+.fluency-head h1 {
+  margin: 0;
+  outline: none;
+}
+
+/* ---- the one dial ---------------------------------------------------- */
+
+.fluency-rung {
+  display: grid;
+  gap: var(--s-xs);
+  width: min(100%, 36rem);
+  margin-inline: auto;
+}
+
+.fluency-rung-label {
+  margin: 0;
+  font-size: var(--t-component);
+}
+
+.fluency-rung .note {
+  margin: 0;
+}
+
+.fluency-rung-controls {
+  display: flex;
+  gap: var(--s-sm);
+  margin-top: var(--s-xs);
+}
+
+/* ---- modes ------------------------------------------------------------ */
+
+.fluency-modes {
+  display: grid;
+  gap: var(--s-sm);
+  width: min(100%, 36rem);
+  margin: 0 auto;
+  padding: 0;
+  list-style: none;
+}
+
+/* A panel that is also a control, so it takes the panel face from the base
+   rather than the polished primary one the element would otherwise give it. */
+.fluency-mode {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  color: var(--ink);
+  text-align: left;
+  transition: border-color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+}
+
+.fluency-mode:hover {
+  border-color: var(--line-hover);
+  background: var(--surface-2);
+}
+
+.fluency-mode-title {
+  font-size: var(--t-component);
+  font-weight: var(--w-section);
+}
+
+.fluency-mode-purpose {
+  color: var(--muted);
+  font-size: var(--t-small);
+}
+
+.fluency-mode-meta {
+  margin-top: var(--s-xs);
+  color: var(--subtle);
+  font-size: var(--t-label);
+}
+
+.fluency-mode.is-next {
+  border-color: var(--accent);
+}
+
+/* ---- copy ------------------------------------------------------------- */
+
+.fluency-section {
+  display: grid;
+  gap: var(--s-sm);
+  width: min(100%, 36rem);
+  margin-inline: auto;
+}
+
+.fluency-stage-picker {
+  width: min(100%, 36rem);
+  border-top: 1px solid var(--line);
+}
+
+.fluency-stage-picker > summary {
+  display: flex;
+  align-items: center;
+  min-height: var(--control-h);
+  color: var(--muted);
+  font-size: var(--t-small);
+  cursor: pointer;
+}
+
+.fluency-stage-picker[open] > summary {
+  margin-bottom: var(--s-sm);
+  color: var(--ink);
+}
+
+.copy-next-tag {
+  margin-left: var(--s-sm);
+  padding: 0 var(--s-xs);
+  border: 1px solid var(--accent);
+  border-radius: var(--r-pill);
+  color: var(--accent);
+  font-size: var(--t-label);
+  font-weight: var(--w-section);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+

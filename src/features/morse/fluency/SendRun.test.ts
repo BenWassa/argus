@@ -7,7 +7,10 @@ function read(path: string): string {
 }
 
 describe('guided Morse sending surface', () => {
-  const source = read('src/features/morse/fluency/SendRun.tsx')
+  const source = [
+    'src/features/morse/fluency/SendRun.tsx',
+    'src/features/morse/fluency/useSendRun.ts',
+  ].map(read).join('\n')
   const css = read('src/features/morse/fluency/SendRun.css')
   const domain = read('src/domain/morse/fluency/send.ts')
 

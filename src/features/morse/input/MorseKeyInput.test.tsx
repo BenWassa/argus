@@ -10,7 +10,10 @@ import {
 } from './MorseKeyInput'
 
 function source(file: string): string {
-  return readFileSync(fileURLToPath(new URL(file, import.meta.url)), 'utf8')
+  const files = file === './MorseKeyInput.tsx'
+    ? ['./MorseKeyInput.tsx', './useMorseKeyPress.ts', './useMorseSidetone.ts', './morseKeying.ts']
+    : [file]
+  return files.map((path) => readFileSync(fileURLToPath(new URL(path, import.meta.url)), 'utf8')).join('\n')
 }
 
 describe('one-touch Morse key', () => {

@@ -5,11 +5,11 @@
 **Audit:** Original scoping inventory inspected default-branch source on 2026-10-16. The implementation review below adds real Chromium captures at 320/390 CSS px; physical Pixel and deployed-app acceptance remain outstanding.
 **Issue:** https://github.com/BenWassa/argus/issues/221
 **Related:** #201 / PRs #209, #212, #215; #188; #87; #90; #76; #113.
-**Authorities:** `DESIGN.md`, `DESIGN.json`, `src/styles/tokens.css`, `PRODUCT.md`, `MORSE_LESSON.md`, `MORSE_CUE_LADDER.md`, `MORSE_FLUENCY.md`, `PROGRESS_ARCHITECTURE.md`, `MORSE_AUDIO_RUNTIME.md`, `ISSUE_201_MORSE_GAMEPLAY_CONTINUITY.md`.
+**Authorities:** `DESIGN.md`, `DESIGN.json`, `src/styles/tokens.css`, `PRODUCT.md`, `MORSE_LESSON.md`, `MORSE_CUE_LADDER.md`, `MORSE_FLUENCY.md`, `../PROGRESS_ARCHITECTURE.md`, `MORSE_AUDIO_RUNTIME.md`, `ISSUE_201_MORSE_GAMEPLAY_CONTINUITY.md`.
 
 ## Implementation record — 2026-10-16
 
-The owner requested review and full implementation of today's issue. Work was developed on `fix/221-morse-practice` and integrated into `main`; the [release closeout](../closed/RELEASE_1_5_3.md) records deployment verification. This record does not claim physical-device acceptance.
+The owner requested review and full implementation of today's issue. Work was developed on `fix/221-morse-practice` and integrated into `main`; the [release closeout](../../closed/RELEASE_1_5_3.md) records deployment verification. This record does not claim physical-device acceptance.
 
 - `Practice letters` opens a ten-prompt round directly from Morse Topic. Key, Read and Listen maintain independent histories. New learners use canonically settled letters; historically acquisition-ready learners retain all A–Z. Zero eligible letters leads back to Learn without inventing knowledge.
 - The incremental scheduler uses the proposed bounded weight, three need draws per coverage draw, recent-letter spacing, and event order only. The E-five-correct/Y-four-misses seeded regression retains exploration. No calendar influences selection.

@@ -165,8 +165,15 @@ export function AppRouter() {
     if (replace) replaceNavigationState(next, historyIndex.current)
     else historyIndex.current = pushNavigationState(next, historyIndex.current)
 
+    // Clear the previous page's scroll before mounting the next task, so its
+    // own focus policy can still bring an input into view on short screens.
+    // Back/Forward retain the existing traversal/restoration path.
+    window.scrollTo(0, 0)
     routeRef.current = next
     setRoute(next)
+    if (next.kind === 'section') {
+      window.requestAnimationFrame(() => document.getElementById('main')?.focus({ preventScroll: true }))
+    }
   }
 
   function goBack() {

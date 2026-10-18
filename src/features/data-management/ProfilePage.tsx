@@ -100,16 +100,15 @@ export function ProfilePage({ onBack }: { onBack: () => void }) {
 
       <h1>Profile</h1>
       <p className="lede-text">
-        Account, sync and data controls. Learning content stays in Library; these controls manage
-        the copy of Argus that belongs to you.
+        Your account, device and library backups.
       </p>
 
       <Sync state={sync.state} onSignIn={sync.signIn} onSignOut={sync.signOut} />
 
       <h2 className="profile-section-title">Offline availability</h2>
       <p className="lede-text">
-        <strong>{online ? 'Online' : 'Offline'}.</strong> The shipped curriculum is bundled with
-        Argus. Full offline relaunch and restart-safe sync are not yet guaranteed.
+        <strong>{online ? 'Online' : 'Offline'}.</strong> Topics are saved on this device.
+        Reopening Argus offline and syncing after a restart are not yet guaranteed.
       </p>
       <p className="note">
         {storage === null
@@ -121,8 +120,8 @@ export function ProfilePage({ onBack }: { onBack: () => void }) {
 
       <h2 className="profile-section-title">Data &amp; backup</h2>
       <p className="lede-text">
-        Export writes the whole learner record to a JSON file you own. Import replaces your local
-        learner record. An entirely empty legacy record is repaired back to the shipped baseline.
+        Export saves your topics and learning history to a JSON file. Import replaces the record
+        on this device. Export first to keep a backup.
       </p>
 
       <div className="actions start">
@@ -298,8 +297,8 @@ function Sync({
       <>
         <h2 className="profile-section-title">Account &amp; sync</h2>
         <p className="lede-text">
-          This build has no Firebase configuration, so there is nothing to sign in to. Export and
-          import carry the library between devices instead.
+          Account sync is unavailable in this build. Use export and import to move your library
+          between devices.
         </p>
       </>
     )
@@ -309,10 +308,8 @@ function Sync({
     <>
       <h2 className="profile-section-title">Account &amp; sync</h2>
       <p className="lede-text">
-        Signing in with Google keeps this library on your own devices in step. The copy in this
-        browser stays the one Argus reads and writes, so Argus works the same offline, and signing
-        out leaves everything here exactly as it is. If the same topic changes on two devices,
-        neither copy is overwritten and it is named below for you to settle.
+        Google sign-in keeps your devices in step. Signing out keeps the library on this device.
+        If a topic changes on two devices, both copies are kept for you to resolve.
       </p>
 
       <div className="actions start">
@@ -383,8 +380,7 @@ function Haptics() {
     <>
       <h2 className="profile-section-title">Feedback</h2>
       <p className="lede-text">
-        Short taps confirm a keyed element, a right answer and a wrong one. They
-        never carry information on their own.
+        Feel a short tap when you key Morse or answer a question.
       </p>
       <label className="profile-toggle">
         <input

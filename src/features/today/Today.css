@@ -10,9 +10,9 @@
 
 .today-brand {
   margin: 0;
-  font-family: "Black Ops One", system-ui, sans-serif;
+  font-family: var(--font-display);
   font-size: var(--t-wordmark);
-  font-weight: 400;
+  font-weight: var(--w-page);
   font-style: normal;
   line-height: 1;
   text-transform: uppercase;

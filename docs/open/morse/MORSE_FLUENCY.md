@@ -3,7 +3,7 @@
 **Status:** #221 adaptive practice and shared corrections released in v1.5.3; base implemented under #119; guided Send extension merged via #195 and included in v1.5.0; real Pixel acceptance remains outstanding.
 
 **Authority:** maintained Fluency contract; #221 navigation and shared corrections are released in v1.5.3. `MORSE_PROGRAMME_PLAN.md`
-still governs the A–Z acquisition programme, `PROGRESS_ARCHITECTURE.md` still
+still governs the A–Z acquisition programme, `../PROGRESS_ARCHITECTURE.md` still
 governs the state boundaries this surface must not cross, and
 `MORSE_AUDIO_RUNTIME.md` still governs every Morse audio entry point including
 this one.
@@ -12,7 +12,7 @@ this one.
 
 > **Misses lead — 2026-09-30.** `fluencyNeed` takes an optional focus set, and adds a bounded `FOCUS_NEED` (150) for a letter the learner is currently missing. The set is `morseFocusLetters`: a lesson letter still owed, or a Test direction whose last answer was wrong. Every Fluency run and the Copy *letters* level weight it. "Practise the letters you missed", from the topic page or a check's end screen, now opens a **keyed Fluency sprint over just those letters** (route `{ kind: 'fluency', mode: 'sprint', letters }`), not the reveal-and-self-grade practice run. It writes only `morseFluency`, as before.
 
-**Extended by:** `docs/open/MORSE_INTERMEDIATE_PATH.md` — guided Send, Copy,
+**Extended by:** `docs/open/morse/MORSE_INTERMEDIATE_PATH.md` — guided Send, Copy,
 free play, figures and punctuation, and the ladder past 13 WPM.
 
 **Issue:** #119

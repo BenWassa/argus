@@ -5,6 +5,8 @@ Documentation is grouped by lifecycle:
 - `open/` contains current product, architecture, implementation, and decision documents. A document may describe shipped behavior and still belong here when it remains the maintained contract.
 - `closed/` contains completed closeouts, historical research, and superseded proposals. These documents are retained for rationale and provenance, but should not be treated as current guidance unless an open document explicitly points to them.
 
+Topic documentation may be grouped within its lifecycle folder. The [Morse hub](open/morse/README.md) indexes current contracts and links to historical records that remain in `closed/`.
+
 When adding or updating a document:
 
 1. Put active work or a maintained contract in `open/`.
