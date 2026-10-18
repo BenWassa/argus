@@ -78,6 +78,7 @@ The **full offline-first runtime guarantee is active scope in #113**, not yet a 
 - [Pre-release PR review](docs/closed/PRE_RELEASE_PR_REVIEW.md) — merge readiness, prepared cleanup and the outstanding offline durability blocker.
 - [Human acceptance checklist](docs/open/HUMAN_ACCEPTANCE_CHECKLIST.md) — one review session for prepared scuba, Analyst, radio, badge, Pixel, offline and permission gates.
 - [Next-batch checkpoint](docs/open/NEXT_BATCHES.md) — completed merges, remaining offline integration and owner/external gates.
+- [UI overhaul plan (#225)](docs/open/ISSUE_225_UI_OVERHAUL.md) — baseline Morse critique (24/40), owner decisions and the #226–#233 issue map on `feat/ui-overhaul`.
 - [Offline shell and update safety](docs/open/ISSUE_113_OFFLINE_SHELL.md) — generation-pinned navigation and failed-update verification; merged hardening.
 - [IndexedDB persistence foundation](docs/open/ISSUE_113_INDEXEDDB_FOUNDATION.md) — native database/outbox boundary and browser verification; production integration remains open.
 - [Signal flag authoritative comparison](docs/open/ISSUE_148_PUB102_COMPARISON.md) — NGA comparison findings and remaining IMO/domain acceptance gates.
