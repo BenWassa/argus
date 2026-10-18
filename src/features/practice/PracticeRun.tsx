@@ -12,6 +12,7 @@ import type { Topic } from '../../domain/library/topic'
 import { testCardTextClass } from '../test/textScale'
 import { VisualView } from '../visual/VisualView'
 import { AudioStimulusView } from '../audio/AudioStimulusView'
+import { SessionFrame } from '../../shared/ui/SessionFrame'
 import './PracticeRun.css'
 
 interface PracticeRunProps {
@@ -103,58 +104,34 @@ export function PracticeRun({ topic, itemIds, onExit, onCheck }: PracticeRunProp
 
   if (initial.length === 0) return null
 
+  // Settled of total: a miss re-queues its target, so this only ever advances.
+  // Practice takes the action pair. The track tokens have no matching ink, so
+  // there is no readable pair to hand the frame.
+  const progress = { current: Math.min(state.settled.length, initial.length), total: initial.length }
+
   if (finished) {
-    const missedAgain = state.answered - state.settled.length
     return (
-      <section className="session practice-run">
-        <div className="session-bar">
-          <p>
-            <span className="session-topic">{topic.title}</span>
-            <span className="session-mode">Practice</span>
-          </p>
-          <button className="ghost small" type="button" onClick={onExit}>
-            Close
-          </button>
-        </div>
+      <SessionFrame kind="practice" title="Practice" progress={{ current: initial.length, total: initial.length }} onClose={onExit} className="practice-run">
         <div className="practice-summary">
           <h1 ref={headingRef} tabIndex={-1}>
             Practice done
           </h1>
-          <p>
-            You went through {state.settled.length}{' '}
-            {state.settled.length === 1 ? 'retrieval' : 'retrievals'}
-            {missedAgain > 0 ? `, ${missedAgain} of them more than once` : ''}. Nothing was
-            recorded and nothing moved: practice is for getting it back, and the check is what
-            proves it.
-          </p>
-          <button type="button" onClick={onCheck}>
-            Take the check
-          </button>
-          <button className="ghost" type="button" onClick={onExit}>
-            Not now
-          </button>
+          <p>Nothing recorded. Only the check counts.</p>
+          <div className="practice-summary-actions">
+            <button type="button" onClick={onCheck}>
+              Take the check
+            </button>
+            <button className="ghost" type="button" onClick={onExit}>
+              Not now
+            </button>
+          </div>
         </div>
-      </section>
+      </SessionFrame>
     )
   }
 
-  const remaining = state.queue.length
-
   return (
-    <section className="session practice-run" aria-labelledby="practice-heading">
-      <div className="session-bar">
-        <p>
-          <span className="session-topic">{topic.title}</span>
-          <span className="session-mode">Practice</span>
-        </p>
-        {/* How many are left, as a number. The word `Practice` is already on
-            the row and does not need repeating beside the count. */}
-        <span className="session-count tabular" aria-label={`${remaining} to go`}>{remaining}</span>
-        <button className="ghost small" type="button" onClick={onExit}>
-          Close
-        </button>
-      </div>
-
+    <SessionFrame kind="practice" title="Practice" progress={progress} onClose={onExit} className="practice-run" aria-labelledby="practice-heading">
       <h1 id="practice-heading" className="sr-only">
         Practice {topic.title}
       </h1>
@@ -165,10 +142,8 @@ export function PracticeRun({ topic, itemIds, onExit, onCheck }: PracticeRunProp
       {state.feedback && (
         <div className="practice-feedback" role="status" aria-live="assertive">
           <strong>Not that one</strong>
-          <span>
-            The answer is <span className="mono">{state.feedback.answer}</span>. It comes back
-            before the end.
-          </span>
+          <span className="practice-label">Answer</span>
+          <span className="practice-feedback-answer">{state.feedback.answer}</span>
           <button type="button" onClick={next}>
             Continue
           </button>
@@ -224,6 +199,6 @@ export function PracticeRun({ topic, itemIds, onExit, onCheck }: PracticeRunProp
           )}
         </div>
       )}
-    </section>
+    </SessionFrame>
   )
 }

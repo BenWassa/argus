@@ -56,6 +56,6 @@ test('a Test launched from the end of a long topic opens at the session header',
   const early = page.getByRole('button', { name: 'Test A–Z early' })
   if (await early.count()) await early.click()
   else await page.locator('.topic-primary').click()
-  await expect(page.locator('.session-bar')).toBeVisible()
+  await expect(page.locator('.session-frame-header')).toBeVisible()
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0)
 })

@@ -39,7 +39,7 @@ function storedMorse(): Topic {
 }
 
 function position(): string {
-  return document.querySelector('.session-count')?.textContent ?? ''
+  return document.querySelector('.session-frame-progress')?.getAttribute('aria-label') ?? ''
 }
 
 /** Answer whatever card is up, rightly or wrongly, and move past its feedback. */
@@ -58,7 +58,7 @@ async function answerCard() {
           window.dispatchEvent(new KeyboardEvent('keydown', { key: '.' }))
         })
       }
-      expect(position() !== before || screen.queryByRole('heading', { name: 'Review done' })).toBeTruthy()
+      expect(position() !== before || document.querySelector('.test-done')).toBeTruthy()
     },
     { timeout: 8000, interval: 60 },
   )
@@ -84,8 +84,8 @@ describe('a Test the learner chose as a review', () => {
         <TestSession topicIds={[MORSE_ID]} review onExit={() => undefined} />
       </LibraryProvider>,
     )
-    expect(position()).toBe(`1/${REVIEW_LENGTH}`)
-    expect(screen.getByRole('button', { name: 'End review' })).toBeTruthy()
+    expect(position()).toBe(`0 of ${REVIEW_LENGTH}`)
+    expect(screen.getByRole('button', { name: 'Close' })).toBeTruthy()
     // Uncued: no rhythm phrase, no element count.
     expect(document.querySelector('.morse-phrase')).toBeNull()
     expect(document.body.textContent).not.toMatch(/\d+ signals?/)
@@ -100,7 +100,7 @@ describe('a Test the learner chose as a review', () => {
     )
 
     for (let card = 0; card < REVIEW_LENGTH; card += 1) await answerCard()
-    await waitFor(() => expect(screen.getByRole('heading', { name: 'Review done' })).toBeTruthy())
+    await waitFor(() => expect(document.querySelector('.test-done')).not.toBeNull())
 
     const after = storedMorse()
     expect(after.status).toBe(before.status)
@@ -115,6 +115,6 @@ describe('a Test the learner chose as a review', () => {
     // And nothing was put back on a cue after a miss.
     for (const evidence of Object.values(after.itemEvidence ?? {})) expect(evidence.cue).toBe('free')
 
-    expect(document.body.textContent).toContain('moves nothing on the ladder')
+    expect(document.body.textContent).toContain('review, ladder unchanged')
   }, 60000)
 })

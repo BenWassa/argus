@@ -74,9 +74,8 @@
 .practice-feedback {
   display: grid;
   gap: var(--s-xs);
-  /* A miss is the only thing that stops the run, so this block always reports
-     one. It reads in the same warning the rest of the app gives decay: it
-     routes work, it does not scold. The panel base carries the rest. */
+  /* A miss is the only thing that stops the run. It routes work, it does not
+     scold. The panel base carries the rest. */
   border-color: var(--line-strong);
   background: var(--surface-2);
   max-width: 34rem;
@@ -87,6 +86,12 @@
 .practice-summary h1,
 .practice-summary p {
   margin: 0;
+}
+
+.practice-feedback-answer {
+  font-family: var(--font-display);
+  font-size: var(--t-section);
+  overflow-wrap: anywhere;
 }
 
 .practice-feedback button {
@@ -109,4 +114,14 @@
 
 .practice-summary p {
   color: var(--muted);
+}
+
+.practice-summary-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-sm);
+}
+
+.practice-summary h1:focus {
+  outline: none;
 }
