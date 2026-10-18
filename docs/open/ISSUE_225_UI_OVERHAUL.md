@@ -109,3 +109,43 @@ wave 5   #233 acceptance → PR feat/ui-overhaul → main → release
 ## Definition of done
 
 All child issues closed. #233 records an isolated re-critique with Morse ≥ 32/40 and Aesthetic and minimalist design ≥ 3, a before/after capture matrix, a green `npm run check` on `feat/ui-overhaul`, and owner Pixel sign-off. This document then moves to `docs/closed/` with a closeout, and the #221 and colour-spike documents get their banners updated.
+
+## Mode and level mapping (#228), resolved
+
+**Status:** domain implementation for review, 2026-10-17; tile, path and session UI remain unimplemented and subject to their owner mock approvals. This section records the domain mapping without changing the shipped navigation contract.
+
+| Today's activity id | Mode · level id · tier, or retirement |
+| --- | --- |
+| Letter practice `key` | Key · `letters` · letters, using #221 adaptive practice |
+| Letter practice `listen`; Copy `letters` | Listen · `letters` · letters, using #221 adaptive practice; historical `copy:letters` clears remain readable |
+| Letter practice `read` | Read · `letters` · letters |
+| Send `words` | Key · `send:words` (Spotlight words) · words |
+| Send `flow` | Key · `send:flow` (Word flow) · words |
+| Send `phrases` | Key · `send:phrases` · phrases |
+| Send `messages` | Key · `send:messages` (Short messages) · sentences; this stage uses `generateSentences` |
+| Send `dispatch` | Key · `send:dispatch` · messages; the existing fictional pack stays unchanged |
+| Copy `common` | Listen · `copy:common` · words |
+| Copy `words` | Listen · `copy:words` · words |
+| Fluency `words` | Listen · `fluency:words` (Word recognition) · words, immediately after Copy words; retains keyed recognition and the long-word tier that Copy's short/medium corpus omits |
+| Copy `phrases` | Listen · `copy:phrases` · phrases |
+| Copy `sentences` | Listen · `copy:sentences` · sentences |
+| Copy `numbers` | Listen · `copy:numbers` · numbers |
+| Copy `mixed` | Listen · `copy:mixed` (Numbers and punctuation) · numbers |
+| Fluency `groups` | Listen · `fluency:groups` · groups, after Copy mixed; retains random 2–5 character groups, which have no English word redundancy and are not duplicated by Receive |
+| Fluency `sprint`, `ladder` | Retired as separate activities: both ask single characters. Adaptive Listen Letters owns that material; the existing spacing rung remains a session control. Their speed/rung bests do not stand in for accuracy or letter stability. Stored history is preserved. |
+| Free play `Key it` / `Hear it` | Free play · no levels or clears; its two-way toggle stays with the later UI |
+| Checkpoints `after-4`, `after-7`, `after-10`, `after-13`; Try a word | Path checkpoint nodes at the positions returned by `morseWordCheckpointPath`; unlocked means reached, never completed, because checkpoints save no completion record |
+| Full test; Test open early | Path A–Z Test milestone; eligibility, banked and repair states come from `journeyFor`; an early Test remains possible without retention advancement |
+| Replay from lesson 1; individual lesson replay | Start and reached lesson nodes carry canonical replay descriptors; no second lesson builder |
+| Quick review | Retired from the proposed navigation in favour of Key/Listen/Read Letters; historical formal review records and the existing review implementation are untouched by this domain slice |
+| `FluencyHome`; Listening settings; latency diagnostics | Hub/settings entry and latency presentation retired in the proposed navigation; spacing uses the existing rung inside Listen sessions, with no new setting or store |
+
+Letters stability: all 26 letters must be eligible and every letter must have five latest independently graded correct outcomes in that direction, using stored event order only.
+
+Historical compatibility: an existing 90% Send clear or Copy clear (including `copy:letters`) also establishes the corresponding Key or Listen Letters bridge, without creating practice outcomes or crossing directions. With no such record, acquisition readiness alone never promotes a mode beyond Letters. All later Send/Copy clears reuse their existing 90% thresholds; Words/Groups bests count consecutive correct prompts, so six (the existing six-prompt run at the 90% advance bar) clears those levels. Sprint's speed and Ladder's rung cannot clear them. Suggestions pick the first uncleared level; after all Send stages clear, the existing weakest-best recommendation remains authoritative. All cleared Listen levels suggest Groups, the final level, for continued practice.
+
+Only the eligible settled roster (or all A–Z once acquisition is ready, exactly as #221) unlocks a mode. Multi-letter levels require the full eligible alphabet because their existing builders draw from unrestricted A–Z content. Passing the Letters bridge recommends the next level; formative bests do not gate explicit tier entry or replay. There is no new persisted field and no write path.
+
+The shared path tier order is Words, Phrases, Sentences, Messages, then the content-specific Numbers and Groups extensions. Pips exist only for modes that have real content in that tier; Read and Free play do not acquire invented word levels. A pip clears only when every level of its mode in that tier clears.
+
+The path keeps exactly one current node aligned with the existing journey: Start before acquisition begins, the canonical current lesson during acquisition, and Test when the journey says Test (including banked learners). The after-course confirmation case anchors the current marker at the Test milestone with an `after-course` action and a separate early-Test descriptor, so it cannot send a learner back to completed Lesson 13 or skip owed letters. Checkpoints and later tiers remain optional. Making a tier current for a banked learner would require an explicit change to the shared journey in a later slice; this implementation does not silently create a competing next-action policy.
