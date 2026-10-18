@@ -1,0 +1,89 @@
+/* Owns Copy entry, correction text and introduction tables. */
+.copy-answer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--s-sm);
+  width: 100%;
+}
+
+.copy-input {
+  min-width: 0;
+  font-size: var(--t-component);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.copy-input::placeholder {
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.copy-expected {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.2em 0.45em;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.4rem, 6vw, 2.2rem);
+  line-height: 1.15;
+  letter-spacing: 0.03em;
+}
+
+.copy-expected .is-wrong-char {
+  color: var(--danger-2);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.copy-given {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--t-small);
+  overflow-wrap: anywhere;
+}
+
+.copy-given span {
+  color: var(--ink);
+}
+
+.copy-table {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 8.5rem), 1fr));
+  gap: var(--s-sm);
+  width: min(100%, 36rem);
+  margin: 0 auto;
+  padding: 0;
+  list-style: none;
+}
+
+.copy-table-entry {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-sm);
+  width: 100%;
+  min-height: var(--control-h);
+  padding: var(--s-xs) var(--s-md);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.copy-table-glyph {
+  font-size: var(--t-component);
+  font-weight: var(--w-section);
+}
+
+.copy-table-pattern {
+  color: var(--muted);
+  font-size: var(--t-small);
+  white-space: nowrap;
+}
+
+.copy-table-note,
+.copy-start {
+  justify-self: center;
+}
+
