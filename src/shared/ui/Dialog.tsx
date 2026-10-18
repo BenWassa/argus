@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, type ReactNode } from 'react'
 import { registerBackBlocker } from '../../app/routing/history'
+import './Dialog.css'
 
 interface DialogProps {
   title: string

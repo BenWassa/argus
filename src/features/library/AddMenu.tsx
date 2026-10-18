@@ -1,5 +1,5 @@
-import { useId } from 'react'
 import { Dialog } from '../../shared/ui/Dialog'
+import './Sheets.css'
 
 interface AddMenuProps {
   onNewTopic: () => void
@@ -9,41 +9,25 @@ interface AddMenuProps {
 
 /**
  * The one "+" affordance on Library opens this rather than two adjacent
- * header buttons, because the two actions were being read as peers when they
- * are not: one authors a finite, testable topic now, the other drops an idea
- * in a queue for later. Naming that difference here, once, replaced two
- * unlabelled buttons that only stated it by their relative emphasis.
+ * header buttons. Each way in is a plate carrying its own mark and its name:
+ * one authors a finite, testable topic now, the other drops an idea in a queue
+ * for later. The difference is in the mark and the words, never a subtitle.
  */
 export function AddMenu({ onNewTopic, onWantToLearn, onClose }: AddMenuProps) {
-  const newTopicNoteId = useId()
-  const wantNoteId = useId()
-
   return (
     <Dialog title="Add to the library" onClose={onClose}>
       <div className="add-menu">
-        <button
-          type="button"
-          className="add-menu-option"
-          aria-label="New topic"
-          aria-describedby={newTopicNoteId}
-          onClick={onNewTopic}
-        >
+        <button type="button" className="add-menu-option" aria-label="New topic" onClick={onNewTopic}>
+          <svg className="add-menu-mark" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M6 3h8l4 4v14H6z M14 3v4h4 M12 11v6 M9 14h6" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
           <span className="add-menu-option-title">New topic</span>
-          <span className="add-menu-option-note" id={newTopicNoteId}>
-            Define a fixed, testable scope and its items now.
-          </span>
         </button>
-        <button
-          type="button"
-          className="add-menu-option"
-          aria-label="Want to learn"
-          aria-describedby={wantNoteId}
-          onClick={onWantToLearn}
-        >
+        <button type="button" className="add-menu-option" aria-label="Want to learn" onClick={onWantToLearn}>
+          <svg className="add-menu-mark" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M7 3h10v18l-5-4-5 4z" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
+          </svg>
           <span className="add-menu-option-title">Want to learn</span>
-          <span className="add-menu-option-note" id={wantNoteId}>
-            Drop an idea in the queue. It stays a note until you write it up.
-          </span>
         </button>
       </div>
     </Dialog>

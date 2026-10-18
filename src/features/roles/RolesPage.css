@@ -1,52 +1,223 @@
-.roles-page{display:grid;gap:var(--s-xl);width:100%;max-width:720px}
-.roles-page > * { min-width: 0; }
-.roles-head h1, .roles-award-status, .roles-path-heading h2 { overflow-wrap: anywhere; }
-.roles-selector select { min-width: 0; }
-.roles-path-heading { flex-wrap: wrap; }
-.roles-selector{display:flex;align-items:center;flex-wrap:wrap;gap:var(--s-sm);color:var(--muted);font-size:var(--t-label)}
-.roles-selector select{min-height:44px;max-width:100%;color:var(--ink);background:var(--field);border:1px solid var(--line-strong);border-radius:var(--r-md);padding:8px 32px 8px 12px;font:inherit}
-.roles-continue{justify-self:start;max-width:100%;min-height:44px;white-space:normal;text-align:left}
-.roles-head h1{margin:0}
-.roles-head p{max-width:55ch;margin:var(--s-sm) 0 0;color:var(--muted)}
-.roles-award{display:grid;grid-template-columns:minmax(0,220px) minmax(0,1fr);align-items:center;gap:var(--s-xl);padding:var(--s-lg);border:1px solid var(--line);border-radius:var(--r-xl);background:var(--surface-2)}
-.roles-medallion{display:block;width:100%;max-width:220px;height:auto;aspect-ratio:1;object-fit:contain;filter:drop-shadow(0 10px 14px rgb(0 0 0 / 45%))}
-.roles-medallion.is-unearned{filter:grayscale(1) brightness(.64) drop-shadow(0 5px 9px rgb(0 0 0 / 35%));pointer-events:none}
-.roles-medallion.is-unearned.is-raster{filter:drop-shadow(0 5px 9px rgb(0 0 0 / 35%))}
-.roles-medallion.is-earned{transition:transform 220ms ease}
-@media (hover:hover) and (prefers-reduced-motion:no-preference){.roles-medallion.is-earned:hover{transform:translateY(-2px)}}
-.roles-award-copy{min-width:0}
-.roles-award-status{font-size:var(--t-component);font-weight:var(--w-component)}
-.roles-award-count{font-family:var(--font-mono);font-size:var(--t-small);color:var(--ink);font-variant-numeric:tabular-nums;margin-top:var(--s-sm)}
-.roles-award-note,.roles-award-refresh{color:var(--muted);font-size:var(--t-label);margin-top:var(--s-sm)}
-.roles-award-refresh{color:var(--warning)}
-.roles-pathways{display:grid;gap:var(--s-xl)}
-.roles-path-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--s-md);margin-bottom:var(--s-sm)}
-.roles-path-heading h2{font-size:var(--t-section);margin:0}
-.roles-path-subtitle{color:var(--subtle);font-size:var(--t-label);margin-top:2px}
-.roles-path-count{font-family:var(--font-mono);font-size:var(--t-readout);color:var(--muted);text-transform:uppercase;letter-spacing:var(--track-readout);white-space:nowrap;margin-top:5px}
-.roles-topic-list{list-style:none;padding:0;margin:0;border-top:1px solid var(--line)}
-.role-topic button{width:100%;display:grid;grid-template-columns:1.4em minmax(0,1fr) auto .8em;align-items:center;gap:var(--s-sm);min-height:56px;padding:10px 2px;border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent;color:var(--ink);text-align:left}
-.role-topic button:not(:disabled):hover{background:var(--surface-2)}
-.role-topic button:disabled{color:var(--subtle);cursor:default}
-.role-topic-title{font-weight:var(--w-component);overflow-wrap:anywhere}
-.role-topic-state{font-family:var(--font-mono);font-size:var(--t-readout);color:var(--muted);letter-spacing:var(--track-readout);text-transform:uppercase;text-align:right}
-.role-topic-mark{font-size:1.2rem;color:var(--subtle)}
-.role-topic-mark.is-done{color:var(--ok)}
-.role-topic-chevron{font-size:1.3rem;color:var(--subtle)}
-.roles-boundary{color:var(--subtle);font-size:var(--t-label);margin:0}
-@media(max-width:560px){.roles-award{grid-template-columns:1fr;justify-items:center;text-align:center;gap:var(--s-sm)}.roles-medallion{width:min(56vw,200px)}.roles-award-copy{width:100%}.roles-path-heading h2{font-size:1.2rem}}
-@media(max-width:370px){.role-topic button{grid-template-columns:1.4em minmax(0,1fr) .8em;gap:7px}.role-topic-state{grid-column:2;grid-row:2;text-align:left}.role-topic-chevron{grid-column:3;grid-row:1 / 3}}
+/* Roles on the screen kit (#247): a ScreenHeader, one award plate, one primary
+   action, and each pathway as a mono label over its own topic plates. */
+.roles-page {
+  display: grid;
+  gap: var(--s-lg);
+  width: 100%;
+  max-width: 720px;
+}
 
-/* Before earning, the award is context for the next topic. Keep it compact so
-   a phone opens on the learning action and the first pathway as well. */
+.roles-page > * { min-width: 0; }
+
+.roles-page .screen-header-title,
+.roles-award-status { overflow-wrap: anywhere; }
+
+/* The selector is the header's one trailing control: a recessed field. */
+.roles-selector {
+  width: auto;
+  max-width: 100%;
+  min-width: 0;
+  padding-right: 32px;
+}
+
+/* The award plate: art on the left, the reading beside it. */
+.roles-award {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  align-items: center;
+  gap: var(--s-lg);
+  padding: var(--s-lg);
+}
+
+.roles-medallion {
+  display: block;
+  width: 100%;
+  max-width: 112px;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: contain;
+}
+
+.roles-medallion.is-unearned { pointer-events: none; }
+
+.roles-award-copy {
+  display: grid;
+  gap: var(--s-xs);
+  min-width: 0;
+}
+
+.roles-award-status {
+  font-size: var(--t-component);
+  font-weight: var(--w-component);
+}
+
+.roles-award-count,
+.roles-award-note,
+.roles-award-refresh {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  font-weight: var(--w-label);
+  letter-spacing: var(--track-readout);
+  font-variant-numeric: tabular-nums;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* Decay is copper, with its diamond and its words. */
+.roles-award-refresh {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--warning);
+}
+
+.roles-award-refresh::before,
+.role-topic-state.is-repair::before {
+  content: '';
+  flex: none;
+  width: 6px;
+  height: 6px;
+  background: var(--warning);
+  transform: rotate(45deg);
+}
+
+/* The one action: Signal, the tall step. */
+.roles-continue {
+  width: 100%;
+  min-height: var(--control-h-lg);
+  white-space: normal;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.roles-pathways {
+  display: grid;
+  gap: var(--s-xl);
+}
+
+/* Heading and count share a mono baseline, the way a Library shelf reads. */
+.roles-path-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-md);
+  padding-inline: 2px;
+}
+
+.roles-path-heading h2 {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  font-weight: var(--w-label);
+  letter-spacing: var(--track-readout);
+  line-height: 1.2;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.roles-path-count {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  font-weight: var(--w-label);
+  letter-spacing: var(--track-readout);
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--subtle);
+}
+
+/* Topics are plates 8px apart. The plate is the control, so no chevron. */
+.roles-topic-list {
+  display: grid;
+  gap: var(--s-sm);
+  margin: var(--s-sm) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+button.role-topic-plate {
+  display: grid;
+  grid-template-columns: 1.2em minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--s-sm) var(--s-md);
+  width: 100%;
+  min-height: 56px;
+  padding: var(--s-md);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  text-align: left;
+  color: var(--ink);
+  background: var(--plate);
+  box-shadow: none;
+}
+
+button.role-topic-plate.plate-repair { border-color: var(--warning); }
+
+button.role-topic-plate:not(:disabled):hover {
+  border-color: var(--line-hover);
+  background: var(--surface-2);
+}
+
+button.role-topic-plate.plate-repair:not(:disabled):hover { border-color: var(--warning); }
+
+button.role-topic-plate:not(:disabled):active {
+  background: var(--surface-3);
+  box-shadow: var(--press);
+}
+
+button.role-topic-plate:disabled {
+  color: var(--subtle);
+  cursor: default;
+}
+
+.role-topic-title {
+  font-weight: var(--w-component);
+  overflow-wrap: anywhere;
+}
+
+.role-topic-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: flex-end;
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  letter-spacing: var(--track-readout);
+  text-align: right;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.role-topic-state.is-repair { color: var(--warning); }
+
+.role-topic-mark {
+  font-size: 1.2rem;
+  color: var(--subtle);
+}
+
+.role-topic-mark.is-done { color: var(--ok); }
+
+.roles-boundary {
+  margin: 0;
+  padding-inline: 2px;
+  font-size: var(--t-label);
+  color: var(--subtle);
+}
+
 @media (max-width: 560px) {
-  .roles-award:has(.is-unearned) {
+  .roles-award {
     grid-template-columns: 88px minmax(0, 1fr);
     gap: var(--s-md);
     padding: var(--s-md);
-    text-align: left;
   }
-  .roles-award .roles-medallion.is-unearned {
-    width: 88px;
-  }
+  .roles-medallion { max-width: 88px; }
+}
+
+@media (max-width: 370px) {
+  button.role-topic-plate { grid-template-columns: 1.2em minmax(0, 1fr); }
+  .role-topic-state { grid-column: 2; grid-row: 2; justify-content: flex-start; text-align: left; }
 }
