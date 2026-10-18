@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { MorseAudioPlayer } from '../../../domain/morse/audio'
 import {
@@ -28,6 +29,8 @@ import { SessionFrame, SessionCorrect, RoundResult } from '../session/SessionFra
 import './Fluency.css'
 
 interface FluencyRunProps {
+  /** Session-level controls rendered under the frame header. */
+  toolbar?: ReactNode
   mode: FluencyMode
   rung: FluencyRung
   progress: MorseFluencyProgress
@@ -71,7 +74,7 @@ interface FluencyRunProps {
  *  - a miss records no latency at all. A wrong answer's response time mixes a
  *    fast guess with a long failed search and means neither.
  */
-export function FluencyRun({ mode, rung, progress, focus, only, onProgress, onExit }: FluencyRunProps) {
+export function FluencyRun({ mode, rung, progress, focus, only, onProgress, onExit, toolbar }: FluencyRunProps) {
   const [run, setRun] = useState<FluencyRunState>(() =>
     startFluencyRun(mode, rung, progress, Object.values(progress.characters).reduce((count, character) => count + (character?.heard ?? 0), 0), focus, only),
   )
@@ -227,7 +230,7 @@ export function FluencyRun({ mode, rung, progress, focus, only, onProgress, onEx
     acknowledge()
   }
 
-  const frame = { kind: 'listen' as const, title: 'Listen', onClose: onExit, progress: { current: complete ? fluencyRunLength(mode) : run.at + 1, total: fluencyRunLength(mode) } }
+  const frame = { kind: 'listen' as const, title: 'Listen', onClose: onExit, toolbar, progress: { current: complete ? fluencyRunLength(mode) : run.at + 1, total: fluencyRunLength(mode) } }
 
   function again() {
     correctionAudio.stop()

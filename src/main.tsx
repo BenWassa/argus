@@ -13,10 +13,8 @@ if (import.meta.env.DEV) {
   }
 }
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
+const root = createRoot(document.getElementById('root')!)
+
+root.render(<StrictMode><App /></StrictMode>)
 
 registerServiceWorker()

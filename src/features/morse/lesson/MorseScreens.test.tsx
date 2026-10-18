@@ -2,8 +2,6 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { lessonPackets, startLesson, type LessonRun } from '../../../domain/morse/curriculum/lesson'
-import { morseLessonPath } from '../../../domain/morse/curriculum/lessonPath'
-import { morseWordCheckpointPath } from '../../../domain/morse/curriculum/checkpoints'
 import { LibraryProvider } from '../../../services/library/LibraryProvider'
 import { parseLibrary } from '../../../infrastructure/persistence/libraryParser'
 import { saveLibrary } from '../../../infrastructure/persistence/localLibraryRepository'
@@ -12,7 +10,7 @@ import { TopicPage } from '../../library/TopicPage'
 import type { Topic } from '../../../domain/library/topic'
 import type { ItemLessonStore } from '../../../domain/morse/progress'
 import { MorseLesson } from './MorseLesson'
-import { MorsePath } from './MorsePath'
+import { MorseProgressPath } from '../play/MorseProgressPath'
 
 /**
  * The Morse screens review: four findings from driving the real app at phone
@@ -108,14 +106,7 @@ function renderTopic(topic: Topic) {
 
 function renderPath(topic: Topic) {
   return render(
-    <MorsePath
-      path={morseLessonPath(topic)!}
-      checkpoints={morseWordCheckpointPath(topic)!}
-      ready={false}
-      onLesson={vi.fn()}
-      onCheckpoint={vi.fn()}
-      onCheck={vi.fn()}
-    />,
+    <MorseProgressPath topic={topic} onAction={vi.fn()} />,
   )
 }
 
@@ -128,8 +119,8 @@ afterEach(cleanup)
 describe('the course keeps rationale on its reference page', () => {
   it('shows lessons without course notes on the topic page', () => {
     renderTopic(settledThrough(seededTopic(), 4))
-    expect(screen.getByRole('button', { name: 'A–Z reference' })).toBeTruthy()
-    expect(document.querySelector('.morse-path')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'A–Z' })).toBeTruthy()
+    expect(document.querySelector('.morse-progress-path')).toBeTruthy()
     expect(document.querySelector('.learn-support')).toBeNull()
     expect(document.querySelector('details, summary')).toBeNull()
     expect(screen.queryByText('How this course works')).toBeNull()
@@ -190,34 +181,34 @@ describe('the curriculum opens on where the learner actually is', () => {
   it('keeps the finished run visible above the current lesson', () => {
     renderPath(settledThrough(seededTopic(), 5))
     expect(document.querySelector('details, summary')).toBeNull()
-    expect(document.querySelectorAll('.morse-path-lesson')).toHaveLength(lessonPackets().length)
-    expect(screen.getByRole('button', { name: 'Replay lesson 1' })).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Continue lesson 6' })).toBeTruthy()
+    expect(document.querySelectorAll('.morse-progress-lesson')).toHaveLength(lessonPackets().length)
+    expect(screen.getByRole('button', { name: 'Lesson 1, E and I, done' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Lesson 6, W and K, current' })).toBeTruthy()
   })
 
   it('keeps every finished lesson replayable, and its checkpoint with it', () => {
     renderPath(settledThrough(seededTopic(), 9))
 
-    expect(screen.getByRole('button', { name: /^Replay lesson 1$/ })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Lesson 1, E and I, done' })).toBeTruthy()
     // Finished checkpoints remain available alongside their lessons.
     expect(
-      screen.getByRole('button', { name: 'Start word checkpoint after lesson 4' }),
+      screen.getByRole('button', { name: 'Words after Lesson 4, reached' }),
     ).toBeTruthy()
   })
 
   it('shows the entire path before and after course acquisition', () => {
     renderPath(settledThrough(seededTopic(), 5))
-    expect(document.querySelectorAll('.morse-path-item.is-locked').length).toBeGreaterThan(0)
+    expect(document.querySelectorAll('.morse-progress-row.is-locked').length).toBeGreaterThan(0)
     cleanup()
     renderPath(settledThrough(seededTopic(), lessonPackets().length))
     expect(document.querySelector('details, summary')).toBeNull()
-    expect(document.querySelectorAll('.morse-path-lesson')).toHaveLength(lessonPackets().length)
-    expect(document.querySelector('.morse-path-check button')).toBeTruthy()
+    expect(document.querySelectorAll('.morse-progress-lesson')).toHaveLength(lessonPackets().length)
+    expect(document.querySelector('.morse-progress-test')).toBeTruthy()
   })
 
   it('states the checkpoint’s nature once rather than on all four rows', () => {
     renderPath(settledThrough(seededTopic(), lessonPackets().length))
-    expect(screen.getAllByText('Checkpoint')).toHaveLength(4)
-    expect(screen.getAllByText('Real words, letters you know')).toHaveLength(1)
+    expect(screen.getAllByText('WORD CHECK')).toHaveLength(4)
+    expect(screen.queryByText('Real words, letters you know')).toBeNull()
   })
 })

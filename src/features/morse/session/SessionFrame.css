@@ -113,3 +113,18 @@
 @media (prefers-reduced-motion: reduce) {
   .session-correct { animation: none; }
 }
+
+.session-frame-toolbar { margin-block: calc(-1 * var(--s-sm)) var(--s-lg); }
+
+.listening-spacing {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-sm);
+}
+
+.listening-spacing-value {
+  margin-inline-end: auto;
+  font-size: var(--t-small);
+  color: var(--muted);
+}

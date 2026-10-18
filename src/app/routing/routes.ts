@@ -38,11 +38,8 @@ export type ParentRoute =
  * learner state, so a reloaded run entry falling back to its origin loses
  * nothing it was responsible for.
  *
- * Fluency names no path entry and no items. It is the post-acquisition
- * surface: absent `mode` is its home screen, and a named mode is one run. A
- * Fluency run holds its queue in memory and persists only aggregate statistics
- * at the end, so a reloaded entry falling back to its origin loses at most an
- * unfinished run — the same trade replay and the checkpoints already make.
+ * Fluency names a direct formative run. Historical hub entries normalize to
+ * the Morse topic without introducing another history stop.
  *
  * Practice names no path entry either, but it may name items. A check's end
  * screen knows exactly what the learner just missed, including for an ordinary
@@ -52,7 +49,8 @@ export type ParentRoute =
  * either way, so a reloaded entry falling back to its origin loses nothing.
  */
 export type RunTarget =
-  | { kind: 'letter-practice' }
+  /** Adaptive letter practice; a mode tile fixes the direction. */
+  | { kind: 'letter-practice'; direction?: 'key' | 'read' | 'listen' }
   | { kind: 'lesson' }
   /** A Test run the learner chose as the short unscored review (`review.ts`). */
   | { kind: 'review' }
@@ -94,7 +92,9 @@ function isMode(value: unknown): value is Mode {
 
 function isRunTarget(value: unknown): value is RunTarget {
   if (!isRecord(value)) return false
-  if (value.kind === 'letter-practice') return true
+  if (value.kind === 'letter-practice') {
+    return value.direction === undefined || value.direction === 'key' || value.direction === 'read' || value.direction === 'listen'
+  }
   if (value.kind === 'lesson' || value.kind === 'review' || value.kind === 'after-course') return true
   if (value.kind === 'practice') {
     return value.itemIds === undefined || isIdList(value.itemIds)
@@ -249,6 +249,11 @@ export function restoreRoute(route: AppRoute, topics: Topic[], restoreRun: boole
 
   const origin = safeParent(route.origin, topics)
 
+  if (route.kind === 'run' && route.target?.kind === 'fluency' &&
+    !route.target.mode && !route.target.send && !route.target.copy && !route.target.free) {
+    return safeParent({ kind: 'topic', topicId: route.topicIds[0] }, topics)
+  }
+
   if (route.kind === 'reference') {
     return topics.some((topic) => topic.id === route.topicId)
       ? { ...route, origin }
@@ -263,6 +268,9 @@ export function restoreRoute(route: AppRoute, topics: Topic[], restoreRun: boole
 
 export function liveRoute(route: AppRoute, topics: Topic[]): AppRoute {
   if (route.kind === 'run') {
+    if (route.target?.kind === 'fluency' && !route.target.mode && !route.target.send && !route.target.copy && !route.target.free) {
+      return restoreRoute(route, topics, true)
+    }
     const origin = safeParent(route.origin, topics)
     return route.topicIds.every((id) => topics.some((topic) => topic.id === id))
       ? { ...route, origin }

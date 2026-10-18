@@ -14,7 +14,6 @@ const RUN = 'src/features/morse/fluency/FluencyRun.tsx'
 const COPY = 'src/features/morse/fluency/CopyRun.tsx'
 const FREE = 'src/features/morse/fluency/FreePlay.tsx'
 const SEND = 'src/features/morse/fluency/SendRun.tsx'
-const HOME = 'src/features/morse/fluency/FluencyHome.tsx'
 const SURFACE = 'src/features/morse/fluency/FluencySurface.tsx'
 
 /**
@@ -35,7 +34,6 @@ describe('fluency writes only its own field', () => {
     ['the copy run', COPY],
     ['free play', FREE],
     ['the send run', SEND],
-    ['the home screen', HOME],
   ])('keeps %s away from every write path', (_label, path) => {
     const source = read(path)
     const imports = importsOf(source)
@@ -67,7 +65,7 @@ describe('fluency writes only its own field', () => {
   })
 
   it('never reaches the scored Test evidence store from anywhere in the feature', () => {
-    for (const path of [RUN, COPY, FREE, SEND, HOME, SURFACE]) {
+    for (const path of [RUN, COPY, FREE, SEND, SURFACE]) {
       const source = read(path)
       expect(source).not.toContain('DirectionEvidence')
       expect(source).not.toContain('unassistedCorrect')

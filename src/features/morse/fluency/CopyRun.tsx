@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { correctionLetter } from '../../../domain/morse/correction'
 import type { MorseLetter } from '../../../domain/morse/code'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -23,6 +24,8 @@ import { SessionFrame, SessionCorrect, RoundResult } from '../session/SessionFra
 import './Fluency.css'
 
 interface CopyRunProps {
+  /** Session-level controls rendered under the frame header. */
+  toolbar?: ReactNode
   level: CopyLevel
   rung: FluencyRung
   progress: MorseFluencyProgress
@@ -67,7 +70,7 @@ type Phase =
  * Imports no store, no scheduler and no evidence recorder, for the same reason
  * `FluencyRun` does not; `FluencyBoundary.test.ts` holds both to it.
  */
-export function CopyRun({ level, rung, progress, focus, onProgress, onLevel, onExit, seed = 0 }: CopyRunProps) {
+export function CopyRun({ level, rung, progress, focus, onProgress, onLevel, onExit, toolbar, seed = 0 }: CopyRunProps) {
   const info = COPY_LEVEL_INFO[level]
   const correctionAudio = useMorseAudio()
   const [prompts] = useState(() => copyPrompts(level, progress, seed, focus))
@@ -171,7 +174,7 @@ export function CopyRun({ level, rung, progress, focus, onProgress, onLevel, onE
     onProgress(result.progress)
   }, [phase, progress, level, score, onProgress])
 
-  const frame = { kind: 'listen' as const, title: 'Listen', onClose: onExit, progress: { current: phase.kind === 'done' ? prompts.length : at + 1, total: prompts.length } }
+  const frame = { kind: 'listen' as const, title: 'Listen', onClose: onExit, toolbar, progress: { current: phase.kind === 'done' ? prompts.length : at + 1, total: prompts.length } }
 
   if (phase.kind === 'intro' && info.introduces) {
     const intro = INTRODUCTIONS[info.introduces]

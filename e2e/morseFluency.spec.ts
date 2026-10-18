@@ -103,15 +103,9 @@ async function openTopic(page: Page, library = LIBRARY) {
   await expect(page.locator('.topic-title')).toBeVisible()
 }
 
-async function openLegacyFluencyHome(page: Page) {
-  await openTopic(page)
-  await page.getByRole('button', { name: 'Listening settings' }).click()
-  await expect(page.getByRole('heading', { name: 'After the alphabet' })).toBeVisible()
-}
-
 async function openChallenges(page: Page) {
   await openTopic(page)
-  await page.locator('.topic-options').getByRole('button', { name: 'Challenges' }).click()
+  await page.getByRole('button', { name: 'Groups, Listen, available' }).click()
   await expect(page.locator('.fluency-run')).toBeVisible()
 }
 
@@ -120,12 +114,6 @@ async function storedTopic(page: Page): Promise<Topic | null> {
     const raw = window.localStorage.getItem(key)
     return raw ? (JSON.parse(raw).topics as Topic[])[0] : null
   }, STORE_KEY)
-}
-
-async function route(page: Page) {
-  return page.evaluate(
-    () => (window.history.state as { route: { kind: string; target?: { kind: string } } }).route,
-  )
 }
 
 /**
@@ -198,33 +186,27 @@ async function runToSummary(page: Page) {
 }
 
 test.describe('fluency', () => {
-  test('is offered once the alphabet is acquired, beside a due check', async ({ page }) => {
+  test('offers four modes and one current Test on the path', async ({ page }) => {
     await openTopic(page)
-    // Direct routes are in plain view; Challenges stays visible in More options.
-    await expect(page.getByRole('heading', { name: 'More options', exact: true })).toBeVisible()
-    await expect(page.getByRole('heading', { name: 'Play Morse' })).toBeVisible()
-    for (const label of ['Practice letters', 'Send', 'Receive', 'Free Play']) {
-      await expect(page.locator('.topic-play-choices').getByRole('button', { name: new RegExp(label) })).toBeVisible()
+    for (const name of ['Key', 'Listen', 'Read', 'Free play']) {
+      await expect(page.getByRole('navigation', { name: 'Play' }).getByRole('button', { name, exact: true })).toBeVisible()
     }
-    await expect(page.locator('.topic-options').getByRole('button', { name: 'Challenges' })).toBeVisible()
-    await expect(page.locator('.topic-primary')).toHaveText('Test')
+    await expect(page.getByRole('button', { name: 'A–Z Test, available, current' })).toBeVisible()
+    await expect(page.locator('.topic-primary, .topic-options')).toHaveCount(0)
   })
 
-  test('leads between checks, with the Test as a short review', async ({ page }) => {
+  test('keeps the banked Test on the path and later tiers available', async ({ page }) => {
     await openTopic(page, betweenChecks())
-    await expect(page.locator('.topic-primary')).toHaveText('Send five words')
-    await expect(page.getByRole('heading', { name: 'More options', exact: true })).toBeVisible()
-
-    await page.getByRole('button', { name: /Quick review/ }).click()
-    await expect(page.locator('.session-count')).toHaveText('1/10')
-    await expect(page.getByRole('button', { name: 'End review' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'A–Z Test, banked, current' })).toBeVisible()
+    await page.getByRole('button', { name: 'Words, Key, available' }).click()
+    await expect(page.locator('.send-run')).toBeVisible()
   })
 
-  test('copies letters by ear and records only a copy best', async ({ page }) => {
+  test('copies common words by ear and records only a copy best', async ({ page }) => {
     test.setTimeout(120_000)
     await openTopic(page, betweenChecks())
     const before = await storedTopic(page)
-    await page.locator('.topic-play-choices').getByRole('button', { name: /Receive/ }).click()
+    await page.getByRole('button', { name: 'Words, Listen, available' }).click()
     await expect(page.getByText('Hear it, write it')).toBeVisible()
     for (let prompt = 0; prompt < 10; prompt += 1) {
       const play = page.getByRole('button', { name: /^Play$|Play once more/ })
@@ -242,7 +224,7 @@ test.describe('fluency', () => {
 
     await expect(page.locator('.session-round-reading')).toBeVisible()
     const after = await storedTopic(page)
-    expect(after?.morseFluency?.bests['copy:letters']).toBeGreaterThanOrEqual(0)
+    expect(after?.morseFluency?.bests['copy:common']).toBeGreaterThanOrEqual(0)
     expect(after?.status).toBe(before?.status)
     expect(after?.itemEvidence).toEqual(before?.itemEvidence)
     expect(after?.history).toEqual(before?.history)
@@ -251,7 +233,7 @@ test.describe('fluency', () => {
   test('opens Free Play directly and returns to the Topic without saving', async ({ page }) => {
     await openTopic(page)
     const before = await storedTopic(page)
-    await page.locator('.topic-play-choices').getByRole('button', { name: 'Free Play' }).click()
+    await page.getByRole('button', { name: 'Free play', exact: true }).click()
     await expect(page.locator('.session-frame-title').filter({ hasText: /^Free play$/ })).toBeVisible()
     await page.getByRole('button', { name: 'Close' }).click()
     await expect(page.locator('.topic-title')).toBeVisible()
@@ -263,7 +245,7 @@ test.describe('fluency', () => {
     await openTopic(page, betweenChecks())
     const before = await storedTopic(page)
     // The main action opens Send directly. Its formative writing semantics are unchanged.
-    await page.locator('.topic-primary').click()
+    await page.getByRole('button', { name: 'Words, Key, available' }).click()
     await expect(page.locator('.send-run')).toBeVisible()
     await expect(page.locator('.morse-key')).toBeVisible()
 
@@ -313,10 +295,12 @@ test.describe('fluency', () => {
   test('continuous sending decodes pauses and explicit word gaps without saving incomplete rounds', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'phone-390', 'One phone exercises the shared continuous input path.')
     test.setTimeout(90_000)
-    await openLegacyFluencyHome(page)
+    const library = JSON.parse(betweenChecks())
+    library.topics[0].morseFluency = { rung: 6, characters: {}, bests: { 'send:words': 95 } }
+    await openTopic(page, JSON.stringify(library))
     const before = await storedTopic(page)
     for (const title of ['Word flow', 'Dispatch']) {
-      await page.getByRole('button', { name: new RegExp(title) }).click()
+      await page.getByRole('button', { name: title === 'Word flow' ? 'Words, Key, available' : 'Messages, Key, available' }).click()
       if (title === 'Word flow') {
         // A hold is still part of the letter, even when longer than the idle pause.
         await page.keyboard.type('.')
@@ -329,8 +313,8 @@ test.describe('fluency', () => {
         await page.waitForTimeout(1150)
         await expect(page.locator('.send-output-value')).toHaveText('A')
         await page.getByRole('button', { name: 'Close', exact: true }).click()
-        await expect(page.getByRole('heading', { name: 'After the alphabet' })).toBeVisible()
-        await page.getByRole('button', { name: /Word flow/ }).click()
+        await expect(page.getByRole('heading', { name: 'International Morse Code' })).toBeVisible()
+        await page.getByRole('button', { name: 'Words, Key, available' }).click()
       }
       const target = (await page.locator('.send-target').getAttribute('aria-label'))!.replace(/^Send /, '')
       for (let index = 0; index < target.length; index += 1) {
@@ -355,37 +339,12 @@ test.describe('fluency', () => {
       await expect(page.getByText('Received as sent')).toBeVisible()
       await expect(page.locator('.send-compare dd').nth(1)).toHaveText(target)
       await page.getByRole('button', { name: 'Close', exact: true }).click()
-      await expect(page.getByRole('heading', { name: 'After the alphabet' })).toBeVisible()
+      await expect(page.getByRole('heading', { name: 'International Morse Code' })).toBeVisible()
     }
     expect(await storedTopic(page)).toEqual(before)
   })
 
-  test('pins the character speed and offers only the spacing', async ({ page }) => {
-    await openLegacyFluencyHome(page)
-    await expect(page.getByText(/characters always at 20 WPM/)).toBeVisible()
-
-    // The bottom of the ladder: there is no way further down.
-    await expect(page.getByRole('button', { name: 'More room between characters' })).toBeDisabled()
-
-    await page.getByRole('button', { name: 'Less room between characters' }).click()
-    await expect(page.getByText(/Listening spacing/)).toContainText('7 WPM')
-    await expect(page.getByText(/characters always at 20 WPM/)).toBeVisible()
-  })
-
-  test('remembers the rung across a reload without touching anything else', async ({ page }) => {
-    await openLegacyFluencyHome(page)
-    const before = await storedTopic(page)
-    await page.getByRole('button', { name: 'Less room between characters' }).click()
-    await expect.poll(async () => (await storedTopic(page))?.morseFluency?.rung).toBe(7)
-
-    const after = await storedTopic(page)
-    expect(after?.status).toBe(before?.status)
-    expect(after?.lastTestedAt).toBe(before?.lastTestedAt)
-    expect(after?.itemEvidence).toEqual(before?.itemEvidence)
-    expect(after?.history).toEqual(before?.history)
-  })
-
-  test('runs a sprint and records only fluency statistics', async ({ page }) => {
+  test('runs Groups and records only fluency statistics', async ({ page }) => {
     // Ten prompts of real pointer input against a real AudioContext, each
     // gated by the #87 response boundary. That is genuinely slow, and it is
     // the point: nothing here is driven through a test-only path.
@@ -419,6 +378,23 @@ test.describe('fluency', () => {
     expect(after?.acquisitionReadyAt).toBe(before?.acquisitionReadyAt)
   })
 
+  test('normalizes a historical hub entry to the topic without adding a history stop', async ({ page }) => {
+    await openTopic(page)
+    const index = await page.evaluate(() => window.history.state.index as number)
+    await page.evaluate(topicId => {
+      window.history.replaceState({ ...window.history.state, route: {
+        kind: 'run', mode: 'learn', topicIds: [topicId],
+        origin: { kind: 'section', view: 'library' }, target: { kind: 'fluency' },
+      } }, '')
+    }, MORSE_ID)
+    await page.reload()
+    await expect(page.getByRole('heading', { name: 'International Morse Code' })).toBeVisible()
+    expect(await page.evaluate(() => window.history.state)).toMatchObject({
+      index, route: { kind: 'topic', topicId: MORSE_ID },
+    })
+    await expect(page.getByRole('heading', { name: 'After the alphabet' })).toHaveCount(0)
+  })
+
   test('never prints the prompt before it is answered', async ({ page }) => {
     await openChallenges(page)
 
@@ -429,9 +405,4 @@ test.describe('fluency', () => {
     expect(text).not.toMatch(/\b[A-Z]\b/)
   })
 
-  test('keeps the explicit listening settings route available as the legacy Fluency home', async ({ page }) => {
-    await openLegacyFluencyHome(page)
-    expect((await route(page)).target?.kind).toBe('fluency')
-    await expect(page.getByRole('heading', { name: 'After the alphabet' })).toBeVisible()
-  })
 })

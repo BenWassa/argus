@@ -23,6 +23,18 @@
 | Which game modes on the surface? | **By direction: Key · Listen · Read · Free play.** Each mode auto-picks the learner's level. Practice letters, Send stages, Receive levels and Challenges merge into them; the separate hub goes. |
 | How far off grey gunmetal? | **Colour on the dark chassis.** Keep the dark base; give each Morse mode and each track a vivid hue; give the primary action a real hue. This reverses DESIGN.md's One Accent, One Warm Colour and No Track-as-Background rules. |
 
+## Design philosophy (owner direction, 2026-10-17, second pass)
+
+After the first mocks the owner said the design is *"too dark"*, the icons look *"cheap"*, containers must not use *"partial transparency"*, the path should be *"a straight line … top to bottom"*, modes go *"on the bottom"*, and tests need *"visual differentiation … along the way"*. Every overhaul surface follows these rules:
+
+1. **Show the stimulus.** A mode tile shows exactly what that mode puts in front of you first. **Key** shows a letter (you see `A`, you key it). **Listen** shows a sound wave (you hear it). **Read** shows dits and dashes (you see `·−−`, you name it). **Free play** shows your own text appearing at a cursor. No metaphor icons and no thin decorative strokes: glyphs are bold, filled and pixel-aligned.
+2. **Solid plates, real contrast.** Every container is opaque: either a step on the chassis ramp or a solid action/mode fill with contrast-checked ink. No alpha washes, translucent borders, glows or gradients standing in for colour. Hierarchy comes from fill steps, size and weight.
+3. **A lighter chassis.** The near-black gunmetal goes. The base lifts to **Slate** (or **Light**; the owner picks from the mocks) so plates read as objects and colour has something to sit on.
+4. **One straight spine, top to bottom.** The path is a single vertical line on the left, with Lesson 1 at the top and later tiers at the bottom. Rows read left to right: node, letters, label. The line is the action colour where it is done and neutral where it lies ahead. The screen opens scrolled to the current row: a raised full-width plate carrying the one primary action (`Start`).
+5. **Tests are milestones.** Word checks and the A–Z Test break the rhythm. Each is a full-width plate that crosses the spine, with a square flag node and an uppercase label, where lessons have round nodes. The A–Z Test is the largest. State (done/current/locked) uses the same colours as lessons; shape, width and label carry "this is a test", so the meaning never rests on colour.
+6. **Modes live at the bottom.** Four tiles, one word each, sit in a fixed tray above navigation (**Tray layout, decided**). The path owns the rest of the screen.
+7. **Few, large words.** Labels are one or two title-case words. Letters and numbers are large. No sentences in the tray or on the path beyond a word check's one line.
+
 ## Baseline critique (Morse surfaces), 2026-10-17
 
 Method: `impeccable critique` in the product register, run on real Chromium renders of the current `main` (`464c36f`) at 390×844 for three seeded learners (fresh, mid-course after lesson 5, finished course), plus source inspection. The deterministic detector (`npx impeccable --json`) on `src/features/{morse,library,today}` returned 48 advisories, all `design-system-font-size` (type-ramp drift), and no banned patterns. The LLM assessment was run inline rather than as an isolated sub-agent, so treat the score as one reviewer's judgment. #233 re-runs it with isolated assessments.
@@ -65,7 +77,7 @@ Full-page captures overlay the fixed dock and navigation mid-page; that is a cap
 | [#227](https://github.com/BenWassa/argus/issues/227) | Remove every accordion; cut page-level prose | 1 | none | none | `impeccable distill`, `clarify` |
 | [#228](https://github.com/BenWassa/argus/issues/228) | Morse modes by direction (domain → tiles) | 1 (domain), 2 (tiles) | #226 for tiles | **Approve 4-tile mock** | `impeccable shape`, `distill` |
 | [#229](https://github.com/BenWassa/argus/issues/229) | Morse progress path (model → component) | 1 (model), 2 (component) | #226, #228 tiers | **Approve path mock** | `impeccable craft`, `animate` |
-| [#230](https://github.com/BenWassa/argus/issues/230) | Morse topic composition; delete hub and old path | 3 | #227, #228, #229, #226 | **Pick Stack or Tray layout** | `impeccable layout`, `distill` |
+| [#230](https://github.com/BenWassa/argus/issues/230) | Morse topic composition; delete hub and old path | 3 | #227, #228, #229, #226 | Tray layout decided 2026-10-17 | `impeccable layout`, `distill` |
 | [#231](https://github.com/BenWassa/argus/issues/231) | One session frame; mode colour; no instruction prose | 4 | #226, #228 | none | `impeccable distill`, `clarify`, `animate` |
 | [#232](https://github.com/BenWassa/argus/issues/232) | Colour across Home, Library, Topic, Test, Roles, sign-in | 3 | #226 + palette approval | none | `impeccable colorize` |
 | [#233](https://github.com/BenWassa/argus/issues/233) | Acceptance: critique re-score, polish, audit, Pixel | 5 | all | **Pixel sign-off** | `impeccable critique`, `polish`, `audit` |
@@ -97,3 +109,43 @@ wave 5   #233 acceptance → PR feat/ui-overhaul → main → release
 ## Definition of done
 
 All child issues closed. #233 records an isolated re-critique with Morse ≥ 32/40 and Aesthetic and minimalist design ≥ 3, a before/after capture matrix, a green `npm run check` on `feat/ui-overhaul`, and owner Pixel sign-off. This document then moves to `docs/closed/` with a closeout, and the #221 and colour-spike documents get their banners updated.
+
+## Mode and level mapping (#228), resolved
+
+**Status:** domain implementation for review, 2026-10-17; tile, path and session UI remain unimplemented and subject to their owner mock approvals. This section records the domain mapping without changing the shipped navigation contract.
+
+| Today's activity id | Mode · level id · tier, or retirement |
+| --- | --- |
+| Letter practice `key` | Key · `letters` · letters, using #221 adaptive practice |
+| Letter practice `listen`; Copy `letters` | Listen · `letters` · letters, using #221 adaptive practice; historical `copy:letters` clears remain readable |
+| Letter practice `read` | Read · `letters` · letters |
+| Send `words` | Key · `send:words` (Spotlight words) · words |
+| Send `flow` | Key · `send:flow` (Word flow) · words |
+| Send `phrases` | Key · `send:phrases` · phrases |
+| Send `messages` | Key · `send:messages` (Short messages) · sentences; this stage uses `generateSentences` |
+| Send `dispatch` | Key · `send:dispatch` · messages; the existing fictional pack stays unchanged |
+| Copy `common` | Listen · `copy:common` · words |
+| Copy `words` | Listen · `copy:words` · words |
+| Fluency `words` | Listen · `fluency:words` (Word recognition) · words, immediately after Copy words; retains keyed recognition and the long-word tier that Copy's short/medium corpus omits |
+| Copy `phrases` | Listen · `copy:phrases` · phrases |
+| Copy `sentences` | Listen · `copy:sentences` · sentences |
+| Copy `numbers` | Listen · `copy:numbers` · numbers |
+| Copy `mixed` | Listen · `copy:mixed` (Numbers and punctuation) · numbers |
+| Fluency `groups` | Listen · `fluency:groups` · groups, after Copy mixed; retains random 2–5 character groups, which have no English word redundancy and are not duplicated by Receive |
+| Fluency `sprint`, `ladder` | Retired as separate activities: both ask single characters. Adaptive Listen Letters owns that material; the existing spacing rung remains a session control. Their speed/rung bests do not stand in for accuracy or letter stability. Stored history is preserved. |
+| Free play `Key it` / `Hear it` | Free play · no levels or clears; its two-way toggle stays with the later UI |
+| Checkpoints `after-4`, `after-7`, `after-10`, `after-13`; Try a word | Path checkpoint nodes at the positions returned by `morseWordCheckpointPath`; unlocked means reached, never completed, because checkpoints save no completion record |
+| Full test; Test open early | Path A–Z Test milestone; eligibility, banked and repair states come from `journeyFor`; an early Test remains possible without retention advancement |
+| Replay from lesson 1; individual lesson replay | Start and reached lesson nodes carry canonical replay descriptors; no second lesson builder |
+| Quick review | Retired from the proposed navigation in favour of Key/Listen/Read Letters; historical formal review records and the existing review implementation are untouched by this domain slice |
+| `FluencyHome`; Listening settings; latency diagnostics | Hub/settings entry and latency presentation retired in the proposed navigation; spacing uses the existing rung inside Listen sessions, with no new setting or store |
+
+Letters stability: all 26 letters must be eligible and every letter must have five latest independently graded correct outcomes in that direction, using stored event order only.
+
+Historical compatibility: an existing 90% Send clear or Copy clear (including `copy:letters`) also establishes the corresponding Key or Listen Letters bridge, without creating practice outcomes or crossing directions. With no such record, acquisition readiness alone never promotes a mode beyond Letters. All later Send/Copy clears reuse their existing 90% thresholds; Words/Groups bests count consecutive correct prompts, so six (the existing six-prompt run at the 90% advance bar) clears those levels. Sprint's speed and Ladder's rung cannot clear them. Suggestions pick the first uncleared level; after all Send stages clear, the existing weakest-best recommendation remains authoritative. All cleared Listen levels suggest Groups, the final level, for continued practice.
+
+Only the eligible settled roster (or all A–Z once acquisition is ready, exactly as #221) unlocks a mode. Multi-letter levels require the full eligible alphabet because their existing builders draw from unrestricted A–Z content. Passing the Letters bridge recommends the next level; formative bests do not gate explicit tier entry or replay. There is no new persisted field and no write path.
+
+The shared path tier order is Words, Phrases, Sentences, Messages, then the content-specific Numbers and Groups extensions. Pips exist only for modes that have real content in that tier; Read and Free play do not acquire invented word levels. A pip clears only when every level of its mode in that tier clears.
+
+The path keeps exactly one current node aligned with the existing journey: Start before acquisition begins, the canonical current lesson during acquisition, and Test when the journey says Test (including banked learners). The after-course confirmation case anchors the current marker at the Test milestone with an `after-course` action and a separate early-Test descriptor, so it cannot send a learner back to completed Lesson 13 or skip owed letters. Checkpoints and later tiers remain optional. Making a tier current for a banked learner would require an explicit change to the shared journey in a later slice; this implementation does not silently create a competing next-action policy.

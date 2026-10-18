@@ -1,7 +1,7 @@
 # #221 — Morse UX consolidation: continuous adaptive letter practice and one teaching language
 
 **Status:** Implemented and released in v1.5.3 on 2026-10-16; automated release verification complete. Real Pixel acceptance remains open.
-**Authority:** Maintained issue scope and implementation record. Proposed sections below retain rationale; the implementation record states the actual delivered behavior.
+**Authority:** Maintained practice and teaching contract and implementation record. Topic architecture (§3) is superseded by #230 in [UI overhaul](ISSUE_225_UI_OVERHAUL.md): one progress path and mode tray; the legacy Fluency hub is retired. Proposed sections below retain rationale; the implementation record states the actual delivered behavior.
 **Audit:** Original scoping inventory inspected default-branch source on 2026-10-16. The implementation review below adds real Chromium captures at 320/390 CSS px; physical Pixel and deployed-app acceptance remain outstanding.
 **Issue:** https://github.com/BenWassa/argus/issues/221
 **Related:** #201 / PRs #209, #212, #215; #188; #87; #90; #76; #113.

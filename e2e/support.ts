@@ -197,6 +197,6 @@ export async function cardNumber(page: Page): Promise<number> {
 
 /** Finished lessons and checkpoints remain visible on the Morse topic page. */
 export async function openFinishedLessons(page: Page) {
-  await expect(page.getByRole('heading', { name: 'Lessons', exact: true })).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Replay lesson 1', exact: true })).toBeVisible()
+  await expect(page.getByRole('list', { name: 'Course path' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Lesson 1, E and I, done', exact: true })).toBeVisible()
 }

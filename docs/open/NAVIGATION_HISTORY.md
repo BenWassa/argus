@@ -279,6 +279,10 @@ Rules:
 
 Do not broaden #45 into persistent Test-session recovery.
 
+## Retired Morse chooser (#230)
+
+A historical run target `{ kind: 'fluency' }` without a mode, send stage, copy level or free-play destination now normalizes to its Morse topic. Live navigation and reload/Back/Forward restoration use the same rule and replace the obsolete entry in place, without adding a history stop or starting a run. Missing topics fall back to Library. Named formative runs retain their existing origin fallback and are never restarted by Forward.
+
 ## Focus and accessibility
 
 History traversal is real navigation and must preserve the existing focus discipline.

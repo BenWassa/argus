@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ComponentPropsWithoutRef, type CSSProperties } from 'react'
+import { useEffect, useRef, type ComponentPropsWithoutRef, type CSSProperties, type ReactNode } from 'react'
 import './SessionFrame.css'
 
 type SessionKind = 'key' | 'listen' | 'read' | 'free' | 'lesson' | 'checkpoint'
@@ -8,10 +8,12 @@ interface SessionFrameProps extends ComponentPropsWithoutRef<'section'> {
   title: string
   progress?: { current: number; total: number }
   onClose: () => void
+  /** Session-level controls under the header, such as Listen's spacing. */
+  toolbar?: ReactNode
 }
 
 /** Shared session chrome. Progress describes this run, never learning evidence. */
-export function SessionFrame({ kind, title, progress, onClose, children, className = '', style, ...props }: SessionFrameProps) {
+export function SessionFrame({ kind, title, progress, onClose, toolbar, children, className = '', style, ...props }: SessionFrameProps) {
   const mode = kind === 'lesson' || kind === 'checkpoint' ? 'action' : `mode-${kind}`
   const total = Math.max(0, progress?.total ?? 0)
   const current = Math.min(total, Math.max(0, progress?.current ?? 0))
@@ -27,6 +29,7 @@ export function SessionFrame({ kind, title, progress, onClose, children, classNa
         </div>
         <button className="ghost small" type="button" onClick={onClose}>Close</button>
       </header>
+      {toolbar && <div className="session-frame-toolbar">{toolbar}</div>}
       {children}
     </section>
   )
