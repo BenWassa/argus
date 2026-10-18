@@ -2,76 +2,91 @@
  * Argus design tokens. Single source of truth, derived from DESIGN.md.
  * Nothing in the app hardcodes a colour, radius, or type step.
  *
- * Material: brushed gunmetal. The chassis is cool milled grey, the one lit
- * thing is polished steel, and the one warm thing is tarnish. Depth comes from
- * a bevel — a light top edge and a dark bottom one — rather than from drop
- * shadows, so raised controls read as stamped hardware and recessed tracks read
- * as engraved into it.
+ * Signal on Slate (#225/#226, owner-approved 2026-10-17). A lifted dark slate
+ * chassis, opaque plates, one signal-yellow action, and four solid mode
+ * colours. Every container is a solid fill: no translucent washes, no glow, no
+ * texture standing in for material. Hierarchy comes from fill steps, size and
+ * weight.
  */
 
 :root {
-  /* Surfaces. Cool milled greys; hierarchy comes from tonal layering and every
-     step is genuinely used. --field is the one surface below the page: inputs
-     and progress tracks are cut into the chassis, not laid on it. */
-  --bg: #101215;
-  --surface: #16191d;
-  --surface-2: #1d2126;
-  --surface-3: #272c33;
-  --surface-4: #343a42;
-  --field: #0b0d10;
+  /* Surfaces. A lifted cool slate, lighter than the old gunmetal so plates read
+     as objects and colour has something to sit on. --field is the one surface
+     below the page: inputs and tracks are recessed by a darker fill. */
+  --bg: oklch(0.255 0.012 255);
+  --surface: oklch(0.30 0.013 255);
+  --surface-2: oklch(0.345 0.014 255);
+  --surface-3: oklch(0.40 0.015 255);
+  --surface-4: oklch(0.45 0.015 255);
+  --field: oklch(0.22 0.012 255);
 
-  /* Text */
-  --ink: #e6eaf0;
-  /* Lifted alongside --subtle: at #939ba7 the one readout set on a lit card
-     face landed at 4.46:1, and every other pairing only gains from the step. */
-  --muted: #979fac;
-  /* Lifted until it clears 4.5:1 on --surface-2 as well as on the page ground;
-     below that it failed on hovered rows, which is where it is most read. */
-  --subtle: #868f9d;
-  --placeholder: #767f8e;
+  /* Text. --subtle clears 4.5:1 on the page, a plate and a raised plate; text
+     on --surface-3 and above uses --muted. */
+  --ink: oklch(0.97 0.004 255);
+  --muted: oklch(0.83 0.012 255);
+  --subtle: oklch(0.75 0.012 255);
+  --placeholder: oklch(0.68 0.012 255);
 
-  /* Rules */
-  --line: #2a2f37;
-  --line-strong: #3d4450;
-  --line-hover: #5b6472;
+  /* Rules. --line-strong is held at 3:1 against the page so a locked node's
+     ring and the path ahead stay visible as UI, not as a hint. */
+  --line: oklch(0.42 0.014 255);
+  --line-strong: oklch(0.55 0.014 255);
+  --line-hover: oklch(0.62 0.014 255);
 
-  /* Polished steel. The one accent: primary action, current selection, active
-     state. It is a material, not a hue — the accent surfaces are the ones
-     catching the light, and --ink stays a cooler off-white so they separate. */
-  --accent: #e9edf3;
-  --accent-2: #ffffff;
-  --accent-ink: #0b0d10;
-  --accent-wash: rgb(233 237 243 / 10%);
+  /* Signal. The one action colour: primary actions, the current selection, the
+     current step of a path and the done part of its spine. Solid, never washed
+     out to a tint. --action-edge is the same colour used as a line. */
+  --action: oklch(0.86 0.16 95);
+  --action-ink: oklch(0.22 0.04 95);
+  --action-edge: var(--action);
 
-  /* Track semantics: the three metals a topic is made of. Labels, studs and
-     gauge fills, never a surface, button or border stripe. They were first set
-     at ~0.03 chroma and read as three more greys, which left the chassis with
-     no colour at all outside decay; at ~0.08 they read as anodised steel,
-     verdigris and pewter-violet while staying well under crayon. Lightness is
-     matched so no track outranks another, and none of them is copper, because
-     copper means decay. Survival leans cyan (205°) rather than yellow, so it
-     reads as oxidised metal rather than fatigues, and stays clear of --ok. */
-  --learning: oklch(0.76 0.085 250);
-  --survival: oklch(0.77 0.075 205);
-  --tradecraft: oklch(0.75 0.085 300);
+  /* The accent names predate Signal and are kept as aliases so every existing
+     surface moves with it. --accent-wash is a solid warm slate, not an alpha. */
+  --accent: var(--action);
+  --accent-2: var(--action);
+  --accent-ink: var(--action-ink);
+  --accent-wash: oklch(0.33 0.03 95);
+
+  /* Morse modes (#228). Solid fills that show what the mode puts in front of
+     you; each has its own ink. Listen, Read and Free share hues with the tracks
+     below, because the two systems never share a screen. Chroma is held inside
+     sRGB at this lightness. */
+  --mode-key: oklch(0.80 0.14 150);
+  --mode-key-ink: oklch(0.22 0.04 150);
+  --mode-listen: oklch(0.80 0.10 250);
+  --mode-listen-ink: oklch(0.22 0.04 250);
+  --mode-read: oklch(0.80 0.11 300);
+  --mode-read-ink: oklch(0.22 0.04 300);
+  --mode-free: oklch(0.80 0.12 205);
+  --mode-free-ink: oklch(0.22 0.04 205);
+
+  /* Plates and the path spine (#229). Aliases, so a later chassis change is a
+     token-only change. */
+  --plate: var(--surface);
+  --plate-raised: var(--surface-2);
+  --spine-ahead: var(--line-strong);
+
+  /* Track semantics: the subject a topic belongs to. Raised from the old
+     anodised-metal chroma so tracks read as colour. Lightness is matched so no
+     track outranks another, and none of them is copper, because copper means
+     decay. */
+  --learning: oklch(0.78 0.10 250);
+  --survival: oklch(0.80 0.11 205);
+  --tradecraft: oklch(0.77 0.11 300);
 
   /* Status */
-  --danger: #d98078;
-  --danger-2: #e8968e;
-  --danger-ink: #140809;
-  /* Cooled the same way as --survival, from a 144° spring green to a 168°
-     sea-green: still unmistakably the affirmative colour, but through smoked
-     glass rather than a lawn. */
-  --ok: #92b5ae;
-  /* Completion is settled, not lit: a cool slate that has clearly stopped
-     being the thing in progress. */
-  --complete: #8c98a5;
-  /* Tarnish. The single warm note in the whole system, spent only on a skill
-     that has decayed and needs repair, so it is unmistakable wherever it
-     appears. */
-  --warning: #d68d5e;
+  --danger: oklch(0.74 0.13 18);
+  --danger-2: oklch(0.80 0.11 18);
+  --danger-ink: oklch(0.20 0.04 18);
+  --ok: oklch(0.80 0.10 170);
+  /* Completion is settled, not lit: a slate that has clearly stopped being the
+     thing in progress. */
+  --complete: oklch(0.70 0.02 255);
+  /* Copper. Decay, and nothing else; it always travels with its ◆ glyph and the
+     words "Needs repair", so the meaning never rests on colour alone. */
+  --warning: oklch(0.75 0.11 50);
 
-  /* Radii. Machined rather than soft: tight enough to read as a milled edge. */
+  /* Radii. */
   --r-sm: 6px;
   --r-md: 8px;
   --r-lg: 12px;
@@ -88,14 +103,14 @@
   --s-3xl: 64px;
 
   /* Type. Two voices: a native sans for everything you read and operate, a
-     native mono for everything the instrument reports — counts, dates,
-     positions, status. No web font, so nothing to download and nothing to break
-     when the PWA opens offline.
+     native mono for small readings — counts, dates, positions, status. No web
+     font, so nothing to download and nothing to break when the PWA opens
+     offline.
 
      --font-display is deliberately the same family as --font: the display voice
-     is now carried by size, weight and negative tracking rather than by a
-     second family. The token stays so the surfaces that speak in it remain
-     named, and so the family can be changed in one place. */
+     is carried by size, weight and negative tracking rather than by a second
+     family. The token stays so the surfaces that speak in it remain named, and
+     so the family can be changed in one place. */
   --font: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-display: var(--font);
   --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
@@ -130,44 +145,34 @@
   --w-label: 600;
   --w-body: 400;
 
-  /* Elevation. Depth reads as machined material: --edge is the top highlight
-     that makes a raised surface look raised, --edge-under the dark lower lip
-     that gives it thickness, --engrave the inner shadow that cuts a track into
-     the chassis, and --press the deeper one a control falls into when held. */
-  --edge: inset 0 1px 0 rgb(255 255 255 / 7%);
-  --edge-under: inset 0 -1px 0 rgb(0 0 0 / 50%);
-  --engrave: inset 0 1px 3px rgb(0 0 0 / 62%);
-  --press: inset 0 2px 5px rgb(0 0 0 / 50%);
-  /* The same press, read on a lit surface: a white plate does not need half a
-     stop of black dropped into it to look held. */
-  --press-lit: inset 0 2px 4px rgb(0 0 0 / 22%);
-  --shadow-sm: 0 1px 2px rgb(0 0 0 / 40%);
-  --shadow-key: 0 10px 26px rgb(0 0 0 / 46%);
-  --shadow: 0 16px 42px rgb(0 0 0 / 42%);
-  --shadow-lift: 0 26px 60px rgb(0 0 0 / 54%);
+  /* Elevation. Plates are flat and opaque: they separate by fill step and a
+     solid 1px line, not by a bevel. --edge and --edge-under are kept as no-op
+     names so existing shadow lists stay valid. A recessed field reads by its
+     darker fill and a solid line. Held controls still drop a neutral shadow
+     inward, and the few lifted things (the card, a sheet) still cast one. */
+  --edge: 0 0 0 0 transparent;
+  --edge-under: 0 0 0 0 transparent;
+  --engrave: inset 0 0 0 1px var(--line);
+  --press: inset 0 2px 4px rgb(0 0 0 / 30%);
+  --press-lit: inset 0 2px 4px rgb(0 0 0 / 18%);
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 30%);
+  --shadow-key: 0 8px 22px rgb(0 0 0 / 35%);
+  --shadow: 0 14px 36px rgb(0 0 0 / 35%);
+  --shadow-lift: 0 22px 54px rgb(0 0 0 / 42%);
 
-  /* Control faces. A raised control is lit from the top, and the system has
-     exactly two of them: the polished inlay the primary action is cut from, and
-     the milled face of the ghost. Both were respelled at every call site, which
-     is how the ghost on one screen ends up a tonal step off the one on the
-     next. Hovering the ghost moves it up one step rather than tinting it — the
-     face catches more light, it does not change material. */
-  --gradient-primary: linear-gradient(180deg, var(--accent-2), var(--accent));
-  --gradient-ghost: linear-gradient(180deg, var(--surface-3), var(--surface-2));
-  --gradient-ghost-hover: linear-gradient(180deg, var(--surface-4), var(--surface-3));
+  /* Control faces. Solid fills spelled as images so every existing
+     `background:` layer list stays valid. Hovering the ghost moves it up one
+     fill step. */
+  --gradient-primary: linear-gradient(var(--action), var(--action));
+  --gradient-ghost: linear-gradient(var(--surface-2), var(--surface-2));
+  --gradient-ghost-hover: linear-gradient(var(--surface-3), var(--surface-3));
 
-  /* Texture. Three fixed, non-animated layers so the dark greys read as metal
-     instead of as an empty fill: grain for tooth, machining for the brushed
-     direction, convexity for the light falling on it from above. Alpha is baked
-     in, so each layer can be tuned without a shared opacity. */
-  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
-  --machining:
-    repeating-linear-gradient(-45deg, rgb(255 255 255 / 1.5%) 0 1px, transparent 1px 3px),
-    repeating-linear-gradient(-45deg, rgb(0 0 0 / 6%) 0 1px, transparent 1px 4px);
-  --convex: radial-gradient(130% 78% at 50% -14%, rgb(255 255 255 / 4.5%), transparent 66%);
-  /* The diagonal sheen a stamped panel catches. Used on the few surfaces that
-     are meant to feel like a lifted plate, never on the page ground. */
-  --sheen: linear-gradient(145deg, rgb(255 255 255 / 4%), transparent 46%);
+  /* Texture. Retired with the gunmetal: the slate ground is a plain solid fill.
+     The names stay as `none` so the layers that referenced them are no-ops. */
+  --grain: none;
+  --machining: none;
+  --convex: none;
+  --sheen: none;
 
   /* Motion: state feedback and card physics. Nothing decorative. */
   --t-fast: 150ms;
@@ -178,9 +183,7 @@
 
   /* Control heights. The floor is what every tap target is held to; the large
      step is for the one control a screen is actually asking to be pressed, which
-     gets a deeper face so the thumb lands on it without aiming. The 52, 58 and
-     60px spellings this replaces were all reaching for that second size by eye
-     and arriving somewhere slightly different each time. */
+     gets a deeper face so the thumb lands on it without aiming. */
   --control-h: 44px;
   --control-h-lg: 56px;
 
