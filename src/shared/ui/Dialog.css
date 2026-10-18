@@ -3,9 +3,6 @@
    scrim, no wash and no backdrop blur. Selectors are doubled so the order the
    stylesheets load in cannot undo them. */
 .backdrop.backdrop {
-  /* A neutral shadow over the page, in the same black the elevation tokens
-     use. It carries no hue, so nothing behind the sheet is tinted. */
-  --scrim: rgb(0 0 0 / 62%);
   background: var(--scrim);
   backdrop-filter: none;
 }

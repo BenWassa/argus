@@ -457,7 +457,6 @@
   gap: var(--s-sm);
   justify-items: start;
   background: var(--surface-2);
-  box-shadow: var(--edge);
 }
 
 .morse-card.is-sounding {

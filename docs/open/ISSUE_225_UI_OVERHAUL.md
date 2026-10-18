@@ -3,7 +3,7 @@
 **Status:** scoped 2026-10-17; implementation not started. Integration branch `feat/ui-overhaul` is open.
 **Authority:** active plan and orchestration record for issues #226–#233. `DESIGN.md`, `DESIGN.json` and `PRODUCT.md` stay authoritative until each child issue rewrites the rules it reverses, in the same PR.
 **Issue:** https://github.com/BenWassa/argus/issues/225
-**Related:** #221 (Morse consolidation, Pixel pending), #188 (sending stages), #201, #193 (Home, Pixel pending), #223 (Roles), #113 (offline), `TOPIC_COLOUR_SPIKE.md` (pending since 2026-10-02).
+**Related:** #221 (Morse consolidation, Pixel pending), #188 (sending stages), #201, #193 (Home, Pixel pending), #223 (Roles), #113 (offline), [Topic colour spike](../closed/TOPIC_COLOUR_SPIKE.md) (superseded historical study).
 
 ## Owner request, 2026-10-17
 
