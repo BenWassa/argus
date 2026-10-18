@@ -1,248 +1,218 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-16T00:00:00Z",
+  "generatedAt": "2026-10-17T00:00:00Z",
   "title": "Design System: Argus",
   "extensions": {
     "colorMeta": {
-      "accent": {
-        "role": "primary",
-        "displayName": "Polish",
-        "canonical": "#e9edf3",
-        "tonalRamp": [
-          "#333435",
-          "#5d5f61",
-          "#87898d",
-          "#b6b9be",
-          "#e9edf3",
-          "#eef2f6",
-          "#f4f6f9",
-          "#f9fafc"
-        ]
-      },
-      "accent-2": {
-        "role": "primary",
-        "displayName": "Highlight",
-        "canonical": "#ffffff",
-        "tonalRamp": [
-          "#383838",
-          "#666666",
-          "#949494",
-          "#c7c7c7",
-          "#ffffff",
-          "#ffffff",
-          "#ffffff",
-          "#ffffff"
-        ]
-      },
       "bg": {
         "role": "neutral",
-        "displayName": "Gunmetal",
-        "canonical": "#101215",
+        "displayName": "Slate",
+        "canonical": "oklch(0.255 0.012 255)",
         "tonalRamp": [
-          "#101215",
-          "#16191d",
-          "#1d2126",
-          "#272c33",
-          "#343a42",
-          "#3d4450",
-          "#5b6472",
-          "#979fac"
+          "oklch(0.255 0.012 255)",
+          "oklch(0.30 0.013 255)",
+          "oklch(0.345 0.014 255)",
+          "oklch(0.40 0.015 255)",
+          "oklch(0.45 0.015 255)"
         ]
       },
       "surface": {
         "role": "neutral",
-        "displayName": "Milled",
-        "canonical": "#16191d",
+        "displayName": "Plate",
+        "canonical": "oklch(0.30 0.013 255)",
         "tonalRamp": [
-          "#101215",
-          "#16191d",
-          "#1d2126",
-          "#272c33",
-          "#343a42",
-          "#3d4450",
-          "#5b6472",
-          "#979fac"
+          "oklch(0.255 0.012 255)",
+          "oklch(0.30 0.013 255)",
+          "oklch(0.345 0.014 255)",
+          "oklch(0.40 0.015 255)",
+          "oklch(0.45 0.015 255)"
         ]
       },
       "surface-2": {
         "role": "neutral",
         "displayName": "Raised",
-        "canonical": "#1d2126",
+        "canonical": "oklch(0.345 0.014 255)",
         "tonalRamp": [
-          "#101215",
-          "#16191d",
-          "#1d2126",
-          "#272c33",
-          "#343a42",
-          "#3d4450",
-          "#5b6472",
-          "#979fac"
+          "oklch(0.255 0.012 255)",
+          "oklch(0.30 0.013 255)",
+          "oklch(0.345 0.014 255)",
+          "oklch(0.40 0.015 255)",
+          "oklch(0.45 0.015 255)"
         ]
       },
       "surface-3": {
         "role": "neutral",
         "displayName": "Lifted",
-        "canonical": "#272c33",
+        "canonical": "oklch(0.40 0.015 255)",
         "tonalRamp": [
-          "#101215",
-          "#16191d",
-          "#1d2126",
-          "#272c33",
-          "#343a42",
-          "#3d4450",
-          "#5b6472",
-          "#979fac"
+          "oklch(0.255 0.012 255)",
+          "oklch(0.30 0.013 255)",
+          "oklch(0.345 0.014 255)",
+          "oklch(0.40 0.015 255)",
+          "oklch(0.45 0.015 255)"
         ]
       },
       "surface-4": {
         "role": "neutral",
         "displayName": "Top",
-        "canonical": "#343a42",
+        "canonical": "oklch(0.45 0.015 255)",
         "tonalRamp": [
-          "#101215",
-          "#16191d",
-          "#1d2126",
-          "#272c33",
-          "#343a42",
-          "#3d4450",
-          "#5b6472",
-          "#979fac"
+          "oklch(0.255 0.012 255)",
+          "oklch(0.30 0.013 255)",
+          "oklch(0.345 0.014 255)",
+          "oklch(0.40 0.015 255)",
+          "oklch(0.45 0.015 255)"
         ]
       },
       "field": {
         "role": "neutral",
         "displayName": "Recess",
-        "canonical": "#0b0d10",
-        "tonalRamp": [
-          "#101215",
-          "#16191d",
-          "#1d2126",
-          "#272c33",
-          "#343a42",
-          "#3d4450",
-          "#5b6472",
-          "#979fac"
-        ]
+        "canonical": "oklch(0.22 0.012 255)"
       },
       "ink": {
         "role": "neutral",
         "displayName": "Ink",
-        "canonical": "#e6eaf0",
-        "tonalRamp": [
-          "#101215",
-          "#16191d",
-          "#1d2126",
-          "#272c33",
-          "#343a42",
-          "#3d4450",
-          "#5b6472",
-          "#979fac"
-        ]
+        "canonical": "oklch(0.97 0.004 255)"
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Muted",
+        "canonical": "oklch(0.83 0.012 255)"
+      },
+      "subtle": {
+        "role": "neutral",
+        "displayName": "Subtle",
+        "canonical": "oklch(0.75 0.012 255)"
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Line",
+        "canonical": "oklch(0.42 0.014 255)"
+      },
+      "line-strong": {
+        "role": "neutral",
+        "displayName": "Line Strong",
+        "canonical": "oklch(0.55 0.014 255)"
+      },
+      "line-hover": {
+        "role": "neutral",
+        "displayName": "Line Hover",
+        "canonical": "oklch(0.62 0.014 255)"
+      },
+      "action": {
+        "role": "primary",
+        "displayName": "Signal",
+        "canonical": "oklch(0.86 0.16 95)"
+      },
+      "action-ink": {
+        "role": "primary",
+        "displayName": "Ink-on-Signal",
+        "canonical": "oklch(0.22 0.04 95)"
+      },
+      "accent": {
+        "role": "primary",
+        "displayName": "Signal (accent alias)",
+        "canonical": "oklch(0.86 0.16 95)"
+      },
+      "accent-2": {
+        "role": "primary",
+        "displayName": "Signal (accent-2 alias)",
+        "canonical": "oklch(0.86 0.16 95)"
+      },
+      "accent-ink": {
+        "role": "primary",
+        "displayName": "Ink-on-Signal (accent-ink alias)",
+        "canonical": "oklch(0.22 0.04 95)"
+      },
+      "accent-wash": {
+        "role": "primary",
+        "displayName": "Warm Slate",
+        "canonical": "oklch(0.33 0.03 95)"
+      },
+      "mode-key": {
+        "role": "mode",
+        "displayName": "Key",
+        "canonical": "oklch(0.80 0.14 150)"
+      },
+      "mode-key-ink": {
+        "role": "mode",
+        "displayName": "Key Ink",
+        "canonical": "oklch(0.22 0.04 150)"
+      },
+      "mode-listen": {
+        "role": "mode",
+        "displayName": "Listen",
+        "canonical": "oklch(0.80 0.10 250)"
+      },
+      "mode-listen-ink": {
+        "role": "mode",
+        "displayName": "Listen Ink",
+        "canonical": "oklch(0.22 0.04 250)"
+      },
+      "mode-read": {
+        "role": "mode",
+        "displayName": "Read",
+        "canonical": "oklch(0.80 0.11 300)"
+      },
+      "mode-read-ink": {
+        "role": "mode",
+        "displayName": "Read Ink",
+        "canonical": "oklch(0.22 0.04 300)"
+      },
+      "mode-free": {
+        "role": "mode",
+        "displayName": "Free play",
+        "canonical": "oklch(0.80 0.12 205)"
+      },
+      "mode-free-ink": {
+        "role": "mode",
+        "displayName": "Free play Ink",
+        "canonical": "oklch(0.22 0.04 205)"
       },
       "learning": {
         "role": "track",
         "displayName": "Steel Blue",
-        "canonical": "#88b6e6",
-        "tonalRamp": [
-          "#192532",
-          "#314458",
-          "#4b6682",
-          "#688db3",
-          "#88b6e6",
-          "#a8cbf1",
-          "#c3defa",
-          "#dbeeff"
-        ]
+        "canonical": "oklch(0.78 0.10 250)"
       },
       "survival": {
         "role": "track",
         "displayName": "Verdigris",
-        "canonical": "#78c2cb",
-        "tonalRamp": [
-          "#14282a",
-          "#29484c",
-          "#406c71",
-          "#5a949b",
-          "#78c2cb",
-          "#9bd3d9",
-          "#bbe3e8",
-          "#d5f1f5"
-        ]
+        "canonical": "oklch(0.80 0.11 205)"
       },
       "tradecraft": {
         "role": "track",
         "displayName": "Pewter",
-        "canonical": "#b6a2dc",
-        "tonalRamp": [
-          "#262130",
-          "#463d56",
-          "#685c7f",
-          "#8f80ae",
-          "#b6a2dc",
-          "#cdbeec",
-          "#dfd4f7",
-          "#eee7ff"
-        ]
+        "canonical": "oklch(0.77 0.11 300)"
       },
       "danger": {
         "role": "status",
         "displayName": "Clay",
-        "canonical": "#d98078",
-        "tonalRamp": [
-          "#301c1a",
-          "#573330",
-          "#7e4a46",
-          "#a9645e",
-          "#d98078",
-          "#e2a09a",
-          "#ecc0bc",
-          "#f4dbd9"
-        ]
+        "canonical": "oklch(0.74 0.13 18)"
+      },
+      "danger-2": {
+        "role": "status",
+        "displayName": "Clay Light",
+        "canonical": "oklch(0.80 0.11 18)"
+      },
+      "danger-ink": {
+        "role": "status",
+        "displayName": "Clay Ink",
+        "canonical": "oklch(0.20 0.04 18)"
       },
       "ok": {
         "role": "status",
         "displayName": "Mineral",
-        "canonical": "#92b5ae",
-        "tonalRamp": [
-          "#202826",
-          "#3a4846",
-          "#556965",
-          "#728d88",
-          "#92b5ae",
-          "#adc8c2",
-          "#c9dad7",
-          "#e1ebe9"
-        ]
+        "canonical": "oklch(0.80 0.10 170)"
       },
       "complete": {
         "role": "status",
         "displayName": "Settled",
-        "canonical": "#8c98a5",
-        "tonalRamp": [
-          "#1f2124",
-          "#383d42",
-          "#515860",
-          "#6d7781",
-          "#8c98a5",
-          "#a9b2bc",
-          "#c6ccd2",
-          "#dfe2e6"
-        ]
+        "canonical": "oklch(0.70 0.02 255)"
       },
       "warning": {
         "role": "status",
-        "displayName": "Tarnish",
-        "canonical": "#d68d5e",
-        "tonalRamp": [
-          "#2f1f15",
-          "#563826",
-          "#7c5237",
-          "#a76e49",
-          "#d68d5e",
-          "#e0aa86",
-          "#eac6ae",
-          "#f4dfd2"
-        ]
+        "displayName": "Copper",
+        "canonical": "oklch(0.75 0.11 50)"
       }
     },
     "typographyMeta": {
@@ -274,33 +244,48 @@
     "shadows": [
       {
         "name": "edge",
-        "value": "inset 0 1px 0 rgb(255 255 255 / 7%)",
-        "purpose": "The lit top edge on anything raised. Paired with edge-under."
+        "value": "0 0 0 0 transparent",
+        "purpose": "No-op. The bevel is retired; the name is kept so existing shadow lists stay valid."
       },
       {
         "name": "edge-under",
-        "value": "inset 0 -1px 0 rgb(0 0 0 / 50%)",
-        "purpose": "The dark lower lip that gives a raised control thickness."
+        "value": "0 0 0 0 transparent",
+        "purpose": "No-op. The bevel is retired; the name is kept so existing shadow lists stay valid."
       },
       {
         "name": "engrave",
-        "value": "inset 0 1px 3px rgb(0 0 0 / 62%)",
-        "purpose": "Anything cut into the chassis: inputs, progress tracks, an engaged filter chip."
+        "value": "inset 0 0 0 1px oklch(0.42 0.014 255)",
+        "purpose": "The 1px line that outlines a recessed field (inputs, progress tracks, an engaged filter chip), which otherwise reads by its darker fill."
       },
       {
         "name": "press",
-        "value": "inset 0 2px 5px rgb(0 0 0 / 50%)",
-        "purpose": "A held control dropping into the chassis."
+        "value": "inset 0 2px 4px rgb(0 0 0 / 30%)",
+        "purpose": "A held control dropping a pixel with a neutral shadow inside it."
       },
       {
         "name": "press-lit",
-        "value": "inset 0 2px 4px rgb(0 0 0 / 22%)",
-        "purpose": "The same press read on the polished primary, which needs far less black in it to look held."
+        "value": "inset 0 2px 4px rgb(0 0 0 / 18%)",
+        "purpose": "The same press read on the solid action fill, which needs less black in it to look held."
+      },
+      {
+        "name": "shadow-sm",
+        "value": "0 1px 2px rgb(0 0 0 / 30%)",
+        "purpose": "Buttons, small raised controls and Home plates."
+      },
+      {
+        "name": "shadow-key",
+        "value": "0 8px 22px rgb(0 0 0 / 35%)",
+        "purpose": "A focused required action."
       },
       {
         "name": "ambient-panel",
-        "value": "0 16px 42px rgb(0 0 0 / 42%)",
-        "purpose": "Reserved for the flashcard and the due-Test surface — the single most important element per view."
+        "value": "0 14px 36px rgb(0 0 0 / 35%)",
+        "purpose": "Reserved for the flashcard, the one focused surface in a session. Corresponds to the shadow token."
+      },
+      {
+        "name": "shadow-lift",
+        "value": "0 22px 54px rgb(0 0 0 / 42%)",
+        "purpose": "The completion moment and the sheet."
       }
     ],
     "motion": [
@@ -331,49 +316,49 @@
       "name": "Primary Button",
       "kind": "button",
       "refersTo": "button-primary",
-      "description": "The single accent-colored action per screen — Start due Test, Save topic, Begin session.",
+      "description": "The single action-coloured control per screen: Start, Save topic, Begin session. A solid Signal fill with Ink-on-Signal text.",
       "html": "<button class=\"ds-btn-primary\">Start due Test</button>",
-      "css": ".ds-btn-primary { min-height: 44px; padding: 11px 14px; border-radius: 10px; border: 1px solid #e9edf3; background: #e9edf3; color: #0b0d10; font: 700 0.86rem ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif; cursor: pointer; transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease; } .ds-btn-primary:hover { background: #ffffff; border-color: #ffffff; } .ds-btn-primary:active { transform: translateY(1px); } .ds-btn-primary:focus-visible { outline: 3px solid rgba(255,255,255,.4); outline-offset: 2px; }"
+      "css": ".ds-btn-primary { min-height: 44px; padding: 11px 14px; border-radius: 8px; border: 1px solid oklch(0.86 0.16 95); background: oklch(0.86 0.16 95); color: oklch(0.22 0.04 95); font: 700 0.86rem ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif; box-shadow: 0 1px 2px rgb(0 0 0 / 30%); cursor: pointer; transition: transform 0.18s ease; } .ds-btn-primary:active { transform: translateY(1px); box-shadow: inset 0 2px 4px rgb(0 0 0 / 18%); } .ds-btn-primary:focus-visible { outline: 2px solid oklch(0.86 0.16 95); outline-offset: 2px; }"
     },
     {
       "name": "Ghost Button",
       "kind": "button",
       "refersTo": "button-ghost",
-      "description": "Secondary action, same shape as primary, a milled-grey bevel instead of the polish.",
+      "description": "Secondary action, same shape as primary, a solid Raised fill; hover moves one fill step up.",
       "html": "<button class=\"ds-btn-ghost\">Author a topic</button>",
-      "css": ".ds-btn-ghost { min-height: 44px; padding: 11px 14px; border-radius: 10px; border: 1px solid #3d4450; background: #1d2126; color: #e6eaf0; font: 700 0.86rem ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif; cursor: pointer; transition: background 0.18s ease, border-color 0.18s ease; } .ds-btn-ghost:hover { background: #272c33; border-color: #5b6472; } .ds-btn-ghost:focus-visible { outline: 3px solid rgba(255,255,255,.4); outline-offset: 2px; border-color: #e9edf3; }"
+      "css": ".ds-btn-ghost { min-height: 44px; padding: 11px 14px; border-radius: 8px; border: 1px solid oklch(0.55 0.014 255); background: oklch(0.345 0.014 255); color: oklch(0.97 0.004 255); font: 700 0.86rem ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif; box-shadow: 0 1px 2px rgb(0 0 0 / 30%); cursor: pointer; transition: background 0.18s ease, border-color 0.18s ease; } .ds-btn-ghost:hover { background: oklch(0.40 0.015 255); border-color: oklch(0.62 0.014 255); } .ds-btn-ghost:focus-visible { outline: 2px solid oklch(0.86 0.16 95); outline-offset: 2px; }"
     },
     {
       "name": "Filter Chip",
       "kind": "chip",
       "refersTo": "chip",
-      "description": "Track/status filter. Active state reuses the same polish-equals-current logic as buttons and nav.",
+      "description": "Track/status filter. The active state reuses the same action-equals-current logic as buttons and nav.",
       "html": "<button class=\"ds-chip ds-chip-active\" aria-pressed=\"true\">Learning</button>",
-      "css": ".ds-chip { min-height: 38px; padding: 8px 11px; border-radius: 999px; border: 1px solid #343a42; background: transparent; color: #e6eaf0; font: 700 0.76rem ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif; cursor: pointer; transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease; } .ds-chip:hover { border-color: #3d4450; } .ds-chip-active, .ds-chip[aria-pressed=\"true\"] { background: #e9edf3; border-color: #e9edf3; color: #0b0d10; } .ds-chip:focus-visible { outline: 3px solid rgba(255,255,255,.4); outline-offset: 2px; }"
+      "css": ".ds-chip { min-height: 38px; padding: 8px 11px; border-radius: 999px; border: 1px solid oklch(0.55 0.014 255); background: oklch(0.30 0.013 255); color: oklch(0.97 0.004 255); font: 700 0.76rem ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif; cursor: pointer; transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease; } .ds-chip:hover { border-color: oklch(0.62 0.014 255); } .ds-chip-active, .ds-chip[aria-pressed=\"true\"] { background: oklch(0.86 0.16 95); border-color: oklch(0.86 0.16 95); color: oklch(0.22 0.04 95); } .ds-chip:focus-visible { outline: 2px solid oklch(0.86 0.16 95); outline-offset: 2px; }"
     },
     {
       "name": "Text Field",
       "kind": "input",
       "refersTo": "field",
-      "description": "Search and form input. One step darker than surrounding surfaces for contrast.",
+      "description": "Search and form input. Recessed by a darker fill than the surrounding surfaces, plus a 1px line.",
       "html": "<input class=\"ds-field\" placeholder=\"Search topics\" />",
-      "css": ".ds-field { min-height: 44px; width: 100%; padding: 11px 12px; border-radius: 10px; border: 1px solid #3d4450; background: #0b0d10; color: #e6eaf0; font: 400 0.86rem ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif; } .ds-field::placeholder { color: #767f8e; } .ds-field:focus-visible { outline: 3px solid rgba(255,255,255,.4); outline-offset: 2px; border-color: #e9edf3; }"
+      "css": ".ds-field { min-height: 44px; width: 100%; padding: 11px 12px; border-radius: 8px; border: 1px solid oklch(0.42 0.014 255); background: oklch(0.22 0.012 255); color: oklch(0.97 0.004 255); font: 400 0.86rem ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif; } .ds-field::placeholder { color: oklch(0.68 0.012 255); } .ds-field:focus-visible { outline: 2px solid oklch(0.86 0.16 95); outline-offset: 2px; border-color: oklch(0.86 0.16 95); }"
     },
     {
       "name": "Topic Row",
       "kind": "custom",
       "refersTo": "topic-row",
-      "description": "A dense index row, deliberately not a card. Trailing chevron and hairline divider signal affordance instead of shadow/lift.",
+      "description": "A dense index row, deliberately not a card. A hairline divider signals affordance instead of shadow or lift.",
       "html": "<button class=\"ds-topic-row\"><div class=\"ds-topic-top\"><h3 class=\"ds-topic-title\">NATO Phonetic Alphabet</h3><span class=\"ds-tag\"><span class=\"ds-status-dot\"></span>Completed</span></div><p class=\"ds-topic-scope\">The 26 letters of the NATO phonetic alphabet, tested both directions.</p><div class=\"ds-meta-row\"><span class=\"ds-tag\">Learning</span><span class=\"ds-tag\">Recall</span><span class=\"ds-tag\">26 items</span></div></button>",
-      "css": ".ds-topic-row { position: relative; display: block; width: 100%; text-align: left; border: 0; border-bottom: 1px solid #343a42; border-radius: 0; padding: 15px 24px 15px 2px; background: transparent; color: #e6eaf0; cursor: pointer; transition: background 0.18s ease, padding 0.18s ease; } .ds-topic-row:hover { background: rgba(255,255,255,.018); padding-inline: 10px; } .ds-topic-row::after { content: '\\203A'; position: absolute; right: 5px; top: 50%; transform: translateY(-50%); color: #868f9d; font-size: 1.2rem; } .ds-topic-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding-right: 20px; } .ds-topic-title { margin: 0; font: 700 0.98rem ui-sans-serif, system-ui, sans-serif; } .ds-topic-scope { max-width: 68ch; font-size: 0.77rem; color: #979fac; margin: 4px 0 10px; } .ds-meta-row { display: flex; gap: 6px; } .ds-tag { font-size: 0.72rem; color: #868f9d; } .ds-tag + .ds-tag::before { content: '\\00b7'; color: #5b6472; margin-right: 6px; } .ds-status-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #92b5ae; margin-right: 5px; } .ds-topic-row:focus-visible { outline: 3px solid rgba(255,255,255,.4); outline-offset: 2px; }"
+      "css": ".ds-topic-row { position: relative; display: block; width: 100%; text-align: left; border: 0; border-bottom: 1px solid oklch(0.42 0.014 255); border-radius: 0; padding: 15px 24px 15px 2px; background: transparent; color: oklch(0.97 0.004 255); cursor: pointer; transition: background 0.18s ease, padding 0.18s ease; } .ds-topic-row:hover { background: oklch(0.30 0.013 255); padding-inline: 10px; } .ds-topic-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; } .ds-topic-title { margin: 0; font: 700 0.98rem ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif; } .ds-topic-scope { max-width: 68ch; font-size: 0.77rem; color: oklch(0.83 0.012 255); margin: 4px 0 10px; } .ds-meta-row { display: flex; gap: 6px; } .ds-tag { font-size: 0.72rem; color: oklch(0.75 0.012 255); } .ds-tag + .ds-tag::before { content: '\\00b7'; color: oklch(0.55 0.014 255); margin-right: 6px; } .ds-status-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: oklch(0.80 0.10 170); margin-right: 5px; } .ds-topic-row:focus-visible { outline: 2px solid oklch(0.86 0.16 95); outline-offset: 2px; }"
     },
     {
       "name": "Nav Item",
       "kind": "nav",
       "refersTo": "nav-item",
-      "description": "Inset rounded raised navigation on mobile, attached left rail on desktop. Active state uses Highlight, aria-current=page.",
+      "description": "Inset rounded navigation on mobile, attached left rail on desktop. The current destination is marked in the action colour with aria-current=page.",
       "html": "<button class=\"ds-nav-btn ds-nav-btn-active\" aria-current=\"page\" aria-label=\"Library\"><svg viewBox=\"0 0 24 24\" fill=\"none\" width=\"22\" height=\"22\"><path d=\"M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5v-16Z\" stroke=\"currentColor\" stroke-width=\"1.7\"/><path d=\"M4 18.5A2.5 2.5 0 0 1 6.5 16H20\" stroke=\"currentColor\" stroke-width=\"1.7\"/></svg>Library</button>",
-      "css": ".ds-nav-btn { display: flex; flex-direction: column; align-items: center; gap: 3px; min-height: 50px; padding: 6px 10px; border: 0; border-radius: 9px; background: transparent; color: #979fac; font: 700 0.66rem ui-sans-serif, system-ui, sans-serif; cursor: pointer; transition: color 0.18s ease, background 0.18s ease; } .ds-nav-btn:hover { color: #e6eaf0; } .ds-nav-btn-active, .ds-nav-btn[aria-current='page'] { color: #ffffff; background: rgba(255,255,255,.07); } .ds-nav-btn:focus-visible { outline: 3px solid rgba(255,255,255,.4); outline-offset: 2px; }"
+      "css": ".ds-nav-btn { display: flex; flex-direction: column; align-items: center; gap: 3px; min-height: 50px; padding: 6px 10px; border: 0; border-radius: 9px; background: transparent; color: oklch(0.83 0.012 255); font: 700 0.66rem ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif; cursor: pointer; transition: color 0.18s ease, background 0.18s ease; } .ds-nav-btn:hover { color: oklch(0.97 0.004 255); } .ds-nav-btn-active, .ds-nav-btn[aria-current='page'] { color: oklch(0.86 0.16 95); background: oklch(0.345 0.014 255); box-shadow: inset 0 2px 0 oklch(0.86 0.16 95); } .ds-nav-btn:focus-visible { outline: 2px solid oklch(0.86 0.16 95); outline-offset: 2px; }"
     },
     {
       "name": "Sheet Close Button",
@@ -381,29 +366,64 @@
       "refersTo": "sheet",
       "description": "44x44px dismiss control on modal sheets. Always carries an explicit aria-label naming what it closes.",
       "html": "<button class=\"ds-close-btn\" aria-label=\"Close topic details\"><svg viewBox=\"0 0 24 24\" fill=\"none\" width=\"18\" height=\"18\"><path d=\"M6 6l12 12M18 6L6 18\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\"/></svg></button>",
-      "css": ".ds-close-btn { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border: 1px solid #343a42; border-radius: 10px; background: #1d2126; color: #e6eaf0; cursor: pointer; transition: background 0.18s ease, border-color 0.18s ease; } .ds-close-btn:hover { background: #272c33; border-color: #3d4450; } .ds-close-btn:focus-visible { outline: 3px solid rgba(255,255,255,.4); outline-offset: 2px; border-color: #e9edf3; }"
+      "css": ".ds-close-btn { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border: 1px solid oklch(0.42 0.014 255); border-radius: 8px; background: oklch(0.345 0.014 255); color: oklch(0.97 0.004 255); cursor: pointer; transition: background 0.18s ease, border-color 0.18s ease; } .ds-close-btn:hover { background: oklch(0.40 0.015 255); border-color: oklch(0.62 0.014 255); } .ds-close-btn:focus-visible { outline: 2px solid oklch(0.86 0.16 95); outline-offset: 2px; border-color: oklch(0.86 0.16 95); }"
+    },
+    {
+      "name": "Mode Tile",
+      "kind": "custom",
+      "refersTo": "mode-tile",
+      "description": "A Morse mode in the fixed tray above navigation. A solid mode fill with its own ink, one word, no subtitle, and it shows the stimulus: a letter (Key), a waveform (Listen), dits and dashes (Read) or your own text at a cursor (Free play).",
+      "html": "<button class=\"ds-mode-tile\"><span class=\"ds-mode-stimulus\" aria-hidden=\"true\">A</span>Key</button>",
+      "css": ".ds-mode-tile { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 56px; padding: 8px 10px; border: 0; border-radius: 12px; background: oklch(0.80 0.14 150); color: oklch(0.22 0.04 150); font: 700 0.86rem ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif; cursor: pointer; } .ds-mode-stimulus { font-size: 1.6rem; line-height: 1; } .ds-mode-tile:focus-visible { outline: 2px solid oklch(0.86 0.16 95); outline-offset: 2px; }"
+    },
+    {
+      "name": "Path Spine",
+      "kind": "custom",
+      "refersTo": "path-spine",
+      "description": "The Morse course as one straight vertical line, top to bottom. Done is the action colour; ahead is Line Strong. Lessons have round nodes; the current row is a raised plate with a solid Signal node and the one Start action.",
+      "html": "<ol class=\"ds-path\"><li class=\"ds-path-row ds-path-done\"><span class=\"ds-node\"></span>Lesson 1</li><li class=\"ds-path-row ds-path-current\"><span class=\"ds-node\"></span>Lesson 2</li></ol>",
+      "css": ".ds-path { list-style: none; margin: 0; padding: 0; } .ds-path-row { position: relative; display: flex; align-items: center; gap: 14px; padding: 10px 0 10px 4px; color: oklch(0.97 0.004 255); } .ds-path-row::before { content: \"\"; position: absolute; left: 13px; top: 0; bottom: 0; width: 2px; background: oklch(0.55 0.014 255); } .ds-path-done::before { background: oklch(0.86 0.16 95); } .ds-node { position: relative; z-index: 1; width: 20px; height: 20px; border-radius: 50%; border: 2px solid oklch(0.55 0.014 255); background: oklch(0.255 0.012 255); } .ds-path-done .ds-node { border-color: oklch(0.86 0.16 95); background: oklch(0.86 0.16 95); } .ds-path-current { padding: 14px; border-radius: 12px; background: oklch(0.345 0.014 255); box-shadow: 0 1px 2px rgb(0 0 0 / 30%); } .ds-path-current .ds-node { border-color: oklch(0.86 0.16 95); background: oklch(0.86 0.16 95); }"
+    },
+    {
+      "name": "Path Milestone",
+      "kind": "custom",
+      "refersTo": "path-milestone",
+      "description": "A word check or the A-Z Test on the Morse path: a full-width plate that crosses the spine with a square node (a flag for a word check, A-Z for the Test) and an uppercase label. Shape, width and label carry \"this is a test\".",
+      "html": "<div class=\"ds-milestone\"><span class=\"ds-milestone-node\" aria-hidden=\"true\">A–Z</span><span class=\"ds-milestone-label\">Test</span></div>",
+      "css": ".ds-milestone { display: flex; align-items: center; gap: 14px; width: 100%; padding: 14px; border: 1px solid oklch(0.42 0.014 255); border-radius: 12px; background: oklch(0.30 0.013 255); color: oklch(0.97 0.004 255); } .ds-milestone-node { display: grid; place-items: center; min-width: 32px; height: 32px; border-radius: 6px; background: oklch(0.255 0.012 255); border: 2px solid oklch(0.55 0.014 255); font: 700 0.75rem ui-monospace, SFMono-Regular, \"SF Mono\", Menlo, Consolas, monospace; } .ds-milestone-label { font: 700 0.86rem ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif; text-transform: uppercase; letter-spacing: 0.055em; }"
     }
   ],
   "narrative": {
-    "northStar": "Brushed Gunmetal",
-    "overview": "Argus is styled as a precision instrument, not a dashboard and not a journal: a dark, low-glare index the owner opens for a few minutes, uses without friction, and closes. Surfaces are milled cool grey and read as stamped plate; controls protrude with a lit top edge and fall into the chassis when held; progress tracks are cut into the surface rather than drawn on it. One thing on a screen is polished, and it is the action you are being asked to take. A native sans carries everything a person reads and operates; a native mono carries everything the instrument reports.",
+    "northStar": "Signal on Slate",
+    "overview": "Argus is a precision instrument, not a dashboard and not a journal: a calm dark index the owner opens for a few minutes, uses without friction, and closes. The ground is a lifted cool slate and every container is an opaque plate, separated by fill steps and 1px lines rather than translucency, glow or texture. Against that quiet ground there is exactly one signal, a yellow that means \"do this\" or \"you are here\"; colour is otherwise spent on meaning, with four solid Morse mode colours, three track colours, and one copper that means decay. A native sans carries everything a person reads and operates; a native mono carries everything the instrument reports. Brushed Gunmetal is retired; light mode is parked as an idea (#237).",
     "keyCharacteristics": [
-      "Cool milled greys over grain, machining marks and a convex highlight; one polished-steel accent, never decorative",
+      "A lifted slate chassis and opaque plates; hierarchy from fill steps, size and weight, never from translucency, glow or texture",
+      "One signal-yellow action: the primary action, the current selection, the current step and the done part of a path",
+      "Four solid mode colours and three track colours used for wayfinding, with copper reserved for decay",
       "Sans for language, mono for readings, and the boundary between them is meaningful",
-      "Depth from bevel and engraving, not from stacked drop shadows",
-      "Exactly one warm colour in the product, and it means a skill has decayed",
       "Dense index rows over card grids; a topic list reads like a table of contents",
+      "Few, large words: a tile or label is one or two words, and a screen shows what the task will put in front of you",
       "Motion is state feedback, one piece of card physics, and a short arrival for the Library list and its gauges; nothing moves for its own sake"
     ],
     "rules": [
       {
-        "name": "The One Accent Rule",
-        "body": "The polish (near-white steel) appears only on the primary action, the current selection, and active state. If a second element on the same screen carries it, one of them is wrong. The accent is a material rather than a hue: --ink is deliberately held below white so the two separate.",
+        "name": "The One Action Rule",
+        "body": "Signal yellow appears only on the primary action, the current selection, the current step and the done part of a path. It is never decoration. Two primary actions on one screen means one of them is wrong.",
         "section": "colors"
       },
       {
-        "name": "The No Track-as-Background Rule",
-        "body": "Learning/Survival/Tradecraft colors label metadata (a track heading or the fill inside an engraved gauge) and are never used as a card background, button fill, border stripe or large surface area; that would tip the product toward the tactical/game aesthetic it explicitly rejects. Shipped topic icons on Library use neutral Steel Ash rather than track color. Home uses neutral progress dials instead of subject icons.",
+        "name": "The Copper Means Decay Rule",
+        "body": "Copper (oklch(0.75 0.11 50)) is used only for decay, always with the ◆ glyph and the words \"Needs repair\", so the meaning never rests on colour alone. No other role sits within 30° of copper at similar lightness.",
+        "section": "colors"
+      },
+      {
+        "name": "The Solid Plates Rule",
+        "body": "Every container is opaque. No translucent fills, no translucent borders, no glow, and no gradient standing in for a colour. Neutral drop shadows are allowed for things that lift (the card, a sheet) and for the pressed state.",
+        "section": "colors"
+      },
+      {
+        "name": "Mode Colours Show Where You Are",
+        "body": "A Morse mode hue appears only on its own tile, its session frame and its pips. Tracks and modes never share a screen. Track colours may fill icons, gauges and rings, never a side stripe.",
         "section": "colors"
       },
       {
@@ -412,8 +432,8 @@
         "section": "typography"
       },
       {
-        "name": "The Bevel-Not-Shadow Rule",
-        "body": "Depth on ordinary controls comes from the bevel — a lit top edge and a dark lower lip — and on recessed elements from an inset engraving. Drop shadow is spent once, on the single most important surface per view.",
+        "name": "The One Lifted Surface Rule",
+        "body": "Depth comes from fill steps and 1px lines; recessed fields read by a darker fill. A deep neutral shadow is spent once, on the single most important surface per view.",
         "section": "elevation"
       },
       {
@@ -422,8 +442,9 @@
         "section": "components"
       },
       {
-        "name": "The One Warm Colour Rule",
-        "body": "Tarnish (#d68d5e) is the only warm colour in the product and it means exactly one thing: this skill has decayed and needs repair. On an otherwise entirely grey-and-white screen it cannot be missed. Spending it anywhere else destroys the only pre-attentive signal the system has."
+        "name": "The No-Fold Rule",
+        "body": "Content is either visible or it lives on its own page; nothing is folded.",
+        "section": "components"
       },
       {
         "name": "The Two-Voice Rule",
@@ -431,27 +452,30 @@
       }
     ],
     "dos": [
-      "Do open every top-level view on the task (what's due, start Test), never on a summary, pitch, or hero.",
-      "Do hold the polish to exactly three roles: primary action, current selection, active/current state.",
-      "Do build hierarchy from tonal layering and bevel, and reserve drop shadow for the one lit surface per view.",
+      "Do open every top-level view on the task (what's next, start Test), never on a summary, pitch, or hero.",
+      "Do hold Signal yellow to its roles: primary action, current selection, current step and the done part of a path.",
+      "Do build hierarchy from fill steps and 1px lines, and reserve the deep shadow for the one lifted surface per view.",
+      "Do show the stimulus on a mode tile: a letter, a waveform, dits and dashes, or your own text at a cursor.",
       "Do render topic listings as a dense hairline-divided index, not a card grid.",
       "Do give every interactive element default, hover, focus-visible, active, and disabled states, with a minimum 44px primary touch target.",
       "Do name controls as direct actions and explain the recovery path in empty states.",
-      "Do treat retention decay as a routing signal, same visual weight as any other status, never styled as an error or a scolding.",
+      "Do treat retention decay as a routing signal, never styled as an error or a scolding.",
       "Do keep JSON export/import visually first-class, not buried as a settings afterthought.",
-      "Do keep tarnish for decay alone, so it stays the one warm thing on a cool screen.",
-      "Do set every reading — count, date, position, status, track — in the mono voice, and everything a person reads or presses in the sans."
+      "Do keep copper for decay alone, always with its ◆ glyph and words, so it is never confused with the yellow action.",
+      "Do set every reading (count, date, position, status, track) in the mono voice, and everything a person reads or presses in the sans."
     ],
     "donts": [
       "Don't put a hero, oversized slogan, or eyebrow label above a page or section heading.",
       "Don't build a wall of identical metric cards; consolidate into one instrument-panel stat strip.",
-      "Don't nest a card inside a card, or use border-left/border-right as a colored accent stripe on any row, alert, or callout.",
+      "Don't nest a card inside a card, or use border-left/border-right as a coloured accent stripe on any row, alert, or callout.",
+      "Don't use translucent fills or borders for colour; every container is a solid plate.",
+      "Don't add subtitles to tiles. A tile is one word and the stimulus it shows.",
       "Don't use gradient text, glassmorphism, or decorative rings/gradients anywhere in the Test loop.",
-      "Don't let the machined material drag the language tactical. The chassis is machined; the words are not — Argus says 'Needs repair' and 'Start', never 'TST' or 'INITIATE EXECUTION'. The subject matter invites the opposite, and the framing is competence, not catastrophe.",
-      "Don't add streaks, badges, XP, or any shame-based nudge for missed Test days.",
+      "Don't let the material drag the language tactical. The chassis is slate; the words are plain. Argus says 'Needs repair' and 'Start', never 'TST' or 'INITIATE EXECUTION'. The subject matter invites the opposite, and the framing is competence, not catastrophe.",
+      "Don't add streaks, badges, XP, or any shame-based nudge for missed Test days. The Morse path is a progress visualisation, not gamification.",
       "Don't widen the mobile layout for desktop and call it done; desktop gets a genuine side-rail, task-oriented layout.",
       "Don't use a serif or fluid display typeface; display character comes from size, weight and tracking.",
-      "Don't add outer glow. A polished surface catches light; it does not emit it, and glow smears on OLED."
+      "Don't add outer glow. A plate is lit by the room, not by itself, and glow smears on OLED."
     ]
   }
 }

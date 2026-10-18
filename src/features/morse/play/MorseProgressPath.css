@@ -1,0 +1,181 @@
+.morse-progress-path {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  gap: 12px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  background: var(--bg);
+}
+
+/* Both segments share one x coordinate, even when a milestone grows taller. */
+.morse-progress-path::before,
+.morse-progress-path::after {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  left: 34px;
+  width: 4px;
+  top: var(--spine-top);
+  height: calc(var(--spine-bottom) - var(--spine-top));
+  background: var(--spine-ahead);
+  pointer-events: none;
+}
+
+.morse-progress-path::after {
+  height: calc(var(--spine-current) - var(--spine-top));
+  background: var(--action);
+}
+
+.morse-progress-row,
+.morse-progress-row:hover,
+.morse-progress-row:active {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 64px;
+  padding: 10px;
+  border: 2px solid var(--bg);
+  border-radius: 18px;
+  text-align: left;
+  color: var(--ink);
+  background: var(--bg);
+  box-shadow: none;
+  transition: transform 150ms var(--ease);
+}
+
+.morse-progress-row > * { position: relative; z-index: 2; }
+.morse-progress-row[aria-disabled='true'] { cursor: default; transform: none; color: var(--muted); }
+.morse-progress-row.is-locked .morse-progress-letters { color: var(--muted); }
+.morse-progress-row:focus-visible,
+.morse-progress-pip:focus-visible { outline: 2px solid var(--action-edge); outline-offset: 2px; }
+
+.morse-progress-node {
+  display: grid;
+  place-items: center;
+  flex: 0 0 36px;
+  height: 36px;
+  margin-inline: 6px;
+  border: 2px solid var(--action-edge);
+  border-radius: 50%;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--ink);
+  background: var(--plate);
+}
+
+.is-done > .morse-progress-node { border-color: var(--action); background: var(--action); color: var(--action-ink); }
+.is-locked > .morse-progress-node { border-color: var(--spine-ahead); color: var(--muted); }
+.morse-progress-letters { font-size: 20px; font-weight: 700; letter-spacing: 0.12em; }
+.morse-progress-label { margin-left: auto; font-size: 12px; color: var(--muted); }
+.morse-progress-copy { display: grid; gap: 4px; min-width: 0; }
+.morse-progress-copy > strong { font-size: 14px; font-weight: 800; }
+.morse-progress-detail { font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+.morse-progress-detail.is-repair { color: var(--warning); }
+.morse-progress-title { min-width: 0; overflow-wrap: anywhere; font-size: 18px; font-weight: 700; }
+.is-current .morse-progress-title { font-size: 24px; font-weight: 800; }
+
+.morse-progress-checkpoint,
+.morse-progress-checkpoint:hover,
+.morse-progress-checkpoint:active,
+.morse-progress-test,
+.morse-progress-test:hover,
+.morse-progress-test:active,
+.morse-progress-tier {
+  border-color: var(--line);
+  background: var(--plate);
+}
+
+.morse-progress-node-square { border-radius: 9px; }
+.morse-progress-node-test { font-size: 12px; letter-spacing: 0.02em; }
+.morse-progress-test > .morse-progress-node { flex-basis: 44px; height: 44px; }
+.morse-progress-test,
+.morse-progress-test:hover,
+.morse-progress-test:active { min-height: 96px; }
+.morse-progress-test .morse-progress-copy > strong { font-size: 20px; }
+
+.morse-progress-row.is-current {
+  min-height: 80px;
+  border-color: var(--action-edge);
+  background: var(--plate-raised);
+  box-shadow: var(--shadow-sm);
+  flex-wrap: wrap;
+}
+
+.is-current > .morse-progress-node { flex-basis: 48px; height: 48px; margin-inline: 0; border-color: var(--action); background: var(--action); color: var(--action-ink); }
+.is-current .morse-progress-letters { font-size: 26px; font-weight: 800; }
+.is-current .morse-progress-label { margin-left: 0; }
+.morse-progress-test.is-current { min-height: 104px; }
+.morse-progress-go {
+  display: grid;
+  place-items: center;
+  min-width: 60px;
+  min-height: 44px;
+  margin-left: auto;
+  padding: 8px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--action-ink);
+  background: var(--action);
+}
+
+.morse-progress-pips { display: flex; flex-wrap: wrap; margin-left: auto; }
+.morse-progress-pip,
+.morse-progress-pip:hover,
+.morse-progress-pip:active {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 12px;
+  border: 0;
+  border-radius: 9px;
+  background: var(--plate);
+  box-shadow: none;
+  transition: transform 150ms var(--ease);
+}
+
+.morse-progress-pip-key { --pip-colour: var(--mode-key); }
+.morse-progress-pip-listen { --pip-colour: var(--mode-listen); }
+.morse-progress-pip-read { --pip-colour: var(--mode-read); }
+.morse-progress-pip-free { --pip-colour: var(--mode-free); }
+.morse-progress-pip > span { width: 16px; height: 16px; border: 2px solid var(--pip-colour); background: var(--plate); }
+.morse-progress-pip.is-cleared > span { background: var(--pip-colour); }
+.morse-progress-pip.is-locked > span { border-color: var(--muted); }
+.morse-progress-pip[aria-disabled='true'] { cursor: default; transform: none; }
+
+.morse-progress-jump,
+.morse-progress-jump:hover,
+.morse-progress-jump:active {
+  position: fixed;
+  z-index: 15;
+  bottom: var(--morse-play-clearance, 200px);
+  left: 50%;
+  translate: -50% 0;
+  min-height: 44px;
+  border: 2px solid var(--action-edge);
+  border-radius: var(--r-pill);
+  color: var(--action-ink);
+  background: var(--action);
+  box-shadow: var(--shadow-sm);
+  transition: transform 150ms var(--ease);
+}
+
+@media (max-width: 360px) {
+  .morse-progress-row { gap: 8px; }
+  .is-current .morse-progress-label { flex: 1 1 60px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .morse-progress-row,
+  .morse-progress-pip,
+  .morse-progress-jump { transition: none; }
+  .morse-progress-row:active,
+  .morse-progress-pip:active,
+  .morse-progress-jump:active { transform: none; }
+}
