@@ -4,6 +4,8 @@ import { dueEntries, journeysFor, type JourneyEntry } from '../../domain/study/j
 import { hasStarted } from '../../domain/study/libraryGroups'
 import { homeProgress, homeReadout, type HomeProgress } from '../../domain/study/home'
 import { useTopicCapture } from '../library/useTopicCapture'
+import { Plate } from '../../shared/ui/Plate'
+import { ScreenHeader } from '../../shared/ui/ScreenHeader'
 import './Today.css'
 
 /** Keep the established priority order, including historically completed repair. */
@@ -35,13 +37,15 @@ export function Today({ onOpenTopic, onGoToLibrary, onAuthorTopic, onOpenProfile
   return (
     <>
       <Head stamp={militaryDate(new Date())} onProfile={onOpenProfile} />
-      <dl className="home-readout" aria-label="Learning record">
-        <div><dt>Completed</dt><dd className="tabular">{readout.completed}</dd></div>
-        <div><dt>In progress</dt><dd className="tabular">{readout.inProgress}</dd></div>
-        <div><dt>Last active</dt><dd className="tabular">
-          {readout.lastActive ? <time dateTime={readout.lastActive}>{militaryDate(new Date(readout.lastActive), false)}</time> : '—'}
-        </dd></div>
-      </dl>
+      <Plate variant="raised" className="home-panel">
+        <dl className="home-readout" aria-label="Learning record">
+          <div><dt>Completed</dt><dd className="tabular">{readout.completed}</dd></div>
+          <div><dt>In progress</dt><dd className="tabular">{readout.inProgress}</dd></div>
+          <div><dt>Last active</dt><dd className="tabular">
+            {readout.lastActive ? <time dateTime={readout.lastActive}>{militaryDate(new Date(readout.lastActive), false)}</time> : '—'}
+          </dd></div>
+        </dl>
+      </Plate>
       {active.length > 0 ? (
         <section className="home-active" aria-labelledby="home-active-heading">
           <div className="home-section-bar">
@@ -51,7 +55,7 @@ export function Today({ onOpenTopic, onGoToLibrary, onAuthorTopic, onOpenProfile
           <ul className="index docket">
             {active.slice(0, 3).map((entry) => (
               <li className="today-entry" key={entry.topic.id}>
-                <button type="button" className="index-row today-plate" data-repair={entry.journey.phase === 'repair' || undefined} style={{ '--track-hue': `var(--${entry.topic.track})` } as CSSProperties} onClick={() => onOpenTopic(entry.topic.id)}>
+                <button type="button" className={`index-row today-plate plate plate-raised${entry.journey.phase === 'repair' ? ' plate-repair' : ''}`} data-repair={entry.journey.phase === 'repair' || undefined} style={{ '--track-hue': `var(--${entry.topic.track})` } as CSSProperties} onClick={() => onOpenTopic(entry.topic.id)}>
                   <ProgressRing progress={homeProgress(entry.topic, entry.journey)} />
                   <span className="home-topic-copy">
                     <span className="index-title today-plate-title">{entry.topic.title}</span>
@@ -63,16 +67,16 @@ export function Today({ onOpenTopic, onGoToLibrary, onAuthorTopic, onOpenProfile
           </ul>
         </section>
       ) : (
-        <div className="home-empty">
+        <Plate className="home-empty">
           <p className="today-note">{topics.some((topic) => topic.items.length === 0)
             ? 'Add prompts and answers to your topics in the Library before testing.'
             : readout.completed > 0
-            ? 'Everything you have started is banked. Check any topic from the Library whenever you like.'
-            : 'Start a topic in the Library. It will appear here while you build recall.'}</p>
+            ? 'Everything you have started is banked.'
+            : 'Nothing in progress.'}</p>
           <button className="ghost" type="button" onClick={onGoToLibrary}>Open Library</button>
-        </div>
+        </Plate>
       )}
-      <button className="home-add quiet" type="button" onClick={capture.available ? capture.openCapture : onAuthorTopic}>+ Add something to learn</button>
+      <button className="home-add" type="button" onClick={capture.available ? capture.openCapture : onAuthorTopic}>+ Add something to learn</button>
       {capture.overlay}
       <p className="sr-only" role="status">{announcement}</p>
     </>
@@ -94,7 +98,7 @@ function ProgressRing({ progress }: { progress: HomeProgress }) {
   )
 }
 
-/** The Argus wordmark anchors the page while the docket below names the work. */
+/** The Argus wordmark anchors the page while the plates below name the work. */
 function Head({
   stamp,
   onProfile,
@@ -103,10 +107,7 @@ function Head({
   onProfile: () => void
 }) {
   return (
-    <div className="today-head">
-      <h1 className="today-brand" aria-live="polite">
-        ARGUS
-      </h1>
+    <ScreenHeader className="today-head" titleClassName="today-brand" title="ARGUS">
       <div className="today-head-tools">
         <p className="today-date tabular">{stamp}</p>
         <button
@@ -122,6 +123,6 @@ function Head({
           </svg>
         </button>
       </div>
-    </div>
+    </ScreenHeader>
   )
 }

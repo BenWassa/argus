@@ -4,6 +4,8 @@ import { journeysFor, type JourneyEntry } from '../../domain/study/journey'
 import { libraryGroups } from '../../domain/study/libraryGroups'
 import type { RunTarget } from '../../app/routing/routes'
 import { Confirm } from '../../shared/ui/Confirm'
+import { Plate } from '../../shared/ui/Plate'
+import { ScreenHeader } from '../../shared/ui/ScreenHeader'
 import { TRACK_LABELS } from '../../shared/ui/trackLabels'
 import { AddMenu } from './AddMenu'
 import { TopicForm, type Draft } from './TopicForm'
@@ -300,17 +302,15 @@ export function LibraryPage({
 
   return (
     <>
-      <div className="page-head lib-head">
-        <div>
-          <h1>Library</h1>
-          <p className="kicker lib-count tabular">
-            {topics.length === 0
-              ? 'Empty'
-              : filtering
-                ? `${filtered.length} of ${topics.length} topics`
-                : `${topics.length} ${topics.length === 1 ? 'topic' : 'topics'}`}
-          </p>
-        </div>
+      <div className="lib-head">
+        <ScreenHeader
+          title="Library"
+          readout={topics.length === 0
+            ? 'Empty'
+            : filtering
+              ? `${filtered.length} of ${topics.length} topics`
+              : `${topics.length} ${topics.length === 1 ? 'topic' : 'topics'}`}
+        />
 
         {/* Search stays a single control until it is wanted, then opens
             leftwards over the heading. Closing it clears the query, so a
@@ -376,7 +376,7 @@ export function LibraryPage({
       </div>
 
       {topics.length === 0 ? (
-        <div className="lib-blank">
+        <Plate className="lib-blank">
           <p>
             Argus holds topics that can be genuinely finished: a fixed alphabet, a named framework
             with a known number of parts, a defined protocol. Every one states where it ends before
@@ -390,9 +390,9 @@ export function LibraryPage({
               Start from an example
             </button>
           </div>
-        </div>
+        </Plate>
       ) : nothingMatches ? (
-        <div className="lib-blank">
+        <Plate className="lib-blank">
           <p>
             Nothing matches that. The library holds {topics.length}{' '}
             {topics.length === 1 ? 'topic' : 'topics'} in total.
@@ -400,9 +400,9 @@ export function LibraryPage({
           <button className="ghost" type="button" onClick={closeSearch}>
             Clear search
           </button>
-        </div>
+        </Plate>
       ) : (
-        <div ref={list}>
+        <div ref={list} className="lib-list">
           {/* Two shelves, both named. What you have started, most recent
               first, is the part of a library you come back to; the rest is
               everything you have not begun, set out by track under a heading
@@ -506,7 +506,7 @@ function Row({ entry, order, started, onOpen }: RowProps) {
     <li className="index-entry lib-entry" style={style}>
       <button
         type="button"
-        className={`index-row lib-row${icon ? ' has-topic-icon' : ''}`}
+        className={`index-row lib-row plate${started ? ' plate-raised' : ''}${repair ? ' plate-repair' : ''}${icon ? ' has-topic-icon' : ''}`}
         data-row={topic.id}
         data-started={started || undefined}
         data-repair={repair || undefined}
