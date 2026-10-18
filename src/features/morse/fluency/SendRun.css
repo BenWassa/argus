@@ -220,7 +220,7 @@
   padding: var(--s-lg);
   border: 1px solid var(--line);
   border-radius: var(--r-xl);
-  background: linear-gradient(180deg, var(--surface-2), var(--surface));
+  background: var(--surface-2);
   box-shadow: var(--edge), var(--edge-under), var(--shadow);
 }
 
