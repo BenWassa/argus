@@ -36,26 +36,46 @@ describe('Morse modes', () => {
     expect(eligible).toHaveLength(2)
     for (const { id } of MORSE_MODES) expect(modeAvailability(topic, id)).toBe('available')
     expect(modeEntry(topic, 'key')).toMatchObject({ kind: 'practice', direction: 'key', levelId: 'letters', eligibleLetters: eligible })
-    expect(modeEntry(topic, 'listen', 'copy:common')).toBeNull()
-    expect(modeEntry(topic, 'key', 'send:dispatch')).toBeNull()
+    expect(modeEntry(topic, 'listen', 'copy:common')).toMatchObject({ kind: 'copy', level: 'common', eligibleLetters: eligible })
+    expect(modeEntry(topic, 'key', 'send:dispatch')).toMatchObject({ kind: 'send', stage: 'dispatch', eligibleLetters: eligible })
     expect(modeEntry(topic, 'free')).toEqual({ mode: 'free', levelId: null, kind: 'free' })
     expect(modeEligibleLetters({ ...topic, acquisitionReadyAt: 'historical' })).toHaveLength(26)
     expect(modeEligibleLetters(modeTopicFixtures().legacyBanked)).toEqual([])
   })
 
-  it('requires five latest correct outcomes for every eligible A–Z letter in the same direction', () => {
+  it('offers every level by id whenever its mode is available, regardless of other clears', () => {
+    for (const topic of Object.values(modeTopicFixtures())) {
+      for (const { id: mode } of MORSE_MODES) {
+        for (const level of levelsFor(mode)) {
+          const entry = modeEntry(topic, mode, level.id)
+          if (modeAvailability(topic, mode) === 'available') {
+            expect(entry).toMatchObject({ mode, levelId: level.id, kind: level.kind })
+          } else {
+            expect(entry).toBeNull()
+          }
+        }
+      }
+    }
+    const topic = { ...morseTopic(1), morseFluency: newFluencyProgress() }
+    topic.morseFluency.bests['send:words'] = 90
+    expect(currentLevel(topic, 'key')?.id).toBe('send:flow')
+  })
+
+  it('requires three latest correct outcomes for every eligible A–Z letter in the same direction', () => {
     const topic = { ...morseTopic(13), morsePractice: newMorsePractice() }
     for (const glyph of modeEligibleLetters(topic)) {
-      topic.morsePractice.characters.key[glyph] = { outcomes: [false, true, true, true, true, true], shown: 6, lastShownSequence: 1 }
+      topic.morsePractice.characters.key[glyph] = { outcomes: [false, true, true, true], shown: 4, lastShownSequence: 1 }
     }
     expect(lettersStable(topic, 'key')).toBe(true)
     expect(currentLevel(topic, 'key')?.id).toBe('send:words')
     expect(currentLevel(topic, 'listen')?.id).toBe('letters')
     expect(currentLevel(topic, 'read')?.id).toBe('letters')
-    topic.morsePractice.characters.key.E!.outcomes = [true, true, true, true]
+    topic.morsePractice.characters.key.E!.outcomes = [true, true]
     expect(lettersStable(topic, 'key')).toBe(false)
-    topic.morsePractice.characters.key.E!.outcomes = [true, true, true, true, false]
+    topic.morsePractice.characters.key.E!.outcomes = [true, true, false]
     expect(lettersStable(topic, 'key')).toBe(false)
+    topic.morsePractice.characters.key.E!.outcomes = [true, true, true]
+    expect(lettersStable(topic, 'key')).toBe(true)
     delete topic.morsePractice.characters.key.E
     expect(lettersStable(topic, 'key')).toBe(false)
     topic.lessonProgress = morseTopic(1).lessonProgress

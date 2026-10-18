@@ -66,8 +66,10 @@ export function modeAvailability(topic: Topic, _mode: MorseMode): 'locked' | 'av
   return modeEligibleLetters(topic).length ? 'available' : 'locked'
 }
 
+const LETTER_STABILITY_ANSWERS = 3
+
 /**
- * Letters are stable when all 26 are eligible and each has five latest
+ * Letters are stable when all 26 are eligible and each has three latest
  * independently graded correct outcomes in this direction, oldest to newest;
  * no dates, elapsed time, other direction or helped answer can satisfy it.
  */
@@ -75,7 +77,7 @@ export function lettersStable(topic: Topic, direction: PracticeDirection): boole
   const eligible = modeEligibleLetters(topic)
   return new Set(eligible).size === 26 && eligible.every((glyph) => {
     const outcomes = topic.morsePractice?.characters[direction][glyph]?.outcomes ?? []
-    return outcomes.length >= 5 && outcomes.slice(-5).every(Boolean)
+    return outcomes.length >= LETTER_STABILITY_ANSWERS && outcomes.slice(-LETTER_STABILITY_ANSWERS).every(Boolean)
   })
 }
 
@@ -98,7 +100,6 @@ export function modeLevelCleared(topic: Topic, mode: MorseMode, level: MorseLeve
 export function currentLevel(topic: Topic, mode: MorseMode): MorseLevel | null {
   const levels = levelsFor(mode)
   if (!levels.length) return null
-  if (modeEligibleLetters(topic).length < 26) return levels[0]
   const next = levels.find((level) => !modeLevelCleared(topic, mode, level))
   if (next) return next
   if (mode === 'key') return levels.find((level) => level.id === `send:${recommendedSendStage(topic.morseFluency)}`)!
@@ -109,13 +110,12 @@ export type MorseModeEntry =
   | { mode: 'free'; levelId: null; kind: 'free' }
   | (LevelActivity & { mode: Exclude<MorseMode, 'free'>; levelId: string; eligibleLetters: MorseLetter[]; rung: FluencyRung })
 
-/** A descriptor only. Explicit level entry keeps cleared stages replayable, not gated by bests. */
+/** A descriptor only. Every level is open once its mode is available; clears only guide suggestions. */
 export function modeEntry(topic: Topic, mode: MorseMode, levelId?: string): MorseModeEntry | null {
   if (modeAvailability(topic, mode) === 'locked') return null
   if (mode === 'free') return levelId === undefined ? { mode, levelId: null, kind: 'free' } : null
   const level = levelId === undefined ? currentLevel(topic, mode) : levelsFor(mode).find((candidate) => candidate.id === levelId)
   if (!level) return null
   const eligibleLetters = modeEligibleLetters(topic)
-  if (level.kind !== 'practice' && eligibleLetters.length < 26) return null
   return { ...level, mode, levelId: level.id, eligibleLetters, rung: topic.morseFluency?.rung ?? FIRST_FLUENCY_RUNG }
 }
