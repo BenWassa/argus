@@ -101,7 +101,8 @@ export function MorseProgressPath({ topic, onAction, showJump = true, onPlacemen
       ...words(node),
       ...(node.kind === 'tier' ? { group: true, trailing: <TierPips node={node} onAction={act} onLocked={say} /> } : {}),
       accessibleLabel: node.accessibleLabel,
-      plate: node.kind === 'checkpoint' || node.kind === 'test' || node.kind === 'tier',
+      // Plates are for tests alone; levels after the alphabet are plain rows (#263).
+      plate: node.kind === 'checkpoint' || node.kind === 'test',
       className: `morse-progress-row morse-progress-${node.kind}`,
       onSelect: node.action ? () => act(node.action!) : undefined,
       onLockedSelect: node.lockedReason ? () => say(node.lockedReason!) : undefined,

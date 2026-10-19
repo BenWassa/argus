@@ -39,3 +39,12 @@
   .morse-character-support-glyph { font-size: min(2.6rem, 15vw); }
   .morse-character-support-notation { font-size: min(1.7rem, 8vw); }
 }
+
+/* Inside a narrow correction (a small phone or enlarged text), the letter
+   heads the row and the pattern and phrase take the full width beside Play,
+   so no phrase word breaks mid-word (#263). */
+@container (max-width: 18em) {
+  .morse-character-support { grid-template-columns: minmax(0, 1fr) auto; gap: 0 var(--s-sm); padding-inline: 0; }
+  .morse-character-support-glyph { grid-column: 1 / -1; justify-self: start; border: 0; padding: 0; margin-bottom: var(--s-xs); }
+  .morse-character-support > .morse-play { grid-column: 2; }
+}

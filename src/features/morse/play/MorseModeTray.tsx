@@ -1,6 +1,7 @@
 import type { Topic } from '../../../domain/library/topic'
 import { MORSE_MODES, modeAvailability, modeEntry, type MorseMode, type MorseModeEntry } from '../../../domain/morse/modes'
 import { ModeTray } from '../../../shared/ui/ModeTray'
+import { MorseMarks } from '../MorseMarks'
 import './MorseModeTray.css'
 
 interface MorseModeTrayProps {
@@ -18,11 +19,14 @@ export function MorseModeGlyph({ mode, small = false }: { mode: MorseMode; small
   const size = small ? ' is-small' : ''
   if (mode === 'key') return <span className={`morse-mode-letter${size}`}>A</span>
   if (mode === 'free') return <span className={`morse-mode-text${size}`}>HI<span className="morse-mode-cursor" /></span>
+  // Read shows A's pattern, the same letter Key shows, drawn by the one
+  // component every Morse pattern uses (#263).
+  if (mode === 'read') return <MorseMarks pattern=".-" size={small ? 'pip' : 'tile'} />
   return (
     <svg className={`morse-mode-svg${size}`} width={small ? 22 : 60} height={small ? 12 : 32} viewBox="0 0 60 32" fill="currentColor" focusable="false" aria-hidden="true">
-      {mode === 'listen' ? [12, 22, 32, 20, 28, 14].map((height, index) => (
+      {[12, 22, 32, 20, 28, 14].map((height, index) => (
         <rect key={index} x={index * 10 + 1} y={(32 - height) / 2} width="6" height={height} rx="3" />
-      )) : <><circle cx="6" cy="16" r="5" /><rect x="18" y="11" width="16" height="10" rx="3" /><rect x="41" y="11" width="16" height="10" rx="3" /></>}
+      ))}
     </svg>
   )
 }

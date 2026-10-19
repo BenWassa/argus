@@ -430,28 +430,9 @@ button.flip-card:active {
   line-height: 1;
 }
 
-.test-pattern {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
-  gap: 0.44em;
-}
-
-.test-pattern-mark {
-  display: block;
-  block-size: 0.44em;
-  border-radius: var(--r-pill);
-  background: var(--ink);
-}
-
-.test-pattern-mark.is-dit {
-  inline-size: 0.44em;
-}
-
-.test-pattern-mark.is-dah {
-  inline-size: 1.32em;
-}
+/* The pattern is drawn by the shared MorseMarks component (#263); its own
+   stylesheet sets the marks, their proportions and the centre line. */
+.test-prompt .test-pattern { color: var(--ink); }
 
 /* Whatever this rung discloses, in the one panel the lesson uses for the same
    job. There is never more than one. */

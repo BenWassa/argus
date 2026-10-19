@@ -52,7 +52,8 @@ test('a complete read round repeats freely and large text fits', async ({ page }
   await page.getByRole('button', { name: 'Read', exact: true }).click()
   for (let n = 1; n <= 10; n++) {
     await expect(page.getByRole('progressbar')).toHaveAttribute('aria-label', `${n} of 10`)
-    const pattern = await page.locator('.letter-practice-stimulus .morse-notation').textContent()
+    // The shared marks keep their notation as text: one character per mark (#263).
+    const pattern = await page.locator('.letter-practice-stimulus .morse-marks').textContent()
     const expected = source.items.find(item => item.answer.replace(/\s/g, '').replace(/-/g, '—').replace(/\./g, '·') === pattern?.replace(/\s/g, ''))!.prompt
     await page.getByRole('textbox', { name: 'Letter' }).fill(expected)
     await expect(page.getByRole('status')).toContainText('Correct')

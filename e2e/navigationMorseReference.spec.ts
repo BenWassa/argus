@@ -224,7 +224,7 @@ test('unlocked word checkpoint holds a miss until dismissed and never mutates sa
   // opportunity, the correction then stands until it is dismissed, and #115
   // never requeues the missed warm-up inside the following word.
   await keyPattern(page, '-')
-  await expect(page.getByRole('status')).toContainText('Miss')
+  await expect(page.getByRole('status')).toContainText('Not that one')
   // The correction holds: the counter has not moved off 1/4 on its own.
   await expect(page.getByRole('progressbar', { name: '0 of 8', exact: true })).toBeVisible()
   await continueFromMiss(page)
@@ -243,7 +243,7 @@ test('unlocked word checkpoint holds a miss until dismissed and never mutates sa
 
   // Miss T, then prove the run still advances through I, M and E contiguously.
   await keyPattern(page, '.')
-  await expect(page.getByRole('status')).toContainText('Miss')
+  await expect(page.getByRole('status')).toContainText('Not that one')
   await expect(word.locator('.is-current')).toHaveText('T')
   await continueFromMiss(page)
   await expect(word.locator('.is-current')).toHaveText('I', { timeout: MISS_TRANSITION_TIMEOUT })
@@ -306,7 +306,8 @@ test('reference cards keep the phone hierarchy without horizontal overflow', asy
   // Figures and punctuation follow the alphabet on the standalone page.
   await expect(page.locator('.morse-ref-card.is-extra')).toHaveCount(14)
   await expect(cards.first().locator('.morse-ref-letter')).toHaveText('A')
-  await expect(cards.first().locator('.morse-ref-pattern')).toContainText('· —')
+  // Drawn by the shared marks, which keep one notation character per mark (#263).
+  await expect(cards.first().locator('.morse-ref-pattern .morse-mark')).toHaveText(['·', '—'])
   await expect(cards.first().locator('.morse-phrase')).toHaveAttribute('aria-label', /A LONG/)
   const play = cards.first().getByRole('button', { name: 'Play A Morse' })
   await expect(play).toBeVisible()

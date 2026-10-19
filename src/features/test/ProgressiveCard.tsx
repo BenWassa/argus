@@ -9,6 +9,7 @@ import {
 } from '../../domain/morse/testing/acquisitionProfile'
 import type { CueRung } from '../../domain/study/cueLadder'
 import type { CueNote } from './cueNote'
+import { MorseMarks } from '../morse/MorseMarks'
 import { MorsePhrase } from '../morse/MorsePhrase'
 import { MorseCharacterSupport } from '../morse/MorseCharacterSupport'
 import { useMorseAudio } from '../morse/useMorseAudio'
@@ -200,14 +201,7 @@ export function ProgressiveCard({
               length with a speck in the middle; a dah drawn three times the
               width of a dit is the timing itself, which is what the question
               is actually asking the learner to read. */}
-          <span className="test-pattern" aria-hidden="true">
-            {prompt.split(' ').map((mark, index) => (
-              <span
-                className={`test-pattern-mark is-${mark === '·' ? 'dit' : 'dah'}`}
-                key={`${mark}-${index}`}
-              />
-            ))}
-          </span>
+          <MorseMarks pattern={prompt} size="stimulus" className="test-pattern" />
           <span className="sr-only">{patternReading(character.pattern)}</span>
         </h1>
       )}

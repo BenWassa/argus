@@ -327,11 +327,11 @@ describe('the checkpoint boundary cannot be crossed by a tap still in flight', (
     const wrong = MORSE_LETTERS[first] === '.' ? '-' : '.'
     await keyPattern(wrong.repeat(MORSE_LETTERS[first].length))
 
-    expect(screen.getByText('Miss')).toBeTruthy()
+    expect(screen.getByText('Not that one')).toBeTruthy()
 
     // Far past any dwell the old policy ever used.
     advance(60_000)
-    expect(screen.getByText('Miss')).toBeTruthy()
+    expect(screen.getByText('Not that one')).toBeTruthy()
     expect(screen.getByRole('progressbar', { name: '0 of 8' })).toBeTruthy()
 
     fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
@@ -371,7 +371,7 @@ describe('the checkpoint boundary cannot be crossed by a tap still in flight', (
     advance(MORSE_TRANSITION_MS)
     expect(screen.getByRole('progressbar', { name: '1 of 8' })).toBeTruthy()
     expect(screen.queryByText('Correct')).toBeNull()
-    expect(screen.queryByText('Miss')).toBeNull()
+    expect(screen.queryByText('Not that one')).toBeNull()
     expect(key().disabled).toBe(false)
   })
 

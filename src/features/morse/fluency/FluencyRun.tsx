@@ -19,9 +19,10 @@ import {
   type MorseFluencyProgress,
 } from '../../../domain/morse/fluency/progress'
 import { fluencyTiming, type FluencyRung } from '../../../domain/morse/fluency/timing'
-import type { MorseLetter } from '../../../domain/morse/code'
+import { decodePattern, type MorseLetter } from '../../../domain/morse/code'
 import { MorseWordKeyInput } from '../input/MorseWordKeyInput'
 import { MorseCharacterSupport } from '../MorseCharacterSupport'
+import { MorseListenPlay } from '../MorseListenPlay'
 import { useMorseAudio } from '../useMorseAudio'
 import { useKeyedResponse } from '../input/useKeyedResponse'
 import { fire } from '../../../shared/haptics'
@@ -83,7 +84,7 @@ export function FluencyRun({ mode, rung, progress, focus, only, allowed, onProgr
   // The answered prompt's own patterns travel with the verdict: by the time it
   // renders the run has advanced, and `prompt` is already the next question.
   const [feedback, setFeedback] = useState<
-    { correct: boolean; text: string; marks: boolean[]; patterns: string[] } | null
+    { correct: boolean; text: string; marks: boolean[]; patterns: string[]; response: string[] } | null
   >(null)
   const [playing, setPlaying] = useState(false)
   const [audioError, setAudioError] = useState<string | null>(null)
@@ -195,6 +196,7 @@ export function FluencyRun({ mode, rung, progress, focus, only, allowed, onProgr
       text: target.text,
       marks: justAnswered.marks,
       patterns: target.patterns,
+      response: justAnswered.response,
     })
     setRun(next)
     replayed.current = false
@@ -266,19 +268,18 @@ export function FluencyRun({ mode, rung, progress, focus, only, allowed, onProgr
           Listen and key back {prompt.text.length === 1 ? 'the character' : prompt.text.length + ' characters'}.
         </h1>
 
-        <p className="lesson-task">{prompt.text.length === 1 ? 'Hear it' : 'Hear the whole thing'}</p>
+        {/* One or two words: what is being played (#263). */}
+        <p className="lesson-task">{prompt.text.length === 1 ? 'Letters' : mode === 'groups' ? 'Groups' : 'Words'}</p>
 
         {/* The prompt is never shown before the answer. Fluency is a sound-first
             surface; printing the target would make it a reading exercise. */}
         <div className="fluency-listen">
-          <button
-            type="button"
-            className="fluency-play"
+          <MorseListenPlay
+            label={stimulusEndedAt.current === null && !playing ? 'Play' : 'Play again'}
+            icon={stimulusEndedAt.current === null && !playing ? 'play' : 'replay'}
             onClick={() => void play(stimulusEndedAt.current !== null || playing)}
             disabled={!armed || playing}
-          >
-            {stimulusEndedAt.current === null && !playing ? 'Play' : 'Play again'}
-          </button>
+          />
           {prompt.text.length > 1 && (
             <p className="fluency-shape tabular" aria-hidden="true">
               {Array.from(prompt.text).map((_, index) => (
@@ -296,42 +297,33 @@ export function FluencyRun({ mode, rung, progress, focus, only, allowed, onProgr
           </p>
         )}
 
-        {feedback ? (
-          <div
-            className={`fluency-feedback${feedback.correct ? ' is-correct' : ' is-wrong'}`}
-            role="status"
-            aria-live="assertive"
-          >
-            {feedback.correct ? <SessionCorrect target={feedback.text} announce={false} /> : <strong>Miss</strong>}
-            {/* The word is the headline of a word miss, and the broken
-                character is marked inside it rather than replacing it. */}
-            <span className="fluency-answer">
-              {Array.from(feedback.text).map((character, index) => (
-                <span
-                  key={index}
-                  className={feedback.marks[index] === false ? 'is-wrong-char' : undefined}
-                >
-                  {character}
-                </span>
-              ))}
-            </span>
-            {!feedback.correct && (
-              <>
-                {/* The pattern for the first character that broke. Showing
-                    every pattern in a six-letter word buries the one thing
-                    the learner needs to look at. */}
-                {(() => {
-                  const brokeAt = feedback.marks.findIndex((mark) => !mark)
-                  const at = brokeAt === -1 ? 0 : brokeAt
-                  return <MorseCharacterSupport glyph={feedback.text[at]} pattern={feedback.patterns[at] ?? ''} playing={correctionAudio.sounding?.glyph === feedback.text[at]} onToggle={() => correctionAudio.toggle(feedback.text[at])} audioError={correctionAudio.audioError} />
-                })()}
-                <button type="button" className="lesson-next" onClick={continueCorrection} disabled={!holding}>
-                  Continue
-                </button>
-              </>
-            )}
+        {feedback?.correct ? (
+          <div className="fluency-feedback is-correct" role="status" aria-live="assertive">
+            <SessionCorrect target={feedback.text} announce={false} />
           </div>
-        ) : (
+        ) : feedback ? (() => {
+          // The pattern for the first character that broke. Showing every
+          // pattern in a six-letter word buries the one thing the learner
+          // needs to look at. The word is still the headline of the answer,
+          // with the broken character marked inside it.
+          const brokeAt = feedback.marks.findIndex((mark) => !mark)
+          const at = brokeAt === -1 ? 0 : brokeAt
+          const keyed = feedback.response.map((pattern) => decodePattern(pattern) ?? '?').join('')
+          return <SessionCorrect className="fluency-miss" miss={{
+            said: keyed,
+            saidLabel: 'You keyed',
+            answer: <>
+              <span className="fluency-answer">
+                {Array.from(feedback.text).map((character, index) => (
+                  <span key={index} className={feedback.marks[index] === false ? 'is-wrong-char' : undefined}>{character}</span>
+                ))}
+              </span>
+              <MorseCharacterSupport glyph={feedback.text[at]} pattern={feedback.patterns[at] ?? ''} playing={correctionAudio.sounding?.glyph === feedback.text[at]} onToggle={() => correctionAudio.toggle(feedback.text[at])} audioError={correctionAudio.audioError} />
+            </>,
+            onContinue: continueCorrection,
+            continueDisabled: !holding,
+          }} />
+        })() : (
           <div className="fluency-answer-area" inert={!armed}>
             <MorseWordKeyInput
               word={prompt.text}

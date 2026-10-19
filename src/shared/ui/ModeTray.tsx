@@ -26,7 +26,8 @@ export interface ModeTrayProps {
 /**
  * The bottom tray of solid stimulus tiles. On phones it is fixed above the
  * navigation and reserves its own height on its parent (`--mode-tray-height`),
- * so the screen's content never hides beneath it; on desktop it sits in flow.
+ * so the screen's content never hides beneath it; on desktop it is sticky at
+ * the top, under any sticky sibling before it (`--mode-tray-top`).
  */
 export function ModeTray({ tiles, label, className = '' }: ModeTrayProps) {
   const dock = useRef<HTMLDivElement>(null)
@@ -35,18 +36,28 @@ export function ModeTray({ tiles, label, className = '' }: ModeTrayProps) {
     const node = dock.current
     const host = node?.parentElement
     if (!node || !host) return
+    const styleOf = (element: Element) => typeof getComputedStyle === 'function' ? getComputedStyle(element) : null
+    // Earlier siblings that are themselves sticky (a compact screen header):
+    // where the tray is sticky too (desktop), it stacks under them rather than
+    // covering them, so the screen's status stays in view (#263).
+    const stickyAbove = () => [...host.children].slice(0, [...host.children].indexOf(node))
+      .filter((element) => styleOf(element)?.position === 'sticky')
     const reserve = () => {
-      const fixed = typeof getComputedStyle === 'function' && getComputedStyle(node).position === 'fixed'
-      host.style.setProperty('--mode-tray-height', `${fixed ? node.getBoundingClientRect().height : 0}px`)
+      const position = styleOf(node)?.position
+      host.style.setProperty('--mode-tray-height', `${position === 'fixed' ? node.getBoundingClientRect().height : 0}px`)
+      const above = position === 'sticky' ? stickyAbove().reduce((sum, element) => sum + element.getBoundingClientRect().height, 0) : 0
+      node.style.setProperty('--mode-tray-top', `${above}px`)
     }
     reserve()
     const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(reserve)
     observer?.observe(node)
+    for (const element of stickyAbove()) observer?.observe(element)
     window.addEventListener('resize', reserve)
     return () => {
       observer?.disconnect()
       window.removeEventListener('resize', reserve)
       host.style.removeProperty('--mode-tray-height')
+      node.style.removeProperty('--mode-tray-top')
     }
   }, [])
 

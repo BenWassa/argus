@@ -58,11 +58,24 @@ describe('ModeTray', () => {
     vi.restoreAllMocks()
   })
 
+  it('stacks under a sticky header before it when sticky itself, so the header stays in view (#263)', () => {
+    vi.spyOn(window, 'getComputedStyle').mockImplementation((element) =>
+      ({ position: (element as HTMLElement).dataset.sticky || (element as HTMLElement).classList.contains('mode-tray-dock') ? 'sticky' : 'static' }) as CSSStyleDeclaration)
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
+      return { height: this.dataset.sticky ? 72 : this.tagName === 'P' ? 500 : 105 } as DOMRect
+    })
+    const { container } = render(<><header data-sticky="yes">Title</header><p>Not sticky</p><ModeTray tiles={tiles()} label="Play" /></>)
+    const dock = container.querySelector<HTMLElement>('.mode-tray-dock')!
+    expect(dock.style.getPropertyValue('--mode-tray-top')).toBe('72px')
+    expect(container.style.getPropertyValue('--mode-tray-height')).toBe('0px')
+    vi.restoreAllMocks()
+  })
+
   it('docks above phone navigation, pads its host, shortens on small phones and sticks on desktop', () => {
     const css = readFileSync('src/shared/ui/ModeTray.css', 'utf8')
     expect(css).toMatch(/\.mode-tray-dock \{[^}]*position: fixed;[^}]*bottom: var\(--nav-clearance/)
     expect(css).toMatch(/:has\(> \.mode-tray-dock\) \{\s*padding-bottom: calc\(var\(--mode-tray-height/)
-    expect(css).toMatch(/@media \(min-width: 980px\) \{\s*\.mode-tray-dock \{ position: sticky; top: 0;/)
+    expect(css).toMatch(/@media \(min-width: 980px\) \{[^}]*\.mode-tray-dock \{ position: sticky; top: var\(--mode-tray-top, 0px\);/)
     expect(css).toMatch(/min-height: 88px/)
     // A third of a 568px phone went to the tray and the nav (#259).
     expect(css).toMatch(/@media \(max-height: 700px\), \(max-width: 360px\) \{[\s\S]*?min-height: 64px/)

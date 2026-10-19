@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { MORSE_LETTERS, type MorseLetter } from '../../../domain/morse/code'
-import { canonicalNotation, spokenRhythm } from '../../../domain/morse/mnemonics'
+import { spokenRhythm } from '../../../domain/morse/mnemonics'
 import { newMorsePractice, recordPracticeOutcome, selectPracticeLetter, type MorsePractice, type PracticeDirection } from '../../../domain/morse/practice'
 import { MorseKeyInput } from '../input/MorseKeyInput'
 import { useKeyedResponse } from '../input/useKeyedResponse'
-import { MorsePlayButton } from '../MorsePlayButton'
+import { MorseListenPlay } from '../MorseListenPlay'
+import { MorseMarks } from '../MorseMarks'
 import { MorseCharacterSupport } from '../MorseCharacterSupport'
 import { useMorseAudio } from '../useMorseAudio'
 import { SessionFrame, SessionCorrect, RoundResult } from '../../../shared/ui/SessionFrame'
@@ -19,6 +20,7 @@ export function LetterPracticeRun({ eligible, initialProgress = newMorsePractice
   const [count, setCount] = useState(0)
   const [recent, setRecent] = useState<MorseLetter[]>([])
   const [result, setResult] = useState<boolean | null>(null)
+  const [given, setGiven] = useState('')
   const [entry, setEntry] = useState('')
   const [helped, setHelped] = useState(false)
   const [heard, setHeard] = useState(false)
@@ -37,7 +39,7 @@ export function LetterPracticeRun({ eligible, initialProgress = newMorsePractice
     setRecent(seen)
     setSelection(selectPracticeLetter(progress.current, direction, eligible, { recent: seen }))
     setCount(n => n + 1)
-    setResult(null); setEntry(''); setHelped(false); setHeard(false)
+    setResult(null); setGiven(''); setEntry(''); setHelped(false); setHeard(false)
   })
   useEffect(() => {
     if (result === false) continuation.current?.focus()
@@ -62,7 +64,7 @@ export function LetterPracticeRun({ eligible, initialProgress = newMorsePractice
     listeningStarted.current = false
     audio.stop(); audio.clearError(); response.reset(); setDirection(next); setRecent([])
     setSelection(selectPracticeLetter(progress.current, next, eligible, { recent: [] }))
-    setResult(null); setEntry(''); setHelped(false); setHeard(false)
+    setResult(null); setGiven(''); setEntry(''); setHelped(false); setHeard(false)
   }
   function submit(value: string) {
     if (!response.armed || result !== null || (direction === 'listen' && !heard)) return
@@ -70,7 +72,7 @@ export function LetterPracticeRun({ eligible, initialProgress = newMorsePractice
     const correct = direction === 'key' ? value === pattern : value.trim().toUpperCase() === glyph
     const next = recordPracticeOutcome(selection.progress, direction, glyph, correct, !helped)
     if (correct) setCorrectCount(n => n + 1)
-    progress.current = next; onProgress(next); setResult(correct); response.answered(correct)
+    progress.current = next; onProgress(next); setGiven(direction === 'key' ? value : value.trim().toUpperCase()); setResult(correct); response.answered(correct)
   }
   const title = direction[0].toUpperCase() + direction.slice(1)
   if (done) return <SessionFrame kind={direction} title={title} progress={{ current: 10, total: 10 }} onClose={onExit} className="letter-practice">
@@ -79,11 +81,14 @@ export function LetterPracticeRun({ eligible, initialProgress = newMorsePractice
     {!fixedDirection && <div className="letter-practice-directions" aria-label="Practice direction" inert={result !== null}>
       {(['key', 'read', 'listen'] as const).map(d => <button className="ghost" key={d} aria-pressed={d === direction} onClick={() => changeDirection(d)}>{d[0].toUpperCase() + d.slice(1)}</button>)}
     </div>}
+    {/* The stimulus stays on screen through a miss, above its correction (#263). */}
+    {result !== true && <div className="letter-practice-stimulus session-stimulus">
+      {direction === 'key' ? <p className="lesson-glyph">{glyph}</p>
+        : direction === 'read' ? <MorseMarks pattern={pattern} size="stimulus" label={spokenRhythm(pattern)} className="letter-practice-marks" />
+          : <MorseListenPlay label={audio.sounding ? 'Stop Morse sound' : 'Play Morse sound'} icon={audio.sounding ? 'stop' : 'play'} pressed={!!audio.sounding}
+            onClick={() => { if (audio.sounding) listeningStarted.current = false; setHeard(false); audio.toggle(glyph) }} />}
+    </div>}
     {result === null && <>
-      <div className="letter-practice-stimulus session-stimulus">
-        {direction === 'key' ? <p className="lesson-glyph">{glyph}</p> : direction === 'read' ? <p className="morse-notation" aria-label={spokenRhythm(pattern)}>{canonicalNotation(pattern)}</p> :
-          <MorsePlayButton glyph={glyph} concealGlyph playing={!!audio.sounding} onToggle={() => { if (audio.sounding) listeningStarted.current = false; setHeard(false); audio.toggle(glyph) }} />}
-      </div>
       {helped && <MorseCharacterSupport glyph={glyph} playing={!!audio.sounding} onToggle={() => audio.toggle(glyph)} />}
       <div className="letter-practice-response session-response">
       {direction === 'key' ? <MorseKeyInput key={`${count}-${direction}`} expectedLength={pattern.length} locked={!response.armed} onSubmit={submit} /> :
@@ -92,9 +97,12 @@ export function LetterPracticeRun({ eligible, initialProgress = newMorsePractice
       </div>
     </>}
     {result === true && <SessionCorrect target={glyph} />}
-    {result === false && <div className="letter-practice-correction session-response"><p role="status">Try this letter</p>
-      <MorseCharacterSupport glyph={glyph} playing={!!audio.sounding} onToggle={() => audio.toggle(glyph)} />
-      <button ref={continuation} disabled={!response.holding} onClick={response.acknowledge}>Continue</button></div>}
+    {result === false && <SessionCorrect className="letter-practice-correction" miss={{
+      said: direction === 'key' ? (given ? <MorseMarks pattern={given} size="support" label={spokenRhythm(given)} /> : undefined) : given,
+      saidLabel: direction === 'key' ? 'You keyed' : 'You said',
+      answer: <MorseCharacterSupport glyph={glyph} playing={!!audio.sounding} onToggle={() => audio.toggle(glyph)} />,
+      onContinue: response.acknowledge, continueDisabled: !response.holding, continueRef: continuation,
+    }} />}
     {audio.audioError && <p role="status">{audio.audioError}</p>}
   </SessionFrame>
 }

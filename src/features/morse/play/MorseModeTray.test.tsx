@@ -27,7 +27,10 @@ describe('Morse mode tray', () => {
   it('draws the same stimulus small for a pip', () => {
     const { container } = render(<>{(['key', 'listen', 'read', 'free'] as const).map((mode) => <MorseModeGlyph key={mode} mode={mode} small />)}</>)
     expect(container.querySelector('.morse-mode-letter.is-small')?.textContent).toBe('A')
-    expect(container.querySelectorAll('svg.is-small')).toHaveLength(2)
+    expect(container.querySelectorAll('svg.is-small')).toHaveLength(1)
+    // Read is the shared marks component at pip size: A's dit and dah (#263).
+    const marks = container.querySelector('.morse-marks.is-pip')!
+    expect([...marks.children].map((mark) => mark.className)).toEqual(['morse-mark is-dit', 'morse-mark is-dah'])
     expect(container.querySelector('.morse-mode-text.is-small')).not.toBeNull()
   })
 

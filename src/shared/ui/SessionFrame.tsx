@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ComponentPropsWithoutRef, type CSSProperties, type ReactNode } from 'react'
+import { useEffect, useRef, type ComponentPropsWithoutRef, type CSSProperties, type ReactNode, type Ref } from 'react'
 import './SessionFrame.css'
 
 /** Morse modes take their own colour; every other kind takes the action colour unless given a pair. */
@@ -60,9 +60,37 @@ export function SessionFrame({ kind, title, progress, onClose, toolbar, colour, 
   )
 }
 
-/** A static verdict remains legible when the brief feedback motion is disabled. */
-export function SessionCorrect({ target, announce = true }: { target?: string; announce?: boolean }) {
-  return <div className="session-correct" role={announce ? "status" : undefined}><span aria-hidden="true">{target && `${target} `}✓</span><span className="sr-only">Correct</span></div>
+/** A miss, held until the learner continues (#263). */
+export interface SessionMiss {
+  /** What the learner gave: a letter, a word or drawn marks. Omitted or empty reads as a dash. */
+  said?: ReactNode
+  /** The words before it; "You said" unless the answer was keyed or written. */
+  saidLabel?: string
+  /** The answer and its mnemonic, such as a character support row. */
+  answer?: ReactNode
+  onContinue: () => void
+  continueDisabled?: boolean
+  continueRef?: Ref<HTMLButtonElement>
+  continueLabel?: string
+}
+
+/**
+ * The verdict. A hit is a brief mark that stays legible when motion is off.
+ * A miss (given `miss`) is the one correction every Morse run uses: "Not that
+ * one", what the learner gave, the answer, and a full-width Continue. It
+ * carries `session-response`, so it docks where the response was.
+ */
+export function SessionCorrect({ target, announce = true, miss, className = '' }: { target?: string; announce?: boolean; miss?: SessionMiss; className?: string }) {
+  if (miss) {
+    const said = miss.said === undefined || miss.said === null || miss.said === '' ? '—' : miss.said
+    return <div className={`session-miss session-response${className ? ` ${className}` : ''}`} role={announce ? 'status' : undefined} aria-live={announce ? 'assertive' : undefined}>
+      <p className="session-miss-verdict">Not that one</p>
+      <p className="session-miss-said"><span className="session-miss-said-label">{miss.saidLabel ?? 'You said'}</span> <span className="session-miss-said-value">{said}</span></p>
+      {miss.answer}
+      <button ref={miss.continueRef} type="button" className="session-miss-continue" onClick={miss.onContinue} disabled={miss.continueDisabled}>{miss.continueLabel ?? 'Continue'}</button>
+    </div>
+  }
+  return <div className={`session-correct${className ? ` ${className}` : ''}`} role={announce ? "status" : undefined}><span aria-hidden="true">{target && `${target} `}✓</span><span className="sr-only">Correct</span></div>
 }
 
 /**

@@ -83,8 +83,26 @@
   .mode-tray-label { font-size: 13px; }
 }
 
+/* Short landscape (#263): a 360px-tall screen cannot spare a two-line tile.
+   Each tile lays its stimulus beside its word at the 44px floor, so the
+   tray is one slim row and the screen above it keeps its height. */
+@media (max-height: 420px) and (min-width: 560px) {
+  .mode-tray { padding: 4px 8px; }
+  .mode-tray-tile,
+  .mode-tray-tile:hover,
+  .mode-tray-tile:active {
+    flex-direction: row;
+    gap: 10px;
+    min-height: 44px;
+    padding: 4px 8px;
+    border-radius: 10px;
+  }
+  .mode-tray-stimulus { height: 32px; }
+}
+
 @media (min-width: 980px) {
-  .mode-tray-dock { position: sticky; top: 0; margin-top: var(--s-lg); }
+  /* Under any sticky header before it, so the header is never covered (#263). */
+  .mode-tray-dock { position: sticky; top: var(--mode-tray-top, 0px); margin-top: var(--s-lg); }
   .mode-tray { padding-inline: 0; border-top: 0; border-bottom: 1px solid var(--line); }
 }
 
