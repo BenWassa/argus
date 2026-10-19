@@ -64,8 +64,8 @@ test('the drag cue trends red left and green right, and arms at the commit dista
   expect(await opacity('.grade-cue-miss')).toBeGreaterThan(0.2)
   expect(await opacity('.grade-cue-hit')).toBeLessThan(0.05)
   await expect(stage).not.toHaveClass(/is-armed/)
-  await expect(miss).toHaveText(/Incorrect/)
-  await expect(hit).toHaveText(/Correct/)
+  await expect(miss).toHaveText(/Missed/)
+  await expect(hit).toHaveText(/Got it/)
 
   // Past the commit distance the pending grade becomes legible before release.
   const travel = await committingTravel(page)

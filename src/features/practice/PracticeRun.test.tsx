@@ -40,7 +40,7 @@ function reveal() {
 }
 
 function grade(correct: boolean) {
-  fireEvent.click(screen.getByRole('button', { name: correct ? 'Got it' : 'Not yet' }))
+  fireEvent.click(screen.getByRole('button', { name: correct ? 'Got it' : 'Missed' }))
   const next = screen.queryByRole('button', { name: 'Continue' })
   if (next) fireEvent.click(next)
 }
@@ -142,7 +142,7 @@ describe('what it asks', () => {
     const first = NATO.items[0]
     open(NATO, [first.id!])
     reveal()
-    fireEvent.click(screen.getByRole('button', { name: 'Not yet' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Missed' }))
     // Feedback names the answer and promises the return.
     expect(document.querySelector('.practice-feedback')?.textContent).toContain(first.answer)
     fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
@@ -160,14 +160,27 @@ describe('what it asks', () => {
   })
 })
 
+describe('a miss and the grade pair', () => {
+  it('grades with the one Missed / Got it pair and shows the Test\u2019s own miss treatment', () => {
+    open(NATO, [NATO.items[0].id!])
+    reveal()
+    expect(screen.getByRole('button', { name: 'Got it' })).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Missed' }))
+    const feedback = document.querySelector('.test-feedback.practice-feedback')!
+    expect(feedback.querySelector('.test-verdict')?.textContent).toBe('Not that one')
+    expect(feedback.querySelector('.test-correction-label')?.textContent).toBe('Answer')
+    expect(screen.getByRole('button', { name: 'Continue' })).toBeTruthy()
+  })
+})
+
 describe('the end of a run', () => {
   it('hands off to the check rather than claiming anything', () => {
     open(NATO, [NATO.items[0].id!])
     runToEnd()
     expect(screen.getByRole('button', { name: 'Test' })).toBeTruthy()
-    expect(document.querySelector('.practice-summary')?.textContent).toContain(
-      'Nothing recorded; only a Test counts.',
-    )
+    // The end is a title and its actions: no sentence, and no claim about the record.
+    expect(document.querySelector('.practice-summary p')).toBeNull()
+    expect(document.querySelector('.practice-summary h1')?.textContent).toBe('Practice done')
     expect(document.querySelector('.practice-summary')?.textContent).not.toMatch(/the check/i)
   })
 })

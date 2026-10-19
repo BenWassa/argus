@@ -99,6 +99,40 @@ describe('topic reference page', () => {
   })
 })
 
+describe('a failed Test is remembered', () => {
+  const nato = () => seeded('nato-phonetic')
+  const failed = (status: Topic['status'], completedAt: string | null): Topic => {
+    const topic = nato()
+    const missedItemIds = topic.items.slice(0, 4).map(item => item.id!)
+    return { ...topic, status, completedAt, history: [{ at: '2026-01-02T00:00:00Z', correct: topic.items.length - 4, total: topic.items.length, resolvedTo: status, missedItemIds }] }
+  }
+
+  it('marks the missed items copper with a diamond even after a failed repair Test sent the topic to learning', () => {
+    const { container } = open(failed('learning', '2026-01-01T00:00:00Z'))
+    const copper = [...container.querySelectorAll('.topic-items .spine-row.is-repair')]
+    expect(copper).toHaveLength(4)
+    expect(copper.every(row => row.querySelector('.spine-node')?.textContent === '◆')).toBe(true)
+    expect(container.querySelector('.topic-state')?.textContent).toBe(`${nato().items.length - 4} / ${nato().items.length} · 4 to practise`)
+    // Not a decay claim: no Needs repair, no copper status line.
+    expect(container.querySelector('.topic-state')?.classList.contains('is-repair')).toBe(false)
+    expect(container.querySelectorAll('.topic-items .spine-row.is-reached')).toHaveLength(nato().items.length - 4)
+  })
+
+  it('keeps Needs repair, and adds what is left to practise, while the topic is still decayed', () => {
+    const { container } = open(failed('decayed', '2026-01-01T00:00:00Z'))
+    expect(container.querySelector('.topic-state')?.textContent).toBe('◆Needs repair · 4 to practise')
+    expect(container.querySelectorAll('.topic-items .spine-row.is-repair')).toHaveLength(4)
+  })
+
+  it('draws settled items as slate steps with a tick, and no mark of its own for unseen ones', () => {
+    const topic: Topic = { ...nato(), status: 'completed', completedAt: '2026-01-01T00:00:00Z', history: [{ at: '2026-01-01T00:00:00Z', correct: 26, total: 26, resolvedTo: 'completed' }] }
+    const { container } = open(topic)
+    const nodes = [...container.querySelectorAll('.topic-items .spine-row.is-done .spine-node')]
+    expect(nodes).toHaveLength(topic.items.length)
+    expect(nodes.every(node => node.textContent === '✓')).toBe(true)
+  })
+})
+
 describe('the topic tray', () => {
   it('opens Learn on its own screen, and locks Practice when nothing was missed', () => {
     const topic = firearm()
@@ -141,8 +175,9 @@ describe('topic page provenance', () => {
     const { container } = open(firearm())
     expect(container.querySelector('.learn-notes')).toBeNull()
     expect(container.textContent).not.toContain('publications.gc.ca')
-    const article = container.querySelector('article')!
-    expect(article.lastElementChild?.textContent).toBe('Sources and limitations')
+    const foot = container.querySelector('article')!.lastElementChild!
+    expect(foot.className).toBe('topic-foot')
+    expect(foot.firstElementChild?.textContent).toBe('Sources and limitations')
   })
 
   it('puts the full scope first in the sources sheet', () => {
@@ -156,6 +191,15 @@ describe('topic page provenance', () => {
 })
 
 describe('the Learn screen', () => {
+  it('opens on the lede, with the scope in the sources sheet rather than restating it', () => {
+    const topic = seeded('beaufort-wind-scale')
+    const { container } = render(<TopicReading topic={topic} onBack={vi.fn()} />)
+    expect(container.querySelector('.topic-scope')).toBeNull()
+    expect(container.querySelector('.learn-overview')?.textContent).toBe(topic.learn!.overview)
+    fireEvent.click(screen.getByRole('button', { name: 'Sources and limitations' }))
+    expect(screen.getByRole('dialog').querySelector('section')?.textContent).toContain(topic.scope)
+  })
+
   it('reads the boundary and support under a header with Back to the topic', () => {
     const topic = firearm()
     const onBack = vi.fn()
@@ -178,14 +222,17 @@ describe('the Learn screen', () => {
 })
 
 describe('Edit and Delete', () => {
-  it('sit in the header on an ordinary topic, not at the foot, with Sources still reachable', () => {
+  it('keeps Edit in the header and puts Delete at the foot, beside Sources', () => {
     const onEdit = vi.fn()
     const onDelete = vi.fn()
     const { container } = render(<TopicPage topic={firearm()} onStart={vi.fn()} onBack={vi.fn()} onReference={vi.fn()} onEdit={onEdit} onDelete={onDelete} />)
     const header = container.querySelector('.screen-header')!
     const edit = screen.getByRole('button', { name: 'Edit topic' })
     const remove = screen.getByRole('button', { name: 'Delete topic' })
-    expect(header.contains(edit) && header.contains(remove)).toBe(true)
+    const sources = screen.getByRole('button', { name: /Sources and limitations/ })
+    expect(header.contains(edit)).toBe(true)
+    expect(header.contains(remove)).toBe(false)
+    expect(remove.closest('.topic-foot')).toBe(sources.closest('.topic-foot'))
     expect(edit.textContent).toBe('Edit')
     expect(remove.textContent).toBe('Delete')
     expect(container.querySelector('.topic-admin')).toBeNull()
@@ -193,15 +240,14 @@ describe('Edit and Delete', () => {
     fireEvent.click(remove)
     expect(onEdit).toHaveBeenCalledOnce()
     expect(onDelete).toHaveBeenCalledOnce()
-    expect(screen.getByRole('button', { name: /Sources and limitations/ })).toBeTruthy()
   })
 
-  it('sit in the header on the Morse course too', () => {
+  it('does the same on the Morse course, so a pinned header never carries Delete', () => {
     const morse = seeded('international-morse-letters-printed')
     const { container } = render(<TopicPage topic={morse} onStart={vi.fn()} onBack={vi.fn()} onReference={vi.fn()} onEdit={vi.fn()} onDelete={vi.fn()} />)
     const header = container.querySelector('.screen-header')!
     expect(header.contains(screen.getByRole('button', { name: 'Edit topic' }))).toBe(true)
-    expect(header.contains(screen.getByRole('button', { name: 'Delete topic' }))).toBe(true)
-    expect(container.querySelector('.topic-admin')).toBeNull()
+    expect(header.contains(screen.getByRole('button', { name: 'Delete topic' }))).toBe(false)
+    expect(screen.getByRole('button', { name: 'Delete topic' }).closest('.topic-foot')).toBe(container.querySelector('article')!.lastElementChild)
   })
 })

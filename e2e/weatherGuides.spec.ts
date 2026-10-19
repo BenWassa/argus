@@ -41,7 +41,8 @@ test('Beaufort guide loads approved images and manually advances without page ov
 
 test('Clouds loads all ten credited photos without page overflow and keeps them outside the textual Test', async ({ page }) => {
   await open(page, 'Cloud Genera')
-  await expect(page.getByText(/Test scores vocabulary only/)).toBeVisible()
+  // The lede states the photo boundary; the full scope leads the sources sheet.
+  await expect(page.locator('.learn-overview')).toContainText('never Test questions')
 
   for (const [heading, count] of [['High clouds', 3], ['Middle clouds', 3], ['Low-base clouds', 4]] as const) {
     const section = page.locator('.learn-section').filter({ has: page.getByRole('heading', { name: heading, exact: true }) }).first()

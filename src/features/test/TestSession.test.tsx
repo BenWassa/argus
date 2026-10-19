@@ -180,7 +180,7 @@ describe('one gesture, one grade', () => {
     open(['primary-survey'])
     const first = promptNow()
     press(' ')
-    const correct = screen.getByRole('button', { name: 'Mark correct' })
+    const correct = screen.getByRole('button', { name: 'Got it' })
 
     act(() => {
       correct.click()
@@ -237,17 +237,19 @@ describe('keyboard and screen-reader grading', () => {
     }
   }, 60000)
 
-  it('offers named grade actions to assistive technology once, and only once, revealed', () => {
+  it('offers the named grade pair to assistive technology once, and only once, revealed', () => {
     open(['nato-phonetic'])
-    const miss = screen.getByText('Mark incorrect')
-    const hit = screen.getByText('Mark correct')
+    const pair = document.querySelector('.grade-pair') as HTMLElement
+    const miss = screen.getByText('Missed', { selector: 'button' })
+    const hit = screen.getByText('Got it', { selector: 'button' })
 
-    expect(miss.getAttribute('aria-hidden')).toBe('true')
+    expect(pair.getAttribute('aria-hidden')).toBe('true')
     expect(miss.tabIndex).toBe(-1)
     expect(hit.tabIndex).toBe(-1)
 
     press(' ')
-    expect(miss.getAttribute('aria-hidden')).toBe('false')
+    expect(pair.getAttribute('aria-hidden')).toBeNull()
+    expect(screen.getByRole('button', { name: 'Missed' })).toBe(miss)
     expect(miss.tabIndex).toBe(0)
     expect(hit.tabIndex).toBe(0)
   })
@@ -261,7 +263,7 @@ describe('keyboard and screen-reader grading', () => {
     press(' ')
     expect(live.textContent).toBe(`Answer: ${ANSWER_FOR.get(prompt)}.`)
     press('ArrowLeft')
-    expect(live.textContent).toBe('Marked incorrect.')
+    expect(live.textContent).toBe('Marked missed.')
     await settled(prompt)
     expect(live.textContent).toBe(`Prompt: ${promptNow()}.`)
   })
@@ -275,26 +277,26 @@ describe('keyboard and screen-reader grading', () => {
   })
 })
 
-describe('which decks get the swipe-first treatment', () => {
-  it('replaces the grading buttons with a compact hint on a token deck', () => {
+describe('one grade pair on every deck', () => {
+  it('shows Missed and Got it on a token deck, with the arrows as an accelerator', () => {
     open(['nato-phonetic'])
     press(' ')
-    expect(screen.queryByText('Got it')).toBeNull()
-    expect(screen.queryByText('Didn’t get it')).toBeNull()
-    const rail = document.querySelector('.grade-hint-rail') as HTMLElement
-    expect(rail.textContent).toContain('← Incorrect')
-    expect(rail.textContent).toContain('Correct →')
-    expect(rail.getAttribute('aria-hidden')).toBe('true')
-    expect(document.querySelector('.grade-hint')?.className).toContain('is-visible')
+    const pair = document.querySelector('.grade-pair') as HTMLElement
+    expect(pair.textContent).toBe('←MissedGot it→')
+    expect(screen.getByRole('button', { name: 'Missed' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Got it' })).toBeTruthy()
+    expect(document.querySelector('.grade-hint, .grade-fallback')).toBeNull()
+    expect(document.querySelector('.recall-actions')?.className).toContain('is-visible')
     expect(screen.queryByText(/Swipe the card/)).toBeNull()
+    expect(screen.queryByText('Mark incorrect')).toBeNull()
+    expect(screen.queryByText('Didn’t get it')).toBeNull()
   })
 
-  it('leaves a long-answer procedural deck its visible buttons', () => {
+  it('shows the same pair on a long-answer procedural deck', () => {
     open(['ooda-loop'])
     press(' ')
-    expect(screen.getByText('Got it')).toBeTruthy()
-    expect(screen.getByText('Didn’t get it')).toBeTruthy()
-    expect(document.querySelector('.grade-hint')).toBeNull()
+    expect(screen.getByRole('button', { name: 'Got it' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Missed' })).toBeTruthy()
     expect(document.querySelector('.session')?.className).not.toContain('is-swipe-graded')
   })
 
@@ -303,7 +305,7 @@ describe('which decks get the swipe-first treatment', () => {
     const first = promptNow()
     press(' ')
     act(() => {
-      screen.getByText('Got it').click()
+      screen.getByRole('button', { name: 'Got it' }).click()
     })
     expect(promptNow()).toBe(first)
     await settled(first)
@@ -366,8 +368,17 @@ describe('the Morse acquisition ladder is untouched', () => {
     open(['international-morse-letters-printed'])
     expect(document.querySelector('.progressive-card')).not.toBeNull()
     expect(document.querySelector('.flip-card')).toBeNull()
-    expect(document.querySelector('.grade-hint')).toBeNull()
+    expect(document.querySelector('.grade-pair')).toBeNull()
     expect(document.querySelector('.session')?.className).toContain('is-progressive')
+  })
+})
+
+describe('the A–Z Test frame', () => {
+  it('is titled A–Z Test and reads n / 26 in the frame, not the course name', () => {
+    open(['international-morse-letters-printed'])
+    expect(document.querySelector('.session-frame-title')?.textContent).toBe('A–Z Test')
+    expect(document.querySelector('.test-frame-reading')?.textContent).toBe('0 / 26')
+    expect(screen.getByRole('progressbar', { name: '0 of 26' })).toBeTruthy()
   })
 })
 

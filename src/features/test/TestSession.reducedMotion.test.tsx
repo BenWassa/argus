@@ -95,7 +95,7 @@ describe('reduced motion', () => {
     const second = promptNow()
     press(' ')
     act(() => {
-      screen.getByRole('button', { name: 'Mark correct' }).click()
+      screen.getByRole('button', { name: 'Got it' }).click()
     })
     await settled(second)
     expect(screen.getByLabelText('2 of 5')).toBeTruthy()
@@ -158,11 +158,11 @@ describe('reduced motion', () => {
     expect(history[history.length - 1]).toMatchObject({ correct: 4, total: 5 })
   }, 30000)
 
-  it('keeps the swipe hint and its accessible fallbacks on screen', () => {
+  it('keeps the grade pair, with its arrow hints, on screen', () => {
     open(['nato-phonetic'])
     press(' ')
-    expect(document.querySelector('.grade-hint-rail')?.textContent).toContain('Incorrect')
-    expect(screen.getByRole('button', { name: 'Mark incorrect' })).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Mark correct' })).toBeTruthy()
+    expect(document.querySelector('.grade-pair')?.textContent).toContain('Missed')
+    expect(screen.getByRole('button', { name: 'Missed' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Got it' })).toBeTruthy()
   })
 })

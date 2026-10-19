@@ -92,7 +92,8 @@ export function morseProgressPath(topic: Topic): MorseProgressPath | null {
     if (node.id === currentNodeId) node.state = 'current'
     if (node.state !== 'locked') node.lockedReason = null
     const detail = node.kind === 'lesson' ? `, ${node.novel.join(' and ')}`
-      : node.kind === 'test' ? `, ${afterCourse ? 'Confirm letters' : node.testState}` : ''
+      // The test's own state is said once: "A–Z Test, locked", never "locked, locked".
+      : node.kind === 'test' ? (afterCourse ? ', Confirm letters' : node.testState === node.state ? '' : `, ${node.testState}`) : ''
     node.accessibleLabel = `${node.label}${detail}, ${node.state}`
     nodes.push(node)
   }

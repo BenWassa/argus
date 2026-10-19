@@ -28,20 +28,19 @@ test.describe('keyboard and screen-reader grading', () => {
     await assertNoAnswerLeaked(page, 4)
   })
 
-  test('the grade actions are reachable by tab and visible once focused', async ({ page }) => {
+  test('the Missed / Got it pair is reachable by tab and visible once revealed', async ({ page }) => {
     await reveal(page)
-    const miss = page.getByRole('button', { name: 'Mark incorrect' })
-    const hit = page.getByRole('button', { name: 'Mark correct' })
-    await expect(miss).toBeAttached()
-    await expect(hit).toBeAttached()
+    const miss = page.getByRole('button', { name: 'Missed' })
+    const hit = page.getByRole('button', { name: 'Got it' })
+    await expect(miss).toBeVisible()
+    await expect(hit).toBeVisible()
+    // Arrows mirror the swipe and the arrow keys; the names stay plain.
+    await expect(miss).toContainText('←')
+    await expect(hit).toContainText('→')
 
     await miss.focus()
-    // Visually hidden until focused, then a real, visible control rather than a
-    // trap a keyboard user cannot see.
-    const clip = await miss.evaluate((node) => getComputedStyle(node).clipPath)
-    expect(clip === 'none' || clip === '').toBe(true)
     const box = await miss.boundingBox()
-    expect(box?.height ?? 0).toBeGreaterThan(20)
+    expect(box?.height ?? 0).toBeGreaterThanOrEqual(44)
 
     const prompt = await currentPrompt(page)
     await page.keyboard.press('Enter')
@@ -50,22 +49,21 @@ test.describe('keyboard and screen-reader grading', () => {
     await assertNoAnswerLeaked(page)
   })
 
-  test('the bottom hint replaces the grading buttons rather than joining them', async ({ page }) => {
+  test('one pair of grade buttons sits in the thumb area, below the card', async ({ page }) => {
     await reveal(page)
-    await expect(page.getByRole('button', { name: 'Got it' })).toHaveCount(0)
     await expect(page.getByRole('button', { name: 'Didn’t get it' })).toHaveCount(0)
+    await expect(page.getByRole('button', { name: 'Mark incorrect' })).toHaveCount(0)
 
-    const rail = page.locator('.grade-hint-rail')
-    await expect(rail).toBeVisible()
-    await expect(rail).toContainText('Incorrect')
-    await expect(rail).toContainText('Correct')
+    const pair = page.locator('.grade-pair')
+    await expect(pair).toBeVisible()
+    await expect(pair).toContainText('Missed')
+    await expect(pair).toContainText('Got it')
 
-    // The hint sits in the thumb area, below the card, where the buttons were.
-    const railBox = await rail.boundingBox()
+    const pairBox = await pair.boundingBox()
     const cardBox = await page.locator('.flip-card').boundingBox()
-    expect(railBox!.y).toBeGreaterThan(cardBox!.y)
+    expect(pairBox!.y).toBeGreaterThan(cardBox!.y)
     const viewport = page.viewportSize()!
-    expect(railBox!.y + railBox!.height).toBeLessThanOrEqual(viewport.height + 1)
+    expect(pairBox!.y + pairBox!.height).toBeLessThanOrEqual(viewport.height + 1)
   })
 })
 

@@ -52,6 +52,7 @@ import {
   swipeIntent,
   type SwipeGrade,
 } from './swipeGrade'
+import { GradePair } from './GradePair'
 import './TestSession.css'
 
 /** How far past its own width a committed card travels before it is gone. */
@@ -669,7 +670,8 @@ export function TestSession({ topicIds, review = false, onExit, onPractice, onPl
   if (card.character) {
     const rung = rungFor(card.item, evidenceFor(card))
     return (
-      <SessionFrame kind="test" title={card.topicTitle} progress={progress} onClose={requestExit} className="rapid-session is-graded is-progressive">
+      <SessionFrame kind="test" title="A–Z Test" progress={progress} onClose={requestExit} className="rapid-session is-graded is-progressive"
+        toolbar={<span className="test-frame-reading tabular">{progress.current} / {progress.total}</span>}>
 
         {/* Deliberately not keyed per card. The card owns the keyed-answer
             lifecycle, and the gate that stops a finger still moving through one
@@ -720,10 +722,10 @@ export function TestSession({ topicIds, review = false, onExit, onPractice, onPl
       <div className={`card-stage${armed ? ` is-armed is-armed-${armed}` : ''}`}>
         <motion.span className="grade-cue grade-cue-miss" style={{ opacity: missStrength }} aria-hidden="true">
           <span className="grade-cue-arrow">←</span>
-          Incorrect
+          Missed
         </motion.span>
         <motion.span className="grade-cue grade-cue-hit" style={{ opacity: hitStrength }} aria-hidden="true">
-          Correct
+          Got it
           <span className="grade-cue-arrow">→</span>
         </motion.span>
 
@@ -776,60 +778,20 @@ export function TestSession({ topicIds, review = false, onExit, onPractice, onPl
         {view.kind === 'revealed'
           ? `Answer: ${card.item.answer}.`
           : view.kind === 'exiting'
-            ? `Marked ${view.grade === 'correct' ? 'correct' : 'incorrect'}.`
+            ? `Marked ${view.grade === 'correct' ? 'got it' : 'missed'}.`
             : `Prompt: ${card.item.prompt}.`}
       </p>
 
-      {swipeFirst ? (
-        <div className={`grade-hint${answerVisible ? ' is-visible' : ''}`}>
-          {/* Swipe is never the only way to grade. These carry the same two
-              actions for keyboard and screen-reader use; they are out of the
-              visual layout until focused, so nothing is hidden from a person
-              who reaches them. */}
-          <button
-            className="grade-fallback"
-            type="button"
-            tabIndex={gradable ? 0 : -1}
-            aria-hidden={!gradable}
-            onClick={() => commitGrade('incorrect')}
-          >
-            Mark incorrect
-          </button>
-          <p className="grade-hint-rail" aria-hidden="true">
-            <span className="grade-hint-side is-miss">← Incorrect</span>
-            <span className="grade-hint-side is-hit">Correct →</span>
-          </p>
-          <button
-            ref={yesRef}
-            className="grade-fallback"
-            type="button"
-            tabIndex={gradable ? 0 : -1}
-            aria-hidden={!gradable}
-            onClick={() => commitGrade('correct')}
-          >
-            Mark correct
-          </button>
-        </div>
-      ) : (
-        <div className={`recall-actions${answerVisible ? ' is-visible' : ''}`} aria-hidden={!gradable}>
-          <button
-            className="ghost recall-miss"
-            type="button"
-            tabIndex={gradable ? 0 : -1}
-            onClick={() => commitGrade('incorrect')}
-          >
-            Didn’t get it
-          </button>
-          <button
-            ref={yesRef}
-            type="button"
-            tabIndex={gradable ? 0 : -1}
-            onClick={() => commitGrade('correct')}
-          >
-            Got it
-          </button>
-        </div>
-      )}
+      {/* One grade pair, whichever kind of deck this is. The arrows mirror the
+          swipe and the arrow keys, which stay the quick way to grade. */}
+      <GradePair
+        className={`recall-actions${answerVisible ? ' is-visible' : ''}`}
+        active={gradable}
+        arrows
+        hitRef={yesRef}
+        onMiss={() => commitGrade('incorrect')}
+        onHit={() => commitGrade('correct')}
+      />
     </SessionFrame>
   )
 }

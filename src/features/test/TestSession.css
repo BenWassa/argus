@@ -10,8 +10,7 @@
   margin-block-start: auto;
 }
 
-.rapid-session > .recall-actions,
-.rapid-session > .grade-hint {
+.rapid-session > .recall-actions {
   margin-block-start: auto;
 }
 
@@ -231,78 +230,6 @@ button.flip-card:active {
   transition-delay: calc(var(--t-flip) * 0.45);
 }
 
-.recall-actions button {
-  min-height: var(--control-h-lg);
-}
-
-.recall-miss {
-  color: var(--danger-2);
-}
-
-/* Swipe-first grading. This row occupies exactly the slot the two grading
-   buttons used to, so the thumb lands where it already did and the layout does
-   not shift between a token deck and a long-answer one. */
-.grade-hint {
-  position: relative;
-  display: grid;
-  align-items: center;
-  min-height: var(--control-h-lg);
-  opacity: 0;
-  transform: translateY(6px);
-  transition:
-    opacity var(--t-fast) var(--ease),
-    transform var(--t-fast) var(--ease);
-}
-
-.grade-hint.is-visible {
-  opacity: 1;
-  transform: none;
-  transition-delay: calc(var(--t-flip) * 0.45);
-}
-
-.grade-hint-rail {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--s-md);
-  margin: 0;
-  padding: 0 var(--s-sm);
-  font-family: var(--font-mono);
-  font-size: var(--t-readout);
-  font-weight: var(--w-label);
-  letter-spacing: var(--track-readout);
-  text-transform: uppercase;
-}
-
-.grade-hint-side.is-miss {
-  color: var(--danger-2);
-}
-
-.grade-hint-side.is-hit {
-  color: var(--ok);
-}
-
-/* Grading is never gesture-only. These carry the same two actions for keyboard
-   and screen-reader use. They are out of the visual layout until focused and
-   fully visible once focused, so nobody operates a control they cannot see. */
-.grade-fallback {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: auto;
-  min-height: var(--control-h);
-  /* Centred on the hint it stands in for, so even while clipped its box never
-     reaches past the foot of a short screen. */
-  translate: -50% -50%;
-  clip-path: inset(50%);
-  white-space: nowrap;
-}
-
-.grade-fallback:focus {
-  z-index: 3;
-  clip-path: none;
-}
-
 @media (min-width: 680px) {
   button.flip-card {
     min-height: 430px;
@@ -369,8 +296,7 @@ button.flip-card:active {
     font-size: clamp(0.95rem, 5vh, 1.15rem);
   }
 
-  .rapid-session > .recall-actions,
-  .rapid-session > .grade-hint {
+  .rapid-session > .recall-actions {
     grid-column: 2;
     grid-row: 2;
     align-self: end;
@@ -379,12 +305,6 @@ button.flip-card:active {
 
   .recall-actions {
     grid-template-columns: 1fr;
-  }
-
-  /* The hint keeps its full height, as tall as the fallback buttons it hides
-     (with room for a wider font), so their boxes stay inside the screen. */
-  .grade-hint {
-    min-height: var(--control-h-lg);
   }
 
   /* Short landscape has no room beside the card for a full chip. */
@@ -400,13 +320,11 @@ button.flip-card:active {
 @media (prefers-reduced-motion: reduce) {
   .flip-inner,
   .recall-actions,
-  .grade-hint,
   .grade-cue {
     transition: none;
   }
 
-  .recall-actions.is-visible,
-  .grade-hint.is-visible {
+  .recall-actions.is-visible {
     transition-delay: 0s;
   }
 
@@ -416,6 +334,19 @@ button.flip-card:active {
   .card-stage.is-armed-correct .grade-cue-hit {
     scale: 1;
   }
+}
+
+/* The A–Z Test names itself and reads how far through it is, in the readout
+   voice: a count, not a score. */
+.test-frame-reading {
+  display: block;
+  text-align: end;
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  font-weight: var(--w-label);
+  letter-spacing: var(--track-readout);
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
 }
 
 /* --- The Morse ladder card ---------------------------------------------------
