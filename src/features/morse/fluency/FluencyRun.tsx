@@ -38,6 +38,8 @@ interface FluencyRunProps {
   focus?: ReadonlySet<MorseLetter>
   /** When non-empty, the only letters this run asks. */
   only?: readonly MorseLetter[]
+  /** Characters material may contain (#257): the taught roster before acquisition; absent, no limit. */
+  allowed?: ReadonlySet<string>
   /**
    * The single durable write path, handed in rather than reached for.
    *
@@ -74,9 +76,9 @@ interface FluencyRunProps {
  *  - a miss records no latency at all. A wrong answer's response time mixes a
  *    fast guess with a long failed search and means neither.
  */
-export function FluencyRun({ mode, rung, progress, focus, only, onProgress, onExit, toolbar }: FluencyRunProps) {
+export function FluencyRun({ mode, rung, progress, focus, only, allowed, onProgress, onExit, toolbar }: FluencyRunProps) {
   const [run, setRun] = useState<FluencyRunState>(() =>
-    startFluencyRun(mode, rung, progress, Object.values(progress.characters).reduce((count, character) => count + (character?.heard ?? 0), 0), focus, only),
+    startFluencyRun(mode, rung, progress, Object.values(progress.characters).reduce((count, character) => count + (character?.heard ?? 0), 0), focus, only, allowed),
   )
   // The answered prompt's own patterns travel with the verdict: by the time it
   // renders the run has advanced, and `prompt` is already the next question.
@@ -241,7 +243,7 @@ export function FluencyRun({ mode, rung, progress, focus, only, onProgress, onEx
     replayed.current = false
     interrupted.current = false
     round.current += 1
-    setRun(startFluencyRun(mode, rung, pendingProgress.current, round.current, focus, only))
+    setRun(startFluencyRun(mode, rung, pendingProgress.current, round.current, focus, only, allowed))
     setFeedback(null)
     setCharacterIndex(0)
     committed.current = false

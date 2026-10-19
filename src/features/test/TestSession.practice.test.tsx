@@ -5,6 +5,9 @@ import { LibraryProvider } from '../../services/library/LibraryProvider'
 import { seedLibrary } from '../../domain/library/catalogSeed'
 import type { Topic } from '../../domain/library/topic'
 import { TestSession } from './TestSession'
+import { TopicPage } from '../library/TopicPage'
+import { topicBar } from '../library/topicItems'
+import { hasPractice, practiceItemCount } from '../../domain/study/practiceTargets'
 
 /**
  * The check's offer to practise what it just missed (#92 batch 5).
@@ -14,9 +17,8 @@ import { TestSession } from './TestSession'
  * from the confidentiality and swipe-grading suites.
  *
  * The point under test is that the offer exists at all for an *ordinary* topic.
- * NATO writes no per-item evidence, so after this component unmounts there is
- * nothing durable that could reconstruct the missed set — the end screen is the
- * only place the offer can be made, and it has to be made from run bookkeeping.
+ * NATO writes no per-item evidence, so the Test keeps its missed set on the
+ * attempt it banks. The end screen and the topic page read that one record.
  */
 
 function seededTopic(id: string): Topic {
@@ -25,6 +27,7 @@ function seededTopic(id: string): Topic {
   return found as Topic
 }
 
+const STORE_KEY = 'argus.library.v5'
 const NATO = seededTopic('nato-phonetic')
 const ANSWER_FOR = new Map(NATO.items.map((item) => [item.prompt, item.answer]))
 
@@ -129,7 +132,7 @@ describe('offering practice after a check', () => {
   }, 30000)
 
   /**
-   * A host that passes no handler gets no offer, and `Back to today` stays the
+   * A host that passes no handler gets no offer, and `Done` stays the
    * plain primary control rather than being quietly demoted to a ghost.
    */
   it('renders no offer when the host provides no practice route', async () => {
@@ -142,7 +145,58 @@ describe('offering practice after a check', () => {
     await runDeck(new Set([SMALL.items[0].prompt]), SMALL)
 
     expect(screen.queryByRole('button', { name: /Practi[sc]e \d+ items?/ })).toBeNull()
-    const back = screen.getByRole('button', { name: 'Back to today' })
+    const back = screen.getByRole('button', { name: 'Done' })
     expect(back.className).not.toContain('ghost')
   }, 30000)
+
+  it('leaves the topic page telling the same story: Practice enabled with that count, and a bar from the Test', async () => {
+    render(
+      <LibraryProvider>
+        <TestSession topicIds={['nato-phonetic']} onExit={() => undefined} onPractice={vi.fn()} />
+      </LibraryProvider>,
+    )
+    await runDeck(new Set([NATO.items[0].prompt, NATO.items[3].prompt, NATO.items[7].prompt, NATO.items[9].prompt]))
+    const offered = Number(/Practise (\d+) items/.exec(screen.getByRole('button', { name: /Practise \d+ items/ }).textContent ?? '')?.[1])
+    expect(offered).toBe(4)
+    cleanup()
+
+    const stored = (JSON.parse(localStorage.getItem(STORE_KEY)!).topics as Topic[]).find((topic) => topic.id === 'nato-phonetic')!
+    expect(stored.history.at(-1)?.missedItemIds).toHaveLength(4)
+    // Nothing from the Test run wrote per-item evidence for these reveal cards.
+    expect(hasPractice(stored)).toBe(true)
+    expect(practiceItemCount(stored)).toBe(offered)
+    expect(topicBar(stored)).toMatchObject({ value: NATO.items.length - 4, max: NATO.items.length })
+
+    const onStart = vi.fn()
+    const { container } = render(
+      <LibraryProvider>
+        <TopicPage topic={stored} onBack={vi.fn()} onStart={onStart} onReference={vi.fn()} onEdit={vi.fn()} onDelete={vi.fn()} />
+      </LibraryProvider>,
+    )
+    const practice = container.querySelector<HTMLButtonElement>('.topic-tray [data-tile-id="practice"]')!
+    expect(practice.getAttribute('aria-disabled')).toBeNull()
+    expect(practice.textContent).toContain(String(offered))
+    expect(container.querySelector('.screen-header-readout')?.textContent).toBe(`${NATO.items.length - 4} / ${NATO.items.length}`)
+    expect(container.querySelectorAll('.topic-item.is-missed')).toHaveLength(4)
+    fireEvent.click(practice)
+    expect(onStart).toHaveBeenCalledWith('learn', ['nato-phonetic'], { kind: 'practice' })
+    // Practising reads that record and writes nothing.
+    expect(JSON.parse(localStorage.getItem(STORE_KEY)!).topics.find((topic: Topic) => topic.id === 'nato-phonetic').history).toEqual(stored.history)
+  }, 60000)
+
+  it('lists the missed items on the result, capped, with plain outcome words', async () => {
+    render(
+      <LibraryProvider>
+        <TestSession topicIds={['nato-phonetic']} onExit={() => undefined} onPractice={vi.fn()} />
+      </LibraryProvider>,
+    )
+    await runDeck(new Set(NATO.items.slice(0, 10).map((item) => item.prompt)))
+    const chips = [...document.querySelectorAll('.test-missed-chip')].map((chip) => chip.textContent)
+    expect(chips).toHaveLength(8)
+    const wrong = new Set(NATO.items.slice(0, 10).map((item) => `${item.prompt}${item.answer}`))
+    for (const chip of chips) expect(wrong.has(chip ?? '')).toBe(true)
+    expect(document.querySelector('.test-missed-more')?.textContent).toBe('+2 more')
+    expect(document.body.textContent).not.toMatch(/to learning|Back to today/)
+    expect(screen.getByRole('button', { name: 'Done' })).toBeTruthy()
+  }, 60000)
 })

@@ -49,21 +49,60 @@ describe('Morse progress path', () => {
     expect(screen.getByText('◆ Needs repair')).toBeTruthy()
   })
 
-  it('keeps all locked rows and pips inert', () => {
+  it('keeps locked rows and pips from starting anything, and says why in one line (#257)', () => {
     const onAction = vi.fn()
-    const { container } = render(<MorseProgressPath topic={morseTopic()} onAction={onAction} />)
-    const locked = container.querySelectorAll('[aria-disabled="true"]')
+    const topic = morseTopic()
+    const { container } = render(<MorseProgressPath topic={topic} onAction={onAction} />)
+    const locked = [...container.querySelectorAll<HTMLElement>('button[aria-disabled="true"]')]
     expect(locked.length).toBeGreaterThan(0)
-    for (const row of locked) fireEvent.click(row)
+    const path = morseProgressPath(topic)!
+    for (const control of locked) {
+      fireEvent.click(control)
+      const row = control.closest<HTMLElement>('[data-node-id]')!
+      const node = path.nodes.find((candidate) => candidate.id === row.dataset.nodeId)!
+      const notices = screen.getAllByRole('status')
+      expect(notices).toHaveLength(1)
+      expect(row.contains(notices[0])).toBe(true)
+      expect(notices[0].textContent).toBe(node.kind === 'tier'
+        ? node.pips.find((pip) => control.classList.contains(`morse-progress-pip-${pip.mode}`))!.reason
+        : node.lockedReason)
+    }
     expect(onAction).not.toHaveBeenCalled()
   })
 
-  it('offers the separate early Test descriptor without unlocking the milestone', () => {
+  it('folds early Test into the A–Z plate without unlocking the milestone', () => {
     const onAction = vi.fn()
-    render(<MorseProgressPath topic={morseTopic()} onAction={onAction} />)
+    const { container } = render(<MorseProgressPath topic={morseTopic()} onAction={onAction} />)
     expect(screen.getByRole('button', { name: 'A–Z Test, locked, locked' }).getAttribute('aria-disabled')).toBe('true')
-    fireEvent.click(screen.getByRole('button', { name: 'Test A–Z early' }))
+    const early = screen.getByRole('button', { name: 'Test early' })
+    expect(early.closest('.spine-row-wrap')?.querySelector('.morse-progress-test')).not.toBeNull()
+    expect(early.closest('.spine-row')).toBeNull()
+    fireEvent.click(early)
     expect(onAction).toHaveBeenCalledExactlyOnceWith({ kind: 'test', early: true })
+    expect(container.querySelector('.morse-progress-path > li > button.quiet')).toBeNull()
+  })
+
+  it('folds Skip ahead into the Begin plate only when placement is offered', () => {
+    const onPlacement = vi.fn()
+    const { rerender } = render(<MorseProgressPath topic={morseTopic()} onAction={vi.fn()} onPlacement={onPlacement} />)
+    const skip = screen.getByRole('button', { name: 'Skip ahead' })
+    expect(skip.closest('[data-node-id]')?.getAttribute('data-node-id')).toBe('start')
+    fireEvent.click(skip)
+    expect(onPlacement).toHaveBeenCalledOnce()
+    rerender(<MorseProgressPath topic={morseTopic(5)} onAction={vi.fn()} onPlacement={onPlacement} />)
+    expect(screen.queryByRole('button', { name: 'Skip ahead' })).toBeNull()
+  })
+
+  it('draws each tier pip as its mode glyph on a 44px target, named for its level and mode', () => {
+    const { container } = render(<MorseProgressPath topic={modeTopicFixtures().mid} onAction={vi.fn()} />)
+    const pips = [...container.querySelectorAll<HTMLElement>('.morse-progress-pip')]
+    expect(pips.length).toBeGreaterThan(0)
+    for (const pip of pips) {
+      expect(pip.getAttribute('aria-label')).toMatch(/^[A-Z][a-z]+, (Key|Listen|Read), (available|cleared|locked)$/)
+      expect(pip.querySelector('.morse-progress-pip-chip .morse-mode-letter, .morse-progress-pip-chip svg')).not.toBeNull()
+    }
+    expect(screen.getByRole('button', { name: 'Words, Key, available' }).querySelector('.morse-mode-letter')?.textContent).toBe('A')
+    expect(screen.getByRole('button', { name: 'Numbers, Listen, locked' }).getAttribute('aria-disabled')).toBe('true')
   })
 
   it('forwards reached lesson and checkpoint actions and each available or cleared tier pip', () => {

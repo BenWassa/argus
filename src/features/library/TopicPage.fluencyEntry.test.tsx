@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { SHIPPED_CATALOG_TOPIC_IDS } from '../../domain/library/catalog'
 import { seedLibrary } from '../../domain/library/catalogSeed'
 import type { Topic } from '../../domain/library/topic'
@@ -100,18 +100,33 @@ beforeEach(() => localStorage.clear())
 afterEach(() => { cleanup(); localStorage.clear() })
 
 describe('one Morse topic screen', () => {
-  it('opens fresh on Start, with locked modes and a separate placement offer', () => {
+  it('opens fresh on Start, with every mode open and placement inside the Begin plate (#257)', () => {
     const onStart = open(morse({ status: 'unstarted', learningAt: null }))
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('International Morse Code')
     expect(screen.getByRole('img', { name: '0 of 26 letters' })).toBeTruthy()
     for (const name of ['Key', 'Listen', 'Read', 'Free play']) {
-      expect(screen.getByRole('button', { name }).getAttribute('aria-disabled')).toBe('true')
+      expect(screen.getByRole('button', { name }).hasAttribute('aria-disabled')).toBe(false)
     }
     fireEvent.click(screen.getByRole('button', { name: 'Key' }))
-    expect(onStart).not.toHaveBeenCalled()
-    expect(screen.getByRole('button', { name: 'Skip ahead' })).toBeTruthy()
+    expect(onStart).toHaveBeenLastCalledWith('learn', [MORSE_ID], { kind: 'letter-practice', direction: 'key' })
+    fireEvent.click(screen.getByRole('button', { name: 'Free play' }))
+    expect(onStart).toHaveBeenLastCalledWith('learn', [MORSE_ID], { kind: 'fluency', free: true })
+    const skip = screen.getByRole('button', { name: 'Skip ahead' })
+    expect(skip.closest('[data-node-id]')?.getAttribute('data-node-id')).toBe('start')
+    expect(skip.closest('header')).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'Start, current' }))
-    expect(onStart).toHaveBeenCalledWith('learn', [MORSE_ID], { kind: 'lesson' })
+    expect(onStart).toHaveBeenLastCalledWith('learn', [MORSE_ID], { kind: 'lesson' })
+    expect(screen.queryByRole('dialog')).toBeNull()
+  })
+
+  it('says in one line why a locked level or lesson cannot start, without a dialog', () => {
+    const onStart = open(morse({ status: 'unstarted', learningAt: null }))
+    fireEvent.click(screen.getByRole('button', { name: 'Words, Key, locked' }))
+    expect(screen.getByRole('status').textContent).toBe('Learn a few more letters first')
+    fireEvent.click(screen.getByRole('button', { name: /Lesson 2, .*locked/ }))
+    expect(screen.getAllByRole('status')).toHaveLength(1)
+    expect(screen.getByRole('status').textContent).toBe('After Lesson 1')
+    expect(onStart).not.toHaveBeenCalled()
     expect(screen.queryByRole('dialog')).toBeNull()
   })
 
@@ -147,6 +162,29 @@ describe('one Morse topic screen', () => {
     expect(onStart).toHaveBeenLastCalledWith('learn', [MORSE_ID], { kind: 'fluency', free: true })
   })
 
+  it('pins a compact Morse header once the page is scrolled (#257)', () => {
+    let report: IntersectionObserverCallback = () => {}
+    vi.stubGlobal('IntersectionObserver', class {
+      constructor(callback: IntersectionObserverCallback) { report = callback }
+      observe() {}
+      disconnect() {}
+    })
+    try {
+      open(morse({}))
+      const header = document.querySelector('.topic-morse-header')!
+      expect(header.classList.contains('is-compact')).toBe(false)
+      act(() => report([{ isIntersecting: false, boundingClientRect: { top: -40 } } as IntersectionObserverEntry], {} as IntersectionObserver))
+      expect(header.classList.contains('is-compact')).toBe(true)
+      // Title and n / 26 stay in the compact header.
+      expect(header.querySelector('h1')?.textContent).toBe('International Morse Code')
+      expect(header.querySelector('.screen-header-readout')?.textContent).toBe('0 / 26')
+      act(() => report([{ isIntersecting: true, boundingClientRect: { top: 10 } } as IntersectionObserverEntry], {} as IntersectionObserver))
+      expect(header.classList.contains('is-compact')).toBe(false)
+    } finally {
+      vi.unstubAllGlobals()
+    }
+  })
+
   it('keeps the ordinary topic reference and its own tray', () => {
     render(<LibraryProvider><NatoHarness /></LibraryProvider>)
     expect(screen.getByRole('heading', { level: 1 })).toBeTruthy()
@@ -158,7 +196,9 @@ describe('one Morse topic screen', () => {
   it('offers early Test without writing progress merely by browsing', () => {
     const onStart = open(morse({}))
     const before = localStorage.getItem(STORE_KEY)
-    fireEvent.click(screen.getByRole('button', { name: 'Test A–Z early' }))
+    const early = screen.getByRole('button', { name: 'Test early' })
+    expect(early.closest('[data-node-id]')?.getAttribute('data-node-id')).toBe('test')
+    fireEvent.click(early)
     expect(onStart).toHaveBeenCalledWith('test', [MORSE_ID])
     expect(localStorage.getItem(STORE_KEY)).toBe(before)
   })

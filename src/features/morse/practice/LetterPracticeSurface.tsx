@@ -1,8 +1,6 @@
 import { useState } from 'react'
 import { useLibrary } from '../../../services/library/LibraryProvider'
-import { morseAcquisitionProfile } from '../../../domain/morse/testing/acquisitionProfile'
-import { journeyFor } from '../../../domain/study/journey'
-import type { MorseLetter } from '../../../domain/morse/code'
+import { modePlayLetters } from '../../../domain/morse/modes'
 import { newMorsePractice, type PracticeDirection } from '../../../domain/morse/practice'
 import { LetterPracticeRun } from './LetterPracticeRun'
 import { SessionFrame } from '../../../shared/ui/SessionFrame'
@@ -13,11 +11,8 @@ export function LetterPracticeSurface({ topicId, onExit, direction }: { directio
   const topic = topics.find(t => t.id === topicId)
   const [round, setRound] = useState(0)
   if (!topic) return null
-  const profile = morseAcquisitionProfile(topic)
-  const ready = journeyFor(topic).acquisition.ready
-  const eligible = [...(profile?.values() ?? [])]
-    .filter(c => ready || topic.lessonProgress?.[c.itemId] === 'settled')
-    .map(c => c.glyph as MorseLetter)
+  // The taught roster, or Lesson 1's letters before any are settled (#257).
+  const eligible = modePlayLetters(topic)
   if (!eligible.length) return <SessionFrame kind={direction ?? "key"} title="Practice" onClose={onExit}><h1 className="session-centred">Learn letters first</h1></SessionFrame>
   return <LetterPracticeRun key={`${round}-${direction}`} direction={direction} eligible={eligible} initialProgress={topic.morsePractice ?? newMorsePractice()}
     onProgress={next => updateTopic(topicId, current => ({ ...current, morsePractice: next }))}

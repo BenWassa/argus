@@ -1,12 +1,15 @@
 import { describe, expect, it } from 'vitest'
 import { morseTopic, modeTopicFixtures } from './__fixtures__/modeTopics'
 import {
-  MORSE_MODES, currentLevel, lettersStable, levelsFor, modeAvailability, modeEligibleLetters,
-  modeEntry, modeLevelCleared,
+  LEVEL_REASON_ALPHABET, LEVEL_REASON_LETTERS, MORSE_MODES, SAFE_LEVEL_MINIMUM, currentLevel, lettersStable,
+  levelReadiness, levelsFor, modeAvailability, modeEligibleLetters, modeEntry, modeLevelCleared,
+  modeMaterialCharacters, modePlayLetters,
 } from './modes'
-import { COPY_LEVELS } from './fluency/copy'
+import { COPY_LEVELS, copyPrompts } from './fluency/copy'
 import { newFluencyProgress } from './fluency/progress'
-import { SEND_STAGES } from './fluency/send'
+import { SEND_STAGES, sendPrompts } from './fluency/send'
+import { startFluencyRun } from './fluency/session'
+import { lessonPackets } from './curriculum/lesson'
 import { newMorsePractice } from './practice'
 
 describe('Morse modes', () => {
@@ -22,11 +25,22 @@ describe('Morse modes', () => {
     expect(levelsFor('key').find((level) => level.id === 'send:dispatch')?.tier).toBe('messages')
   })
 
-  it('locks every mode without settled letters but still describes the Letters starting level', () => {
+  it('opens every mode with no settled letters: Letters start on Lesson 1, longer levels say why (#257)', () => {
+    const fresh = morseTopic()
+    expect(modePlayLetters(fresh)).toEqual(lessonPackets()[0].characters)
     for (const { id } of MORSE_MODES) {
-      expect(modeAvailability(morseTopic(), id)).toBe('locked')
-      expect(modeEntry(morseTopic(), id)).toBeNull()
-      expect(currentLevel(morseTopic(), id)?.id ?? null).toBe(id === 'free' ? null : 'letters')
+      expect(modeAvailability(fresh, id)).toBe('available')
+      expect(currentLevel(fresh, id)?.id ?? null).toBe(id === 'free' ? null : 'letters')
+    }
+    expect(modeEntry(fresh, 'free')).toEqual({ mode: 'free', levelId: null, kind: 'free' })
+    for (const mode of ['key', 'listen', 'read'] as const) {
+      expect(modeEntry(fresh, mode)).toMatchObject({ kind: 'practice', levelId: 'letters', eligibleLetters: lessonPackets()[0].characters })
+      for (const level of levelsFor(mode).filter((candidate) => candidate.kind !== 'practice')) {
+        expect(modeEntry(fresh, mode, level.id), level.id).toBeNull()
+        expect(levelReadiness(fresh, level), level.id).toEqual({
+          startable: false, reason: level.tier === 'numbers' ? LEVEL_REASON_ALPHABET : LEVEL_REASON_LETTERS,
+        })
+      }
     }
   })
 
@@ -36,19 +50,22 @@ describe('Morse modes', () => {
     expect(eligible).toHaveLength(2)
     for (const { id } of MORSE_MODES) expect(modeAvailability(topic, id)).toBe('available')
     expect(modeEntry(topic, 'key')).toMatchObject({ kind: 'practice', direction: 'key', levelId: 'letters', eligibleLetters: eligible })
-    expect(modeEntry(topic, 'listen', 'copy:common')).toMatchObject({ kind: 'copy', level: 'common', eligibleLetters: eligible })
-    expect(modeEntry(topic, 'key', 'send:dispatch')).toMatchObject({ kind: 'send', stage: 'dispatch', eligibleLetters: eligible })
+    // Two letters make no ordinary words, so no word level can start yet.
+    expect(modeEntry(topic, 'listen', 'copy:common')).toBeNull()
+    expect(modeEntry(topic, 'key', 'send:dispatch')).toBeNull()
     expect(modeEntry(topic, 'free')).toEqual({ mode: 'free', levelId: null, kind: 'free' })
     expect(modeEligibleLetters({ ...topic, acquisitionReadyAt: 'historical' })).toHaveLength(26)
     expect(modeEligibleLetters(modeTopicFixtures().legacyBanked)).toEqual([])
+    expect(modeMaterialCharacters(topic)).toEqual(new Set(eligible))
+    expect(modeMaterialCharacters({ ...topic, acquisitionReadyAt: 'historical' })).toBeNull()
   })
 
-  it('offers every level by id whenever its mode is available, regardless of other clears', () => {
+  it('offers a level by id exactly when it can start, regardless of other clears', () => {
     for (const topic of Object.values(modeTopicFixtures())) {
       for (const { id: mode } of MORSE_MODES) {
         for (const level of levelsFor(mode)) {
           const entry = modeEntry(topic, mode, level.id)
-          if (modeAvailability(topic, mode) === 'available') {
+          if (levelReadiness(topic, level).startable) {
             expect(entry).toMatchObject({ mode, levelId: level.id, kind: level.kind })
           } else {
             expect(entry).toBeNull()
@@ -56,9 +73,55 @@ describe('Morse modes', () => {
         }
       }
     }
+    const ready = { ...morseTopic(13), morseFluency: newFluencyProgress() }
+    for (const mode of ['key', 'listen', 'read'] as const) {
+      for (const level of levelsFor(mode)) expect(levelReadiness(ready, level)).toEqual({ startable: true })
+    }
     const topic = { ...morseTopic(1), morseFluency: newFluencyProgress() }
     topic.morseFluency.bests['send:words'] = 90
     expect(currentLevel(topic, 'key')?.id).toBe('send:flow')
+    // The suggestion cannot start with two letters, so the tray falls back to Letters.
+    expect(modeEntry(topic, 'key')).toMatchObject({ levelId: 'letters' })
+  })
+
+  it('never gives a 10 / 26 learner material containing an untaught letter (#257)', () => {
+    const topic = morseTopic(5)
+    const taught = new Set(modeEligibleLetters(topic))
+    expect(taught.size).toBe(10)
+    const allowed = modeMaterialCharacters(topic)!
+    const untaught = (text: string) => [...text].filter((character) => character !== ' ' && !taught.has(character as never))
+    const startable = new Set<string>()
+    for (const mode of ['key', 'listen'] as const) {
+      for (const level of levelsFor(mode)) {
+        if (!levelReadiness(topic, level).startable) continue
+        startable.add(level.id)
+        for (let seed = 0; seed < 40; seed += 1) {
+          const prompts = level.kind === 'send' ? sendPrompts(level.stage, seed, allowed)
+            : level.kind === 'copy' ? copyPrompts(level.level, newFluencyProgress(), seed, new Set(), allowed)
+              : level.kind === 'fluency' ? startFluencyRun(level.challenge, 6, newFluencyProgress(), seed, new Set(), [], allowed).prompts.map((prompt) => prompt.text)
+                : []
+          if (level.kind !== 'practice') expect(prompts.length, `${level.id} seed ${seed}`).toBeGreaterThan(0)
+          for (const prompt of prompts) expect(untaught(prompt), `${level.id}: ${prompt}`).toEqual([])
+        }
+      }
+    }
+    // Words are open at 10 letters; numbers wait for the alphabet.
+    expect(startable).toContain('send:words')
+    expect(startable).toContain('copy:common')
+    expect(startable).toContain('fluency:words')
+    expect(startable).toContain('fluency:groups')
+    expect(startable).not.toContain('copy:numbers')
+    expect(startable).not.toContain('copy:mixed')
+    expect(levelReadiness(topic, levelsFor('listen').find((level) => level.id === 'copy:numbers')!))
+      .toEqual({ startable: false, reason: LEVEL_REASON_ALPHABET })
+  })
+
+  it('needs SAFE_LEVEL_MINIMUM distinct prompts before a word level can start', () => {
+    expect(SAFE_LEVEL_MINIMUM).toBe(6)
+    const words = levelsFor('key').find((level) => level.id === 'send:words')!
+    // Lesson 2 makes two words (EAT, TEA); lesson 3 makes enough.
+    expect(levelReadiness(morseTopic(2), words).startable).toBe(false)
+    expect(levelReadiness(morseTopic(3), words).startable).toBe(true)
   })
 
   it('requires three latest correct outcomes for every eligible A–Z letter in the same direction', () => {

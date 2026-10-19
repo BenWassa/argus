@@ -124,24 +124,54 @@
 
 .topic-earned { margin-top: var(--s-md); }
 
-/* -------------------------------------------------------------- admin -- */
+/* ---------------------------------------- header actions -- */
 
-.topic-admin {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--s-lg);
-  margin-top: var(--s-2xl);
-}
-
-.topic-admin .quiet.is-danger { color: var(--danger); }
-.topic-admin .quiet.is-danger:hover { color: var(--danger-2); }
+.screen-header-actions .quiet.is-danger { color: var(--danger); }
+.screen-header-actions .quiet.is-danger:hover { color: var(--danger-2); }
 
 /* Morse: ScreenHeader, ModeTray and ProgressSpine own the layout. The tray is
    fixed above phone navigation, reserves its own height, and sits above the
    path at desktop widths. Ordinary topics take the same arrangement. */
 .topic-morse-reference { font-weight: 700; }
-.topic-morse-placement { justify-self: start; padding-left: 0; }
 .topic-morse .morse-progress-path { margin-top: var(--s-lg); }
+
+/* The Morse header pins once the page is scrolled, collapsed to the title and
+   the n / 26 bar, so status stays in view when the path opens at the
+   position (#257); A–Z stays beside the title. It is opaque and does not move: nothing animates, so
+   reduced motion needs no alternative. Rows keep clear of it when focused. */
+.topic-morse-top { display: block; height: 0; }
+.topic-morse-header {
+  position: sticky;
+  z-index: 5;
+  top: 0;
+  margin-inline: calc(-1 * var(--s-sm));
+  padding: 0 var(--s-sm);
+  background: var(--bg);
+}
+/* Compact: the title and the A–Z control share one row, the bar sits under
+   them, and Back waits at the top of the page. */
+.topic-morse-header.is-compact {
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: 'title actions' 'progress progress';
+  align-items: center;
+  gap: var(--s-xs) var(--s-sm);
+  padding-top: max(var(--s-sm), env(safe-area-inset-top));
+  padding-bottom: var(--s-sm);
+  border-bottom: 1px solid var(--line);
+}
+.topic-morse-header.is-compact .screen-header-bar { grid-area: actions; }
+.topic-morse-header.is-compact .screen-header-back { display: none; }
+.topic-morse-header.is-compact .screen-header-title-row { grid-area: title; }
+.topic-morse-header.is-compact .screen-header-progress { grid-area: progress; }
+.topic-morse-header.is-compact .topic-title {
+  overflow: hidden;
+  font-size: var(--t-component);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.topic-morse .spine-row,
+.topic-morse .morse-progress-pip,
+.topic-morse .morse-progress-aside { scroll-margin-top: 112px; }
 @media (min-width: 980px) {
   .topic { max-width: 760px; }
 }

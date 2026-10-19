@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { statusLabel } from '../../shared/ui/StatusTag'
+import { dueState } from '../../domain/study/scheduling'
 import { targetsForItems } from '../../domain/study/practiceTargets'
 import { morseLessonPath } from '../../domain/morse/curriculum/lessonPath'
 import { fire } from '../../shared/haptics'
@@ -13,6 +13,43 @@ export interface ReviewResult {
   topic: Topic
   correct: number
   total: number
+}
+
+/** What the topic page will say about the topic now: Banked, Needs repair, Ready to test. */
+function standing(topic: Topic): string {
+  return dueState(topic).label.toLowerCase()
+}
+
+/** The unit a count is in: letters for the Morse course, items otherwise. */
+function unitFor(topic: Topic): string {
+  return morseLessonPath(topic) ? 'letter' : 'item'
+}
+
+/** How many missed items the result names before it says "+N more". */
+const MISSED_SHOWN = 8
+
+interface MissedRow {
+  key: string
+  label: string
+  detail?: string
+}
+
+/**
+ * The items this run answered wrong, as prompt and answer. A pictured item's
+ * picture is its prompt, so its row leads with the answer instead.
+ */
+function missedRows(topics: Topic[], missed: Record<string, string[]>): { rows: MissedRow[]; more: number } {
+  const all: MissedRow[] = []
+  for (const topic of topics) {
+    for (const id of missed[topic.id] ?? []) {
+      const item = topic.items.find((candidate) => candidate.id === id)
+      if (!item) continue
+      all.push(item.stimulus
+        ? { key: `${topic.id}:${id}`, label: item.answer }
+        : { key: `${topic.id}:${id}`, label: item.prompt, detail: item.answer })
+    }
+  }
+  return { rows: all.slice(0, MISSED_SHOWN), more: Math.max(0, all.length - MISSED_SHOWN) }
 }
 
 export function TestDone({
@@ -86,14 +123,14 @@ export function TestDone({
       // Counted in items, not directions: an item missed both ways is one
       // thing to go and fix.
       const itemIds = [...new Set(asked.map((target) => target.item.id))]
-      return { topicId: topic.id, title: topic.title, itemIds }
+      return { topicId: topic.id, title: topic.title, itemIds, unit: unitFor(topic) }
     })
     .find((candidate) => candidate.itemIds.length > 0)
 
   /**
    * The next move for an alphabet learner (#201). A Test that banks the Morse
    * course is the moment Play opens up, so it leads with the first sending run
-   * instead of "Back to today". Any other Morse result that ran for real
+   * instead of "Done". Any other Morse result that ran for real
    * (held, repaired, building toward a qualifying run) keeps Play discoverable
    * at text weight: playing round words certifies and repairs nothing.
    * A run withheld because the lesson is unfinished offers neither, since play
@@ -109,18 +146,20 @@ export function TestDone({
   // One primary per screen: a missed-item practice offer, being the repair, keeps it.
   const playLeads = offerPlay && morseCompleted && !(practiceOffer && onPractice)
 
-  // One short line per topic outcome, never a paragraph.
+  // One short line per topic outcome, in the words the topic page shows for
+  // the status it now holds, never the ladder's own transitions.
   const outcome: string[] = [
-    ...reviewed.map((entry) => `${entry.topic.title}: review, ladder unchanged.`),
-    ...completed.map((resolution) => `${resolution.topic.title} banked.`),
-    ...decayed.map((resolution) => `${resolution.topic.title} goes back to drilling.`),
-    ...changed.map(
-      (resolution) =>
-        `${resolution.topic.title}: ${statusLabel(resolution.from).toLowerCase()} to ${statusLabel(resolution.to).toLowerCase()}.`,
+    ...reviewed.map((entry) => `${entry.topic.title}: review only, not counted.`),
+    ...completed.map((resolution) => `${resolution.topic.title}: ${standing(resolution.topic)}.`),
+    ...decayed.map((resolution) => `${resolution.topic.title}: ${standing(resolution.topic)}.`),
+    ...changed.map((resolution) => `${resolution.topic.title}: ${standing(resolution.topic)}.`),
+    ...held.map((resolution) =>
+      resolution.to === 'completed' || resolution.to === 'drilled'
+        ? `${resolution.topic.title}: passed, still ${standing(resolution.topic)}.`
+        : `${resolution.topic.title}: ${standing(resolution.topic)}.`,
     ),
-    ...held.map((resolution) => `${resolution.topic.title} held at ${statusLabel(resolution.to).toLowerCase()}.`),
     ...withheld.map((entry) => `${entry.resolution.topic.title}: finish the lesson to count.`),
-    ...building.map((entry) => `${entry.resolution.topic.title}: clean run, not yet banked.`),
+    ...building.map((entry) => `${entry.resolution.topic.title}: all correct, not counted yet.`),
   ]
   if (outcome.length === 0) outcome.push('No topic ran to the end.')
 
@@ -129,7 +168,13 @@ export function TestDone({
   const practiceNext = practiceOffer && onPractice ? practiceOffer : null
   const playNext = !practiceNext && playLeads && morseResult && onPlayMorse ? morseResult : null
   const playQuiet = offerPlay && !playNext && morseResult && onPlayMorse ? morseResult : null
-  const items = practiceNext ? `${practiceNext.itemIds.length} ${practiceNext.itemIds.length === 1 ? 'item' : 'items'}` : ''
+  const items = practiceNext
+    ? `${practiceNext.itemIds.length} ${practiceNext.unit}${practiceNext.itemIds.length === 1 ? '' : 's'}`
+    : ''
+  const missedList = missedRows([
+    ...banked.map((entry) => entry.resolution.topic),
+    ...reviewed.map((entry) => entry.topic),
+  ], missed)
 
   return (
     <SessionFrame kind="test" title={banked.length === 0 && reviewed.length > 0 ? 'Review' : 'Test'}
@@ -140,9 +185,19 @@ export function TestDone({
         onAgain={practiceNext ? () => onPractice?.(practiceNext.topicId, practiceNext.itemIds) : playNext ? () => onPlayMorse?.(playNext.resolution.topic.id) : undefined}
         againLabel={practiceNext ? `Practise ${items}` : playNext ? 'Send five words' : undefined}
         onDone={onExit}
-        doneLabel="Back to today"
+        doneLabel="Done"
         extra={<>
           {outcome.map((line, index) => <p className="test-outcome" key={index}>{line}</p>)}
+          {missedList.rows.length > 0 && <section className="test-missed" aria-label="Missed">
+            <h2 className="test-missed-head">Missed</h2>
+            <ul className="test-missed-list">
+              {missedList.rows.map((row) => <li key={row.key} className="test-missed-chip">
+                <span className="test-missed-prompt">{row.label}</span>
+                {row.detail && <span className="test-missed-answer">{row.detail}</span>}
+              </li>)}
+              {missedList.more > 0 && <li className="test-missed-more">+{missedList.more} more</li>}
+            </ul>
+          </section>}
           {playQuiet && onPlayMorse && (
             <button className="ghost" type="button" onClick={() => onPlayMorse(playQuiet.resolution.topic.id)}>
               {morseCompleted ? 'Send five words' : 'Play with words'}

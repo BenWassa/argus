@@ -94,6 +94,15 @@ export function allFluencyWords(): string[] {
   return [...fluencyWords('short'), ...fluencyWords('medium'), ...fluencyWords('long')]
 }
 
+/**
+ * True when every non-space character of `text` is in `allowed`: the one test
+ * that keeps practice material inside what the learner has been taught (#257).
+ */
+export function materialFits(text: string, allowed: ReadonlySet<string>): boolean {
+  for (const character of text) if (character !== ' ' && !allowed.has(character)) return false
+  return true
+}
+
 export const MORSE_ALPHABET = Object.keys(MORSE_LETTERS) as MorseLetter[]
 
 /**

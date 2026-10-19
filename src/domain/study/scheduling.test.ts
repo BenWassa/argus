@@ -54,3 +54,17 @@ describe('one clean Test, without a clock', () => {
     expect(resolveAttempt(topic('unstarted'), 0, 0, now).to).toBe('learning')
   })
 })
+
+describe('recording what an attempt missed', () => {
+  const now = new Date('2026-05-01T00:00:00.000Z')
+
+  it('keeps the missed ids on the attempt, once each', () => {
+    const result = resolveAttempt(topic('unstarted'), 1, 2, now, { missedItemIds: ['b', 'b'] })
+    expect(result.topic.history.at(-1)?.missedItemIds).toEqual(['b'])
+  })
+
+  it('leaves the field off a clean run', () => {
+    const result = resolveAttempt(topic('unstarted'), 2, 2, now, { missedItemIds: [] })
+    expect(result.topic.history.at(-1)).not.toHaveProperty('missedItemIds')
+  })
+})

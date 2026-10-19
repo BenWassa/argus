@@ -31,6 +31,8 @@ interface CopyRunProps {
   progress: MorseFluencyProgress
   /** Letters the learner is missing, weighted up in the letters level. */
   focus?: ReadonlySet<MorseLetter>
+  /** Characters material may contain (#257): the taught roster before acquisition; absent, no limit. */
+  allowed?: ReadonlySet<string>
   /** The single durable write, handed in. See `FluencyRun` for why. */
   onProgress: (next: MorseFluencyProgress) => void
   onLevel: (level: CopyLevel) => void
@@ -70,10 +72,10 @@ type Phase =
  * Imports no store, no scheduler and no evidence recorder, for the same reason
  * `FluencyRun` does not; `FluencyBoundary.test.ts` holds both to it.
  */
-export function CopyRun({ level, rung, progress, focus, onProgress, onLevel, onExit, toolbar, seed = 0 }: CopyRunProps) {
+export function CopyRun({ level, rung, progress, focus, allowed, onProgress, onLevel, onExit, toolbar, seed = 0 }: CopyRunProps) {
   const info = COPY_LEVEL_INFO[level]
   const correctionAudio = useMorseAudio()
-  const [prompts] = useState(() => copyPrompts(level, progress, seed, focus))
+  const [prompts] = useState(() => copyPrompts(level, progress, seed, focus, allowed))
   const [at, setAt] = useState(0)
   const [phase, setPhase] = useState<Phase>(() => (info.introduces ? { kind: 'intro' } : { kind: 'asking' }))
   const [typed, setTyped] = useState('')

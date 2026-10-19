@@ -281,7 +281,7 @@ export function TestSession({ topicIds, review = false, onExit, onPractice, onPl
 
     const entry = resolveBankedAttempt(
       topic,
-      attempt,
+      { ...attempt, missedItemIds: missedItems.current[topicId] },
       evidence,
       attemptAnswers.current[topicId] ?? [],
     )

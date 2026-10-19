@@ -18,21 +18,15 @@
 }
 
 .morse-placement-choices button {
-  min-height: 4.5rem;
+  display: flex;
+  align-items: center;
+  gap: var(--s-md);
+  min-height: var(--control-h-lg);
   text-align: left;
-  display: grid;
-  gap: 0.25rem;
-  align-content: center;
+  font-size: var(--t-component);
 }
 
-.morse-placement-choices button span {
-  font-weight: 400;
-}
-
-/* A quieter line by ink, not by fading: solid muted text on the raised plate. */
-.morse-placement-choices button.ghost span {
-  color: var(--muted);
-}
+.morse-placement-mark { flex: none; }
 
 .morse-placement-question {
   text-align: center;
@@ -42,7 +36,7 @@
 .morse-placement-meta {
   margin: 0;
   font-size: 0.82rem;
-  color: var(--subtle);
+  color: var(--muted);
 }
 
 .morse-placement-letter {

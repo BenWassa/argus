@@ -30,7 +30,7 @@ export interface BankedAttempt {
  */
 export function resolveBankedAttempt(
   topic: Topic,
-  attempt: { correct: number; total: number },
+  attempt: { correct: number; total: number; missedItemIds?: string[] },
   evidence: ItemEvidenceStore,
   answers: AttemptAnswer[],
   now: Date = new Date(),
@@ -63,7 +63,7 @@ export function resolveBankedAttempt(
   const advancementEligible = journeyEligible && !nonQualifying
 
   return {
-    resolution: resolveAttempt(topic, schedulerCorrect, attempt.total, now, { advancementEligible }),
+    resolution: resolveAttempt(topic, schedulerCorrect, attempt.total, now, { advancementEligible, missedItemIds: attempt.missedItemIds }),
     withheldByAcquisition: !journeyEligible,
     nonQualifying,
   }

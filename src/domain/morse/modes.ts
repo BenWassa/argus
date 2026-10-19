@@ -3,9 +3,12 @@ import { journeyFor } from '../study/journey'
 import type { MorseLetter } from './code'
 import { morseAcquisitionProfile } from './testing/acquisitionProfile'
 import type { PracticeDirection } from './practice'
-import { COPY_LEVELS, COPY_LEVEL_INFO, copyLevelCleared, type CopyLevel } from './fluency/copy'
-import { SEND_STAGES, SEND_STAGE_INFO, recommendedSendStage, sendStageCleared, type SendStage } from './fluency/send'
-import { FLUENCY_ADVANCE_ACCURACY, fluencyRunLength } from './fluency/session'
+import { lessonPackets } from './curriculum/lesson'
+import { COPY_LEVELS, COPY_LEVEL_INFO, copyLevelCleared, copyPrompts, type CopyLevel } from './fluency/copy'
+import { allFluencyWords, materialFits } from './fluency/corpus'
+import { newFluencyProgress } from './fluency/progress'
+import { SEND_STAGES, SEND_STAGE_INFO, recommendedSendStage, sendPrompts, sendStageCleared, type SendStage } from './fluency/send'
+import { FLUENCY_ADVANCE_ACCURACY, fluencyRunLength, groupLengthForRung } from './fluency/session'
 import { FIRST_FLUENCY_RUNG, type FluencyRung } from './fluency/timing'
 
 export type MorseMode = 'key' | 'listen' | 'read' | 'free'
@@ -62,8 +65,77 @@ export function modeEligibleLetters(topic: Topic): MorseLetter[] {
     .map((character) => character.glyph as MorseLetter)
 }
 
-export function modeAvailability(topic: Topic, _mode: MorseMode): 'locked' | 'available' {
-  return modeEligibleLetters(topic).length ? 'available' : 'locked'
+/**
+ * Every mode is open (#257: no forced path). Free play needs no letters, and
+ * Key, Listen and Read start on Lesson 1's letters before any are settled.
+ * Kept as a function so callers still ask rather than assume.
+ */
+export function modeAvailability(_topic: Topic, _mode: MorseMode): 'locked' | 'available' {
+  return 'available'
+}
+
+/** The letters a Letters run asks: the taught roster, or Lesson 1's letters before there is one. */
+export function modePlayLetters(topic: Topic): MorseLetter[] {
+  if (!morseAcquisitionProfile(topic)) return []
+  const eligible = modeEligibleLetters(topic)
+  return eligible.length ? eligible : [...lessonPackets()[0].characters] as MorseLetter[]
+}
+
+/**
+ * The characters multi-letter material may contain, or `null` for no limit.
+ *
+ * Before acquisition is ready it is exactly the taught letters. The course
+ * teaches A–Z only, and figures and punctuation are introduced by the Numbers
+ * levels themselves once the alphabet is done (`COPY_LEVEL_INFO.introduces`),
+ * so they become eligible with acquisition, never before it. That is why a
+ * part-way learner's Numbers level cannot start.
+ */
+export function modeMaterialCharacters(topic: Topic): ReadonlySet<string> | null {
+  if (journeyFor(topic).acquisition.ready) return null
+  return new Set(modeEligibleLetters(topic))
+}
+
+/**
+ * The fewest distinct prompts a word, phrase, sentence, message, number or
+ * group level must be able to draw from the taught letters before it can
+ * start. Below six a run would circle the same two or three words, which
+ * drills the list rather than the code.
+ */
+export const SAFE_LEVEL_MINIMUM = 6
+
+export const LEVEL_REASON_LETTERS = 'Learn a few more letters first'
+export const LEVEL_REASON_ALPHABET = 'Numbers come after all 26 letters'
+
+export type LevelReadiness = { startable: true } | { startable: false; reason: string }
+
+const poolCache = new Map<string, number>()
+
+/** Distinct prompts this level can draw from `allowed`, counted up to `SAFE_LEVEL_MINIMUM`. */
+function restrictedPool(level: MorseLevel, allowed: ReadonlySet<string>, rung: FluencyRung): number {
+  const key = `${level.id}|${rung}|${[...allowed].sort().join('')}`
+  const cached = poolCache.get(key)
+  if (cached !== undefined) return cached
+  let size: number
+  if (level.kind === 'practice') size = SAFE_LEVEL_MINIMUM
+  else if (level.kind === 'send') size = sendPrompts(level.stage, 0, allowed, SAFE_LEVEL_MINIMUM).length
+  else if (level.kind === 'copy') size = copyPrompts(level.level, newFluencyProgress(), 0, new Set(), allowed, SAFE_LEVEL_MINIMUM).length
+  else if (level.challenge === 'words') size = allFluencyWords().filter((word) => materialFits(word, allowed)).length
+  else size = allowed.size ** groupLengthForRung(rung)
+  poolCache.set(key, size)
+  return size
+}
+
+/**
+ * Whether a level can start for this learner, and if not, one line saying why.
+ * Letters always can. Anything longer draws only on taught letters, and must
+ * find `SAFE_LEVEL_MINIMUM` distinct prompts that way.
+ */
+export function levelReadiness(topic: Topic, level: MorseLevel): LevelReadiness {
+  if (level.kind === 'practice') return { startable: true }
+  const allowed = modeMaterialCharacters(topic)
+  if (!allowed) return { startable: true }
+  if (restrictedPool(level, allowed, topic.morseFluency?.rung ?? FIRST_FLUENCY_RUNG) >= SAFE_LEVEL_MINIMUM) return { startable: true }
+  return { startable: false, reason: level.tier === 'numbers' ? LEVEL_REASON_ALPHABET : LEVEL_REASON_LETTERS }
 }
 
 const LETTER_STABILITY_ANSWERS = 3
@@ -110,12 +182,18 @@ export type MorseModeEntry =
   | { mode: 'free'; levelId: null; kind: 'free' }
   | (LevelActivity & { mode: Exclude<MorseMode, 'free'>; levelId: string; eligibleLetters: MorseLetter[]; rung: FluencyRung })
 
-/** A descriptor only. Every level is open once its mode is available; clears only guide suggestions. */
+/**
+ * A descriptor only. Every startable level is open; clears only guide
+ * suggestions. A named level that cannot start yet has no entry
+ * (`levelReadiness` says why), and a mode's own suggestion falls back to
+ * Letters when its current level cannot start.
+ */
 export function modeEntry(topic: Topic, mode: MorseMode, levelId?: string): MorseModeEntry | null {
-  if (modeAvailability(topic, mode) === 'locked') return null
   if (mode === 'free') return levelId === undefined ? { mode, levelId: null, kind: 'free' } : null
-  const level = levelId === undefined ? currentLevel(topic, mode) : levelsFor(mode).find((candidate) => candidate.id === levelId)
-  if (!level) return null
-  const eligibleLetters = modeEligibleLetters(topic)
+  const suggested = currentLevel(topic, mode)
+  const level = levelId !== undefined ? levelsFor(mode).find((candidate) => candidate.id === levelId)
+    : suggested && levelReadiness(topic, suggested).startable ? suggested : levelsFor(mode)[0]
+  if (!level || !levelReadiness(topic, level).startable) return null
+  const eligibleLetters = modePlayLetters(topic)
   return { ...level, mode, levelId: level.id, eligibleLetters, rung: topic.morseFluency?.rung ?? FIRST_FLUENCY_RUNG }
 }
