@@ -139,6 +139,8 @@ describe('answer confidentiality', () => {
     await waitFor(() => expect(document.querySelector('.test-done')).not.toBeNull(), {
       timeout: 8000,
     })
+    // The result names what was missed, answers included; nothing else carries one.
+    document.querySelector('.test-missed')?.remove()
     expect(answersInDocument()).toEqual([])
   }, 120000)
 

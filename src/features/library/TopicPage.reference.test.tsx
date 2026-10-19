@@ -50,8 +50,9 @@ describe('topic reference page', () => {
 
   it('reads its settled bar and status in the header, with no hero, scope or old chrome', () => {
     const { container } = open(firearm())
-    expect(screen.getByRole('img', { name: '0 of 9 items settled' })).toBeTruthy()
-    expect(container.querySelector('.screen-header-readout')?.textContent).toBe('0 / 9')
+    // Untested: no value, so no bar rather than a false 0 / 9.
+    expect(container.querySelector('.screen-header-track')).toBeNull()
+    expect(container.querySelector('.screen-header-readout')).toBeNull()
     expect(container.querySelector('.topic-state-label')?.textContent).toBe('Not tested yet')
     expect(container.querySelector('.topic-state-mark')).toBeNull()
     expect(container.querySelector('.topic-hero, .topic-hero-fallback, .topic-scope, .topic-action-bar, .topic-options, .topic-primary')).toBeNull()
@@ -173,5 +174,34 @@ describe('the Learn screen', () => {
     expect(screen.getByRole('img', { name: topic.hero.alt })).toBeTruthy()
     expect(container.textContent).toContain('Owner artwork.')
     expect(updateTopic).not.toHaveBeenCalled()
+  })
+})
+
+describe('Edit and Delete', () => {
+  it('sit in the header on an ordinary topic, not at the foot, with Sources still reachable', () => {
+    const onEdit = vi.fn()
+    const onDelete = vi.fn()
+    const { container } = render(<TopicPage topic={firearm()} onStart={vi.fn()} onBack={vi.fn()} onReference={vi.fn()} onEdit={onEdit} onDelete={onDelete} />)
+    const header = container.querySelector('.screen-header')!
+    const edit = screen.getByRole('button', { name: 'Edit topic' })
+    const remove = screen.getByRole('button', { name: 'Delete topic' })
+    expect(header.contains(edit) && header.contains(remove)).toBe(true)
+    expect(edit.textContent).toBe('Edit')
+    expect(remove.textContent).toBe('Delete')
+    expect(container.querySelector('.topic-admin')).toBeNull()
+    fireEvent.click(edit)
+    fireEvent.click(remove)
+    expect(onEdit).toHaveBeenCalledOnce()
+    expect(onDelete).toHaveBeenCalledOnce()
+    expect(screen.getByRole('button', { name: /Sources and limitations/ })).toBeTruthy()
+  })
+
+  it('sit in the header on the Morse course too', () => {
+    const morse = seeded('international-morse-letters-printed')
+    const { container } = render(<TopicPage topic={morse} onStart={vi.fn()} onBack={vi.fn()} onReference={vi.fn()} onEdit={vi.fn()} onDelete={vi.fn()} />)
+    const header = container.querySelector('.screen-header')!
+    expect(header.contains(screen.getByRole('button', { name: 'Edit topic' }))).toBe(true)
+    expect(header.contains(screen.getByRole('button', { name: 'Delete topic' }))).toBe(true)
+    expect(container.querySelector('.topic-admin')).toBeNull()
   })
 })

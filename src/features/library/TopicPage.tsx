@@ -9,7 +9,7 @@ import { ProgressSpine, type SpineRow, type SpineState } from '../../shared/ui/P
 import { ModeTray } from '../../shared/ui/ModeTray'
 import { topicIcon } from './topicIcon'
 import { TopicGlyph } from './TopicGlyph'
-import { settledCount, topicItemGroups, type ItemStanding, type TopicItemEntry } from './topicItems'
+import { topicBar, topicItemGroups, type ItemStanding, type TopicItemEntry } from './topicItems'
 import { SourcesAndLimits } from '../learn/SourcesAndLimits'
 import { hasReading } from '../learn/TopicReading'
 import { VisualView } from '../visual/VisualView'
@@ -60,7 +60,7 @@ export function TopicPage({
   const journey = journeyFor(topic)
   const repair = journey.phase === 'repair'
   const banked = !repair && (topic.status === 'completed' || topic.status === 'drilled')
-  const settled = course ? 0 : settledCount(topic)
+  const bar = course ? null : topicBar(topic)
   const listening = listeningCoverage(topic.items, topic.audioEvidence)
   const practiceCount = hasPractice(topic) ? practiceItemCount(topic) : 0
   const offersPlacement = path?.nodes.some(node => node.kind === 'start' && node.offersPlacement) && canOfferMorsePlacement(topic)
@@ -80,20 +80,31 @@ export function TopicPage({
     else onStart(run.mode, [topic.id])
   }
 
+  // Edit and Delete are quiet header actions on both topic kinds, so the page
+  // ends where its content ends. Names stay full for assistive technology.
+  const adminActions = <>
+    <button className="quiet topic-edit" type="button" aria-label="Edit topic" onClick={onEdit}>Edit</button>
+    <button className="quiet topic-delete is-danger" type="button" aria-label="Delete topic" onClick={onDelete}>Delete</button>
+  </>
+
   return (
     <article className={`topic topic-track-${topic.track}${course ? ' topic-morse' : ''}`}>
       {course ? <ScreenHeader ref={heading} titleClassName="topic-title" title={topic.title}
         onBack={onBack}
-        actions={<button className="quiet topic-morse-reference" type="button" onClick={() => onReference(topic.id)}>A–Z</button>}
+        actions={<>
+          <button className="quiet topic-morse-reference" type="button" onClick={() => onReference(topic.id)}>A–Z</button>
+          {adminActions}
+        </>}
         progress={{ value: journey.acquisition.settled, max: 26, label: `${journey.acquisition.settled} of 26 letters` }}
         readout={`${journey.acquisition.settled} / 26`}>
         {offersPlacement && <button className="quiet topic-morse-placement" type="button" onClick={() => setPlacementOpen(true)}>Skip ahead</button>}
       </ScreenHeader> : <ScreenHeader ref={heading} titleClassName="topic-title" title={topic.title}
         className={banked ? 'is-banked' : undefined}
         onBack={onBack}
+        actions={adminActions}
         glyph={topicIcon(topic.id) ? <TopicGlyph topicId={topic.id} /> : undefined}
-        progress={runnable ? { value: settled, max: topic.items.length, label: `${settled} of ${topic.items.length} ${topic.items.length === 1 ? 'item' : 'items'} settled` } : undefined}
-        readout={runnable ? `${settled} / ${topic.items.length}` : undefined}>
+        progress={bar ?? undefined}
+        readout={bar ? `${bar.value} / ${bar.max}` : undefined}>
         <p className={`topic-state${repair ? ' is-repair' : banked ? ' is-banked' : ''}`}>
           {repair ? <span className="topic-state-mark" aria-hidden="true">◆</span> : banked ? <span className="topic-state-mark" aria-hidden="true">✓</span> : null}
           <span className="topic-state-label">{journey.statusLabel}</span>
@@ -117,10 +128,6 @@ export function TopicPage({
 
       {!course && topic.history.length > 0 && <AttemptPips topic={topic} />}
       {!course && topic.completedAt && <p className="topic-earned">First completed · {stamp(topic.completedAt)}</p>}
-      <div className="topic-admin">
-        <button className="quiet" type="button" onClick={onEdit}>{course ? 'Edit' : 'Edit topic'}</button>
-        <button className="quiet is-danger" type="button" onClick={onDelete}>{course ? 'Delete' : 'Delete topic'}</button>
-      </div>
       <SourcesAndLimits content={topic.learn} scope={topic.scope} />
       {placementOpen && course && <MorsePlacementDialog topic={topic}
         onClose={() => setPlacementOpen(false)}

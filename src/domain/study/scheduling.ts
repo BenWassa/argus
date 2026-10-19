@@ -86,6 +86,8 @@ export interface AttemptOptions {
    * equally it cannot demote one: refusing to bank a result is not a failure.
    */
   advancementEligible?: boolean
+  /** Items this run answered wrong, kept on the attempt for Practice and the topic page. */
+  missedItemIds?: string[]
 }
 
 /**
@@ -131,7 +133,11 @@ export function resolveAttempt(
     next.learningAt = at
   }
 
-  next.history = [...topic.history, { at, correct, total, resolvedTo: next.status }]
+  const missedItemIds = [...new Set(options.missedItemIds ?? [])]
+  next.history = [
+    ...topic.history,
+    { at, correct, total, resolvedTo: next.status, ...(missedItemIds.length > 0 ? { missedItemIds } : {}) },
+  ]
 
   return { topic: next, from, to: next.status, completed, decayed }
 }
