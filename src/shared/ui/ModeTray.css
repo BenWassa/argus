@@ -1,5 +1,6 @@
 /* Mode tray (#243). Solid stimulus tiles, one word or two, no subtitle. Fixed
-   above phone navigation; in flow from 980px. */
+   above phone navigation; sticky at the top of the column from 980px, so the
+   modes are on screen when a long page opens scrolled to its current row. */
 .mode-tray-dock {
   position: fixed;
   z-index: 10;
@@ -65,8 +66,26 @@
 .mode-tray-lock { position: absolute; top: 6px; right: 6px; }
 .mode-tray-tile:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 
+/* Small phones (short, or 360px wide and under): the tray and the nav were a
+   third of a 568px screen. The tile keeps its stimulus and word and gives back
+   height, never its 44px floor. */
+@media (max-height: 700px), (max-width: 360px) {
+  .mode-tray { gap: 6px; padding: 6px 8px; }
+  .mode-tray-tile,
+  .mode-tray-tile:hover,
+  .mode-tray-tile:active {
+    gap: 4px;
+    min-height: 64px;
+    padding: 6px 2px;
+    border-radius: 12px;
+  }
+  .mode-tray-stimulus { height: 28px; }
+  .mode-tray-label { font-size: 13px; }
+}
+
 @media (min-width: 980px) {
-  .mode-tray-dock { position: static; margin-top: var(--s-lg); }
+  .mode-tray-dock { position: sticky; top: 0; margin-top: var(--s-lg); }
+  .mode-tray { padding-inline: 0; border-top: 0; border-bottom: 1px solid var(--line); }
 }
 
 @media (prefers-reduced-motion: reduce) {

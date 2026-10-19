@@ -80,17 +80,19 @@ export function LetterPracticeRun({ eligible, initialProgress = newMorsePractice
       {(['key', 'read', 'listen'] as const).map(d => <button className="ghost" key={d} aria-pressed={d === direction} onClick={() => changeDirection(d)}>{d[0].toUpperCase() + d.slice(1)}</button>)}
     </div>}
     {result === null && <>
-      <div className="letter-practice-stimulus">
+      <div className="letter-practice-stimulus session-stimulus">
         {direction === 'key' ? <p className="lesson-glyph">{glyph}</p> : direction === 'read' ? <p className="morse-notation" aria-label={spokenRhythm(pattern)}>{canonicalNotation(pattern)}</p> :
           <MorsePlayButton glyph={glyph} concealGlyph playing={!!audio.sounding} onToggle={() => { if (audio.sounding) listeningStarted.current = false; setHeard(false); audio.toggle(glyph) }} />}
       </div>
       {helped && <MorseCharacterSupport glyph={glyph} playing={!!audio.sounding} onToggle={() => audio.toggle(glyph)} />}
+      <div className="letter-practice-response session-response">
       {direction === 'key' ? <MorseKeyInput key={`${count}-${direction}`} expectedLength={pattern.length} locked={!response.armed} onSubmit={submit} /> :
         <label className="letter-practice-entry">Letter<input ref={input} className="field" value={entry} maxLength={1} autoComplete="off" autoCapitalize="characters" spellCheck={false} disabled={!response.armed || (direction === 'listen' && (!heard || !!audio.sounding || !!audio.audioError))} onChange={e => { setEntry(e.target.value); if(e.target.value.trim()) submit(e.target.value) }} /></label>}
       {!helped && <button className="quiet" disabled={!response.armed} onClick={() => setHelped(true)}>Help</button>}
+      </div>
     </>}
     {result === true && <SessionCorrect target={glyph} />}
-    {result === false && <div className="letter-practice-correction"><p role="status">Try this letter</p>
+    {result === false && <div className="letter-practice-correction session-response"><p role="status">Try this letter</p>
       <MorseCharacterSupport glyph={glyph} playing={!!audio.sounding} onToggle={() => audio.toggle(glyph)} />
       <button ref={continuation} disabled={!response.holding} onClick={response.acknowledge}>Continue</button></div>}
     {audio.audioError && <p role="status">{audio.audioError}</p>}

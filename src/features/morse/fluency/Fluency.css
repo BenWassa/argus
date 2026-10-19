@@ -9,11 +9,20 @@
  * the thing it is reporting.
  */
 
-.fluency-run {
-  display: grid;
-  align-content: start;
-  gap: var(--s-lg);
-  padding-bottom: max(var(--s-2xl), env(safe-area-inset-bottom));
+/* The session frame owns the layout (#259): header, the stimulus centred,
+   the response docked at the foot. These rules only say which part of a
+   fluency screen is which. */
+
+/* Copy's table of new characters: the heading starts the centred stimulus and
+   the start button is the response. */
+.copy-run > .fluency-head {
+  margin-block-start: auto;
+}
+
+.copy-run > .copy-start {
+  align-self: stretch;
+  margin-block-start: auto;
+  min-height: var(--control-h-lg);
 }
 
 .fluency-head {
@@ -111,14 +120,14 @@
   white-space: nowrap;
 }
 
-.copy-table-note,
-.copy-start {
+.copy-table-note {
   justify-self: center;
 }
 
 /* ---- the run ---------------------------------------------------------- */
 
 .fluency-target {
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -127,8 +136,15 @@
   margin-inline: auto;
 }
 
-.fluency-target .lesson-task {
-  margin: 0;
+.fluency-target > .lesson-task {
+  margin: auto 0 0;
+}
+
+/* The key, the typed answer, or the correction that replaces them. */
+.fluency-target > .fluency-answer-area,
+.fluency-target > .copy-answer,
+.fluency-target > .fluency-feedback:not(.copy-feedback) {
+  margin-block-start: auto;
 }
 
 .fluency-listen {
@@ -154,7 +170,7 @@
 }
 
 .fluency-shape .is-current {
-  color: var(--accent);
+  color: var(--session-colour, var(--ink));
 }
 
 .fluency-audio-error {
@@ -305,11 +321,26 @@
   margin-inline: auto;
 }
 
+/* Free play: what was keyed is the stimulus, centred; the key and its actions
+   are the response. On the Listen side the text is the stimulus and Play the
+   response. */
 .free-play-body {
-  display: grid;
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
   gap: var(--s-md);
   width: min(100%, 36rem);
   margin-inline: auto;
+}
+
+.free-play-body > .free-play-output,
+.free-play-body > .free-play-text {
+  margin-block-start: auto;
+}
+
+.free-play-body > .morse-key-input,
+.free-play-text ~ .free-play-actions {
+  margin-block-start: auto;
 }
 
 .free-play-body .note,
@@ -347,7 +378,7 @@
 }
 
 .free-play-cursor {
-  color: var(--accent);
+  color: var(--session-colour, var(--ink));
 }
 
 .free-play-actions {
@@ -428,24 +459,19 @@
    it, the same arrangement the Morse checkpoint uses, so the first key press
    is reachable without a scroll. */
 @media (orientation: landscape) and (max-height: 560px) and (min-width: 600px) {
-  .fluency-run[data-step] {
-    padding-block: var(--s-md);
-    gap: var(--s-sm);
-  }
-
-  .fluency-run[data-step] .session-bar {
-    margin-bottom: var(--s-sm);
-  }
-
   .fluency-run .fluency-target {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
     grid-template-rows: auto auto auto;
-    align-content: start;
+    align-content: center;
     align-items: center;
     justify-items: center;
     gap: var(--s-sm) var(--s-lg);
     width: min(100%, 44rem);
+  }
+
+  .fluency-run .fluency-target > * {
+    margin: 0;
   }
 
   .fluency-run .fluency-target > .lesson-task {
@@ -540,5 +566,24 @@
     grid-column: 1;
     grid-row: 3;
     align-self: start;
+  }
+}
+
+/* Short landscape, any width: the free-play output and the copy table give back
+   height so the key stays on screen. */
+@media (max-height: 560px) {
+  .free-play-output {
+    min-height: 2.4em;
+    padding: var(--s-xs) var(--s-md);
+    font-size: clamp(1.1rem, 7vh, 1.5rem);
+  }
+
+  .free-play-body {
+    gap: var(--s-xs);
+  }
+
+  .free-play-actions button {
+    min-height: var(--control-h);
+    padding-block: var(--s-xs);
   }
 }

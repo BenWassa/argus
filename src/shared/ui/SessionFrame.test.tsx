@@ -73,4 +73,25 @@ describe('SessionFrame', () => {
     expect(again).toHaveBeenCalledOnce()
     expect(screen.getByRole('button', { name: 'Back to today' }).className).toContain('ghost')
   })
+
+  it('docks a response slot after the stimulus, and leaves it out when there is none', () => {
+    const { container, rerender } = render(<SessionFrame kind="key" title="Key" onClose={noop} response={<button type="button">Check</button>}><p>Stimulus</p></SessionFrame>)
+    const frame = container.querySelector('.session-frame')!
+    const slot = frame.lastElementChild!
+    expect(slot.className).toBe('session-frame-response session-response')
+    expect(slot.textContent).toBe('Check')
+    expect(slot.previousElementSibling?.textContent).toBe('Stimulus')
+    rerender(<SessionFrame kind="key" title="Key" onClose={noop}><p>Stimulus</p></SessionFrame>)
+    expect(container.querySelector('.session-frame-response')).toBeNull()
+  })
+
+  it('lays every run out as header, centred stimulus and docked response', () => {
+    const css = readFileSync('src/shared/ui/SessionFrame.css', 'utf8')
+    expect(css).toMatch(/\.session\.session-frame \{[^}]*display: flex;[^}]*flex-direction: column;[^}]*min-height: 100svh;[^}]*env\(safe-area-inset-bottom\)/)
+    expect(css).toMatch(/\.session-stimulus \{\s*margin-block-start: auto;/)
+    expect(css).toMatch(/\.session-response \{\s*margin-block-start: auto;/)
+    expect(css).toMatch(/\.session-round-actions \{[^}]*margin-block-start: auto;/)
+    // The result is a reading in ink; signal yellow is the action's alone.
+    expect(css).toMatch(/\.session-frame \.session-round-reading \{[^}]*color: var\(--ink\);/)
+  })
 })

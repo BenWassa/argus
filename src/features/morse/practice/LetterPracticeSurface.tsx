@@ -13,7 +13,7 @@ export function LetterPracticeSurface({ topicId, onExit, direction }: { directio
   if (!topic) return null
   // The taught roster, or Lesson 1's letters before any are settled (#257).
   const eligible = modePlayLetters(topic)
-  if (!eligible.length) return <SessionFrame kind={direction ?? "key"} title="Practice" onClose={onExit}><h1>Learn letters first</h1></SessionFrame>
+  if (!eligible.length) return <SessionFrame kind={direction ?? "key"} title="Practice" onClose={onExit}><h1 className="session-centred">Learn letters first</h1></SessionFrame>
   return <LetterPracticeRun key={`${round}-${direction}`} direction={direction} eligible={eligible} initialProgress={topic.morsePractice ?? newMorsePractice()}
     onProgress={next => updateTopic(topicId, current => ({ ...current, morsePractice: next }))}
     onAnother={() => setRound(n => n + 1)} onExit={onExit} />

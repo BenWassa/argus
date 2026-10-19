@@ -1,11 +1,69 @@
-/* Shared session chrome (#243): Morse modes, lessons, and later Test and Practice. */
+/* Shared session chrome (#243) and the one session layout (#259).
+
+   Every run has the same three zones, top to bottom:
+
+   1. the frame header, at the same height on every session;
+   2. the stimulus, centred in the space the other two leave;
+   3. the response (the key, the choices, the grade buttons or the one primary
+      action), docked to the foot of the viewport above the safe area, where
+      the thumb already is.
+
+   The frame is a flex column as tall as the viewport. A surface marks where its
+   stimulus begins with `.session-stimulus` and where its response begins with
+   `.session-response` (or hands the response to the frame's `response` slot).
+   Both take an auto top margin, so the free height is split between them: the
+   stimulus group lands centred above the response, and the response lands at
+   the foot. A step that wraps both in one container gives it `.session-body`,
+   which grows to fill and passes the same column down. A result with no
+   response centres itself. */
+
+.session.session-frame {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-md);
+  min-height: 100svh;
+  padding-block: max(var(--s-md), env(safe-area-inset-top)) max(var(--s-lg), env(safe-area-inset-bottom));
+}
+
+:where(.session-frame) > * {
+  flex: none;
+  min-width: 0;
+}
+
+.session-body {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-md);
+  min-width: 0;
+}
+
+.session-stimulus {
+  margin-block-start: auto;
+}
+
+.session-response {
+  margin-block-start: auto;
+}
+
+/* Nothing to answer: whatever is on screen is the reading, so it sits in the
+   middle rather than under the header. */
+.session-stimulus:last-child,
+.session-centred,
+.session-frame > .session-correct {
+  margin-block: auto;
+}
+
+.session-frame-response {
+  display: grid;
+  gap: var(--s-sm);
+}
 
 .session-frame-header {
   display: grid;
   grid-template-columns: auto minmax(24px, 1fr) auto;
   align-items: center;
   gap: var(--s-md);
-  margin-block-end: var(--s-lg);
 }
 
 .session-frame-title {
@@ -49,30 +107,52 @@
   to { transform: scale(1); opacity: 1; }
 }
 
+/* The end of a run: the reading and its lines sit in the middle of the screen,
+   the actions at the foot with every other response. */
 .session-round-result {
-  padding-block: var(--s-xl);
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-sm);
   text-align: center;
 }
 
+.session-round-result > .session-round-reading {
+  margin-block-start: auto;
+}
+
+/* Headings and step regions take focus programmatically, for screen readers.
+   They are not controls, so they carry no ring. */
+.session-frame [tabindex='-1']:focus {
+  outline: none;
+}
+
+/* The reading is a measurement, set in ink. Signal stays on the action. */
 .session-frame .session-round-reading {
   font-family: var(--font-mono);
   font-size: clamp(2.5rem, 14vw, 5rem);
   font-variant-numeric: tabular-nums;
-  color: var(--session-colour);
+  color: var(--ink);
 }
 
 .session-round-actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: var(--s-md);
+  display: grid;
+  grid-auto-flow: row;
+  gap: var(--s-sm);
+  align-self: stretch;
+  margin-block-start: auto;
+  padding-block-start: var(--s-md);
 }
 
 .session-frame .is-wrong {
   color: var(--danger);
 }
 
-.session-frame .is-correct {
+/* A Morse mode carries its own hue into a correct verdict; every other run
+   keeps its surface's own neutral or status edge, because signal yellow is for
+   the action alone. */
+.session-frame:is([data-session-kind='key'], [data-session-kind='listen'], [data-session-kind='read'], [data-session-kind='free']) .is-correct {
   border-color: var(--session-colour);
 }
 
@@ -80,4 +160,24 @@
   .session-correct { animation: none; }
 }
 
-.session-frame-toolbar { margin-block: calc(-1 * var(--s-sm)) var(--s-lg); }
+.session-frame-toolbar { margin: 0; }
+
+/* Short landscape spends nothing it does not have to: the zones keep their
+   order, with tighter gutters, so the header, the stimulus and the response
+   share one screen without a scroll. */
+@media (max-height: 560px) {
+  /* A short landscape screen has width and no height: the run may use it. */
+  .session.session-frame {
+    width: min(100%, 860px);
+    gap: var(--s-xs);
+    padding-block: max(var(--s-sm), env(safe-area-inset-top)) max(var(--s-sm), env(safe-area-inset-bottom));
+  }
+
+  .session-body {
+    gap: var(--s-xs);
+  }
+
+  .session-frame .session-round-reading {
+    font-size: clamp(2rem, 14vh, 3.5rem);
+  }
+}

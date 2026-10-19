@@ -1,9 +1,5 @@
-.rapid-session {
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto auto;
-  min-height: 100svh;
-  padding-bottom: max(var(--s-lg), env(safe-area-inset-bottom));
-}
+/* The session frame owns the layout (#259): the card is the stimulus, centred
+   under the header, and the grading row is the response, docked at the foot. */
 
 /* The stage owns the perspective, so the card flips against a fixed vanishing
    point instead of carrying its own and skewing as it turns. */
@@ -11,6 +7,12 @@
   position: relative;
   display: grid;
   perspective: 1400px;
+  margin-block-start: auto;
+}
+
+.rapid-session > .recall-actions,
+.rapid-session > .grade-hint {
+  margin-block-start: auto;
 }
 
 /* Edge cues sit on the stage rather than on the card, so they hold still while
@@ -143,13 +145,14 @@ button.flip-card:active {
   background: var(--surface-2);
 }
 
-/* The answer face is one fill step up and takes the action colour as its edge:
-   it is the current state of the card, the thing you came for. */
+/* The answer face is one fill step up with the strongest neutral rule: it is
+   the thing you came for, told by its lift, not by signal yellow, which is kept
+   for the action (#259). */
 .flip-back {
   position: relative;
   overflow: hidden;
   transform: rotateY(180deg);
-  border-color: var(--action);
+  border-color: var(--line-hover);
   background: var(--surface-3);
 }
 
@@ -165,7 +168,7 @@ button.flip-card:active {
 }
 
 .flip-back .flip-label {
-  color: var(--accent);
+  color: var(--ink);
 }
 
 .flip-value {
@@ -213,7 +216,6 @@ button.flip-card:active {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--s-sm);
-  margin-top: var(--s-md);
   opacity: 0;
   transform: translateY(6px);
   pointer-events: none;
@@ -245,7 +247,6 @@ button.flip-card:active {
   display: grid;
   align-items: center;
   min-height: var(--control-h-lg);
-  margin-top: var(--s-md);
   opacity: 0;
   transform: translateY(6px);
   transition:
@@ -286,10 +287,13 @@ button.flip-card:active {
    fully visible once focused, so nobody operates a control they cannot see. */
 .grade-fallback {
   position: absolute;
+  top: 50%;
   left: 50%;
   width: auto;
   min-height: var(--control-h);
-  translate: -50% 0;
+  /* Centred on the hint it stands in for, so even while clipped its box never
+     reaches past the foot of a short screen. */
+  translate: -50% -50%;
   clip-path: inset(50%);
   white-space: nowrap;
 }
@@ -300,47 +304,87 @@ button.flip-card:active {
 }
 
 @media (min-width: 680px) {
-  .rapid-session {
-    min-height: auto;
-    padding-top: var(--s-2xl);
-  }
-
   button.flip-card {
     min-height: 430px;
   }
 }
 
+/*
+ * Short landscape: the card and the grading sit side by side in exactly one
+ * screen. The run is held to the viewport's height rather than allowed to grow
+ * past it, the card gives up its minimum and its type scales with the height,
+ * so a wide font (Linux renders the system sans wider than macOS) wraps inside
+ * the card instead of pushing the grading off the bottom edge.
+ */
 @media (orientation: landscape) and (max-height: 560px) {
-  .rapid-session {
-    min-height: 100svh;
-    grid-template-columns: minmax(0, 1fr) minmax(220px, 0.46fr);
-    grid-template-rows: auto 1fr auto;
-    gap: var(--s-md);
+  .session.session-frame.rapid-session:not(.is-progressive) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(200px, 0.46fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    height: 100svh;
+    min-height: 0;
+    column-gap: var(--s-md);
   }
 
-  .rapid-session .session-frame-header {
+  .rapid-session:not(.is-progressive) .session-frame-header {
     grid-column: 1 / -1;
-    margin-block-end: 0;
   }
 
-  .card-stage {
-    grid-row: 2 / 4;
+  .rapid-session:not(.is-progressive) .card-stage {
+    grid-column: 1;
+    grid-row: 2;
+    min-height: 0;
+    margin: 0;
   }
 
   button.flip-card {
+    height: 100%;
     min-height: 0;
+  }
+
+  .flip-inner,
+  .flip-face {
+    min-height: 0;
+  }
+
+  .flip-face {
+    gap: var(--s-xs);
+    padding: var(--s-md);
+    overflow: hidden;
+  }
+
+  .flip-value {
+    font-size: clamp(2rem, 15vh, 3.4rem);
+  }
+
+  .flip-value-answer {
+    font-size: clamp(1.4rem, 10vh, 2.4rem);
+  }
+
+  .flip-value.is-medium {
+    font-size: clamp(1.1rem, 7vh, 1.6rem);
+  }
+
+  .flip-value.is-long {
+    font-size: clamp(0.95rem, 5vh, 1.15rem);
+  }
+
+  .rapid-session > .recall-actions,
+  .rapid-session > .grade-hint {
+    grid-column: 2;
+    grid-row: 2;
+    align-self: end;
+    margin: 0;
   }
 
   .recall-actions {
-    align-self: end;
     grid-template-columns: 1fr;
-    margin-top: 0;
   }
 
+  /* The hint keeps its full height, as tall as the fallback buttons it hides
+     (with room for a wider font), so their boxes stay inside the screen. */
   .grade-hint {
-    align-self: end;
-    min-height: 0;
-    margin-top: 0;
+    min-height: var(--control-h-lg);
   }
 
   /* Short landscape has no room beside the card for a full chip. */
@@ -388,22 +432,39 @@ button.flip-card:active {
  * formative one are the same act: a task word, the glyph, the support if there
  * is any, and the key at the foot where the thumb already is. */
 
-.rapid-session.is-progressive {
-  grid-template-rows: auto minmax(0, 1fr);
-}
-
 /*
- * The free height is spent around the question rather than below it: the whole
- * group is centred in the run, which keeps the prompt, its support and the key
- * together as one object and still lands the key in the lower half of a phone.
- * Landscape has no height to spend, so it packs from the top.
+ * The question is the stimulus and the key (or the letter field, or the
+ * correction that replaces them) is the response: the task word, the prompt
+ * and any support are centred on the same line as every other session's
+ * prompt, and the response is docked at the foot where the thumb is (#259).
  */
 .progressive-card {
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  align-items: center;
   gap: var(--s-md);
   min-width: 0;
+  text-align: center;
+}
+
+.progressive-card > .test-task,
+.choice-card > .test-task {
+  margin-block-start: auto;
+}
+
+.progressive-card > .test-answer,
+.progressive-card > .test-feedback,
+.choice-card > .choice-options,
+.choice-card > .audio-response {
+  margin-block-start: auto;
+}
+
+/* A correction is a table to read, so it keeps its own start alignment. */
+.progressive-card > .test-feedback,
+.choice-card > .test-feedback {
+  align-self: stretch;
+  text-align: start;
 }
 
 /* One word for what this question wants. The rung's internal name said nothing
@@ -441,6 +502,7 @@ button.flip-card:active {
 .test-pattern {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   align-items: center;
   gap: 0.44em;
 }
@@ -465,6 +527,7 @@ button.flip-card:active {
 .test-support {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   align-items: center;
   gap: var(--s-sm) var(--s-md);
   margin: 0;
@@ -489,11 +552,12 @@ button.flip-card:active {
    full-width box for a single letter reads as though more were wanted. */
 .test-entry {
   display: grid;
-  justify-items: start;
+  justify-items: center;
   gap: var(--s-sm);
 }
 
-.test-entry-input {
+/* Qualified, so the one-character size outranks the shared full-width field. */
+.test-entry .test-entry-input {
   inline-size: 5.5rem;
   min-height: 72px;
   padding: var(--s-sm);
@@ -522,7 +586,6 @@ button.flip-card:active {
  */
 @media (max-height: 560px) {
   .progressive-card {
-    justify-content: flex-start;
     gap: var(--s-sm);
   }
 
@@ -549,6 +612,76 @@ button.flip-card:active {
 
   .test-entry-input {
     min-height: var(--control-h-lg);
+  }
+
+  /* A correction already shows the character and its pattern, so on a short
+     screen it takes the prompt's place rather than stacking under it. */
+  .progressive-card:has(> .test-feedback) > .test-task,
+  .choice-card:has(> .test-feedback:not(.is-correct)) > :not(.test-feedback, .test-prompt) {
+    display: none;
+  }
+
+  /* The prompt stays the card's accessible heading, only off screen. */
+  .progressive-card:has(> .test-feedback) > .test-prompt,
+  .choice-card:has(> .test-feedback:not(.is-correct)) > .test-prompt {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .test-feedback {
+    gap: var(--s-xs);
+    padding: var(--s-sm) var(--s-md);
+  }
+
+  .test-verdict {
+    font-size: var(--t-component);
+  }
+
+  /* The verdict, what was given and Continue in one column, the character's
+     pattern beside them in the other, rather than all four stacked. */
+  .progressive-card > .test-feedback {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    align-items: center;
+    column-gap: var(--s-lg);
+  }
+
+  .progressive-card > .test-feedback > .test-correction {
+    display: contents;
+  }
+
+  .progressive-card > .test-feedback > * {
+    grid-column: 1;
+  }
+
+  .progressive-card > .test-feedback .test-correction-support {
+    grid-column: 2;
+    grid-row: 1 / span 3;
+  }
+
+  .progressive-card > .test-feedback > .test-verdict { grid-row: 1; }
+
+  .progressive-card .test-correction-row {
+    grid-column: 1;
+    grid-row: 2;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--s-sm);
+  }
+
+  .progressive-card > .test-feedback > .test-next { grid-row: 3; }
+
+  /* The ladder's sentence runs under both columns rather than down a narrow one. */
+  .progressive-card > .test-feedback > .test-ladder {
+    grid-column: 1 / -1;
+    grid-row: 4;
+  }
+
+  .test-feedback .test-next {
+    min-height: var(--control-h);
+    margin-block-start: 0;
   }
 }
 
@@ -654,11 +787,19 @@ button.flip-card:active {
  * state so a touch press reads the same as a pointer.
  */
 .choice-card {
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  align-items: center;
   gap: var(--s-md);
   min-width: 0;
+  text-align: center;
+}
+
+.choice-card > .choice-options,
+.choice-card > .audio-response {
+  align-self: stretch;
+  text-align: start;
 }
 
 .test-prompt.is-question {
@@ -703,7 +844,23 @@ button.flip-card:active {
 
 @media (max-height: 560px) {
   .choice-card {
-    justify-content: flex-start;
     gap: var(--s-sm);
+  }
+
+  .choice-option {
+    min-height: var(--control-h);
+  }
+}
+
+/* A correction's character card is sized by the viewport's width, which a short
+   landscape screen has plenty of and no height to match: in a session it is
+   sized by the height instead, so a wide font cannot wrap it off the screen. */
+@media (max-height: 560px) {
+  .session-frame .morse-character-support-glyph {
+    font-size: clamp(2rem, 12vh, 2.8rem);
+  }
+
+  .session-frame .morse-character-support-notation {
+    font-size: clamp(1.2rem, 7vh, 1.6rem);
   }
 }

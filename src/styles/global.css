@@ -145,11 +145,6 @@ button:active {
   box-shadow: var(--press-lit);
 }
 
-button:disabled {
-  opacity: 0.46;
-  cursor: not-allowed;
-  transform: none;
-}
 
 button.ghost {
   color: var(--ink);
@@ -215,6 +210,29 @@ button.icon {
   padding: 0;
   display: inline-grid;
   place-items: center;
+}
+
+/* Disabled is a state of its own, painted solid: a recessed slate plate with
+   quiet ink, never the live colour faded. A faded signal yellow reads as a
+   muddy olive and lets the chassis show through a control. Stated after every
+   variant so a ghost, quiet or danger control loses its colour too. */
+button:disabled,
+button:disabled:hover,
+button:disabled:active {
+  color: var(--subtle);
+  background: var(--surface-2);
+  border-color: var(--line);
+  box-shadow: none;
+  cursor: not-allowed;
+  transform: none;
+  text-decoration: none;
+}
+
+button.quiet:disabled,
+button.quiet:disabled:hover {
+  color: var(--placeholder);
+  background: transparent;
+  border-color: transparent;
 }
 
 .field {
@@ -430,16 +448,19 @@ main:focus {
 
 /* Mobile: the nav sits under the thumb and the brand line stays out of the
    way. Desktop gets a genuinely different structure below, not this widened. */
+/* Pinned to the bottom edge and solid down through the safe area, so nothing
+   scrolls visibly beneath it: the bar is attached to the device, not floating
+   over the page. */
 .nav {
   position: fixed;
-  inset: auto max(var(--s-sm), env(safe-area-inset-right)) max(var(--s-sm), env(safe-area-inset-bottom)) max(var(--s-sm), env(safe-area-inset-left));
+  inset: auto 0 0;
   z-index: 20;
   display: flex;
-  border: 1px solid var(--line-strong);
-  border-radius: var(--r-xl);
-  background: var(--surface-2);
-  box-shadow: var(--shadow-sm);
-  padding: var(--s-xs);
+  border: 0;
+  border-top: 1px solid var(--line-strong);
+  border-radius: 0;
+  background: var(--surface);
+  padding: var(--s-xs) max(var(--s-xs), env(safe-area-inset-right)) max(var(--s-xs), env(safe-area-inset-bottom)) max(var(--s-xs), env(safe-area-inset-left));
 }
 
 .nav .brand {
@@ -615,14 +636,14 @@ main:focus {
    320px with 200% text that was the difference between the alphabet fitting and
    overflowing. One element owns the gutter. */
 .session-shell main {
+  padding-block: 0;
   padding-inline: 0;
-  padding-bottom: 0;
 }
 
 .session {
   width: min(100%, 620px);
   margin-inline: auto;
-  padding: var(--s-xl) max(var(--s-lg), env(safe-area-inset-left)) var(--s-2xl);
+  padding: max(var(--s-xl), env(safe-area-inset-top)) max(var(--s-lg), env(safe-area-inset-left)) var(--s-2xl);
 }
 
 .session-bar {

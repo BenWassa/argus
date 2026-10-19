@@ -4,13 +4,9 @@
    single column; all type sizes use rem/em/tokens so 200% text remains a
    reflow problem rather than a clipped fixed-pixel layout. */
 
-.morse-lesson {
-  display: grid;
-  align-content: start;
-  gap: var(--s-lg);
-  min-height: 100svh;
-  padding-bottom: max(var(--s-2xl), env(safe-area-inset-bottom));
-}
+/* The run's layout is the session frame's (#259): header, the stimulus
+   centred, the response docked at the foot. What follows only says which of a
+   lesson screen's parts is which. */
 
 .lesson-title {
   margin: 0;
@@ -86,64 +82,50 @@
 /* ------------------------------------------------- retrieval composition -- */
 
 /*
- * A retrieval screen asks for one thing, so it should use the screen it is
- * given. It did not: the prompt and the key packed to the top and the composition
- * ended around 540px of an 844px phone, leaving a third of the display as an
- * empty band below the control the learner has to hit repeatedly — and leaving
- * that control out of comfortable thumb reach on the way.
+ * A lesson step is one stimulus and one response. The step's own region (it
+ * takes focus, so it stays one element) grows to fill the run and passes the
+ * session column down: the task word starts the stimulus group, which is
+ * centred in the free height, and the key, the choices or `Got it` start the
+ * response group, which sits at the foot where the thumb already is.
  *
- * The prompt still reads from the top. What changes is that the answer block is
- * pushed to the foot of the run, which is both where the thumb is and where a
- * keyed instrument belongs. `min-height: 100svh` on `.morse-lesson` already
- * reserves the space; this is what spends it.
- *
- * Scoped to `[data-step]` so it never touches the terminal screens, where a
- * title, a lede and two exits genuinely should sit together at the top, or the
- * feedback card, which is read downward from the verdict.
+ * A correction replaces the response, so it docks in the response's place, and
+ * a terminal screen centres its title over its exits.
  */
-.morse-lesson[data-step] {
-  display: flex;
-  flex-direction: column;
-}
-
-.morse-lesson[data-step] .lesson-check,
-.morse-lesson[data-step] .lesson-introduce,
-.morse-lesson[data-step] .morse-checkpoint-target {
-  flex: 1 1 auto;
+.morse-lesson .lesson-introduce,
+.morse-lesson .lesson-check {
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
   gap: var(--s-md);
 }
 
-/*
- * The free height is spent around the task, not below it.
- *
- * Pushing the answer to the foot with `margin-block-start: auto` overcorrects:
- * the key ends up flush against the bottom edge with the glyph it belongs to
- * 450px away, which trades a dead band for a divided screen. Centring the whole
- * step instead keeps the prompt, its support and the key together as one object
- * and splits the slack above and below it — so the key lands in the lower half
- * where the thumb is, and nothing is stranded at either edge.
- */
-.morse-lesson[data-step] .lesson-check,
-.morse-lesson[data-step] .lesson-introduce,
-.morse-lesson[data-step] .morse-checkpoint-target {
+.lesson-introduce > .lesson-task,
+.lesson-check > .lesson-task,
+.morse-lesson > .lesson-title {
+  margin-block-start: auto;
+}
+
+.lesson-introduce > .lesson-next,
+.lesson-check > .lesson-answer,
+.lesson-check > .lesson-options,
+.morse-lesson > .lesson-exits,
+.morse-lesson > .lesson-feedback {
+  margin-block-start: auto;
+}
+
+/* One alignment for every prompt in a session: the task word and the glyph sit
+   on the centre line, as they do in Key, Test and the word checks. */
+.lesson-introduce > .lesson-task,
+.lesson-check > .lesson-task,
+.lesson-check > .lesson-glyph,
+.morse-lesson > .lesson-title {
+  align-self: center;
+  text-align: center;
+}
+
+.lesson-check > .lesson-support,
+.lesson-check > .lesson-listening-stimulus {
   justify-content: center;
-}
-
-/* The bar's standing margin is sized for screens that carry a title under it.
-   A retrieval screen carries a task, and the gap read as a hole. */
-.morse-lesson[data-step] .session-frame-header {
-  margin-bottom: var(--s-lg);
-}
-
-/* Landscape has no spare height to spend, so the run packs normally there. */
-@media (max-height: 560px) {
-  .morse-lesson[data-step] .lesson-check,
-  .morse-lesson[data-step] .lesson-introduce,
-  .morse-lesson[data-step] .morse-checkpoint-target {
-    justify-content: flex-start;
-  }
 }
 
 .lesson-task {
@@ -174,10 +156,9 @@
   /* A chip rather than a line of text: it has to be findable in the half-second
      before the learner starts reading the glyph, and a chip is an object where
      a label is just more words in the same place the last one was. */
-  /* Both, because the step is a grid on the terminal screens and a flex column
-     on the retrieval ones. Either way the chip is the width of its own words. */
-  justify-self: start;
-  align-self: flex-start;
+  /* The chip is the width of its own words, on the prompt's centre line. */
+  justify-self: center;
+  align-self: center;
   display: inline-flex;
   align-items: center;
   gap: 0.5em;
@@ -244,9 +225,11 @@
   background: var(--surface-2);
 }
 
+/* The sound is the stimulus: a raised plate with the stronger rule. Signal
+   yellow is for the action, not for the thing being asked about. */
 .lesson-listening-stimulus {
-  border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 8%, var(--surface-2));
+  border-color: var(--line-hover);
+  background: var(--surface-2);
 }
 
 .lesson-length {
@@ -279,7 +262,7 @@
 }
 
 .lesson-audio-skip {
-  justify-self: start;
+  align-self: center;
 }
 
 .lesson-next {
@@ -364,5 +347,76 @@
   .lesson-introduce,
   .lesson-feedback {
     animation: none;
+  }
+}
+
+/* Short landscape: the glyph and the choices give back height so the step and
+   its response share one screen. The choices run across rather than down. */
+@media (max-height: 560px) {
+  .morse-lesson .lesson-glyph,
+  .lesson-check[data-kind='review'] .lesson-glyph {
+    font-size: clamp(2.2rem, 13vh, 3.2rem);
+  }
+
+  .lesson-task.is-review {
+    font-size: var(--t-component);
+  }
+
+  .lesson-stage {
+    padding: var(--s-sm) var(--s-md);
+  }
+
+  .lesson-support,
+  .lesson-listening-stimulus {
+    padding: var(--s-xs) var(--s-md);
+  }
+
+  .lesson-options {
+    grid-template-columns: repeat(auto-fit, minmax(4rem, 1fr));
+  }
+
+  .lesson-option {
+    min-height: var(--control-h);
+    padding: var(--s-xs);
+  }
+
+  .morse-lesson .lesson-introduce,
+  .morse-lesson .lesson-check {
+    gap: var(--s-xs);
+  }
+
+  .lesson-stage .lesson-glyph {
+    font-size: clamp(2.6rem, 18vh, 4rem);
+  }
+
+  .lesson-feedback {
+    gap: var(--s-xs);
+    padding: var(--s-sm) var(--s-md);
+  }
+
+  .lesson-verdict {
+    font-size: var(--t-component);
+  }
+
+  .lesson-next {
+    min-height: var(--control-h);
+  }
+}
+
+/* Short landscape has width to spare: the new letter's card lays its glyph
+   beside the phrase, the rhythm and the notation, instead of above them. */
+@media (orientation: landscape) and (max-height: 560px) {
+  .lesson-stage {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: var(--s-xs) var(--s-lg);
+  }
+
+  .lesson-stage > .lesson-glyph {
+    grid-row: 1 / span 3;
+  }
+
+  .lesson-stage > :not(.lesson-glyph) {
+    grid-column: 2;
   }
 }

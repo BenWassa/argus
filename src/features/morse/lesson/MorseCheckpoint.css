@@ -1,32 +1,25 @@
-.morse-checkpoint {
-  display: grid;
-  align-content: start;
-  gap: var(--s-lg);
-  padding-bottom: max(var(--s-2xl), env(safe-area-inset-bottom));
-}
-
+/* The session frame owns the layout (#259). The target region takes focus, so
+   it stays one element: it grows to fill the run and passes the session column
+   down, the task word starting the centred stimulus and the key (or the
+   correction that replaces it) docked at the foot. */
 .morse-checkpoint-target {
-  display: grid;
-  justify-items: center;
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   gap: var(--s-md);
   width: min(100%, 32rem);
   margin-inline: auto;
   outline: none;
 }
 
-/* The retrieval composition in `MorseLesson.css` turns this into a flex column
-   so the key can reach the foot of the run, and `justify-items` does not apply
-   to a flex container. */
-.morse-lesson[data-step] .morse-checkpoint-target {
-  align-items: center;
+.morse-checkpoint-target > .lesson-task {
+  margin: auto 0 0;
 }
 
-.morse-lesson[data-step] .morse-checkpoint-answer {
-  width: 100%;
-}
-
-.morse-checkpoint-target .lesson-task {
-  margin: 0;
+.morse-checkpoint-target > .morse-checkpoint-answer,
+.morse-checkpoint-target > .morse-checkpoint-feedback {
+  margin-block-start: auto;
 }
 
 .morse-checkpoint-letter,
@@ -61,7 +54,7 @@
 }
 
 .morse-checkpoint-word .is-current {
-  box-shadow: inset 0 -0.14em 0 var(--accent);
+  box-shadow: inset 0 -0.14em 0 var(--ink);
 }
 
 /* The panel base, lifted one tone: a correction is held on screen until it is
@@ -94,15 +87,28 @@
 
 .morse-checkpoint-feedback strong,
 .morse-checkpoint-feedback span,
-.morse-checkpoint-summary h1,
 .morse-checkpoint-summary p {
   margin: 0;
 }
 
+/* A summary: the title and its reading centred, the exits at the foot. */
 .morse-checkpoint-summary {
-  display: grid;
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   gap: var(--s-md);
-  max-width: 34rem;
+  text-align: center;
+}
+
+.morse-checkpoint-summary > h1 {
+  margin-block-start: auto;
+}
+
+.morse-checkpoint-summary > .lesson-exits,
+.morse-checkpoint-summary > button {
+  align-self: stretch;
+  margin-block-start: auto;
 }
 
 .morse-checkpoint-summary h1 {
@@ -159,34 +165,33 @@
 /* A short landscape display has room beside the prompt, rather than below it.
    Keep the response in view without requiring a scroll before the first key. */
 @media (orientation: landscape) and (max-height: 560px) and (min-width: 600px) {
-  .morse-checkpoint[data-step] {
-    padding-block: var(--s-md);
-    gap: var(--s-sm);
-  }
-
-  .morse-checkpoint[data-step] .session-bar {
-    margin-bottom: var(--s-sm);
-  }
-
   .morse-lesson.morse-checkpoint[data-step] .morse-checkpoint-target {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
     grid-template-rows: auto 1fr;
-    align-content: start;
+    align-content: center;
     align-items: center;
     gap: var(--s-sm) var(--s-lg);
-    flex: 0 0 auto;
+    width: 100%;
+  }
+
+  .morse-checkpoint-target > .lesson-task,
+  .morse-checkpoint-target > .morse-checkpoint-answer,
+  .morse-checkpoint-target > .morse-checkpoint-feedback {
+    margin: 0;
   }
 
   .morse-checkpoint-target > .lesson-task {
     grid-column: 1;
     grid-row: 1;
+    align-self: end;
   }
 
   .morse-checkpoint-letter,
   .morse-checkpoint-word {
     grid-column: 1;
     grid-row: 2;
+    align-self: start;
   }
 
   .morse-checkpoint-letter {

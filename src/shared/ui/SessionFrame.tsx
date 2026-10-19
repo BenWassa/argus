@@ -17,6 +17,14 @@ interface SessionFrameProps extends ComponentPropsWithoutRef<'section'> {
   colour?: string
   /** The ink that reads on `colour`. */
   ink?: string
+  /**
+   * The response area: the key, the choices, the grade buttons or the one
+   * primary action. It is docked to the foot of the viewport, above the safe
+   * area, and the children above it are centred in the space that is left.
+   * A surface that cannot hoist its response into this slot may instead mark
+   * its own elements with `session-stimulus` and `session-response`.
+   */
+  response?: ReactNode
 }
 
 function sessionColours(kind: SessionKind): { colour: string; ink: string } {
@@ -24,8 +32,12 @@ function sessionColours(kind: SessionKind): { colour: string; ink: string } {
   return { colour: `var(--${token}, var(--accent))`, ink: `var(--${token}-ink, var(--accent-ink))` }
 }
 
-/** Shared session chrome. Progress describes this run, never learning evidence. */
-export function SessionFrame({ kind, title, progress, onClose, toolbar, colour, ink, children, className = '', style, ...props }: SessionFrameProps) {
+/**
+ * Shared session chrome, and the one session layout (#259): the header at the
+ * top, the stimulus centred in the space below it, and the response docked to
+ * the foot of the viewport. Progress describes this run, never learning evidence.
+ */
+export function SessionFrame({ kind, title, progress, onClose, toolbar, colour, ink, response, children, className = '', style, ...props }: SessionFrameProps) {
   const derived = sessionColours(kind)
   const total = Math.max(0, progress?.total ?? 0)
   const current = Math.min(total, Math.max(0, progress?.current ?? 0))
@@ -43,6 +55,7 @@ export function SessionFrame({ kind, title, progress, onClose, toolbar, colour, 
       </header>
       {toolbar && <div className="session-frame-toolbar">{toolbar}</div>}
       {children}
+      {response && <div className="session-frame-response session-response">{response}</div>}
     </section>
   )
 }

@@ -1,4 +1,6 @@
-.morse-placement-session {
+/* Inside a dialog, not a full-screen run: the frame's viewport-tall column is
+   the dialog's business here. */
+.session.session-frame.morse-placement-session {
   min-height: 0;
   padding: 0;
 }

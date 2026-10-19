@@ -1,20 +1,11 @@
-/* The Test result is a RoundResult in the shared session frame: one reading,
-   the ladder outcome as short lines, and the next step. */
+/* The Test result is a RoundResult in the shared session frame: one reading in
+   ink, centred, the ladder outcome as short lines under it, and the next step
+   docked at the foot with every other session's response (#259). */
 
 .test-done .test-outcome {
   max-width: 34ch;
-  margin: 0 auto var(--s-sm);
+  margin: 0 auto;
   color: var(--muted);
-}
-
-.test-done .session-round-result {
-  display: grid;
-  justify-items: center;
-  gap: var(--s-sm);
-}
-
-.test-done .session-round-actions {
-  margin-block-start: var(--s-md);
 }
 
 /* The reading takes focus when the result opens, for screen readers; it is

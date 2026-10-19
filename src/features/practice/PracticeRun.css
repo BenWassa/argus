@@ -6,16 +6,27 @@
  * how the learner can tell, before answering anything, whether this run is
  * going on their record. */
 
-.practice-run {
-  display: grid;
-  align-content: start;
-  gap: var(--s-lg);
+/* The session frame owns the layout (#259). The question (and its revealed
+   answer) is the stimulus, centred; Reveal, or the two grades, is the response,
+   docked at the foot. A miss docks its correction in the response's place, and
+   the end screen centres its title over its actions. */
+.practice-stage {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-md);
+  width: min(100%, 34rem);
+  margin-inline: auto;
 }
 
-.practice-stage {
-  display: grid;
-  gap: var(--s-md);
-  max-width: 34rem;
+.practice-stage > .practice-question {
+  margin-block-start: auto;
+}
+
+.practice-stage > .practice-reveal,
+.practice-stage > .practice-grade,
+.practice-run > .practice-feedback {
+  margin-block-start: auto;
 }
 
 /* The panel base, lifted a tone and given the roomier pad: the question is the
@@ -62,13 +73,17 @@
 }
 
 .practice-reveal {
-  justify-self: start;
+  min-height: var(--control-h-lg);
 }
 
 .practice-grade {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: var(--s-sm);
+}
+
+.practice-grade button {
+  min-height: var(--control-h-lg);
 }
 
 .practice-feedback {
@@ -78,7 +93,8 @@
      scold. The panel base carries the rest. */
   border-color: var(--line-strong);
   background: var(--surface-2);
-  max-width: 34rem;
+  width: min(100%, 34rem);
+  margin-inline: auto;
 }
 
 .practice-feedback strong,
@@ -95,15 +111,28 @@
 }
 
 .practice-feedback button {
-  justify-self: start;
   margin-top: var(--s-xs);
+  min-height: var(--control-h-lg);
 }
 
 .practice-summary {
-  display: grid;
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   gap: var(--s-md);
-  max-width: 34rem;
-  justify-items: start;
+  width: min(100%, 34rem);
+  margin-inline: auto;
+  text-align: center;
+}
+
+.practice-summary > h1 {
+  margin-block-start: auto;
+}
+
+.practice-summary > :last-child {
+  align-self: stretch;
+  margin-block-start: auto;
 }
 
 .practice-summary h1 {
@@ -117,11 +146,32 @@
 }
 
 .practice-summary-actions {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
   gap: var(--s-sm);
 }
 
 .practice-summary h1:focus {
   outline: none;
+}
+
+/* Short landscape: the question gives back its padding and display size. */
+@media (max-height: 560px) {
+  .practice-stage {
+    gap: var(--s-xs);
+  }
+
+  .practice-question,
+  .practice-answer {
+    padding: var(--s-sm) var(--s-md);
+  }
+
+  .practice-value {
+    font-size: var(--t-section);
+  }
+
+  .practice-reveal,
+  .practice-grade button,
+  .practice-feedback button {
+    min-height: var(--control-h);
+  }
 }
