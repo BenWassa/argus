@@ -1,5 +1,7 @@
 # #221 — Morse UX consolidation: continuous adaptive letter practice and one teaching language
 
+> **Progress authority update, 2026-10-19:** [Learning progress](PROGRESS_ARCHITECTURE.md) supersedes earlier decay/repair routing and repeated completion requirements in this document. Learned topics stay learned. Home continues the top unfinished topic.
+
 **Status:** Implemented and released in v1.5.3 on 2026-10-16; automated release verification complete. Real Pixel acceptance remains open. Navigation was superseded on `feat/ui-overhaul`, awaiting owner sign-off and release.
 **Authority:** Maintained adaptive-practice and teaching contract. The navigation in the 2026-10-16 record and original proposal is historical, superseded on `feat/ui-overhaul` by [UI overhaul (#225)](ISSUE_225_UI_OVERHAUL.md). That plan governs the pending overhaul's scope and decisions until release.
 **Audit:** Original scoping inventory inspected default-branch source on 2026-10-16. The implementation review below adds real Chromium captures at 320/390 CSS px; physical Pixel and deployed-app acceptance remain outstanding.

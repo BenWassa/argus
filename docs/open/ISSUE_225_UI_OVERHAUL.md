@@ -1,7 +1,7 @@
 # #225: UI overhaul (colour, a Morse progress path, four Morse modes, no accordions)
 
 **Status:** Implemented on `feat/ui-overhaul`; awaiting owner Pixel sign-off and release.
-**Authority:** Still the authority for the overhaul's scope and decisions until released. `DESIGN.md`, `DESIGN.json` and `PRODUCT.md` record the implemented contracts.
+**Authority:** Still the authority for the overhaul's scope and decisions until released. The owner's 2026-10-19 decisions below supersede earlier repair/decay and Home-action wording. `DESIGN.md`, `DESIGN.json` and `PRODUCT.md` record the implemented contracts.
 **Issue:** https://github.com/BenWassa/argus/issues/225
 **Related:** #221 (Morse consolidation, Pixel pending), #188 (sending stages), #201, #193 (Home, Pixel pending), #223 (Roles), #113 (offline), [Topic colour spike](../closed/TOPIC_COLOUR_SPIKE.md) (superseded historical study).
 
@@ -162,7 +162,7 @@ Implemented on `feat/ui-overhaul`; owner Pixel sign-off and release remain outst
 | Morse | 24/40 | 29/40 | 31/40 | 32/40 |
 | Rest of the app | | 28/40 | 30/40 | |
 
-Round-2 findings are being fixed in #263 (Morse) and #264 (topics, Test, Practice). A third review follows.
+Round-2 findings landed as #267 (#263 Morse) and #265 (#264 topics, Test, Practice). Review fixes landed as [#268](https://github.com/BenWassa/argus/pull/268). A fresh acceptance pass follows the permanent-learning decision below.
 
 ### Delivery map
 
@@ -183,6 +183,9 @@ Round-2 findings are being fixed in #263 (Morse) and #264 (topics, Test, Practic
 | #257 Morse path polish | #261 |
 | #258 topic truth | #260 |
 | #259 session layout | #262 |
+| #263 Morse round 2 | #267 |
+| #264 topic truth and grading round 2 | #265 |
+| Review fixes: safe runs, session headings, exact Practice queue | #268 |
 
 #233 acceptance remains open.
 
@@ -193,8 +196,8 @@ Round-2 findings are being fixed in #263 (Morse) and #264 (topics, Test, Practic
 - Light mode is parked as #237.
 - Test records missed item ids on the attempt through additive `Attempt.missedItemIds`, written by Test only. Practice writes nothing.
 
-### Open owner questions
+### Owner decisions, 2026-10-19
 
-1. Should a failed repair Test on a once-completed topic stay “Needs repair” instead of going back to “learning”?
-2. Sign-in hero art: the rugged “handbook” look is an anti-reference in `PRODUCT.md`, and the image carries a small generator mark. Should it be replaced?
-3. Home's single yellow action: “Add something to learn” as built, or “continue” on the top active topic?
+- Learned means learned. Remove decay and repair routing; completion remains permanent after later Tests. The maintained [learning progress contract](PROGRESS_ARCHITECTURE.md) supersedes prior repair language in this plan. The implementation and fresh acceptance pass are in progress.
+- Keep the current sign-in image for this release. Replacement is tracked in [#269](https://github.com/BenWassa/argus/issues/269), with design guidance, implementation, assets and authentication requirements linked.
+- Home's yellow action continues the top unfinished topic; Add something to learn leads only when there is no active topic.

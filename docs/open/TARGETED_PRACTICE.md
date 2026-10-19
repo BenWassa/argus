@@ -1,5 +1,7 @@
 # Targeted practice
 
+> **Progress authority update, 2026-10-19:** [Learning progress](PROGRESS_ARCHITECTURE.md) supersedes earlier decay/repair routing and repeated completion requirements in this document. Learned topics stay learned. Home continues the top unfinished topic.
+
 > **Status:** implemented under #92 batch 5. This is the maintained contract for
 > the practice surface. The decision it rests on is §15.5 of
 > `docs/open/LEARNING_EXPERIENCE_DESIGN_DECISION.md`, ratified 2026-09-14:

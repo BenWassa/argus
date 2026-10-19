@@ -60,17 +60,17 @@ describe('topic reference page', () => {
     expect(container.textContent).not.toContain('What to remember')
   })
 
-  it('marks repair in copper behind its diamond and routes the action tile to Repair', () => {
+  it('reads old repair records as learned and offers only an optional Test again', () => {
     const topic: Topic = { ...firearm(), status: 'decayed', completedAt: '2026-01-02T00:00:00Z',
       history: [{ at: '2026-01-02T00:00:00Z', correct: 9, total: 9, resolvedTo: 'completed' }, { at: '2026-02-02T00:00:00Z', correct: 4, total: 9, resolvedTo: 'decayed' }] }
     const { container } = open(topic)
     const state = container.querySelector('.topic-state')!
-    expect(state.classList.contains('is-repair')).toBe(true)
-    expect(state.textContent).toBe('◆Needs repair')
-    expect(tile('test').textContent).toContain('Repair')
+    expect(state.classList.contains('is-repair')).toBe(false)
+    expect(state.textContent).toBe('✓Learned')
+    expect(tile('test').textContent).toContain('Test again')
     // Without per-item evidence no row is copper; the header says it once.
     expect(container.querySelectorAll('.topic-item.is-repair')).toHaveLength(0)
-    expect(container.querySelectorAll('.topic-item.is-seen')).toHaveLength(9)
+    expect(container.querySelectorAll('.topic-item.is-done')).toHaveLength(9)
   })
 
   it('reads a banked topic as settled throughout, offering Test again', () => {
@@ -78,7 +78,7 @@ describe('topic reference page', () => {
       history: [{ at: '2026-01-02T00:00:00Z', correct: 9, total: 9, resolvedTo: 'completed' }] }
     const { container } = open(topic)
     expect(screen.getByRole('img', { name: '9 of 9 items settled' })).toBeTruthy()
-    expect(container.querySelector('.topic-state')?.textContent).toBe('✓Banked')
+    expect(container.querySelector('.topic-state')?.textContent).toBe('✓Learned')
     expect(container.querySelectorAll('.topic-item.is-done')).toHaveLength(9)
     expect(tile('test').querySelector('.mode-tray-label')?.textContent).toBe('Test again')
   })
@@ -93,7 +93,7 @@ describe('topic reference page', () => {
     const pips = [...container.querySelectorAll<HTMLElement>('.topic-pip')]
     expect(pips).toHaveLength(2)
     expect(pips[0].getAttribute('aria-label')).toMatch(/: 3 of 9, Learning$/)
-    expect(pips[1].getAttribute('aria-label')).toMatch(/: 9 of 9, Completed$/)
+    expect(pips[1].getAttribute('aria-label')).toMatch(/: 9 of 9, Learned$/)
     expect((pips[0].firstElementChild as HTMLElement).style.height).toBe(`${3 / 9 * 100}%`)
     expect(container.querySelector('.topic-history-head')?.textContent).toBe('2 attempts')
     expect(container.querySelector('.topic-earned')?.textContent).toMatch(/^First completed · /)
@@ -108,21 +108,21 @@ describe('a failed Test is remembered', () => {
     return { ...topic, status, completedAt, history: [{ at: '2026-01-02T00:00:00Z', correct: topic.items.length - 4, total: topic.items.length, resolvedTo: status, missedItemIds }] }
   }
 
-  it('marks the missed items copper with a diamond even after a failed repair Test sent the topic to learning', () => {
+  it('keeps a formerly completed topic learned despite a later legacy learning status', () => {
     const { container } = open(failed('learning', '2026-01-01T00:00:00Z'))
     const copper = [...container.querySelectorAll('.topic-items .spine-row.is-repair')]
-    expect(copper).toHaveLength(4)
-    expect(copper.every(row => row.querySelector('.spine-node')?.textContent === '◆')).toBe(true)
-    expect(container.querySelector('.topic-state')?.textContent).toBe(`${nato().items.length - 4} / ${nato().items.length} · 4 to practise`)
+    expect(copper).toHaveLength(0)
+    expect(container.querySelector('.topic-state')?.textContent).toBe('✓Learned')
     // Not a decay claim: no Needs repair, no copper status line.
     expect(container.querySelector('.topic-state')?.classList.contains('is-repair')).toBe(false)
-    expect(container.querySelectorAll('.topic-items .spine-row.is-reached')).toHaveLength(nato().items.length - 4)
+    expect(container.querySelectorAll('.topic-items .spine-row.is-done')).toHaveLength(nato().items.length)
   })
 
-  it('keeps Needs repair, and adds what is left to practise, while the topic is still decayed', () => {
+  it('keeps legacy decayed topics learned without a Practice obligation', () => {
     const { container } = open(failed('decayed', '2026-01-01T00:00:00Z'))
-    expect(container.querySelector('.topic-state')?.textContent).toBe('◆Needs repair · 4 to practise')
-    expect(container.querySelectorAll('.topic-items .spine-row.is-repair')).toHaveLength(4)
+    expect(container.querySelector('.topic-state')?.textContent).toBe('✓Learned')
+    expect(container.querySelectorAll('.topic-items .spine-row.is-repair')).toHaveLength(0)
+    expect(tile('practice').getAttribute('aria-disabled')).toBe('true')
   })
 
   it('draws settled items as slate steps with a tick, and no mark of its own for unseen ones', () => {

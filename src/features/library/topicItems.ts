@@ -12,10 +12,10 @@ import type { Item, Topic } from '../../domain/library/topic'
  * Per-item evidence exists only where Test wrote it (choice, ladder and audio
  * cards). A reveal-and-grade item has none, so it takes the topic's own rung:
  * a banked topic passed a run of every item, and anything else is seen once
- * tested and unseen before. Copper marks only an item with a recorded miss; a
- * decayed topic says so once, in its header, rather than on every row.
+ * tested and unseen before. Unfinished topics can name their latest misses;
+ * learned topics keep every item settled after later optional Tests.
  */
-export type ItemStanding = 'settled' | 'missed' | 'seen' | 'unseen' | 'repair'
+export type ItemStanding = 'settled' | 'missed' | 'seen' | 'unseen'
 
 export function itemStanding(
   topic: Topic,
@@ -23,18 +23,18 @@ export function itemStanding(
   phase = journeyFor(topic).phase,
   lastMissed: readonly string[] = lastTestMissedIds(topic),
 ): ItemStanding {
+  if (phase === 'banked') return 'settled'
   const evidence = item.id ? topic.itemEvidence?.[item.id] : undefined
   if (hasTestAnswer(evidence)) {
     const directions = requiredDirections(item).map((direction) => evidence!.directions[direction])
     if (directions.some((seen) => seen && seen.attempts > 0 && seen.consecutiveCorrect === 0)) {
-      return phase === 'repair' ? 'repair' : 'missed'
+      return 'missed'
     }
     if (directions.every((seen) => (seen?.consecutiveCorrect ?? 0) > 0)) return 'settled'
     return 'seen'
   }
   // No per-item evidence: the last Test is the only record of a miss.
-  if (item.id && lastMissed.includes(item.id)) return phase === 'repair' ? 'repair' : 'missed'
-  if (phase === 'banked') return 'settled'
+  if (item.id && lastMissed.includes(item.id)) return 'missed'
   return topic.history.length > 0 ? 'seen' : 'unseen'
 }
 
@@ -83,22 +83,14 @@ export interface TopicBar {
   label: string
 }
 
-/**
- * The header bar's value, from the best record the topic has.
- *
- * Settled items lead. A reveal-and-grade topic writes no per-item evidence, so
- * once it is out of the banked state nothing is "settled" even straight after a
- * 22 of 26 Test; the bar then reads that Test instead of a false 0. With no
- * settled item and no Test to read there is no value, and no bar is drawn.
- */
+/** The best finite reading available; learned topics remain full. */
 export function topicBar(topic: Topic): TopicBar | null {
   const total = topic.items.length
   if (total === 0) return null
   const settled = settledCount(topic)
   const recent = topic.history[topic.history.length - 1]
   // Only a Test that still describes this topic reads: one taken before the
-  // item set was edited, or one whose outcome the status no longer reflects
-  // (a topic that fell into repair on a pass), would say something untrue.
+  // item set was edited, or with a different state, is not a current reading.
   const last = recent && recent.total === total && recent.resolvedTo === topic.status ? recent : undefined
   const tested = last ? last.correct : 0
   if (tested > settled) {

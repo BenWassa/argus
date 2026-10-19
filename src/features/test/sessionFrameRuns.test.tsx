@@ -19,7 +19,7 @@ const NATO = seedLibrary().topics.find((topic) => topic.id === 'nato-phonetic') 
 
 function attempt(over: Partial<Resolution> = {}): BankedAttempt {
   return {
-    resolution: { topic: NATO, from: 'drilled', to: 'drilled', completed: false, decayed: false, ...over },
+    resolution: { topic: NATO, from: 'drilled', to: 'drilled', completed: false, ...over },
     withheldByAcquisition: false,
     nonQualifying: false,
   }
@@ -74,30 +74,30 @@ describe('the Test result is a round result', () => {
     expect(screen.getAllByRole('heading', { level: 1 })).toEqual([document.querySelector('.session-frame-title')])
     expect(screen.getByRole('heading', { level: 2, name: '24 of 26 correct' })).toBe(document.activeElement)
     expect(document.querySelectorAll('.test-outcome')).toHaveLength(1)
-    expect(document.querySelector('.test-outcome')?.textContent).toMatch(/Passed, still banked/)
+    expect(document.querySelector('.test-outcome')?.textContent).toMatch(/Learned/)
     expect(screen.queryByRole('button', { name: 'Again' })).toBeNull()
   })
 
   it('says what did not bank, and how many are left to practise, never "ready to test"', () => {
     const [first, second] = NATO.items
-    render(<TestDone {...run} banked={[attempt({ from: 'decayed', to: 'learning' })]} missed={{ [NATO.id]: [first.id!, second.id!] }}
+    render(<TestDone {...run} banked={[attempt({ topic: { ...NATO, status: 'learning', drilledAt: null, completedAt: null }, from: 'learning', to: 'learning' })]} missed={{ [NATO.id]: [first.id!, second.id!] }}
       onPractice={vi.fn()} score={{ correct: 24, total: 26 }} />)
-    expect([...document.querySelectorAll('.test-outcome')].map((line) => line.textContent)).toEqual(['Not banked · 2 to practise'])
+    expect([...document.querySelectorAll('.test-outcome')].map((line) => line.textContent)).toEqual(['Still learning · 2 to practise'])
     expect(document.body.textContent).not.toMatch(/ready to test/i)
     expect(screen.getAllByRole('listitem').filter((chip) => chip.className === 'test-missed-chip')).toHaveLength(2)
   })
 
   it('names the topic on each line only when several topics ran together', () => {
-    const other = { ...NATO, id: 'other', title: 'Other' }
-    render(<TestDone {...run} banked={[attempt({ from: 'learning', to: 'learning' }), attempt({ topic: other, from: 'learning', to: 'learning' })]}
+    const other: Topic = { ...NATO, id: 'other', title: 'Other', status: 'learning', drilledAt: null, completedAt: null }
+    render(<TestDone {...run} banked={[attempt({ topic: { ...NATO, status: 'learning', drilledAt: null, completedAt: null }, from: 'learning', to: 'learning' }), attempt({ topic: other, from: 'learning', to: 'learning' })]}
       missed={{ [NATO.id]: [NATO.items[0].id!] }} score={{ correct: 25, total: 26 }} />)
-    expect([...document.querySelectorAll('.test-outcome')].map((line) => line.textContent)).toEqual([`${NATO.title}: Not banked · 1 to practise`])
+    expect([...document.querySelectorAll('.test-outcome')].map((line) => line.textContent)).toEqual([`${NATO.title}: Still learning · 1 to practise`])
   })
 
   it('puts repairing the misses in the primary slot, and Done beside it', () => {
     const onPractice = vi.fn()
     const first = NATO.items[0].id!
-    render(<TestDone {...run} missed={{ [NATO.id]: [first] }} onPractice={onPractice} score={{ correct: 25, total: 26 }} />)
+    render(<TestDone {...run} banked={[attempt({ topic: { ...NATO, status: 'learning', drilledAt: null, completedAt: null }, from: 'learning', to: 'learning' })]} missed={{ [NATO.id]: [first] }} onPractice={onPractice} score={{ correct: 25, total: 26 }} />)
     const practise = screen.getByRole('button', { name: 'Practise 1 item' })
     expect(practise.className).not.toContain('ghost')
     expect(screen.getByRole('button', { name: 'Done' }).className).toContain('ghost')

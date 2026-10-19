@@ -7,6 +7,7 @@ import {
 } from './lesson'
 import type { MorseLetter } from '../code'
 import type { ItemLessonStore } from '../progress'
+import { isLearned } from '../../study/scheduling'
 import type { Topic } from '../../library/topic'
 
 export type MorseLessonPathState = 'completed' | 'current' | 'unlocked' | 'locked'
@@ -59,7 +60,7 @@ export function morseLessonPath(topic: Topic): MorseLessonPathItem[] | null {
     }
   }
 
-  const ready = currentIndex >= packets.length
+  const ready = isLearned(topic) || currentIndex >= packets.length
 
   return packets.map((packet) => {
     let state: MorseLessonPathState

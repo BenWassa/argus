@@ -8,3 +8,5 @@ This folder archives completed GitHub issue specifications, prior research, rele
 - #127's Home exploration is superseded by #193, which tracks the shipped redesign's Pixel acceptance.
 
 - [Impeccable screen review, 17 October 2026](IMPECCABLE_UI_REVIEW_2026_10_17.md): completed multi-agent critique, fixes and UX/UI re-review.
+
+- [Progress architecture before permanent learning](PROGRESS_ARCHITECTURE_2026_10_19.md): superseded on 2026-10-19; retained for rationale.

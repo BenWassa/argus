@@ -358,6 +358,7 @@ export function AppRouter() {
     <AppShell view={navView} onNavigate={navigateSection}>
       {view === 'today' && (
         <Today
+          onContinue={(action, id) => action === 'author' ? navigate({ kind: 'topic', topicId: id }) : start(action, [id])}
           onOpenTopic={(id) => navigate({ kind: 'topic', topicId: id })}
           onGoToLibrary={() => navigate({ kind: 'section', view: 'library' })}
           onAuthorTopic={() => {

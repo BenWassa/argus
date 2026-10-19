@@ -404,11 +404,11 @@
   ],
   "narrative": {
     "northStar": "Signal on Slate",
-    "overview": "Argus is a precision instrument, not a dashboard and not a journal: a calm dark index the owner opens for a few minutes, uses without friction, and closes. The ground is a lifted cool slate and every container is an opaque plate, separated by fill steps and 1px lines rather than translucency, glow or texture. Against that quiet ground there is exactly one signal, a yellow that means \"do this\" or \"you are here\"; colour is otherwise spent on meaning, with four solid Morse mode colours, three track colours, and one copper that means decay. A native sans carries everything a person reads and operates; a native mono carries everything the instrument reports. Brushed Gunmetal is retired; light mode is parked as an idea (#237).",
+    "overview": "Argus is a precision instrument, not a dashboard and not a journal: a calm dark index the owner opens for a few minutes, uses without friction, and closes. The ground is a lifted cool slate and every container is an opaque plate, separated by fill steps and 1px lines rather than translucency, glow or texture. Against that quiet ground there is exactly one signal, a yellow that means \"do this\" or \"you are here\"; colour is otherwise spent on meaning, with four solid Morse mode colours, three track colours, and permanent learned progress. A native sans carries everything a person reads and operates; a native mono carries everything the instrument reports. Brushed Gunmetal is retired; light mode is parked as an idea (#237).",
     "keyCharacteristics": [
       "A lifted slate chassis and opaque plates; hierarchy from fill steps, size and weight, never from translucency, glow or texture",
       "One signal-yellow action: the primary action, the current selection, the current step and the done part of a path",
-      "Four solid mode colours and three track colours used for wayfinding, with copper reserved for decay",
+      "Four solid mode colours and three track colours used for wayfinding, with learned progress permanent",
       "Sans for language, mono for readings, and the boundary between them is meaningful",
       "Dense index rows over card grids; a topic list reads like a table of contents",
       "Few, large words: a tile or label is one or two words, and a screen shows what the task will put in front of you",
@@ -421,8 +421,8 @@
         "section": "colors"
       },
       {
-        "name": "The Copper Means Decay Rule",
-        "body": "Copper (oklch(0.75 0.11 50)) is used only for decay, always with the ◆ glyph and the words \"Needs repair\", so the meaning never rests on colour alone. No other role sits within 30° of copper at similar lightness.",
+        "name": "The Permanent Learning Rule",
+        "body": "Learned means learned. A later optional Test retains its score without decay, repair routing, progress loss or required extra learning. The legacy copper token is unused by current learning states.",
         "section": "colors"
       },
       {
@@ -468,9 +468,9 @@
       "Do render topic listings as a dense hairline-divided index, not a card grid.",
       "Do give every interactive element default, hover, focus-visible, active, and disabled states, with a minimum 44px primary touch target.",
       "Do name controls as direct actions and explain the recovery path in empty states.",
-      "Do treat retention decay as a routing signal, never styled as an error or a scolding.",
+      "Do keep completed topics learned permanently.",
       "Do keep JSON export/import visually first-class, not buried as a settings afterthought.",
-      "Do keep copper for decay alone, always with its ◆ glyph and words, so it is never confused with the yellow action.",
+      "Do continue the top unfinished topic from Home; show Add something to learn when none is active.",
       "Do set every reading (count, date, position, status, track) in the mono voice, and everything a person reads or presses in the sans."
     ],
     "donts": [
@@ -480,7 +480,7 @@
       "Don't use translucent fills or borders for colour; every container is a solid plate.",
       "Don't add subtitles to tiles. A tile is one word and the stimulus it shows.",
       "Don't use gradient text, glassmorphism, or decorative rings/gradients anywhere in the Test loop.",
-      "Don't let the material drag the language tactical. The chassis is slate; the words are plain. Argus says 'Needs repair' and 'Start', never 'TST' or 'INITIATE EXECUTION'. The subject matter invites the opposite, and the framing is competence, not catastrophe.",
+      "Don't let the material drag the language tactical. The chassis is slate; the words are plain. Argus says 'Learned' and 'Start', never 'TST' or 'INITIATE EXECUTION'. The subject matter invites the opposite, and the framing is competence, not catastrophe.",
       "Don't add streaks, badges, XP, or any shame-based nudge for missed Test days. The Morse path is a progress visualisation, not gamification.",
       "Don't widen the mobile layout for desktop and call it done; desktop gets a genuine side-rail, task-oriented layout.",
       "Don't use a serif or fluid display typeface; display character comes from size, weight and tracking.",

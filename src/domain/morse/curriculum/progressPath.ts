@@ -40,14 +40,14 @@ export type MorseProgressNode = ProgressNode & (
   | { kind: 'start'; offersPlacement: boolean }
   | { kind: 'lesson'; number: number; novel: MorseLetter[] }
   | { kind: 'checkpoint'; checkpointId: MorseWordCheckpointId; afterLesson: number; words: string[] }
-  | { kind: 'test'; testState: 'locked' | 'available' | 'banked' | 'repair'; earlyRunPossible: boolean; testAction: Extract<MorseProgressAction, { kind: 'test' }> }
+  | { kind: 'test'; testState: 'locked' | 'available' | 'banked'; earlyRunPossible: boolean; testAction: Extract<MorseProgressAction, { kind: 'test' }> }
   | { kind: 'tier'; tier: MorseTier; pips: MorseTierPip[] }
 )
 
 export interface MorseProgressPath {
   nodes: MorseProgressNode[]
   /** Learner position for scrolling, independent of which activities are available. */
-  currentNodeId: string
+  currentNodeId: string | null
 }
 
 const TIER_LABELS: Record<MorseTier, string> = {
@@ -84,7 +84,7 @@ export function morseProgressPath(topic: Topic): MorseProgressPath | null {
   const journey = journeyFor(topic)
   const unstarted = journey.action === 'learn' && !journey.acquisition.started
   const afterCourse = journey.action === 'learn' && journey.acquisition.afterCourse && journey.acquisition.owed.length > 0
-  const currentNodeId = journey.action === 'test' || afterCourse
+  const currentNodeId = journey.phase === 'banked' ? null : journey.action === 'test' || afterCourse
     ? 'test'
     : unstarted ? 'start' : `lesson-${journey.acquisition.packet}`
   const nodes: MorseProgressNode[] = []
@@ -117,7 +117,7 @@ export function morseProgressPath(topic: Topic): MorseProgressPath | null {
     }
   }
 
-  const testState = journey.phase === 'repair' ? 'repair' : journey.phase === 'banked' ? 'banked'
+  const testState = journey.phase === 'banked' ? 'banked'
     : journey.advancementEligible ? 'available' : 'locked'
   const testAction = { kind: 'test', early: !journey.advancementEligible } as const
   add({ id: 'test', kind: 'test', label: 'A–Z Test', accessibleLabel: '',

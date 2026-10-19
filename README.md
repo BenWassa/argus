@@ -115,6 +115,7 @@ The **full offline-first runtime guarantee is active scope in #113**, not yet a 
 - `docs/open/CONTENT_INBOX.md` — content-inbox and curated-ingestion architecture, and the Firebase setup it needs.
 - [Topic colour comparison](docs/closed/TOPIC_COLOUR_SPIKE.md) — historical study superseded by Signal on Slate; development preview retired.
 - `docs/open/REDESIGN_INPUT_AUDIT.md` — current factual screen, state, issue-reconciliation, acceptance, and redesign-risk input package.
+- [Learning progress](docs/open/PROGRESS_ARCHITECTURE.md) — permanent completion, one unfinished-learning queue, optional later Tests, and compatibility with old records.
 - `docs/open/TARGETED_PRACTICE.md` — the formative practice run: its evidence boundary, how it selects what to practise, and why it is not called repair.
 - `docs/closed/PROGRAMME.md` — Learn/Test + content-quality programme closeout.
 - `docs/closed/MORSE_CODE_LEARNING_PRD.md` — dated Morse research/design baseline retained for rationale; later ratified decisions supersede its deliberately open implementation questions.

@@ -626,7 +626,7 @@ export function TestSession({ topicIds, review = false, onExit, onPractice, onPl
           <p>
             {tally.total} {tally.total === 1 ? 'answer' : 'answers'} on{' '}
             <strong>{card.topicTitle}</strong> will be discarded, because a topic only counts once
-            every one of its items has been through. Topics you already finished are banked and will
+            every one of its items has been through. Topics you already learned are complete and will
             not be lost.
           </p>
         )}

@@ -7,11 +7,17 @@ import { morseWordCheckpoints } from './checkpoints'
 import { morseProgressPath } from './progressPath'
 
 describe('Morse progress path', () => {
-  it('keeps exactly one current node consistent with the shared next action across learner fixtures', () => {
+  it('keeps one next task while learning and none once learned', () => {
     for (const [name, topic] of Object.entries(modeTopicFixtures())) {
       const journey = journeyFor(topic)
       const path = morseProgressPath(topic)!
       const current = path.nodes.filter((node) => node.state === 'current')
+      if (journey.phase === 'banked') {
+        expect(current, name).toHaveLength(0)
+        expect(path.currentNodeId).toBeNull()
+        expect(path.nodes.find(node => node.id === 'test')?.state).toBe('done')
+        continue
+      }
       expect(current, name).toHaveLength(1)
       expect(current[0].id, name).toBe(path.currentNodeId)
       if (journey.action === 'test') {
@@ -66,10 +72,10 @@ describe('Morse progress path', () => {
     expect(path.nodes.find((node) => node.id === 'lesson-7')?.state).toBe('locked')
   })
 
-  it('distinguishes early Test, eligible Test, banked and repair while retaining a Test action', () => {
+  it('distinguishes early, eligible and optional completed Tests, including legacy records', () => {
     const fixtures = modeTopicFixtures()
     for (const [name, state, early] of [
-      ['fresh', 'locked', true], ['ready', 'available', false], ['banked', 'banked', false], ['repair', 'repair', false],
+      ['fresh', 'locked', true], ['ready', 'available', false], ['banked', 'banked', false], ['repair', 'banked', false],
     ] as const) {
       const test = morseProgressPath(fixtures[name])!.nodes.find((node) => node.kind === 'test')!
       expect(test).toMatchObject({ testState: state, earlyRunPossible: early, testAction: { kind: 'test', early } })
@@ -148,13 +154,12 @@ describe('Morse progress path', () => {
     expect(fresh.nodes.find((node) => node.id === 'checkpoint-after-4')?.lockedReason).toBe('After Lesson 4')
   })
 
-  it('keeps a banked learner at the Test regardless of formative tier clears', () => {
+  it('gives learned courses no required current Test or formative task', () => {
     for (const topic of [modeTopicFixtures().banked, modeTopicFixtures().advanced]) {
       const path = morseProgressPath(topic)!
-      expect(path.currentNodeId).toBe('test')
-      expect(path.nodes.filter((node) => node.state === 'current')).toEqual([
-        expect.objectContaining({ id: 'test', kind: 'test', testState: 'banked', action: { kind: 'test', early: false } }),
-      ])
+      expect(path.currentNodeId).toBeNull()
+      expect(path.nodes.filter((node) => node.state === 'current')).toEqual([])
+      expect(path.nodes.find(node => node.id === 'test')).toMatchObject({ state: 'done', testState: 'banked', action: { kind: 'test', early: false } })
       expect(path.nodes.filter((node) => node.kind === 'tier').every((node) => node.state !== 'locked')).toBe(true)
     }
   })

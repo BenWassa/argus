@@ -62,19 +62,16 @@ export function TopicPage({
   const course = Boolean(path)
   // Browsing reads the durable record without starting acquisition or Test.
   const journey = journeyFor(topic)
-  const repair = journey.phase === 'repair'
-  const banked = !repair && (topic.status === 'completed' || topic.status === 'drilled')
+  const banked = journey.phase === 'banked'
   const bar = course ? null : topicBar(topic)
   const listening = listeningCoverage(topic.items, topic.audioEvidence)
   const practiceCount = hasPractice(topic) ? practiceItemCount(topic) : 0
-  // What the latest Test missed stays on the page whatever rung the topic now
-  // holds: a failed repair Test sends the topic back to learning, and the page
-  // still says what happened and which items are left to practise.
+  // Misses can guide unfinished learning; learned topics stay complete.
   const toPractise = course ? 0 : lastTestMissedIds(topic).length
   const lastTest = topic.history[topic.history.length - 1]
-  const stateLabel = toPractise > 0 && !repair
+  const stateLabel = toPractise > 0
     ? `${lastTest && lastTest.total === topic.items.length ? `${lastTest.correct} / ${lastTest.total} · ` : ''}${toPractise} to practise`
-    : toPractise > 0 ? `${journey.statusLabel} · ${toPractise} to practise` : journey.statusLabel
+    : journey.statusLabel
   const offersPlacement = path?.nodes.some(node => node.kind === 'start' && node.offersPlacement) && canOfferMorsePlacement(topic)
 
   useLayoutEffect(() => {
@@ -124,8 +121,8 @@ export function TopicPage({
         glyph={topicIcon(topic.id) ? <TopicGlyph topicId={topic.id} /> : undefined}
         progress={bar ?? undefined}
         readout={bar ? `${bar.value} / ${bar.max}` : undefined}>
-        <p className={`topic-state${repair ? ' is-repair' : banked ? ' is-banked' : ''}`}>
-          {repair ? <span className="topic-state-mark" aria-hidden="true">◆</span> : banked ? <span className="topic-state-mark" aria-hidden="true">✓</span> : null}
+        <p className={`topic-state${banked ? ' is-banked' : ''}`}>
+          {banked ? <span className="topic-state-mark" aria-hidden="true">✓</span> : null}
           <span className="topic-state-label">{stateLabel}</span>
         </p>
         {listening.total > 0 && <p className="topic-listening">Listening · {listening.unaided} / {listening.total} unaided</p>}
@@ -141,7 +138,7 @@ export function TopicPage({
         <MorseProgressPath topic={topic} onAction={startMorse} showJump={false}
           onPlacement={offersPlacement ? () => setPlacementOpen(true) : undefined} />
       </> : runnable ? <>
-        <TopicTray topic={topic} label={repair ? 'Repair' : banked ? 'Test again' : 'Test'}
+        <TopicTray topic={topic} label={banked ? 'Test again' : 'Test'}
           practiceCount={practiceCount} onStart={onStart} onReference={onReference} />
         <TopicItems topic={topic} />
       </> : null}
@@ -171,16 +168,13 @@ export function TopicPage({
 
 const SPINE_STATE: Record<ItemStanding, SpineState> = {
   settled: 'done',
-  repair: 'repair',
-  // A miss in the latest Test is copper whatever rung the topic now holds.
-  missed: 'repair',
+  missed: 'reached',
   seen: 'reached',
   unseen: 'reached',
 }
 
 const STANDING_WORDS: Record<ItemStanding, string> = {
   settled: 'settled',
-  repair: 'needs repair',
   missed: 'missed last time',
   seen: 'tested',
   unseen: 'not tested yet',
@@ -188,7 +182,6 @@ const STANDING_WORDS: Record<ItemStanding, string> = {
 
 /** A group's node takes the weakest standing among its items. */
 function groupState(entries: TopicItemEntry[]): SpineState {
-  if (entries.some(entry => entry.standing === 'repair' || entry.standing === 'missed')) return 'repair'
   return entries.length > 0 && entries.every(entry => entry.standing === 'settled') ? 'done' : 'reached'
 }
 
@@ -214,7 +207,7 @@ function TopicItems({ topic }: { topic: Topic }) {
       return {
         id: item.id ?? `${groupIndex}-${index}`,
         shape: 'round',
-        mark: standing === 'repair' || standing === 'missed' ? '◆' : standing === 'settled' && !group.label ? '✓' : marker,
+        mark: standing === 'settled' && !group.label ? '✓' : marker,
         state: SPINE_STATE[standing],
         // A pictured item's picture is its prompt; the authored question
         // wording is for the Test card, so the row names the answer.

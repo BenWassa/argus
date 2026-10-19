@@ -14,7 +14,7 @@ beforeEach(() => { state.topics = []; state.ready = false; state.addRequest.mock
 afterEach(cleanup)
 
 function open() {
-  const actions = { onOpenTopic: vi.fn(), onGoToLibrary: vi.fn(), onAuthorTopic: vi.fn(), onOpenProfile: vi.fn() }
+  const actions = { onContinue: vi.fn(), onOpenTopic: vi.fn(), onGoToLibrary: vi.fn(), onAuthorTopic: vi.fn(), onOpenProfile: vi.fn() }
   const view = render(<Today {...actions} />)
   return { ...actions, ...view }
 }
@@ -39,17 +39,26 @@ describe('Home', () => {
     expect(state.topics).toEqual(before)
   })
 
-  it('draws every plate solid on the kit, with copper and a diamond only for repair', () => {
+  it('keeps solid active plates and excludes learned legacy repair records', () => {
     state.topics = [{ ...building('one'), status: 'decayed', completedAt: '2026-09-01T12:00:00Z' }, building('two')]
     const view = open()
     const plates = [...view.container.querySelectorAll<HTMLElement>('.today-plate')]
-    expect(plates).toHaveLength(2)
+    expect(plates).toHaveLength(1)
     for (const plate of plates) expect(plate.className).toContain('plate plate-raised')
-    expect(view.container.querySelectorAll('.plate-repair')).toHaveLength(1)
-    expect(view.container.querySelector('.plate-repair .home-topic-reading.is-repair')?.textContent).toBe('Needs repair')
+    expect(view.container.querySelectorAll('.plate-repair')).toHaveLength(0)
+    expect(screen.queryByText('Needs repair')).toBeNull()
     expect(view.container.querySelector('.home-panel.plate')).toBeTruthy()
     expect(view.container.querySelector('h1.today-brand')?.textContent).toBe('ARGUS')
     expect(view.container.querySelector('details')).toBeNull()
+  })
+
+  it('continues the top unfinished topic, leaving learned topics out of the queue', () => {
+    state.topics = [{ ...building('learned'), status: 'decayed', completedAt: '2026-01-01T00:00:00Z' }, building('next')]
+    const view = open()
+    fireEvent.click(screen.getByRole('button', { name: 'Continue: next' }))
+    expect(view.onContinue).toHaveBeenCalledWith('test', 'next')
+    expect(screen.queryByRole('button', { name: /Continue: learned/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: '+ Add something to learn' })).toBeNull()
   })
 
   it('keeps Home and Library styles free of alpha fills, gradients and texture', () => {

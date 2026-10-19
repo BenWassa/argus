@@ -56,7 +56,7 @@ describe('Morse modes', () => {
     expect(modeEntry(topic, 'key', 'send:dispatch')).toBeNull()
     expect(modeEntry(topic, 'free')).toEqual({ mode: 'free', levelId: null, kind: 'free' })
     expect(modeEligibleLetters({ ...topic, acquisitionReadyAt: 'historical' })).toHaveLength(26)
-    expect(modeEligibleLetters(modeTopicFixtures().legacyBanked)).toEqual([])
+    expect(modeEligibleLetters(modeTopicFixtures().legacyBanked)).toHaveLength(26)
     expect(modeMaterialCharacters(topic)).toEqual(new Set(eligible))
     expect(modeMaterialCharacters({ ...topic, acquisitionReadyAt: 'historical' })).toBeNull()
   })

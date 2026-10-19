@@ -21,11 +21,11 @@ function seeded(id: string): Topic {
 }
 
 const MORSE = seeded('international-morse-letters-printed')
-const NATO = seeded('nato-phonetic')
+const NATO: Topic = { ...seeded('nato-phonetic'), status: 'learning', drilledAt: null, completedAt: null }
 
 function attempt(topic: Topic, over: Partial<Resolution> = {}, extra: Partial<BankedAttempt> = {}): BankedAttempt {
   return {
-    resolution: { topic, from: 'drilled', to: 'completed', completed: true, decayed: false, ...over },
+    resolution: { topic, from: 'drilled', to: 'completed', completed: true, ...over },
     withheldByAcquisition: false,
     nonQualifying: false,
     ...extra,
@@ -65,8 +65,8 @@ describe('the Test end screen hands Morse learners to play', () => {
     expect(play.className).toContain('ghost')
   })
 
-  it('keeps play discoverable in repair, without a celebration', () => {
-    renderDone([attempt(MORSE, { completed: false, decayed: true, from: 'completed', to: 'decayed' })])
+  it('keeps optional play discoverable after a later Test, without a new completion celebration', () => {
+    renderDone([attempt(MORSE, { completed: false, from: 'completed', to: 'decayed' })])
     expect(screen.getByRole('button', { name: 'Play with words' }).className).toContain('ghost')
     expect(screen.queryByText(/Next: send your first words/)).toBeNull()
   })
