@@ -172,6 +172,7 @@ export function sameRoute(left: AppRoute, right: AppRoute): boolean {
 function sameTarget(left: RunTarget | undefined, right: RunTarget | undefined): boolean {
   if (!left || !right) return !left && !right
   if (left.kind !== right.kind) return false
+  if (left.kind === 'letter-practice' && right.kind === 'letter-practice') return left.direction === right.direction
   if (left.kind === 'replay' && right.kind === 'replay') return left.index === right.index
   if (left.kind === 'checkpoint' && right.kind === 'checkpoint') {
     return left.afterLesson === right.afterLesson

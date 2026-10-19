@@ -5,6 +5,8 @@ import { LibraryProvider } from '../../../services/library/LibraryProvider'
 import { parseLibrary } from '../../../infrastructure/persistence/libraryParser'
 import { seedLibrary } from '../../../domain/library/catalogSeed'
 import { lessonPackets } from '../../../domain/morse/curriculum/lesson'
+import { SendRun } from './SendRun'
+import { newFluencyProgress } from '../../../domain/morse/fluency/progress'
 import { FluencySurface } from './FluencySurface'
 
 const MORSE_ID = 'international-morse-letters-printed'
@@ -109,4 +111,29 @@ describe('direct Topic-page Morse Play entries (#201)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Close' }))
     expect(onExit).toHaveBeenCalledTimes(1)
   })
+})
+
+it.each(['sprint', 'ladder'] as const)('declines a fresh %s run', (mode) => {
+  storeMorse(0)
+  render(<LibraryProvider><FluencySurface topicId={MORSE_ID} initialMode={mode} onExit={vi.fn()} /></LibraryProvider>)
+  expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Learn a few more letters first')
+  expect(screen.queryByRole('button', { name: 'Play' })).toBeNull()
+})
+
+it('declines a sending run with no eligible prompts and never renders an empty task', () => {
+  const onProgress = vi.fn()
+  const onExit = vi.fn()
+  render(<SendRun stage="messages" allowed={new Set()} progress={newFluencyProgress()}
+    onProgress={onProgress} onStage={vi.fn()} onExit={onExit} />)
+  expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Learn a few more letters first')
+  expect(screen.queryByText('Sent')).toBeNull()
+  expect(onProgress).not.toHaveBeenCalled()
+  fireEvent.click(screen.getByRole('button', { name: 'Close' }))
+  expect(onExit).toHaveBeenCalledOnce()
+})
+
+it.each(['sprint', 'ladder'] as const)('declines %s when requested letters have no taught overlap', (mode) => {
+  storeMorse(5)
+  render(<LibraryProvider><FluencySurface topicId={MORSE_ID} initialMode={mode} letters={['Z']} onExit={vi.fn()} /></LibraryProvider>)
+  expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Learn a few more letters first')
 })

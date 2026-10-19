@@ -1,3 +1,4 @@
+import { LEVEL_REASON_LETTERS } from '../../../domain/morse/modes'
 import { correctionLetter } from '../../../domain/morse/correction'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { MORSE_LETTERS, decodePattern, type MorseLetter } from '../../../domain/morse/code'
@@ -304,6 +305,12 @@ export function SendRun({
         ))}
       </p>
     )
+  }
+
+  if (prompts.length === 0) {
+    return <SessionFrame kind="key" title="Key" onClose={onExit}>
+      <h1>{LEVEL_REASON_LETTERS}</h1>
+    </SessionFrame>
   }
 
   const frame = { kind: 'key' as const, title: 'Key', onClose: onExit, progress: { current: phase === 'done' ? prompts.length : promptIndex + 1, total: prompts.length } }

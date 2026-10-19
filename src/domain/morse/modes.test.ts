@@ -7,10 +7,11 @@ import {
 } from './modes'
 import { COPY_LEVELS, copyPrompts } from './fluency/copy'
 import { newFluencyProgress } from './fluency/progress'
-import { SEND_STAGES, sendPrompts } from './fluency/send'
+import { SEND_STAGES, SEND_STAGE_INFO, eligibleSendPool, sendPrompts } from './fluency/send'
 import { startFluencyRun } from './fluency/session'
 import { lessonPackets } from './curriculum/lesson'
-import { newMorsePractice } from './practice'
+import { seededRandom } from './fluency/corpus'
+import { newMorsePractice, schedulePracticeLetters } from './practice'
 
 describe('Morse modes', () => {
   it('maps every surviving runner id in display and recommendation order', () => {
@@ -182,4 +183,67 @@ describe('Morse modes', () => {
     topic.morseFluency.bests.groups = 6
     expect(currentLevel(topic, 'listen')?.id).toBe('fluency:groups')
   })
+})
+
+function withSettledLetters(count: number) {
+  const topic = morseTopic()
+  const letters = new Set<string>([...new Set(lessonPackets().flatMap((packet) => [...packet.characters]))].slice(0, count))
+  topic.lessonProgress = Object.fromEntries(topic.items.filter((item) => letters.has(item.prompt)).map((item) => [item.id!, 'settled']))
+  return topic
+}
+
+it('keeps every run inside its allowed roster across seeds and acquisition counts', () => {
+  for (const count of [0, 3, 6, 10, 26]) {
+    const topic = withSettledLetters(count)
+    const allowed = new Set<string>(modeEligibleLetters(topic))
+    expect(allowed.size).toBe(count)
+    const progress = newFluencyProgress()
+    for (let seed = 0; seed < 20; seed += 1) {
+      const check = (prompts: string[]) => {
+        for (const text of prompts) {
+          expect([...text].filter((letter) => /[A-Z]/.test(letter)).every((letter) => allowed.has(letter)),
+            `${count} settled, seed ${seed}: ${text}`).toBe(true)
+        }
+      }
+      for (const mode of ['sprint', 'ladder', 'words', 'groups'] as const) {
+        check(startFluencyRun(mode, 6, progress, seed, new Set(), [], allowed).prompts.map((p) => p.text))
+        check(startFluencyRun(mode, 6, progress, seed, new Set(), ['Z'], allowed).prompts.map((p) => p.text))
+      }
+      for (const level of COPY_LEVELS) check(copyPrompts(level, progress, seed, new Set(), allowed))
+      for (const stage of SEND_STAGES) check(sendPrompts(stage, seed, allowed))
+      for (const direction of ['key', 'listen', 'read'] as const) {
+        // Only Letters practice may use the documented Lesson-1 fallback at zero settled letters.
+        const roster = modePlayLetters(topic)
+        expect(roster).toEqual(count ? [...allowed] : lessonPackets()[0].characters)
+        const run = schedulePracticeLetters(newMorsePractice(), direction, roster, { count: 10, rng: seededRandom(seed) })
+        expect(run.letters.every((letter) => roster.includes(letter))).toBe(true)
+      }
+    }
+  }
+})
+
+it('never makes a startable sending level empty for the real round length', () => {
+  for (let count = 0; count <= 26; count += 1) {
+    const topic = withSettledLetters(count)
+    const allowed = modeMaterialCharacters(topic) ?? undefined
+    for (const level of levelsFor('key')) {
+      if (level.kind !== 'send' || !levelReadiness(topic, level).startable) continue
+      if (allowed) expect(eligibleSendPool(level.stage, allowed).length).toBeGreaterThanOrEqual(SAFE_LEVEL_MINIMUM)
+      for (const seed of [0, 1, 7, 19, 72, 100]) {
+        expect(sendPrompts(level.stage, seed, allowed).length).toBe(SEND_STAGE_INFO[level.stage].length)
+        expect(sendPrompts(level.stage, seed, allowed).length, `${count} letters, ${level.stage}, seed ${seed}`).toBeGreaterThan(0)
+      }
+    }
+  }
+})
+
+it('uses the same message pool after seven lessons for readiness and seed 72', () => {
+  const topic = morseTopic(7)
+  const level = levelsFor('key').find((candidate) => candidate.id === 'send:messages')!
+  expect(levelReadiness(topic, level).startable).toBe(true)
+  const allowed = modeMaterialCharacters(topic)!
+  expect(sendPrompts('messages', 72, allowed)).toHaveLength(SEND_STAGE_INFO.messages.length)
+  const pool = eligibleSendPool('messages', allowed)
+  expect(sendPrompts('messages', 72, allowed, pool.length + 10)).toHaveLength(pool.length)
+  expect(pool.length).toBeGreaterThanOrEqual(SAFE_LEVEL_MINIMUM)
 })

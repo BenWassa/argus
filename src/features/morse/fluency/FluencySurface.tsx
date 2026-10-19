@@ -10,7 +10,7 @@ import type { CopyLevel } from '../../../domain/morse/fluency/copy'
 import type { SendStage } from '../../../domain/morse/fluency/send'
 import { morseFocusLetters } from '../../../domain/morse/fluency/focus'
 import type { MorseLetter } from '../../../domain/morse/code'
-import { levelReadiness, levelsFor, modeMaterialCharacters, type MorseMode } from '../../../domain/morse/modes'
+import { LEVEL_REASON_LETTERS, levelReadiness, levelsFor, modeMaterialCharacters, type MorseMode } from '../../../domain/morse/modes'
 import type { Topic } from '../../../domain/library/topic'
 import { SessionFrame } from '../../../shared/ui/SessionFrame'
 import { CopyRun } from './CopyRun'
@@ -86,7 +86,12 @@ export function FluencySurface({ topicId, initialMode, initialSend, initialCopy,
 
   const blocked = send ? blockedReason(topic, 'key', `send:${send.stage}`)
     : copy ? blockedReason(topic, 'listen', `copy:${copy.level}`)
-      : mode === 'words' || mode === 'groups' ? blockedReason(topic, 'listen', `fluency:${mode}`) : null
+      : mode ? (() => {
+        const readiness = levelReadiness(topic, { kind: 'fluency', challenge: mode, id: `fluency:${mode}`, label: mode, tier: mode === 'groups' ? 'groups' : mode === 'words' ? 'words' : 'letters' })
+        if (!readiness.startable) return readiness.reason
+        if (only.length && allowed && !only.some((letter) => allowed.has(letter)) && mode !== 'words') return LEVEL_REASON_LETTERS
+        return null
+      })() : null
   if (blocked) {
     return (
       <SessionFrame kind={send ? 'key' : 'listen'} title={send ? 'Key' : 'Listen'} onClose={onExit}>
