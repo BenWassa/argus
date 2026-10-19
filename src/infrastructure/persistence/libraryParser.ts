@@ -912,7 +912,16 @@ function parseHistory(value: unknown): Topic['history'] {
     if (correct > total) continue
     if (!STATUSES.includes(resolvedTo as never)) continue
 
-    history.push({ at, correct, total, resolvedTo: resolvedTo as Topic['status'] })
+    const missedItemIds = Array.isArray(entry.missedItemIds)
+      ? [...new Set(entry.missedItemIds.filter((id): id is string => typeof id === 'string' && id.length > 0))]
+      : []
+    history.push({
+      at,
+      correct,
+      total,
+      resolvedTo: resolvedTo as Topic['status'],
+      ...(missedItemIds.length > 0 ? { missedItemIds } : {}),
+    })
   }
   return history
 }

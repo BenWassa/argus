@@ -66,17 +66,17 @@ describe('the Test result is a round result', () => {
     render(<TestDone {...run} score={{ correct: 24, total: 26 }} />)
     expect(screen.getByRole('heading', { name: '24 of 26 correct' })).toBeTruthy()
     expect(document.querySelectorAll('.test-outcome')).toHaveLength(1)
-    expect(document.querySelector('.test-outcome')?.textContent).toMatch(/held at/)
+    expect(document.querySelector('.test-outcome')?.textContent).toMatch(/passed, still banked/)
     expect(screen.queryByRole('button', { name: 'Again' })).toBeNull()
   })
 
-  it('puts repairing the misses in the primary slot, and Back to today beside it', () => {
+  it('puts repairing the misses in the primary slot, and Done beside it', () => {
     const onPractice = vi.fn()
     const first = NATO.items[0].id!
     render(<TestDone {...run} missed={{ [NATO.id]: [first] }} onPractice={onPractice} score={{ correct: 25, total: 26 }} />)
     const practise = screen.getByRole('button', { name: 'Practise 1 item' })
     expect(practise.className).not.toContain('ghost')
-    expect(screen.getByRole('button', { name: 'Back to today' }).className).toContain('ghost')
+    expect(screen.getByRole('button', { name: 'Done' }).className).toContain('ghost')
     fireEvent.click(practise)
     expect(onPractice).toHaveBeenCalledWith(NATO.id, [first])
   })

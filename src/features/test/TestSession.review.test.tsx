@@ -115,6 +115,6 @@ describe('a Test the learner chose as a review', () => {
     // And nothing was put back on a cue after a miss.
     for (const evidence of Object.values(after.itemEvidence ?? {})) expect(evidence.cue).toBe('free')
 
-    expect(document.body.textContent).toContain('review, ladder unchanged')
+    expect(document.body.textContent).toContain('review only, not counted')
   }, 60000)
 })

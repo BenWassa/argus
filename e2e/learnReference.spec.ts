@@ -15,7 +15,7 @@ test('the items lead, Learn reads on its own screen and the tray stays reachable
   await expect(page.locator('.topic-hero, .learn-entry')).toHaveCount(0)
   // Phones dock the tray above navigation; from 980px it sits in flow above the items.
   const docked = page.viewportSize()!.width < 980
-  await page.locator('.topic-admin').scrollIntoViewIfNeeded()
+  await page.locator('.sources-link').scrollIntoViewIfNeeded()
   if (docked) await expect(test).toBeInViewport()
 
   // Enlarged text must reflow without losing the tray or content.

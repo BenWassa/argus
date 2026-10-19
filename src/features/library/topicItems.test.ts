@@ -3,7 +3,7 @@ import { seedLibrary } from '../../domain/library/catalogSeed'
 import type { Topic } from '../../domain/library/topic'
 import type { DirectionEvidence } from '../../domain/study/evidence'
 import { parseLibrary } from '../../infrastructure/persistence/libraryParser'
-import { itemStanding, settledCount, topicItemGroups } from './topicItems'
+import { itemStanding, settledCount, topicBar, topicItemGroups } from './topicItems'
 
 function seeded(id: string): Topic {
   const parsed = parseLibrary(seedLibrary())
@@ -71,5 +71,50 @@ describe('item groups', () => {
     const [group] = topicItemGroups(topic)
     expect(group.label).toBeUndefined()
     expect(group.entries.map(entry => entry.marker)).toEqual(topic.items.map((_, index) => String(index + 1)))
+  })
+})
+
+describe('the header bar', () => {
+  const base = seeded('nato-phonetic')
+  const n = base.items.length
+  const attempt = (correct: number, resolvedTo: Topic['status'], missedItemIds?: string[]) =>
+    ({ at: '2026-01-01T00:00:00Z', correct, total: n, resolvedTo, ...(missedItemIds ? { missedItemIds } : {}) })
+
+  it('reads the last Test for a topic in repair that just scored 22 of 26', () => {
+    const topic: Topic = { ...base, status: 'learning', history: [attempt(26, 'completed'), attempt(22, 'learning')] }
+    expect(topicBar(topic)).toEqual({ value: 22, max: 26, label: '22 of 26 correct in the last Test' })
+  })
+
+  it('reads a banked topic as every item settled', () => {
+    const topic: Topic = { ...base, status: 'completed', history: [attempt(26, 'completed')] }
+    expect(topicBar(topic)).toMatchObject({ value: 26, max: 26 })
+  })
+
+  it('shows no bar, not a false 0, with no Test to read', () => {
+    expect(topicBar({ ...base, status: 'unstarted', history: [] })).toBeNull()
+    expect(topicBar({ ...base, items: [], history: [] })).toBeNull()
+  })
+
+  it('shows no bar for a repair topic whose history does not describe it', () => {
+    // Repair, but the only attempt on record says it completed.
+    expect(topicBar({ ...base, status: 'decayed', history: [attempt(26, 'completed')] })).toBeNull()
+  })
+
+  it('reads a Test that got nothing right as a real zero', () => {
+    expect(topicBar({ ...base, status: 'learning', history: [attempt(0, 'learning')] })).toMatchObject({ value: 0, max: 26 })
+  })
+
+  it('ignores a Test taken before the item set changed', () => {
+    const topic: Topic = { ...base, status: 'learning', history: [{ ...attempt(9, 'learning'), total: 10 }] }
+    expect(topicBar(topic)).toBeNull()
+  })
+
+  it('marks the items the last Test missed, copper only while in repair', () => {
+    const [a, b] = base.items
+    const learning: Topic = { ...base, status: 'learning', history: [attempt(24, 'learning', [a.id!, b.id!])] }
+    expect(itemStanding(learning, a)).toBe('missed')
+    expect(itemStanding(learning, base.items[2])).toBe('seen')
+    const repair: Topic = { ...base, status: 'decayed', history: [attempt(24, 'decayed', [a.id!])] }
+    expect(itemStanding(repair, a)).toBe('repair')
   })
 })

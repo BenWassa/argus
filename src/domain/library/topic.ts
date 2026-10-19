@@ -90,6 +90,13 @@ export interface Attempt {
   total: number
   /** Status the topic held after this attempt resolved. */
   resolvedTo: Status
+  /**
+   * Ids of the items this run answered wrong. Additive within v5: absent means
+   * a clean run or an attempt that predates the record. It is the one durable
+   * trace a reveal-and-grade topic keeps of what was missed, because those
+   * items write no per-item evidence.
+   */
+  missedItemIds?: string[]
 }
 
 export interface TopicSequence {
