@@ -24,6 +24,8 @@ export interface SpineRow {
   accessibleLabel: string
   /** Called on tap unless the row is locked. */
   onSelect?: () => void
+  /** Called on tap of a locked row, so the screen can say why in one line. */
+  onLockedSelect?: () => void
   /** A non-button row (role group) whose trailing content holds its own controls. */
   group?: boolean
   /** A full-width plate crossing the spine, for milestones. */
@@ -31,6 +33,12 @@ export interface SpineRow {
   className?: string
   /** Content under the row inside the same list item, such as one quiet action. */
   after?: ReactNode
+  /**
+   * One small secondary control drawn inside the row's plate, under its words.
+   * It sits outside the row button (controls never nest), and stays usable
+   * while the row is locked.
+   */
+  aside?: ReactNode
 }
 
 export interface ProgressSpineProps {
@@ -109,7 +117,8 @@ export function ProgressSpine({ rows, label, positionId: positionProp, jump, cla
         {rows.map((row) => {
           const locked = row.state === 'locked'
           const isPosition = row.id === positionId
-          const classes = ['spine-row', `is-${isPosition ? 'position' : row.state}`, row.plate && 'is-plate', row.className]
+          const hasAside = row.aside !== undefined && row.aside !== null
+          const classes = ['spine-row', `is-${isPosition ? 'position' : row.state}`, row.plate && 'is-plate', hasAside && 'has-aside', row.className]
             .filter(Boolean).join(' ')
           const ref = isPosition ? (element: HTMLElement | null) => { positionRef.current = element } : undefined
           const content = <>
@@ -120,20 +129,21 @@ export function ProgressSpine({ rows, label, positionId: positionProp, jump, cla
             </span>
             {row.trailing !== undefined && row.trailing !== null && <span className="spine-trailing">{row.trailing}</span>}
           </>
+          const control = row.group ? (
+            <div className={classes} role="group" ref={ref} aria-label={row.accessibleLabel}
+              aria-current={isPosition ? 'step' : undefined} aria-disabled={locked || undefined}>
+              {content}
+            </div>
+          ) : (
+            <button type="button" className={classes} ref={ref} aria-label={row.accessibleLabel}
+              aria-current={isPosition ? 'step' : undefined} aria-disabled={locked || undefined}
+              onClick={() => { if (locked) row.onLockedSelect?.(); else row.onSelect?.() }}>
+              {content}
+            </button>
+          )
           return (
             <li key={row.id} data-node-id={row.id}>
-              {row.group ? (
-                <div className={classes} role="group" ref={ref} aria-label={row.accessibleLabel}
-                  aria-current={isPosition ? 'step' : undefined} aria-disabled={locked || undefined}>
-                  {content}
-                </div>
-              ) : (
-                <button type="button" className={classes} ref={ref} aria-label={row.accessibleLabel}
-                  aria-current={isPosition ? 'step' : undefined} aria-disabled={locked || undefined}
-                  onClick={() => { if (!locked) row.onSelect?.() }}>
-                  {content}
-                </button>
-              )}
+              {hasAside ? <div className="spine-row-wrap">{control}<div className="spine-aside">{row.aside}</div></div> : control}
               {row.after}
             </li>
           )

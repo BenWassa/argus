@@ -25,6 +25,18 @@ interface MorsePlacementDialogProps {
   onContinue: (result: MorsePlacementResult) => void
 }
 
+/** A three-bar level mark: how much Morse a choice starts from. */
+function LevelMark({ level }: { level: 1 | 2 | 3 }) {
+  return (
+    <svg className="morse-placement-mark" width="24" height="20" viewBox="0 0 24 20" focusable="false" aria-hidden="true">
+      {[0, 1, 2].map((bar) => (
+        <rect key={bar} x={bar * 9} y={12 - bar * 6} width="6" height={8 + bar * 6} rx="1.5"
+          fill={bar < level ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.5" />
+      ))}
+    </svg>
+  )
+}
+
 interface Feedback {
   correct: boolean
   letter: string
@@ -86,20 +98,16 @@ export function MorsePlacementDialog({
     return (
       <Dialog title="Check your Morse level" onClose={onClose} closeLabel="Close placement check">
         <div className="morse-placement-intro">
-          <p>How much Morse have you learned before?</p>
-          <p className="help">Your answer only changes how the check is run. It does not grant progress.</p>
+          {/* A mark and one or two words each (#257); the names keep the full choice. */}
           <div className="morse-placement-choices">
-            <button type="button" onClick={onNew}>
-              <strong>New to Morse</strong>
-              <span>Start with the first lesson.</span>
+            <button type="button" aria-label="New to Morse" onClick={onNew}>
+              <LevelMark level={1} /><span>New</span>
             </button>
-            <button type="button" className="ghost" onClick={() => begin('some')}>
-              <strong>Know some Morse</strong>
-              <span>Check forward until we find the first gap.</span>
+            <button type="button" className="ghost" aria-label="Know some Morse" onClick={() => begin('some')}>
+              <LevelMark level={2} /><span>Know some</span>
             </button>
-            <button type="button" className="ghost" onClick={() => begin('most')}>
-              <strong>Know most Morse</strong>
-              <span>Run a broader, faster A–Z check.</span>
+            <button type="button" className="ghost" aria-label="Know most Morse" onClick={() => begin('most')}>
+              <LevelMark level={3} /><span>Know most</span>
             </button>
           </div>
         </div>

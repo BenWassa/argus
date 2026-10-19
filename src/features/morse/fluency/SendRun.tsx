@@ -33,6 +33,8 @@ interface SendRunProps {
   onProgress: (next: MorseFluencyProgress) => void
   onStage: (stage: SendStage) => void
   onExit: () => void
+  /** Characters material may contain (#257): the taught roster before acquisition; absent, no limit. */
+  allowed?: ReadonlySet<string>
   /** Deterministic injection for unit tests. One run otherwise gets one seed at mount. */
   seed?: number
 }
@@ -75,10 +77,11 @@ export function SendRun({
   onProgress,
   onStage,
   onExit,
+  allowed,
   seed,
 }: SendRunProps) {
   const [runSeed] = useState(() => seed ?? 0)
-  const prompts = useMemo(() => sendPrompts(stage, runSeed), [runSeed, stage])
+  const prompts = useMemo(() => sendPrompts(stage, runSeed, allowed), [allowed, runSeed, stage])
   const meta = SEND_STAGE_INFO[stage]
   const correctionAudio = useMorseAudio()
 

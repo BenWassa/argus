@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { journeyFor } from '../../domain/study/journey'
 import { resolveStudy } from '../../domain/study/scheduling'
 import { useLibrary } from '../../services/library/LibraryProvider'
@@ -53,6 +53,10 @@ export function TopicPage({
   const { updateTopic } = useLibrary()
   const heading = useRef<HTMLHeadingElement>(null)
   const [placementOpen, setPlacementOpen] = useState(false)
+  // Morse opens scrolled to its position; once the page is scrolled at all,
+  // its header pins in compact form so the title and n / 26 stay in view.
+  const top = useRef<HTMLSpanElement>(null)
+  const [compact, setCompact] = useState(false)
   const runnable = topic.items.length > 0
   const path = runnable ? morseProgressPath(topic) : null
   const course = Boolean(path)
@@ -70,6 +74,14 @@ export function TopicPage({
     heading.current?.focus({ preventScroll: course })
   }, [topic.id, course])
 
+  useEffect(() => {
+    const sentinel = top.current
+    if (!course || !sentinel || typeof IntersectionObserver === 'undefined') return
+    const observer = new IntersectionObserver(([entry]) => setCompact(!entry.isIntersecting && entry.boundingClientRect.top < 0))
+    observer.observe(sentinel)
+    return () => observer.disconnect()
+  }, [course])
+
   function startMorse(action: Parameters<typeof morseRunAction>[0]) {
     // Start is the existing New-to-Morse choice; Skip ahead owns placement.
     if (action.kind === 'start-lesson' && canOfferMorsePlacement(topic)) {
@@ -82,13 +94,13 @@ export function TopicPage({
 
   return (
     <article className={`topic topic-track-${topic.track}${course ? ' topic-morse' : ''}`}>
+      {course && <span ref={top} className="topic-morse-top" aria-hidden="true" />}
       {course ? <ScreenHeader ref={heading} titleClassName="topic-title" title={topic.title}
+        className={`topic-morse-header${compact ? ' is-compact' : ''}`}
         onBack={onBack}
         actions={<button className="quiet topic-morse-reference" type="button" onClick={() => onReference(topic.id)}>A–Z</button>}
         progress={{ value: journey.acquisition.settled, max: 26, label: `${journey.acquisition.settled} of 26 letters` }}
-        readout={`${journey.acquisition.settled} / 26`}>
-        {offersPlacement && <button className="quiet topic-morse-placement" type="button" onClick={() => setPlacementOpen(true)}>Skip ahead</button>}
-      </ScreenHeader> : <ScreenHeader ref={heading} titleClassName="topic-title" title={topic.title}
+        readout={`${journey.acquisition.settled} / 26`} /> : <ScreenHeader ref={heading} titleClassName="topic-title" title={topic.title}
         className={banked ? 'is-banked' : undefined}
         onBack={onBack}
         glyph={topicIcon(topic.id) ? <TopicGlyph topicId={topic.id} /> : undefined}
@@ -108,7 +120,8 @@ export function TopicPage({
 
       {course ? <>
         <MorseModeTray className="topic-morse-tray" topic={topic} onStart={(_mode, entry) => { if (entry) startMorse(entry) }} />
-        <MorseProgressPath topic={topic} onAction={startMorse} showJump={false} />
+        <MorseProgressPath topic={topic} onAction={startMorse} showJump={false}
+          onPlacement={offersPlacement ? () => setPlacementOpen(true) : undefined} />
       </> : runnable ? <>
         <TopicTray topic={topic} label={repair ? 'Repair' : banked ? 'Test again' : 'Test'}
           practiceCount={practiceCount} onStart={onStart} onReference={onReference} />

@@ -9,11 +9,17 @@ interface MorseModeTrayProps {
   className?: string
 }
 
-function Stimulus({ mode }: { mode: MorseMode }) {
-  if (mode === 'key') return <span className="morse-mode-letter">A</span>
-  if (mode === 'free') return <span className="morse-mode-text">HI<span className="morse-mode-cursor" /></span>
+/**
+ * What a mode puts in front of you first. The tray shows it at tile size; a
+ * tier pip on the path shows the same mark small, so a pip reads as its mode
+ * without relying on colour.
+ */
+export function MorseModeGlyph({ mode, small = false }: { mode: MorseMode; small?: boolean }) {
+  const size = small ? ' is-small' : ''
+  if (mode === 'key') return <span className={`morse-mode-letter${size}`}>A</span>
+  if (mode === 'free') return <span className={`morse-mode-text${size}`}>HI<span className="morse-mode-cursor" /></span>
   return (
-    <svg width="60" height="32" viewBox="0 0 60 32" fill="currentColor" focusable="false">
+    <svg className={`morse-mode-svg${size}`} width={small ? 22 : 60} height={small ? 12 : 32} viewBox="0 0 60 32" fill="currentColor" focusable="false" aria-hidden="true">
       {mode === 'listen' ? [12, 22, 32, 20, 28, 14].map((height, index) => (
         <rect key={index} x={index * 10 + 1} y={(32 - height) / 2} width="6" height={height} rx="3" />
       )) : <><circle cx="6" cy="16" r="5" /><rect x="18" y="11" width="16" height="10" rx="3" /><rect x="41" y="11" width="16" height="10" rx="3" /></>}
@@ -21,13 +27,13 @@ function Stimulus({ mode }: { mode: MorseMode }) {
   )
 }
 
-/** Mode entry stays a domain decision; the tray only forwards the descriptor. */
+/** Mode entry stays a domain decision; the tray only forwards the descriptor. Every mode is open (#257). */
 export function MorseModeTray({ topic, onStart, className }: MorseModeTrayProps) {
   return (
     <ModeTray label="Play" className={className} tiles={MORSE_MODES.map(({ id, label }) => ({
       id,
       label,
-      stimulus: <Stimulus mode={id} />,
+      stimulus: <MorseModeGlyph mode={id} />,
       colour: `var(--mode-${id})`,
       ink: `var(--mode-${id}-ink)`,
       disabled: modeAvailability(topic, id) === 'locked',
