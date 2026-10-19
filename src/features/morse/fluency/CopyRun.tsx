@@ -19,6 +19,7 @@ import { recordFluencyBest, type MorseFluencyProgress } from '../../../domain/mo
 import { fluencyTiming, type FluencyRung } from '../../../domain/morse/fluency/timing'
 import { fire } from '../../../shared/haptics'
 import { MorseCharacterSupport } from '../MorseCharacterSupport'
+import { MorseListenPlay } from '../MorseListenPlay'
 import { useMorseAudio } from '../useMorseAudio'
 import { SessionFrame, SessionCorrect, RoundResult } from '../../../shared/ui/SessionFrame'
 import './Fluency.css'
@@ -231,17 +232,17 @@ export function CopyRun({ level, rung, progress, focus, allowed, onProgress, onL
 
       <div className="fluency-target">
         <h1 className="sr-only">Listen, then type what you heard.</h1>
-        <p className="lesson-task">Hear it, write it</p>
+        <p className="lesson-task">Copy</p>
 
+        {/* The shared Listen control (#263); two hearings, counted under it. */}
         <div className="fluency-listen">
-          <button
-            type="button"
-            className="fluency-play"
+          <MorseListenPlay
+            label={playing ? 'Playing' : plays === 0 ? 'Play' : plays < COPY_PLAYS_PER_PROMPT ? 'Play once more' : 'Heard twice'}
+            icon={plays === 0 ? 'play' : 'replay'}
             onClick={() => void play(prompt, true)}
             disabled={!canPlay}
-          >
-            {playing ? 'Playing' : plays === 0 ? 'Play' : plays < COPY_PLAYS_PER_PROMPT ? 'Play once more' : 'Heard twice'}
-          </button>
+            readout={`${Math.min(plays, COPY_PLAYS_PER_PROMPT)} / ${COPY_PLAYS_PER_PROMPT}`}
+          />
         </div>
 
         {audioError && (
@@ -287,40 +288,37 @@ export function CopyRun({ level, rung, progress, focus, allowed, onProgress, onL
           )}
         </form>
 
-        {judgement && (
-          <div
-            className={`fluency-feedback copy-feedback${judgement.correct ? ' is-correct' : ' is-wrong'}`}
-            role="status"
-            aria-live="assertive"
-          >
-            {judgement.correct ? <SessionCorrect target={judgement.expected} announce={false} /> : <strong>{Math.round(judgement.accuracy * 100)}%</strong>}
+        {judgement?.correct && (
+          <div className="fluency-feedback copy-feedback is-correct" role="status" aria-live="assertive">
+            <SessionCorrect target={judgement.expected} announce={false} />
             <p className="copy-expected">
-              {judgement.words.map((word, index) => (
-                <span key={index} className={word.ok ? undefined : 'is-wrong-char'}>
-                  {word.text}
-                </span>
-              ))}
+              {judgement.words.map((word, index) => <span key={index}>{word.text}</span>)}
             </p>
-            {!judgement.correct && (
-              <>
-                <p className="copy-given mono">
-                  You wrote <span>{judgement.given || '—'}</span>
-                </p>
-                {correctionGlyph && (
-                  <MorseCharacterSupport
-                    glyph={correctionGlyph}
-                    pattern={MORSE_LETTERS[correctionGlyph]}
-                    playing={correctionAudio.sounding?.glyph === correctionGlyph}
-                    onToggle={() => correctionAudio.toggle(correctionGlyph)}
-                    audioError={correctionAudio.audioError}
-                  />
-                )}
-                <button type="button" className="lesson-next" onClick={advance}>
-                  Continue
-                </button>
-              </>
-            )}
           </div>
+        )}
+
+        {judgement && !judgement.correct && (
+          <SessionCorrect className="copy-miss" miss={{
+            said: judgement.given,
+            saidLabel: 'You wrote',
+            answer: <>
+              <p className="copy-expected">
+                {judgement.words.map((word, index) => (
+                  <span key={index} className={word.ok ? undefined : 'is-wrong-char'}>{word.text}</span>
+                ))}
+              </p>
+              {correctionGlyph && (
+                <MorseCharacterSupport
+                  glyph={correctionGlyph}
+                  pattern={MORSE_LETTERS[correctionGlyph]}
+                  playing={correctionAudio.sounding?.glyph === correctionGlyph}
+                  onToggle={() => correctionAudio.toggle(correctionGlyph)}
+                  audioError={correctionAudio.audioError}
+                />
+              )}
+            </>,
+            onContinue: advance,
+          }} />
         )}
       </div>
     </SessionFrame>

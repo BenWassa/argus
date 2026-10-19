@@ -56,7 +56,7 @@ describe('direct Topic-page Morse Play entries (#201)', () => {
         <FluencySurface topicId={MORSE_ID} initialCopy="common" onExit={onExit} />
       </LibraryProvider>,
     )
-    expect(screen.getByText('Hear it, write it')).toBeTruthy()
+    expect(screen.getByText('Copy', { selector: '.lesson-task' })).toBeTruthy()
     expect(screen.queryByText('After the alphabet')).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'Close' }))
     expect(onExit).toHaveBeenCalledTimes(1)

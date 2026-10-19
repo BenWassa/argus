@@ -124,10 +124,22 @@
 
 .topic-earned { margin-top: var(--s-md); }
 
-/* ---------------------------------------- header actions -- */
+/* ------------------------------------------------------------- foot -- */
 
-.screen-header-actions .quiet.is-danger { color: var(--danger); }
-.screen-header-actions .quiet.is-danger:hover { color: var(--danger-2); }
+/* Sources and limitations and Delete share the page foot: small, quiet, last.
+   Delete is never in a header, pinned or not. */
+.topic-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-xs) var(--s-lg);
+  margin-top: var(--s-xl);
+}
+
+.topic-foot button.sources-link { margin: 0; }
+.topic-foot .quiet.is-danger { min-height: 44px; color: var(--danger); font-size: var(--t-small); }
+.topic-foot .quiet.is-danger:hover { color: var(--danger-2); }
 
 /* Morse: ScreenHeader, ModeTray and ProgressSpine own the layout. The tray is
    fixed above phone navigation, reserves its own height, and sits above the
@@ -169,9 +181,55 @@
   white-space: nowrap;
   text-overflow: ellipsis;
 }
+.topic-morse-header.is-compact .topic-edit,
+.topic-morse-header.is-compact .topic-delete { display: none; }
+/* Rows keep clear of the pinned header above and the tray and navigation
+   below, so the path opens with its position centred in the free space. */
 .topic-morse .spine-row,
 .topic-morse .morse-progress-pip,
-.topic-morse .morse-progress-aside { scroll-margin-top: 112px; }
+.topic-morse .morse-progress-aside {
+  scroll-margin-top: 112px;
+  scroll-margin-bottom: calc(var(--nav-clearance, 0px) + var(--mode-tray-height, 0px));
+}
+
+/* Short landscape (#263): the header is one row (Back, title, reading,
+   A–Z) without its bar, pinned or not, so with the slim tray at least three
+   path rows show. Pinned and unpinned are the same height, so pinning never
+   moves the page under the learner. */
+@media (max-height: 420px) and (min-width: 560px) {
+  .topic-morse-header,
+  .topic-morse-header.is-compact {
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    grid-template-areas: 'back title progress actions';
+    align-items: center;
+    gap: var(--s-xs) var(--s-sm);
+    padding-top: max(var(--s-xs), env(safe-area-inset-top));
+    padding-bottom: var(--s-xs);
+  }
+  .topic-morse-header .screen-header-bar { display: contents; }
+  .topic-morse-header .screen-header-back { grid-area: back; }
+  .topic-morse-header .screen-header-actions { grid-area: actions; margin-left: 0; }
+  .topic-morse-header .screen-header-title-row { grid-area: title; }
+  .topic-morse-header .screen-header-progress { grid-area: progress; }
+  .topic-morse-header .screen-header-track { display: none; }
+  .topic-morse-header .topic-title {
+    overflow: hidden;
+    font-size: var(--t-component);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .topic-morse .spine-row,
+  .topic-morse .morse-progress-pip,
+  .topic-morse .morse-progress-aside { scroll-margin-top: 56px; }
+}
+
+/* Desktop: the tray is sticky under the pinned header, so rows keep clear of
+   both. */
+@media (min-width: 980px) {
+  .topic-morse .spine-row,
+  .topic-morse .morse-progress-pip,
+  .topic-morse .morse-progress-aside { scroll-margin-top: 184px; }
+}
 @media (min-width: 980px) {
   .topic { max-width: 760px; }
 }

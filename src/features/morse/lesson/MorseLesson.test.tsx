@@ -371,7 +371,7 @@ describe('feedback and modality boundaries', () => {
     expect(code).not.toContain('setTimeout(')
     // The dismissal is the hook's, gated on the hook's own hold state, so it
     // cannot appear beside a hit or advance one early.
-    expect(code).toContain('onClick={continueFromMiss} disabled={!holding}')
+    expect(code).toContain('onContinue: continueFromMiss, continueDisabled: !holding')
     expect(code).toContain('acknowledge()')
   })
 

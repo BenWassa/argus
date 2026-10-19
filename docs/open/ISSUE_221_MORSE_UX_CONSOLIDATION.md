@@ -1,13 +1,19 @@
 # #221 — Morse UX consolidation: continuous adaptive letter practice and one teaching language
 
-**Status:** Implemented and released in v1.5.3 on 2026-10-16; automated release verification complete. Real Pixel acceptance remains open.
-**Authority:** Maintained practice and teaching contract and implementation record. Topic architecture (§3) is superseded by #230 in [UI overhaul](ISSUE_225_UI_OVERHAUL.md): one progress path and mode tray; the legacy Fluency hub is retired. Proposed sections below retain rationale; the implementation record states the actual delivered behavior.
+**Status:** Implemented and released in v1.5.3 on 2026-10-16; automated release verification complete. Real Pixel acceptance remains open. Navigation was superseded on `feat/ui-overhaul`, awaiting owner sign-off and release.
+**Authority:** Maintained adaptive-practice and teaching contract. The navigation in the 2026-10-16 record and original proposal is historical, superseded on `feat/ui-overhaul` by [UI overhaul (#225)](ISSUE_225_UI_OVERHAUL.md). That plan governs the pending overhaul's scope and decisions until release.
 **Audit:** Original scoping inventory inspected default-branch source on 2026-10-16. The implementation review below adds real Chromium captures at 320/390 CSS px; physical Pixel and deployed-app acceptance remain outstanding.
 **Issue:** https://github.com/BenWassa/argus/issues/221
 **Related:** #201 / PRs #209, #212, #215; #188; #87; #90; #76; #113.
 **Authorities:** `DESIGN.md`, `DESIGN.json`, `src/styles/tokens.css`, `PRODUCT.md`, `MORSE_LESSON.md`, `MORSE_CUE_LADDER.md`, `MORSE_FLUENCY.md`, `PROGRESS_ARCHITECTURE.md`, `MORSE_AUDIO_RUNTIME.md`, `ISSUE_201_MORSE_GAMEPLAY_CONTINUITY.md`.
 
-## Implementation record — 2026-10-16
+## Integration update (2026-10-19)
+
+Source verification: `TopicPage.tsx` composes `MorseModeTray` and `MorseProgressPath`; `FluencyHome.tsx` and `MorsePath.tsx` have been deleted. One Morse topic screen now exposes Key, Listen, Read and Free play, a straight progress path, and a shared `SessionFrame` for activities. The Practice letters / Send / Receive / Challenges split, folded Lessons, More options and Listening settings hub below describe the earlier release, not the integration branch. Spacing controls now live in Listen sessions through `ListeningSpacing`.
+
+Adaptive direction histories and shared corrections remain maintained contracts. Levels are open subject to taught-material readiness; letters stability now requires each of all 26 eligible letters' 3 latest independent answers to be correct in that direction. See [#225 results](ISSUE_225_UI_OVERHAUL.md#results-2026-10-19) for current decisions and outstanding acceptance.
+
+## Historical implementation record (2026-10-16)
 
 The owner requested review and full implementation of today's issue. Work was developed on `fix/221-morse-practice` and integrated into `main`; the [release closeout](../closed/RELEASE_1_5_3.md) records deployment verification. This record does not claim physical-device acceptance.
 
@@ -45,6 +51,10 @@ Browser captures: [320 before](assets/morse-221/phone-320-before.png), [390 befo
 
 These are real Chromium renders of the production bundle at CSS phone widths, not physical Pixel captures. Physical Pixel touch/audio acceptance and owner visual signoff remain outstanding; keep #221 open for those checks. The prior documentation PR is provenance, not a runtime dependency. No changes from the separate #113 branch are assumed.
 
+## Original proposal (2026-10-16, retained for rationale)
+
+The inventory, navigation proposals and checked acceptance scenarios below record the original #221 scope and release evidence. They do not describe the current integration UI; the integration update above supersedes the old hub, activity split and disclosure UI. Teaching and formative-state boundaries remain authoritative.
+
 ## 1. Owner problem and product decision
 
 The app contains several ways to play Morse and teach the A–Z alphabet but has no **single obvious place to practice individual letters adaptively after completing them**. On return, the learner wants to *use* knowledge, not re-enter the 13-lesson curriculum or undertake an examination. A correct streak should suppress a stable letter substantially; a sequence of errors should raise a weak letter substantially. There are **no calendar dates, no due dates, no streaks by day, no elapsed-time decay and no forced refresher**.
@@ -55,7 +65,7 @@ The current UI also reimplements the same corrective teaching job in multiple wa
 
 **Terminology decision proposed:** call unscored, repeating work **Practice letters**, never **Test** or **Exam**. Retain the existing **Test** name only for the distinct, formal bidirectional A–Z completion/repair assessment; make its consequences explicit at that boundary rather than throughout Play.
 
-## 2. Verified current code inventory (not a claim of Pixel appearance)
+## 2. Historical source inventory (2026-10-16, not a claim of Pixel appearance)
 
 | Existing surface | Current implementation verified in source | Consolidation problem / action |
 | --- | --- | --- |
@@ -75,7 +85,7 @@ The current UI also reimplements the same corrective teaching job in multiple wa
 
 This inventory counts distinct *implementations* rather than asserting a screenshot defect was manually viewed. A real rendered matrix is a required next step.
 
-## 3. Target information architecture
+## 3. Historical target information architecture (superseded by #225)
 
 ### Morse Topic — first screen
 

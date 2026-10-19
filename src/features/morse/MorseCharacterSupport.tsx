@@ -1,5 +1,6 @@
-import { canonicalNotation, spokenRhythm } from '../../domain/morse/mnemonics'
+import { spokenRhythm } from '../../domain/morse/mnemonics'
 import { MORSE_LETTERS, type MorseLetter } from '../../domain/morse/code'
+import { MorseMarks } from './MorseMarks'
 import { MorsePhrase } from './MorsePhrase'
 import { MorsePlayButton } from './MorsePlayButton'
 import { useMorseAudio } from './useMorseAudio'
@@ -23,7 +24,7 @@ function SupportContent({ glyph, pattern, playing, onToggle, mnemonic, className
       <span className={`morse-character-support-glyph${className.includes('morse-ref-support') ? ' morse-ref-letter' : ''}`} aria-hidden="true">{glyph}</span>
       <div className="morse-character-support-body">
         <p className={`morse-character-support-notation${className.includes('morse-ref-support') ? ' morse-ref-pattern' : ''}`}>
-          <span aria-hidden="true">{canonicalNotation(pattern)}</span>
+          <MorseMarks pattern={pattern} size="support" />
           <span className="sr-only">{glyph}: {spokenRhythm(pattern)}</span>
         </p>
         {mnemonic ? <p className="morse-character-support-mnemonic morse-ref-mnemonic">{mnemonic}</p> : <MorsePhrase glyph={glyph} />}

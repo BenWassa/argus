@@ -1,0 +1,50 @@
+/* The Listen stimulus (#263): one round control in the session's mode colour.
+   Disabled is a solid plate with dim ink, never reduced opacity. */
+.morse-listen-play-wrap {
+  display: inline-grid;
+  justify-items: center;
+  gap: var(--s-xs);
+}
+
+.morse-listen-play,
+.morse-listen-play:hover,
+.morse-listen-play:active {
+  display: grid;
+  place-items: center;
+  width: 96px;
+  height: 96px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: var(--session-ink, var(--accent-ink));
+  background: var(--session-colour, var(--accent));
+  box-shadow: none;
+}
+
+.morse-listen-play:disabled,
+.morse-listen-play:disabled:hover {
+  color: var(--muted);
+  background: var(--plate);
+  border: 1px solid var(--line);
+  cursor: default;
+  opacity: 1;
+}
+
+.morse-listen-play:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+
+.morse-listen-play-readout {
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  font-weight: var(--w-label);
+  letter-spacing: var(--track-readout);
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-height: 560px) {
+  .morse-listen-play,
+  .morse-listen-play:hover,
+  .morse-listen-play:active { width: 64px; height: 64px; }
+  .morse-listen-play svg { width: 28px; height: 28px; }
+}

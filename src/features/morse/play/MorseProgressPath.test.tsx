@@ -73,7 +73,7 @@ describe('Morse progress path', () => {
   it('folds early Test into the A–Z plate without unlocking the milestone', () => {
     const onAction = vi.fn()
     const { container } = render(<MorseProgressPath topic={morseTopic()} onAction={onAction} />)
-    expect(screen.getByRole('button', { name: 'A–Z Test, locked, locked' }).getAttribute('aria-disabled')).toBe('true')
+    expect(screen.getByRole('button', { name: 'A–Z Test, locked' }).getAttribute('aria-disabled')).toBe('true')
     const early = screen.getByRole('button', { name: 'Test early' })
     expect(early.closest('.spine-row-wrap')?.querySelector('.morse-progress-test')).not.toBeNull()
     expect(early.closest('.spine-row')).toBeNull()
@@ -99,8 +99,14 @@ describe('Morse progress path', () => {
     expect(pips.length).toBeGreaterThan(0)
     for (const pip of pips) {
       expect(pip.getAttribute('aria-label')).toMatch(/^[A-Z][a-z]+, (Key|Listen|Read), (available|cleared|locked)$/)
-      expect(pip.querySelector('.morse-progress-pip-chip .morse-mode-letter, .morse-progress-pip-chip svg')).not.toBeNull()
+      expect(pip.querySelector('.morse-progress-pip-chip .morse-mode-letter, .morse-progress-pip-chip svg, .morse-progress-pip-chip .morse-marks')).not.toBeNull()
     }
+    // Levels are plain rows with round nodes; plates stay for tests (#263).
+    for (const tier of container.querySelectorAll('.morse-progress-tier')) {
+      expect(tier.classList.contains('is-plate')).toBe(false)
+      expect(tier.querySelector('.spine-node-square')).toBeNull()
+    }
+    expect(container.querySelector('.morse-progress-test')?.classList.contains('is-plate')).toBe(true)
     expect(screen.getByRole('button', { name: 'Words, Key, available' }).querySelector('.morse-mode-letter')?.textContent).toBe('A')
     expect(screen.getByRole('button', { name: 'Numbers, Listen, locked' }).getAttribute('aria-disabled')).toBe('true')
   })

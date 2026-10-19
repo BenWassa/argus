@@ -156,7 +156,7 @@ export function MorsePlacementDialog({
             Question {run.promptCount + 1} · {run.experience === 'some' ? 'Some experience' : 'Most letters'}
           </p>
           <p className="lesson-task">
-            {target.retry ? 'One more check' : word ? 'Key the whole word' : 'Key this letter'}
+            {target.retry ? 'Recheck' : word ? 'Word' : 'Letter'}
           </p>
 
           {word ? (

@@ -169,6 +169,7 @@ test('after a missed Test the topic page agrees: Practice enabled with the same 
   await startCheck(page)
   await runDeck(page, 3)
   await expect(page.getByRole('button', { name: 'Practise 3 items' })).toBeVisible()
+  await expect(page.locator('.test-outcome')).toHaveText('Not banked · 3 to practise')
   await page.getByRole('button', { name: 'Done' }).click()
 
   await page.locator('.nav-btn', { hasText: 'Library' }).click()
@@ -178,6 +179,9 @@ test('after a missed Test the topic page agrees: Practice enabled with the same 
   await expect(practice.locator('.topic-tile-count')).toHaveText('3')
   await expect(page.locator('.screen-header-readout')).toHaveText(`${nato.items.length - 3} / ${nato.items.length}`)
   await expect(page.locator('.topic-item.is-missed')).toHaveCount(3)
+  // The three missed items are copper with a diamond, and the status line says what happened.
+  await expect(page.locator('.topic-items .spine-row.is-repair .spine-node')).toHaveText(['◆', '◆', '◆'])
+  await expect(page.locator('.topic-state')).toHaveText(`${nato.items.length - 3} / ${nato.items.length} · 3 to practise`)
 
   await practice.click()
   const practiceRoute = await route(page)
@@ -195,8 +199,8 @@ test('practice hands back to the check rather than banking on its own', async ({
   await page.getByRole('button', { name: 'Got it' }).click()
 
   await expect(page.getByRole('heading', { name: 'Practice done' })).toBeVisible()
-  const summary = await page.locator('.practice-summary').textContent()
-  expect(summary).toContain('Nothing recorded; only a Test counts.')
+  // A title and its actions: no sentence about the record.
+  await expect(page.locator('.practice-summary p')).toHaveCount(0)
 
   await page.getByRole('button', { name: 'Test', exact: true }).click()
   await expect(page.locator('.flip-card')).toBeVisible()

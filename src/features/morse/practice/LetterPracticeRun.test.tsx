@@ -62,7 +62,13 @@ describe('LetterPracticeRun', () => {
   it('keeps a wrong answer visible until Continue is chosen', () => {
     const { onProgress } = renderRun()
     fireEvent.click(screen.getByRole('button', { name: 'Key wrong' }))
-    expect(screen.getByRole('status').textContent).toBe('Try this letter')
+    // The shared miss (#263): the verdict, what was keyed, the answer, and the stimulus still above it.
+    const miss = screen.getByRole('status')
+    expect(miss.className).toContain('session-miss')
+    expect(miss.textContent).toContain('Not that one')
+    expect(miss.textContent).toContain('You keyed')
+    expect(miss.querySelector('.session-miss-said-value .morse-mark.is-dah')).toBeTruthy()
+    expect(document.querySelector('.letter-practice-stimulus .lesson-glyph')?.textContent).toBe('E')
     expect((screen.getByRole('button', { name: 'Continue' }) as HTMLButtonElement).disabled).toBe(false)
     act(() => vi.advanceTimersByTime(5_000))
     expect((screen.getByRole('button', { name: 'Continue' }) as HTMLButtonElement).disabled).toBe(false)
@@ -85,6 +91,20 @@ describe('LetterPracticeRun', () => {
     act(() => vi.advanceTimersByTime(100))
     expect((screen.getByRole('textbox', { name: 'Letter' }) as HTMLInputElement).disabled).toBe(true)
     expect(onProgress).not.toHaveBeenCalled()
+  })
+
+  it('draws Read with the shared marks and keeps them above a miss that says what was given', () => {
+    renderRun()
+    fireEvent.click(screen.getByRole('button', { name: 'Read' }))
+    const marks = screen.getByRole('img', { name: 'dit' })
+    expect(marks.className).toContain('morse-marks is-stimulus')
+    fireEvent.change(screen.getByRole('textbox', { name: 'Letter' }), { target: { value: 'q' } })
+    const miss = screen.getByRole('status')
+    expect(miss.textContent).toContain('Not that one')
+    expect(miss.querySelector('.session-miss-said-label')?.textContent).toBe('You said')
+    expect(miss.querySelector('.session-miss-said-value')?.textContent).toBe('Q')
+    expect(screen.getByRole('img', { name: 'dit' })).toBe(marks)
+    expect(miss.compareDocumentPosition(marks) & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy()
   })
 
   it('advances after a correct answer and keeps each direction in its own store', () => {

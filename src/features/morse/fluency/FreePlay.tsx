@@ -234,7 +234,7 @@ export function FreePlay({ rung, onExit }: FreePlayProps) {
               Clear
             </button>
             <button type="button" onClick={() => (playing ? stop() : void play(keyedText))} disabled={!keyedText && !playing}>
-              {playing ? 'Stop' : 'Play it back'}
+              {playing ? 'Stop' : 'Play'}
             </button>
           </div>
         </div>

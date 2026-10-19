@@ -24,6 +24,8 @@ import { fire } from '../../../shared/haptics'
 import { MORSE_MAX_ELEMENTS, MorseKeyInput } from '../input/MorseKeyInput'
 import { useKeyedResponse } from '../input/useKeyedResponse'
 import { MorseCharacterSupport } from '../MorseCharacterSupport'
+import { MorseMarks } from '../MorseMarks'
+import { spokenRhythm as patternReading } from '../../../domain/morse/mnemonics'
 import { useMorseAudio } from '../useMorseAudio'
 import { SessionFrame, SessionCorrect, RoundResult } from '../../../shared/ui/SessionFrame'
 import './SendRun.css'
@@ -99,6 +101,7 @@ export function SendRun({
   const [spotlightFeedback, setSpotlightFeedback] = useState<{
     correct: boolean
     letter: MorseLetter
+    pattern: string
   } | null>(null)
 
   // Open-ended flow state.
@@ -221,7 +224,7 @@ export function SendRun({
     const nextGiven = `${spotlightGivenRef.current}${decoded}`
     spotlightGivenRef.current = nextGiven
     setSpotlightGiven(nextGiven)
-    setSpotlightFeedback({ correct, letter })
+    setSpotlightFeedback({ correct, letter, pattern })
     fire(correct ? 'settle' : 'miss')
     keyed.answered(correct)
   }
@@ -385,30 +388,29 @@ export function SendRun({
 
         {meta.interaction === 'spotlight' && spotlightLetter ? (
           <div className="send-key-zone">
-            <div className="send-feedback-slot" aria-live="assertive">
-              {spotlightFeedback ? (
-                <div className={`send-feedback ${spotlightFeedback.correct ? 'is-correct' : 'is-wrong'}`}>
-                  {spotlightFeedback.correct ? <SessionCorrect target={spotlightFeedback.letter} announce={false} /> : <strong>Miss</strong>}
-                  {!spotlightFeedback.correct && (
-                    <>
-                      <MorseCharacterSupport glyph={spotlightFeedback.letter} pattern={MORSE_LETTERS[spotlightFeedback.letter]} playing={correctionAudio.sounding?.glyph === spotlightFeedback.letter} onToggle={() => correctionAudio.toggle(spotlightFeedback.letter)} audioError={correctionAudio.audioError} />
-                      <button
-                        className="ghost small"
-                        type="button"
-                        onClick={continueSpotlightCorrection}
-                        disabled={!keyed.holding}
-                      >
-                        Continue
-                      </button>
-                    </>
-                  )}
-                </div>
-              ) : (
-                <span className="send-feedback-placeholder" aria-hidden="true">Ready</span>
-              )}
-            </div>
+            {spotlightFeedback && !spotlightFeedback.correct ? (
+              // The shared miss (#263), docked where the key was. The key stays
+              // mounted underneath, hidden, so its unlocked audio survives.
+              <SessionCorrect className="send-miss" miss={{
+                said: spotlightFeedback.pattern ? <MorseMarks pattern={spotlightFeedback.pattern} size="support" label={patternReading(spotlightFeedback.pattern)} /> : undefined,
+                saidLabel: 'You keyed',
+                answer: <MorseCharacterSupport glyph={spotlightFeedback.letter} pattern={MORSE_LETTERS[spotlightFeedback.letter]} playing={correctionAudio.sounding?.glyph === spotlightFeedback.letter} onToggle={() => correctionAudio.toggle(spotlightFeedback.letter)} audioError={correctionAudio.audioError} />,
+                onContinue: continueSpotlightCorrection,
+                continueDisabled: !keyed.holding,
+              }} />
+            ) : (
+              <div className="send-feedback-slot" aria-live="assertive">
+                {spotlightFeedback ? (
+                  <div className="send-feedback is-correct">
+                    <SessionCorrect target={spotlightFeedback.letter} announce={false} />
+                  </div>
+                ) : (
+                  <span className="send-feedback-placeholder" aria-hidden="true">Ready</span>
+                )}
+              </div>
+            )}
 
-            <div inert={!keyed.armed}>
+            <div inert={!keyed.armed} hidden={Boolean(spotlightFeedback && !spotlightFeedback.correct)}>
               <MorseKeyInput
                 expectedLength={MORSE_LETTERS[spotlightLetter].length}
                 advanceToken={`${promptIndex}-${characterIndex}`}

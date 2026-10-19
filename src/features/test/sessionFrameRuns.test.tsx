@@ -66,8 +66,24 @@ describe('the Test result is a round result', () => {
     render(<TestDone {...run} score={{ correct: 24, total: 26 }} />)
     expect(screen.getByRole('heading', { name: '24 of 26 correct' })).toBeTruthy()
     expect(document.querySelectorAll('.test-outcome')).toHaveLength(1)
-    expect(document.querySelector('.test-outcome')?.textContent).toMatch(/passed, still banked/)
+    expect(document.querySelector('.test-outcome')?.textContent).toMatch(/Passed, still banked/)
     expect(screen.queryByRole('button', { name: 'Again' })).toBeNull()
+  })
+
+  it('says what did not bank, and how many are left to practise, never "ready to test"', () => {
+    const [first, second] = NATO.items
+    render(<TestDone {...run} banked={[attempt({ from: 'decayed', to: 'learning' })]} missed={{ [NATO.id]: [first.id!, second.id!] }}
+      onPractice={vi.fn()} score={{ correct: 24, total: 26 }} />)
+    expect([...document.querySelectorAll('.test-outcome')].map((line) => line.textContent)).toEqual(['Not banked · 2 to practise'])
+    expect(document.body.textContent).not.toMatch(/ready to test/i)
+    expect(screen.getAllByRole('listitem').filter((chip) => chip.className === 'test-missed-chip')).toHaveLength(2)
+  })
+
+  it('names the topic on each line only when several topics ran together', () => {
+    const other = { ...NATO, id: 'other', title: 'Other' }
+    render(<TestDone {...run} banked={[attempt({ from: 'learning', to: 'learning' }), attempt({ topic: other, from: 'learning', to: 'learning' })]}
+      missed={{ [NATO.id]: [NATO.items[0].id!] }} score={{ correct: 25, total: 26 }} />)
+    expect([...document.querySelectorAll('.test-outcome')].map((line) => line.textContent)).toEqual([`${NATO.title}: Not banked · 1 to practise`])
   })
 
   it('puts repairing the misses in the primary slot, and Done beside it', () => {

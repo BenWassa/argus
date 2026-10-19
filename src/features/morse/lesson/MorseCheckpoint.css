@@ -18,7 +18,8 @@
 }
 
 .morse-checkpoint-target > .morse-checkpoint-answer,
-.morse-checkpoint-target > .morse-checkpoint-feedback {
+.morse-checkpoint-target > .morse-checkpoint-feedback,
+.morse-checkpoint-target > .session-miss {
   margin-block-start: auto;
 }
 
