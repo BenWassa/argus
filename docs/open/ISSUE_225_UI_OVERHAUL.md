@@ -1,7 +1,7 @@
 # #225: UI overhaul (colour, a Morse progress path, four Morse modes, no accordions)
 
-**Status:** scoped 2026-10-17; implementation not started. Integration branch `feat/ui-overhaul` is open.
-**Authority:** active plan and orchestration record for issues #226–#233. `DESIGN.md`, `DESIGN.json` and `PRODUCT.md` stay authoritative until each child issue rewrites the rules it reverses, in the same PR.
+**Status:** Implemented on `feat/ui-overhaul`; awaiting owner Pixel sign-off and release.
+**Authority:** Still the authority for the overhaul's scope and decisions until released. `DESIGN.md`, `DESIGN.json` and `PRODUCT.md` record the implemented contracts.
 **Issue:** https://github.com/BenWassa/argus/issues/225
 **Related:** #221 (Morse consolidation, Pixel pending), #188 (sending stages), #201, #193 (Home, Pixel pending), #223 (Roles), #113 (offline), [Topic colour spike](../closed/TOPIC_COLOUR_SPIKE.md) (superseded historical study).
 
@@ -112,7 +112,7 @@ All child issues closed. #233 records an isolated re-critique with Morse ≥ 32/
 
 ## Mode and level mapping (#228), resolved
 
-**Status:** domain implementation for review, 2026-10-17; tile, path and session UI remain unimplemented and subject to their owner mock approvals. This section records the domain mapping without changing the shipped navigation contract.
+**Status:** Historical domain mapping from 2026-10-17. Tile, path and session UI are now implemented on `feat/ui-overhaul`; the results below supersede the original five-answer stability threshold and acquisition gates. This section preserves the original mapping and rationale.
 
 | Today's activity id | Mode · level id · tier, or retirement |
 | --- | --- |
@@ -149,3 +149,52 @@ Only the eligible settled roster (or all A–Z once acquisition is ready, exactl
 The shared path tier order is Words, Phrases, Sentences, Messages, then the content-specific Numbers and Groups extensions. Pips exist only for modes that have real content in that tier; Read and Free play do not acquire invented word levels. A pip clears only when every level of its mode in that tier clears.
 
 The path keeps exactly one current node aligned with the existing journey: Start before acquisition begins, the canonical current lesson during acquisition, and Test when the journey says Test (including banked learners). The after-course confirmation case anchors the current marker at the Test milestone with an `after-course` action and a separate early-Test descriptor, so it cannot send a learner back to completed Lesson 13 or skip owed letters. Checkpoints and later tiers remain optional. Making a tier current for a banked learner would require an explicit change to the shared journey in a later slice; this implementation does not silently create a competing next-action policy.
+
+
+## Results (2026-10-19)
+
+Implemented on `feat/ui-overhaul`; owner Pixel sign-off and release remain outstanding.
+
+### Critique scores
+
+| Surface | Baseline (2026-10-17) | Round 1 | Round 2 | Target |
+| --- | ---: | ---: | ---: | ---: |
+| Morse | 24/40 | 29/40 | 31/40 | 32/40 |
+| Rest of the app | | 28/40 | 30/40 | |
+
+Round-2 findings are being fixed in #263 (Morse) and #264 (topics, Test, Practice). A third review follows.
+
+### Delivery map
+
+| Issue | Merged PR |
+| --- | --- |
+| #226 colour foundation | #239 |
+| #227 no accordions | #236 |
+| #228 and #229 modes and path | #235, #238 |
+| #230 Morse topic screen and #231 session frame | #241 |
+| #232 sweep | #240 |
+| #242 open path | #249 |
+| #243 screen kit | #251 |
+| #244 topic page | #255 |
+| #245 Test/Practice frame | #254 |
+| #246 Home/Library | #253 |
+| #247 Roles/Profile/sign-in/sheets | #252 |
+| #248 cleanup | #250 and #256 |
+| #257 Morse path polish | #261 |
+| #258 topic truth | #260 |
+| #259 session layout | #262 |
+
+#233 acceptance remains open.
+
+### Decisions recorded
+
+- No forced path: levels are open, but material draws only taught letters. Numbers wait for all 26 letters; a multicharacter level needs at least 6 distinct prompts. Letters practice remains available.
+- Letters are stable when all 26 are eligible and each letter's 3 latest independently graded answers in that direction are correct.
+- Light mode is parked as #237.
+- Test records missed item ids on the attempt through additive `Attempt.missedItemIds`, written by Test only. Practice writes nothing.
+
+### Open owner questions
+
+1. Should a failed repair Test on a once-completed topic stay “Needs repair” instead of going back to “learning”?
+2. Sign-in hero art: the rugged “handbook” look is an anti-reference in `PRODUCT.md`, and the image carries a small generator mark. Should it be replaced?
+3. Home's single yellow action: “Add something to learn” as built, or “continue” on the top active topic?
