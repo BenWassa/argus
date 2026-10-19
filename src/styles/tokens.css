@@ -146,33 +146,20 @@
   --w-body: 400;
 
   /* Elevation. Plates are flat and opaque: they separate by fill step and a
-     solid 1px line, not by a bevel. --edge and --edge-under are kept as no-op
-     names so existing shadow lists stay valid. A recessed field reads by its
+     solid 1px line, not by a bevel. A recessed field reads by its
      darker fill and a solid line. Held controls still drop a neutral shadow
      inward, and the few lifted things (the card, a sheet) still cast one. */
-  --edge: 0 0 0 0 transparent;
-  --edge-under: 0 0 0 0 transparent;
   --engrave: inset 0 0 0 1px var(--line);
   --press: inset 0 2px 4px rgb(0 0 0 / 30%);
   --press-lit: inset 0 2px 4px rgb(0 0 0 / 18%);
   --shadow-sm: 0 1px 2px rgb(0 0 0 / 30%);
   --shadow-key: 0 8px 22px rgb(0 0 0 / 35%);
   --shadow: 0 14px 36px rgb(0 0 0 / 35%);
+  --shadow-rail: 4px 0 18px rgb(0 0 0 / 30%);
   --shadow-lift: 0 22px 54px rgb(0 0 0 / 42%);
 
-  /* Control faces. Solid fills spelled as images so every existing
-     `background:` layer list stays valid. Hovering the ghost moves it up one
-     fill step. */
-  --gradient-primary: linear-gradient(var(--action), var(--action));
-  --gradient-ghost: linear-gradient(var(--surface-2), var(--surface-2));
-  --gradient-ghost-hover: linear-gradient(var(--surface-3), var(--surface-3));
-
-  /* Texture. Retired with the gunmetal: the slate ground is a plain solid fill.
-     The names stay as `none` so the layers that referenced them are no-ops. */
-  --grain: none;
-  --machining: none;
-  --convex: none;
-  --sheen: none;
+  /* A scrim dims the page behind a modal and is not a container. */
+  --scrim: rgb(0 0 0 / 62%);
 
   /* Motion: state feedback and card physics. Nothing decorative. */
   --t-fast: 150ms;

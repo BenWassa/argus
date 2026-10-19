@@ -472,7 +472,6 @@ button.flip-card:active {
   border: 1px solid var(--line-strong);
   border-radius: var(--r-md);
   background: var(--surface-2);
-  box-shadow: var(--edge);
 }
 
 .test-length {

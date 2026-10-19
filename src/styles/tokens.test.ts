@@ -1,4 +1,6 @@
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
+import { join, relative } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { contrastRatio, hueDistance, toOklch, type Colour } from '../shared/colour'
 
@@ -76,8 +78,31 @@ describe('Signal on Slate', () => {
     }
   })
 
+  it('never declares or references retired material tokens anywhere in src', () => {
+    const retired = [
+      'gradient-primary', 'gradient-ghost', 'gradient-ghost-hover',
+      'grain', 'machining', 'convex', 'sheen', 'edge', 'edge-under',
+    ].join('|')
+    const declaration = new RegExp(`--(?:${retired})\\s*:`)
+    const reference = new RegExp(`var\\(\\s*--(?:${retired})\\s*[,)]`)
+    const root = fileURLToPath(new URL('..', import.meta.url))
+    const violations: string[] = []
+    function scan(dir: string) {
+      for (const entry of readdirSync(dir, { withFileTypes: true })) {
+        const path = join(dir, entry.name)
+        if (entry.isDirectory()) scan(path)
+        else {
+          const content = readFileSync(path, 'utf8')
+          if (declaration.test(content) || reference.test(content)) violations.push(relative(root, path))
+        }
+      }
+    }
+    scan(root)
+    expect(violations).toEqual([])
+  })
+
   it('declares no translucent colour outside the neutral shadow scale', () => {
-    const shadows = new Set(['press', 'press-lit', 'shadow-sm', 'shadow-key', 'shadow', 'shadow-lift'])
+    const shadows = new Set(['press', 'press-lit', 'shadow-sm', 'shadow-key', 'shadow', 'shadow-lift', 'shadow-rail', 'scrim'])
     for (const [name, value] of declared) {
       if (/(?:oklch|rgb)\([^)]*\//.test(value)) expect(shadows.has(name), `--${name}: ${value}`).toBe(true)
     }

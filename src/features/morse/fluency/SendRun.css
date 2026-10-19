@@ -175,7 +175,6 @@
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
   background: var(--surface);
-  box-shadow: var(--edge), var(--edge-under);
   text-align: center;
 }
 
@@ -221,7 +220,7 @@
   border: 1px solid var(--line);
   border-radius: var(--r-xl);
   background: var(--surface-2);
-  box-shadow: var(--edge), var(--edge-under), var(--shadow);
+  box-shadow: var(--shadow);
 }
 
 .send-review-card h1,
