@@ -264,9 +264,9 @@ export function FluencyRun({ mode, rung, progress, focus, only, allowed, onProgr
     <SessionFrame {...frame} className="morse-lesson fluency-run" data-step="check">
 
       <div className="fluency-target" data-phase={phase}>
-        <h1 className="sr-only">
+        <h2 className="session-prompt-heading sr-only">
           Listen and key back {prompt.text.length === 1 ? 'the character' : prompt.text.length + ' characters'}.
-        </h1>
+        </h2>
 
         {/* One or two words: what is being played (#263). */}
         <p className="lesson-task">{prompt.text.length === 1 ? 'Letters' : mode === 'groups' ? 'Groups' : 'Words'}</p>

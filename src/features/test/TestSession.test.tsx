@@ -27,7 +27,7 @@ function open(topicIds: string[]) {
 }
 
 function promptNow(): string {
-  return screen.getByRole('heading', { level: 1 }).textContent ?? ''
+  return screen.getByRole('heading', { level: 2 }).textContent ?? ''
 }
 
 function cardNow(): HTMLElement {
@@ -215,6 +215,18 @@ describe('one gesture, one grade', () => {
 })
 
 describe('keyboard and screen-reader grading', () => {
+  it('focuses the h2 prompt on entry and after advancing to a new card', async () => {
+    open(['nato-phonetic'])
+    const first = promptNow()
+    expect(document.activeElement).toBe(screen.getByRole('heading', { level: 2, name: first }))
+    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1)
+    press(' ')
+    press('ArrowRight')
+    await settled(first)
+    expect(document.activeElement).toBe(screen.getByRole('heading', { level: 2, name: promptNow() }))
+    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1)
+  })
+
   it('keeps both key bindings for both grades', async () => {
     for (const [keys, expected] of [
       [['ArrowLeft', '1', 'ArrowLeft', '1', 'ArrowLeft'], 0],

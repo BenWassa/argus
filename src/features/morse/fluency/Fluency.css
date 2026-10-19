@@ -32,7 +32,7 @@
   margin-inline: auto;
 }
 
-.fluency-head h1 {
+.fluency-head .session-prompt-heading {
   margin: 0;
   outline: none;
 }
@@ -74,17 +74,6 @@
   text-underline-offset: 0.15em;
 }
 
-.copy-given {
-  margin: 0;
-  color: var(--muted);
-  font-size: var(--t-small);
-  overflow-wrap: anywhere;
-}
-
-.copy-given span {
-  color: var(--ink);
-}
-
 .copy-table {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 8.5rem), 1fr));
@@ -118,10 +107,6 @@
   color: var(--muted);
   font-size: var(--t-small);
   white-space: nowrap;
-}
-
-.copy-table-note {
-  justify-self: center;
 }
 
 /* ---- the run ---------------------------------------------------------- */
@@ -246,80 +231,6 @@
   color: var(--danger-2);
 }
 
-.fluency-pattern {
-  color: var(--muted);
-  font-size: var(--t-small);
-}
-
-/* ---- the end screen --------------------------------------------------- */
-
-.fluency-summary {
-  display: grid;
-  justify-items: center;
-  gap: var(--s-md);
-  width: min(100%, 32rem);
-  margin-inline: auto;
-  text-align: center;
-}
-
-.fluency-summary h1 {
-  margin: 0;
-  outline: none;
-}
-
-.fluency-score {
-  margin: 0;
-  font-size: var(--t-component);
-}
-
-.fluency-metric {
-  margin: 0;
-  color: var(--muted);
-  font-size: var(--t-small);
-}
-
-/*
- * Scale 4, and the only one in the file.
- *
- * A personal best is rare by construction — it has to beat every previous run
- * of that mode — so it is allowed a lit line and a short entrance. It is still
- * one line of text: the hierarchy works because the ordinary case stayed
- * quiet, not because this got loud.
- */
-.fluency-crest {
-  margin: 0;
-  padding: var(--s-xs) var(--s-md);
-  border-radius: var(--r-pill);
-  background: var(--accent);
-  color: var(--accent-ink);
-  font-size: var(--t-small);
-  font-weight: var(--w-section);
-  animation: fluency-crest-in 420ms var(--ease) both;
-}
-
-@keyframes fluency-crest-in {
-  from {
-    opacity: 0;
-    transform: translateY(4px) scale(0.96);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-/*
- * Reduced motion removes the entrance and keeps the message. Every celebration
- * in this file has a non-motion form for exactly this reason: a learner with
- * reduced motion set, haptics off and the phone muted must still be able to
- * tell a milestone from an ordinary screen.
- */
-@media (prefers-reduced-motion: reduce) {
-  .fluency-crest {
-    animation: none;
-  }
-}
-
 /* ---- free play -------------------------------------------------------- */
 
 .free-play-tabs {
@@ -352,8 +263,7 @@
   margin-block-start: auto;
 }
 
-.free-play-body .note,
-.free-play-foot {
+.free-play-body .note {
   margin: 0;
   text-align: center;
 }

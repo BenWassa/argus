@@ -90,6 +90,35 @@ function validated(prompt: string): string {
   return normalized
 }
 
+// A fixed search budget and seed make eligibility independent of the requested
+// round length and seed. Readiness and every restricted run use this same pool.
+const eligiblePools = new Map<string, readonly string[]>()
+const SEND_POOL_SIZE = 32
+
+export function eligibleSendPool(stage: SendStage, allowed: ReadonlySet<string>): readonly string[] {
+  const key = `${stage}|${[...allowed].sort().join('')}`
+  const cached = eligiblePools.get(key)
+  if (cached) return cached
+  const random = seededRandom(0)
+  const fits = (text: string) => materialFits(text, allowed)
+  let pool: readonly string[]
+  switch (stage) {
+    case 'words':
+      pool = fluencyWords('short').filter((word) => word.length >= 3 && word.length <= 5 && fits(word))
+      break
+    case 'flow':
+      pool = [...fluencyWords('medium'), ...fluencyWords('long')]
+        .filter((word) => word.length >= 4 && word.length <= 7 && fits(word))
+      break
+    case 'phrases': pool = generatePhrases(SEND_POOL_SIZE, random, allowed); break
+    case 'messages': pool = generateSentences(SEND_POOL_SIZE, random, allowed); break
+    case 'dispatch': pool = DISPATCH_PROMPTS.filter(fits); break
+  }
+  const validatedPool = [...new Set(pool.map(validated))]
+  eligiblePools.set(key, validatedPool)
+  return validatedPool
+}
+
 /**
  * Build one finite, reproducible sending round. `allowed`, when given, keeps
  * only prompts made of those characters (#257), so a round may be shorter;
@@ -102,6 +131,7 @@ export function sendPrompts(
   length: number = SEND_STAGE_INFO[stage].length,
 ): string[] {
   const random = seededRandom(seed)
+  if (allowed) return shuffled(eligibleSendPool(stage, allowed), random).slice(0, length)
   const fits = (text: string) => !allowed || materialFits(text, allowed)
   let prompts: string[]
 

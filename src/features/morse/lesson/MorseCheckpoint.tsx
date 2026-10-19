@@ -96,7 +96,7 @@ export function MorseCheckpoint({ checkpoint, onExit, onContinue, continueLabel 
     return (
       <SessionFrame {...frame} className="morse-lesson morse-checkpoint">
         <div className="morse-checkpoint-summary">
-          <h1 ref={headingRef} tabIndex={-1}>Checkpoint done</h1>
+          <h2 ref={headingRef} tabIndex={-1} className="session-prompt-heading">Checkpoint done</h2>
           <p><strong>{correctAnswers} of {attempts} correct</strong></p>
           {onContinue ? (
             <div className="lesson-exits" inert={!armed}>
@@ -133,7 +133,7 @@ export function MorseCheckpoint({ checkpoint, onExit, onContinue, continueLabel 
         {run.phase === 'warmup' ? (
           <>
             <p className="morse-checkpoint-letter" aria-hidden="true">{letter}</p>
-            <h1 className="sr-only">Key the Morse pattern for {letter}.</h1>
+            <h2 className="session-prompt-heading sr-only">Key the Morse pattern for {letter}.</h2>
           </>
         ) : (
           <>
@@ -144,7 +144,7 @@ export function MorseCheckpoint({ checkpoint, onExit, onContinue, continueLabel 
                 </span>
               ))}
             </p>
-            <h1 className="sr-only">Key {letter}, letter {run.characterIndex + 1} of {word}.</h1>
+            <h2 className="session-prompt-heading sr-only">Key {letter}, letter {run.characterIndex + 1} of {word}.</h2>
           </>
         )}
 

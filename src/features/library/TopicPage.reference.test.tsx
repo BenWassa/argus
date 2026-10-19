@@ -5,6 +5,7 @@ import { seedLibrary } from '../../domain/library/catalogSeed'
 import type { Topic } from '../../domain/library/topic'
 import { parseLibrary } from '../../infrastructure/persistence/libraryParser'
 import { TopicReading } from '../learn/TopicReading'
+import { PracticeRun } from '../practice/PracticeRun'
 import { TopicPage } from './TopicPage'
 
 const updateTopic = vi.fn()
@@ -147,6 +148,26 @@ describe('the topic tray', () => {
     expect(tile('test').querySelector('.topic-tile-count')?.textContent).toBe('9')
   })
 
+  it('launches exactly the one advertised miss from twelve self-scored items', () => {
+    const base = firearm()
+    const items = Array.from({ length: 12 }, (_, i) => ({ id: `item-${i}`, kind: 'forward' as const, prompt: `Prompt ${i}`, answer: `Answer ${i}` }))
+    const topic: Topic = { ...base, items, status: 'learning', history: [{ at: '2026-01-01T00:00:00Z', correct: 11, total: 12, resolvedTo: 'learning', missedItemIds: ['item-4'] }] }
+    const before = JSON.stringify(topic)
+    const { onStart, rerender } = open(topic)
+    expect(tile('practice').querySelector('.topic-tile-count')?.textContent).toBe('1')
+    fireEvent.click(tile('practice'))
+    expect(onStart).toHaveBeenCalledWith('learn', [topic.id], { kind: 'practice', itemIds: ['item-4'] })
+    const target = onStart.mock.lastCall![2]
+    rerender(<PracticeRun topic={topic} itemIds={target.itemIds} onExit={vi.fn()} onCheck={vi.fn()} />)
+    expect(screen.getByRole('progressbar', { name: '0 of 1' })).toBeTruthy()
+    expect(screen.getByText('Prompt 4')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Reveal answer' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Got it' }))
+    expect(screen.getByRole('heading', { name: 'Practice done' })).toBeTruthy()
+    expect(JSON.stringify(topic)).toBe(before)
+    expect(updateTopic).not.toHaveBeenCalled()
+  })
+
   it('offers Practice with the count of missed items as its stimulus', () => {
     const topic = seeded('whole-circle-bearings')
     const missedItem = topic.items[2]
@@ -156,7 +177,7 @@ describe('the topic tray', () => {
     expect(tile('practice').getAttribute('aria-disabled')).toBeNull()
     expect(tile('practice').querySelector('.topic-tile-count')?.textContent).toBe('1')
     fireEvent.click(tile('practice'))
-    expect(onStart).toHaveBeenCalledWith('learn', [topic.id], { kind: 'practice' })
+    expect(onStart).toHaveBeenCalledWith('learn', [topic.id], { kind: 'practice', itemIds: [missedItem.id!] })
     expect(container.querySelectorAll('.topic-item.is-missed')).toHaveLength(1)
     // Items keep their compact stimulus inside the row.
     expect(container.querySelectorAll('.topic-item.has-visual')).toHaveLength(12)

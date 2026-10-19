@@ -85,3 +85,14 @@ describe('fluency writes only its own field', () => {
     expect(source).not.toContain('wpm')
   })
 })
+
+
+describe('fluency stylesheet', () => {
+  it('omits retired table, summary, feedback and free-play selectors', () => {
+    const css = read('src/features/morse/fluency/Fluency.css')
+    for (const retired of ['copy-table-note', 'copy-given', 'fluency-summary', 'fluency-score', 'fluency-metric', 'fluency-pattern', 'fluency-crest', 'free-play-foot']) {
+      expect(css).not.toContain(`.${retired}`)
+    }
+    expect(css).not.toContain('@keyframes fluency-crest-in')
+  })
+})

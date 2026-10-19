@@ -32,7 +32,7 @@ describe('ChoiceCard', () => {
   it('shows the stimulus and every option, but not the stimulus caption', () => {
     open()
     expect(screen.getByRole('img', { name: 'A dial with one pointer.' })).toBeTruthy()
-    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe(item.prompt)
+    expect(screen.getByRole('heading', { level: 2 }).textContent).toBe(item.prompt)
     for (const option of item.choice!.options) expect(screen.getByRole('button', { name: option })).toBeTruthy()
     expect(document.body.textContent).not.toContain('give the answer away')
   })

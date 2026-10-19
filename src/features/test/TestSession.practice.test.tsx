@@ -41,7 +41,7 @@ const ANSWER_FOR = new Map(NATO.items.map((item) => [item.prompt, item.answer]))
 const SMALL = seededTopic('ooda-loop')
 
 function promptNow(): string {
-  return screen.getByRole('heading', { level: 1 }).textContent ?? ''
+  return screen.getByRole('heading', { level: 2 }).textContent ?? ''
 }
 
 function press(key: string) {
@@ -65,7 +65,7 @@ async function runDeck(wrongPrompts: Set<string>, topic: Topic = NATO) {
     // Let the exit animation settle into the next card or the end screen.
     await waitFor(() =>
       expect(
-        promptNow() !== prompt || document.querySelector('.test-done') !== null,
+        document.querySelector('.test-done') !== null || promptNow() !== prompt,
       ).toBe(true),
     )
   }
@@ -179,7 +179,10 @@ describe('offering practice after a check', () => {
     expect(container.querySelector('.screen-header-readout')?.textContent).toBe(`${NATO.items.length - 4} / ${NATO.items.length}`)
     expect(container.querySelectorAll('.topic-item.is-missed')).toHaveLength(4)
     fireEvent.click(practice)
-    expect(onStart).toHaveBeenCalledWith('learn', ['nato-phonetic'], { kind: 'practice' })
+    expect(onStart).toHaveBeenCalledWith('learn', ['nato-phonetic'], {
+      kind: 'practice',
+      itemIds: [0, 3, 7, 9].map(index => NATO.items[index].id!),
+    })
     // Practising reads that record and writes nothing.
     expect(JSON.parse(localStorage.getItem(STORE_KEY)!).topics.find((topic: Topic) => topic.id === 'nato-phonetic').history).toEqual(stored.history)
   }, 60000)

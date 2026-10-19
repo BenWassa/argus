@@ -191,11 +191,11 @@ export function ProgressiveCard({
       <p className="test-task">{keying ? 'Key it' : 'Name it'}</p>
 
       {keying ? (
-        <h1 id="prompt-heading" className="test-prompt">
+        <h2 id="prompt-heading" className="session-prompt-heading test-prompt" tabIndex={-1}>
           {character.glyph}
-        </h1>
+        </h2>
       ) : (
-        <h1 id="prompt-heading" className="test-prompt is-pattern">
+        <h2 id="prompt-heading" className="session-prompt-heading test-prompt is-pattern" tabIndex={-1}>
           {/* Drawn from the canonical notation rather than set in it. At the
               size a prompt wants to be, `— — · —` is four rules of arbitrary
               length with a speck in the middle; a dah drawn three times the
@@ -203,7 +203,7 @@ export function ProgressiveCard({
               is actually asking the learner to read. */}
           <MorseMarks pattern={prompt} size="stimulus" className="test-pattern" />
           <span className="sr-only">{patternReading(character.pattern)}</span>
-        </h1>
+        </h2>
       )}
 
       {!result && support}

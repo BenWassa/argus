@@ -52,7 +52,9 @@ ol {
    names, the prompt itself, buttons. The mono carries everything the instrument
    reports: counts, dates, positions, status. Display character comes from size,
    weight and tracking pulled in hard, not from a second family. */
-h1 {
+/* Session prompts keep their page-sized type after becoming subordinate headings. */
+h1,
+:where(.session-prompt-heading) {
   font-family: var(--font-display);
   font-size: var(--t-page);
   font-weight: var(--w-page);
@@ -60,7 +62,7 @@ h1 {
   letter-spacing: -0.028em;
 }
 
-h2 {
+h2:not(:where(.session-prompt-heading)) {
   font-family: var(--font-display);
   font-size: var(--t-section);
   font-weight: var(--w-section);

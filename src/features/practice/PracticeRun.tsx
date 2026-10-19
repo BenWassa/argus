@@ -116,9 +116,9 @@ export function PracticeRun({ topic, itemIds, onExit, onCheck }: PracticeRunProp
     return (
       <SessionFrame kind="practice" title="Practice" progress={{ current: initial.length, total: initial.length }} onClose={onExit} className="practice-run">
         <div className="practice-summary">
-          <h1 ref={headingRef} tabIndex={-1}>
+          <h2 ref={headingRef} tabIndex={-1} className="session-prompt-heading">
             Practice done
-          </h1>
+          </h2>
           <div className="practice-summary-actions">
             <button type="button" onClick={onCheck}>
               Test
@@ -134,9 +134,9 @@ export function PracticeRun({ topic, itemIds, onExit, onCheck }: PracticeRunProp
 
   return (
     <SessionFrame kind="practice" title="Practice" progress={progress} onClose={onExit} className="practice-run" aria-labelledby="practice-heading">
-      <h1 id="practice-heading" className="sr-only">
+      <h2 id="practice-heading" className="session-prompt-heading sr-only">
         Practice {topic.title}
-      </h1>
+      </h2>
 
       {/* Only a miss stops the run. A correct answer moves straight on, because
           the learner has just produced the answer and showing it back to them

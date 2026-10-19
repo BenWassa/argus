@@ -7,8 +7,8 @@ import { lessonPackets } from './curriculum/lesson'
 import { COPY_LEVELS, COPY_LEVEL_INFO, copyLevelCleared, copyPrompts, type CopyLevel } from './fluency/copy'
 import { allFluencyWords, materialFits } from './fluency/corpus'
 import { newFluencyProgress } from './fluency/progress'
-import { SEND_STAGES, SEND_STAGE_INFO, recommendedSendStage, sendPrompts, sendStageCleared, type SendStage } from './fluency/send'
-import { FLUENCY_ADVANCE_ACCURACY, fluencyRunLength, groupLengthForRung } from './fluency/session'
+import { SEND_STAGES, SEND_STAGE_INFO, recommendedSendStage, eligibleSendPool, sendStageCleared, type SendStage } from './fluency/send'
+import { FLUENCY_ADVANCE_ACCURACY, fluencyRunLength, groupLengthForRung, type FluencyMode } from './fluency/session'
 import { FIRST_FLUENCY_RUNG, type FluencyRung } from './fluency/timing'
 
 export type MorseMode = 'key' | 'listen' | 'read' | 'free'
@@ -27,7 +27,7 @@ type LevelActivity =
   | { kind: 'practice'; direction: PracticeDirection }
   | { kind: 'send'; stage: SendStage }
   | { kind: 'copy'; level: CopyLevel }
-  | { kind: 'fluency'; challenge: 'words' | 'groups' }
+  | { kind: 'fluency'; challenge: FluencyMode }
 
 export type MorseLevel = LevelActivity & { id: string; label: string; tier: MorseTier }
 
@@ -117,8 +117,9 @@ function restrictedPool(level: MorseLevel, allowed: ReadonlySet<string>, rung: F
   if (cached !== undefined) return cached
   let size: number
   if (level.kind === 'practice') size = SAFE_LEVEL_MINIMUM
-  else if (level.kind === 'send') size = sendPrompts(level.stage, 0, allowed, SAFE_LEVEL_MINIMUM).length
+  else if (level.kind === 'send') size = eligibleSendPool(level.stage, allowed).length
   else if (level.kind === 'copy') size = copyPrompts(level.level, newFluencyProgress(), 0, new Set(), allowed, SAFE_LEVEL_MINIMUM).length
+  else if (level.challenge === 'sprint' || level.challenge === 'ladder') size = allowed.size
   else if (level.challenge === 'words') size = allFluencyWords().filter((word) => materialFits(word, allowed)).length
   else size = allowed.size ** groupLengthForRung(rung)
   poolCache.set(key, size)

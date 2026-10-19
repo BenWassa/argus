@@ -235,3 +235,15 @@ describe('retired Morse hub history', () => {
     expect(restoreRoute(route, [], true)).toEqual({ kind: 'section', view: 'library' })
   })
 })
+
+it('compares every letter-practice direction including an unspecified direction', () => {
+  const route = (direction?: 'key' | 'read' | 'listen'): AppRoute => ({
+    kind: 'run', mode: 'learn', topicIds: ['morse'],
+    origin: { kind: 'topic', topicId: 'morse' }, target: { kind: 'letter-practice', direction },
+  })
+  for (const left of ['key', 'read', 'listen', undefined] as const) {
+    for (const right of ['key', 'read', 'listen', undefined] as const) {
+      expect(sameRoute(route(left), route(right)), `${left} / ${right}`).toBe(left === right)
+    }
+  }
+})

@@ -116,15 +116,17 @@ export function startFluencyRun(
   const random = seededRandom(seed)
   const fits = (text: string) => !allowed || materialFits(text, allowed)
   const base = only.length > 0 ? [...only] : [...MORSE_ALPHABET]
-  const restricted = base.filter(fits)
-  // Letters the learner asked for by name stay askable even outside the roster:
-  // they came from a miss the learner was shown.
-  const roster = restricted.length > 0 ? restricted : base
+  // An explicit request never overrides the taught roster.
+  const roster = base.filter(fits)
   const needOrdered = roster.sort(
     (a, b) => fluencyNeed(progress, b, focus) - fluencyNeed(progress, a, focus) || a.localeCompare(b),
   )
 
   let prompts: FluencyPrompt[]
+
+  if (mode !== 'words' && roster.length === 0) {
+    return { mode, rung, prompts: [], at: 0, answers: [] }
+  }
 
   if (mode === 'words') {
     const tier = wordTierForRung(rung)

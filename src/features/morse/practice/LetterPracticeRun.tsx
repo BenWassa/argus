@@ -43,8 +43,8 @@ export function LetterPracticeRun({ eligible, initialProgress = newMorsePractice
   })
   useEffect(() => {
     if (result === false) continuation.current?.focus()
-    else if (direction !== 'key' && response.armed && result === null) input.current?.focus()
-  }, [result, response.armed, direction, count])
+    else if (direction !== 'key' && response.armed && result === null && (direction !== 'listen' || (heard && !audio.sounding && !audio.audioError))) input.current?.focus()
+  }, [result, response.armed, direction, count, heard, audio.sounding, audio.audioError])
   useEffect(() => {
     if (direction !== 'listen' || result !== null) return
     if (audio.sounding) listeningStarted.current = true

@@ -34,6 +34,12 @@ describe('Test in the session frame', () => {
     )
     const frame = container.querySelector('.session-frame')!
     expect(frame.getAttribute('data-session-kind')).toBe('test')
+    expect(screen.getAllByRole('heading', { level: 1 })).toEqual([frame.querySelector('.session-frame-title')])
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe(NATO.title)
+    const prompt = screen.getByRole('heading', { level: 2 })
+    expect(prompt.id).toBe('prompt-heading')
+    expect(prompt.tabIndex).toBe(-1)
+    expect(document.activeElement).toBe(prompt)
     expect(screen.getByRole('progressbar', { name: `0 of ${NATO.items.length}` })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Close' })).toBeTruthy()
     expect(container.querySelector('.session-bar, .session-count')).toBeNull()
@@ -51,6 +57,7 @@ describe('Practice in the session frame', () => {
     )
     expect(container.querySelector('.session-frame')?.getAttribute('data-session-kind')).toBe('practice')
     expect(screen.getByRole('progressbar', { name: '0 of 2' })).toBeTruthy()
+    expect(screen.getAllByRole('heading', { level: 1 })).toEqual([container.querySelector('.session-frame-title')])
     fireEvent.click(screen.getByRole('button', { name: 'Reveal answer' }))
     fireEvent.click(screen.getByRole('button', { name: 'Got it' }))
     expect(screen.getByRole('progressbar', { name: '1 of 2' })).toBeTruthy()
@@ -64,7 +71,8 @@ describe('the Test result is a round result', () => {
 
   it('reads correct over total, with the ladder outcome as one short line', () => {
     render(<TestDone {...run} score={{ correct: 24, total: 26 }} />)
-    expect(screen.getByRole('heading', { name: '24 of 26 correct' })).toBeTruthy()
+    expect(screen.getAllByRole('heading', { level: 1 })).toEqual([document.querySelector('.session-frame-title')])
+    expect(screen.getByRole('heading', { level: 2, name: '24 of 26 correct' })).toBe(document.activeElement)
     expect(document.querySelectorAll('.test-outcome')).toHaveLength(1)
     expect(document.querySelector('.test-outcome')?.textContent).toMatch(/Passed, still banked/)
     expect(screen.queryByRole('button', { name: 'Again' })).toBeNull()

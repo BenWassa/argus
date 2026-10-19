@@ -67,7 +67,7 @@ function open(onPractice = vi.fn()) {
   return onPractice
 }
 
-const prompt = () => screen.getByRole('heading', { level: 1 }).textContent ?? ''
+const prompt = () => screen.getByRole('heading', { level: 2 }).textContent ?? ''
 
 // The deck is shuffled, so each helper waits for the card on screen to change.
 let lastPrompt = ''
