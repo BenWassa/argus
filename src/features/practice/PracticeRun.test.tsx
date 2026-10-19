@@ -164,10 +164,11 @@ describe('the end of a run', () => {
   it('hands off to the check rather than claiming anything', () => {
     open(NATO, [NATO.items[0].id!])
     runToEnd()
-    expect(screen.getByRole('button', { name: 'Take the check' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Test' })).toBeTruthy()
     expect(document.querySelector('.practice-summary')?.textContent).toContain(
-      'Nothing recorded',
+      'Nothing recorded; only a Test counts.',
     )
+    expect(document.querySelector('.practice-summary')?.textContent).not.toMatch(/the check/i)
   })
 })
 

@@ -1021,3 +1021,21 @@ describe('parsing is deterministic', () => {
     expect(result.ok && result.library.topics[0].createdAt).toBe(timestamp)
   })
 })
+
+describe('the missed items kept on an attempt', () => {
+  const roundTrip = (history: unknown[]) => {
+    const seeded = seedLibrary()
+    const parsed = parseLibrary({ ...seeded, topics: seeded.topics.map((topic, index) => (index === 0 ? { ...topic, history } : topic)) })
+    if (!parsed.ok) throw new Error(parsed.error)
+    return parsed.library.topics[0].history
+  }
+  const entry = { at: '2026-01-01T00:00:00.000Z', correct: 1, total: 2, resolvedTo: 'learning' }
+
+  it('survives a parse, de-duplicated and text only', () => {
+    expect(roundTrip([{ ...entry, missedItemIds: ['a', 'a', 3, '', 'b'] }])).toEqual([{ ...entry, missedItemIds: ['a', 'b'] }])
+  })
+
+  it('stays absent when there is none', () => {
+    expect(roundTrip([{ ...entry, missedItemIds: 'nope' }, { ...entry, missedItemIds: [] }, entry])).toEqual([entry, entry, entry])
+  })
+})

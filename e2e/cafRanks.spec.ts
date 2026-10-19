@@ -9,7 +9,7 @@ test.beforeEach(async ({ page }) => {
 
 test('CAF rank equivalencies render the full two-direction boundary without horizontal overflow', async ({ page }) => {
   await expect(page.locator('.topic-title')).toHaveText('CAF Rank Equivalencies')
-  await expect(page.locator('.screen-header-readout')).toHaveText('0 / 38')
+  await expect(page.locator('.screen-header-readout')).toHaveCount(0)
   await expect(page.locator('.topic-items .topic-item')).toHaveCount(38)
 
   await expect(page.getByText('Army / RCAF — General', { exact: true }).first()).toBeVisible()

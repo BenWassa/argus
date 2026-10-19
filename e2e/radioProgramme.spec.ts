@@ -30,7 +30,8 @@ for (const [title, items] of [
   test(`${title}: shows its ${items} items and reads without sideways scroll`, async ({ page }) => {
     await openTopic(page, title)
     await expect(page.locator('.topic-title')).toHaveText(title)
-    await expect(page.locator('.screen-header-readout')).toHaveText(`0 / ${items}`)
+    // Untested: no value to read, so no bar rather than a false zero.
+    await expect(page.locator('.screen-header-readout')).toHaveCount(0)
     await expect(page.locator('.topic-items .topic-item')).toHaveCount(items)
     await noSidewaysScroll(page)
     await page.getByRole('button', { name: 'Sources and limitations' }).click()

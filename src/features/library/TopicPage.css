@@ -124,17 +124,10 @@
 
 .topic-earned { margin-top: var(--s-md); }
 
-/* -------------------------------------------------------------- admin -- */
+/* ---------------------------------------- header actions -- */
 
-.topic-admin {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--s-lg);
-  margin-top: var(--s-2xl);
-}
-
-.topic-admin .quiet.is-danger { color: var(--danger); }
-.topic-admin .quiet.is-danger:hover { color: var(--danger-2); }
+.screen-header-actions .quiet.is-danger { color: var(--danger); }
+.screen-header-actions .quiet.is-danger:hover { color: var(--danger-2); }
 
 /* Morse: ScreenHeader, ModeTray and ProgressSpine own the layout. The tray is
    fixed above phone navigation, reserves its own height, and sits above the

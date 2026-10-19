@@ -25,7 +25,7 @@ interface PracticeRunProps {
    */
   itemIds?: string[]
   onExit: () => void
-  /** Start the scored check. Practice never becomes one on its own. */
+  /** Start the scored Test. Practice never becomes one on its own. */
   onCheck: () => void
 }
 
@@ -116,10 +116,10 @@ export function PracticeRun({ topic, itemIds, onExit, onCheck }: PracticeRunProp
           <h1 ref={headingRef} tabIndex={-1}>
             Practice done
           </h1>
-          <p>Nothing recorded. Only the check counts.</p>
+          <p>Nothing recorded; only a Test counts.</p>
           <div className="practice-summary-actions">
             <button type="button" onClick={onCheck}>
-              Take the check
+              Test
             </button>
             <button className="ghost" type="button" onClick={onExit}>
               Not now
@@ -154,7 +154,7 @@ export function PracticeRun({ topic, itemIds, onExit, onCheck }: PracticeRunProp
         <div className="practice-stage">
           <div className="practice-question" ref={questionRef} tabIndex={-1}>
             <span className="practice-label">
-              {step.target.reason === 'missed' ? 'Missed last check' : 'Not yet tested'}
+              {step.target.reason === 'missed' ? 'Missed last Test' : 'Not yet tested'}
             </span>
             {/* The picture belongs to the prompt side only. Asked the other way
                 round, the prompt is the answer and the picture would give it away. */}

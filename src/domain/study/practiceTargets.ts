@@ -71,6 +71,23 @@ function lastAtMs(evidence: ItemCueEvidence | undefined, direction: ItemDirectio
 }
 
 /**
+ * The items the topic's most recent Test answered wrong, still present in the
+ * topic.
+ *
+ * A reveal-and-grade item writes no per-item evidence, so this is the one
+ * durable trace of what such a Test missed. It is the same list the Test result
+ * offers to practise, which is what lets the topic page and the result agree.
+ * A later Test replaces it, so it never outlives the Test that earned it, and
+ * practising writes nothing to it.
+ */
+export function lastTestMissedIds(topic: Topic): string[] {
+  const missed = topic.history[topic.history.length - 1]?.missedItemIds
+  if (!missed || missed.length === 0) return []
+  const present = new Set(topic.items.map((item) => item.id))
+  return missed.filter((id) => present.has(id))
+}
+
+/**
  * Every direction this topic currently has reason to practise, weakest first.
  *
  * Order is "most recently missed first, then untried", because the miss the
@@ -85,6 +102,8 @@ function lastAtMs(evidence: ItemCueEvidence | undefined, direction: ItemDirectio
  */
 export function practiceTargets(topic: Topic): PracticeTarget[] {
   const evidenceStore = topic.itemEvidence ?? {}
+  const lastMissed = new Set(lastTestMissedIds(topic))
+  const lastTestAt = Date.parse(topic.history[topic.history.length - 1]?.at ?? '')
   const missed: (PracticeTarget & { at: number; order: number })[] = []
   const untried: (PracticeTarget & { at: number; order: number })[] = []
 
@@ -96,12 +115,16 @@ export function practiceTargets(topic: Topic): PracticeTarget[] {
     const evidence = item.id ? evidenceStore[item.id] : undefined
 
     for (const direction of requiredDirections(identified)) {
-      if (directionMissed(evidence, direction)) {
+      // A direction the last Test missed but that holds no evidence of its own
+      // (a reveal-and-grade item) still stands as a miss.
+      const recordedByTest =
+        Boolean(item.id && lastMissed.has(item.id)) && directionUntried(evidence, direction)
+      if (directionMissed(evidence, direction) || recordedByTest) {
         missed.push({
           item: identified,
           direction,
           reason: 'missed',
-          at: lastAtMs(evidence, direction),
+          at: recordedByTest ? (Number.isNaN(lastTestAt) ? 0 : lastTestAt) : lastAtMs(evidence, direction),
           order,
         })
       } else if (directionUntried(evidence, direction)) {
