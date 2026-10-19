@@ -58,12 +58,14 @@ describe('ModeTray', () => {
     vi.restoreAllMocks()
   })
 
-  it('docks above phone navigation, pads its host, and moves in flow on desktop', () => {
+  it('docks above phone navigation, pads its host, shortens on small phones and sticks on desktop', () => {
     const css = readFileSync('src/shared/ui/ModeTray.css', 'utf8')
     expect(css).toMatch(/\.mode-tray-dock \{[^}]*position: fixed;[^}]*bottom: var\(--nav-clearance/)
     expect(css).toMatch(/:has\(> \.mode-tray-dock\) \{\s*padding-bottom: calc\(var\(--mode-tray-height/)
-    expect(css).toMatch(/@media \(min-width: 980px\) \{\s*\.mode-tray-dock \{ position: static;/)
+    expect(css).toMatch(/@media \(min-width: 980px\) \{\s*\.mode-tray-dock \{ position: sticky; top: 0;/)
     expect(css).toMatch(/min-height: 88px/)
+    // A third of a 568px phone went to the tray and the nav (#259).
+    expect(css).toMatch(/@media \(max-height: 700px\), \(max-width: 360px\) \{[\s\S]*?min-height: 64px/)
     expect(css).not.toMatch(/rgba?\(|gradient|oklch\(/)
     expect(css).toMatch(/@media \(prefers-reduced-motion: reduce\)/)
   })

@@ -122,8 +122,13 @@ button.signin-action:active {
   box-shadow: var(--press-lit);
 }
 
-button.signin-action:disabled {
-  opacity: 0.72;
+/* Busy, not refused: the action keeps its solid fill while the spinner runs,
+   rather than fading (a faded fill is a translucent surface). */
+button.signin-action:disabled,
+button.signin-action:disabled:hover {
+  border-color: var(--action-edge);
+  background: var(--action);
+  color: var(--action-ink);
   cursor: wait;
 }
 
