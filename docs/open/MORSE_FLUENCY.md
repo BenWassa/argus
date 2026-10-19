@@ -1,14 +1,18 @@
-# Morse Fluency — the post-acquisition surface
+# Morse Fluency: formative runners and historical hub
 
-**Status:** #221 adaptive practice and shared corrections released in v1.5.3; base implemented under #119; guided Send extension merged via #195 and included in v1.5.0; real Pixel acceptance remains outstanding.
+**Status:** Base Fluency and #221 corrections released through v1.5.3. The hub and old path have been replaced on `feat/ui-overhaul`, awaiting owner Pixel sign-off and release.
 
-**Authority:** maintained Fluency contract; #221 navigation and shared corrections are released in v1.5.3. `MORSE_PROGRAMME_PLAN.md`
-still governs the A–Z acquisition programme, `PROGRESS_ARCHITECTURE.md` still
-governs the state boundaries this surface must not cross, and
-`MORSE_AUDIO_RUNTIME.md` still governs every Morse audio entry point including
-this one.
+**Authority:** Maintained formative runner, timing and evidence contract. Historical navigation below is superseded by [UI overhaul (#225)](ISSUE_225_UI_OVERHAUL.md), which governs the overhaul's scope and decisions until release. `MORSE_PROGRAMME_PLAN.md` governs acquisition, `PROGRESS_ARCHITECTURE.md` governs state boundaries, and `MORSE_AUDIO_RUNTIME.md` governs audio lifecycle.
 
-**Last verified:** 2026-10-16 (#221 released in v1.5.3; physical Pixel acceptance outstanding)
+**Last verified:** 2026-10-19, against integration source; no new runtime or physical-device acceptance.
+
+## Current integration contract (2026-10-19)
+
+`FluencyHome.tsx` and `MorsePath.tsx` have been deleted. `TopicPage.tsx` now composes one Morse topic screen with `MorseModeTray` (Key, Listen, Read, Free play) and a straight `MorseProgressPath`. Activity runners share `SessionFrame`. There is no Practice / Send / Receive / Challenges chooser or accordion/details navigation. Listen sessions carry `ListeningSpacing`; there is no separate settings hub or latency diagnostics screen.
+
+Key uses adaptive letters and Send levels; Listen uses adaptive letters, Copy levels, Word recognition and Groups; Read uses adaptive letters; Free play remains unscored. Sprint and Ladder are retired as separate surface activities; their runner code and stored history remain. Levels are open subject to material readiness: multicharacter levels draw only taught letters and need at least 6 distinct prompts; Numbers wait for the full alphabet. Letters practice remains available, including Lesson 1's letters before any are settled. All 26 eligible letters need 3 latest independent correct answers each in a direction for that direction's Letters stability.
+
+The following dated entry descriptions preserve earlier decisions and release evidence. They are historical where they describe the hub, acquisition-only entry gates, folded Lessons or More options.
 
 > **Misses lead — 2026-09-30.** `fluencyNeed` takes an optional focus set, and adds a bounded `FOCUS_NEED` (150) for a letter the learner is currently missing. The set is `morseFocusLetters`: a lesson letter still owed, or a Test direction whose last answer was wrong. Every Fluency run and the Copy *letters* level weight it. "Practise the letters you missed", from the topic page or a check's end screen, now opens a **keyed Fluency sprint over just those letters** (route `{ kind: 'fluency', mode: 'sprint', letters }`), not the reveal-and-self-grade practice run. It writes only `morseFluency`, as before.
 
@@ -21,7 +25,7 @@ free play, figures and punctuation, and the ladder past 13 WPM.
 holds the sources, the architecture audit and the rejected options. This
 document records what was built.
 
-## What it is
+## Historical entry and navigation (before #225)
 
 Learn teaches the alphabet and stops. Fluency is what a learner does after
 that: the same 26 characters, presented by ear, at a speed too fast to count
@@ -106,7 +110,9 @@ one notch down, because `code.ts` already records a phone-speaker observation
 about 60ms dits and 48ms tones have not been tried on the target device.
 Raising it is a one-line change.
 
-## Modes
+## Historical drill inventory and current runner mapping
+
+The former hub exposed the four drills below. On the integration branch, Words and Groups are Listen levels; Sprint and Ladder are historical runner modes, replaced on the surface by adaptive Listen Letters.
 
 Four speed drills, sharing one state machine in
 `domain/morse/fluency/session.ts`. Four bespoke runners would be four places to
@@ -157,7 +163,7 @@ is serial, so a four-element character costs about twice a two-element one.
 Around 1.0 is recognition. Around 2.0 is counting, however good the accuracy
 looks.
 
-The surface says so in words rather than printing the number alone.
+The former hub explained these measures in words. Its diagnostics presentation is retired; the stored measures remain formative.
 
 ## The evidence boundary
 
@@ -167,8 +173,7 @@ Fluency writes `Topic.morseFluency` and nothing else.
 imports nothing that could write. Fluency legitimately keeps statistics, so
 the claim is one step weaker and is stated precisely:
 
-- `FluencyRun` and `FluencyHome` import no store, no scheduler and no evidence
-  recorder;
+- `FluencyRun`, `CopyRun`, `SendRun` and `FreePlay` import no store, scheduler or evidence recorder;
 - `FluencySurface` holds the feature's only `updateTopic` call, and that call
   is a spread plus one field;
 - `FluencyBoundary.test.ts` asserts all of it against the source, so an edit
@@ -180,10 +185,7 @@ the claim is one step weaker and is stated precisely:
   and `acquisitionReadyAt` all come out unchanged.
 
 Fluency cannot complete anything, cannot move a retention clock, cannot resolve
-an attempt and cannot write `DirectionEvidence`. Its statistics appear inside
-Fluency and nowhere else — never on the topic card, never in Today, never
-adjacent to retention state, because adjacency is how a formative number
-quietly becomes perceived evidence.
+an attempt and cannot write `DirectionEvidence`. Raw latency diagnostics are no longer presented. Formative clears guide mode suggestions and path pips, but do not establish formal completion or retention evidence.
 
 **Press duration stays discarded.** `MorseKeyInput` still never returns it, so
 no Fluency output can become sending-speed evidence, and the boundary test
@@ -303,7 +305,10 @@ share the same input.
 | `src/domain/morse/fluency/corpus.ts` | the authored word list and the group generator |
 | `src/domain/morse/fluency/send.ts` | the guided sending stages, content selection and formative best keys |
 | `src/features/morse/fluency/FluencySurface.tsx` | the feature's only write path |
-| `src/features/morse/fluency/FluencyHome.tsx` | modes, the one dial, the diagnostics |
+| `src/features/morse/fluency/FluencyHome.tsx` (deleted) | historical hub, dial and diagnostics; replaced by Topic path/tray and in-session spacing |
+| `src/features/morse/play/MorseModeTray.tsx` / `MorseProgressPath.tsx` | current four-mode tray and straight progress path |
+| `src/features/morse/fluency/ListeningSpacing.tsx` | in-session spacing control |
+| `src/shared/ui/SessionFrame.tsx` | shared session layout |
 | `src/features/morse/fluency/FluencyRun.tsx` | one run, and the latency hygiene |
 | `src/features/morse/fluency/CopyRun.tsx` | one Copy run |
 | `src/features/morse/fluency/SendRun.tsx` | guided printed-text → keyed-Morse words, flow, phrases, messages and Dispatch |

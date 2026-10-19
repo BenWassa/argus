@@ -1,6 +1,7 @@
 import type { Topic } from '../library/topic'
 import type { JourneyEntry } from './journey'
 import { hasStarted, lastActivityAt } from './libraryGroups'
+import { lastTestMissedIds } from './practiceTargets'
 
 /** Historical completion and live acquisition are intentionally independent. */
 export function homeReadout(entries: JourneyEntry[]) {
@@ -19,10 +20,13 @@ export type HomeProgress =
 /** Only durable finite quantities earn an arc; ordinary topics use a discrete dial. */
 export function homeProgress(topic: Topic, journey: JourneyEntry['journey']): HomeProgress {
   if (journey.phase === 'repair') return { kind: 'repair', label: 'Needs repair' }
+  // A failed Test is remembered here too, whatever rung the topic now holds.
+  const toPractise = lastTestMissedIds(topic).length
+  if (toPractise > 0) return { kind: 'started', label: `${toPractise} to practise` }
   if (topic.completedAt) return { kind: 'complete', label: 'Completion earned' }
   if (journey.acquisition.progressive && journey.acquisition.total > 0) {
     const { settled: done, total } = journey.acquisition
-    return { kind: 'ratio', done, total, label: `${done} of ${total} characters settled` }
+    return { kind: 'ratio', done, total, label: `${done} of ${total} letters settled` }
   }
   if (Object.keys(topic.itemEvidence ?? {}).length > 0 && journey.evidence.total > 0) {
     const { covered: done, total } = journey.evidence

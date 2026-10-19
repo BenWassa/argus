@@ -43,6 +43,11 @@ describe('Morse progress path', () => {
     expect(path.nodes.filter((node) => node.kind === 'tier').map((node) => node.tier)).toEqual(MORSE_TIERS.filter((tier) => tier !== 'letters'))
   })
 
+  it('says a locked A–Z Test once, never "locked, locked"', () => {
+    const test = morseProgressPath(morseTopic())!.nodes.find((node) => node.id === 'test')!
+    expect(test.accessibleLabel).toBe('A–Z Test, locked')
+  })
+
   it('keeps past lessons replayable and checkpoints reached without claiming unsaved completions', () => {
     const path = morseProgressPath(modeTopicFixtures().mid)!
     expect(path.currentNodeId).toBe('lesson-6')

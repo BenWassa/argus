@@ -20,6 +20,11 @@ function standing(topic: Topic): string {
   return dueState(topic).label.toLowerCase()
 }
 
+/** A status word as a short sentence-case line: "banked" becomes "Banked". */
+function sentence(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1)
+}
+
 /** The unit a count is in: letters for the Morse course, items otherwise. */
 function unitFor(topic: Topic): string {
   return morseLessonPath(topic) ? 'letter' : 'item'
@@ -147,21 +152,30 @@ export function TestDone({
   const playLeads = offerPlay && morseCompleted && !(practiceOffer && onPractice)
 
   // One short line per topic outcome, in the words the topic page shows for
-  // the status it now holds, never the ladder's own transitions.
+  // the status it now holds. A topic that did not bank says so once, with how
+  // many items are left to practise; the missed chips below name them. The
+  // title leads only when several topics ran together.
+  const several = banked.length + reviewed.length > 1
+  const lead = (title: string) => (several ? `${title}: ` : '')
+  const toPractise = (topic: Topic) => (missed[topic.id] ?? []).filter((id) => topic.items.some((item) => item.id === id)).length
+  const notBanked = (topic: Topic) => {
+    const count = toPractise(topic)
+    return count > 0 ? [`${lead(topic.title)}Not banked · ${count} to practise`] : []
+  }
   const outcome: string[] = [
     ...reviewed.map((entry) => `${entry.topic.title}: review only, not counted.`),
-    ...completed.map((resolution) => `${resolution.topic.title}: ${standing(resolution.topic)}.`),
-    ...decayed.map((resolution) => `${resolution.topic.title}: ${standing(resolution.topic)}.`),
-    ...changed.map((resolution) => `${resolution.topic.title}: ${standing(resolution.topic)}.`),
-    ...held.map((resolution) =>
+    ...completed.map((resolution) => `${lead(resolution.topic.title)}${sentence(standing(resolution.topic))}`),
+    ...decayed.map((resolution) => `${lead(resolution.topic.title)}${sentence(standing(resolution.topic))}`),
+    ...changed.flatMap((resolution) => notBanked(resolution.topic)),
+    ...held.flatMap((resolution) =>
       resolution.to === 'completed' || resolution.to === 'drilled'
-        ? `${resolution.topic.title}: passed, still ${standing(resolution.topic)}.`
-        : `${resolution.topic.title}: ${standing(resolution.topic)}.`,
+        ? [`${lead(resolution.topic.title)}Passed, still ${standing(resolution.topic)}`]
+        : notBanked(resolution.topic),
     ),
     ...withheld.map((entry) => `${entry.resolution.topic.title}: finish the lesson to count.`),
     ...building.map((entry) => `${entry.resolution.topic.title}: all correct, not counted yet.`),
   ]
-  if (outcome.length === 0) outcome.push('No topic ran to the end.')
+  if (banked.length === 0 && reviewed.length === 0) outcome.push('No topic ran to the end.')
 
   // The one next step takes the primary slot: repairing what was missed, else
   // sending after a banked course. Anything else stays at text weight.

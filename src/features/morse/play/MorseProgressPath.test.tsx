@@ -73,7 +73,7 @@ describe('Morse progress path', () => {
   it('folds early Test into the A–Z plate without unlocking the milestone', () => {
     const onAction = vi.fn()
     const { container } = render(<MorseProgressPath topic={morseTopic()} onAction={onAction} />)
-    expect(screen.getByRole('button', { name: 'A–Z Test, locked, locked' }).getAttribute('aria-disabled')).toBe('true')
+    expect(screen.getByRole('button', { name: 'A–Z Test, locked' }).getAttribute('aria-disabled')).toBe('true')
     const early = screen.getByRole('button', { name: 'Test early' })
     expect(early.closest('.spine-row-wrap')?.querySelector('.morse-progress-test')).not.toBeNull()
     expect(early.closest('.spine-row')).toBeNull()

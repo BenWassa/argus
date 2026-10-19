@@ -1,6 +1,12 @@
-/* Progress spine (#243). One straight line, top to bottom. Done is the action
-   colour, ahead is --spine-ahead; round nodes are steps, square nodes are
-   tests. The position row is "you are here", not the only thing to press. */
+/* Progress spine (#243). One straight line, top to bottom. The line is filled
+   to the position in the action colour, ahead is --spine-ahead; round nodes are
+   steps, square nodes are tests. The position row is "you are here", not the
+   only thing to press.
+
+   Yellow discipline (#257, #264): signal marks only the position row and the
+   filled segment of the line. A done node is a settled slate step with an ink
+   tick, a reached or unseen node is a neutral ring, a locked ring sits a step
+   quieter, and copper (with a diamond mark) is decay or a recorded miss. */
 
 .spine {
   position: relative;
@@ -69,7 +75,7 @@
   flex: 0 0 36px;
   height: 36px;
   margin-inline: 6px;
-  border: 2px solid var(--action-edge);
+  border: 2px solid var(--line-hover);
   border-radius: 50%;
   font-size: 16px;
   font-weight: 800;
@@ -79,7 +85,7 @@
 
 .spine-node-square { border-radius: 9px; }
 
-.is-done > .spine-node { border-color: var(--action); background: var(--action); color: var(--action-ink); }
+.is-done > .spine-node { border-color: var(--complete); background: var(--surface-4); color: var(--ink); }
 .is-locked > .spine-node { border-color: var(--spine-ahead); color: var(--muted); }
 .is-repair > .spine-node { border-color: var(--warning); color: var(--warning); }
 

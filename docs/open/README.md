@@ -4,8 +4,9 @@ This folder contains maintained specifications, active implementation plans, and
 
 - **Active issues:** see [GitHub open issues](https://github.com/BenWassa/argus/issues?q=is%3Aissue+is%3Aopen), and individual maintained `ISSUE_*.md` files.
 - **Consolidated human review:** [acceptance checklist](HUMAN_ACCEPTANCE_CHECKLIST.md), with links to reviewer packs and permission draft.
-- **Morse UX consolidation:** [#221 implementation and mobile evidence](ISSUE_221_MORSE_UX_CONSOLIDATION.md), with physical Pixel acceptance outstanding.
-- **UI overhaul (#225):** [plan, baseline critique and issue map](ISSUE_225_UI_OVERHAUL.md) for colour, the Morse progress path, four Morse modes and removing accordions; integration branch `feat/ui-overhaul`.
+- **Morse UX consolidation:** [#221 practice/teaching contract and historical mobile evidence](ISSUE_221_MORSE_UX_CONSOLIDATION.md); navigation superseded on `feat/ui-overhaul`, with Pixel acceptance outstanding.
+- **UI overhaul (#225):** [scope, decisions, delivery map and critique results](ISSUE_225_UI_OVERHAUL.md); implemented on `feat/ui-overhaul`, awaiting owner Pixel sign-off and release. Morse round 2: 31/40 against a 32/40 target.
+- **Morse Fluency:** [runner, timing and evidence contract](MORSE_FLUENCY.md), with historical hub navigation and the current four-mode integration mapping.
 - **Current implementation queue:** [NEXT_BATCHES.md](NEXT_BATCHES.md).
 - **Independent maritime review:** [#147/#148 review](ISSUE_147_148_MARITIME_DOMAIN_REVIEW.md). Implementations #147 and #148 are closed, but maritime approval and Mariner earnability remain outstanding.
 - **Archived issue-specific contracts:** [docs/closed](../closed/README.md).

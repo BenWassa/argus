@@ -13,6 +13,9 @@ import { testCardTextClass } from '../test/textScale'
 import { VisualView } from '../visual/VisualView'
 import { AudioStimulusView } from '../audio/AudioStimulusView'
 import { SessionFrame } from '../../shared/ui/SessionFrame'
+import { GradePair } from '../test/GradePair'
+// The miss uses the Test's own feedback layer, so a miss reads the same in both.
+import '../test/TestSession.css'
 import './PracticeRun.css'
 
 interface PracticeRunProps {
@@ -116,7 +119,6 @@ export function PracticeRun({ topic, itemIds, onExit, onCheck }: PracticeRunProp
           <h1 ref={headingRef} tabIndex={-1}>
             Practice done
           </h1>
-          <p>Nothing recorded; only a Test counts.</p>
           <div className="practice-summary-actions">
             <button type="button" onClick={onCheck}>
               Test
@@ -140,11 +142,15 @@ export function PracticeRun({ topic, itemIds, onExit, onCheck }: PracticeRunProp
           the learner has just produced the answer and showing it back to them
           would cost a tap and tell them nothing. */}
       {state.feedback && (
-        <div className="practice-feedback" role="status" aria-live="assertive">
-          <strong>Not that one</strong>
-          <span className="practice-label">Answer</span>
-          <span className="practice-feedback-answer">{state.feedback.answer}</span>
-          <button type="button" onClick={next}>
+        <div className="test-feedback practice-feedback" role="status" aria-live="assertive">
+          <p className="test-verdict">Not that one</p>
+          <div className="test-correction">
+            <p className="test-correction-row">
+              <span className="test-correction-label">Answer</span>
+              <span className="test-correction-value practice-feedback-answer">{state.feedback.answer}</span>
+            </p>
+          </div>
+          <button className="test-next" type="button" onClick={next}>
             Continue
           </button>
         </div>
@@ -183,14 +189,7 @@ export function PracticeRun({ topic, itemIds, onExit, onCheck }: PracticeRunProp
                   {step.answer}
                 </span>
               </div>
-              <div className="practice-grade">
-                <button type="button" onClick={() => grade(false)} className="ghost">
-                  Not yet
-                </button>
-                <button type="button" onClick={() => grade(true)}>
-                  Got it
-                </button>
-              </div>
+              <GradePair className="practice-grade" onMiss={() => grade(false)} onHit={() => grade(true)} />
             </>
           ) : (
             <button type="button" className="practice-reveal" onClick={() => setRevealed(true)}>

@@ -11,7 +11,7 @@ export interface SpineRow {
   id: string
   /** Round for a step; square for a test or milestone. */
   shape: 'round' | 'square'
-  /** The node's mark: a number, a tick, a short code or a small solid glyph. */
+  /** The node's mark: a number, a tick, a short code or a small solid glyph. A done row with no mark shows a tick. */
   mark?: ReactNode
   state: SpineState
   /** The row's main words. */
@@ -122,7 +122,7 @@ export function ProgressSpine({ rows, label, positionId: positionProp, jump, cla
             .filter(Boolean).join(' ')
           const ref = isPosition ? (element: HTMLElement | null) => { positionRef.current = element } : undefined
           const content = <>
-            <span className={`spine-node${row.shape === 'square' ? ' spine-node-square' : ''}`} data-spine-node="" aria-hidden="true">{row.mark}</span>
+            <span className={`spine-node${row.shape === 'square' ? ' spine-node-square' : ''}`} data-spine-node="" aria-hidden="true">{row.mark === undefined && row.state === 'done' ? '✓' : row.mark}</span>
             <span className="spine-main">
               <span className="spine-label">{row.label}</span>
               {row.detail !== undefined && row.detail !== null && <span className="spine-detail">{row.detail}</span>}
