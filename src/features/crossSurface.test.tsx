@@ -590,7 +590,7 @@ describe('ordinary topic browsing and enrollment', () => {
     for (const item of ordinary.items) expect(document.body.textContent).toContain(item.answer)
   })
 
-  it('keeps visible briefing support on its own Learn screen, with its boundary visible', () => {
+  it('keeps visible briefing support on its own Learn screen, opening on its lede', () => {
     const briefed = blank('ooda-loop')
     const onReference = vi.fn()
     render(
@@ -609,7 +609,9 @@ describe('ordinary topic browsing and enrollment', () => {
     render(<TopicReading topic={briefed} onBack={() => undefined} />)
     const support = document.querySelector('.learn-support')!
     expect(support).not.toBeNull()
-    expect(document.querySelector('.topic-scope')?.textContent).toBe(briefed.scope)
+    // The lede opens the screen; the scope moves to the sources sheet (a survival topic's safety boundary stays).
+    expect(document.querySelector('.topic-scope')).toBeNull()
+    expect(support.querySelector('.learn-overview')?.textContent).toBe(briefed.learn!.overview)
     expect(support.querySelector('h3')).toBeTruthy()
     expect(support.querySelector('details, summary')).toBeNull()
   })

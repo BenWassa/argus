@@ -19,7 +19,7 @@ import { MorseProgressPath, MorseModeTray, morseRunAction } from '../morse/play'
 import { MorsePlacementDialog } from '../morse/MorsePlacementDialog'
 import { applyMorsePlacement, canOfferMorsePlacement } from '../../domain/morse/placement'
 import type { RunTarget } from '../../app/routing/routes'
-import { hasPractice, practiceItemCount } from '../../domain/study/practiceTargets'
+import { hasPractice, lastTestMissedIds, practiceItemCount } from '../../domain/study/practiceTargets'
 import type { Mode } from '../../domain/study/mode'
 import type { Topic } from '../../domain/library/topic'
 import './TopicPage.css'
@@ -67,6 +67,14 @@ export function TopicPage({
   const bar = course ? null : topicBar(topic)
   const listening = listeningCoverage(topic.items, topic.audioEvidence)
   const practiceCount = hasPractice(topic) ? practiceItemCount(topic) : 0
+  // What the latest Test missed stays on the page whatever rung the topic now
+  // holds: a failed repair Test sends the topic back to learning, and the page
+  // still says what happened and which items are left to practise.
+  const toPractise = course ? 0 : lastTestMissedIds(topic).length
+  const lastTest = topic.history[topic.history.length - 1]
+  const stateLabel = toPractise > 0 && !repair
+    ? `${lastTest && lastTest.total === topic.items.length ? `${lastTest.correct} / ${lastTest.total} · ` : ''}${toPractise} to practise`
+    : toPractise > 0 ? `${journey.statusLabel} · ${toPractise} to practise` : journey.statusLabel
   const offersPlacement = path?.nodes.some(node => node.kind === 'start' && node.offersPlacement) && canOfferMorsePlacement(topic)
 
   useLayoutEffect(() => {
@@ -92,12 +100,11 @@ export function TopicPage({
     else onStart(run.mode, [topic.id])
   }
 
-  // Edit and Delete are quiet header actions on both topic kinds, so the page
-  // ends where its content ends. Names stay full for assistive technology.
-  const adminActions = <>
-    <button className="quiet topic-edit" type="button" aria-label="Edit topic" onClick={onEdit}>Edit</button>
-    <button className="quiet topic-delete is-danger" type="button" aria-label="Delete topic" onClick={onDelete}>Delete</button>
-  </>
+  // Edit is a quiet header action. Delete is rarely wanted and never one tap
+  // from Back, so it waits at the foot of the page beside Sources and
+  // limitations; the pinned Morse header carries neither it nor Edit's weight.
+  // Names stay full for assistive technology.
+  const editAction = <button className="quiet topic-edit" type="button" aria-label="Edit topic" onClick={onEdit}>Edit</button>
 
   return (
     <article className={`topic topic-track-${topic.track}${course ? ' topic-morse' : ''}`}>
@@ -107,19 +114,19 @@ export function TopicPage({
         onBack={onBack}
         actions={<>
           <button className="quiet topic-morse-reference" type="button" onClick={() => onReference(topic.id)}>A–Z</button>
-          {adminActions}
+          {editAction}
         </>}
         progress={{ value: journey.acquisition.settled, max: 26, label: `${journey.acquisition.settled} of 26 letters` }}
         readout={`${journey.acquisition.settled} / 26`} /> : <ScreenHeader ref={heading} titleClassName="topic-title" title={topic.title}
         className={banked ? 'is-banked' : undefined}
         onBack={onBack}
-        actions={adminActions}
+        actions={editAction}
         glyph={topicIcon(topic.id) ? <TopicGlyph topicId={topic.id} /> : undefined}
         progress={bar ?? undefined}
         readout={bar ? `${bar.value} / ${bar.max}` : undefined}>
         <p className={`topic-state${repair ? ' is-repair' : banked ? ' is-banked' : ''}`}>
           {repair ? <span className="topic-state-mark" aria-hidden="true">◆</span> : banked ? <span className="topic-state-mark" aria-hidden="true">✓</span> : null}
-          <span className="topic-state-label">{journey.statusLabel}</span>
+          <span className="topic-state-label">{stateLabel}</span>
         </p>
         {listening.total > 0 && <p className="topic-listening">Listening · {listening.unaided} / {listening.total} unaided</p>}
       </ScreenHeader>}
@@ -141,7 +148,10 @@ export function TopicPage({
 
       {!course && topic.history.length > 0 && <AttemptPips topic={topic} />}
       {!course && topic.completedAt && <p className="topic-earned">First completed · {stamp(topic.completedAt)}</p>}
-      <SourcesAndLimits content={topic.learn} scope={topic.scope} />
+      <footer className="topic-foot">
+        <SourcesAndLimits content={topic.learn} scope={topic.scope} />
+        <button className="quiet topic-delete is-danger" type="button" aria-label="Delete topic" onClick={onDelete}>Delete</button>
+      </footer>
       {placementOpen && course && <MorsePlacementDialog topic={topic}
         onClose={() => setPlacementOpen(false)}
         onNew={() => {
@@ -162,7 +172,8 @@ export function TopicPage({
 const SPINE_STATE: Record<ItemStanding, SpineState> = {
   settled: 'done',
   repair: 'repair',
-  missed: 'reached',
+  // A miss in the latest Test is copper whatever rung the topic now holds.
+  missed: 'repair',
   seen: 'reached',
   unseen: 'reached',
 }
@@ -177,7 +188,7 @@ const STANDING_WORDS: Record<ItemStanding, string> = {
 
 /** A group's node takes the weakest standing among its items. */
 function groupState(entries: TopicItemEntry[]): SpineState {
-  if (entries.some(entry => entry.standing === 'repair')) return 'repair'
+  if (entries.some(entry => entry.standing === 'repair' || entry.standing === 'missed')) return 'repair'
   return entries.length > 0 && entries.every(entry => entry.standing === 'settled') ? 'done' : 'reached'
 }
 
@@ -203,7 +214,7 @@ function TopicItems({ topic }: { topic: Topic }) {
       return {
         id: item.id ?? `${groupIndex}-${index}`,
         shape: 'round',
-        mark: standing === 'settled' && !group.label ? '✓' : marker,
+        mark: standing === 'repair' || standing === 'missed' ? '◆' : standing === 'settled' && !group.label ? '✓' : marker,
         state: SPINE_STATE[standing],
         // A pictured item's picture is its prompt; the authored question
         // wording is for the Test card, so the row names the answer.

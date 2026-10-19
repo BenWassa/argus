@@ -133,6 +133,24 @@ describe('ProgressSpine', () => {
     expect(css).toMatch(/@media \(prefers-reduced-motion: reduce\)/)
   })
 
+  it('draws a settled node as a slate step with an ink tick, never a yellow ring', () => {
+    const css = readFileSync('src/shared/ui/ProgressSpine.css', 'utf8').replace(/\/\*[\s\S]*?\*\//g, '')
+    expect(css).toMatch(/\.is-done > \.spine-node \{[^}]*border-color: var\(--complete\);[^}]*background: var\(--surface-4\);[^}]*color: var\(--ink\)/)
+    // A reached ring is neutral; yellow is the position and the filled line only.
+    expect(css).toMatch(/\.spine-node \{[^}]*border: 2px solid var\(--line-hover\)/)
+    expect(css).not.toMatch(/\.spine-node \{[^}]*--action-edge/)
+  })
+
+  it('shows a tick on a done row that names no mark, and leaves an explicit null alone', () => {
+    const { container } = render(<ProgressSpine label="Path" rows={[
+      { id: 'a', shape: 'round', state: 'done', label: 'A', accessibleLabel: 'A, done', group: true },
+      { id: 'b', shape: 'round', mark: null, state: 'done', label: 'B', accessibleLabel: 'B, done', group: true },
+      { id: 'c', shape: 'round', state: 'reached', label: 'C', accessibleLabel: 'C, reached', group: true },
+    ]} />)
+    const nodes = [...container.querySelectorAll('[data-spine-node]')].map((node) => node.textContent)
+    expect(nodes).toEqual(['✓', '', ''])
+  })
+
   it('calls onLockedSelect, never onSelect, for a locked row, and changes nothing without it', () => {
     const onSelect = vi.fn()
     const onLocked = vi.fn()

@@ -1,0 +1,27 @@
+/* One grade pair for Test and Practice: two solid plates side by side. The
+   arrows are an accelerator hint (swipe and arrow keys), set in the mono
+   readout voice so they read as a hint rather than as part of the word. */
+.grade-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-sm);
+}
+
+.grade-pair button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-sm);
+  min-height: var(--control-h-lg);
+}
+
+.grade-miss { color: var(--danger-2); }
+
+.grade-arrow {
+  font-family: var(--font-mono);
+  font-weight: var(--w-label);
+}
+
+@media (max-height: 560px) {
+  .grade-pair button { min-height: var(--control-h); }
+}
