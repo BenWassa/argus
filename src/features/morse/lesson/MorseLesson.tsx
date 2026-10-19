@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { canonicalPattern } from '../../../domain/morse/testing/acquisitionProfile'
+import { spokenRhythm } from '../../../domain/morse/mnemonics'
 import {
   advanceLesson,
   answerLesson,
@@ -46,6 +46,7 @@ import type { Topic } from '../../../domain/library/topic'
 import { useKeyedResponse } from '../input/useKeyedResponse'
 import { MorseCheckpoint } from './MorseCheckpoint'
 import { MorseCharacterSupport } from '../MorseCharacterSupport'
+import { MorseMarks } from '../MorseMarks'
 import { useMorseAudio } from '../useMorseAudio'
 import { CharacterStage, ListeningCheckStep, StepLabel, VisualCheckStep } from './LessonSteps'
 import { useLessonRecord } from './useLessonRecord'
@@ -507,24 +508,23 @@ export function MorseLesson({
           clock any more, so there is no dwell for a learner to lose a
           half-read correction to — see `useKeyedResponse`. */}
       {shownListeningFeedback && !shownListeningFeedback.correct && (
-        <div className="lesson-feedback" role="status" aria-live="assertive">
-          <p className="lesson-verdict">Not that one</p>
-          <p className="lesson-correction">Chose {shownListeningFeedback.response || 'no letter'} · Sound {shownListeningFeedback.glyph}</p>
-          <MorseCharacterSupport glyph={shownListeningFeedback.glyph} pattern={shownListeningFeedback.pattern}
+        <SessionCorrect className="lesson-miss" miss={{
+          said: shownListeningFeedback.response || undefined,
+          answer: <MorseCharacterSupport glyph={shownListeningFeedback.glyph} pattern={shownListeningFeedback.pattern}
             playing={sounding?.glyph === shownListeningFeedback.glyph}
-            onToggle={() => toggle(shownListeningFeedback.glyph)} audioError={audioError} />
-          <button className="lesson-next" type="button" onClick={continueFromMiss} disabled={!holding}>Continue</button>
-        </div>
+            onToggle={() => toggle(shownListeningFeedback.glyph)} audioError={audioError} />,
+          onContinue: continueFromMiss, continueDisabled: !holding,
+        }} />
       )}
 
       {feedback && !feedback.correct && (
-        <div className="lesson-feedback" role="status" aria-live="assertive">
-          <p className="lesson-verdict">Not that one</p>
-          <p className="lesson-correction">You keyed <span className="mono">{feedback.response ? canonicalPattern(feedback.response) : '—'}</span> · {feedback.glyph}</p>
-          <MorseCharacterSupport glyph={feedback.glyph} pattern={feedback.pattern} playing={sounding?.glyph === feedback.glyph}
-            onToggle={() => toggle(feedback.glyph)} audioError={audioError} />
-          <button className="lesson-next" type="button" onClick={continueFromMiss} disabled={!holding}>Continue</button>
-        </div>
+        <SessionCorrect className="lesson-miss" miss={{
+          said: feedback.response ? <MorseMarks pattern={feedback.response} size="support" label={spokenRhythm(feedback.response)} /> : undefined,
+          saidLabel: 'You keyed',
+          answer: <MorseCharacterSupport glyph={feedback.glyph} pattern={feedback.pattern} playing={sounding?.glyph === feedback.glyph}
+            onToggle={() => toggle(feedback.glyph)} audioError={audioError} />,
+          onContinue: continueFromMiss, continueDisabled: !holding,
+        }} />
       )}
 
       {!hasFeedback && step?.kind === 'introduce' && (

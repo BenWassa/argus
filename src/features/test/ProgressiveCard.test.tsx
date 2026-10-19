@@ -210,8 +210,10 @@ describe('rung rendering', () => {
     expect(html).not.toContain('>Submit<')
     // Drawn from the canonical notation, mark by mark, in its real proportions.
     expect(promptFor(CUE_RUNGS[4], character('Q'))).toBe('— — · —')
-    expect((html.match(/test-pattern-mark is-dah/g) ?? [])).toHaveLength(3)
-    expect((html.match(/test-pattern-mark is-dit/g) ?? [])).toHaveLength(1)
+    // The shared marks component (#263), the same one Read and the tray use.
+    expect(html).toContain('morse-marks is-stimulus test-pattern')
+    expect((html.match(/morse-mark is-dah/g) ?? [])).toHaveLength(3)
+    expect((html.match(/morse-mark is-dit/g) ?? [])).toHaveLength(1)
     expect(html).toContain('dah dah dit dah')
   })
 })

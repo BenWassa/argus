@@ -218,7 +218,7 @@ test.describe('fluency', () => {
     await openTopic(page, betweenChecks())
     const before = await storedTopic(page)
     await page.getByRole('button', { name: 'Words, Listen, available' }).click()
-    await expect(page.getByText('Hear it, write it')).toBeVisible()
+    await expect(page.locator('.copy-run .lesson-task')).toHaveText('Copy')
     for (let prompt = 0; prompt < 10; prompt += 1) {
       const play = page.getByRole('button', { name: /^Play$|Play once more/ })
       if (prompt === 0) await play.click()

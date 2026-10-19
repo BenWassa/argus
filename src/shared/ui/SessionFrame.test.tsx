@@ -48,6 +48,27 @@ describe('SessionFrame', () => {
     expect(css).toMatch(/@media \(prefers-reduced-motion: reduce\)\s*\{\s*\.session-correct \{ animation: none; \}/)
   })
 
+  it('gives every miss one correction: verdict, what was given, the answer and a docked Continue (#263)', () => {
+    const go = vi.fn()
+    const { rerender } = render(<SessionCorrect miss={{ said: 'Q', answer: <p>L · — · ·</p>, onContinue: go }} />)
+    const miss = screen.getByRole('status')
+    expect(miss.className).toBe('session-miss session-response')
+    expect(miss.getAttribute('aria-live')).toBe('assertive')
+    expect(miss.querySelector('.session-miss-verdict')?.textContent).toBe('Not that one')
+    expect(miss.querySelector('.session-miss-said')?.textContent).toBe('You said Q')
+    expect(screen.getByText('L · — · ·')).toBeTruthy()
+    expect(screen.queryByText('Correct')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
+    expect(go).toHaveBeenCalledOnce()
+    rerender(<SessionCorrect announce={false} className="extra" miss={{ saidLabel: 'You keyed', onContinue: go, continueDisabled: true, continueLabel: 'Next' }} />)
+    expect(screen.queryByRole('status')).toBeNull()
+    expect(document.querySelector('.session-miss')?.className).toBe('session-miss session-response extra')
+    expect(document.querySelector('.session-miss-said')?.textContent).toBe('You keyed —')
+    expect((screen.getByRole('button', { name: 'Next' }) as HTMLButtonElement).disabled).toBe(true)
+    const css = readFileSync('src/shared/ui/SessionFrame.css', 'utf8')
+    expect(css).toMatch(/\.session-miss > \.session-miss-continue \{[^}]*width: 100%;/)
+  })
+
   it('ends with one reading and two actions, with focus on the result', () => {
     const again = vi.fn(), done = vi.fn()
     render(<RoundResult correct={8} total={10} onAgain={again} onDone={done} />)

@@ -143,7 +143,8 @@
 /* The key, the typed answer, or the correction that replaces them. */
 .fluency-target > .fluency-answer-area,
 .fluency-target > .copy-answer,
-.fluency-target > .fluency-feedback:not(.copy-feedback) {
+.fluency-target > .fluency-feedback:not(.copy-feedback),
+.fluency-target > .session-miss {
   margin-block-start: auto;
 }
 
@@ -153,24 +154,32 @@
   gap: var(--s-sm);
 }
 
-.fluency-play {
-  min-width: 9rem;
-}
+/* A miss's answer: the word, centred over the broken character's pattern. */
+.fluency-miss > .fluency-answer { justify-self: center; }
 
 /* How many characters are in this prompt, and which one the key is on.
    Deliberately dots rather than letters: printing the target would turn a
    sound-first drill into a reading exercise. */
 .fluency-shape {
   display: flex;
-  gap: 0.5em;
+  align-items: center;
+  gap: 8px;
   margin: 0;
-  font-size: var(--t-readout);
-  color: var(--line-strong);
-  line-height: 1;
+  line-height: 0;
 }
 
-.fluency-shape .is-current {
-  color: var(--session-colour, var(--ink));
+/* One drawn dot per character, the current one in the mode colour. */
+.fluency-shape > span {
+  display: block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--line-strong);
+  font-size: 0;
+}
+
+.fluency-shape > .is-current {
+  background: var(--session-colour, var(--ink));
 }
 
 .fluency-audio-error {
@@ -381,11 +390,18 @@
   color: var(--session-colour, var(--ink));
 }
 
+/* One row of actions: they share the width and wrap only when enlarged
+   text leaves no other choice. */
 .free-play-actions {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: var(--s-sm);
+}
+
+.free-play-actions > button {
+  flex: 1 1 auto;
+  padding-inline: var(--s-sm);
 }
 
 .free-play-text {
@@ -410,26 +426,28 @@
   overflow-wrap: anywhere;
 }
 
-/* Inside the shared session frame. */
-.session-frame .free-play-tabs {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  padding: 4px;
-  background: var(--field);
-  border: 1px solid var(--line);
-}
+/* Inside the shared session frame (#263): two tabs side by side, not a box
+   inside a box. The selected one takes the mode colour, edge included; the
+   other is a plain plate. Free play has no run, so its bar is not drawn. */
+.free-play .session-frame-progress { visibility: hidden; }
 
-.session-frame .free-play-tabs button {
+.session-frame .free-play-tabs button,
+.session-frame .free-play-tabs button:hover {
   min-height: 44px;
+  border: 1px solid var(--line);
   background: var(--plate, var(--surface));
   color: var(--ink);
   box-shadow: none;
 }
 
-.session-frame .free-play-tabs [aria-selected='true'] {
+.session-frame .free-play-tabs [aria-selected='true'],
+.session-frame .free-play-tabs [aria-selected='true']:hover {
+  border-color: var(--session-colour);
   background: var(--session-colour);
   color: var(--session-ink);
 }
+
+.session-frame .free-play-tabs button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 
 .free-play-tabs svg {
   width: 24px;
@@ -523,50 +541,40 @@
     gap: var(--s-xs);
   }
 
-  /* A keyed miss carries the whole correction (the word, the broken
-     character's pattern and its Continue button). It takes the full width and
-     lays the verdict beside the pattern, because the Play control it replaces
-     is not asking for anything while the learner reads it. */
-  .fluency-run .fluency-target:has(> .fluency-feedback:not(.copy-feedback)) > .lesson-task,
-  .fluency-run .fluency-target:has(> .fluency-feedback:not(.copy-feedback)) > .fluency-listen {
+  /* A miss carries the whole correction (what was keyed, the word, the
+     broken character's pattern and Continue). It takes the full width, laid
+     out in two columns, because the Play control it sits under is not asking
+     for anything while the learner reads it. */
+  .fluency-run .fluency-target:has(> .fluency-miss) > .lesson-task,
+  .fluency-run .fluency-target:has(> .fluency-miss) > .fluency-listen {
     display: none;
   }
 
-  .fluency-run .fluency-target > .fluency-feedback:not(.copy-feedback) {
+  .fluency-run .fluency-target > .fluency-miss {
     grid-column: 1 / -1;
     grid-row: 1 / span 3;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
-    grid-auto-flow: row;
     align-items: center;
-    justify-items: center;
     gap: var(--s-xs) var(--s-lg);
-    padding: var(--s-sm) var(--s-md);
-  }
-
-  .fluency-feedback:not(.copy-feedback) > strong {
-    grid-column: 1;
-    grid-row: 1;
-    align-self: end;
-  }
-
-  .fluency-feedback:not(.copy-feedback) > .fluency-answer {
-    grid-column: 1;
-    grid-row: 2;
-    align-self: start;
-  }
-
-  .fluency-feedback:not(.copy-feedback) > .morse-character-support {
-    grid-column: 2;
-    grid-row: 1 / span 3;
     width: 100%;
+  }
+
+  /* The word joins the left column above Continue; the pattern takes the right. */
+  .fluency-run .fluency-miss > .fluency-answer { grid-column: 1; grid-row: 3; }
+  .fluency-run .fluency-miss > .session-miss-continue { grid-row: 4; }
+  .fluency-run .fluency-miss > .morse-character-support { grid-column: 2; grid-row: 1 / span 4; min-width: 0; }
+
+  /* Copy's correction sits under its field, as wide as the field. */
+  .fluency-run .fluency-target > .copy-miss {
+    grid-column: 2;
+    grid-row: 2 / span 2;
+    justify-self: stretch;
     min-width: 0;
   }
 
-  .fluency-feedback:not(.copy-feedback) > .lesson-next {
-    grid-column: 1;
-    grid-row: 3;
-    align-self: start;
-  }
+  /* Half a screen wide: the correction stacks in one column. */
+  .fluency-run .fluency-target > .copy-miss { grid-template-columns: minmax(0, 1fr); }
+  .fluency-run .copy-miss > * { grid-column: 1; grid-row: auto; }
 }
 
 /* Short landscape, any width: the free-play output and the copy table give back

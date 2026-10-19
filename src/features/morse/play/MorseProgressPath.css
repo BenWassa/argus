@@ -106,3 +106,21 @@
   .morse-progress-pip { transition: none; }
   .morse-progress-pip:active { transform: none; }
 }
+
+/* Short landscape (#263): rows give back height so at least three show
+   between the pinned header and the slim tray. Every row keeps its 44px floor. */
+@media (max-height: 420px) and (min-width: 560px) {
+  .spine.morse-progress-path { gap: 6px; }
+  /* A row with an aside keeps the room it reserves for it. */
+  .morse-progress-path .spine-row:not(.has-aside),
+  .morse-progress-path .spine-row:not(.has-aside):hover,
+  .morse-progress-path .spine-row:not(.has-aside):active { min-height: 48px; padding-block: 4px; }
+  .morse-progress-path .spine-row.is-position,
+  .morse-progress-path .spine-row.is-position:hover,
+  .morse-progress-path .spine-row.is-position:active { min-height: 56px; }
+  .morse-progress-path .is-position > .spine-node { flex-basis: 40px; height: 40px; }
+  .spine-row.is-position.morse-progress-lesson .spine-label { font-size: 22px; }
+  .morse-progress-path .spine-row.morse-progress-test,
+  .morse-progress-path .spine-row.morse-progress-test:hover,
+  .morse-progress-path .spine-row.morse-progress-test:active { min-height: 64px; }
+}
