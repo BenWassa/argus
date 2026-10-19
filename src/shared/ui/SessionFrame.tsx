@@ -38,6 +38,12 @@ function sessionColours(kind: SessionKind): { colour: string; ink: string } {
  * the foot of the viewport. Progress describes this run, never learning evidence.
  */
 export function SessionFrame({ kind, title, progress, onClose, toolbar, colour, ink, response, children, className = '', style, ...props }: SessionFrameProps) {
+  const heading = useRef<HTMLHeadingElement>(null)
+  useEffect(() => {
+    if (!document.activeElement || document.activeElement === document.body) {
+      heading.current?.focus({ preventScroll: true })
+    }
+  }, [])
   const derived = sessionColours(kind)
   const total = Math.max(0, progress?.total ?? 0)
   const current = Math.min(total, Math.max(0, progress?.current ?? 0))
@@ -45,7 +51,7 @@ export function SessionFrame({ kind, title, progress, onClose, toolbar, colour, 
     <section {...props} className={`session session-frame ${className}`} data-session-kind={kind}
       style={{ '--session-colour': colour ?? derived.colour, '--session-ink': ink ?? derived.ink, ...style } as CSSProperties}>
       <header className="session-frame-header">
-        <span className="session-frame-title">{title}</span>
+        <h1 ref={heading} tabIndex={-1} className="session-frame-title">{title}</h1>
         <div className="session-frame-progress" role={progress ? 'progressbar' : undefined}
           aria-label={progress ? `${current} of ${total}` : undefined} aria-hidden={progress ? undefined : true}
           aria-valuemin={progress ? 0 : undefined} aria-valuemax={progress ? total : undefined} aria-valuenow={progress ? current : undefined}>
@@ -105,7 +111,7 @@ export function RoundResult({ correct, total, onAgain, onDone, extra, againLabel
   const heading = useRef<HTMLHeadingElement>(null)
   useEffect(() => { heading.current?.focus({ preventScroll: true }) }, [])
   return <div className="session-round-result">
-    <h1 ref={heading} tabIndex={-1} className="session-round-reading" aria-label={`${correct} of ${total} correct`}>{correct} / {total}</h1>
+    <h2 ref={heading} tabIndex={-1} className="session-round-reading" aria-label={`${correct} of ${total} correct`}>{correct} / {total}</h2>
     {extra}
     <div className="session-round-actions">
       {onAgain && <button type="button" onClick={onAgain}>{againLabel}</button>}

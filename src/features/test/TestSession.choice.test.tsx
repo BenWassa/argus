@@ -67,7 +67,7 @@ function answerKeyFor(prompt: string, alt: string | null): string {
 
 /** Answer the card on screen, then move past it. */
 async function answerCurrent(correct: boolean) {
-  const prompt = screen.getByRole('heading', { level: 1 }).textContent ?? ''
+  const prompt = screen.getByRole('heading', { level: 2 }).textContent ?? ''
   const alt = document.querySelector('[role="img"]')?.getAttribute('aria-label') ?? null
   const key = answerKeyFor(prompt, alt)
   const item = ITEMS.find((candidate) => candidate.prompt === prompt && (alt === null || candidate.stimulus?.alt === alt))!
@@ -100,7 +100,7 @@ describe('Test with visual-choice items', () => {
 
   it('never puts the answer of an unanswered card into an attribute or label other than its own option', () => {
     open()
-    const prompt = screen.getByRole('heading', { level: 1 }).textContent!
+    const prompt = screen.getByRole('heading', { level: 2 }).textContent!
     // Options are present by design; the answer must not be marked or labelled.
     expect(document.querySelectorAll('.is-answer, [data-answer]')).toHaveLength(0)
     expect(prompt).toBeTruthy()

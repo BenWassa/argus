@@ -312,7 +312,7 @@ export function SendRun({
 
   if (prompts.length === 0) {
     return <SessionFrame kind="key" title="Key" onClose={onExit}>
-      <h1>{LEVEL_REASON_LETTERS}</h1>
+      <h2 className="session-prompt-heading">{LEVEL_REASON_LETTERS}</h2>
     </SessionFrame>
   }
 
@@ -329,9 +329,9 @@ export function SendRun({
 
         <div className="send-review-card">
           <p className="send-kicker">{review.correct ? 'Clean transmission' : 'Review'}</p>
-          <h1 className={review.correct ? 'is-correct' : undefined}>
+          <h2 className={`session-prompt-heading${review.correct ? ' is-correct' : ''}`}>
             {review.correct ? 'Received as sent' : 'Compare what arrived'}
-          </h1>
+          </h2>
           {review.correct && <SessionCorrect target={review.expected} />}
 
           <dl className="send-compare">
@@ -373,7 +373,7 @@ export function SendRun({
       <div className="send-stage" data-kind={meta.interaction}>
         <header className="send-stage-head">
           <p className="send-kicker">{meta.title}</p>
-          <h1 className="sr-only">Send {target} in Morse.</h1>
+          <h2 className="session-prompt-heading sr-only">Send {target} in Morse.</h2>
           {renderTarget()}
         </header>
 

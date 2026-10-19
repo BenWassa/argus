@@ -38,6 +38,7 @@ describe('every Morse session shares the frame', () => {
     expect(container.querySelectorAll('.session-frame')).toHaveLength(1)
     expect(container.querySelector('.session-frame')?.getAttribute('data-session-kind')).toBe(kind)
     expect(screen.getByRole('button', { name: 'Close' })).toBeTruthy()
+    expect(screen.getAllByRole('heading', { level: 1 })).toEqual([container.querySelector('.session-frame-title')])
     for (const paragraph of container.querySelectorAll('p')) {
       if (paragraph.closest('.morse-character-support, [data-session-hint]')) continue
       expect(paragraph.textContent?.match(/[.!?](?:\s|$)/g)?.length ?? 0).toBeLessThanOrEqual(1)
@@ -48,6 +49,7 @@ describe('every Morse session shares the frame', () => {
     const { container } = render(<MorsePlacementDialog topic={topic} onClose={noop} onNew={noop} onCommit={noop} onContinue={noop} />)
     fireEvent.click(screen.getByRole('button', { name: /Know some Morse/ }))
     expect(container.querySelector('[data-session-kind="lesson"]')).toBeTruthy()
+    expect(screen.getAllByRole('heading', { level: 1 })).toEqual([container.querySelector('.session-frame-title')])
   })
 
   it('fixes practice direction when entry supplies it', () => {

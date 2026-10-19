@@ -97,7 +97,8 @@ describe('practice writes nothing', () => {
     open(NATO, [NATO.items[0].id!, NATO.items[1].id!])
     const before = localStorage.getItem(STORE_KEY)
     runToEnd()
-    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Practice done')
+    expect(screen.getByRole('heading', { level: 2, name: 'Practice done' })).toBe(document.activeElement)
+    expect(screen.getAllByRole('heading', { level: 1 })).toEqual([document.querySelector('.session-frame-title')])
     expect(localStorage.getItem(STORE_KEY)).toBe(before)
   })
 
@@ -156,7 +157,8 @@ describe('what it asks', () => {
     expect(screen.queryByText('Practice done')).toBeNull()
     reveal()
     grade(true)
-    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Practice done')
+    expect(screen.getByRole('heading', { level: 2, name: 'Practice done' })).toBe(document.activeElement)
+    expect(screen.getAllByRole('heading', { level: 1 })).toEqual([document.querySelector('.session-frame-title')])
   })
 })
 
@@ -180,7 +182,7 @@ describe('the end of a run', () => {
     expect(screen.getByRole('button', { name: 'Test' })).toBeTruthy()
     // The end is a title and its actions: no sentence, and no claim about the record.
     expect(document.querySelector('.practice-summary p')).toBeNull()
-    expect(document.querySelector('.practice-summary h1')?.textContent).toBe('Practice done')
+    expect(document.querySelector('.practice-summary h2')?.textContent).toBe('Practice done')
     expect(document.querySelector('.practice-summary')?.textContent).not.toMatch(/the check/i)
   })
 })

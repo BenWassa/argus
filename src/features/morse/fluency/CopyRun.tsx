@@ -184,9 +184,9 @@ export function CopyRun({ level, rung, progress, focus, allowed, onProgress, onL
     return (
       <SessionFrame {...frame} className="fluency-run copy-run">
         <div className="fluency-head">
-          <h1 ref={headingRef} tabIndex={-1}>
+          <h2 ref={headingRef} tabIndex={-1} className="session-prompt-heading">
             {intro.heading}
-          </h1>
+          </h2>
         </div>
         <ul className="copy-table" aria-label={intro.heading}>
           {Object.entries(intro.table).map(([glyph, pattern]) => (
@@ -231,7 +231,7 @@ export function CopyRun({ level, rung, progress, focus, allowed, onProgress, onL
     <SessionFrame {...frame} className="fluency-run copy-run" data-step="check">
 
       <div className="fluency-target">
-        <h1 className="sr-only">Listen, then type what you heard.</h1>
+        <h2 className="session-prompt-heading sr-only">Listen, then type what you heard.</h2>
         <p className="lesson-task">Copy</p>
 
         {/* The shared Listen control (#263); two hearings, counted under it. */}

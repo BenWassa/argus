@@ -211,15 +211,15 @@
   box-shadow: var(--shadow);
 }
 
-.send-review-card h1,
-.send-summary-card h1 {
+.send-review-card .session-prompt-heading,
+.send-summary-card .session-prompt-heading {
   margin: 0;
   font-family: var(--font);
   font-size: var(--t-section);
   line-height: 1.15;
 }
 
-.send-review-card h1.is-correct {
+.send-review-card .session-prompt-heading.is-correct {
   color: var(--ok);
 }
 
@@ -331,7 +331,7 @@
   box-shadow: none;
 }
 
-.session-frame .send-review-card h1.is-correct {
+.session-frame .send-review-card .session-prompt-heading.is-correct {
   color: var(--session-colour);
 }
 

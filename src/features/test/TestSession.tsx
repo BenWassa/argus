@@ -155,6 +155,7 @@ export function TestSession({ topicIds, review = false, onExit, onPractice, onPl
   const [dragging, setDragging] = useState(false)
   const [cardWidth, setCardWidth] = useState(0)
 
+  const promptRef = useRef<HTMLHeadingElement>(null)
   const cardRef = useRef<HTMLButtonElement>(null)
   const yesRef = useRef<HTMLButtonElement>(null)
   // The view as of this instant, not as of the last committed render. Grading
@@ -221,8 +222,8 @@ export function TestSession({ topicIds, review = false, onExit, onPractice, onPl
 
   useEffect(() => {
     if (deck[index]?.character || isObjectiveCard(deck[index])) return
-    // A swipe deck keeps focus on the card itself: the card is the control.
-    if (view.kind === 'asking') cardRef.current?.focus({ preventScroll: true })
+    // Announce the new prompt before the learner reveals the card.
+    if (view.kind === 'asking') promptRef.current?.focus({ preventScroll: true })
     else if (view.kind === 'revealed' && !swipeFirst) yesRef.current?.focus({ preventScroll: true })
   }, [deck, index, view.kind, swipeFirst])
 
@@ -715,9 +716,9 @@ export function TestSession({ topicIds, review = false, onExit, onPractice, onPl
       className={`rapid-session is-graded${swipeFirst ? ' is-swipe-graded' : ''}`}
       aria-labelledby="prompt-heading"
     >
-      <h1 id="prompt-heading" className="sr-only">
+      <h2 ref={promptRef} id="prompt-heading" tabIndex={-1} className="sr-only session-prompt-heading">
         {card.item.prompt}
-      </h1>
+      </h2>
 
       <div className={`card-stage${armed ? ` is-armed is-armed-${armed}` : ''}`}>
         <motion.span className="grade-cue grade-cue-miss" style={{ opacity: missStrength }} aria-hidden="true">

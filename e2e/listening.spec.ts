@@ -127,7 +127,7 @@ const stored = (page: Page) =>
 
 /** Answer the card on screen correctly and unaided, by whichever mode it is. */
 async function answerUnaided(page: Page) {
-  const heading = (await page.getByRole('heading', { level: 1 }).textContent()) ?? ''
+  const heading = (await page.getByRole('heading', { level: 2 }).textContent()) ?? ''
   if (heading === COPY.prompt) {
     await page.getByLabel('Type what you heard').fill('a 1 2')
     await page.getByRole('button', { name: 'Check' }).click()
@@ -206,7 +206,7 @@ test('revealing the transcript makes the answer practice, not listening evidence
   // Reveal on the first card, whichever it is, and answer it correctly.
   await page.getByRole('button', { name: 'Show transcript' }).click()
   await expect(page.getByText(/this answer will be practice, not counted as listening/)).toBeVisible()
-  const heading = (await page.getByRole('heading', { level: 1 }).textContent()) ?? ''
+  const heading = (await page.getByRole('heading', { level: 2 }).textContent()) ?? ''
   if (heading === COPY.prompt) {
     await page.getByLabel('Type what you heard').fill('A12')
     await page.getByRole('button', { name: 'Check' }).click()
@@ -221,7 +221,7 @@ test('revealing the transcript makes the answer practice, not listening evidence
   await page.getByRole('button', { name: 'Continue' }).click()
   // The other two by ear, unaided.
   for (let asked = 0; asked < 2; asked += 1) {
-    await expect(page.getByRole('heading', { level: 1 })).not.toHaveText(heading)
+    await expect(page.getByRole('heading', { level: 2 })).not.toHaveText(heading)
     await answerUnaided(page)
     await expect(page.locator('.test-verdict')).toHaveCount(0, { timeout: 4000 }).catch(() => undefined)
   }
@@ -250,7 +250,7 @@ test('a recording that cannot load is reported, leaves the text route open, and 
 test('every answer mode fits a phone without sideways scroll', async ({ page }) => {
   await openTopic(page)
   await startTest(page)
-  const heading = (await page.getByRole('heading', { level: 1 }).textContent()) ?? ''
+  const heading = (await page.getByRole('heading', { level: 2 }).textContent()) ?? ''
   expect(heading.length).toBeGreaterThan(0)
   await noSidewaysScroll(page)
   await page.getByRole('button', { name: 'Show transcript' }).click()

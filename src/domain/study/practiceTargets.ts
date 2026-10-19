@@ -190,8 +190,8 @@ export function targetsForItems(topic: Topic, itemIds: string[]): PracticeTarget
  *
  * The offer to practise is made on this and not on `practiceTargets`, so that a
  * freshly authored topic with no evidence at all does not advertise repair work
- * it has no grounds to claim. Untried directions still get asked once a run
- * starts and there is room for them.
+ * it has no grounds to claim. Callers pass these item ids to the run so the
+ * advertised count and the selected items agree.
  */
 export function missedTargets(topic: Topic): PracticeTarget[] {
   return practiceTargets(topic).filter((target) => target.reason === 'missed')

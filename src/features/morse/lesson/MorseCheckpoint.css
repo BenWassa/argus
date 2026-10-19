@@ -102,7 +102,7 @@
   text-align: center;
 }
 
-.morse-checkpoint-summary > h1 {
+.morse-checkpoint-summary > .session-prompt-heading {
   margin-block-start: auto;
 }
 
@@ -112,7 +112,7 @@
   margin-block-start: auto;
 }
 
-.morse-checkpoint-summary h1 {
+.morse-checkpoint-summary .session-prompt-heading {
   font-family: var(--font-display);
   font-size: var(--t-page);
   line-height: 1.08;

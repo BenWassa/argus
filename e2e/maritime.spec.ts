@@ -115,7 +115,7 @@ test('light aspects: the observer is drawn, the key matches the research table, 
   let aspects = 0
   for (let asked = 0; asked < 16; asked += 1) {
     await expect(page.getByText('Choose one')).toBeVisible()
-    const prompt = (await page.getByRole('heading', { level: 1 }).textContent()) ?? ''
+    const prompt = (await page.getByRole('heading', { level: 2 }).textContent()) ?? ''
     await noSidewaysScroll(page)
     const hit = ASPECT_KEY.find(([pattern]) => pattern.test(prompt))
     let answer: string

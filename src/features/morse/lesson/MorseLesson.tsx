@@ -419,7 +419,7 @@ export function MorseLesson({
   if (checkpointInvite) {
     return (
       <SessionFrame {...frame} className="morse-lesson">
-        <h1 ref={headingRef} tabIndex={-1} className="lesson-title">Checkpoint</h1>
+        <h2 ref={headingRef} tabIndex={-1} className="session-prompt-heading lesson-title">Checkpoint</h2>
         <div className="lesson-exits" inert={!armed}>
           <button type="button" onClick={startInvitedCheckpoint}>Start</button>
           <button className="ghost" type="button" onClick={skipInvitedCheckpoint}>Skip</button>
@@ -431,7 +431,7 @@ export function MorseLesson({
   if (run.finished) {
     return (
       <SessionFrame {...frame} className="morse-lesson">
-        <h1 ref={headingRef} tabIndex={-1} className="lesson-title">Every letter covered</h1>
+        <h2 ref={headingRef} tabIndex={-1} className="session-prompt-heading lesson-title">Every letter covered</h2>
         <div className="lesson-exits" inert={!armed}>
           <button type="button" onClick={onTest}>Test me</button>
           {/* Play opens with acquisition, not with the Test: the letters can be
@@ -451,9 +451,9 @@ export function MorseLesson({
     const still = owedLetters(topicRef.current)
     return (
       <SessionFrame {...frame} className="morse-lesson">
-        <h1 ref={headingRef} tabIndex={-1} className="lesson-title">
+        <h2 ref={headingRef} tabIndex={-1} className="session-prompt-heading lesson-title">
           {still.length === 0 ? 'Every letter confirmed' : 'Letters gone over'}
-        </h1>
+        </h2>
         <div className="lesson-exits" inert={!armed}>
           {still.length === 0 ? (
             <>
@@ -475,9 +475,9 @@ export function MorseLesson({
     const last = run.packetIndex + 1 >= run.packetCount
     return (
       <SessionFrame {...frame} className="morse-lesson">
-        <h1 ref={headingRef} tabIndex={-1} className="lesson-title">
+        <h2 ref={headingRef} tabIndex={-1} className="session-prompt-heading lesson-title">
           Lesson {run.packetIndex + 1} {replay ? 'replayed' : 'done'}
-        </h1>
+        </h2>
         <div className="lesson-exits" inert={!armed}>
           <button type="button" onClick={nextPacket}>{last ? 'Finish' : 'Next lesson'}</button>
           <button className="ghost" type="button" onClick={onExit}>Stop here</button>
@@ -499,9 +499,9 @@ export function MorseLesson({
       // excluded on purpose: a correction is read from the top down.
       data-step={!hasFeedback && step ? step.kind : undefined}
     >
-      <h1 ref={headingRef} tabIndex={-1} className="sr-only">
+      <h2 ref={headingRef} tabIndex={-1} className="session-prompt-heading sr-only">
         {run.afterCourse ? 'Morse, going over missed letters' : `Morse lesson, packet ${run.packetIndex + 1} of ${run.packetCount}`}
-      </h1>
+      </h2>
       {(feedback?.correct || shownListeningFeedback?.correct) && <SessionCorrect target={feedback?.glyph ?? shownListeningFeedback?.glyph} />}
 
       {/* Both corrections hold until `Continue`. Nothing about a miss is on a

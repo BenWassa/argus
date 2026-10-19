@@ -19,7 +19,7 @@ import { MorseProgressPath, MorseModeTray, morseRunAction } from '../morse/play'
 import { MorsePlacementDialog } from '../morse/MorsePlacementDialog'
 import { applyMorsePlacement, canOfferMorsePlacement } from '../../domain/morse/placement'
 import type { RunTarget } from '../../app/routing/routes'
-import { hasPractice, lastTestMissedIds, practiceItemCount } from '../../domain/study/practiceTargets'
+import { hasPractice, lastTestMissedIds, missedTargets, practiceItemCount } from '../../domain/study/practiceTargets'
 import type { Mode } from '../../domain/study/mode'
 import type { Topic } from '../../domain/library/topic'
 import './TopicPage.css'
@@ -267,7 +267,7 @@ function TopicTray({ topic, label, practiceCount, onStart, onReference }: TopicT
         colour: 'var(--topic-track)',
         ink: 'var(--topic-track-ink)',
         disabled: practiceCount === 0,
-        onSelect: () => onStart('learn', [topic.id], { kind: 'practice' }),
+        onSelect: () => onStart('learn', [topic.id], { kind: 'practice', itemIds: [...new Set(missedTargets(topic).map(target => target.item.id))] }),
       },
       {
         id: 'test',

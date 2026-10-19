@@ -99,7 +99,7 @@
   text-align: center;
 }
 
-.practice-summary > h1 {
+.practice-summary > .session-prompt-heading {
   margin-block-start: auto;
 }
 
@@ -108,7 +108,7 @@
   margin-block-start: auto;
 }
 
-.practice-summary h1 {
+.practice-summary .session-prompt-heading {
   margin-inline: 0;
   margin-block-end: 0;
   font-family: var(--font-display);
@@ -121,7 +121,7 @@
   gap: var(--s-sm);
 }
 
-.practice-summary h1:focus {
+.practice-summary .session-prompt-heading:focus {
   outline: none;
 }
 

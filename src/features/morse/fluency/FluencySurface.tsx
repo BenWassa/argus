@@ -95,7 +95,7 @@ export function FluencySurface({ topicId, initialMode, initialSend, initialCopy,
   if (blocked) {
     return (
       <SessionFrame kind={send ? 'key' : 'listen'} title={send ? 'Key' : 'Listen'} onClose={onExit}>
-        <h1>{blocked}</h1>
+        <h2 className="session-prompt-heading">{blocked}</h2>
       </SessionFrame>
     )
   }

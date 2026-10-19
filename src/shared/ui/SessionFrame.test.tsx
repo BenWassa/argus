@@ -8,6 +8,30 @@ afterEach(cleanup)
 const noop = () => undefined
 
 describe('SessionFrame', () => {
+  it('focuses its only h1 when the launcher has gone, including a keyed restart', () => {
+    const { rerender } = render(<SessionFrame key="first" kind="key" title="Key" onClose={noop} />)
+    expect(document.activeElement).toBe(screen.getByRole('heading', { level: 1, name: 'Key' }))
+    rerender(<SessionFrame key="second" kind="key" title="Key" onClose={noop} />)
+    expect(document.activeElement).toBe(screen.getByRole('heading', { level: 1, name: 'Key' }))
+    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1)
+  })
+
+  it('preserves focus already owned by a control', () => {
+    const launcher = document.createElement('button')
+    document.body.append(launcher)
+    launcher.focus()
+    render(<SessionFrame kind="test" title="Test" onClose={noop} />)
+    expect(document.activeElement).toBe(launcher)
+    launcher.remove()
+  })
+
+  it('keeps the frame as the only h1 when showing a result', () => {
+    render(<SessionFrame kind="key" title="Key" onClose={noop}><RoundResult correct={8} total={10} onDone={noop} /></SessionFrame>)
+    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1)
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Key')
+    expect(document.activeElement).toBe(screen.getByRole('heading', { level: 2, name: '8 of 10 correct' }))
+  })
+
   it.each(['key', 'listen', 'read', 'free', 'lesson', 'checkpoint', 'test', 'practice'] as const)('gives %s its own colour and matching ink', kind => {
     const { container } = render(<SessionFrame kind={kind} title="Session" onClose={noop}>Stimulus</SessionFrame>)
     const frame = container.querySelector<HTMLElement>('.session-frame')!

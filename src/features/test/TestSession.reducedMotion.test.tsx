@@ -43,7 +43,7 @@ function open(topicIds: string[]) {
 }
 
 function promptNow(): string {
-  return screen.getByRole('heading', { level: 1 }).textContent ?? ''
+  return screen.getByRole('heading', { level: 2 }).textContent ?? ''
 }
 
 function cardNow(): HTMLElement {

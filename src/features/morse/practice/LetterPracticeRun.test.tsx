@@ -49,6 +49,32 @@ function finishCorrectDwell() {
 }
 
 describe('LetterPracticeRun', () => {
+  it('gives Key entry focus to its single session heading', () => {
+    renderRun()
+    expect(document.activeElement).toBe(screen.getByRole('heading', { level: 1, name: 'Key' }))
+    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1)
+  })
+
+  it.each(['read', 'listen'] as const)('focuses the %s entry when it becomes ready on direct launch', direction => {
+    render(<LetterPracticeRun direction={direction} eligible={['E']} onProgress={vi.fn()} onExit={vi.fn()} onAnother={vi.fn()} />)
+    if (direction === 'listen') {
+      fireEvent.click(screen.getByRole('button', { name: 'Play Morse sound' }))
+      act(() => vi.advanceTimersByTime(100))
+    }
+    expect(document.activeElement).toBe(screen.getByRole('textbox', { name: 'Letter' }))
+    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1)
+  })
+
+  it('keeps Read and ready Listen focus on their entry field', () => {
+    renderRun()
+    fireEvent.click(screen.getByRole('button', { name: 'Read' }))
+    expect(document.activeElement).toBe(screen.getByRole('textbox', { name: 'Letter' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Listen' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Play Morse sound' }))
+    act(() => vi.advanceTimersByTime(100))
+    expect(document.activeElement).toBe(screen.getByRole('textbox', { name: 'Letter' }))
+  })
+
   it('does not count a helped answer as an independent outcome', () => {
     const { onProgress } = renderRun()
     fireEvent.click(screen.getByRole('button', { name: 'Help' }))
