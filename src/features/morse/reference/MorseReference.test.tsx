@@ -49,9 +49,9 @@ describe('the Morse alphabet is complete and alphabetical', () => {
   it('keeps the reference focused on letter, pattern, phrase and sound rather than duplicating the Learn SVG', () => {
     expect(html).not.toContain('morse-mnemonic')
     expect(html).not.toContain('morse-mnemonic-svg')
-    expect(html).toContain('Dits last one unit, dahs three')
-    expect(html).toContain('Lessons introduce letters in pairs')
-    expect(html).toContain('Test is the scored A–Z check.')
+    // No explanatory paragraph above the letters (#257): the cards lead.
+    expect(html).not.toContain('Dits last one unit, dahs three')
+    expect(html).not.toContain('Lessons introduce letters in pairs')
     expect(html).not.toContain('<details')
   })
 

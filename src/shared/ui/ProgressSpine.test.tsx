@@ -132,4 +132,38 @@ describe('ProgressSpine', () => {
     expect(css).not.toMatch(/rgba?\(|gradient|oklch\(/)
     expect(css).toMatch(/@media \(prefers-reduced-motion: reduce\)/)
   })
+
+  it('calls onLockedSelect, never onSelect, for a locked row, and changes nothing without it', () => {
+    const onSelect = vi.fn()
+    const onLocked = vi.fn()
+    const base = rows(onSelect)
+    base[3] = { ...base[3], onLockedSelect: onLocked }
+    const { rerender } = render(<ProgressSpine rows={base} label="Path" />)
+    fireEvent.click(screen.getByRole('button', { name: 'Three, locked' }))
+    expect(onLocked).toHaveBeenCalledOnce()
+    expect(onSelect).not.toHaveBeenCalled()
+    rerender(<ProgressSpine rows={rows(onSelect)} label="Path" />)
+    fireEvent.click(screen.getByRole('button', { name: 'Three, locked' }))
+    expect(onSelect).not.toHaveBeenCalled()
+  })
+
+  it('draws an aside inside the row plate but outside the row button, usable while locked', () => {
+    const onSelect = vi.fn()
+    const onAside = vi.fn()
+    const base = rows(onSelect)
+    base[3] = { ...base[3], aside: <button type="button" onClick={onAside}>Early</button> }
+    const { container } = render(<ProgressSpine rows={base} label="Path" />)
+    const aside = screen.getByRole('button', { name: 'Early' })
+    const row = screen.getByRole('button', { name: 'Three, locked' })
+    expect(row.contains(aside)).toBe(false)
+    expect(row.classList.contains('has-aside')).toBe(true)
+    expect(aside.closest('.spine-row-wrap')).toBe(row.parentElement)
+    expect(aside.closest('li')!.dataset.nodeId).toBe('three')
+    fireEvent.click(aside)
+    expect(onAside).toHaveBeenCalledOnce()
+    expect(onSelect).not.toHaveBeenCalled()
+    // Rows without an aside keep their original markup.
+    expect(container.querySelectorAll('.spine-row-wrap')).toHaveLength(1)
+    expect(screen.getByRole('button', { name: 'Two, reached' }).parentElement!.tagName).toBe('LI')
+  })
 })

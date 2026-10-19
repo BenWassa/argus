@@ -1,5 +1,5 @@
 import { isMorseCharacter, type MorseLetter } from '../code'
-import { MORSE_ALPHABET, fluencyWords, seededRandom, weightedSample } from './corpus'
+import { MORSE_ALPHABET, fluencyWords, materialFits, seededRandom, weightedSample } from './corpus'
 import { fluencyNeed, type MorseFluencyProgress } from './progress'
 import { generateMixed, generateNumbers, generatePhrases, generateSentences } from './sentences'
 
@@ -113,44 +113,50 @@ export function copyCommonWords(): string[] {
  *
  * Seeded, like every Fluency run, so a re-render cannot reshuffle a queue the
  * learner is halfway through and the tests can assert what a level asks.
+ *
+ * `allowed`, when given, restricts the material to prompts made only of those
+ * characters (#257), and a run may then be shorter than the level's length.
+ * `length` overrides the level's run length, for sizing a restricted pool.
  */
 export function copyPrompts(
   level: CopyLevel,
   progress: MorseFluencyProgress,
   seed: number,
   focus: ReadonlySet<MorseLetter> = new Set(),
+  allowed?: ReadonlySet<string>,
+  length: number = COPY_LEVEL_INFO[level].length,
 ): string[] {
   const random = seededRandom(seed)
-  const { length } = COPY_LEVEL_INFO[level]
+  const fits = (text: string) => !allowed || materialFits(text, allowed)
 
   let prompts: string[]
   switch (level) {
     case 'letters': {
-      const needOrdered = [...MORSE_ALPHABET].sort(
+      const needOrdered = MORSE_ALPHABET.filter(fits).sort(
         (a, b) => fluencyNeed(progress, b, focus) - fluencyNeed(progress, a, focus) || a.localeCompare(b),
       )
       prompts = weightedSample(needOrdered, length, random)
       break
     }
     case 'common':
-      prompts = weightedSample(shuffled(COMMON_WORDS, random), length, random)
+      prompts = weightedSample(shuffled(COMMON_WORDS.filter(fits), random), length, random)
       break
     case 'words': {
-      const pool = [...fluencyWords('short'), ...fluencyWords('medium')]
+      const pool = [...fluencyWords('short'), ...fluencyWords('medium')].filter(fits)
       prompts = weightedSample(shuffled(pool, random), length, random)
       break
     }
     case 'phrases':
-      prompts = generatePhrases(length, random)
+      prompts = generatePhrases(length, random, allowed)
       break
     case 'sentences':
-      prompts = generateSentences(length, random)
+      prompts = generateSentences(length, random, allowed)
       break
     case 'numbers':
-      prompts = generateNumbers(length, random)
+      prompts = generateNumbers(length, random, allowed)
       break
     case 'mixed':
-      prompts = generateMixed(length, random)
+      prompts = generateMixed(length, random, allowed)
       break
   }
 

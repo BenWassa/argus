@@ -10,11 +10,22 @@ import type { CopyLevel } from '../../../domain/morse/fluency/copy'
 import type { SendStage } from '../../../domain/morse/fluency/send'
 import { morseFocusLetters } from '../../../domain/morse/fluency/focus'
 import type { MorseLetter } from '../../../domain/morse/code'
+import { levelReadiness, levelsFor, modeMaterialCharacters, type MorseMode } from '../../../domain/morse/modes'
+import type { Topic } from '../../../domain/library/topic'
+import { SessionFrame } from '../../../shared/ui/SessionFrame'
 import { CopyRun } from './CopyRun'
 import { FreePlay } from './FreePlay'
 import { FluencyRun } from './FluencyRun'
 import { SendRun } from './SendRun'
 import { ListeningSpacing } from './ListeningSpacing'
+
+/** Why the requested level cannot start for this learner (#257), or null when it can. */
+function blockedReason(topic: Topic, mode: Exclude<MorseMode, 'free'>, levelId: string): string | null {
+  const level = levelsFor(mode).find((candidate) => candidate.id === levelId)
+  if (!level) return null
+  const readiness = levelReadiness(topic, level)
+  return readiness.startable ? null : readiness.reason
+}
 
 interface FluencySurfaceProps {
   topicId: string
@@ -53,6 +64,8 @@ export function FluencySurface({ topicId, initialMode, initialSend, initialCopy,
     initialSend ? { stage: initialSend, run: 0 } : null,
   )
   const free = Boolean(initialFree)
+  // Read once, like focus: before acquisition, material keeps to taught letters.
+  const [allowed] = useState<ReadonlySet<string> | undefined>(() => (topic ? modeMaterialCharacters(topic) ?? undefined : undefined))
 
   const commit = useCallback(
     (next: MorseFluencyProgress) => {
@@ -71,6 +84,17 @@ export function FluencySurface({ topicId, initialMode, initialSend, initialCopy,
     return <FreePlay rung={(progress ?? newFluencyProgress()).rung} onExit={onExit} />
   }
 
+  const blocked = send ? blockedReason(topic, 'key', `send:${send.stage}`)
+    : copy ? blockedReason(topic, 'listen', `copy:${copy.level}`)
+      : mode === 'words' || mode === 'groups' ? blockedReason(topic, 'listen', `fluency:${mode}`) : null
+  if (blocked) {
+    return (
+      <SessionFrame kind={send ? 'key' : 'listen'} title={send ? 'Key' : 'Listen'} onClose={onExit}>
+        <h1>{blocked}</h1>
+      </SessionFrame>
+    )
+  }
+
   if (send) {
     return (
       <SendRun
@@ -79,6 +103,7 @@ export function FluencySurface({ topicId, initialMode, initialSend, initialCopy,
         seed={send.run}
         progress={progress ?? newFluencyProgress()}
         onProgress={commit}
+        allowed={allowed}
         onStage={(stage) =>
           setSend((previous) => ({ stage, run: (previous?.run ?? 0) + 1 }))
         }
@@ -97,6 +122,7 @@ export function FluencySurface({ topicId, initialMode, initialSend, initialCopy,
         rung={(progress ?? newFluencyProgress()).rung}
         progress={progress ?? newFluencyProgress()}
         focus={focus}
+        allowed={allowed}
         toolbar={spacing}
         onProgress={commit}
         onLevel={(level) => setCopy((previous) => ({ level, run: (previous?.run ?? 0) + 1 }))}
@@ -114,6 +140,7 @@ export function FluencySurface({ topicId, initialMode, initialSend, initialCopy,
         progress={progress ?? newFluencyProgress()}
         focus={focus}
         only={only}
+        allowed={allowed}
         toolbar={spacing}
         onProgress={commit}
         onExit={onExit}

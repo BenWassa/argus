@@ -11,17 +11,59 @@
 .morse-progress-test .spine-label { font-size: 20px; }
 .morse-progress-repair { color: var(--warning); }
 
-/* The A–Z Test is the largest milestone. */
+/* Yellow discipline (#257). Signal marks only the position row and the done
+   segment of the line. A done node is a settled slate step with an ink tick;
+   reached rings, word-check flags and level rings are neutral; locked rings
+   sit a step quieter; tier pips carry their mode colours. */
+.morse-progress-path .spine-node { border-color: var(--line-hover); color: var(--ink); }
+.morse-progress-path .is-done > .spine-node {
+  border-color: var(--complete);
+  background: var(--surface-4);
+  color: var(--ink);
+}
+.morse-progress-path .is-locked > .spine-node { border-color: var(--spine-ahead); color: var(--muted); }
+.morse-progress-path .is-repair > .spine-node { border-color: var(--warning); color: var(--warning); }
+.morse-progress-path .is-position > .spine-node {
+  border-color: var(--action);
+  background: var(--action);
+  color: var(--action-ink);
+}
+
+/* The A–Z Test is the largest milestone, and the only one with a raised plate. */
 .morse-progress-test > .spine-node { flex-basis: 44px; height: 44px; font-size: 12px; letter-spacing: 0.02em; }
 .spine-row.morse-progress-test,
 .spine-row.morse-progress-test:hover,
-.spine-row.morse-progress-test:active { min-height: 96px; }
+.spine-row.morse-progress-test:active { min-height: 96px; background: var(--plate-raised); border-color: var(--line-strong); }
 .spine-row.morse-progress-test.is-position,
 .spine-row.morse-progress-test.is-position:hover,
-.spine-row.morse-progress-test.is-position:active { min-height: 104px; }
+.spine-row.morse-progress-test.is-position:active { min-height: 104px; border-color: var(--action-edge); }
+.spine-row.morse-progress-test.is-repair,
+.spine-row.morse-progress-test.is-repair:hover,
+.spine-row.morse-progress-test.is-repair:active { border-color: var(--warning); }
 .spine-row.morse-progress-test.is-position > .spine-node { flex-basis: 48px; height: 48px; }
+.spine-row.morse-progress-test.has-aside,
+.spine-row.morse-progress-test.has-aside:hover,
+.spine-row.morse-progress-test.has-aside:active { min-height: 0; }
+.spine-row-wrap:has(> .morse-progress-test) { --spine-aside-inset: 80px; }
+.spine-row-wrap:has(> .morse-progress-test.is-position) { --spine-aside-inset: 72px; }
 
-.morse-progress-pips { display: flex; flex-wrap: wrap; }
+/* Secondary actions inside a plate: Test early, Skip ahead. */
+.morse-progress-aside { min-height: 44px; }
+
+/* One line, clear of the line, saying why a tap could not start. */
+.morse-progress-notice {
+  margin: var(--s-xs) 0 0;
+  padding-left: 72px;
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  font-weight: var(--w-label);
+  letter-spacing: var(--track-readout);
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* Tier pips: the mode's own stimulus mark on its colour, 44px to hit. */
+.morse-progress-pips { display: flex; flex-wrap: wrap; justify-content: flex-end; }
 .morse-progress-pip,
 .morse-progress-pip:hover,
 .morse-progress-pip:active {
@@ -30,21 +72,33 @@
   width: 44px;
   min-width: 44px;
   min-height: 44px;
-  padding: 12px;
+  padding: 0;
   border: 0;
   border-radius: 9px;
-  background: var(--plate);
+  background: transparent;
   box-shadow: none;
   transition: transform 150ms var(--ease);
 }
 
-.morse-progress-pip-key { --pip-colour: var(--mode-key); }
-.morse-progress-pip-listen { --pip-colour: var(--mode-listen); }
-.morse-progress-pip-read { --pip-colour: var(--mode-read); }
-.morse-progress-pip-free { --pip-colour: var(--mode-free); }
-.morse-progress-pip > span { width: 16px; height: 16px; border: 2px solid var(--pip-colour); background: var(--plate); }
-.morse-progress-pip.is-cleared > span { background: var(--pip-colour); }
-.morse-progress-pip.is-locked > span { border-color: var(--muted); }
+.morse-progress-pip-key { --pip-colour: var(--mode-key); --pip-ink: var(--mode-key-ink); }
+.morse-progress-pip-listen { --pip-colour: var(--mode-listen); --pip-ink: var(--mode-listen-ink); }
+.morse-progress-pip-read { --pip-colour: var(--mode-read); --pip-ink: var(--mode-read-ink); }
+.morse-progress-pip-free { --pip-colour: var(--mode-free); --pip-ink: var(--mode-free-ink); }
+
+/* Open: the mode colour as a ring with the mark in it. Cleared: solid fill.
+   Locked: a neutral ring and a muted mark. */
+.morse-progress-pip-chip {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 2px solid var(--pip-colour);
+  border-radius: 8px;
+  color: var(--pip-colour);
+  background: var(--plate);
+}
+.morse-progress-pip.is-cleared .morse-progress-pip-chip { color: var(--pip-ink); background: var(--pip-colour); }
+.morse-progress-pip.is-locked .morse-progress-pip-chip { border-color: var(--spine-ahead); color: var(--muted); }
 .morse-progress-pip[aria-disabled='true'] { cursor: default; transform: none; }
 .morse-progress-pip:focus-visible { outline: 2px solid var(--action-edge); outline-offset: 2px; }
 

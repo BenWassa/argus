@@ -2,7 +2,7 @@ import type { Topic } from '../../library/topic'
 import { journeyFor } from '../../study/journey'
 import type { MorseLetter } from '../code'
 import {
-  MORSE_MODES, MORSE_TIERS, levelsFor, modeEntry, modeLevelCleared,
+  MORSE_MODES, MORSE_TIERS, levelReadiness, levelsFor, modeEntry, modeLevelCleared,
   type MorseMode, type MorseModeEntry, type MorseTier,
 } from '../modes'
 import { morseWordCheckpointPath, type MorseWordCheckpointId } from './checkpoints'
@@ -24,12 +24,16 @@ interface ProgressNode {
   label: string
   accessibleLabel: string
   action: MorseProgressAction | null
+  /** One line saying why a locked node cannot start (#257); null when it can. */
+  lockedReason?: string | null
 }
 
 export interface MorseTierPip {
   mode: MorseMode
   state: 'locked' | 'available' | 'cleared'
   action: Extract<MorseProgressAction, { kind: 'mode' }> | null
+  /** One line saying why a locked pip cannot start; null otherwise. */
+  reason: string | null
 }
 
 export type MorseProgressNode = ProgressNode & (
@@ -57,8 +61,13 @@ function tierPips(topic: Topic, tier: MorseTier): MorseTierPip[] {
     if (!levels.length) return []
     const cleared = levels.every((level) => modeLevelCleared(topic, mode, level))
     const next = levels.find((level) => !modeLevelCleared(topic, mode, level)) ?? levels[0]
-    const entry = modeEntry(topic, mode, next.id)
-    return [{ mode, state: !entry ? 'locked' : cleared ? 'cleared' : 'available', action: entry ? { kind: 'mode', entry } : null }]
+    const readiness = levelReadiness(topic, next)
+    const entry = readiness.startable ? modeEntry(topic, mode, next.id) : null
+    return [{
+      mode, state: !entry ? 'locked' : cleared ? 'cleared' : 'available',
+      action: entry ? { kind: 'mode', entry } : null,
+      reason: readiness.startable ? null : readiness.reason,
+    }]
   })
 }
 
@@ -81,6 +90,7 @@ export function morseProgressPath(topic: Topic): MorseProgressPath | null {
   const nodes: MorseProgressNode[] = []
   const add = (node: MorseProgressNode) => {
     if (node.id === currentNodeId) node.state = 'current'
+    if (node.state !== 'locked') node.lockedReason = null
     const detail = node.kind === 'lesson' ? `, ${node.novel.join(' and ')}`
       : node.kind === 'test' ? `, ${afterCourse ? 'Confirm letters' : node.testState}` : ''
     node.accessibleLabel = `${node.label}${detail}, ${node.state}`
@@ -95,11 +105,12 @@ export function morseProgressPath(topic: Topic): MorseProgressPath | null {
     const state: MorseProgressNodeState = lesson.state === 'completed' ? 'done'
       : lesson.state === 'locked' ? 'locked' : 'reached'
     add({ id: `lesson-${lesson.number}`, kind: 'lesson', label: `Lesson ${lesson.number}`, accessibleLabel: '',
-      state, number: lesson.number, novel: [...lesson.novel],
+      state, number: lesson.number, novel: [...lesson.novel], lockedReason: `After Lesson ${lesson.number - 1}`,
       action: state === 'locked' ? null : { kind: lesson.replayable ? 'replay-lesson' : 'start-lesson', packetIndex: lesson.index } })
     for (const checkpoint of checkpoints.filter((candidate) => candidate.afterLesson === lesson.number)) {
       add({ id: `checkpoint-${checkpoint.id}`, kind: 'checkpoint', label: `Words after Lesson ${lesson.number}`, accessibleLabel: '',
         state: checkpoint.unlocked ? 'reached' : 'locked', checkpointId: checkpoint.id,
+        lockedReason: `After Lesson ${checkpoint.afterLesson}`,
         afterLesson: checkpoint.afterLesson, words: [...checkpoint.words],
         action: checkpoint.unlocked ? { kind: 'checkpoint', checkpointId: checkpoint.id } : null })
     }
@@ -110,7 +121,7 @@ export function morseProgressPath(topic: Topic): MorseProgressPath | null {
   const testAction = { kind: 'test', early: !journey.advancementEligible } as const
   add({ id: 'test', kind: 'test', label: 'A–Z Test', accessibleLabel: '',
     state: testState === 'banked' ? 'done' : testState === 'locked' ? 'locked' : 'reached',
-    testState, earlyRunPossible: testAction.early, testAction,
+    testState, earlyRunPossible: testAction.early, testAction, lockedReason: 'After the lessons, or test early',
     action: afterCourse ? { kind: 'after-course' } : testAction })
 
   for (const tier of MORSE_TIERS.filter((candidate) => candidate !== 'letters')) {
@@ -119,6 +130,7 @@ export function morseProgressPath(topic: Topic): MorseProgressPath | null {
     const state = pips.every((pip) => pip.state === 'cleared') ? 'done'
       : pips.some((pip) => pip.state !== 'locked') ? 'reached' : 'locked'
     add({ id: `tier-${tier}`, kind: 'tier', tier, label: TIER_LABELS[tier], accessibleLabel: '', state, pips,
+      lockedReason: pips.find((pip) => pip.reason)?.reason ?? null,
       action: pips.find((pip) => pip.state === 'available')?.action ?? pips.find((pip) => pip.action)?.action ?? null })
   }
   return { nodes, currentNodeId }

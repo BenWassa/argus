@@ -402,7 +402,7 @@ describe('partially acquired Morse is never routed to Test', () => {
     // leaves the consequence to the Test end screen.
     expect(document.querySelectorAll('[aria-current="step"]')).toHaveLength(1)
     expect(document.querySelector('[aria-current="step"]')?.getAttribute('aria-label')).toMatch(/^Lesson /)
-    expect(screen.getByRole('button', { name: 'Test A–Z early' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Test early' })).toBeTruthy()
     expect(document.querySelector('.topic-tray')).toBeNull()
   })
 

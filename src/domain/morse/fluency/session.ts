@@ -4,6 +4,7 @@ import {
   allFluencyWords,
   buildGroup,
   fluencyWords,
+  materialFits,
   seededRandom,
   weightedSample,
   type WordTier,
@@ -99,6 +100,9 @@ export function wordTierForRung(rung: FluencyRung): WordTier {
  * restricts single-letter and group runs to those letters — the keyed way to
  * practise exactly what a check or a lesson missed. Word runs keep their word
  * lists either way.
+ *
+ * `allowed`, when given, is the taught roster (#257): words and letters outside
+ * it are never asked, and a word run may then be shorter than its length.
  */
 export function startFluencyRun(
   mode: FluencyMode,
@@ -107,9 +111,15 @@ export function startFluencyRun(
   seed: number,
   focus: ReadonlySet<MorseLetter> = new Set(),
   only: readonly MorseLetter[] = [],
+  allowed?: ReadonlySet<string>,
 ): FluencyRun {
   const random = seededRandom(seed)
-  const roster = only.length > 0 ? [...only] : [...MORSE_ALPHABET]
+  const fits = (text: string) => !allowed || materialFits(text, allowed)
+  const base = only.length > 0 ? [...only] : [...MORSE_ALPHABET]
+  const restricted = base.filter(fits)
+  // Letters the learner asked for by name stay askable even outside the roster:
+  // they came from a miss the learner was shown.
+  const roster = restricted.length > 0 ? restricted : base
   const needOrdered = roster.sort(
     (a, b) => fluencyNeed(progress, b, focus) - fluencyNeed(progress, a, focus) || a.localeCompare(b),
   )
@@ -120,12 +130,12 @@ export function startFluencyRun(
     const tier = wordTierForRung(rung)
     // Draw from the tier first and top up from everything, so a short tier can
     // never produce a run that repeats the same word twice.
-    const pool = [...fluencyWords(tier)]
+    const pool = fluencyWords(tier).filter(fits)
     const shuffled = weightedSample(pool, pool.length, random)
     const chosen = shuffled.slice(0, FLUENCY_WORD_RUN_LENGTH)
     if (chosen.length < FLUENCY_WORD_RUN_LENGTH) {
       const extra = weightedSample(
-        allFluencyWords().filter((word) => !chosen.includes(word)),
+        allFluencyWords().filter((word) => !chosen.includes(word) && fits(word)),
         FLUENCY_WORD_RUN_LENGTH - chosen.length,
         random,
       )

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { journeyFor } from '../../study/journey'
 import { modeTopicFixtures, morseTopic } from '../__fixtures__/modeTopics'
-import { MORSE_TIERS, levelsFor, modeAvailability, modeEntry } from '../modes'
+import { LEVEL_REASON_ALPHABET, MORSE_TIERS, levelReadiness, levelsFor, modeEntry, modeLevelCleared } from '../modes'
 import { lessonPackets } from './lesson'
 import { morseWordCheckpoints } from './checkpoints'
 import { morseProgressPath } from './progressPath'
@@ -100,19 +100,47 @@ describe('Morse progress path', () => {
     }
   })
 
-  it('locks tier pips only when their mode is unavailable, including during acquisition', () => {
+  it('locks a tier pip only when its level cannot start, and says why (#257)', () => {
     for (const topic of Object.values(modeTopicFixtures())) {
       for (const node of morseProgressPath(topic)!.nodes) {
         if (node.kind !== 'tier') continue
         for (const pip of node.pips) {
-          const available = modeAvailability(topic, pip.mode) === 'available'
-          expect(pip.state === 'locked').toBe(!available)
-          expect(pip.action !== null).toBe(available)
+          const levels = levelsFor(pip.mode).filter((level) => level.tier === node.tier)
+          const next = levels.find((level) => !modeLevelCleared(topic, pip.mode, level)) ?? levels[0]
+          const readiness = levelReadiness(topic, next)
+          expect(pip.state === 'locked').toBe(!readiness.startable)
+          expect(pip.action !== null).toBe(readiness.startable)
+          expect(pip.reason).toBe(readiness.startable ? null : readiness.reason)
         }
         expect(node.state).toBe(node.pips.every((pip) => pip.state === 'cleared') ? 'done'
           : node.pips.some((pip) => pip.state === 'available') ? 'reached' : 'locked')
       }
     }
+  })
+
+  it('opens word levels to a 10 / 26 learner but holds numbers for the alphabet', () => {
+    const path = morseProgressPath(modeTopicFixtures().mid)!
+    const tier = (id: string) => path.nodes.find((node) => node.id === `tier-${id}`)!
+    const words = tier('words')
+    if (words.kind !== 'tier') throw new Error('Missing Words tier.')
+    expect(words.pips.find((pip) => pip.mode === 'key')).toMatchObject({ state: 'available', reason: null })
+    expect(words.state).toBe('reached')
+    const numbers = tier('numbers')
+    if (numbers.kind !== 'tier') throw new Error('Missing Numbers tier.')
+    expect(numbers.pips.every((pip) => pip.state === 'locked' && pip.reason === LEVEL_REASON_ALPHABET)).toBe(true)
+    expect(numbers).toMatchObject({ state: 'locked', lockedReason: LEVEL_REASON_ALPHABET })
+  })
+
+  it('gives every locked node one line saying why, and no reachable node one', () => {
+    for (const topic of Object.values(modeTopicFixtures())) {
+      for (const node of morseProgressPath(topic)!.nodes) {
+        if (node.state === 'locked') expect(node.lockedReason, node.id).toMatch(/\S/)
+        else expect(node.lockedReason ?? null, node.id).toBeNull()
+      }
+    }
+    const fresh = morseProgressPath(morseTopic())!
+    expect(fresh.nodes.find((node) => node.id === 'lesson-2')?.lockedReason).toBe('After Lesson 1')
+    expect(fresh.nodes.find((node) => node.id === 'checkpoint-after-4')?.lockedReason).toBe('After Lesson 4')
   })
 
   it('keeps a banked learner at the Test regardless of formative tier clears', () => {

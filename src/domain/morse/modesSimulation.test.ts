@@ -33,7 +33,7 @@ describe('Morse mode learner simulations', () => {
   it('routes different answer histories to different levels independently by direction', () => {
     const fresh = morseTopic()
     expect(currentLevel(fresh, 'key')?.id).toBe('letters')
-    expect(modeEntry(fresh, 'key')).toBeNull()
+    expect(modeEntry(fresh, 'key')).toMatchObject({ levelId: 'letters', eligibleLetters: ['E', 'I'] })
     const initial = morseTopic(13)
     const confident = practise(practise(initial, 'key'), 'listen')
     const weak = practise(initial, 'key', true)

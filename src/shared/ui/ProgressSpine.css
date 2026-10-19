@@ -149,6 +149,27 @@
   transition: transform 150ms var(--ease);
 }
 
+/* A secondary control inside the row's plate, under its words. The row
+   reserves the room; the control sits outside the row button. */
+.spine-row-wrap { position: relative; }
+.spine-row.has-aside,
+.spine-row.has-aside:hover,
+.spine-row.has-aside:active {
+  align-items: flex-start;
+  padding-bottom: calc(max(var(--control-h), 0.9rem + 20px) + 14px);
+}
+.spine-row.has-aside > .spine-node { margin-top: 2px; }
+.spine-aside {
+  position: absolute;
+  z-index: 3;
+  left: var(--spine-aside-inset, 72px);
+  right: 12px;
+  bottom: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-sm);
+}
+
 @media (max-width: 360px) {
   .spine-row { gap: 8px; }
 }
