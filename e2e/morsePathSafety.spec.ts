@@ -83,7 +83,7 @@ test('a fresh learner can start every mode, and Skip ahead lives in the Begin pl
   await expect(page.locator('.lesson-glyph')).toHaveText(/^[EI]$/)
 })
 
-test('the title and n / 26 stay in view when the path opens at the position', async ({ page }) => {
+test('Back, the title and n / 26 stay pinned when the path opens or scrolls', async ({ page }) => {
   const { library } = learner(5)
   await openTopic(page, library)
   await expect(page.getByRole('button', { name: /Lesson 6, .*current/ })).toBeInViewport()
@@ -94,5 +94,24 @@ test('the title and n / 26 stay in view when the path opens at the position', as
   const header = await page.locator('.topic-morse-header').boundingBox()
   const position = await page.getByRole('button', { name: /Lesson 6, .*current/ }).boundingBox()
   expect(position!.y).toBeGreaterThanOrEqual(header!.y + header!.height)
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  const back = page.getByRole('button', { name: 'Back to previous screen' })
+  await expect(back).toBeInViewport()
+  for (const size of ['100%', '200%']) {
+    await page.evaluate((fontSize) => {
+      document.documentElement.style.fontSize = fontSize
+      window.scrollTo(0, document.body.scrollHeight)
+    }, size)
+    await expect(back).toBeInViewport()
+    await expect(page.locator('.topic-title')).toBeInViewport()
+    await expect(page.getByRole('button', { name: 'A–Z', exact: true })).toBeInViewport()
+    expect(await back.evaluate((element) => {
+      const box = element.getBoundingClientRect()
+      const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2)
+      return hit === element || element.contains(hit)
+    })).toBe(true)
+    expect((await back.boundingBox())!.height).toBeGreaterThanOrEqual(44)
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  }
+  await back.click()
+  await expect(page.getByRole('heading', { name: 'Library', exact: true })).toBeVisible()
 })
