@@ -3,7 +3,7 @@
 **Status:** superseded on 2026-10-19. Retained for rationale and provenance.
 **Authority:** historical only, including every addendum below. The maintained [progress contract](../open/PROGRESS_ARCHITECTURE.md) replaces decay, repair routing and repeated completion requirements.
 
-> **Adaptive Morse practice addendum — 2026-10-16. Status: maintained contract, released in v1.5.3.** `Topic.morsePractice` is an optional formative-only v5 namespace, independently recording Key, Read and Listen outcomes. It uses presentation sequence numbers, never dates. A letter round writes only this field, never `itemEvidence`, `morseReview`, `lessonProgress`, readiness, status, history or completion. Help and interrupted listening cannot produce independent correct outcomes. Legacy absence means unknown history. The strict import parser rejects corrupt or future practice schemas; export and topic sync preserve valid histories under the existing conflict policy. See [#221 implementation record](../open/ISSUE_221_MORSE_UX_CONSOLIDATION.md) for selection, eligibility and mobile acceptance.
+> **Adaptive Morse practice addendum — 2026-10-16. Status: maintained contract, released in v1.5.3.** `Topic.morsePractice` is an optional formative-only v5 namespace, independently recording Key, Read and Listen outcomes. It uses presentation sequence numbers, never dates. A letter round writes only this field, never `itemEvidence`, `morseReview`, `lessonProgress`, readiness, status, history or completion. Help and interrupted listening cannot produce independent correct outcomes. Legacy absence means unknown history. The strict import parser rejects corrupt or future practice schemas; export and topic sync preserve valid histories under the existing conflict policy. See [#221 implementation record](../open/morse/ISSUE_221_MORSE_UX_CONSOLIDATION.md) for selection, eligibility and mobile acceptance.
 
 
 > **One-test addendum — 2026-10-02. Status: maintained contract.** Supersedes enrollment and two-clean-Test statements below, including the earlier no-clock addendum. Opening ordinary topic content is learning and writes no progress. Its primary action is Test; one clean eligible Test, including the first, banks completion. A miss enters learning; a banked miss enters repair without erasing completion. Legacy `drilled` records parse unchanged and read as Banked without read-time writes; the next eligible scheduler mutation normalizes them to completed (or decayed on a miss). Explicit ordinary topic edits also normalize legacy status; progressive course writes retain the scheduler’s exact ineligible-Test short circuit. Morse acquisition eligibility and lesson actions are unchanged. There is no migration and no elapsed-time gate.
@@ -20,7 +20,7 @@
 > - `spotCheckedAt` stays in the v5 schema, so no migration is needed.
 > - Morse sitting ordinals ("a later sitting") are not a clock and are unchanged.
 
-> **Current Morse pacing update — 2026-09-18.** The maintained [Morse lesson contract](../open/MORSE_LESSON.md) supersedes references below to a mandatory ten-answer sitting. Sitting counters retain actual attempts, including retries beyond ten; roster completion ends the lesson early without review filler. Durable acquisition, listening, and formal retention evidence remain separate.
+> **Current Morse pacing update — 2026-09-18.** The maintained [Morse lesson contract](../open/morse/MORSE_LESSON.md) supersedes references below to a mandatory ten-answer sitting. Sitting counters retain actual attempts, including retries beyond ten; roster completion ends the lesson early without review filler. Durable acquisition, listening, and formal retention evidence remain separate.
 
 > **Repair-debt addendum — 2026-09-19.** `MorseReviewItem` gains one optional
 > field, `missedIn`: the sitting ordinal of an unrepaired printed miss, absent
@@ -444,7 +444,7 @@ If the audit finds a real defect, fix only the evidence semantics needed to make
 
 ### Audit outcome (#68, lane F — settled)
 
-The audit found real defects and they are fixed. Full findings and reasoning are in `docs/open/MORSE_CUE_LADDER.md` under "#68 — the completion-evidence audit"; the answers to the three questions above are:
+The audit found real defects and they are fixed. Full findings and reasoning are in `docs/open/morse/MORSE_CUE_LADDER.md` under "#68 — the completion-evidence audit"; the answers to the three questions above are:
 
 - **Did the qualifying delayed attempt itself demonstrate the required uncued forward and reverse performance?** No. It demonstrated one direction per unit at whatever support level that unit had reached, and in steady state that was always reception, because the ladder retired production permanently once reverse opened.
 - **Could historical supported/cued correct events satisfy directional coverage?** Yes. `hasCompleteDirectionalCoverage` read `DirectionEvidence.correct`, which counts a correct answer given with half the pattern and the timing artwork on screen exactly like an unaided one.

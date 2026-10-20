@@ -1,23 +1,23 @@
 # #221 — Morse UX consolidation: continuous adaptive letter practice and one teaching language
 
-> **Progress authority update, 2026-10-19:** [Learning progress](PROGRESS_ARCHITECTURE.md) supersedes earlier decay/repair routing and repeated completion requirements in this document. Learned topics stay learned. Home continues the top unfinished topic.
+> **Progress authority update, 2026-10-19:** [Learning progress](../PROGRESS_ARCHITECTURE.md) supersedes earlier decay/repair routing and repeated completion requirements in this document. Learned topics stay learned. Home continues the top unfinished topic.
 
 **Status:** Implemented and released in v1.5.3 on 2026-10-16; automated release verification complete. Real Pixel acceptance remains open. Navigation was superseded on `feat/ui-overhaul`, awaiting owner sign-off and release.
-**Authority:** Maintained adaptive-practice and teaching contract. The navigation in the 2026-10-16 record and original proposal is historical, superseded on `feat/ui-overhaul` by [UI overhaul (#225)](ISSUE_225_UI_OVERHAUL.md). That plan governs the pending overhaul's scope and decisions until release.
+**Authority:** Maintained adaptive-practice and teaching contract. The navigation in the 2026-10-16 record and original proposal is historical, superseded on `feat/ui-overhaul` by [UI overhaul (#225)](../ISSUE_225_UI_OVERHAUL.md). That plan governs the pending overhaul's scope and decisions until release.
 **Audit:** Original scoping inventory inspected default-branch source on 2026-10-16. The implementation review below adds real Chromium captures at 320/390 CSS px; physical Pixel and deployed-app acceptance remain outstanding.
 **Issue:** https://github.com/BenWassa/argus/issues/221
 **Related:** #201 / PRs #209, #212, #215; #188; #87; #90; #76; #113.
-**Authorities:** `DESIGN.md`, `DESIGN.json`, `src/styles/tokens.css`, `PRODUCT.md`, `MORSE_LESSON.md`, `MORSE_CUE_LADDER.md`, `MORSE_FLUENCY.md`, `PROGRESS_ARCHITECTURE.md`, `MORSE_AUDIO_RUNTIME.md`, `ISSUE_201_MORSE_GAMEPLAY_CONTINUITY.md`.
+**Authorities:** `DESIGN.md`, `DESIGN.json`, `src/styles/tokens.css`, `PRODUCT.md`, `MORSE_LESSON.md`, `MORSE_CUE_LADDER.md`, `MORSE_FLUENCY.md`, `../PROGRESS_ARCHITECTURE.md`, `MORSE_AUDIO_RUNTIME.md`, `ISSUE_201_MORSE_GAMEPLAY_CONTINUITY.md`.
 
 ## Integration update (2026-10-19)
 
 Source verification: `TopicPage.tsx` composes `MorseModeTray` and `MorseProgressPath`; `FluencyHome.tsx` and `MorsePath.tsx` have been deleted. One Morse topic screen now exposes Key, Listen, Read and Free play, a straight progress path, and a shared `SessionFrame` for activities. The Practice letters / Send / Receive / Challenges split, folded Lessons, More options and Listening settings hub below describe the earlier release, not the integration branch. Spacing controls now live in Listen sessions through `ListeningSpacing`.
 
-Adaptive direction histories and shared corrections remain maintained contracts. Levels are open subject to taught-material readiness; letters stability now requires each of all 26 eligible letters' 3 latest independent answers to be correct in that direction. See [#225 results](ISSUE_225_UI_OVERHAUL.md#results-2026-10-19) for current decisions and outstanding acceptance.
+Adaptive direction histories and shared corrections remain maintained contracts. Levels are open subject to taught-material readiness; letters stability now requires each of all 26 eligible letters' 3 latest independent answers to be correct in that direction. See [#225 results](../ISSUE_225_UI_OVERHAUL.md#results-2026-10-19) for current decisions and outstanding acceptance.
 
 ## Historical implementation record (2026-10-16)
 
-The owner requested review and full implementation of today's issue. Work was developed on `fix/221-morse-practice` and integrated into `main`; the [release closeout](../closed/RELEASE_1_5_3.md) records deployment verification. This record does not claim physical-device acceptance.
+The owner requested review and full implementation of today's issue. Work was developed on `fix/221-morse-practice` and integrated into `main`; the [release closeout](../../closed/RELEASE_1_5_3.md) records deployment verification. This record does not claim physical-device acceptance.
 
 - `Practice letters` opens a ten-prompt round directly from Morse Topic. Key, Read and Listen maintain independent histories. New learners use canonically settled letters; historically acquisition-ready learners retain all A–Z. Zero eligible letters leads back to Learn without inventing knowledge.
 - The incremental scheduler uses the proposed bounded weight, three need draws per coverage draw, recent-letter spacing, and event order only. The E-five-correct/Y-four-misses seeded regression retains exploration. No calendar influences selection.

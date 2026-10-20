@@ -3,7 +3,10 @@ import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
 function source(file: string): string {
-  return readFileSync(fileURLToPath(new URL(file, import.meta.url)), 'utf8')
+  const files = file === './MorseLesson.tsx'
+    ? ['./useCheckpointHandoff.ts', './useLessonProgression.ts', './MorseLesson.tsx', './LessonBar.tsx']
+    : [file]
+  return files.map((path) => readFileSync(fileURLToPath(new URL(path, import.meta.url)), 'utf8')).join('\n')
 }
 
 describe('Morse word checkpoint surface', () => {

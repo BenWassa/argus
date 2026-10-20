@@ -10,3 +10,5 @@ This folder archives completed GitHub issue specifications, prior research, rele
 - [Impeccable screen review, 17 October 2026](IMPECCABLE_UI_REVIEW_2026_10_17.md): completed multi-agent critique, fixes and UX/UI re-review.
 
 - [Progress architecture before permanent learning](PROGRESS_ARCHITECTURE_2026_10_19.md): superseded on 2026-10-19; retained for rationale.
+
+- [UI review, 2026-10-17](IMPECCABLE_UI_REVIEW_2026_10_17.md) — historical pre-overhaul findings.

@@ -1,0 +1,149 @@
+/* ---- free play -------------------------------------------------------- */
+
+.free-play-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-sm);
+  width: min(100%, 36rem);
+  margin-inline: auto;
+}
+
+/* Free play: what was keyed is the stimulus, centred; the key and its actions
+   are the response. On the Listen side the text is the stimulus and Play the
+   response. */
+.free-play-body {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-md);
+  width: min(100%, 36rem);
+  margin-inline: auto;
+}
+
+.free-play-body > .free-play-output,
+.free-play-body > .free-play-text {
+  margin-block-start: auto;
+}
+
+.free-play-body > .morse-key-input,
+.free-play-text ~ .free-play-actions {
+  margin-block-start: auto;
+}
+
+.free-play-body .note {
+  margin: 0;
+  text-align: center;
+}
+
+/* What was keyed, as text. Wraps like prose, because it is a sentence. */
+.free-play-output {
+  min-height: 3.2em;
+  margin: 0;
+  padding: var(--s-md);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  font-size: clamp(1.4rem, 6vw, 2rem);
+  line-height: 1.3;
+  letter-spacing: 0.05em;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.free-play-placeholder {
+  color: var(--placeholder);
+  font-size: var(--t-component);
+  letter-spacing: 0;
+}
+
+.free-play-unknown {
+  margin-inline: 0.15em;
+  color: var(--danger-2);
+  font-size: 0.6em;
+  vertical-align: middle;
+}
+
+.free-play-cursor {
+  color: var(--session-colour, var(--ink));
+}
+
+/* One row of actions: they share the width and wrap only when enlarged
+   text leaves no other choice. */
+.free-play-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--s-sm);
+}
+
+.free-play-actions > button {
+  flex: 1 1 auto;
+  padding-inline: var(--s-sm);
+}
+
+.free-play-text {
+  font-size: var(--t-component);
+  text-transform: uppercase;
+}
+
+.free-play-text::placeholder {
+  text-transform: none;
+}
+
+/* A long answer and a large-text submit label must both fit a phone. */
+@media (max-width: 480px) {
+  .copy-answer {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.fluency-head,
+.free-play-body {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Inside the shared session frame (#263): two tabs side by side, not a box
+   inside a box. The selected one takes the mode colour, edge included; the
+   other is a plain plate. Free play has no run, so its bar is not drawn. */
+.free-play .session-frame-progress { visibility: hidden; }
+
+.session-frame .free-play-tabs button,
+.session-frame .free-play-tabs button:hover {
+  min-height: 44px;
+  border: 1px solid var(--line);
+  background: var(--plate, var(--surface));
+  color: var(--ink);
+  box-shadow: none;
+}
+
+.session-frame .free-play-tabs [aria-selected='true'],
+.session-frame .free-play-tabs [aria-selected='true']:hover {
+  border-color: var(--session-colour);
+  background: var(--session-colour);
+  color: var(--session-ink);
+}
+
+.session-frame .free-play-tabs button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+.free-play-tabs svg {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+  vertical-align: middle;
+  margin-inline-end: 8px;
+}
+
+.listening-spacing {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-sm);
+}
+
+.listening-spacing-value {
+  margin-inline-end: auto;
+  font-size: var(--t-small);
+  color: var(--muted);
+}
+

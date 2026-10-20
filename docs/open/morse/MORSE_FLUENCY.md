@@ -2,7 +2,7 @@
 
 **Status:** Base Fluency and #221 corrections released through v1.5.3. The hub and old path have been replaced on `feat/ui-overhaul`, awaiting owner Pixel sign-off and release.
 
-**Authority:** Maintained formative runner, timing and evidence contract. Historical navigation below is superseded by [UI overhaul (#225)](ISSUE_225_UI_OVERHAUL.md), which governs the overhaul's scope and decisions until release. `MORSE_PROGRAMME_PLAN.md` governs acquisition, `PROGRESS_ARCHITECTURE.md` governs state boundaries, and `MORSE_AUDIO_RUNTIME.md` governs audio lifecycle.
+**Authority:** Maintained formative runner, timing and evidence contract. Historical navigation below is superseded by [UI overhaul (#225)](../ISSUE_225_UI_OVERHAUL.md), which governs the overhaul's scope and decisions until release. `MORSE_PROGRAMME_PLAN.md` governs acquisition, `PROGRESS_ARCHITECTURE.md` governs state boundaries, and `MORSE_AUDIO_RUNTIME.md` governs audio lifecycle.
 
 **Last verified:** 2026-10-19, against integration source; no new runtime or physical-device acceptance.
 
@@ -16,7 +16,7 @@ The following dated entry descriptions preserve earlier decisions and release ev
 
 > **Misses lead — 2026-09-30.** `fluencyNeed` takes an optional focus set, and adds a bounded `FOCUS_NEED` (150) for a letter the learner is currently missing. The set is `morseFocusLetters`: a lesson letter still owed, or a Test direction whose last answer was wrong. Every Fluency run and the Copy *letters* level weight it. "Practise the letters you missed", from the topic page or a check's end screen, now opens a **keyed Fluency sprint over just those letters** (route `{ kind: 'fluency', mode: 'sprint', letters }`), not the reveal-and-self-grade practice run. It writes only `morseFluency`, as before.
 
-**Extended by:** `docs/open/MORSE_INTERMEDIATE_PATH.md` — guided Send, Copy,
+**Extended by:** `docs/open/morse/MORSE_INTERMEDIATE_PATH.md` — guided Send, Copy,
 free play, figures and punctuation, and the ladder past 13 WPM.
 
 **Issue:** #119

@@ -198,6 +198,10 @@ Round-2 findings landed as #267 (#263 Morse) and #265 (#264 topics, Test, Practi
 
 ### Owner decisions, 2026-10-19
 
-- Learned means learned. Remove decay and repair routing; completion remains permanent after later Tests. The maintained [learning progress contract](PROGRESS_ARCHITECTURE.md) supersedes prior repair language in this plan. The implementation and fresh acceptance pass are in progress.
+- Learned means learned. Remove decay and repair routing; completion remains permanent after later Tests. The maintained [learning progress contract](PROGRESS_ARCHITECTURE.md) supersedes prior repair language in this plan. Implemented in PR #270; 2,014 unit tests and 507 browser tests passed on the reviewed integration head. A 155-image capture set passed, including 31 Verdana landscape captures.
 - Keep the current sign-in image for this release. Replacement is tracked in [#269](https://github.com/BenWassa/argus/issues/269), with design guidance, implementation, assets and authentication requirements linked.
 - Home's yellow action continues the top unfinished topic; Add something to learn leads only when there is no active topic.
+
+### Main integration, 2026-10-19
+
+The owner requested that the normal dev server running from `main` show the latest UI. This supersedes the earlier order that held the final main PR until Pixel acceptance. Physical Pixel sign-off and release acceptance remain outstanding; this document stays open. Main integration preserves the Morse modularisation and documentation relocation from #224, with the overhaul views using extracted state controllers and split stylesheets. PR #270 implements permanent learning and Home Continue. Sign-in artwork remains unchanged under #269.
