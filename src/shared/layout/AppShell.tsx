@@ -23,9 +23,10 @@ interface AppShellProps {
  */
 /*
  * Home and Roles: Lucide house / medal, retrieved with Better Icons.
- * https://github.com/lucide-icons/lucide/blob/main/icons/house.svg
- * https://github.com/lucide-icons/lucide/blob/main/icons/medal.svg
+ * https://github.com/lucide-icons/lucide/blob/02eb9161b57917ccaa262f1bf070507cddde3b08/icons/house.svg
+ * https://github.com/lucide-icons/lucide/blob/02eb9161b57917ccaa262f1bf070507cddde3b08/icons/medal.svg
  * Adapted to the navigation's existing 1.6px outline; circle expressed as arcs.
+ * Licence: https://github.com/lucide-icons/lucide/blob/02eb9161b57917ccaa262f1bf070507cddde3b08/LICENSE
  * ISC License — Copyright (c) 2026 Lucide Icons and Contributors
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
