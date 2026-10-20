@@ -22,19 +22,17 @@ const BOUNDARY: Partial<Record<RoleId, string>> = {
 
 function RoleTopicRow({ topic, onOpenTopic }: { topic: RoleTopicProgress; onOpenTopic: Props['onOpenTopic'] }) {
   const unavailable = topic.state === 'unavailable'
-  const repair = topic.needsRefresh
-  const status = repair ? 'Needs repair'
-    : topic.state === 'complete' ? 'Complete'
+  const status = topic.state === 'complete' ? 'Learned'
     : topic.state === 'in-progress' ? 'In progress'
     : unavailable ? 'Not available' : 'Not started'
   return (
     <li className="role-topic">
-      <button type="button" className={`role-topic-plate plate${repair ? ' plate-repair' : ''}`} disabled={unavailable} onClick={() => onOpenTopic(topic.id)}>
-        <span className={`role-topic-mark ${topic.state === 'complete' && !repair ? 'is-done' : ''}`} aria-hidden="true">
+      <button type="button" className="role-topic-plate plate" disabled={unavailable} onClick={() => onOpenTopic(topic.id)}>
+        <span className={`role-topic-mark ${topic.state === 'complete' ? 'is-done' : ''}`} aria-hidden="true">
           {topic.state === 'complete' ? '✓' : '○'}
         </span>
         <span className="role-topic-title">{topic.title}</span>
-        <span className={`role-topic-state${repair ? ' is-repair' : ''}`}>{status}</span>
+        <span className="role-topic-state">{status}</span>
       </button>
     </li>
   )
@@ -49,8 +47,7 @@ export function RolesPage({ onOpenTopic, onContinue, selectedRole, onSelectRole 
   // is staged but its curriculum is not yet earnable.
   const badgeSource = `${import.meta.env.BASE_URL}media/roles/${role.id}_${progress.earned ? 'unlocked' : 'locked'}.png`
   const requirements = progress.pathways.flatMap((path) => path.topics)
-  const next = requirements.find((topic) => topic.needsRefresh)
-    ?? requirements.find((topic) => topic.state === 'in-progress')
+  const next = requirements.find((topic) => topic.state === 'in-progress')
     ?? requirements.find((topic) => topic.state === 'not-started')
   const nextTopic = next && topics.find((topic) => topic.id === next.id)
   return (
@@ -78,16 +75,13 @@ export function RolesPage({ onOpenTopic, onContinue, selectedRole, onSelectRole 
           <p className="roles-award-count">
             {progress.completeCount} of {progress.requiredCount} topics complete
           </p>
-          {progress.needsRefresh && (
-            <p className="roles-award-refresh">Needs repair</p>
-          )}
           {progress.earnedVersion !== undefined && progress.earnedVersion < role.version && (
             <p className="roles-award-note">Earned v{progress.earnedVersion}. {progress.upgradeRemainingCount} topics remaining for v{role.version}.</p>
           )}
         </div>
       </Plate>
       {nextTopic && <button className="roles-continue" type="button" onClick={() => next?.state === 'not-started' ? onOpenTopic(nextTopic.id) : onContinue(journeyFor(nextTopic).action, nextTopic.id)}>
-        {next?.needsRefresh ? 'Repair' : next?.state === 'not-started' ? 'Start' : 'Continue'}: {nextTopic.title}
+        {next?.state === 'not-started' ? 'Start' : 'Continue'}: {nextTopic.title}
       </button>}
       <div className="roles-pathways">
         {progress.pathways.map((pathway) => (

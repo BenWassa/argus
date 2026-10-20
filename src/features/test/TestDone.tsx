@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { dueState } from '../../domain/study/scheduling'
+import { isLearned } from '../../domain/study/scheduling'
 import { targetsForItems } from '../../domain/study/practiceTargets'
 import { morseLessonPath } from '../../domain/morse/curriculum/lessonPath'
 import { fire } from '../../shared/haptics'
@@ -13,16 +13,6 @@ export interface ReviewResult {
   topic: Topic
   correct: number
   total: number
-}
-
-/** What the topic page will say about the topic now: Banked, Needs repair, Ready to test. */
-function standing(topic: Topic): string {
-  return dueState(topic).label.toLowerCase()
-}
-
-/** A status word as a short sentence-case line: "banked" becomes "Banked". */
-function sentence(text: string): string {
-  return text.charAt(0).toUpperCase() + text.slice(1)
 }
 
 /** The unit a count is in: letters for the Morse course, items otherwise. */
@@ -85,7 +75,6 @@ export function TestDone({
     .filter((entry) => !entry.withheldByAcquisition && !entry.nonQualifying)
     .map((entry) => entry.resolution)
   const completed = moved.filter((resolution) => resolution.completed)
-  const decayed = moved.filter((resolution) => resolution.decayed)
 
   // `crest` is the pattern's own definition of what it is for: "stage advance,
   // personal best, session complete." A completion banking is exactly that
@@ -97,12 +86,8 @@ export function TestDone({
     if (completed.length > 0) fire('crest')
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [completed.length])
-  const changed = moved.filter(
-    (resolution) => !resolution.completed && !resolution.decayed && resolution.to !== resolution.from,
-  )
-  const held = moved.filter(
-    (resolution) => !resolution.completed && !resolution.decayed && resolution.to === resolution.from,
-  )
+  const learned = moved.filter(resolution => !resolution.completed && isLearned(resolution.topic))
+  const continuing = moved.filter(resolution => !resolution.completed && !isLearned(resolution.topic))
 
   /**
    * One offer, for the first topic in this run that missed something.
@@ -123,6 +108,7 @@ export function TestDone({
     ...banked.map((entry) => entry.resolution.topic),
     ...reviewed.map((entry) => entry.topic),
   ]
+    .filter((topic) => !isLearned(topic))
     .map((topic) => {
       const asked = targetsForItems(topic, missed[topic.id] ?? [])
       // Counted in items, not directions: an item missed both ways is one
@@ -136,8 +122,8 @@ export function TestDone({
    * The next move for an alphabet learner (#201). A Test that banks the Morse
    * course is the moment Play opens up, so it leads with the first sending run
    * instead of "Done". Any other Morse result that ran for real
-   * (held, repaired, building toward a qualifying run) keeps Play discoverable
-   * at text weight: playing round words certifies and repairs nothing.
+   * (learned already, or building toward completion) keeps Play discoverable
+   * at text weight: playing round words records no completion.
    * A run withheld because the lesson is unfinished offers neither, since play
    * is not open yet.
    */
@@ -148,7 +134,7 @@ export function TestDone({
     morseResult && !morseResult.nonQualifying && morseResult.resolution.completed,
   )
   const offerPlay = Boolean(morseResult && onPlayMorse)
-  // One primary per screen: a missed-item practice offer, being the repair, keeps it.
+  // Unfinished learning can offer Practice as its next action.
   const playLeads = offerPlay && morseCompleted && !(practiceOffer && onPractice)
 
   // One short line per topic outcome, in the words the topic page shows for
@@ -158,26 +144,20 @@ export function TestDone({
   const several = banked.length + reviewed.length > 1
   const lead = (title: string) => (several ? `${title}: ` : '')
   const toPractise = (topic: Topic) => (missed[topic.id] ?? []).filter((id) => topic.items.some((item) => item.id === id)).length
-  const notBanked = (topic: Topic) => {
+  const unfinishedOutcome = (topic: Topic) => {
     const count = toPractise(topic)
-    return count > 0 ? [`${lead(topic.title)}Not banked · ${count} to practise`] : []
+    return count > 0 ? [`${lead(topic.title)}Still learning · ${count} to practise`] : []
   }
   const outcome: string[] = [
     ...reviewed.map((entry) => `${entry.topic.title}: review only, not counted.`),
-    ...completed.map((resolution) => `${lead(resolution.topic.title)}${sentence(standing(resolution.topic))}`),
-    ...decayed.map((resolution) => `${lead(resolution.topic.title)}${sentence(standing(resolution.topic))}`),
-    ...changed.flatMap((resolution) => notBanked(resolution.topic)),
-    ...held.flatMap((resolution) =>
-      resolution.to === 'completed' || resolution.to === 'drilled'
-        ? [`${lead(resolution.topic.title)}Passed, still ${standing(resolution.topic)}`]
-        : notBanked(resolution.topic),
-    ),
+    ...[...completed, ...learned].map((resolution) => `${lead(resolution.topic.title)}Learned`),
+    ...continuing.flatMap((resolution) => unfinishedOutcome(resolution.topic)),
     ...withheld.map((entry) => `${entry.resolution.topic.title}: finish the lesson to count.`),
     ...building.map((entry) => `${entry.resolution.topic.title}: all correct, not counted yet.`),
   ]
   if (banked.length === 0 && reviewed.length === 0) outcome.push('No topic ran to the end.')
 
-  // The one next step takes the primary slot: repairing what was missed, else
+  // The one next step takes the primary slot: optional Practice while learning, else
   // sending after a banked course. Anything else stays at text weight.
   const practiceNext = practiceOffer && onPractice ? practiceOffer : null
   const playNext = !practiceNext && playLeads && morseResult && onPlayMorse ? morseResult : null

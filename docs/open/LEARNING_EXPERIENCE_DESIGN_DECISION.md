@@ -1,5 +1,7 @@
 # Argus learning-experience design decision
 
+> **Progress authority update, 2026-10-19:** [Learning progress](PROGRESS_ARCHITECTURE.md) supersedes earlier decay/repair routing and repeated completion requirements in this document. Learned topics stay learned. Home continues the top unfinished topic.
+
 > **One-test addendum — 2026-10-02. Status: maintained contract.** Supersedes enrollment and two-clean-Test statements below, including the earlier no-clock addendum. Opening ordinary topic content is learning and writes no progress. Its primary action is Test; one clean eligible Test, including the first, banks completion. A miss enters learning; a banked miss enters repair without erasing completion. Legacy `drilled` records parse unchanged and read as Banked without read-time writes; the next eligible scheduler mutation normalizes them to completed (or decayed on a miss). Explicit ordinary topic edits also normalize legacy status; progressive course writes retain the scheduler’s exact ineligible-Test short circuit. Morse acquisition eligibility and lesson actions are unchanged. There is no migration and no elapsed-time gate.
 
 

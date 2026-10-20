@@ -1,5 +1,7 @@
 # The acquisition ladder inside Test
 
+> **Progress authority update, 2026-10-19:** [Learning progress](PROGRESS_ARCHITECTURE.md) supersedes earlier decay/repair routing and repeated completion requirements in this document. Learned topics stay learned. Home continues the top unfinished topic.
+
 **Status:** implemented (#27, corrected by #42 and #56); maintained contract for the Test cue ladder.
 
 Workstream 4 (#27), corrected by #42 and #56. Implements **D3 (ratified)** and

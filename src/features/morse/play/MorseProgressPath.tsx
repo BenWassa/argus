@@ -34,7 +34,6 @@ function mark(node: MorseProgressNode): ReactNode {
 
 function spineState(node: MorseProgressNode): SpineState {
   if (node.state === 'current') return 'position'
-  if (node.kind === 'test' && node.testState === 'repair') return 'repair'
   return node.state
 }
 
@@ -44,8 +43,7 @@ function words(node: MorseProgressNode): Pick<SpineRow, 'label' | 'detail' | 'tr
   if (node.kind === 'checkpoint') return { label: 'WORD CHECK', detail: node.words.slice(0, 3).join(' · ') }
   if (node.kind === 'test') return {
     label: 'A–Z TEST',
-    detail: node.testState === 'repair' ? <span className="morse-progress-repair">◆ Needs repair</span>
-      : node.testState === 'banked' ? 'Banked' : node.testState === 'available' ? 'Ready' : 'Locked',
+    detail: node.testState === 'banked' ? 'Learned' : node.testState === 'available' ? 'Ready' : 'Locked',
   }
   return { label: node.label }
 }
@@ -85,7 +83,7 @@ export function MorseProgressPath({ topic, onAction, showJump = true, onPlacemen
     setNotice(null)
     onAction(action)
   }
-  const current = path.nodes.find((node) => node.id === path.currentNodeId)!
+  const current = path.nodes.find((node) => node.id === path.currentNodeId)
   const rows: SpineRow[] = path.nodes.map((node) => {
     const say = (text: string) => setNotice({ nodeId: node.id, text })
     const aside = node.kind === 'test' && node.earlyRunPossible
@@ -113,5 +111,5 @@ export function MorseProgressPath({ topic, onAction, showJump = true, onPlacemen
     }
   })
   return <ProgressSpine rows={rows} label="Course path" className="morse-progress-path"
-    positionId={path.currentNodeId} jump={showJump ? current.label : undefined} />
+    positionId={path.currentNodeId ?? undefined} jump={showJump ? current?.label : undefined} />
 }

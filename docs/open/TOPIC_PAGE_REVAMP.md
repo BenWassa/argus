@@ -1,5 +1,7 @@
 # Topic page and Test revamp
 
+> **Progress authority update, 2026-10-19:** [Learning progress](PROGRESS_ARCHITECTURE.md) supersedes earlier decay/repair routing and repeated completion requirements in this document. Learned topics stay learned. Home continues the top unfinished topic.
+
 **Status:** shipped in v1.3.3 on 2026-10-03 through #175, including the #170 rebuild and #171 provenance modal. Current production colours and fallback hero plates are delivered; optional colour variants and external hero artwork remain separate follow-up work. D1–D6 were accepted through the owner’s instruction to scope and implement this plan.
 **Authority:** implementation contract for the topic-page revamp. [Progress architecture](PROGRESS_ARCHITECTURE.md) owns the one-test ladder; [topic icons](LIBRARY_TOPIC_ICONS.md) owns icon artwork. Deployment and final validation are recorded in [v1.3.3 closeout](../closed/RELEASE_1_3_3.md).
 **Relationship:** extends the Today/Library cleanup (#127) down into the topic page and the Test run, which is where the product is still dense.

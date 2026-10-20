@@ -22,7 +22,7 @@ export const REVIEW_LENGTH = 10
  * True when this topic can run a review at all: a progressive topic whose
  * acquisition is finished, where every answer is uncued and per-item evidence
  * exists to choose from. Whether a run *is* a review is the learner's choice,
- * carried on the route; a topic needing repair is offered only the full check.
+ * carried on the route. Learned topics can always choose an optional review.
  */
 export function isReviewTopic(topic: Topic): boolean {
   const journey = journeyFor(topic)
@@ -30,7 +30,6 @@ export function isReviewTopic(topic: Topic): boolean {
     journey.acquisition.progressive &&
     journey.acquisition.ready &&
     journey.action === 'test' &&
-    journey.phase !== 'repair' &&
     topic.items.length > 0
   )
 }

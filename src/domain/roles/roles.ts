@@ -1,3 +1,4 @@
+import { isLearned } from '../study/scheduling'
 import type { Topic } from '../library/topic'
 import { topicOrigin } from '../library/catalog'
 
@@ -13,7 +14,6 @@ export interface RoleTopicProgress {
   id: string
   title: string
   state: RoleTopicState
-  needsRefresh: boolean
 }
 
 export interface PathwayProgress {
@@ -29,14 +29,13 @@ export interface CommunicatorProgress {
   completeCount: number
   requiredCount: number
   earned: boolean
-  needsRefresh: boolean
   earnedVersion?: number
   upgradeRemainingCount?: number
 }
 
-/** A bank is a permanent fact, independent of later repair status. */
+/** Learned topics stay complete permanently. */
 export function wasBanked(topic: Topic | undefined): boolean {
-  return Boolean(topic && (topic.completedAt || topic.drilledAt))
+  return Boolean(topic && isLearned(topic))
 }
 
 export function communicatorProgress(topics: readonly Topic[], awards: readonly RoleAward[] = []): CommunicatorProgress {
@@ -57,7 +56,6 @@ export function roleProgress(role: RoleDefinition, topics: readonly Topic[], awa
         state: complete ? 'complete'
           : !topic ? 'unavailable'
             : topic.status !== 'unstarted' ? 'in-progress' : 'not-started',
-        needsRefresh: complete && topic?.status === 'decayed',
       }
     })
     const completeCount = requirements.filter((topic) => topic.state === 'complete').length
@@ -92,6 +90,5 @@ export function roleProgress(role: RoleDefinition, topics: readonly Topic[], awa
     earned,
     ...(receipt || liveEarned ? { earnedVersion: Math.max(liveEarned ? role.version : 0, receipt?.roleVersion ?? 0) } : {}),
     ...(receipt && receipt.roleVersion < role.version ? { upgradeRemainingCount: remaining } : {}),
-    needsRefresh: earned && pathways.some((pathway) => pathway.topics.some((topic) => topic.needsRefresh)),
   }
 }

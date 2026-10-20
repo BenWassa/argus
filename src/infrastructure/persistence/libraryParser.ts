@@ -1025,10 +1025,10 @@ function parseTopic(
   const track = TRACKS.includes(t.track as never) ? (t.track as Topic['track']) : 'learning'
   let status = STATUSES.includes(t.status as never) ? (t.status as Topic['status']) : 'unstarted'
   const completedAt = typeof t.completedAt === 'string' ? t.completedAt : null
-  // A completed or decayed topic without a completion date would be counted
-  // in one place and missing from another. Demote rather than display a
-  // record that does not exist.
-  if (!completedAt && (status === 'completed' || status === 'decayed')) status = 'drilled'
+  // Old repair/learning records with completion stay learned. Preserve the
+  // existing drilled fallback when a legacy completion has no dated receipt.
+  if (completedAt) status = 'completed'
+  else if (status === 'completed' || status === 'decayed') status = 'drilled'
 
   return {
     ok: true,

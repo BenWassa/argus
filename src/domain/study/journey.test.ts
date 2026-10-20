@@ -258,13 +258,13 @@ describe('an ineligible Test is recorded and moves nothing', () => {
     }
 
     const journey = journeyFor(drilled)
-    expect(journey.acquisition.ready).toBe(false)
+    expect(journey.acquisition.ready).toBe(true)
     expect(journey.advancementEligible).toBe(true)
     expect(journey.action).toBe('test')
     expect(journey.due).toBe(false)
     expect(journey.retention.status).toBe('completed')
     expect(drilled.status).toBe('drilled')
-    expect(journey.statusLabel).toBe('Banked')
+    expect(journey.statusLabel).toBe('Learned')
   })
 
   it('never gates a completed topic back into acquisition', () => {
@@ -282,7 +282,7 @@ describe('an ineligible Test is recorded and moves nothing', () => {
     expect(journey.phase).toBe('banked')
     expect(journey.due).toBe(false)
     expect(journey.advancementEligible).toBe(true)
-    expect(journey.statusLabel).toBe('Banked')
+    expect(journey.statusLabel).toBe('Learned')
   })
 })
 
@@ -319,16 +319,16 @@ describe('ordinary topics separate browsing from deliberate enrollment', () => {
     expect(nextDay.advancementEligible).toBe(true)
   })
 
-  it('keeps the scheduler wording for drilled, repair and completed topics', () => {
+  it('reads every legacy completed state as learned', () => {
     const base = seeded('cardinal-bearings')
     const drilled = journeyFor({ ...base, status: 'drilled', drilledAt: ago(4), completedAt: null })
-    expect(drilled.statusLabel).toBe('Banked')
+    expect(drilled.statusLabel).toBe('Learned')
     expect(drilled.phase).toBe('banked')
 
     const repair = journeyFor({ ...base, status: 'decayed', completedAt: ago(200) })
-    expect(repair.phase).toBe('repair')
-    expect(repair.statusLabel).toBe('Needs repair')
-    expect(repair.due).toBe(true)
+    expect(repair.phase).toBe('banked')
+    expect(repair.statusLabel).toBe('Learned')
+    expect(repair.due).toBe(false)
     expect(repair.action).toBe('test')
   })
 
@@ -372,11 +372,11 @@ describe('the day and the shelves read from the same derivation', () => {
     { ...seeded('ooda-loop'), items: [], status: 'unstarted' },
   ]
 
-  it('ranks repair first and puts acquisition work on the due shelf', () => {
+  it('keeps learned legacy topics out of unfinished acquisition work', () => {
     const entries = journeysFor(topics())
     const due = dueEntries(entries)
 
-    expect(due[0].topic.id).toBe('cardinal-bearings')
+    expect(due.map((entry) => entry.topic.id)).not.toContain('cardinal-bearings')
     expect(due.map((entry) => entry.topic.id)).toContain(MORSE_ID)
     // The topic with no items is authoring, never due work.
     expect(due.map((entry) => entry.topic.id)).not.toContain('ooda-loop')
@@ -386,7 +386,7 @@ describe('the day and the shelves read from the same derivation', () => {
     const shelves = journeyShelves(journeysFor(topics()))
     const shelfOf = (id: string) => shelves.find((shelf) => shelf.entries.some((e) => e.topic.id === id))?.id
 
-    expect(shelfOf('cardinal-bearings')).toBe('due')
+    expect(shelfOf('cardinal-bearings')).toBe('banked')
     expect(shelfOf(MORSE_ID)).toBe('due')
     expect(shelfOf('primary-survey')).toBe('banked')
     expect(shelfOf('ooda-loop')).toBe('unfinished')

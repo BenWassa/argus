@@ -208,7 +208,7 @@ test.describe('fluency', () => {
 
   test('keeps the banked Test on the path and later tiers available', async ({ page }) => {
     await openTopic(page, betweenChecks())
-    await expect(page.getByRole('button', { name: 'A–Z Test, banked, current' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'A–Z Test, banked, done' })).toBeVisible()
     await page.getByRole('button', { name: 'Words, Key, available' }).click()
     await expect(page.locator('.send-run')).toBeVisible()
   })

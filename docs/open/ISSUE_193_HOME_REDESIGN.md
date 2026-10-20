@@ -1,5 +1,7 @@
 # Issue #193 — Selected Home redesign
 
+> **Progress authority update, 2026-10-19:** [Learning progress](PROGRESS_ARCHITECTURE.md) supersedes earlier decay/repair routing and repeated completion requirements in this document. Learned topics stay learned. Home continues the top unfinished topic.
+
 **Status:** merged via #195 (2026-10-07); automated regression passed; included in the owner-authorized v1.5.0 release; real Pixel acceptance remains outstanding.
 **Authority:** implementation contract for #193. #126 and #127 remain the exploration/decision history.  
 **Related:** #191 role/designation progression; #192 role badge art.

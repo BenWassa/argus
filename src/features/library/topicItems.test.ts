@@ -8,7 +8,7 @@ import { itemStanding, settledCount, topicBar, topicItemGroups } from './topicIt
 function seeded(id: string): Topic {
   const parsed = parseLibrary(seedLibrary())
   if (!parsed.ok) throw new Error(parsed.error)
-  return parsed.library.topics.find(topic => topic.id === id)!
+  return { ...parsed.library.topics.find(topic => topic.id === id)!, status: 'learning', completedAt: null, drilledAt: null }
 }
 
 const seen = (consecutiveCorrect: number): DirectionEvidence => ({
@@ -34,12 +34,11 @@ describe('item standing', () => {
     expect(settledCount(topic)).toBe(1)
   })
 
-  it('turns a recorded miss into repair once the topic has decayed, and only that', () => {
+  it('keeps every item settled in a legacy completed topic despite later misses', () => {
     const topic = withEvidence({ ...base, status: 'decayed', completedAt: '2026-01-01T00:00:00Z', history: [ATTEMPT] })
     expect(itemStanding(topic, first)).toBe('settled')
-    expect(itemStanding(topic, second)).toBe('repair')
-    // No recorded miss, no copper: the header carries the topic's decay.
-    expect(itemStanding(topic, third)).toBe('seen')
+    expect(itemStanding(topic, second)).toBe('settled')
+    expect(itemStanding(topic, third)).toBe('settled')
   })
 
   it('takes the topic rung for items without evidence', () => {
@@ -80,7 +79,7 @@ describe('the header bar', () => {
   const attempt = (correct: number, resolvedTo: Topic['status'], missedItemIds?: string[]) =>
     ({ at: '2026-01-01T00:00:00Z', correct, total: n, resolvedTo, ...(missedItemIds ? { missedItemIds } : {}) })
 
-  it('reads the last Test for a topic in repair that just scored 22 of 26', () => {
+  it('reads the last Test score while the topic is still learning', () => {
     const topic: Topic = { ...base, status: 'learning', history: [attempt(26, 'completed'), attempt(22, 'learning')] }
     expect(topicBar(topic)).toEqual({ value: 22, max: 26, label: '22 of 26 correct in the last Test' })
   })
@@ -95,9 +94,9 @@ describe('the header bar', () => {
     expect(topicBar({ ...base, items: [], history: [] })).toBeNull()
   })
 
-  it('shows no bar for a repair topic whose history does not describe it', () => {
+  it('keeps old repair progress full even when its latest history differs', () => {
     // Repair, but the only attempt on record says it completed.
-    expect(topicBar({ ...base, status: 'decayed', history: [attempt(26, 'completed')] })).toBeNull()
+    expect(topicBar({ ...base, status: 'decayed', history: [attempt(26, 'completed')] })).toMatchObject({ value: 26, max: 26 })
   })
 
   it('reads a Test that got nothing right as a real zero', () => {
@@ -109,12 +108,12 @@ describe('the header bar', () => {
     expect(topicBar(topic)).toBeNull()
   })
 
-  it('marks the items the last Test missed, copper only while in repair', () => {
+  it('names unfinished misses but keeps learned items settled', () => {
     const [a, b] = base.items
     const learning: Topic = { ...base, status: 'learning', history: [attempt(24, 'learning', [a.id!, b.id!])] }
     expect(itemStanding(learning, a)).toBe('missed')
     expect(itemStanding(learning, base.items[2])).toBe('seen')
     const repair: Topic = { ...base, status: 'decayed', history: [attempt(24, 'decayed', [a.id!])] }
-    expect(itemStanding(repair, a)).toBe('repair')
+    expect(itemStanding(repair, a)).toBe('settled')
   })
 })

@@ -487,12 +487,10 @@ interface RowProps {
  *
  * A started plate leads with a stud in its track's metal; an unstarted one
  * needs none, because it already sits under a heading in that metal. The reading is the gauge's own, in its units, or the schedule's
- * sentence where there is no measure yet; a decayed topic says `Needs repair`
- * in tarnish instead, the one warm note in the product.
+ * sentence where there is no measure yet. Learned topics stay full.
  */
 function Row({ entry, order, started, onOpen }: RowProps) {
   const { topic, journey } = entry
-  const repair = journey.phase === 'repair'
   // A started topic with no measure yet still has a sentence: the schedule's
   // own, the same words Today and the topic page use for it.
   const measured = gaugeLabel(gaugeReading(topic, journey)) !== null
@@ -506,17 +504,14 @@ function Row({ entry, order, started, onOpen }: RowProps) {
     <li className="index-entry lib-entry" style={style}>
       <button
         type="button"
-        className={`index-row lib-row plate${started ? ' plate-raised' : ''}${repair ? ' plate-repair' : ''}${icon ? ' has-topic-icon' : ''}`}
+        className={`index-row lib-row plate${started ? ' plate-raised' : ''}${icon ? ' has-topic-icon' : ''}`}
         data-row={topic.id}
         data-started={started || undefined}
-        data-repair={repair || undefined}
         onClick={onOpen}
       >
         {icon && <TopicGlyph topicId={topic.id} />}
         <span className="index-title">{topic.title}</span>
-        {repair ? (
-          <span className="lib-row-reading lib-repair">Needs repair</span>
-        ) : !started ? null : measured ? (
+        {!started ? null : measured ? (
           <TopicGauge topic={topic} journey={journey} variant="row" />
         ) : (
           <span className="lib-row-reading">{journey.statusLabel}</span>

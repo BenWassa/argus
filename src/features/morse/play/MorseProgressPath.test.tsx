@@ -12,7 +12,7 @@ afterEach(() => {
 })
 
 describe('Morse progress path', () => {
-  it.each(['fresh', 'mid', 'banked', 'repair'])('renders every %s node in order with one current action', (state) => {
+  it.each(['fresh', 'mid', 'banked', 'repair'])('renders every %s node in order with a current task only while learning', (state) => {
     const topic = modeTopicFixtures()[state]
     const path = morseProgressPath(topic)!
     const onAction = vi.fn()
@@ -23,13 +23,18 @@ describe('Morse progress path', () => {
       expect(screen.getByRole(node.kind === 'tier' ? 'group' : 'button', { name: node.accessibleLabel })).toBeTruthy()
     }
     const current = container.querySelectorAll('[aria-current="step"]')
+    if (!path.currentNodeId) {
+      expect(current).toHaveLength(0)
+      expect(screen.getByText('Learned')).toBeTruthy()
+      return
+    }
     expect(current).toHaveLength(1)
     expect(current[0].getAttribute('aria-label')).toBe(path.nodes.find((node) => node.id === path.currentNodeId)!.accessibleLabel)
     fireEvent.click(current[0])
     expect(onAction).toHaveBeenCalledExactlyOnceWith(path.nodes.find((node) => node.id === path.currentNodeId)!.action)
   })
 
-  it.each(['fresh', 'mid', 'banked'])('marks the %s position without a Start chip (#242)', (state) => {
+  it.each(['fresh', 'mid'])('marks the %s position without a Start chip (#242)', (state) => {
     const { container } = render(<MorseProgressPath topic={modeTopicFixtures()[state]} onAction={vi.fn()} />)
     const current = container.querySelector('[aria-current="step"]')!
     expect(current.classList.contains('is-position')).toBe(true)
@@ -37,7 +42,7 @@ describe('Morse progress path', () => {
     expect(current.textContent).not.toMatch(/\bStart\b/)
   })
 
-  it('gives milestones square nodes, uppercase names, distinct marks and a named repair state', () => {
+  it('gives milestones square nodes and learned legacy courses no repair label', () => {
     render(<MorseProgressPath topic={modeTopicFixtures().repair} onAction={vi.fn()} />)
     for (const label of screen.getAllByText('WORD CHECK')) {
       expect(label.closest('button')!.querySelector('.spine-node-square svg')).not.toBeNull()
@@ -46,7 +51,8 @@ describe('Morse progress path', () => {
     const test = screen.getByText('A–Z TEST').closest('button')!.querySelector('.spine-node-square')!
     expect(test.textContent).toBe('A–Z')
     expect(test.querySelector('svg')).toBeNull()
-    expect(screen.getByText('◆ Needs repair')).toBeTruthy()
+    expect(screen.getByText('Learned')).toBeTruthy()
+    expect(screen.queryByText(/Needs repair/)).toBeNull()
   })
 
   it('keeps locked rows and pips from starting anything, and says why in one line (#257)', () => {

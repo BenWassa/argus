@@ -1,3 +1,4 @@
+import { isLearned } from './scheduling'
 import { identifiedItem, requiredDirections } from '../library/items'
 import type { IdentifiedItem, Item, Topic } from '../library/topic'
 import type { ItemCueEvidence, ItemDirection } from './evidence'
@@ -81,6 +82,7 @@ function lastAtMs(evidence: ItemCueEvidence | undefined, direction: ItemDirectio
  * practising writes nothing to it.
  */
 export function lastTestMissedIds(topic: Topic): string[] {
+  if (isLearned(topic)) return []
   const missed = topic.history[topic.history.length - 1]?.missedItemIds
   if (!missed || missed.length === 0) return []
   const present = new Set(topic.items.map((item) => item.id))
@@ -194,7 +196,7 @@ export function targetsForItems(topic: Topic, itemIds: string[]): PracticeTarget
  * advertised count and the selected items agree.
  */
 export function missedTargets(topic: Topic): PracticeTarget[] {
-  return practiceTargets(topic).filter((target) => target.reason === 'missed')
+  return isLearned(topic) ? [] : practiceTargets(topic).filter((target) => target.reason === 'missed')
 }
 
 /**

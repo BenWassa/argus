@@ -10,11 +10,11 @@ function topic(patch: Partial<Topic> = {}): Topic {
 }
 
 describe('Home readings', () => {
-  it('preserves historical completion during repair and excludes it from in-progress count', () => {
+  it('keeps legacy repair topics learned and excludes them from in-progress count', () => {
     const repair = topic({ status: 'decayed', completedAt: '2026-09-01T12:00:00Z' })
     const building = topic({ id: 'building', status: 'learning' })
     expect(homeReadout(journeysFor([repair, building, topic({ id: 'untouched' })]))).toMatchObject({ completed: 1, inProgress: 1 })
-    expect(homeProgress(repair, journeyFor(repair))).toEqual({ kind: 'repair', label: 'Needs repair' })
+    expect(homeProgress(repair, journeyFor(repair))).toEqual({ kind: 'complete', label: 'Learned' })
   })
 
   it('reads the newest durable activity, not topic edits or mere browsing', () => {
@@ -38,7 +38,7 @@ describe('Home readings', () => {
     expect(homeProgress(missed, journeyFor(missed))).toEqual({ kind: 'started', label: '2 to practise' })
     // Even a topic once completed: a failed repair Test sent it back to learning.
     const again = { ...missed, completedAt: '2026-09-01T00:00:00Z' }
-    expect(homeProgress(again, journeyFor(again))).toEqual({ kind: 'started', label: '2 to practise' })
+    expect(homeProgress(again, journeyFor(again))).toEqual({ kind: 'complete', label: 'Learned' })
   })
 
   it('uses the curriculum settled count for Morse without mixing retention into it', () => {

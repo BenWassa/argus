@@ -1,19 +1,16 @@
 import type { Status } from '../../domain/library/topic'
 
-/**
- * Status is information, never praise or punishment. `decayed` reads the same
- * weight as every other rung; it routes work, it does not scold.
- */
+/** Old completed/repair statuses all read as learned. */
 const LABELS: Record<Status, string> = {
   unstarted: 'Not tested yet',
   learning: 'Learning',
-  drilled: 'Completed',
-  completed: 'Completed',
-  decayed: 'Needs repair',
+  drilled: 'Learned',
+  completed: 'Learned',
+  decayed: 'Learned',
 }
 
 export function StatusTag({ status }: { status: Status }) {
-  return <span className={`status status-${status}`}>{LABELS[status]}</span>
+  return <span className={`status status-${status === 'decayed' || status === 'drilled' ? 'completed' : status}`}>{LABELS[status]}</span>
 }
 
 export function statusLabel(status: Status): string {

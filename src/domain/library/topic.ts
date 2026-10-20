@@ -22,16 +22,8 @@ export const TRACKS = ['learning', 'survival', 'tradecraft'] as const
 export type Track = (typeof TRACKS)[number]
 
 /**
- * The status ladder. Every topic sits on exactly one rung, and the rung
- * decides both what the topic looks like and when it comes back.
- *
- *   unstarted / learning / decayed -> completed
- *                          ^             |
- *                          +-- decayed --+
- *
- * `drilled` remains a parseable legacy status and reads as completed.
- * `completed` is permanent: decay routes a topic back to drilling without
- * erasing the fact that it was once completed.
+ * Learning moves from unstarted to learning to permanent completion.
+ * `drilled` and `decayed` are legacy import/history values, never new live states.
  */
 export const STATUSES = ['unstarted', 'learning', 'drilled', 'completed', 'decayed'] as const
 export type Status = (typeof STATUSES)[number]
@@ -121,9 +113,9 @@ export interface Topic {
   createdAt: string
   /** Legacy timestamp when the topic first reached `drilled`; retained for compatibility. */
   drilledAt: string | null
-  /** When acquisition or corrective learning began. No elapsed-time gate. */
+  /** When learning began. No elapsed-time gate. */
   learningAt: string | null
-  /** Set once, the first time the topic completes. Never cleared by decay. */
+  /** Set once, the first time the topic completes. Never cleared by a later Test. */
   completedAt: string | null
   /** Most recent scored Test, whether scheduled or voluntary. */
   lastTestedAt: string | null

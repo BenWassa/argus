@@ -5,65 +5,15 @@ import {
   lessonSittingIsFresh,
   lessonSittingOf,
 } from '../morse/curriculum/lessonSitting'
-import { DUE_RANK, dueState } from './scheduling'
+import { DUE_RANK, dueState, isLearned } from './scheduling'
 import type { Status, Topic } from '../library/topic'
 
 /**
- * The shared learner journey (#62/#67).
- *
- * Argus carries several forms of learner state that answer genuinely different
- * questions, and #62 is emphatic that they must stay apart:
- *
- * ```text
- * acquisition   can I retrieve this without the teaching support I am using?
- * evidence      have I demonstrated the directions the scored boundary requires?
- * retention     has a clean scored Test demonstrated recall?
- * sitting       where am I in the finite task I am doing right now?
- * ```
- *
- * What was missing was not another state variable. It was one *interpretation*
- * of the four, so the product can answer the only question the learner actually
- * asks — what should I do next, and why — with the same answer on every surface.
- * Today, Library, Topic and Progress previously each read raw fields and reached
- * their own conclusion, which is how the same Morse topic could say "Continue
- * lesson" on one screen and "Test" on another at the same instant.
- *
- * This module is that interpretation, and it is deliberately:
- *
- * - **pure** — `topic => TopicJourney`, no storage, no writes and no clock at
- *   all, so a surface cannot get a different answer than a test does;
- * - **derived** — it holds nothing. Every value here is computed from durable
- *   fields owned by somebody else. There is no fifth progress database;
- * - **not a second scheduler** — `scheduling.ts` remains the retention
- *   authority. This layer decides *eligibility* and wording, and asks the
- *   scheduler for the rest.
- *
- * ## The one thing it adds: progressive acquisition
- *
- * The pre-Morse model assumed Learn was a single exposure, so the scheduler's
- * mode rule — since deleted — could treat `unstarted` as Learn and everything
- * else as Test. Morse acquisition runs
- * for many sittings across many days while the status has been `learning` since
- * the first one, so that rule routed a learner who had met eight letters into a
- * 26-item scored Test and called it the required action.
- *
- * A progressive topic therefore has an explicit readiness boundary, and until it
- * is reached the topic is `acquiring`: every surface says Continue Learn, and a
- * Test result cannot advance the retention ladder (`advancementEligible`).
- *
- * ## Two deliberate limits on the gate
- *
- * The gate applies only while the topic is `unstarted` or `learning`. A topic
- * that has genuinely reached `drilled`, `completed` or `decayed` has retention
- * evidence, and retention evidence outranks lesson scaffolding: an existing
- * learner who drilled printed Morse before the guided lesson shipped is not sent
- * back to packet 1, and a later lesson miss cannot drag a completed topic
- * backwards.
- *
- * And readiness is permanent once reached, like `completedAt`. A miss in a later
- * lesson legitimately restores that letter's support, which is a fact about what
- * the lesson will scaffold next — not a retraction of having produced all 26
- * unaided.
+ * One pure interpretation of the durable learning record for every surface.
+ * Unfinished curricula continue their canonical acquisition task; ordinary
+ * topics offer Test. A qualifying Test completes learning permanently.
+ * Existing evidence and lesson stores retain their own boundaries, but never
+ * reopen a learned topic or create decay/repair work.
  */
 
 /** What the learner should do with this topic now. */
@@ -123,7 +73,7 @@ export interface SittingView {
 }
 
 /** `banked` is a completed topic: not in motion, and checkable at any time. */
-export type JourneyPhase = 'authoring' | 'acquiring' | 'due' | 'banked' | 'repair'
+export type JourneyPhase = 'authoring' | 'acquiring' | 'due' | 'banked'
 
 export interface TopicJourney {
   topicId: string
@@ -172,14 +122,14 @@ function acquisitionView(topic: Topic): AcquisitionView {
     progressive: true,
     started: position.started,
     // Readiness is permanent once recorded. See the module comment.
-    ready: position.ready || Boolean(topic.acquisitionReadyAt),
-    settled: position.settled,
+    ready: isLearned(topic) || position.ready || Boolean(topic.acquisitionReadyAt),
+    settled: isLearned(topic) ? position.total : position.settled,
     total: position.total,
     packet: position.packet,
     packetCount: position.packetCount,
     readyAt: topic.acquisitionReadyAt ?? null,
     afterCourse: position.metAll,
-    owed: position.metAll ? owedLetters(topic) : [],
+    owed: !isLearned(topic) && position.metAll ? owedLetters(topic) : [],
   }
 }
 
@@ -217,13 +167,13 @@ export function journeyFor(topic: Topic): TopicJourney {
   // Retention evidence outranks lesson scaffolding: a topic that has genuinely
   // reached `drilled` or beyond is never pulled back into acquisition.
   const gated =
-    acquisition.progressive &&
+    !isLearned(topic) && acquisition.progressive &&
     !acquisition.ready &&
     (topic.status === 'unstarted' || topic.status === 'learning')
 
   const scheduled = dueState(topic)
   const retention: RetentionView = {
-    status: topic.status === 'drilled' ? 'completed' : topic.status,
+    status: isLearned(topic) ? 'completed' : topic.status,
     label: scheduled.label,
     due: scheduled.due,
     gated,
@@ -307,7 +257,7 @@ export function journeyFor(topic: Topic): TopicJourney {
   const statusLabel = scheduled.label
 
   const phase: JourneyPhase =
-    topic.status === 'decayed' ? 'repair' : scheduled.due ? 'due' : 'banked'
+    scheduled.due ? 'due' : 'banked'
 
   // Once a course is banked, the fuller recommendation is to keep learning past
   // it — Copy, from letters up to sentences. The action stays `test`: a banked
@@ -324,7 +274,7 @@ export function journeyFor(topic: Topic): TopicJourney {
     sitting,
     action: 'test',
     actionLabel: 'Test',
-    primaryLabel: keepGoing ? KEEP_GOING : phase === 'banked' ? 'Test again' : phase === 'repair' ? 'Repair' : 'Test',
+    primaryLabel: keepGoing ? KEEP_GOING : phase === 'banked' ? 'Test again' : 'Test',
     statusLabel,
     detail:
       acquisition.progressive && acquisition.ready
@@ -364,7 +314,7 @@ export function dueEntries(entries: JourneyEntry[]): JourneyEntry[] {
 /** Shown wherever a Test action is offered, so Today and Library never drift
  *  into stating this consequence two different ways. */
 export const TEST_CONSEQUENCE_NOTE =
-  'Tests are scored. One clean test banks a topic, and a banked topic can be checked at any time.'
+  'Tests are scored. One clean test completes a topic permanently. Further tests are optional.'
 
 export type ShelfId = 'due' | 'banked' | 'unfinished'
 
@@ -374,21 +324,7 @@ export interface JourneyShelf {
   entries: JourneyEntry[]
 }
 
-/**
- * The library ordered the way the schedule reads it. Shelf placement follows the
- * journey rather than raw status, so the shelf a topic sits on and the verb on
- * its action button are two readings of one derivation and cannot disagree.
- *
- * Three shelves: in motion, banked, and not until it has items. Repair is not
- * a fourth shelf — a decayed topic is in motion, and its row already says
- * `Needs repair` in warning, so pulling it out would split the docket to
- * restate what the row states.
- *
- * A banked topic sits in `banked` and appears again in the completion record.
- * That is deliberate and not duplication: the shelf says where it is now, the
- * record says what was earned, and decay changes the first without touching
- * the second.
- */
+/** Unfinished learning, learned topics and empty drafts, derived consistently. */
 export function journeyShelves(entries: JourneyEntry[]): JourneyShelf[] {
   const due = dueEntries(entries)
   const claimed = new Set(due.map((entry) => entry.topic.id))
@@ -399,7 +335,7 @@ export function journeyShelves(entries: JourneyEntry[]): JourneyShelf[] {
 
   const all: JourneyShelf[] = [
     { id: 'due', label: 'Due now', entries: due },
-    { id: 'banked', label: 'Banked', entries: banked.sort(byTitle) },
+    { id: 'banked', label: 'Learned', entries: banked.sort(byTitle) },
     {
       id: 'unfinished',
       label: 'Needs items',

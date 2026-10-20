@@ -169,7 +169,7 @@ test('after a missed Test the topic page agrees: Practice enabled with the same 
   await startCheck(page)
   await runDeck(page, 3)
   await expect(page.getByRole('button', { name: 'Practise 3 items' })).toBeVisible()
-  await expect(page.locator('.test-outcome')).toHaveText('Not banked · 3 to practise')
+  await expect(page.locator('.test-outcome')).toHaveText('Still learning · 3 to practise')
   await page.getByRole('button', { name: 'Done' }).click()
 
   await page.locator('.nav-btn', { hasText: 'Library' }).click()
@@ -180,7 +180,8 @@ test('after a missed Test the topic page agrees: Practice enabled with the same 
   await expect(page.locator('.screen-header-readout')).toHaveText(`${nato.items.length - 3} / ${nato.items.length}`)
   await expect(page.locator('.topic-item.is-missed')).toHaveCount(3)
   // The three missed items are copper with a diamond, and the status line says what happened.
-  await expect(page.locator('.topic-items .spine-row.is-repair .spine-node')).toHaveText(['◆', '◆', '◆'])
+  await expect(page.locator('.topic-items .topic-item.is-missed')).toHaveCount(3)
+  await expect(page.locator('.topic-items .spine-row.is-repair')).toHaveCount(0)
   await expect(page.locator('.topic-state')).toHaveText(`${nato.items.length - 3} / ${nato.items.length} · 3 to practise`)
 
   await practice.click()
