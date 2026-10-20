@@ -160,19 +160,26 @@
   padding: 0 var(--s-sm);
   background: var(--bg);
 }
-/* Compact: the title and the A–Z control share one row, the bar sits under
-   them, and Back waits at the top of the page. */
+/* Compact: Back, the title and A–Z share one row; the reading sits below.
+   Keep navigation available when the course opens at its current position. */
 .topic-morse-header.is-compact {
-  grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-areas: 'title actions' 'progress progress';
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: 'back title actions' 'progress progress progress';
   align-items: center;
   gap: var(--s-xs) var(--s-sm);
   padding-top: max(var(--s-sm), env(safe-area-inset-top));
   padding-bottom: var(--s-sm);
   border-bottom: 1px solid var(--line);
 }
-.topic-morse-header.is-compact .screen-header-bar { grid-area: actions; }
-.topic-morse-header.is-compact .screen-header-back { display: none; }
+.topic-morse-header.is-compact .screen-header-bar { display: contents; }
+.topic-morse-header.is-compact .screen-header-back {
+  grid-area: back;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-xs);
+  white-space: nowrap;
+}
+.topic-morse-header.is-compact .screen-header-actions { grid-area: actions; margin-left: 0; }
 .topic-morse-header.is-compact .screen-header-title-row { grid-area: title; }
 .topic-morse-header.is-compact .screen-header-progress { grid-area: progress; }
 .topic-morse-header.is-compact .topic-title {
