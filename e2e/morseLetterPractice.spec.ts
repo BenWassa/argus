@@ -19,12 +19,11 @@ test('direct letter practice, durable isolation, correction and return', async (
     if (info.project.name.startsWith('phone-')) await page.screenshot({ path: `${folder}/${info.project.name}-before.png`, fullPage: true })
     return
   }
-  await expect(page.getByRole('button', { name: 'Practice letters', exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Read', exact: true })).toBeVisible()
   if (info.project.name.startsWith('phone-')) await page.screenshot({ path: `${folder}/${info.project.name}-topic.png`, fullPage: true })
   const before = await page.evaluate(() => JSON.parse(localStorage.getItem('argus.library.v5')!).topics[0])
-  await page.getByRole('button', { name: 'Practice letters', exact: true }).click()
-  await expect(page.getByRole('heading', { name: 'Practice letters' })).toBeVisible()
   await page.getByRole('button', { name: 'Read', exact: true }).click()
+  await expect(page.locator('.session-frame-title').filter({ hasText: /^Read$/ })).toBeVisible()
   if (info.project.name.startsWith('phone-')) await page.screenshot({ path: `${folder}/${info.project.name}-active.png`, fullPage: true })
   await page.getByRole('textbox', { name: 'Letter' }).fill('!')
   await expect(page.getByRole('button', { name: 'Continue', exact: true })).toBeVisible()
@@ -39,7 +38,7 @@ test('direct letter practice, durable isolation, correction and return', async (
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
   await page.getByRole('button', { name: 'Continue', exact: true }).click()
   await page.getByRole('button', { name: 'Close', exact: true }).click()
-  await expect(page.getByRole('button', { name: 'Practice letters', exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Read', exact: true })).toBeVisible()
 })
 
 test('a complete read round repeats freely and large text fits', async ({ page }, info) => {
@@ -50,19 +49,19 @@ test('a complete read round repeats freely and large text fits', async ({ page }
   await page.goto('./')
   await page.getByRole('button', { name: 'Library', exact: true }).click()
   await page.getByRole('button', { name: /Morse/ }).first().click()
-  await page.getByRole('button', { name: 'Practice letters', exact: true }).click()
   await page.getByRole('button', { name: 'Read', exact: true }).click()
   for (let n = 1; n <= 10; n++) {
-    await expect(page.locator('.session-count')).toHaveText(`${n} / 10`)
-    const pattern = await page.locator('.letter-practice-stimulus .morse-notation').textContent()
+    await expect(page.getByRole('progressbar')).toHaveAttribute('aria-label', `${n} of 10`)
+    // The shared marks keep their notation as text: one character per mark (#263).
+    const pattern = await page.locator('.letter-practice-stimulus .morse-marks').textContent()
     const expected = source.items.find(item => item.answer.replace(/\s/g, '').replace(/-/g, '—').replace(/\./g, '·') === pattern?.replace(/\s/g, ''))!.prompt
     await page.getByRole('textbox', { name: 'Letter' }).fill(expected)
-    await expect(page.getByRole('status')).toHaveText('Correct')
+    await expect(page.getByRole('status')).toContainText('Correct')
   }
-  await expect(page.getByRole('heading', { name: 'Round complete' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: '10 of 10 correct' })).toBeVisible()
   if (info.project.name.startsWith('phone-')) await page.screenshot({ path: `docs/open/morse/assets/morse-221/${info.project.name}-complete.png`, fullPage: true })
-  await page.getByRole('button', { name: 'Another round' }).click()
-  await expect(page.locator('.session-count')).toHaveText('1 / 10')
+  await page.getByRole('button', { name: 'Again' }).click()
+  await expect(page.getByRole('progressbar')).toHaveAttribute('aria-label', '1 of 10')
   await page.evaluate(() => { document.documentElement.style.fontSize = '200%' })
   await page.getByRole('button', { name: 'Help' }).click()
   if (info.project.name.startsWith('phone-')) await page.screenshot({ path: `docs/open/morse/assets/morse-221/${info.project.name}-large-text.png`, fullPage: true })

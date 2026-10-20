@@ -1,6 +1,5 @@
-// Owns lesson answers, sitting state, listening policy and progression effects.
-
 import { useEffect, useRef, useState } from 'react'
+import type { Topic } from '../../../domain/library/topic'
 import {
   answerLesson,
   currentStep,
@@ -9,22 +8,12 @@ import {
   lessonProgressCount,
   startAfterCourse,
   startLesson,
-  type LessonRun,
+  type LessonRun
 } from '../../../domain/morse/curriculum/lesson'
 import {
   morseLessonPath,
-  nextReplayLesson,
+  nextReplayLesson
 } from '../../../domain/morse/curriculum/lessonPath'
-import {
-  answerListeningQuestion,
-  lessonListeningOptions,
-  newLessonListeningState,
-  recordListeningAnswer,
-  recordLessonQuestion,
-  chooseListeningTarget,
-  suppressListening,
-  type ListeningFeedback,
-} from '../../../domain/morse/curriculum/listening'
 import {
   lessonSittingOf,
   newLessonSitting,
@@ -32,22 +21,44 @@ import {
   suppressSittingListening,
   type LessonSitting,
 } from '../../../domain/morse/curriculum/lessonSitting'
+import {
+  answerListeningQuestion,
+  chooseListeningTarget,
+  lessonListeningOptions,
+  newLessonListeningState,
+  recordLessonQuestion,
+  recordListeningAnswer,
+  suppressListening,
+  type ListeningFeedback,
+} from '../../../domain/morse/curriculum/listening'
 import { completeSitting, morseReviewOf, withMorseReview } from '../../../domain/morse/curriculum/review'
 import { useLibrary } from '../../../services/library/LibraryProvider'
-import type { Topic } from '../../../domain/library/topic'
 import { useKeyedResponse } from '../input/useKeyedResponse'
 import { useMorseAudio } from '../useMorseAudio'
-import { useLessonRecord } from './useLessonRecord'
 import { useCheckpointHandoff } from './useCheckpointHandoff'
-
-export function useLessonProgression({
-  topic, initialRun, replay, onExit,
-}: {
+import { useLessonRecord } from './useLessonRecord'
+export interface MorseLessonProps {
   topic: Topic
   initialRun: LessonRun
-  replay: boolean
+  /**
+   * True when this is a rerun of a lesson the learner has already reached
+   * (#117).
+   *
+   * Replay is deliberately not a second surface. It is this component, with
+   * this component's screens, steps, mnemonics, audio, feedback and word
+   * checkpoints, running a lesson the canonical builder produced for an earlier
+   * position. The flag changes three things and nothing else: the record writes
+   * nothing, "next lesson" walks the printed order instead of the learner's
+   * durable position, and the copy stops implying a first meeting.
+   */
+  replay?: boolean
   onExit: () => void
-}) {
+  onTest: () => void
+  onReference: () => void
+  /** Guided sending, offered beside Test once every letter is acquired (#201). */
+  onPlay?: () => void
+}
+export function useLessonProgression({ topic, initialRun, replay = false, onExit }: MorseLessonProps) {
   const { topics } = useLibrary()
   const record = useLessonRecord(topic.id, replay)
   const { sounding, audioError, clearError, stop, toggle } = useMorseAudio()
@@ -106,32 +117,11 @@ export function useLessonProgression({
   const live = topics.find((candidate) => candidate.id === topic.id) ?? topic
   const topicRef = useRef<Topic>(live)
   topicRef.current = live
-
-  const {
-    checkpointInvite, runningCheckpoint, movePastVisualFeedback,
-    startInvitedCheckpoint, skipInvitedCheckpoint, finishRunningCheckpoint,
-  } = useCheckpointHandoff(topicRef, replay, setRun)
+  const { checkpointInvite, runningCheckpoint, movePastVisualFeedback, startInvitedCheckpoint, skipInvitedCheckpoint, finishRunningCheckpoint } = useCheckpointHandoff(topicRef, replay, setRun)
 
   const hasFeedback = Boolean(run.feedback || listeningFeedback)
   const step = hasFeedback ? null : currentStep(run)
   const packetProgress = lessonProgressCount(run)
-  /**
-   * Whether the `·`/`—` mark grammar still needs explaining on the spot.
-   *
-   * The note used to appear under every introduction — twenty-six times across
-   * the course, plus every replay — always illustrated with `ZOOM ZOOM ZIP ZIP`,
-   * a letter other than the one being taught. Explaining the notation is a
-   * first-meeting job, not a permanent caption competing with the mnemonic it
-   * is describing.
-   *
-   * The test is about the learner rather than the lesson's position, which is
-   * what makes it right for someone placed into the middle of the course: they
-   * told the placement check they already know Morse, and a learner who is
-   * genuinely new has always met fewer than a lesson's worth of characters when
-   * they first see this. Everyone else keeps it permanently under
-   * `How this course works` on the topic page.
-   */
-  const notationIsNew = introducedGlyphs(live).length < 3
   /**
    * Which character this slot asks by ear, chosen by listening need across the
    * whole roster rather than by whichever one the printed queue offered (#90
@@ -271,9 +261,9 @@ export function useLessonProgression({
       ? nextReplayLesson(topicRef.current, run.packetIndex)
       : run.afterCourse
         ? // Another round goes over what is still owed, in the next sitting.
-          startAfterCourse(closed)
+        startAfterCourse(closed)
         : // Select review against the next sitting ordinal, matching the durable close.
-          startLesson(closed)
+        startLesson(closed)
     if (!next) {
       if (replay || run.afterCourse) onExit()
       return
@@ -294,12 +284,6 @@ export function useLessonProgression({
     setAudioNotice(null)
   }
 
-  return {
-    run, topicRef, headingRef, stepRef, sounding, audioError, toggle,
-    phase, armed, holding, hasFeedback, step, packetProgress, notationIsNew,
-    listeningEntry, listening, audioOptions, listeningFeedback, audioNotice,
-    checkpointInvite, runningCheckpoint, startInvitedCheckpoint,
-    skipInvitedCheckpoint, finishRunningCheckpoint, continueFromMiss,
-    introduce, answerVisual, answerListening, skipListening, nextPacket,
-  }
+
+  return { sounding, audioError, toggle, headingRef, stepRef, run, listeningFeedback, audioNotice, checkpointInvite, runningCheckpoint, phase, armed, holding, continueFromMiss, topicRef, hasFeedback, step, packetProgress, listeningEntry, listening, audioOptions, introduce, startInvitedCheckpoint, skipInvitedCheckpoint, finishRunningCheckpoint, answerVisual, answerListening, skipListening, nextPacket }
 }

@@ -7,8 +7,11 @@ import {
 } from '../../../domain/morse/curriculum/checkpoints'
 import { MorseKeyInput } from '../input/MorseKeyInput'
 import { MorseCharacterSupport } from '../MorseCharacterSupport'
+import { MorseMarks } from '../MorseMarks'
+import { spokenRhythm } from '../../../domain/morse/mnemonics'
 import { useMorseAudio } from '../useMorseAudio'
 import { useKeyedResponse } from '../input/useKeyedResponse'
+import { SessionFrame, SessionCorrect } from '../../../shared/ui/SessionFrame'
 import './MorseCheckpoint.css'
 
 interface MorseCheckpointProps {
@@ -22,6 +25,8 @@ interface MorseCheckpointProps {
 interface CheckpointFeedback {
   correct: boolean
   letter: MorseLetter
+  /** What was keyed, shown back on a miss. */
+  pattern: string
 }
 
 /**
@@ -78,32 +83,21 @@ export function MorseCheckpoint({ checkpoint, onExit, onContinue, continueLabel 
     if (correct) {
       setCorrectAnswers((count) => count + 1)
     }
-    setFeedback({ correct, letter })
+    setFeedback({ correct, letter, pattern: pattern as string })
     answered(correct)
   }
 
-  /**
-   * One word for what this is and one number for where it sits, matching the
-   * lesson bar. `Checkpoint after lesson 13` named the same thing three times
-   * over and put the number in the middle of a sentence, where it is the one
-   * place a glance cannot find it.
-   */
-  const bar = (position: string | null) => (
-    <div className="session-bar">
-      <p><span className="session-topic">Checkpoint</span></p>
-      {position && <span className="session-count tabular">{position}</span>}
-      <button className="ghost small" type="button" onClick={onExit}>Close</button>
-    </div>
-  )
+  const total = checkpoint.warmups.length + checkpoint.words.reduce((count, word) => count + word.length, 0)
+  const current = run.phase === 'complete' ? total : run.phase === 'warmup' ? run.warmupIndex
+    : checkpoint.warmups.length + checkpoint.words.slice(0, run.wordIndex).reduce((count, word) => count + word.length, 0) + run.characterIndex
+  const frame = { kind: 'checkpoint' as const, title: 'Word check', progress: { current, total }, onClose: onExit }
 
   if (complete) {
     return (
-      <section className="session morse-lesson morse-checkpoint">
-        {bar(null)}
+      <SessionFrame {...frame} className="morse-lesson morse-checkpoint">
         <div className="morse-checkpoint-summary">
-          <h1 ref={headingRef} tabIndex={-1}>Checkpoint done</h1>
+          <h2 ref={headingRef} tabIndex={-1} className="session-prompt-heading">Checkpoint done</h2>
           <p><strong>{correctAnswers} of {attempts} correct</strong></p>
-          <p className="lesson-foot">Nothing here changed saved progress.</p>
           {onContinue ? (
             <div className="lesson-exits" inert={!armed}>
               <button type="button" onClick={onContinue}>{continueLabel ?? 'Keep going'}</button>
@@ -113,22 +107,18 @@ export function MorseCheckpoint({ checkpoint, onExit, onContinue, continueLabel 
             <button type="button" disabled={!armed} onClick={onExit}>Back to lessons</button>
           )}
         </div>
-      </section>
+      </SessionFrame>
     )
   }
 
   if (!letter) return null
 
-  const position = run.phase === 'warmup'
-    ? `${run.warmupIndex + 1}/${checkpoint.warmups.length}`
-    : `${run.wordIndex + 1}/${checkpoint.words.length}`
   const targetKey = run.phase === 'warmup'
     ? `warmup-${run.warmupIndex}`
     : `word-${run.wordIndex}-${run.characterIndex}`
 
   return (
-    <section className="session morse-lesson morse-checkpoint" data-step="check">
-      {bar(position)}
+    <SessionFrame {...frame} className="morse-lesson morse-checkpoint" data-step="check">
 
       <div
         className="morse-checkpoint-target"
@@ -143,7 +133,7 @@ export function MorseCheckpoint({ checkpoint, onExit, onContinue, continueLabel 
         {run.phase === 'warmup' ? (
           <>
             <p className="morse-checkpoint-letter" aria-hidden="true">{letter}</p>
-            <h1 className="sr-only">Key the Morse pattern for {letter}.</h1>
+            <h2 className="session-prompt-heading sr-only">Key the Morse pattern for {letter}.</h2>
           </>
         ) : (
           <>
@@ -154,28 +144,24 @@ export function MorseCheckpoint({ checkpoint, onExit, onContinue, continueLabel 
                 </span>
               ))}
             </p>
-            <h1 className="sr-only">Key {letter}, letter {run.characterIndex + 1} of {word}.</h1>
+            <h2 className="session-prompt-heading sr-only">Key {letter}, letter {run.characterIndex + 1} of {word}.</h2>
           </>
         )}
 
-        {feedback ? (
-          <div
-            className={`morse-checkpoint-feedback${feedback.correct ? ' is-correct' : ' is-wrong'}`}
-            role="status"
-            aria-live="assertive"
-          >
-            <strong>{feedback.correct ? 'Correct' : 'Miss'}</strong>
-            {!feedback.correct && (
-              <>
-                <MorseCharacterSupport glyph={feedback.letter} pattern={MORSE_LETTERS[feedback.letter]} playing={correctionAudio.sounding?.glyph === feedback.letter} onToggle={() => correctionAudio.toggle(feedback.letter)} audioError={correctionAudio.audioError} />
-                {/* The same rule as Learn: a correction ends when the learner
-                    says it does, never on a timer they did not set. */}
-                <button type="button" className="lesson-next" onClick={continueCorrection} disabled={!holding}>
-                  Continue
-                </button>
-              </>
-            )}
+        {feedback?.correct ? (
+          <div className="morse-checkpoint-feedback is-correct" role="status" aria-live="assertive">
+            <SessionCorrect target={feedback.letter} announce={false} />
           </div>
+        ) : feedback ? (
+          // The shared miss (#263). A correction ends when the learner says it
+          // does, never on a timer they did not set.
+          <SessionCorrect className="morse-checkpoint-miss" miss={{
+            said: feedback.pattern ? <MorseMarks pattern={feedback.pattern} size="support" label={spokenRhythm(feedback.pattern)} /> : undefined,
+            saidLabel: 'You keyed',
+            answer: <MorseCharacterSupport glyph={feedback.letter} pattern={MORSE_LETTERS[feedback.letter]} playing={correctionAudio.sounding?.glyph === feedback.letter} onToggle={() => correctionAudio.toggle(feedback.letter)} audioError={correctionAudio.audioError} />,
+            onContinue: continueCorrection,
+            continueDisabled: !holding,
+          }} />
         ) : (
           // `inert` is the real gate: `pointer-events: none` alone would let the
           // same tap fall through to whatever sits underneath the key.
@@ -189,6 +175,6 @@ export function MorseCheckpoint({ checkpoint, onExit, onContinue, continueLabel 
           </div>
         )}
       </div>
-    </section>
+    </SessionFrame>
   )
 }

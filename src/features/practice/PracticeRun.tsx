@@ -12,6 +12,10 @@ import type { Topic } from '../../domain/library/topic'
 import { testCardTextClass } from '../test/textScale'
 import { VisualView } from '../visual/VisualView'
 import { AudioStimulusView } from '../audio/AudioStimulusView'
+import { SessionFrame } from '../../shared/ui/SessionFrame'
+import { GradePair } from '../test/GradePair'
+// The miss uses the Test's own feedback layer, so a miss reads the same in both.
+import '../test/TestSession.css'
 import './PracticeRun.css'
 
 interface PracticeRunProps {
@@ -24,7 +28,7 @@ interface PracticeRunProps {
    */
   itemIds?: string[]
   onExit: () => void
-  /** Start the scored check. Practice never becomes one on its own. */
+  /** Start the scored Test. Practice never becomes one on its own. */
   onCheck: () => void
 }
 
@@ -103,73 +107,50 @@ export function PracticeRun({ topic, itemIds, onExit, onCheck }: PracticeRunProp
 
   if (initial.length === 0) return null
 
+  // Settled of total: a miss re-queues its target, so this only ever advances.
+  // Practice takes the action pair. The track tokens have no matching ink, so
+  // there is no readable pair to hand the frame.
+  const progress = { current: Math.min(state.settled.length, initial.length), total: initial.length }
+
   if (finished) {
-    const missedAgain = state.answered - state.settled.length
     return (
-      <section className="session practice-run">
-        <div className="session-bar">
-          <p>
-            <span className="session-topic">{topic.title}</span>
-            <span className="session-mode">Practice</span>
-          </p>
-          <button className="ghost small" type="button" onClick={onExit}>
-            Close
-          </button>
-        </div>
+      <SessionFrame kind="practice" title="Practice" progress={{ current: initial.length, total: initial.length }} onClose={onExit} className="practice-run">
         <div className="practice-summary">
-          <h1 ref={headingRef} tabIndex={-1}>
+          <h2 ref={headingRef} tabIndex={-1} className="session-prompt-heading">
             Practice done
-          </h1>
-          <p>
-            You went through {state.settled.length}{' '}
-            {state.settled.length === 1 ? 'retrieval' : 'retrievals'}
-            {missedAgain > 0 ? `, ${missedAgain} of them more than once` : ''}. Nothing was
-            recorded and nothing moved: practice is for getting it back, and the check is what
-            proves it.
-          </p>
-          <button type="button" onClick={onCheck}>
-            Take the check
-          </button>
-          <button className="ghost" type="button" onClick={onExit}>
-            Not now
-          </button>
+          </h2>
+          <div className="practice-summary-actions">
+            <button type="button" onClick={onCheck}>
+              Test
+            </button>
+            <button className="ghost" type="button" onClick={onExit}>
+              Not now
+            </button>
+          </div>
         </div>
-      </section>
+      </SessionFrame>
     )
   }
 
-  const remaining = state.queue.length
-
   return (
-    <section className="session practice-run" aria-labelledby="practice-heading">
-      <div className="session-bar">
-        <p>
-          <span className="session-topic">{topic.title}</span>
-          <span className="session-mode">Practice</span>
-        </p>
-        {/* How many are left, as a number. The word `Practice` is already on
-            the row and does not need repeating beside the count. */}
-        <span className="session-count tabular" aria-label={`${remaining} to go`}>{remaining}</span>
-        <button className="ghost small" type="button" onClick={onExit}>
-          Close
-        </button>
-      </div>
-
-      <h1 id="practice-heading" className="sr-only">
+    <SessionFrame kind="practice" title="Practice" progress={progress} onClose={onExit} className="practice-run" aria-labelledby="practice-heading">
+      <h2 id="practice-heading" className="session-prompt-heading sr-only">
         Practice {topic.title}
-      </h1>
+      </h2>
 
       {/* Only a miss stops the run. A correct answer moves straight on, because
           the learner has just produced the answer and showing it back to them
           would cost a tap and tell them nothing. */}
       {state.feedback && (
-        <div className="practice-feedback" role="status" aria-live="assertive">
-          <strong>Not that one</strong>
-          <span>
-            The answer is <span className="mono">{state.feedback.answer}</span>. It comes back
-            before the end.
-          </span>
-          <button type="button" onClick={next}>
+        <div className="test-feedback practice-feedback" role="status" aria-live="assertive">
+          <p className="test-verdict">Not that one</p>
+          <div className="test-correction">
+            <p className="test-correction-row">
+              <span className="test-correction-label">Answer</span>
+              <span className="test-correction-value practice-feedback-answer">{state.feedback.answer}</span>
+            </p>
+          </div>
+          <button className="test-next" type="button" onClick={next}>
             Continue
           </button>
         </div>
@@ -179,7 +160,7 @@ export function PracticeRun({ topic, itemIds, onExit, onCheck }: PracticeRunProp
         <div className="practice-stage">
           <div className="practice-question" ref={questionRef} tabIndex={-1}>
             <span className="practice-label">
-              {step.target.reason === 'missed' ? 'Missed last check' : 'Not yet tested'}
+              {step.target.reason === 'missed' ? 'Missed last Test' : 'Not yet tested'}
             </span>
             {/* The picture belongs to the prompt side only. Asked the other way
                 round, the prompt is the answer and the picture would give it away. */}
@@ -208,14 +189,7 @@ export function PracticeRun({ topic, itemIds, onExit, onCheck }: PracticeRunProp
                   {step.answer}
                 </span>
               </div>
-              <div className="practice-grade">
-                <button type="button" onClick={() => grade(false)} className="ghost">
-                  Not yet
-                </button>
-                <button type="button" onClick={() => grade(true)}>
-                  Got it
-                </button>
-              </div>
+              <GradePair className="practice-grade" onMiss={() => grade(false)} onHit={() => grade(true)} />
             </>
           ) : (
             <button type="button" className="practice-reveal" onClick={() => setRevealed(true)}>
@@ -224,6 +198,6 @@ export function PracticeRun({ topic, itemIds, onExit, onCheck }: PracticeRunProp
           )}
         </div>
       )}
-    </section>
+    </SessionFrame>
   )
 }

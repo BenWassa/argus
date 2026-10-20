@@ -1,0 +1,188 @@
+/* Progress spine (#243). One straight line, top to bottom. The line is filled
+   to the position in the action colour, ahead is --spine-ahead; round nodes are
+   steps, square nodes are tests. The position row is "you are here", not the
+   only thing to press.
+
+   Yellow discipline (#257, #264): signal marks only the position row and the
+   filled segment of the line. A done node is a settled slate step with an ink
+   tick, a reached or unseen node is a neutral ring, a locked ring sits a step
+   quieter, and copper (with a diamond mark) is decay or a recorded miss. */
+
+.spine {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  gap: 12px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  background: var(--bg);
+}
+
+/* Both segments share one x coordinate, even when a milestone grows taller. */
+.spine::before,
+.spine::after {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  left: 34px;
+  width: 4px;
+  top: var(--spine-top);
+  height: calc(var(--spine-bottom) - var(--spine-top));
+  background: var(--spine-ahead);
+  pointer-events: none;
+}
+
+.spine::after {
+  height: calc(var(--spine-current, var(--spine-top)) - var(--spine-top));
+  background: var(--action);
+}
+
+.spine-row,
+.spine-row:hover,
+.spine-row:active {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 64px;
+  padding: 10px;
+  border: 2px solid var(--bg);
+  border-radius: 18px;
+  text-align: left;
+  color: var(--ink);
+  background: var(--bg);
+  box-shadow: none;
+  transition: transform 150ms var(--ease);
+}
+
+.spine-row > * { position: relative; z-index: 2; }
+.spine-row[aria-disabled='true'] { cursor: default; transform: none; color: var(--muted); }
+.spine-row:focus-visible { outline: 2px solid var(--action-edge); outline-offset: 2px; }
+
+/* Milestones: a full-width plate that crosses the spine. */
+.spine-row.is-plate,
+.spine-row.is-plate:hover,
+.spine-row.is-plate:active {
+  border-color: var(--line);
+  background: var(--plate);
+}
+
+.spine-node {
+  display: grid;
+  place-items: center;
+  flex: 0 0 36px;
+  height: 36px;
+  margin-inline: 6px;
+  border: 2px solid var(--line-hover);
+  border-radius: 50%;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--ink);
+  background: var(--plate);
+}
+
+.spine-node-square { border-radius: 9px; }
+
+.is-done > .spine-node { border-color: var(--complete); background: var(--surface-4); color: var(--ink); }
+.is-locked > .spine-node { border-color: var(--spine-ahead); color: var(--muted); }
+.is-repair > .spine-node { border-color: var(--warning); color: var(--warning); }
+
+.spine-row.is-plate.is-repair,
+.spine-row.is-plate.is-repair:hover,
+.spine-row.is-plate.is-repair:active { border-color: var(--warning); }
+
+.spine-main {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.spine-label {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.spine-detail {
+  font-size: 12px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.spine-trailing {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-left: auto;
+}
+
+/* You are here: a raised plate and a solid action node. */
+.spine-row.is-position,
+.spine-row.is-position:hover,
+.spine-row.is-position:active {
+  min-height: 80px;
+  border-color: var(--action-edge);
+  background: var(--plate-raised);
+  box-shadow: var(--shadow-sm);
+}
+
+.is-position > .spine-node {
+  flex-basis: 48px;
+  height: 48px;
+  margin-inline: 0;
+  border-color: var(--action);
+  background: var(--action);
+  color: var(--action-ink);
+}
+
+.spine-jump,
+.spine-jump:hover,
+.spine-jump:active {
+  position: fixed;
+  z-index: 15;
+  bottom: calc(var(--nav-clearance, 0px) + var(--mode-tray-height, 0px) + var(--s-md));
+  left: 50%;
+  translate: -50% 0;
+  min-height: 44px;
+  border: 2px solid var(--action-edge);
+  border-radius: var(--r-pill);
+  color: var(--action-ink);
+  background: var(--action);
+  box-shadow: var(--shadow-sm);
+  transition: transform 150ms var(--ease);
+}
+
+/* A secondary control inside the row's plate, under its words. The row
+   reserves the room; the control sits outside the row button. */
+.spine-row-wrap { position: relative; }
+.spine-row.has-aside,
+.spine-row.has-aside:hover,
+.spine-row.has-aside:active {
+  align-items: flex-start;
+  padding-bottom: calc(max(var(--control-h), 0.9rem + 20px) + 14px);
+}
+.spine-row.has-aside > .spine-node { margin-top: 2px; }
+.spine-aside {
+  position: absolute;
+  z-index: 3;
+  left: var(--spine-aside-inset, 72px);
+  right: 12px;
+  bottom: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-sm);
+}
+
+@media (max-width: 360px) {
+  .spine-row { gap: 8px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spine-row,
+  .spine-jump { transition: none; }
+  .spine-row:active,
+  .spine-jump:active { transform: none; }
+}

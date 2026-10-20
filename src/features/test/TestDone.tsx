@@ -1,9 +1,11 @@
 import { useEffect } from 'react'
-import { statusLabel } from '../../shared/ui/StatusTag'
+import { isLearned } from '../../domain/study/scheduling'
 import { targetsForItems } from '../../domain/study/practiceTargets'
 import { morseLessonPath } from '../../domain/morse/curriculum/lessonPath'
 import { fire } from '../../shared/haptics'
+import { SessionFrame, RoundResult } from '../../shared/ui/SessionFrame'
 import type { BankedAttempt } from './bankedAttempt'
+import './TestDone.css'
 import type { Topic } from '../../domain/library/topic'
 
 /** A finished review: scored for the learner, never an attempt. */
@@ -13,6 +15,38 @@ export interface ReviewResult {
   total: number
 }
 
+/** The unit a count is in: letters for the Morse course, items otherwise. */
+function unitFor(topic: Topic): string {
+  return morseLessonPath(topic) ? 'letter' : 'item'
+}
+
+/** How many missed items the result names before it says "+N more". */
+const MISSED_SHOWN = 8
+
+interface MissedRow {
+  key: string
+  label: string
+  detail?: string
+}
+
+/**
+ * The items this run answered wrong, as prompt and answer. A pictured item's
+ * picture is its prompt, so its row leads with the answer instead.
+ */
+function missedRows(topics: Topic[], missed: Record<string, string[]>): { rows: MissedRow[]; more: number } {
+  const all: MissedRow[] = []
+  for (const topic of topics) {
+    for (const id of missed[topic.id] ?? []) {
+      const item = topic.items.find((candidate) => candidate.id === id)
+      if (!item) continue
+      all.push(item.stimulus
+        ? { key: `${topic.id}:${id}`, label: item.answer }
+        : { key: `${topic.id}:${id}`, label: item.prompt, detail: item.answer })
+    }
+  }
+  return { rows: all.slice(0, MISSED_SHOWN), more: Math.max(0, all.length - MISSED_SHOWN) }
+}
+
 export function TestDone({
   banked,
   reviewed = [],
@@ -20,7 +54,7 @@ export function TestDone({
   onExit,
   onPractice,
   onPlayMorse,
-  headingRef,
+  score,
 }: {
   banked: BankedAttempt[]
   reviewed?: ReviewResult[]
@@ -30,9 +64,9 @@ export function TestDone({
   onPractice?: (topicId: string, itemIds: string[]) => void
   /** Hand a Morse learner straight into guided sending (#201): formative play, never evidence. */
   onPlayMorse?: (topicId: string) => void
-  headingRef: React.RefObject<HTMLHeadingElement | null>
+  /** Every answer given in this run, across topics: the one reading on the result. */
+  score: { correct: number; total: number }
 }) {
-  const resolutions = banked.map((entry) => entry.resolution)
   const withheld = banked.filter((entry) => entry.withheldByAcquisition)
   // Correct end to end, and still not a qualifying run. Named separately because
   // it is the opposite of a failure and must not be reported as one.
@@ -41,7 +75,6 @@ export function TestDone({
     .filter((entry) => !entry.withheldByAcquisition && !entry.nonQualifying)
     .map((entry) => entry.resolution)
   const completed = moved.filter((resolution) => resolution.completed)
-  const decayed = moved.filter((resolution) => resolution.decayed)
 
   // `crest` is the pattern's own definition of what it is for: "stage advance,
   // personal best, session complete." A completion banking is exactly that
@@ -53,12 +86,8 @@ export function TestDone({
     if (completed.length > 0) fire('crest')
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [completed.length])
-  const changed = moved.filter(
-    (resolution) => !resolution.completed && !resolution.decayed && resolution.to !== resolution.from,
-  )
-  const held = moved.filter(
-    (resolution) => !resolution.completed && !resolution.decayed && resolution.to === resolution.from,
-  )
+  const learned = moved.filter(resolution => !resolution.completed && isLearned(resolution.topic))
+  const continuing = moved.filter(resolution => !resolution.completed && !isLearned(resolution.topic))
 
   /**
    * One offer, for the first topic in this run that missed something.
@@ -79,21 +108,22 @@ export function TestDone({
     ...banked.map((entry) => entry.resolution.topic),
     ...reviewed.map((entry) => entry.topic),
   ]
+    .filter((topic) => !isLearned(topic))
     .map((topic) => {
       const asked = targetsForItems(topic, missed[topic.id] ?? [])
       // Counted in items, not directions: an item missed both ways is one
       // thing to go and fix.
       const itemIds = [...new Set(asked.map((target) => target.item.id))]
-      return { topicId: topic.id, title: topic.title, itemIds }
+      return { topicId: topic.id, title: topic.title, itemIds, unit: unitFor(topic) }
     })
     .find((candidate) => candidate.itemIds.length > 0)
 
   /**
    * The next move for an alphabet learner (#201). A Test that banks the Morse
    * course is the moment Play opens up, so it leads with the first sending run
-   * instead of "Back to today". Any other Morse result that ran for real
-   * (held, repaired, building toward a qualifying run) keeps Play discoverable
-   * at text weight: playing round words certifies and repairs nothing.
+   * instead of "Done". Any other Morse result that ran for real
+   * (learned already, or building toward completion) keeps Play discoverable
+   * at text weight: playing round words records no completion.
    * A run withheld because the lesson is unfinished offers neither, since play
    * is not open yet.
    */
@@ -104,129 +134,71 @@ export function TestDone({
     morseResult && !morseResult.nonQualifying && morseResult.resolution.completed,
   )
   const offerPlay = Boolean(morseResult && onPlayMorse)
-  // One primary per screen: a missed-item practice offer, being the repair, keeps it.
+  // Unfinished learning can offer Practice as its next action.
   const playLeads = offerPlay && morseCompleted && !(practiceOffer && onPractice)
 
+  // One short line per topic outcome, in the words the topic page shows for
+  // the status it now holds. A topic that did not bank says so once, with how
+  // many items are left to practise; the missed chips below name them. The
+  // title leads only when several topics ran together.
+  const several = banked.length + reviewed.length > 1
+  const lead = (title: string) => (several ? `${title}: ` : '')
+  const toPractise = (topic: Topic) => (missed[topic.id] ?? []).filter((id) => topic.items.some((item) => item.id === id)).length
+  const unfinishedOutcome = (topic: Topic) => {
+    const count = toPractise(topic)
+    return count > 0 ? [`${lead(topic.title)}Still learning · ${count} to practise`] : []
+  }
+  const outcome: string[] = [
+    ...reviewed.map((entry) => `${entry.topic.title}: review only, not counted.`),
+    ...[...completed, ...learned].map((resolution) => `${lead(resolution.topic.title)}Learned`),
+    ...continuing.flatMap((resolution) => unfinishedOutcome(resolution.topic)),
+    ...withheld.map((entry) => `${entry.resolution.topic.title}: finish the lesson to count.`),
+    ...building.map((entry) => `${entry.resolution.topic.title}: all correct, not counted yet.`),
+  ]
+  if (banked.length === 0 && reviewed.length === 0) outcome.push('No topic ran to the end.')
+
+  // The one next step takes the primary slot: optional Practice while learning, else
+  // sending after a banked course. Anything else stays at text weight.
+  const practiceNext = practiceOffer && onPractice ? practiceOffer : null
+  const playNext = !practiceNext && playLeads && morseResult && onPlayMorse ? morseResult : null
+  const playQuiet = offerPlay && !playNext && morseResult && onPlayMorse ? morseResult : null
+  const items = practiceNext
+    ? `${practiceNext.itemIds.length} ${practiceNext.unit}${practiceNext.itemIds.length === 1 ? '' : 's'}`
+    : ''
+  const missedList = missedRows([
+    ...banked.map((entry) => entry.resolution.topic),
+    ...reviewed.map((entry) => entry.topic),
+  ], missed)
+
   return (
-    <section className="session session-done">
-      <h1 ref={headingRef} tabIndex={-1}>
-        {completed.length > 0 ? 'Banked' : banked.length === 0 && reviewed.length > 0 ? 'Review done' : 'Test ended'}
-      </h1>
-
-      {reviewed.map((entry) => (
-        <p className="transition" key={entry.topic.id}>
-          <strong>{entry.topic.title}</strong>:{' '}
-          <span className="tabular">
-            {entry.correct} of {entry.total}
-          </span>{' '}
-          with no hints. A review asks your weakest letters and moves nothing on the ladder. A full
-          test asks every letter, whenever you choose to take one.
-        </p>
-      ))}
-
-      {completed.map((resolution) => (
-        <div className="banked" key={resolution.topic.id}>
-          <span className="kicker">Completed</span>
-          <p className="banked-title">{resolution.topic.title}</p>
-          <p className="banked-note">
-            Recalled perfectly twice. It is now part of your permanent record.
-          </p>
-        </div>
-      ))}
-
-      {decayed.map((resolution) => (
-        <p className="transition" key={resolution.topic.id}>
-          <strong>{resolution.topic.title}</strong> did not survive this check, so it goes back
-          to drilling. Your completion from{' '}
-          {resolution.topic.completedAt
-            ? new Date(resolution.topic.completedAt).toLocaleDateString()
-            : 'the original run'}{' '}
-          still stands.
-        </p>
-      ))}
-
-      {changed.map((resolution) => (
-        <p className="transition" key={resolution.topic.id}>
-          <strong>{resolution.topic.title}</strong>: {statusLabel(resolution.from).toLowerCase()} to{' '}
-          {statusLabel(resolution.to).toLowerCase()}.
-        </p>
-      ))}
-
-      {held.map((resolution) => (
-        <p className="transition" key={resolution.topic.id}>
-          <strong>{resolution.topic.title}</strong> held at {statusLabel(resolution.to).toLowerCase()}.
-        </p>
-      ))}
-
-      {withheld.map((entry) => (
-        <p className="transition" key={entry.resolution.topic.id}>
-          <strong>{entry.resolution.topic.title}</strong>: the lesson has not been through every
-          letter yet, so this run is recorded but does not move the ladder. Finish the lesson and
-          then two perfect tests can complete it.
-        </p>
-      ))}
-
-      {building.map((entry) => (
-        <p className="transition" key={entry.resolution.topic.id}>
-          <strong>{entry.resolution.topic.title}</strong>: every answer correct. The claim covers
-          both printed directions, and this run has not yet seen both for every letter, so it is
-          recorded as progress rather than banked. Nothing was lost and no clock went backwards.
-          The next run asks the directions still outstanding.
-        </p>
-      ))}
-
-      {resolutions.length === 0 && reviewed.length === 0 && (
-        <p className="transition">No topic ran to the end, so nothing changed rung.</p>
-      )}
-
-      {/* The offer to go and fix what just broke, and the only new action on
-          this screen. It is deliberately not the accent: the end screen's one
-          accent moment belongs to banking a completion, and a miss is not an
-          event to mark. Practice records nothing, so taking it costs the
-          learner nothing but the time. */}
-      {practiceOffer && onPractice && (
-        <div className="practice-offer">
-          <p>
-            {practiceOffer.itemIds.length}{' '}
-            {practiceOffer.itemIds.length === 1 ? 'item' : 'items'} did not come back on{' '}
-            <strong>{practiceOffer.title}</strong>. Practice asks only those, records nothing, and
-            leaves the check to prove it.
-          </p>
-          <button
-            type="button"
-            onClick={() => onPractice(practiceOffer.topicId, practiceOffer.itemIds)}
-          >
-            Practise {practiceOffer.itemIds.length}{' '}
-            {practiceOffer.itemIds.length === 1 ? 'item' : 'items'}
-          </button>
-        </div>
-      )}
-
-      {offerPlay && morseResult && onPlayMorse && (
-        <div className="practice-offer play-offer">
-          {morseCompleted && (
-            <p>
-              <strong>Next: send your first words.</strong> Use the Morse key to send five short
-              words. Playing records nothing against your Test.
-            </p>
+    <SessionFrame kind="test" title={banked.length === 0 && reviewed.length > 0 ? 'Review' : 'Test'}
+      progress={{ current: score.total, total: score.total }} onClose={onExit} className="test-done">
+      <RoundResult
+        correct={score.correct}
+        total={score.total}
+        onAgain={practiceNext ? () => onPractice?.(practiceNext.topicId, practiceNext.itemIds) : playNext ? () => onPlayMorse?.(playNext.resolution.topic.id) : undefined}
+        againLabel={practiceNext ? `Practise ${items}` : playNext ? 'Send five words' : undefined}
+        onDone={onExit}
+        doneLabel="Done"
+        extra={<>
+          {outcome.map((line, index) => <p className="test-outcome" key={index}>{line}</p>)}
+          {missedList.rows.length > 0 && <section className="test-missed" aria-label="Missed">
+            <h2 className="test-missed-head">Missed</h2>
+            <ul className="test-missed-list">
+              {missedList.rows.map((row) => <li key={row.key} className="test-missed-chip">
+                <span className="test-missed-prompt">{row.label}</span>
+                {row.detail && <span className="test-missed-answer">{row.detail}</span>}
+              </li>)}
+              {missedList.more > 0 && <li className="test-missed-more">+{missedList.more} more</li>}
+            </ul>
+          </section>}
+          {playQuiet && onPlayMorse && (
+            <button className="ghost" type="button" onClick={() => onPlayMorse(playQuiet.resolution.topic.id)}>
+              {morseCompleted ? 'Send five words' : 'Play with words'}
+            </button>
           )}
-          <button
-            className={playLeads ? undefined : 'ghost'}
-            type="button"
-            onClick={() => onPlayMorse(morseResult.resolution.topic.id)}
-          >
-            {morseCompleted ? 'Send five words' : 'Play with words'}
-          </button>
-        </div>
-      )}
-
-      <button
-        className={(practiceOffer && onPractice) || offerPlay ? 'ghost' : undefined}
-        type="button"
-        onClick={onExit}
-      >
-        Back to today
-      </button>
-    </section>
+        </>}
+      />
+    </SessionFrame>
   )
 }

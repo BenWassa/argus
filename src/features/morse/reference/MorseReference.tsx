@@ -135,11 +135,6 @@ export function MorseReference({ onExit }: { onExit: () => void }) {
 
       <h1 ref={headingRef} tabIndex={-1} className="morse-ref-title">Morse alphabet</h1>
 
-      <p className="morse-ref-lede">
-        Letter, pattern, mnemonic, sound. This is a reference: use it whenever you want, and it
-        changes nothing about your progress.
-      </p>
-
       <MorseReferenceCards />
 
       <MorseFigureCards />

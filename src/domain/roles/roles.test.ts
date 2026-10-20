@@ -63,12 +63,13 @@ describe('Communicator role', () => {
     expect(result.earned).toBe(true)
     expect(result.pathways.every((path) => path.state === 'complete')).toBe(true)
   })
-  it('does not revoke after decay; freshness remains separate', () => {
+  it('keeps old repair records learned without a freshness state', () => {
     const topics = baseline().map(complete).map((t, i) => i === 0 ? { ...t, status: 'decayed' as const } : t)
-    expect(communicatorProgress(topics)).toMatchObject({ earned: true, needsRefresh: true })
+    expect(communicatorProgress(topics)).toMatchObject({ earned: true })
+    expect(communicatorProgress(topics)).not.toHaveProperty('needsRefresh')
   })
   it('accepts legacy drilled history, not missing or user-owned collision', () => {
-    expect(wasBanked({ ...baseline()[0], drilledAt: '2026-09-01' })).toBe(true)
+    expect(wasBanked({ ...baseline()[0], status: 'drilled', drilledAt: '2026-09-01' })).toBe(true)
     const done = baseline().map(complete)
     expect(communicatorProgress(done.slice(1)).earned).toBe(false)
     expect(communicatorProgress(done.map((t,i) => i === 0 ? { ...t, origin:'user' as const } : t)).earned).toBe(false)

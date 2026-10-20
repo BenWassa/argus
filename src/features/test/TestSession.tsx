@@ -1,5 +1,5 @@
 import { SequenceCard } from './SequenceCard'
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import {
   animate,
   motion,
@@ -39,18 +39,20 @@ import {
   swipeDecks,
   type Card,
 } from './testDeck'
-import { nextView, type TestPhase, type TestView } from './testView'
+import { nextView, type TestView } from './testView'
 import { TestDone, type ReviewResult } from './TestDone'
 import { resolveBankedAttempt, type BankedAttempt } from './bankedAttempt'
 import { testCardTextClass } from './textScale'
 import { cueNoteFor } from './cueNote'
 import { fire } from '../../shared/haptics'
+import { SessionFrame } from '../../shared/ui/SessionFrame'
 import {
   SWIPE_CUE_FULL_PX,
   swipeCommitDistance,
   swipeIntent,
   type SwipeGrade,
 } from './swipeGrade'
+import { GradePair } from './GradePair'
 import './TestSession.css'
 
 /** How far past its own width a committed card travels before it is gone. */
@@ -132,6 +134,12 @@ export function TestSession({ topicIds, review = false, onExit, onPractice, onPl
    */
   const missedItems = useRef<Record<string, string[]>>({})
 
+  /**
+   * Every answer given this run, across topics, for the one reading on the
+   * result. Run bookkeeping like `missedItems`: it never reaches a topic.
+   */
+  const runScore = useRef({ correct: 0, total: 0 })
+
   const [view, setView] = useState<TestView>({ kind: 'asking', index: 0 })
   const [tally, setTally] = useState<{ correct: number; total: number }>({ correct: 0, total: 0 })
   const [banked, setBanked] = useState<BankedAttempt[]>([])
@@ -147,9 +155,9 @@ export function TestSession({ topicIds, review = false, onExit, onPractice, onPl
   const [dragging, setDragging] = useState(false)
   const [cardWidth, setCardWidth] = useState(0)
 
+  const promptRef = useRef<HTMLHeadingElement>(null)
   const cardRef = useRef<HTMLButtonElement>(null)
   const yesRef = useRef<HTMLButtonElement>(null)
-  const headingRef = useRef<HTMLHeadingElement>(null)
   // The view as of this instant, not as of the last committed render. Grading
   // reads it so two events in one React batch cannot both see `revealed`.
   const viewRef = useRef<TestView>(view)
@@ -172,12 +180,13 @@ export function TestSession({ topicIds, review = false, onExit, onPractice, onPl
 
   useEffect(() => registerBackBlocker(() => backGuard.current()), [])
 
-  const phase: TestPhase = view.kind
   const index = view.kind === 'done' ? deck.length : view.index
   const card: Card | undefined = deck[index]
   /** The answer is mounted only while the card that owns it owns the screen. */
   const answerVisible = view.kind === 'revealed' || view.kind === 'exiting'
   const swipeFirst = card ? swipeTopics.has(card.topicId) : false
+  // Answered of total across the whole run, never learning evidence.
+  const progress = { current: index, total: deck.length }
   const cardKey = card ? `${card.topicId}-${card.item.id ?? 'item'}-${index}` : 'empty'
 
   const reduced = useReducedMotion() ?? false
@@ -213,14 +222,10 @@ export function TestSession({ topicIds, review = false, onExit, onPractice, onPl
 
   useEffect(() => {
     if (deck[index]?.character || isObjectiveCard(deck[index])) return
-    // A swipe deck keeps focus on the card itself: the card is the control.
-    if (view.kind === 'asking') cardRef.current?.focus({ preventScroll: true })
+    // Announce the new prompt before the learner reveals the card.
+    if (view.kind === 'asking') promptRef.current?.focus({ preventScroll: true })
     else if (view.kind === 'revealed' && !swipeFirst) yesRef.current?.focus({ preventScroll: true })
   }, [deck, index, view.kind, swipeFirst])
-
-  useEffect(() => {
-    if (phase === 'done') headingRef.current?.focus()
-  }, [phase])
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -245,13 +250,6 @@ export function TestSession({ topicIds, review = false, onExit, onPractice, onPl
     return () => window.removeEventListener('keydown', onKeyDown)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view, deck, index])
-
-  const topicPosition = useMemo(() => {
-    if (!card) return { current: 0, of: 0 }
-    const cards = deck.filter((candidate) => candidate.topicId === card.topicId)
-    const first = deck.findIndex((candidate) => candidate.topicId === card.topicId)
-    return { current: index - first + 1, of: cards.length }
-  }, [card, deck, index])
 
   /** Fold this session's listening evidence into a topic, leaving everything else alone. */
   function withListening(topic: Topic, topicId: string): Topic {
@@ -285,7 +283,7 @@ export function TestSession({ topicIds, review = false, onExit, onPractice, onPl
 
     const entry = resolveBankedAttempt(
       topic,
-      attempt,
+      { ...attempt, missedItemIds: missedItems.current[topicId] },
       evidence,
       attemptAnswers.current[topicId] ?? [],
     )
@@ -380,6 +378,10 @@ export function TestSession({ topicIds, review = false, onExit, onPractice, onPl
       }
     }
 
+    runScore.current = {
+      correct: runScore.current.correct + (correct ? 1 : 0),
+      total: runScore.current.total + 1,
+    }
     const next = { correct: tally.correct + (correct ? 1 : 0), total: tally.total + 1 }
     const following = deck[at + 1]
     const topicFinished = !following || following.topicId !== current.topicId
@@ -605,7 +607,7 @@ export function TestSession({ topicIds, review = false, onExit, onPractice, onPl
         onExit={onExit}
         onPractice={onPractice}
         onPlayMorse={onPlayMorse}
-        headingRef={headingRef}
+        score={runScore.current}
       />
     )
   }
@@ -624,7 +626,7 @@ export function TestSession({ topicIds, review = false, onExit, onPractice, onPl
           <p>
             {tally.total} {tally.total === 1 ? 'answer' : 'answers'} on{' '}
             <strong>{card.topicTitle}</strong> will be discarded, because a topic only counts once
-            every one of its items has been through. Topics you already finished are banked and will
+            every one of its items has been through. Topics you already learned are complete and will
             not be lost.
           </p>
         )}
@@ -642,43 +644,19 @@ export function TestSession({ topicIds, review = false, onExit, onPractice, onPl
 
   if (isAudioCard(card)) {
     return (
-      <section className="session rapid-session is-graded is-progressive">
-        <div className="session-bar">
-          <p>
-            <span className="session-topic">{card.topicTitle}</span>
-          </p>
-          <span className="session-count tabular" aria-label={`Card ${topicPosition.current} of ${topicPosition.of}`}>
-            {topicPosition.current}
-            <span className="session-count-of" aria-hidden="true">/{topicPosition.of}</span>
-          </span>
-          <button className="ghost small" type="button" onClick={requestExit}>
-            {reviews.has(card.topicId) ? 'End review' : 'End test'}
-          </button>
-        </div>
+      <SessionFrame kind="test" title={card.topicTitle} progress={progress} onClose={requestExit} className="rapid-session is-graded is-progressive">
         <AudioCard
           cardKey={`${card.topicId}-${card.item.id}-${index}`}
           item={card.item as typeof card.item & { audio: NonNullable<typeof card.item.audio> }}
           onAnswer={answerAudio}
         />
-      </section>
+      </SessionFrame>
     )
   }
 
   if (isChoiceCard(card)) {
     return (
-      <section className="session rapid-session is-graded is-progressive">
-        <div className="session-bar">
-          <p>
-            <span className="session-topic">{card.topicTitle}</span>
-          </p>
-          <span className="session-count tabular" aria-label={`Card ${topicPosition.current} of ${topicPosition.of}`}>
-            {topicPosition.current}
-            <span className="session-count-of" aria-hidden="true">/{topicPosition.of}</span>
-          </span>
-          <button className="ghost small" type="button" onClick={requestExit}>
-            {reviews.has(card.topicId) ? 'End review' : 'End test'}
-          </button>
-        </div>
+      <SessionFrame kind="test" title={card.topicTitle} progress={progress} onClose={requestExit} className="rapid-session is-graded is-progressive">
         {/* Not keyed per card, for the same reason as the ladder card: the
             response gate has to survive the swap between questions. */}
         <ChoiceCard
@@ -686,29 +664,15 @@ export function TestSession({ topicIds, review = false, onExit, onPractice, onPl
           item={card.item}
           onAnswer={answerChoice}
         />
-      </section>
+      </SessionFrame>
     )
   }
 
   if (card.character) {
     const rung = rungFor(card.item, evidenceFor(card))
     return (
-      <section className="session rapid-session is-graded is-progressive">
-        <div className="session-bar">
-          <p>
-            <span className="session-topic">{card.topicTitle}</span>
-          </p>
-          {/* Position as a number in the corner, the same grammar every run
-              surface uses. `Test · 3 of 12` named the surface the learner is
-              standing on and spelled out a reading they only ever glance at. */}
-          <span className="session-count tabular" aria-label={`Card ${topicPosition.current} of ${topicPosition.of}`}>
-            {topicPosition.current}
-            <span className="session-count-of" aria-hidden="true">/{topicPosition.of}</span>
-          </span>
-          <button className="ghost small" type="button" onClick={requestExit}>
-            {reviews.has(card.topicId) ? 'End review' : 'End test'}
-          </button>
-        </div>
+      <SessionFrame kind="test" title="A–Z Test" progress={progress} onClose={requestExit} className="rapid-session is-graded is-progressive"
+        toolbar={<span className="test-frame-reading tabular">{progress.current} / {progress.total}</span>}>
 
         {/* Deliberately not keyed per card. The card owns the keyed-answer
             lifecycle, and the gate that stops a finger still moving through one
@@ -723,7 +687,7 @@ export function TestSession({ topicIds, review = false, onExit, onPractice, onPl
           cueNote={cueNoteFor(card.item, evidenceFor(card), baselines.get(card.topicId) ?? 'rich')}
           onAnswer={answerProgressive}
         />
-      </section>
+      </SessionFrame>
     )
   }
 
@@ -744,34 +708,25 @@ export function TestSession({ topicIds, review = false, onExit, onPractice, onPl
       }
 
   return (
-    <section
-      className={`session rapid-session is-graded${swipeFirst ? ' is-swipe-graded' : ''}`}
+    <SessionFrame
+      kind="test"
+      title={card.topicTitle}
+      progress={progress}
+      onClose={requestExit}
+      className={`rapid-session is-graded${swipeFirst ? ' is-swipe-graded' : ''}`}
       aria-labelledby="prompt-heading"
     >
-      <div className="session-bar">
-        <p>
-          <span className="session-topic">{card.topicTitle}</span>
-        </p>
-        <span className="session-count tabular" aria-label={`Card ${topicPosition.current} of ${topicPosition.of}`}>
-          {topicPosition.current}
-          <span className="session-count-of" aria-hidden="true">/{topicPosition.of}</span>
-        </span>
-        <button className="ghost small" type="button" onClick={requestExit}>
-          End test
-        </button>
-      </div>
-
-      <h1 id="prompt-heading" className="sr-only">
+      <h2 ref={promptRef} id="prompt-heading" tabIndex={-1} className="sr-only session-prompt-heading">
         {card.item.prompt}
-      </h1>
+      </h2>
 
       <div className={`card-stage${armed ? ` is-armed is-armed-${armed}` : ''}`}>
         <motion.span className="grade-cue grade-cue-miss" style={{ opacity: missStrength }} aria-hidden="true">
           <span className="grade-cue-arrow">←</span>
-          Incorrect
+          Missed
         </motion.span>
         <motion.span className="grade-cue grade-cue-hit" style={{ opacity: hitStrength }} aria-hidden="true">
-          Correct
+          Got it
           <span className="grade-cue-arrow">→</span>
         </motion.span>
 
@@ -809,8 +764,6 @@ export function TestSession({ topicIds, review = false, onExit, onPractice, onPl
               )}
             </span>
             <span className="flip-face flip-back">
-              <motion.span className="flip-wash flip-wash-miss" style={{ opacity: missStrength }} aria-hidden="true" />
-              <motion.span className="flip-wash flip-wash-hit" style={{ opacity: hitStrength }} aria-hidden="true" />
               <span className="flip-label">Answer</span>
               {/* The answer text exists in the document only while this card is
                   revealed or leaving. An unrevealed card has no answer to leak. */}
@@ -826,68 +779,20 @@ export function TestSession({ topicIds, review = false, onExit, onPractice, onPl
         {view.kind === 'revealed'
           ? `Answer: ${card.item.answer}.`
           : view.kind === 'exiting'
-            ? `Marked ${view.grade === 'correct' ? 'correct' : 'incorrect'}.`
+            ? `Marked ${view.grade === 'correct' ? 'got it' : 'missed'}.`
             : `Prompt: ${card.item.prompt}.`}
       </p>
 
-      {swipeFirst ? (
-        <div className={`grade-hint${answerVisible ? ' is-visible' : ''}`}>
-          {/* Swipe is never the only way to grade. These carry the same two
-              actions for keyboard and screen-reader use; they are out of the
-              visual layout until focused, so nothing is hidden from a person
-              who reaches them. */}
-          <button
-            className="grade-fallback"
-            type="button"
-            tabIndex={gradable ? 0 : -1}
-            aria-hidden={!gradable}
-            onClick={() => commitGrade('incorrect')}
-          >
-            Mark incorrect
-          </button>
-          <p className="grade-hint-rail" aria-hidden="true">
-            <span className="grade-hint-side is-miss">← Incorrect</span>
-            <span className="grade-hint-side is-hit">Correct →</span>
-          </p>
-          <button
-            ref={yesRef}
-            className="grade-fallback"
-            type="button"
-            tabIndex={gradable ? 0 : -1}
-            aria-hidden={!gradable}
-            onClick={() => commitGrade('correct')}
-          >
-            Mark correct
-          </button>
-        </div>
-      ) : (
-        <div className={`recall-actions${answerVisible ? ' is-visible' : ''}`} aria-hidden={!gradable}>
-          <button
-            className="ghost recall-miss"
-            type="button"
-            tabIndex={gradable ? 0 : -1}
-            onClick={() => commitGrade('incorrect')}
-          >
-            Didn’t get it
-          </button>
-          <button
-            ref={yesRef}
-            type="button"
-            tabIndex={gradable ? 0 : -1}
-            onClick={() => commitGrade('correct')}
-          >
-            Got it
-          </button>
-        </div>
-      )}
-
-      <p className="recall-shortcuts">
-        {answerVisible
-          ? swipeFirst
-            ? 'Swipe the card, or press ← and →'
-            : 'Or press ← and →'
-          : 'Tap the card or press Space'}
-      </p>
-    </section>
+      {/* One grade pair, whichever kind of deck this is. The arrows mirror the
+          swipe and the arrow keys, which stay the quick way to grade. */}
+      <GradePair
+        className={`recall-actions${answerVisible ? ' is-visible' : ''}`}
+        active={gradable}
+        arrows
+        hitRef={yesRef}
+        onMiss={() => commitGrade('incorrect')}
+        onHit={() => commitGrade('correct')}
+      />
+    </SessionFrame>
   )
 }

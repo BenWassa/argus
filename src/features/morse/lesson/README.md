@@ -8,11 +8,10 @@
 `MorseLesson` or `MorseCheckpoint`. `MorsePath.tsx` renders the derived curriculum
 and checkpoint choices without writing progress.
 
-`MorseLesson.tsx` composes the lesson screens with `LessonBar.tsx` and the
+`MorseLesson.tsx` composes the lesson screens with the shared `SessionFrame` and the
 introduction, visual and listening presentations in `LessonSteps.tsx`.
 `useLessonProgression.ts` owns answers, sitting state, listening selection,
-audio, focus and next-lesson progression. It delegates ephemeral checkpoint
-invitations and resume runs to `useCheckpointHandoff.ts`, and all durable writes
+audio, focus and next-lesson progression. It delegates ephemeral checkpoint invitations and resume runs to `useCheckpointHandoff.ts`, and all durable writes
 to `useLessonRecord.ts`. Replay uses the same screens with no-op record writes.
 
 `MorseCheckpoint.tsx` runs transient letter warm-ups and words through the shared

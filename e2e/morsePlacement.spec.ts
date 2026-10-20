@@ -48,7 +48,7 @@ async function openFreshMorse(page: Page) {
   await page.goto('./')
   await page.getByRole('button', { name: 'Library', exact: true }).click()
   await page.locator(`[data-row="${MORSE_ID}"]`).click()
-  await expect(page.getByRole('heading', { name: morse.title, level: 1 })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'International Morse Code', level: 1 })).toBeVisible()
 }
 
 async function keyElement(page: Page, element: '.' | '-') {
@@ -60,10 +60,10 @@ test('placement grades a complete keyed pattern directly and abandons cleanly', 
   await openFreshMorse(page)
   const before = await page.evaluate((key) => window.localStorage.getItem(key), STORE_KEY)
 
-  await page.getByRole('button', { name: /start lesson/i }).click()
+  await page.getByRole('button', { name: 'Skip ahead' }).click()
   await expect(page.getByRole('dialog', { name: 'Check your Morse level' })).toBeVisible()
   await page.getByRole('button', { name: /Know some Morse/i }).click()
-  await expect(page.getByRole('dialog', { name: 'Morse placement check' })).toBeVisible()
+  await expect(page.locator('.session-frame-title').filter({ hasText: /^Placement$/ })).toBeVisible()
 
   const glyph = ((await page.locator('.morse-placement-letter').textContent()) ?? '').trim() as MorseLetter
   const pattern = MORSE_LETTERS[glyph]
@@ -75,9 +75,9 @@ test('placement grades a complete keyed pattern directly and abandons cleanly', 
 
   await keyElement(page, pattern[0] as '.' | '-')
   await expect(page.getByRole('button', { name: 'Check pattern' })).toHaveCount(0)
-  await expect(page.getByText('Correct', { exact: true })).toBeVisible()
+  await expect(page.getByRole('dialog', { name: 'Morse placement check' }).getByRole('status')).toContainText('Correct')
 
-  await page.getByRole('button', { name: 'Exit placement check' }).click()
-  await expect(page.getByRole('dialog', { name: 'Morse placement check' })).toHaveCount(0)
+  await page.getByRole('button', { name: 'Close' }).click()
+  await expect(page.locator('.session-frame-title').filter({ hasText: /^Placement$/ })).toHaveCount(0)
   expect(await page.evaluate((key) => window.localStorage.getItem(key), STORE_KEY)).toBe(before)
 })

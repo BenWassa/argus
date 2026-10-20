@@ -1,14 +1,14 @@
 import { expect, test } from '@playwright/test'
 
 // The dock must remain usable when text enlargement changes navigation height.
-test('topic action clears navigation and final controls remain reachable with enlarged text', async ({ page }) => {
+test('topic tray clears navigation and final controls remain reachable with enlarged text', async ({ page }) => {
   await page.goto('./')
   await page.getByRole('button', { name: 'Library', exact: true }).click()
   await page.locator('[data-row]').first().click()
   for (const size of ['100%', '200%']) {
     await page.evaluate((value) => { document.documentElement.style.fontSize = value }, size)
     await expect.poll(async () => {
-      const action = await page.locator('.topic-primary').boundingBox()
+      const action = await page.locator('.topic-tray, .topic-morse-tray').boundingBox()
       const nav = await page.locator('.nav').boundingBox()
       if (!action || !nav) return false
       // Desktop navigation is a side rail; phone navigation is below the action.
@@ -16,9 +16,9 @@ test('topic action clears navigation and final controls remain reachable with en
     }).toBe(true)
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
-    const target = await page.getByRole('button', { name: 'Delete topic', exact: true }).boundingBox()
-    const dock = await page.locator('.topic-action-bar').boundingBox()
-    expect(target!.y + target!.height).toBeLessThanOrEqual(dock!.y)
+    const target = await page.getByRole('button', { name: /^Delete( topic)?$/ }).boundingBox()
+    const dock = await page.locator('.topic-tray, .topic-morse-tray').boundingBox()
+    if (page.viewportSize()!.width < 980) expect(target!.y + target!.height).toBeLessThanOrEqual(dock!.y)
   }
 })
 
@@ -53,7 +53,9 @@ test('a Test launched from the end of a long topic opens at the session header',
   await page.locator('[data-row]').first().click()
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
   expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(0)
-  await page.locator('.topic-primary').click()
-  await expect(page.locator('.session-bar')).toBeVisible()
+  const early = page.getByRole('button', { name: 'Test early' })
+  if (await early.count()) await early.click()
+  else await page.locator('.topic-tray [data-tile-id="test"]').click()
+  await expect(page.locator('.session-frame-header')).toBeVisible()
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0)
 })

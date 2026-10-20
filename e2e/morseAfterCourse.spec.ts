@@ -103,13 +103,10 @@ async function driveToEnd(page: Page) {
 test('a finished course goes over the letters it still owes, then its Test counts', async ({ page }) => {
   await openMorse(page)
 
-  // Not lesson 13 again: the page names what is left and offers going over it.
-  await expect(page.locator('.topic-primary')).toContainText('Go over missed letters')
-  await expect(page.getByRole('button', { name: 'Go over Y, Q' })).toContainText('Confirms the last letters before the Test')
-  await expect(page.getByRole('button', { name: 'Go over Y, Q' })).toBeVisible()
-
-  await page.locator('.topic-primary').click()
-  await expect(page.locator('.session-mode')).toHaveText('Going over')
+  // The Test milestone first confirms the letters the course still owes.
+  await expect(page.getByRole('button', { name: 'A–Z Test, Confirm letters, current' })).toBeVisible()
+  await page.getByRole('button', { name: 'A–Z Test, Confirm letters, current' }).click()
+  await expect(page.locator('.session-frame-title')).toHaveText('Review')
   // The keyed run asks the owed letters, and introduces nothing.
   await expect(page.getByRole('button', { name: 'Got it' })).toHaveCount(0)
   await driveToEnd(page)
@@ -123,6 +120,6 @@ test('a finished course goes over the letters it still owes, then its Test count
   expect(morse?.history).toEqual([])
 
   await page.getByRole('button', { name: 'Done' }).click()
-  await expect(page.locator('.topic-primary')).toContainText('Test')
+  await expect(page.getByRole('button', { name: 'A–Z Test, available, current' })).toBeVisible()
   await expect(page.getByRole('button', { name: /^Go over/ })).toHaveCount(0)
 })

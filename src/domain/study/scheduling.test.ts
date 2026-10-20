@@ -32,10 +32,9 @@ describe('one clean Test, without a clock', () => {
         it(`${status}: clean=${clean}, eligible=${eligible}`, () => {
           const original = topic(status, { drilledAt: ago(10), completedAt: status === 'completed' || status === 'decayed' ? ago(20) : null })
           const result = resolveAttempt(original, clean ? 1 : 0, 1, now, { advancementEligible: eligible })
-          const banked = status === 'completed' || status === 'drilled'
-          expect(result.to).toBe(!eligible ? status : clean ? 'completed' : banked ? 'decayed' : 'learning')
+          const banked = status === 'completed' || status === 'drilled' || status === 'decayed'
+          expect(result.to).toBe(banked ? 'completed' : !eligible ? status : clean ? 'completed' : 'learning')
           expect(result.completed).toBe(eligible && clean && !banked)
-          expect(result.decayed).toBe(eligible && !clean && banked)
           expect(result.topic.history).toEqual([{ at: now.toISOString(), correct: clean ? 1 : 0, total: 1, resolvedTo: result.to }])
           expect(result.topic.lastTestedAt).toBe(now.toISOString())
           expect(original.history).toEqual([])
@@ -46,11 +45,25 @@ describe('one clean Test, without a clock', () => {
   }
   it('reads legacy drilled as banked without mutation', () => {
     const legacy = topic('drilled', { drilledAt: ago(365) })
-    expect(dueState(legacy)).toEqual({ due: false, label: 'Banked' })
+    expect(dueState(legacy)).toEqual({ due: false, label: 'Learned' })
     expect(legacy.status).toBe('drilled')
     expect(legacy.completedAt).toBeNull()
   })
   it('does not bank an empty run', () => {
     expect(resolveAttempt(topic('unstarted'), 0, 0, now).to).toBe('learning')
+  })
+})
+
+describe('recording what an attempt missed', () => {
+  const now = new Date('2026-05-01T00:00:00.000Z')
+
+  it('keeps the missed ids on the attempt, once each', () => {
+    const result = resolveAttempt(topic('unstarted'), 1, 2, now, { missedItemIds: ['b', 'b'] })
+    expect(result.topic.history.at(-1)?.missedItemIds).toEqual(['b'])
+  })
+
+  it('leaves the field off a clean run', () => {
+    const result = resolveAttempt(topic('unstarted'), 2, 2, now, { missedItemIds: [] })
+    expect(result.topic.history.at(-1)).not.toHaveProperty('missedItemIds')
   })
 })

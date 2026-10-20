@@ -43,23 +43,24 @@ describe('Morse word checkpoint surface', () => {
    */
   it('clears a hit by itself and holds a miss until the learner continues', () => {
     const code = source('./MorseCheckpoint.tsx')
-    expect(code).toContain('setFeedback({ correct, letter })')
+    expect(code).toContain('setFeedback({ correct, letter, pattern: pattern as string })')
     expect(code).toContain('answered(correct)')
     expect(code).toContain('useKeyedResponse')
     expect(code).not.toContain('setTimeout(')
     expect(code).not.toContain('MORSE_CHECKPOINT_FEEDBACK_MS')
     expect(code).toContain('nextCheckpointRunState(checkpoint, current)')
-    expect(code).toContain("feedback.correct ? 'Correct' : 'Miss'")
+    expect(code).toContain('<SessionCorrect target={feedback.letter} announce={false} />')
     expect(code).toContain('inert={!armed}')
     expect(code).toContain('locked={!armed}')
     // The dismissal lives inside the miss branch and is driven by the hook's
     // own hold state, so it can never appear beside a hit.
-    expect(code).toContain('onClick={continueCorrection} disabled={!holding}')
+    expect(code).toMatch(/onContinue: continueCorrection,\s*continueDisabled: !holding/)
     expect(code).toContain('function continueCorrection()')
     expect(code).toContain('correctionAudio.stop()')
     expect(code).toContain('acknowledge()')
-    const missBranch = code.slice(code.indexOf('{!feedback.correct && ('), code.indexOf('morse-checkpoint-answer'))
-    expect(missBranch).toContain('onClick={continueCorrection}')
+    const missBranch = code.slice(code.indexOf(') : feedback ? ('), code.indexOf('morse-checkpoint-answer'))
+    expect(missBranch).toContain('<SessionCorrect className="morse-checkpoint-miss" miss={{')
+    expect(missBranch).toContain('onContinue: continueCorrection')
   })
 
   it('never requeues a miss and reports a small local summary', () => {
@@ -68,7 +69,7 @@ describe('Morse word checkpoint surface', () => {
     expect(code).not.toContain('retriedTargets')
     expect(code).not.toContain('withCheckpointRetry')
     expect(code).toContain('{correctAnswers} of {attempts} correct')
-    expect(code).toContain('Nothing here changed saved progress.')
+    expect(code).toContain('<SessionFrame {...frame}')
   })
 
   it('is structurally ephemeral and has no durable learner-state write path', () => {

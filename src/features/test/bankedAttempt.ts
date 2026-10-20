@@ -1,5 +1,5 @@
 import { journeyFor } from '../../domain/study/journey'
-import { resolveAttempt, type Resolution } from '../../domain/study/scheduling'
+import { isLearned, resolveAttempt, type Resolution } from '../../domain/study/scheduling'
 import { retentionCorrectCount, type AttemptAnswer } from '../../domain/library/items'
 import type { Topic } from '../../domain/library/topic'
 import type { ItemEvidenceStore } from '../../domain/study/evidence'
@@ -30,14 +30,12 @@ export interface BankedAttempt {
  */
 export function resolveBankedAttempt(
   topic: Topic,
-  attempt: { correct: number; total: number },
+  attempt: { correct: number; total: number; missedItemIds?: string[] },
   evidence: ItemEvidenceStore,
   answers: AttemptAnswer[],
   now: Date = new Date(),
 ): BankedAttempt {
-  // The scheduler resolves the attempt exactly as it always has. Cue evidence
-  // is merged in afterwards, as a separate field, and changes nothing the
-  // resolution decided.
+  // Qualification gates completion, not the score recorded in history.
   const mergedEvidence = { ...(topic.itemEvidence ?? {}), ...evidence }
   // Acquisition evidence remains separate state. It is used here only as a
   // safety gate: neither an incomplete direction nor a supported answer can be
@@ -52,18 +50,14 @@ export function resolveBankedAttempt(
   // bank retention the acquisition programme has not yet earned. The journey
   // layer decides that; the scheduler is simply told the answer.
   const { advancementEligible: journeyEligible } = journeyFor(topic)
-  // The third gate, and the one #90 asks for. A run the learner answered
-  // correctly end to end, which still cannot qualify because the bidirectional
-  // claim has not accumulated independent evidence in both directions, is
-  // recorded work rather than a failed recall. Scoring it as a failure would
-  // reset the one-day clock and route twenty-six correct answers back to
-  // drilling, which is both untrue and the opposite of what happened.
+  // A fully correct supported run remains learning work until it qualifies.
+  // Optional Tests on learned topics can never impose that requirement again.
   const cleanRun = attempt.total > 0 && attempt.correct === attempt.total
-  const nonQualifying = cleanRun && schedulerCorrect < attempt.total
+  const nonQualifying = !isLearned(topic) && cleanRun && schedulerCorrect < attempt.total
   const advancementEligible = journeyEligible && !nonQualifying
 
   return {
-    resolution: resolveAttempt(topic, schedulerCorrect, attempt.total, now, { advancementEligible }),
+    resolution: resolveAttempt(topic, attempt.correct, attempt.total, now, { advancementEligible, missedItemIds: attempt.missedItemIds }),
     withheldByAcquisition: !journeyEligible,
     nonQualifying,
   }

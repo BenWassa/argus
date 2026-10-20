@@ -34,7 +34,8 @@
      changing into a different, unrelated thing every time it is used. */
   -webkit-tap-highlight-color: transparent;
   transition: transform var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease),
-    filter var(--t-fast) var(--ease);
+    filter var(--t-fast) var(--ease), background-color var(--t-fast) var(--ease),
+    color var(--t-fast) var(--ease);
 }
 
 /*
@@ -49,8 +50,9 @@
  */
 .morse-key,
 .morse-key:hover {
-  border-color: var(--accent);
-  background: var(--gradient-primary);
+  border-color: var(--session-colour, var(--action, var(--accent)));
+  background: var(--session-colour, var(--action, var(--accent)));
+  color: var(--session-ink, var(--action-ink, var(--accent-ink)));
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -76,8 +78,9 @@
   inline-size: clamp(3.5rem, 24vw, 6.5rem);
   block-size: 0.55rem;
   border-radius: var(--r-pill);
-  background: currentColor;
-  opacity: 0.38;
+  /* A solid mix of the ink into the key's own fill: the groove reads as cut
+     into the key without letting anything show through it. */
+  background: color-mix(in oklab, currentColor 40%, var(--session-colour, var(--action)));
 }
 
 /* The instruction, on the thing it instructs. Set quiet enough that it never
@@ -95,17 +98,30 @@
   text-transform: uppercase;
   line-height: 1.2;
   color: currentColor;
-  opacity: 0.55;
 }
 
 .morse-key-legend-mark {
   letter-spacing: 0;
 }
 
-/* A key that is locked or already full is not asking for a press, so it stops
-   telling the learner how to make one. */
+/* A key that is locked or already full is not asking for a press. It says so
+   with a solid state of its own (the slate of a disabled control, its groove a
+   step lighter), not by fading its colour, and it stops telling the learner
+   how to make a press. */
+.morse-key:disabled,
+.morse-key:disabled:hover {
+  border-color: var(--line-strong);
+  background: var(--surface-3);
+  color: var(--muted);
+  filter: none;
+}
+
+.morse-key:disabled .morse-key-face {
+  background: var(--line-strong);
+}
+
 .morse-key:disabled .morse-key-legend {
-  opacity: 0;
+  visibility: hidden;
 }
 
 /* Short landscape has no height to spend: the key keeps a usable face and the
@@ -117,6 +133,15 @@
 
   .morse-key {
     min-height: 64px;
+  }
+
+  .morse-key-input {
+    gap: var(--s-xs);
+  }
+
+  .morse-key-entry {
+    min-height: 1.2em;
+    font-size: 1.3rem;
   }
 }
 

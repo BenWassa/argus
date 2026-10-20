@@ -1,6 +1,12 @@
-// Owns sound-first run state, latency hygiene, keyed feedback and the final statistics write.
+import type { ReactNode } from 'react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { MorseAudioPlayer } from '../../../domain/morse/audio'
+import { type MorseLetter } from '../../../domain/morse/code'
+import {
+  recordFluencyAnswer,
+  recordFluencyBest,
+  type MorseFluencyProgress,
+} from '../../../domain/morse/fluency/progress'
 import {
   answerFluency,
   currentPrompt,
@@ -8,23 +14,18 @@ import {
   fluencyBestKey,
   fluencyComplete,
   fluencyOutcome,
+  fluencyRunLength,
   startFluencyRun,
   type FluencyMode,
   type FluencyRun as FluencyRunState,
 } from '../../../domain/morse/fluency/session'
-import {
-  recordFluencyAnswer,
-  recordFluencyBest,
-  setFluencyRung,
-  type MorseFluencyProgress,
-} from '../../../domain/morse/fluency/progress'
-import { fluencyTiming, nextRung, previousRung, type FluencyRung } from '../../../domain/morse/fluency/timing'
-import type { MorseLetter } from '../../../domain/morse/code'
-import { useMorseAudio } from '../useMorseAudio'
-import { useKeyedResponse } from '../input/useKeyedResponse'
+import { fluencyTiming, type FluencyRung } from '../../../domain/morse/fluency/timing'
 import { fire } from '../../../shared/haptics'
-
+import { useKeyedResponse } from '../input/useKeyedResponse'
+import { useMorseAudio } from '../useMorseAudio'
 export interface FluencyRunProps {
+  /** Between-round controls on the result screen (Listen's spacing). */
+  toolbar?: ReactNode
   mode: FluencyMode
   rung: FluencyRung
   progress: MorseFluencyProgress
@@ -32,6 +33,8 @@ export interface FluencyRunProps {
   focus?: ReadonlySet<MorseLetter>
   /** When non-empty, the only letters this run asks. */
   only?: readonly MorseLetter[]
+  /** Characters material may contain (#257): the taught roster before acquisition; absent, no limit. */
+  allowed?: ReadonlySet<string>
   /**
    * The single durable write path, handed in rather than reached for.
    *
@@ -46,37 +49,19 @@ export interface FluencyRunProps {
   onProgress: (next: MorseFluencyProgress) => void
   onExit: () => void
 }
-
-/**
- * ## Latency hygiene
- *
- * The measurement this surface exists for is only meaningful if the number is
- * clean, so four rules are enforced here rather than trusted to the caller:
- *
- *  - the clock starts when the *stimulus ends*, not when playback begins.
- *    Otherwise every character's latency contains its own audible length and a
- *    four-element letter looks slow because it *is* long;
- *  - a replayed prompt records no latency, because hearing it twice is a
- *    different task;
- *  - a prompt interrupted by backgrounding records no latency;
- *  - a miss records no latency at all. A wrong answer's response time mixes a
- *    fast guess with a long failed search and means neither.
- */
-export function useFluencyRun({ mode, rung, progress, focus, only, onProgress, onExit }: FluencyRunProps) {
+export function useFluencyRun({ mode, rung, progress, focus, only, allowed, onProgress, onExit }: FluencyRunProps) {
   const [run, setRun] = useState<FluencyRunState>(() =>
-    startFluencyRun(mode, rung, progress, Date.now(), focus, only),
+    startFluencyRun(mode, rung, progress, Object.values(progress.characters).reduce((count, character) => count + (character?.heard ?? 0), 0), focus, only, allowed),
   )
   // The answered prompt's own patterns travel with the verdict: by the time it
   // renders the run has advanced, and `prompt` is already the next question.
   const [feedback, setFeedback] = useState<
-    { correct: boolean; text: string; marks: boolean[]; patterns: string[] } | null
+    { correct: boolean; text: string; marks: boolean[]; patterns: string[]; response: string[] } | null
   >(null)
   const [playing, setPlaying] = useState(false)
   const [audioError, setAudioError] = useState<string | null>(null)
   const [characterIndex, setCharacterIndex] = useState(0)
-  const [crested, setCrested] = useState(false)
 
-  const headingRef = useRef<HTMLHeadingElement>(null)
   const playerRef = useRef<MorseAudioPlayer | null>(null)
   const stimulusEndedAt = useRef<number | null>(null)
   const replayed = useRef(false)
@@ -84,15 +69,16 @@ export function useFluencyRun({ mode, rung, progress, focus, only, onProgress, o
   /** Accumulates across the run and is written once, at the end. */
   const pendingProgress = useRef(progress)
 
-  const prompt = currentPrompt(run)
+  const prompt = currentPrompt(run) ?? (feedback ? { text: feedback.text, patterns: feedback.patterns } : null)
   const correctionAudio = useMorseAudio()
-  const complete = fluencyComplete(run)
+  const complete = fluencyComplete(run) && feedback === null
   const timing = fluencyTiming(run.rung)
 
   // `answerFluency` has already advanced the run by the time feedback shows,
   // so the only thing left for the lifecycle to do is clear the result and
   // re-arm. The gate itself is `armed`, exactly as in Learn and the checkpoints.
-  const { phase, armed, holding, answered, acknowledge } = useKeyedResponse(() => {
+  const round = useRef(0)
+  const { phase, armed, holding, answered, acknowledge, reset: resetResponse } = useKeyedResponse(() => {
     setFeedback(null)
     setCharacterIndex(0)
   })
@@ -120,10 +106,6 @@ export function useFluencyRun({ mode, rung, progress, focus, only, onProgress, o
       window.removeEventListener('pagehide', onHidden)
     }
   }, [])
-
-  useEffect(() => {
-    if (complete) headingRef.current?.focus({ preventScroll: true })
-  }, [complete])
 
   const play = useCallback(
     async (isReplay: boolean) => {
@@ -186,6 +168,7 @@ export function useFluencyRun({ mode, rung, progress, focus, only, onProgress, o
       text: target.text,
       marks: justAnswered.marks,
       patterns: target.patterns,
+      response: justAnswered.response,
     })
     setRun(next)
     replayed.current = false
@@ -212,43 +195,35 @@ export function useFluencyRun({ mode, rung, progress, focus, only, onProgress, o
       improved = result.improved
     }
     if (improved) {
-      setCrested(true)
       fire('crest')
     }
+    pendingProgress.current = store
     onProgress(store)
   }, [complete, onProgress, outcome, run])
-
-  function advanceRung(direction: 1 | -1) {
-    const target = direction === 1 ? nextRung(run.rung) : previousRung(run.rung)
-    onProgress(setFluencyRung(pendingProgress.current, target))
-    onExit()
-  }
 
   function continueCorrection() {
     correctionAudio.stop()
     acknowledge()
   }
 
-  return {
-    run,
-    feedback,
-    playing,
-    audioError,
-    characterIndex,
-    setCharacterIndex,
-    crested,
-    headingRef,
-    stimulusEndedAt,
-    prompt,
-    correctionAudio,
-    complete,
-    phase,
-    armed,
-    holding,
-    play,
-    submit,
-    outcome,
-    advanceRung,
-    continueCorrection,
+  const frame = { kind: 'listen' as const, title: 'Listen', onClose: onExit, progress: { current: complete ? fluencyRunLength(mode) : run.at + 1, total: fluencyRunLength(mode) } }
+
+  function again() {
+    correctionAudio.stop()
+    playerRef.current?.cancel()
+    setPlaying(false)
+    setAudioError(null)
+    stimulusEndedAt.current = null
+    replayed.current = false
+    interrupted.current = false
+    round.current += 1
+    setRun(startFluencyRun(mode, rung, pendingProgress.current, round.current, focus, only, allowed))
+    setFeedback(null)
+    setCharacterIndex(0)
+    committed.current = false
+    resetResponse()
   }
+
+
+  return { run, feedback, playing, audioError, characterIndex, setCharacterIndex, stimulusEndedAt, prompt, correctionAudio, complete, phase, armed, holding, play, submit, outcome, continueCorrection, frame, again }
 }

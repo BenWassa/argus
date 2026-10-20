@@ -43,7 +43,7 @@ function open(topicIds: string[]) {
 }
 
 function promptNow(): string {
-  return screen.getByRole('heading', { level: 1 }).textContent ?? ''
+  return screen.getByRole('heading', { level: 2 }).textContent ?? ''
 }
 
 function cardNow(): HTMLElement {
@@ -95,10 +95,10 @@ describe('reduced motion', () => {
     const second = promptNow()
     press(' ')
     act(() => {
-      screen.getByRole('button', { name: 'Mark correct' }).click()
+      screen.getByRole('button', { name: 'Got it' }).click()
     })
     await settled(second)
-    expect(screen.getByLabelText('Card 3 of 5')).toBeTruthy()
+    expect(screen.getByLabelText('2 of 5')).toBeTruthy()
   })
 
   it('keeps the answer-confidentiality invariant across the whole deck', async () => {
@@ -120,9 +120,11 @@ describe('reduced motion', () => {
       }
     }
 
-    await waitFor(() => expect(document.querySelector('.session-done')).not.toBeNull(), {
+    await waitFor(() => expect(document.querySelector('.test-done')).not.toBeNull(), {
       timeout: 8000,
     })
+    // The result names what was missed, answers included; nothing else carries one.
+    document.querySelector('.test-missed')?.remove()
     expect(answersInDocument()).toEqual([])
   }, 60000)
 
@@ -137,7 +139,7 @@ describe('reduced motion', () => {
     })
     expect(promptNow()).toBe(first)
     await settled(first)
-    expect(screen.getByLabelText('Card 2 of 26')).toBeTruthy()
+    expect(screen.getByLabelText('1 of 26')).toBeTruthy()
   })
 
   it('banks the same attempt it would have banked with motion on', async () => {
@@ -148,7 +150,7 @@ describe('reduced motion', () => {
       press(card === 0 ? 'ArrowLeft' : 'ArrowRight')
       if (card < 4) await settled(prompt)
     }
-    await waitFor(() => expect(document.querySelector('.session-done')).not.toBeNull(), {
+    await waitFor(() => expect(document.querySelector('.test-done')).not.toBeNull(), {
       timeout: 8000,
     })
     const stored = JSON.parse(localStorage.getItem(STORE_KEY)!).topics as Topic[]
@@ -156,11 +158,11 @@ describe('reduced motion', () => {
     expect(history[history.length - 1]).toMatchObject({ correct: 4, total: 5 })
   }, 30000)
 
-  it('keeps the swipe hint and its accessible fallbacks on screen', () => {
+  it('keeps the grade pair, with its arrow hints, on screen', () => {
     open(['nato-phonetic'])
     press(' ')
-    expect(document.querySelector('.grade-hint-rail')?.textContent).toContain('Incorrect')
-    expect(screen.getByRole('button', { name: 'Mark incorrect' })).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Mark correct' })).toBeTruthy()
+    expect(document.querySelector('.grade-pair')?.textContent).toContain('Missed')
+    expect(screen.getByRole('button', { name: 'Missed' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Got it' })).toBeTruthy()
   })
 })

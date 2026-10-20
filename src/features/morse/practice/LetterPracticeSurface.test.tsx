@@ -48,13 +48,12 @@ function renderSurface(onExit = vi.fn()) {
 }
 
 describe('LetterPracticeSurface', () => {
-  it('offers a clear exit when no letters are eligible', () => {
+  it('starts on Lesson 1\'s letters when none are settled, instead of locking (#257)', () => {
     storeTopic(preparedTopic(false))
     const onExit = renderSurface()
-    expect(screen.getByRole('heading', { name: 'Practice letters' })).toBeTruthy()
-    expect(screen.getByText('Learn your first letters to start a practice round.')).toBeTruthy()
-    expect(screen.queryByText('1 / 10')).toBeNull()
-    fireEvent.click(screen.getByRole('button', { name: 'Back to Morse' }))
+    expect(screen.queryByRole('heading', { name: 'Learn letters first' })).toBeNull()
+    expect(['E', 'I']).toContain(document.querySelector('.lesson-glyph')?.textContent)
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }))
     expect(onExit).toHaveBeenCalledOnce()
   })
 

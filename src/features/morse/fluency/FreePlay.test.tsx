@@ -53,16 +53,16 @@ describe('free play', () => {
 
   it('plays typed text and names what it cannot play', () => {
     render(<FreePlay rung={6} onExit={() => undefined} />)
-    fireEvent.click(screen.getByRole('tab', { name: 'Hear it' }))
+    fireEvent.click(screen.getByRole('tab', { name: 'Listen' }))
     fireEvent.change(screen.getByLabelText('Text to hear'), { target: { value: 'hi & bye' } })
-    expect(screen.getByText(/No Morse here for &/)).toBeTruthy()
+    expect(screen.getByText(/Skipped: &/)).toBeTruthy()
     expect((screen.getByRole('button', { name: 'Play' }) as HTMLButtonElement).disabled).toBe(false)
   })
 
   it('moves between associated tabs with arrow keys and keeps one tab stop', () => {
     render(<FreePlay rung={6} onExit={() => undefined} />)
-    const keyTab = screen.getByRole('tab', { name: 'Key it' })
-    const hearTab = screen.getByRole('tab', { name: 'Hear it' })
+    const keyTab = screen.getByRole('tab', { name: 'Key' })
+    const hearTab = screen.getByRole('tab', { name: 'Listen' })
     keyTab.focus()
     fireEvent.keyDown(keyTab, { key: 'ArrowRight' })
     expect(document.activeElement).toBe(hearTab)

@@ -1,0 +1,24 @@
+/* An ordinary topic's Learn screen (#244): header, optional artwork, the
+   boundary, then the explanatory support in editorial flow. */
+.topic-reading { display: grid; grid-template-columns: minmax(0, 1fr); }
+.topic-reading-title { overflow-wrap: anywhere; }
+.topic-reading .screen-header-glyph .topic-icon { width: 32px; height: 32px; }
+.topic-reading-hero { margin-top: var(--s-lg); }
+.topic-reading-hero .visual { margin: 0; }
+
+/* The boundary leads the reading; survival topics keep their safety scope
+   visible here as well as in the sources sheet. */
+.topic-reading .topic-scope {
+  max-width: 58ch;
+  margin: var(--s-lg) 0 0;
+  font-size: var(--t-component);
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.topic-reading .learn-support { margin-top: var(--s-lg); }
+.topic-reading .sources-link { justify-self: start; }
+
+@media (min-width: 980px) {
+  .topic-reading { max-width: 760px; }
+}

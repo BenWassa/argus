@@ -1,4 +1,4 @@
-// Owns Copy playback, typed answers, feedback timing and the final formative best.
+import type { ReactNode } from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { MorseAudioPlayer } from '../../../domain/morse/audio'
 import type { MorseLetter } from '../../../domain/morse/code'
@@ -16,32 +16,32 @@ import { recordFluencyBest, type MorseFluencyProgress } from '../../../domain/mo
 import { fluencyTiming, type FluencyRung } from '../../../domain/morse/fluency/timing'
 import { fire } from '../../../shared/haptics'
 import { useMorseAudio } from '../useMorseAudio'
-
 export interface CopyRunProps {
+  /** Between-round controls on the result screen (Listen's spacing). */
+  toolbar?: ReactNode
   level: CopyLevel
   rung: FluencyRung
   progress: MorseFluencyProgress
   /** Letters the learner is missing, weighted up in the letters level. */
   focus?: ReadonlySet<MorseLetter>
+  /** Characters material may contain (#257): the taught roster before acquisition; absent, no limit. */
+  allowed?: ReadonlySet<string>
   /** The single durable write, handed in. See `FluencyRun` for why. */
   onProgress: (next: MorseFluencyProgress) => void
   onLevel: (level: CopyLevel) => void
   onExit: () => void
+  seed?: number
 }
-
-/** A correct copy holds for the scale-2 budget, then moves on by itself. */
 const CORRECT_HOLD_MS = 900
-
 type Phase =
   | { kind: 'intro' }
   | { kind: 'asking' }
   | { kind: 'feedback'; judgement: CopyJudgement }
   | { kind: 'done' }
-
-export function useCopyRun({ level, rung, progress, focus, onProgress }: CopyRunProps) {
+export function useCopyRun({ level, rung, progress, focus, allowed, onProgress, onExit, seed = 0 }: CopyRunProps) {
   const info = COPY_LEVEL_INFO[level]
   const correctionAudio = useMorseAudio()
-  const [prompts] = useState(() => copyPrompts(level, progress, Date.now(), focus))
+  const [prompts] = useState(() => copyPrompts(level, progress, seed, focus, allowed))
   const [at, setAt] = useState(0)
   const [phase, setPhase] = useState<Phase>(() => (info.introduces ? { kind: 'intro' } : { kind: 'asking' }))
   const [typed, setTyped] = useState('')
@@ -49,7 +49,6 @@ export function useCopyRun({ level, rung, progress, focus, onProgress }: CopyRun
   const [playing, setPlaying] = useState(false)
   const [audioError, setAudioError] = useState<string | null>(null)
   const [judgements, setJudgements] = useState<CopyJudgement[]>([])
-  const [crested, setCrested] = useState(false)
 
   const playerRef = useRef<MorseAudioPlayer | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -138,34 +137,13 @@ export function useCopyRun({ level, rung, progress, focus, onProgress }: CopyRun
     // A first run is a baseline, not a best; celebrating it would make the
     // scale-4 moment the most common one on the surface.
     if (result.improved && hadBest) {
-      setCrested(true)
       fire('crest')
     }
     onProgress(result.progress)
   }, [phase, progress, level, score, onProgress])
 
-  return {
-    info,
-    correctionAudio,
-    prompts,
-    prompt,
-    at,
-    phase,
-    setPhase,
-    typed,
-    setTyped,
-    plays,
-    playing,
-    audioError,
-    judgements,
-    crested,
-    inputRef,
-    headingRef,
-    play,
-    canPlay,
-    canCheck,
-    check,
-    advance,
-    score,
-  }
+  const frame = { kind: 'listen' as const, title: 'Listen', onClose: onExit, progress: { current: phase.kind === 'done' ? prompts.length : at + 1, total: prompts.length } }
+
+
+  return { info, correctionAudio, prompts, phase, setPhase, typed, setTyped, plays, playing, audioError, judgements, inputRef, headingRef, prompt, play, canPlay, canCheck, check, advance, frame }
 }

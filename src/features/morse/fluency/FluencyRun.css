@@ -1,7 +1,7 @@
-/* Owns sound-first targets, shared feedback and run summaries. */
 /* ---- the run ---------------------------------------------------------- */
 
 .fluency-target {
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -10,8 +10,16 @@
   margin-inline: auto;
 }
 
-.fluency-target .lesson-task {
-  margin: 0;
+.fluency-target > .lesson-task {
+  margin: auto 0 0;
+}
+
+/* The key, the typed answer, or the correction that replaces them. */
+.fluency-target > .fluency-answer-area,
+.fluency-target > .copy-answer,
+.fluency-target > .fluency-feedback:not(.copy-feedback),
+.fluency-target > .session-miss {
+  margin-block-start: auto;
 }
 
 .fluency-listen {
@@ -20,24 +28,32 @@
   gap: var(--s-sm);
 }
 
-.fluency-play {
-  min-width: 9rem;
-}
+/* A miss's answer: the word, centred over the broken character's pattern. */
+.fluency-miss > .fluency-answer { justify-self: center; }
 
 /* How many characters are in this prompt, and which one the key is on.
    Deliberately dots rather than letters: printing the target would turn a
    sound-first drill into a reading exercise. */
 .fluency-shape {
   display: flex;
-  gap: 0.5em;
+  align-items: center;
+  gap: 8px;
   margin: 0;
-  font-size: var(--t-readout);
-  color: var(--line-strong);
-  line-height: 1;
+  line-height: 0;
 }
 
-.fluency-shape .is-current {
-  color: var(--accent);
+/* One drawn dot per character, the current one in the mode colour. */
+.fluency-shape > span {
+  display: block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--line-strong);
+  font-size: 0;
+}
+
+.fluency-shape > .is-current {
+  background: var(--session-colour, var(--ink));
 }
 
 .fluency-audio-error {
@@ -102,83 +118,5 @@
 
 .fluency-answer .is-wrong-char {
   color: var(--danger-2);
-}
-
-.fluency-pattern {
-  color: var(--muted);
-  font-size: var(--t-small);
-}
-
-/* ---- the end screen --------------------------------------------------- */
-
-.fluency-summary {
-  display: grid;
-  justify-items: center;
-  gap: var(--s-md);
-  width: min(100%, 32rem);
-  margin-inline: auto;
-  text-align: center;
-}
-
-.fluency-summary h1 {
-  margin: 0;
-  outline: none;
-}
-
-.fluency-score {
-  margin: 0;
-  font-size: var(--t-component);
-}
-
-.fluency-metric {
-  margin: 0;
-  color: var(--muted);
-  font-size: var(--t-small);
-}
-
-/*
- * Scale 4, and the only one in the file.
- *
- * A personal best is rare by construction — it has to beat every previous run
- * of that mode — so it is allowed a lit line and a short entrance. It is still
- * one line of text: the hierarchy works because the ordinary case stayed
- * quiet, not because this got loud.
- */
-.fluency-crest {
-  margin: 0;
-  padding: var(--s-xs) var(--s-md);
-  border-radius: var(--r-pill);
-  background: var(--accent);
-  color: var(--accent-ink);
-  font-size: var(--t-small);
-  font-weight: var(--w-section);
-  animation: fluency-crest-in 420ms var(--ease) both;
-}
-
-@keyframes fluency-crest-in {
-  from {
-    opacity: 0;
-    transform: translateY(4px) scale(0.96);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-/*
- * Reduced motion removes the entrance and keeps the message. Every celebration
- * in this file has a non-motion form for exactly this reason: a learner with
- * reduced motion set, haptics off and the phone muted must still be able to
- * tell a milestone from an ordinary screen.
- */
-@media (prefers-reduced-motion: reduce) {
-  .fluency-crest {
-    animation: none;
-  }
-
-  .fluency-mode {
-    transition: none;
-  }
 }
 

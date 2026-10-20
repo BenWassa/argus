@@ -2,10 +2,13 @@
 
 This folder archives completed GitHub issue specifications, prior research, release reviews and historical product decisions. An issue being closed establishes its **specific issue scope**, not acceptance of all downstream review, visual fidelity, real-device testing, audio packs or release work.
 
-- The [Morse documentation hub](../open/morse/README.md) indexes maintained contracts and the Morse records archived here.
 - Current work lives in [docs/open](../open/README.md).
 - Maritime #147/#148 implementation is closed, but [independent domain review](../open/ISSUE_147_148_MARITIME_DOMAIN_REVIEW.md) remains live.
 - #151's audio-drill runtime issue is closed; the production voice/audio pack still has outstanding source and listening-review gates.
 - #127's Home exploration is superseded by #193, which tracks the shipped redesign's Pixel acceptance.
 
 - [Impeccable screen review, 17 October 2026](IMPECCABLE_UI_REVIEW_2026_10_17.md): completed multi-agent critique, fixes and UX/UI re-review.
+
+- [Progress architecture before permanent learning](PROGRESS_ARCHITECTURE_2026_10_19.md): superseded on 2026-10-19; retained for rationale.
+
+- [UI review, 2026-10-17](IMPECCABLE_UI_REVIEW_2026_10_17.md) — historical pre-overhaul findings.

@@ -1,13 +1,5 @@
-.rapid-session {
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto auto;
-  min-height: 100svh;
-  padding-bottom: max(var(--s-lg), env(safe-area-inset-bottom));
-}
-
-.rapid-session .session-bar {
-  margin-bottom: var(--s-lg);
-}
+/* The session frame owns the layout (#259): the card is the stimulus, centred
+   under the header, and the grading row is the response, docked at the foot. */
 
 /* The stage owns the perspective, so the card flips against a fixed vanishing
    point instead of carrying its own and skewing as it turns. */
@@ -15,6 +7,11 @@
   position: relative;
   display: grid;
   perspective: 1400px;
+  margin-block-start: auto;
+}
+
+.rapid-session > .recall-actions {
+  margin-block-start: auto;
 }
 
 /* Edge cues sit on the stage rather than on the card, so they hold still while
@@ -138,56 +135,24 @@ button.flip-card:active {
   border-radius: var(--r-xl);
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-  box-shadow: var(--edge), var(--edge-under), var(--shadow);
+  box-shadow: var(--shadow-sm);
 }
 
-/* A stamped plate: the sheen a flat panel catches as it turns, over the depth
-   gradient that gives it thickness. */
+/* Both faces are solid plates: a fill step and a 1px line, with no sheen and no
+   gradient. */
 .flip-front {
-  background:
-    var(--sheen),
-    linear-gradient(160deg, var(--surface-3), var(--surface));
+  background: var(--surface-2);
 }
 
-/* The answer face is the one catching the light: it is the thing you came
-   for. */
+/* The answer face is one fill step up with the strongest neutral rule: it is
+   the thing you came for, told by its lift, not by signal yellow, which is kept
+   for the action (#259). */
 .flip-back {
   position: relative;
   overflow: hidden;
   transform: rotateY(180deg);
-  border-color: color-mix(in srgb, var(--accent) 34%, var(--line-strong));
-  background:
-    radial-gradient(circle at 50% 36%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 54%),
-    var(--sheen),
-    linear-gradient(160deg, var(--surface-3), var(--surface));
-}
-
-/* The card itself trends toward the pending grade, from the edge it is being
-   dragged toward. An edge gradient rather than a flood: the answer stays the
-   most legible thing on the card. */
-.flip-wash {
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-}
-
-.flip-wash-miss {
-  background: linear-gradient(
-    to right,
-    color-mix(in srgb, var(--danger) 46%, transparent),
-    color-mix(in srgb, var(--danger) 10%, transparent) 42%,
-    transparent 72%
-  );
-}
-
-.flip-wash-hit {
-  background: linear-gradient(
-    to left,
-    color-mix(in srgb, var(--ok) 46%, transparent),
-    color-mix(in srgb, var(--ok) 10%, transparent) 42%,
-    transparent 72%
-  );
+  border-color: var(--line-hover);
+  background: var(--surface-3);
 }
 
 /* One step brighter than the other readouts in the product, because this one
@@ -202,7 +167,7 @@ button.flip-card:active {
 }
 
 .flip-back .flip-label {
-  color: var(--accent);
+  color: var(--ink);
 }
 
 .flip-value {
@@ -243,10 +208,13 @@ button.flip-card:active {
 }
 
 .recall-actions {
+  /* Above the card's cast shadow, so the grading buttons stay their own solid
+     fill instead of being darkened where the shadow falls on them. */
+  position: relative;
+  z-index: 1;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--s-sm);
-  margin-top: var(--s-md);
   opacity: 0;
   transform: translateY(6px);
   pointer-events: none;
@@ -262,126 +230,81 @@ button.flip-card:active {
   transition-delay: calc(var(--t-flip) * 0.45);
 }
 
-.recall-actions button {
-  min-height: var(--control-h-lg);
-}
-
-.recall-miss {
-  color: var(--danger-2);
-}
-
-/* Swipe-first grading. This row occupies exactly the slot the two grading
-   buttons used to, so the thumb lands where it already did and the layout does
-   not shift between a token deck and a long-answer one. */
-.grade-hint {
-  position: relative;
-  display: grid;
-  align-items: center;
-  min-height: var(--control-h-lg);
-  margin-top: var(--s-md);
-  opacity: 0;
-  transform: translateY(6px);
-  transition:
-    opacity var(--t-fast) var(--ease),
-    transform var(--t-fast) var(--ease);
-}
-
-.grade-hint.is-visible {
-  opacity: 1;
-  transform: none;
-  transition-delay: calc(var(--t-flip) * 0.45);
-}
-
-.grade-hint-rail {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--s-md);
-  margin: 0;
-  padding: 0 var(--s-sm);
-  font-family: var(--font-mono);
-  font-size: var(--t-readout);
-  font-weight: var(--w-label);
-  letter-spacing: var(--track-readout);
-  text-transform: uppercase;
-}
-
-.grade-hint-side.is-miss {
-  color: var(--danger-2);
-}
-
-.grade-hint-side.is-hit {
-  color: var(--ok);
-}
-
-/* Grading is never gesture-only. These carry the same two actions for keyboard
-   and screen-reader use. They are out of the visual layout until focused and
-   fully visible once focused, so nobody operates a control they cannot see. */
-.grade-fallback {
-  position: absolute;
-  left: 50%;
-  width: auto;
-  min-height: var(--control-h);
-  translate: -50% 0;
-  clip-path: inset(50%);
-  white-space: nowrap;
-}
-
-.grade-fallback:focus {
-  z-index: 3;
-  clip-path: none;
-}
-
-.recall-shortcuts {
-  min-height: 1.2em;
-  margin-top: var(--s-sm);
-  font-size: var(--t-label);
-  color: var(--subtle);
-  text-align: center;
-}
-
 @media (min-width: 680px) {
-  .rapid-session {
-    min-height: auto;
-    padding-top: var(--s-2xl);
-  }
-
   button.flip-card {
     min-height: 430px;
   }
 }
 
+/*
+ * Short landscape: the card and the grading sit side by side in exactly one
+ * screen. The run is held to the viewport's height rather than allowed to grow
+ * past it, the card gives up its minimum and its type scales with the height,
+ * so a wide font (Linux renders the system sans wider than macOS) wraps inside
+ * the card instead of pushing the grading off the bottom edge.
+ */
 @media (orientation: landscape) and (max-height: 560px) {
-  .rapid-session {
-    min-height: 100svh;
-    grid-template-columns: minmax(0, 1fr) minmax(220px, 0.46fr);
-    grid-template-rows: auto 1fr auto;
-    gap: var(--s-md);
+  .session.session-frame.rapid-session:not(.is-progressive) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(200px, 0.46fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    height: 100svh;
+    min-height: 0;
+    column-gap: var(--s-md);
   }
 
-  .rapid-session .session-bar {
+  .rapid-session:not(.is-progressive) .session-frame-header {
     grid-column: 1 / -1;
-    margin-bottom: 0;
   }
 
-  .card-stage {
-    grid-row: 2 / 4;
+  .rapid-session:not(.is-progressive) .card-stage {
+    grid-column: 1;
+    grid-row: 2;
+    min-height: 0;
+    margin: 0;
   }
 
   button.flip-card {
+    height: 100%;
     min-height: 0;
+  }
+
+  .flip-inner,
+  .flip-face {
+    min-height: 0;
+  }
+
+  .flip-face {
+    gap: var(--s-xs);
+    padding: var(--s-md);
+    overflow: hidden;
+  }
+
+  .flip-value {
+    font-size: clamp(2rem, 15vh, 3.4rem);
+  }
+
+  .flip-value-answer {
+    font-size: clamp(1.4rem, 10vh, 2.4rem);
+  }
+
+  .flip-value.is-medium {
+    font-size: clamp(1.1rem, 7vh, 1.6rem);
+  }
+
+  .flip-value.is-long {
+    font-size: clamp(0.95rem, 5vh, 1.15rem);
+  }
+
+  .rapid-session > .recall-actions {
+    grid-column: 2;
+    grid-row: 2;
+    align-self: end;
+    margin: 0;
   }
 
   .recall-actions {
-    align-self: end;
     grid-template-columns: 1fr;
-    margin-top: 0;
-  }
-
-  .grade-hint {
-    align-self: end;
-    min-height: 0;
-    margin-top: 0;
   }
 
   /* Short landscape has no room beside the card for a full chip. */
@@ -390,10 +313,6 @@ button.flip-card:active {
     font-size: var(--t-readout);
   }
 
-  .recall-shortcuts {
-    align-self: start;
-    margin-top: 0;
-  }
 }
 
 /* No motion is load-bearing: the faces swap instantly and the answer is still
@@ -401,13 +320,11 @@ button.flip-card:active {
 @media (prefers-reduced-motion: reduce) {
   .flip-inner,
   .recall-actions,
-  .grade-hint,
   .grade-cue {
     transition: none;
   }
 
-  .recall-actions.is-visible,
-  .grade-hint.is-visible {
+  .recall-actions.is-visible {
     transition-delay: 0s;
   }
 
@@ -417,6 +334,19 @@ button.flip-card:active {
   .card-stage.is-armed-correct .grade-cue-hit {
     scale: 1;
   }
+}
+
+/* The A–Z Test names itself and reads how far through it is, in the readout
+   voice: a count, not a score. */
+.test-frame-reading {
+  display: block;
+  text-align: end;
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  font-weight: var(--w-label);
+  letter-spacing: var(--track-readout);
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
 }
 
 /* --- The Morse ladder card ---------------------------------------------------
@@ -433,22 +363,39 @@ button.flip-card:active {
  * formative one are the same act: a task word, the glyph, the support if there
  * is any, and the key at the foot where the thumb already is. */
 
-.rapid-session.is-progressive {
-  grid-template-rows: auto minmax(0, 1fr);
-}
-
 /*
- * The free height is spent around the question rather than below it: the whole
- * group is centred in the run, which keeps the prompt, its support and the key
- * together as one object and still lands the key in the lower half of a phone.
- * Landscape has no height to spend, so it packs from the top.
+ * The question is the stimulus and the key (or the letter field, or the
+ * correction that replaces them) is the response: the task word, the prompt
+ * and any support are centred on the same line as every other session's
+ * prompt, and the response is docked at the foot where the thumb is (#259).
  */
 .progressive-card {
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  align-items: center;
   gap: var(--s-md);
   min-width: 0;
+  text-align: center;
+}
+
+.progressive-card > .test-task,
+.choice-card > .test-task {
+  margin-block-start: auto;
+}
+
+.progressive-card > .test-answer,
+.progressive-card > .test-feedback,
+.choice-card > .choice-options,
+.choice-card > .audio-response {
+  margin-block-start: auto;
+}
+
+/* A correction is a table to read, so it keeps its own start alignment. */
+.progressive-card > .test-feedback,
+.choice-card > .test-feedback {
+  align-self: stretch;
+  text-align: start;
 }
 
 /* One word for what this question wants. The rung's internal name said nothing
@@ -483,33 +430,16 @@ button.flip-card:active {
   line-height: 1;
 }
 
-.test-pattern {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.44em;
-}
-
-.test-pattern-mark {
-  display: block;
-  block-size: 0.44em;
-  border-radius: var(--r-pill);
-  background: var(--ink);
-}
-
-.test-pattern-mark.is-dit {
-  inline-size: 0.44em;
-}
-
-.test-pattern-mark.is-dah {
-  inline-size: 1.32em;
-}
+/* The pattern is drawn by the shared MorseMarks component (#263); its own
+   stylesheet sets the marks, their proportions and the centre line. */
+.test-prompt .test-pattern { color: var(--ink); }
 
 /* Whatever this rung discloses, in the one panel the lesson uses for the same
    job. There is never more than one. */
 .test-support {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   align-items: center;
   gap: var(--s-sm) var(--s-md);
   margin: 0;
@@ -517,7 +447,6 @@ button.flip-card:active {
   border: 1px solid var(--line-strong);
   border-radius: var(--r-md);
   background: var(--surface-2);
-  box-shadow: var(--edge);
 }
 
 .test-length {
@@ -535,11 +464,12 @@ button.flip-card:active {
    full-width box for a single letter reads as though more were wanted. */
 .test-entry {
   display: grid;
-  justify-items: start;
+  justify-items: center;
   gap: var(--s-sm);
 }
 
-.test-entry-input {
+/* Qualified, so the one-character size outranks the shared full-width field. */
+.test-entry .test-entry-input {
   inline-size: 5.5rem;
   min-height: 72px;
   padding: var(--s-sm);
@@ -568,7 +498,6 @@ button.flip-card:active {
  */
 @media (max-height: 560px) {
   .progressive-card {
-    justify-content: flex-start;
     gap: var(--s-sm);
   }
 
@@ -595,6 +524,76 @@ button.flip-card:active {
 
   .test-entry-input {
     min-height: var(--control-h-lg);
+  }
+
+  /* A correction already shows the character and its pattern, so on a short
+     screen it takes the prompt's place rather than stacking under it. */
+  .progressive-card:has(> .test-feedback) > .test-task,
+  .choice-card:has(> .test-feedback:not(.is-correct)) > :not(.test-feedback, .test-prompt) {
+    display: none;
+  }
+
+  /* The prompt stays the card's accessible heading, only off screen. */
+  .progressive-card:has(> .test-feedback) > .test-prompt,
+  .choice-card:has(> .test-feedback:not(.is-correct)) > .test-prompt {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .test-feedback {
+    gap: var(--s-xs);
+    padding: var(--s-sm) var(--s-md);
+  }
+
+  .test-verdict {
+    font-size: var(--t-component);
+  }
+
+  /* The verdict, what was given and Continue in one column, the character's
+     pattern beside them in the other, rather than all four stacked. */
+  .progressive-card > .test-feedback {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    align-items: center;
+    column-gap: var(--s-lg);
+  }
+
+  .progressive-card > .test-feedback > .test-correction {
+    display: contents;
+  }
+
+  .progressive-card > .test-feedback > * {
+    grid-column: 1;
+  }
+
+  .progressive-card > .test-feedback .test-correction-support {
+    grid-column: 2;
+    grid-row: 1 / span 3;
+  }
+
+  .progressive-card > .test-feedback > .test-verdict { grid-row: 1; }
+
+  .progressive-card .test-correction-row {
+    grid-column: 1;
+    grid-row: 2;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--s-sm);
+  }
+
+  .progressive-card > .test-feedback > .test-next { grid-row: 3; }
+
+  /* The ladder's sentence runs under both columns rather than down a narrow one. */
+  .progressive-card > .test-feedback > .test-ladder {
+    grid-column: 1 / -1;
+    grid-row: 4;
+  }
+
+  .test-feedback .test-next {
+    min-height: var(--control-h);
+    margin-block-start: 0;
   }
 }
 
@@ -692,27 +691,6 @@ button.flip-card:active {
   margin-block-start: var(--s-sm);
 }
 
-/* The offer to practise what a check just missed (#92 batch 5).
- *
- * Sits below the outcome copy and above `Back to today`, so the screen still
- * reads as an account of what happened first and an invitation second. It
- * carries no accent: the accent marks banking a completion, and a miss is not an
- * event to mark. */
-.practice-offer {
-  display: grid;
-  gap: var(--s-sm);
-  justify-items: start;
-  /* The panel base, lifted a tone and bevelled so it reads as an offer sitting
-     on the end screen rather than as another paragraph of it. */
-  background: var(--surface-2);
-  box-shadow: var(--edge);
-}
-
-.practice-offer p {
-  margin: 0;
-  color: var(--muted);
-}
-
 /*
  * The objectively graded choice card (#146). It shares the progressive card's
  * column and feedback layer; only the prompt scale and the options are its own.
@@ -721,11 +699,19 @@ button.flip-card:active {
  * state so a touch press reads the same as a pointer.
  */
 .choice-card {
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  align-items: center;
   gap: var(--s-md);
   min-width: 0;
+  text-align: center;
+}
+
+.choice-card > .choice-options,
+.choice-card > .audio-response {
+  align-self: stretch;
+  text-align: start;
 }
 
 .test-prompt.is-question {
@@ -770,7 +756,23 @@ button.flip-card:active {
 
 @media (max-height: 560px) {
   .choice-card {
-    justify-content: flex-start;
     gap: var(--s-sm);
+  }
+
+  .choice-option {
+    min-height: var(--control-h);
+  }
+}
+
+/* A correction's character card is sized by the viewport's width, which a short
+   landscape screen has plenty of and no height to match: in a session it is
+   sized by the height instead, so a wide font cannot wrap it off the screen. */
+@media (max-height: 560px) {
+  .session-frame .morse-character-support-glyph {
+    font-size: clamp(2rem, 12vh, 2.8rem);
+  }
+
+  .session-frame .morse-character-support-notation {
+    font-size: clamp(1.2rem, 7vh, 1.6rem);
   }
 }

@@ -1,5 +1,7 @@
 # Issue #191 — Role-based learning designations
 
+> **Progress authority update, 2026-10-19:** [Learning progress](PROGRESS_ARCHITECTURE.md) supersedes earlier decay/repair routing and repeated completion requirements in this document. Learned topics stay learned. Home continues the top unfinished topic.
+
 **Status:** Communicator MVP merged via #196; included in v1.5.0; real-device acceptance remains outstanding — 2026-10-07.
 **Authority:** maintained Communicator MVP contract and broader role-design proposals for #191. The owner-approved MVP is merged; unimplemented roles and alternatives remain proposals.
 **Companion asset lane:** #192 — custom role badge art system.

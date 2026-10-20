@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { homeProgress } from '../domain/study/home'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { LibraryProvider } from '../services/library/LibraryProvider'
 import { SHIPPED_CATALOG_TOPIC_IDS } from '../domain/library/catalog'
@@ -23,6 +23,7 @@ import type { Topic } from '../domain/library/topic'
 import { Today } from './today/Today'
 import { LibraryPage } from './library/LibraryPage'
 import { TopicPage } from './library/TopicPage'
+import { TopicReading } from './learn/TopicReading'
 
 /**
  * The surface-consistency contract (#62, #69, #70).
@@ -211,7 +212,19 @@ function libraryGroup(topic: Topic): string {
 /** The Topic page's single primary action. There is only ever one. */
 function topicPrimary(topic: Topic): string {
   renderTopicPage(topic)
-  return document.querySelector('.topic-primary')?.textContent?.trim() ?? ''
+  const current = document.querySelector('[aria-current="step"]')
+  if (current) {
+    const label = current.getAttribute('aria-label') ?? ''
+    if (label === 'Start, current') return 'Start lesson 1'
+    const lesson = /^Lesson (\d+),/.exec(label)
+    if (lesson) return `Continue lesson ${lesson[1]}`
+    return current.classList.contains('morse-progress-test') ? 'Test' : label
+  }
+  return topicTestLabel()
+}
+
+function topicTestLabel(): string {
+  return document.querySelector('.topic-tray [data-tile-id="test"] .mode-tray-label')?.textContent?.trim() ?? ''
 }
 
 function topicSchedule(topic: Topic): string {
@@ -323,7 +336,10 @@ describe('one learner state, three surfaces, one recommendation', () => {
       expect(topicPrimary(topic)).toBe(journey.primaryLabel)
       cleanup()
       install([topic])
-      expect(topicSchedule(topic)).toBe(journey.statusLabel)
+      if (topic.id === MORSE_ID) {
+        renderTopicPage(topic)
+        expect(screen.getByRole('img', { name: `${journey.acquisition.settled} of 26 letters` })).toBeTruthy()
+      } else expect(topicSchedule(topic)).toBe(journey.statusLabel)
       cleanup()
 
       // Placement. Library groups by whether the learner has begun, so a topic
@@ -376,20 +392,18 @@ describe('partially acquired Morse is never routed to Test', () => {
     }
   })
 
-  it('offers Test on the Topic page only as an explicitly non-advancing path entry', () => {
+  it('offers Test on the Topic page as an early path entry', () => {
     const partial = acquire(resolveStudy(blank(MORSE_ID), new Date(Date.now() - 6 * DAY)), 3)
     install([partial])
     renderTopicPage(partial)
 
     // Exactly one prominent control, and it is the lesson. The scored run is
     // still reachable, from its own place at the end of the curriculum, and it
-    // states its consequence there rather than as a standing second button.
-    expect(document.querySelectorAll('.topic-primary')).toHaveLength(1)
-    expect(document.querySelector('.topic-primary')?.textContent).toContain('lesson')
-
-    const check = document.querySelector('.morse-path-check')
-    expect(check?.querySelector('.morse-path-cue')?.textContent).toBe('Try early')
-    expect(check?.textContent).toContain('does not move the ladder')
+    // leaves the consequence to the Test end screen.
+    expect(document.querySelectorAll('[aria-current="step"]')).toHaveLength(1)
+    expect(document.querySelector('[aria-current="step"]')?.getAttribute('aria-label')).toMatch(/^Lesson /)
+    expect(screen.getByRole('button', { name: 'Test early' })).toBeTruthy()
+    expect(document.querySelector('.topic-tray')).toBeNull()
   })
 
   it('reads acquisition progress in its own units, never as a retention gap', () => {
@@ -419,8 +433,8 @@ describe('partially acquired Morse is never routed to Test', () => {
     expect(rowFor(resumed.title, todayDocket()).textContent).not.toContain('retrievals')
     cleanup()
     renderTopicPage(resumed)
-    expect(document.querySelector('.topic-state-label')?.textContent).toBe(journeyFor(resumed).statusLabel)
-    expect(document.querySelector('.topic-primary')?.textContent).toBe(journeyFor(resumed).primaryLabel)
+    expect(document.querySelector('[aria-current="step"]')?.getAttribute('aria-label')).toMatch(/^Lesson /)
+    expect(screen.getByRole('img', { name: `${journeyFor(resumed).acquisition.settled} of 26 letters` })).toBeTruthy()
     const stored = JSON.parse(localStorage.getItem(STORE_KEY) ?? '{}') as { topics?: Topic[] }
     expect(stored.topics?.find(topic => topic.id === resumed.id)?.lessonSitting).toEqual(resumed.lessonSitting)
     // Plain terminology: the finite sitting is a retrieval budget, not a score.
@@ -459,7 +473,8 @@ describe('acquisition readiness moves every surface together', () => {
     // First exposure was forty days ago. Under the old rule the topic has read
     // `Ready to drill` for thirty-nine of them.
     expect(topic.learningAt).not.toBeNull()
-    expect(topicSchedule(topic)).toBe('Ready to test')
+    renderTopicPage(topic)
+    expect(screen.getByRole('button', { name: 'A–Z Test, available, current' })).toBeTruthy()
     cleanup()
     expect(libraryGroup(topic)).toBe('Started')
   })
@@ -564,28 +579,41 @@ describe('ordinary topic browsing and enrollment', () => {
     const ordinary = blank('cardinal-bearings')
     renderTopicPage(ordinary)
 
-    // The separate reading route repeated this page's title, scope and every
-    // item. The material is now the body of the page, visible and unconcealed,
-    // which is what a surface that hides nothing should look like.
-    expect(document.querySelectorAll('.topic-recall-cards > li')).toHaveLength(ordinary.items.length)
+    // The complete scored set is the body of the page, one spine row per item,
+    // visible and unconcealed: a surface that hides nothing.
+    expect(document.querySelectorAll('.topic-items .topic-item')).toHaveLength(ordinary.items.length)
+    expect(screen.getByRole('list', { name: 'Items' })).toBeTruthy()
     expect(document.body.textContent).not.toContain('Show all')
-    expect(document.querySelector('.morse-path')).toBeNull()
-    // Reference cards expose answers; the concealed-answer Test card is absent.
+    expect(document.querySelector('.morse-progress-path')).toBeNull()
+    // Reference rows expose answers; the concealed-answer Test card is absent.
     expect(document.querySelector('.flip-card')).toBeNull()
+    for (const item of ordinary.items) expect(document.body.textContent).toContain(item.answer)
   })
 
-  it('puts the scored set before closed briefing folds, with its boundary visible', () => {
+  it('keeps visible briefing support on its own Learn screen, opening on its lede', () => {
     const briefed = blank('ooda-loop')
-    renderTopicPage(briefed)
+    const onReference = vi.fn()
+    render(
+      <LibraryProvider>
+        <TopicPage topic={briefed} onBack={() => undefined} onStart={() => undefined}
+          onReference={onReference} onEdit={() => undefined} onDelete={() => undefined} />
+      </LibraryProvider>,
+    )
+    // The topic page carries the scored set; the explanation is one tile away.
+    expect(document.querySelector('.learn-support')).toBeNull()
+    expect(document.querySelectorAll('.topic-items .topic-item')).toHaveLength(briefed.items.length)
+    fireEvent.click(screen.getByRole('button', { name: 'Learn' }))
+    expect(onReference).toHaveBeenCalledWith(briefed.id)
+    cleanup()
 
-    expect(document.querySelector('.learn-support')).not.toBeNull()
-    expect(screen.getByRole('heading', { name: 'What to remember', level: 2 })).toBeTruthy()
-    expect(document.querySelectorAll('.topic-recall-cards > li')).toHaveLength(briefed.items.length)
-    const reference = document.querySelector('.topic-reference')!
+    render(<TopicReading topic={briefed} onBack={() => undefined} />)
     const support = document.querySelector('.learn-support')!
-    expect(reference.compareDocumentPosition(support) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-    expect(support.querySelectorAll('details')).not.toHaveLength(0)
-    expect(support.querySelector('details[open]')).toBeNull()
+    expect(support).not.toBeNull()
+    // The lede opens the screen; the scope moves to the sources sheet (a survival topic's safety boundary stays).
+    expect(document.querySelector('.topic-scope')).toBeNull()
+    expect(support.querySelector('.learn-overview')?.textContent).toBe(briefed.learn!.overview)
+    expect(support.querySelector('h3')).toBeTruthy()
+    expect(support.querySelector('details, summary')).toBeNull()
   })
 
   it('keeps page-open side-effect free and starts only on the deliberate action', async () => {
@@ -601,8 +629,8 @@ describe('ordinary topic browsing and enrollment', () => {
     )
     expect(beforeBrowse).toEqual(fresh)
     renderTopicPage(fresh)
-    expect(document.querySelector('.topic-primary')?.textContent).toBe('Test')
-    expect(document.querySelectorAll('.topic-recall-cards > li')).toHaveLength(fresh.items.length)
+    expect(topicTestLabel()).toBe('Test')
+    expect(document.querySelectorAll('.topic-items .topic-item')).toHaveLength(fresh.items.length)
     await waitFor(() => {
       const stored = JSON.parse(localStorage.getItem(STORE_KEY) ?? '{}') as { topics?: Topic[] }
       expect(stored.topics?.find((topic) => topic.id === fresh.id)).toEqual(beforeBrowse)
@@ -628,7 +656,7 @@ describe('ordinary topic browsing and enrollment', () => {
     expect(journey.advancementEligible).toBe(false)
 
     renderTopicPage(empty)
-    expect(document.querySelector('.topic-primary')).toBeNull()
+    expect(document.querySelector('.topic-tray')).toBeNull()
     expect(document.body.textContent).toContain('no items yet')
     expect(screen.getByRole('button', { name: 'Add items' })).toBeTruthy()
   })
@@ -639,32 +667,25 @@ describe('opening Morse lands on the curriculum', () => {
     renderTopicPage(blank(MORSE_ID))
 
     // Thirteen lessons, four word checkpoints and the Test that closes them.
-    expect(document.querySelectorAll('.morse-path-lesson')).toHaveLength(13)
-    expect(document.querySelectorAll('.morse-path-checkpoint')).toHaveLength(4)
-    expect(document.querySelectorAll('.morse-path-check')).toHaveLength(1)
+    expect(document.querySelectorAll('.morse-progress-lesson')).toHaveLength(13)
+    expect(document.querySelectorAll('.morse-progress-checkpoint')).toHaveLength(4)
+    expect(document.querySelectorAll('.morse-progress-test')).toHaveLength(1)
 
     // The reference used to be twenty-six cards sitting on this page, which was
     // right when the page had nothing better to be. The curriculum is better,
     // and a long lookup deserves its own surface rather than the top of this one.
     expect(document.querySelectorAll('.morse-ref-card')).toHaveLength(0)
-    expect(screen.getByRole('button', { name: 'A–Z reference' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'A–Z' })).toBeTruthy()
     expect(document.body.textContent).not.toContain('Show all 26 items')
   })
 
   it('shows the whole finite shape from the first sitting, locked entries included', () => {
     renderTopicPage(blank(MORSE_ID))
 
-    const cues = [...document.querySelectorAll('.morse-path-lesson')].map((item) =>
-      item.querySelector('.morse-path-cue')?.textContent ?? null,
-    )
-    // The current lesson says what a tap does; a locked one says nothing,
-    // because it is not a control.
-    expect(cues[0]).toBe('Continue')
-    expect(cues.slice(1).every((cue) => cue === null)).toBe(true)
-    // A locked entry is stated, never offered as a control that does nothing.
-    const locked = [...document.querySelectorAll('.morse-path-item.is-locked')]
+    expect(screen.getByRole('button', { name: 'Start, current' })).toBeTruthy()
+    const locked = [...document.querySelectorAll('.morse-progress-row.is-locked')]
     expect(locked.length).toBeGreaterThan(0)
-    expect(locked.every((row) => row.querySelector('button') === null)).toBe(true)
-    expect([...document.querySelectorAll('button')].some((b) => b.disabled)).toBe(false)
+    expect(locked.every(row => row.getAttribute('aria-disabled') === 'true')).toBe(true)
+    expect(document.querySelectorAll('[aria-current="step"]')).toHaveLength(1)
   })
 })

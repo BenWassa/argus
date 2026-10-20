@@ -1,4 +1,3 @@
-// Owns guided sending state, pause-delimited keying, review and formative scoring.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { MORSE_LETTERS, decodePattern, type MorseLetter } from '../../../domain/morse/code'
 import { judgeCopy, type CopyJudgement } from '../../../domain/morse/fluency/copy'
@@ -9,52 +8,48 @@ import {
   type FreeToken,
 } from '../../../domain/morse/fluency/freePlay'
 import {
+  recordFluencyBest,
+  type MorseFluencyProgress,
+} from '../../../domain/morse/fluency/progress'
+import {
   SEND_STAGE_INFO,
   sendBestKey,
   sendPrompts,
   sendRunScore,
   type SendStage,
 } from '../../../domain/morse/fluency/send'
-import {
-  recordFluencyBest,
-  type MorseFluencyProgress,
-} from '../../../domain/morse/fluency/progress'
 import { fire } from '../../../shared/haptics'
 import { useKeyedResponse } from '../input/useKeyedResponse'
 import { useMorseAudio } from '../useMorseAudio'
-
 export interface SendRunProps {
   stage: SendStage
   progress: MorseFluencyProgress
   onProgress: (next: MorseFluencyProgress) => void
   onStage: (stage: SendStage) => void
   onExit: () => void
+  /** Characters material may contain (#257): the taught roster before acquisition; absent, no limit. */
+  allowed?: ReadonlySet<string>
   /** Deterministic injection for unit tests. One run otherwise gets one seed at mount. */
   seed?: number
 }
-
 type RunPhase = 'sending' | 'review' | 'done'
-
 interface DoneState {
   score: number
   improved: boolean
 }
-
-export function flowText(tokens: readonly FreeToken[]): string {
+function flowText(tokens: readonly FreeToken[]): string {
   return tokens
     .map((token) => (token.kind === 'space' ? ' ' : token.character ?? '?'))
     .join('')
     .replace(/\s+/g, ' ')
     .trim()
 }
-
 function nonSpaceTokens(tokens: readonly FreeToken[]): number {
   return tokens.filter((token) => token.kind === 'character').length
 }
-
-export function useSendRun({ stage, progress, onProgress, seed }: SendRunProps) {
-  const [runSeed] = useState(() => seed ?? Date.now())
-  const prompts = useMemo(() => sendPrompts(stage, runSeed), [runSeed, stage])
+export function useSendRun({ stage, progress, onProgress, allowed, seed }: SendRunProps) {
+  const [runSeed] = useState(() => seed ?? 0)
+  const prompts = useMemo(() => sendPrompts(stage, runSeed, allowed), [allowed, runSeed, stage])
   const meta = SEND_STAGE_INFO[stage]
   const correctionAudio = useMorseAudio()
 
@@ -71,6 +66,7 @@ export function useSendRun({ stage, progress, onProgress, seed }: SendRunProps) 
   const [spotlightFeedback, setSpotlightFeedback] = useState<{
     correct: boolean
     letter: MorseLetter
+    pattern: string
   } | null>(null)
 
   // Open-ended flow state.
@@ -193,7 +189,7 @@ export function useSendRun({ stage, progress, onProgress, seed }: SendRunProps) 
     const nextGiven = `${spotlightGivenRef.current}${decoded}`
     spotlightGivenRef.current = nextGiven
     setSpotlightGiven(nextGiven)
-    setSpotlightFeedback({ correct, letter })
+    setSpotlightFeedback({ correct, letter, pattern })
     fire(correct ? 'settle' : 'miss')
     keyed.answered(correct)
   }
@@ -236,29 +232,6 @@ export function useSendRun({ stage, progress, onProgress, seed }: SendRunProps) 
     fire(recorded.improved ? 'crest' : 'word')
   }
 
-  return {
-    prompts,
-    meta,
-    correctionAudio,
-    phase,
-    promptIndex,
-    review,
-    done,
-    characterIndex,
-    spotlightGiven,
-    spotlightFeedback,
-    tokens,
-    entry,
-    advanceToken,
-    target,
-    keyed,
-    continueSpotlightCorrection,
-    clearPause,
-    onFlowEntry,
-    commitPattern,
-    addWordGap,
-    answerSpotlight,
-    finishMessage,
-    nextFromReview,
-  }
+
+  return { prompts, meta, correctionAudio, phase, promptIndex, judgements, review, done, characterIndex, spotlightGiven, spotlightFeedback, tokens, entry, advanceToken, target, keyed, continueSpotlightCorrection, clearPause, commitPattern, onFlowEntry, addWordGap, answerSpotlight, finishMessage, nextFromReview }
 }

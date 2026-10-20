@@ -1,93 +1,34 @@
-import { correctionLetter } from '../../../domain/morse/correction'
 import { MORSE_FIGURES, MORSE_LETTERS, MORSE_PUNCTUATION } from '../../../domain/morse/code'
+import { correctionLetter } from '../../../domain/morse/correction'
+import {
+  COPY_PLAYS_PER_PROMPT
+} from '../../../domain/morse/fluency/copy'
 import { canonicalPattern } from '../../../domain/morse/testing/acquisitionProfile'
-import { COPY_CLEAR_ACCURACY, COPY_LEVELS, COPY_LEVEL_INFO, COPY_PLAYS_PER_PROMPT } from '../../../domain/morse/fluency/copy'
+import { RoundResult, SessionCorrect, SessionFrame } from '../../../shared/ui/SessionFrame'
 import { MorseCharacterSupport } from '../MorseCharacterSupport'
-import { useCopyRun, type CopyRunProps } from './useCopyRun'
+import { MorseListenPlay } from '../MorseListenPlay'
 import './Fluency.css'
-
+import { useCopyRun, type CopyRunProps } from './useCopyRun'
 const INTRODUCTIONS = {
   figures: {
     heading: 'The ten figures',
-    lines: [
-      'Every figure is five marks long, so you are listening for where the switch from dits to dahs falls.',
-      '1 to 5 start with dits: the figure is how many dits come first. 6 to 9 start with dahs: take away 5 and that is how many dahs come first. 0 is five dahs.',
-    ],
     table: MORSE_FIGURES,
   },
   punctuation: {
     heading: 'Four marks of punctuation',
-    lines: [
-      'The full stop is A three times. The comma and the question mark are both symmetrical — the comma is dahs outside, the question mark is dits outside. The slash is D and N run together.',
-    ],
     table: MORSE_PUNCTUATION,
   },
 } as const
-
-/**
- * One Copy run: hear it, write it down.
- *
- * The learner may type while it plays, which is how copying actually works,
- * and may hear each prompt twice — once, and once more — because a second
- * hearing is ordinary in copy practice and unlimited replays would turn it
- * into reading a recording. Enter drives the whole loop from the keyboard:
- * play, answer, continue.
- *
- * Imports no store, no scheduler and no evidence recorder, for the same reason
- * `FluencyRun` does not; `FluencyBoundary.test.ts` holds both to it.
- */
-export function CopyRun({ level, rung, progress, focus, onProgress, onLevel, onExit }: CopyRunProps) {
-  const {
-    info,
-    correctionAudio,
-    prompts,
-    prompt,
-    at,
-    phase,
-    setPhase,
-    typed,
-    setTyped,
-    plays,
-    playing,
-    audioError,
-    judgements,
-    crested,
-    inputRef,
-    headingRef,
-    play,
-    canPlay,
-    canCheck,
-    check,
-    advance,
-    score,
-  } = useCopyRun({ level, rung, progress, focus, onProgress, onLevel, onExit })
-
-  const bar = (position: string | null) => (
-    <div className="session-bar">
-      <p>
-        <span className="session-topic">Copy · {info.title}</span>
-      </p>
-      {position && <span className="session-count tabular">{position}</span>}
-      <button className="ghost small" type="button" onClick={onExit}>
-        Close
-      </button>
-    </div>
-  )
-
+export function CopyRun({ level, rung, progress, focus, allowed, onProgress, onLevel, onExit, toolbar, seed = 0 }: CopyRunProps) {
+  const { info, correctionAudio, prompts, phase, setPhase, typed, setTyped, plays, playing, audioError, judgements, inputRef, headingRef, prompt, play, canPlay, canCheck, check, advance, frame } = useCopyRun({ level, rung, progress, focus, allowed, onProgress, onLevel, onExit, toolbar, seed })
   if (phase.kind === 'intro' && info.introduces) {
     const intro = INTRODUCTIONS[info.introduces]
     return (
-      <section className="session fluency-run copy-run">
-        {bar(null)}
+      <SessionFrame {...frame} className="fluency-run copy-run">
         <div className="fluency-head">
-          <h1 ref={headingRef} tabIndex={-1}>
+          <h2 ref={headingRef} tabIndex={-1} className="session-prompt-heading">
             {intro.heading}
-          </h1>
-          {intro.lines.map((line) => (
-            <p key={line} className="lede-text">
-              {line}
-            </p>
-          ))}
+          </h2>
         </div>
         <ul className="copy-table" aria-label={intro.heading}>
           {Object.entries(intro.table).map(([glyph, pattern]) => (
@@ -99,7 +40,6 @@ export function CopyRun({ level, rung, progress, focus, onProgress, onLevel, onE
             </li>
           ))}
         </ul>
-        <p className="note copy-table-note">Tap any of them to hear it.</p>
         {audioError && (
           <p className="fluency-audio-error" role="status">
             {audioError}
@@ -115,58 +55,14 @@ export function CopyRun({ level, rung, progress, focus, onProgress, onLevel, onE
         >
           Start copying
         </button>
-      </section>
+      </SessionFrame>
     )
   }
 
   if (phase.kind === 'done') {
-    const cleared = score >= COPY_CLEAR_ACCURACY * 100
-    const exact = judgements.filter((judgement) => judgement.correct).length
-    const following = COPY_LEVELS[COPY_LEVELS.indexOf(level) + 1]
-    return (
-      <section className="session fluency-run copy-run">
-        {bar(null)}
-        <div className="fluency-summary">
-          <h1 ref={headingRef} tabIndex={-1}>
-            {info.title} done
-          </h1>
-          <p className="fluency-score">
-            <strong className="tabular">{score}%</strong> of characters copied
-          </p>
-          <p className="fluency-metric tabular">
-            {exact} of {judgements.length} exactly right
-          </p>
-          {crested && (
-            <p className="fluency-crest" role="status">
-              Personal best.
-            </p>
-          )}
-          {cleared && following ? (
-            <>
-              <p className="note">Ninety percent or better. {COPY_LEVEL_INFO[following].title} is next.</p>
-              <button type="button" onClick={() => onLevel(following)}>
-                Go on to {COPY_LEVEL_INFO[following].title.toLowerCase()}
-              </button>
-            </>
-          ) : cleared ? (
-            <p className="note">
-              Every level at ninety percent or better. Take the spacing down a notch and go round again.
-            </p>
-          ) : (
-            <p className="note">Ninety percent clears the level. Another run draws new material.</p>
-          )}
-          <button className={cleared && following ? 'ghost' : undefined} type="button" onClick={() => onLevel(level)}>
-            Another run
-          </button>
-          <p className="lesson-foot">
-            Nothing here changed your saved progress, your check evidence or your completion.
-          </p>
-          <button className="ghost" type="button" onClick={onExit}>
-            Done
-          </button>
-        </div>
-      </section>
-    )
+    return <SessionFrame {...frame} className="fluency-run copy-run">
+      <RoundResult extra={toolbar} correct={judgements.filter(judgement => judgement.correct).length} total={prompts.length} onAgain={() => onLevel(level)} onDone={onExit} />
+    </SessionFrame>
   }
 
   if (!prompt) return null
@@ -174,22 +70,21 @@ export function CopyRun({ level, rung, progress, focus, onProgress, onLevel, onE
   const correctionGlyph = judgement && !judgement.correct ? correctionLetter(judgement.expected, judgement.given) : null
 
   return (
-    <section className="session fluency-run copy-run" data-step="check">
-      {bar(`${at + 1}/${prompts.length}`)}
+    <SessionFrame {...frame} className="fluency-run copy-run" data-step="check">
 
       <div className="fluency-target">
-        <h1 className="sr-only">Listen, then type what you heard.</h1>
-        <p className="lesson-task">Hear it, write it</p>
+        <h2 className="session-prompt-heading sr-only">Listen, then type what you heard.</h2>
+        <p className="lesson-task">Copy</p>
 
+        {/* The shared Listen control (#263); two hearings, counted under it. */}
         <div className="fluency-listen">
-          <button
-            type="button"
-            className="fluency-play"
+          <MorseListenPlay
+            label={playing ? 'Playing' : plays === 0 ? 'Play' : plays < COPY_PLAYS_PER_PROMPT ? 'Play once more' : 'Heard twice'}
+            icon={plays === 0 ? 'play' : 'replay'}
             onClick={() => void play(prompt, true)}
             disabled={!canPlay}
-          >
-            {playing ? 'Playing' : plays === 0 ? 'Play' : plays < COPY_PLAYS_PER_PROMPT ? 'Play once more' : 'Heard twice'}
-          </button>
+            readout={`${Math.min(plays, COPY_PLAYS_PER_PROMPT)} / ${COPY_PLAYS_PER_PROMPT}`}
+          />
         </div>
 
         {audioError && (
@@ -235,42 +130,40 @@ export function CopyRun({ level, rung, progress, focus, onProgress, onLevel, onE
           )}
         </form>
 
-        {judgement && (
-          <div
-            className={`fluency-feedback copy-feedback${judgement.correct ? ' is-correct' : ' is-wrong'}`}
-            role="status"
-            aria-live="assertive"
-          >
-            <strong>{judgement.correct ? 'Correct' : `${Math.round(judgement.accuracy * 100)}%`}</strong>
+        {judgement?.correct && (
+          <div className="fluency-feedback copy-feedback is-correct" role="status" aria-live="assertive">
+            <SessionCorrect target={judgement.expected} announce={false} />
             <p className="copy-expected">
-              {judgement.words.map((word, index) => (
-                <span key={index} className={word.ok ? undefined : 'is-wrong-char'}>
-                  {word.text}
-                </span>
-              ))}
+              {judgement.words.map((word, index) => <span key={index}>{word.text}</span>)}
             </p>
-            {!judgement.correct && (
-              <>
-                <p className="copy-given mono">
-                  You wrote <span>{judgement.given || '—'}</span>
-                </p>
-                {correctionGlyph && (
-                  <MorseCharacterSupport
-                    glyph={correctionGlyph}
-                    pattern={MORSE_LETTERS[correctionGlyph]}
-                    playing={correctionAudio.sounding?.glyph === correctionGlyph}
-                    onToggle={() => correctionAudio.toggle(correctionGlyph)}
-                    audioError={correctionAudio.audioError}
-                  />
-                )}
-                <button type="button" className="lesson-next" onClick={advance}>
-                  Continue
-                </button>
-              </>
-            )}
           </div>
         )}
+
+        {judgement && !judgement.correct && (
+          <SessionCorrect className="copy-miss" miss={{
+            said: judgement.given,
+            saidLabel: 'You wrote',
+            answer: <>
+              <p className="copy-expected">
+                {judgement.words.map((word, index) => (
+                  <span key={index} className={word.ok ? undefined : 'is-wrong-char'}>{word.text}</span>
+                ))}
+              </p>
+              {correctionGlyph && (
+                <MorseCharacterSupport
+                  glyph={correctionGlyph}
+                  pattern={MORSE_LETTERS[correctionGlyph]}
+                  playing={correctionAudio.sounding?.glyph === correctionGlyph}
+                  onToggle={() => correctionAudio.toggle(correctionGlyph)}
+                  audioError={correctionAudio.audioError}
+                />
+              )}
+            </>,
+            onContinue: advance,
+          }} />
+        )}
       </div>
-    </section>
+    </SessionFrame>
   )
+
 }

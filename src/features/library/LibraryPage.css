@@ -4,18 +4,20 @@
    next move is the topic page's decision, and Today's, not a column of buttons
    down this one. */
 
-.lib-count {
-  margin-top: 5px;
-}
-
 /* --------------------------------------------------------------- search -- */
 
 /* One control until it is wanted. Opened, the field grows leftwards from
    where the control sat and covers the heading, rather than claiming a
-   permanent band of the screen for something used now and then. */
+   permanent band of the screen for something used now and then. The heading
+   and its count are the kit's ScreenHeader. */
 .lib-head {
   position: relative;
   min-height: 56px;
+}
+
+/* The last plate scrolls clear of the floating add. */
+.lib-list {
+  padding-bottom: calc(56px + var(--s-lg));
 }
 
 .lib-search-box {
@@ -138,8 +140,8 @@
 }
 
 /* The unstarted shelf, by track. Each run is headed by its track's name in
-   its own metal, with a hairline of the same metal running out to the edge:
-   the colour is named where it is used, and nowhere is it a surface. */
+   its own colour, with a neutral hairline running out to the edge: the colour
+   is named where it is used, and nowhere is it a surface. */
 .lib-track + .lib-track {
   margin-top: var(--s-lg);
 }
@@ -163,7 +165,7 @@
   content: '';
   flex: 1;
   height: 1px;
-  background: color-mix(in oklch, var(--track-hue) 28%, transparent);
+  background: var(--line);
 }
 
 .lib-track-head + .index {
@@ -172,11 +174,11 @@
 
 /* ------------------------------------------------------------------ rows -- */
 
-/* Topics are available immediately when Library opens. Progress gauges keep
-   their own state feedback without delaying the list's readability. */
-/* Each topic is a stamped plate. A started topic's plate is raised, bevelled
-   top and bottom; one not yet started sits flush with the chassis. The whole
-   plate is the control, so there is no chevron: a plate already says "press". */
+/* Each topic is a solid plate: the kit's plate classes on the control itself,
+   so the whole plate is the button and needs no chevron. A started topic is
+   raised one fill step; one not yet started sits flush. `.index-row` is kept
+   for the shared selectors, so the plate fill and line are restated here at its
+   specificity, whichever stylesheet loads last. */
 .index-row.lib-row {
   grid-template-columns: minmax(0, 1fr);
   align-items: start;
@@ -185,59 +187,54 @@
   padding: var(--s-md) var(--s-lg) var(--s-md) var(--s-md);
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
-  background: var(--surface);
+  background: var(--plate);
+  box-shadow: none;
   transition:
     background var(--t-fast) var(--ease),
     border-color var(--t-fast) var(--ease),
-    transform var(--t-fast) var(--ease),
-    box-shadow var(--t-fast) var(--ease);
+    transform var(--t-fast) var(--ease);
 }
 
 .index-row.lib-row::after {
   content: none;
 }
 
-.index-row.lib-row[data-started] {
-  border-color: var(--line-strong);
-  border-top-color: var(--line-hover);
-  background: var(--sheen), var(--gradient-ghost);
-  box-shadow: var(--edge), var(--edge-under), var(--shadow-sm);
+.index-row.lib-row.plate-raised {
+  background: var(--plate-raised);
+  box-shadow: var(--shadow-sm);
 }
 
-/* Decay is the one thing tarnish means, so a plate that needs repair takes it
-   in its full hairline as well as its reading. */
-.index-row.lib-row[data-repair] {
-  border-color: color-mix(in oklch, var(--warning) 45%, var(--line-strong));
+/* Decay is the one thing copper means, so a plate that needs repair takes it
+   in its hairline as well as its reading. */
+.index-row.lib-row.plate-repair {
+  border-color: var(--warning);
 }
 
 .index-row.lib-row:hover {
   border-color: var(--line-hover);
-  background: var(--surface-2);
+  background: var(--plate-raised);
 }
 
-.index-row.lib-row[data-started]:hover {
-  background: var(--sheen), var(--gradient-ghost-hover);
+.index-row.lib-row.plate-raised:hover {
+  background: var(--surface-3);
+}
+
+.index-row.lib-row.plate-repair:hover {
+  border-color: var(--warning);
 }
 
 /* Held, the plate drops into the chassis like every other control. */
 .index-row.lib-row:active,
-.index-row.lib-row[data-started]:active {
+.index-row.lib-row.plate-raised:active {
   transform: translateY(1px);
-  background: var(--surface-2);
+  background: var(--surface-3);
   box-shadow: var(--press);
 }
 
-/* The reading spans the whole plate under the title, stud column included,
-   so the gauge runs the full width of the row. */
+/* The reading spans the whole plate under the title, icon column included. */
 .index-row.lib-row > .gauge-row,
 .index-row.lib-row > .lib-row-reading {
   grid-column: 1 / -1;
-}
-
-/* An unstarted plate is the title alone. */
-.index-row.lib-row:not([data-started]) {
-  grid-template-columns: minmax(0, 1fr);
-  padding-left: var(--s-lg);
 }
 
 .index-row.lib-row .index-title {
@@ -257,47 +254,67 @@
   min-width: 0;
 }
 
+/* The glyph is a mask filled solid in the topic's track colour. */
+.topic-icon {
+  display: block;
+  flex: none;
+  background: var(--track-hue, var(--topic-track, var(--muted)));
+  -webkit-mask: var(--topic-icon-src) center / contain no-repeat;
+  mask: var(--topic-icon-src) center / contain no-repeat;
+}
+
 .index-row.lib-row .topic-icon {
   width: 28px;
   height: 28px;
-  object-fit: contain;
 }
 
-/* The row's gauge: a full-width track with its reading beneath, in its units.
-   The stagger carries on into the fill, so each bar fills just after its plate
-   lands. */
+/* The row's gauge is a short straight line with its reading beside it: the
+   same recessed track the ScreenHeader bar uses (8px, 1px line, 4px radius),
+   filled solid in the topic's track colour. The reading wraps beneath it at
+   enlarged text. The stagger carries on into the fill, so each bar fills just
+   after its plate lands. */
 .index-row.lib-row .gauge-row {
-  display: grid;
-  gap: 7px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-xs) var(--s-md);
   --gauge-delay: calc(var(--order, 0) * 24ms + 180ms);
+}
+
+.index-row.lib-row .gauge-row .gauge-track {
+  flex: 0 1 112px;
+  width: 112px;
+  min-width: 56px;
+  height: 8px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--field);
+  box-shadow: none;
+}
+
+.index-row.lib-row .gauge-row .gauge-fill {
+  border-radius: 0;
 }
 
 .index-row.lib-row .gauge-label,
 .lib-row-reading {
   font-family: var(--font-mono);
-  font-size: 0.875rem;
+  font-size: var(--t-readout);
   font-weight: 700;
   letter-spacing: var(--track-readout);
   line-height: 1.3;
   text-transform: uppercase;
-  color: var(--subtle);
+  color: var(--muted);
 }
 
-/* Tarnish, and only here: the one warm colour, spent on the one state it
-   means. A small diamond leads it so it is not colour alone. */
+/* Copper, and only here: the one warm colour, spent on the one state it means.
+   A small diamond leads it so it is never colour alone. */
 .lib-repair {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
   color: var(--warning);
 }
 
 .lib-repair::before {
-  content: '';
-  width: 6px;
-  height: 6px;
-  background: var(--warning);
-  transform: rotate(45deg);
+  content: '\25C6\00a0';
 }
 
 /* The global rule shortens durations but not delays, and a staggered row held
@@ -311,6 +328,10 @@
   .lib-fab:hover svg {
     transform: none;
   }
+
+  .index-row.lib-row {
+    transition: none;
+  }
 }
 
 /* --------------------------------------------------------- empty states -- */
@@ -323,7 +344,7 @@
 }
 
 .lib-blank p {
-  color: var(--muted);
+  color: var(--ink);
 }
 
 .lib-blank-actions {
@@ -335,11 +356,10 @@
 
 /* --------------------------------------------------------------- add fab -- */
 
-/* The one "+" in the product. Fixed above the thumb, clear of the bottom
-   nav on mobile. Circular and lit, because it is
-   the single most-repeated action on the page and earns the accent — but
-   --shadow-lift stays reserved for the completion moment and sheets, so
-   this sits at flashcard depth instead. */
+/* The one signal-yellow action on Library, and the one "+" in the product.
+   Fixed above the thumb, clear of the bottom nav on mobile. Solid, at the
+   modest small-control depth: the deep shadows stay with the session card and
+   sheets. */
 .lib-fab {
   position: fixed;
   right: max(var(--s-lg), env(safe-area-inset-right));
@@ -351,7 +371,7 @@
   display: inline-grid;
   place-items: center;
   border-radius: var(--r-pill);
-  box-shadow: var(--edge), var(--edge-under), var(--shadow);
+  box-shadow: var(--shadow-sm);
   transition:
     transform var(--t-fast) var(--ease),
     background var(--t-fast) var(--ease);
@@ -369,53 +389,13 @@
    depth, not as a one-pixel drop. */
 .lib-fab:active {
   transform: scale(0.94);
-  box-shadow: var(--edge), var(--press-lit), var(--shadow-sm);
+  box-shadow: var(--press-lit);
 }
 
 @media (min-width: 980px) {
   .lib-fab {
     bottom: var(--s-2xl);
   }
-}
-
-/* ------------------------------------------------------------- add menu -- */
-
-.add-menu {
-  display: grid;
-  gap: var(--s-sm);
-}
-
-.add-menu-option {
-  display: grid;
-  gap: 3px;
-  justify-items: start;
-  padding: var(--s-md);
-  border: 1px solid var(--line);
-  border-radius: var(--r-md);
-  text-align: left;
-  background: var(--surface-2);
-  box-shadow: none;
-}
-
-.add-menu-option:hover {
-  border-color: var(--line-hover);
-  background: var(--surface-3);
-}
-
-.add-menu-option:active {
-  box-shadow: var(--press);
-}
-
-.add-menu-option-title {
-  font-family: var(--font-display);
-  font-size: var(--t-component);
-  font-weight: var(--w-component);
-  color: var(--ink);
-}
-
-.add-menu-option-note {
-  font-size: var(--t-small);
-  color: var(--subtle);
 }
 
 /* Long names must reflow inside the plate at enlarged text sizes. */

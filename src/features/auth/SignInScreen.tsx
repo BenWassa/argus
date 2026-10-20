@@ -77,7 +77,6 @@ export function SignInScreen({
     <main className="signin" id="main" tabIndex={-1}>
       <section className="signin-shell" aria-labelledby="signin-title">
         <div className="signin-media" aria-hidden="true">
-          <img className="signin-media-backdrop" src={poster} alt="" draggable={false} />
           <img
             className={`signin-poster${videoReady && !mediaFailed ? ' is-covered' : ''}`}
             src={poster}
@@ -104,7 +103,6 @@ export function SignInScreen({
               <source src={`${import.meta.env.BASE_URL}media/splashv1.mp4`} type="video/mp4" />
             </video>
           )}
-          <div className="signin-media-separator" />
         </div>
 
         <div className="signin-content">
@@ -112,7 +110,6 @@ export function SignInScreen({
             <h1 className="signin-mark" id="signin-title">
               Argus
             </h1>
-            <p className="signin-lede">A library of things you can actually finish.</p>
           </header>
 
           {restoring ? (
@@ -133,9 +130,6 @@ export function SignInScreen({
                 {busy ? <span className="signin-spinner" aria-hidden="true" /> : <GoogleMark />}
                 <span>{busy ? 'Signing in…' : 'Continue with Google'}</span>
               </button>
-              <p className="signin-note">
-                Your library syncs to your account and stays available on this device.
-              </p>
             </>
           )}
 

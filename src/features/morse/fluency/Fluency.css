@@ -1,40 +1,129 @@
-/* Ordered fluency styles; keep imports and final shared overrides in cascade order. */
-/*
- * Fluency shares the session chrome with Learn and the checkpoints; what is
- * here is only what those do not already provide.
- *
- * The celebration rule this file implements: feedback weight is proportional
- * to how rare the event is. A correct character changes a colour and nothing
- * moves. A personal best is the only thing allowed a full-width moment, and
- * even that is one line of text and a short fade. Nothing here is bigger than
- * the thing it is reporting.
- */
+@import './CopyRun.css';
+@import './FluencyRun.css';
+@import './FreePlay.css';
 
-@import "./FluencyHome.css";
-@import "./CopyRun.css";
-@import "./FluencyDiagnostics.css";
-@import "./FluencyRun.css";
-@import "./FreePlay.css";
+/* ---- short landscape --------------------------------------------------- */
 
-/* A long answer and a large-text submit label must both fit a phone. */
-@media (max-width: 480px) {
-  .copy-answer {
-    grid-template-columns: minmax(0, 1fr);
+/* A short landscape display has width to spare and no height: the prompt and
+   its Play control sit beside the key (or the typed answer) rather than above
+   it, the same arrangement the Morse checkpoint uses, so the first key press
+   is reachable without a scroll. */
+@media (orientation: landscape) and (max-height: 560px) and (min-width: 600px) {
+  .fluency-run .fluency-target {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+    grid-template-rows: auto auto auto;
+    align-content: center;
+    align-items: center;
+    justify-items: center;
+    gap: var(--s-sm) var(--s-lg);
+    width: min(100%, 44rem);
   }
+
+  .fluency-run .fluency-target > * {
+    margin: 0;
+  }
+
+  .fluency-run .fluency-target > .lesson-task {
+    grid-column: 1;
+    grid-row: 1;
+    align-self: end;
+  }
+
+  .fluency-run .fluency-target > .fluency-listen {
+    grid-column: 1;
+    grid-row: 2;
+    align-self: start;
+  }
+
+  .fluency-run .fluency-target > .fluency-audio-error {
+    grid-column: 1;
+    grid-row: 3;
+  }
+
+  .fluency-run .fluency-target > .fluency-answer-area,
+  .fluency-run .fluency-target > .fluency-feedback {
+    grid-column: 2;
+    grid-row: 1 / span 3;
+    align-self: start;
+    min-width: 0;
+  }
+
+  /* Copy keeps its field above the verdict, both in the right-hand column. */
+  .fluency-run .fluency-target > .copy-answer {
+    grid-column: 2;
+    grid-row: 1;
+    min-width: 0;
+  }
+
+  .fluency-run .fluency-target > .copy-feedback {
+    grid-column: 2;
+    grid-row: 2 / span 2;
+  }
+
+  .fluency-answer {
+    font-size: clamp(1.8rem, 6vw, 2.6rem);
+  }
+
+  .copy-expected {
+    font-size: 1.6rem;
+  }
+
+  .fluency-feedback {
+    gap: var(--s-xs);
+  }
+
+  /* A miss carries the whole correction (what was keyed, the word, the
+     broken character's pattern and Continue). It takes the full width, laid
+     out in two columns, because the Play control it sits under is not asking
+     for anything while the learner reads it. */
+  .fluency-run .fluency-target:has(> .fluency-miss) > .lesson-task,
+  .fluency-run .fluency-target:has(> .fluency-miss) > .fluency-listen {
+    display: none;
+  }
+
+  .fluency-run .fluency-target > .fluency-miss {
+    grid-column: 1 / -1;
+    grid-row: 1 / span 3;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+    align-items: center;
+    gap: var(--s-xs) var(--s-lg);
+    width: 100%;
+  }
+
+  /* The word joins the left column above Continue; the pattern takes the right. */
+  .fluency-run .fluency-miss > .fluency-answer { grid-column: 1; grid-row: 3; }
+  .fluency-run .fluency-miss > .session-miss-continue { grid-row: 4; }
+  .fluency-run .fluency-miss > .morse-character-support { grid-column: 2; grid-row: 1 / span 4; min-width: 0; }
+
+  /* Copy's correction sits under its field, as wide as the field. */
+  .fluency-run .fluency-target > .copy-miss {
+    grid-column: 2;
+    grid-row: 2 / span 2;
+    justify-self: stretch;
+    min-width: 0;
+  }
+
+  /* Half a screen wide: the correction stacks in one column. */
+  .fluency-run .fluency-target > .copy-miss { grid-template-columns: minmax(0, 1fr); }
+  .fluency-run .copy-miss > * { grid-column: 1; grid-row: auto; }
 }
 
-.fluency-head,
-.fluency-section,
-.fluency-mode,
-.free-play-body {
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
+/* Short landscape, any width: the free-play output and the copy table give back
+   height so the key stays on screen. */
+@media (max-height: 560px) {
+  .free-play-output {
+    min-height: 2.4em;
+    padding: var(--s-xs) var(--s-md);
+    font-size: clamp(1.1rem, 7vh, 1.5rem);
+  }
 
-/* These are section names, rather than secondary numerical readouts. */
-.fluency-section > .fluency-stats-title {
-  color: var(--ink);
-  font-size: var(--t-component);
-  letter-spacing: normal;
-  text-transform: none;
+  .free-play-body {
+    gap: var(--s-xs);
+  }
+
+  .free-play-actions button {
+    min-height: var(--control-h);
+    padding-block: var(--s-xs);
+  }
 }

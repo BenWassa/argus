@@ -1,59 +1,36 @@
-import { correctionLetter } from '../../../domain/morse/correction'
 import { MORSE_LETTERS, type MorseLetter } from '../../../domain/morse/code'
-import { nextSendStage, SEND_STAGE_INFO } from '../../../domain/morse/fluency/send'
-import type { FreeToken } from '../../../domain/morse/fluency/freePlay'
+import { correctionLetter } from '../../../domain/morse/correction'
+import {
+  type FreeToken
+} from '../../../domain/morse/fluency/freePlay'
+import { spokenRhythm as patternReading } from '../../../domain/morse/mnemonics'
+import { LEVEL_REASON_LETTERS } from '../../../domain/morse/modes'
+import { RoundResult, SessionCorrect, SessionFrame } from '../../../shared/ui/SessionFrame'
 import { MORSE_MAX_ELEMENTS, MorseKeyInput } from '../input/MorseKeyInput'
 import { MorseCharacterSupport } from '../MorseCharacterSupport'
-import { flowText, useSendRun, type SendRunProps } from './useSendRun'
+import { MorseMarks } from '../MorseMarks'
 import './SendRun.css'
-
+import { useSendRun, type SendRunProps } from './useSendRun'
+function flowText(tokens: readonly FreeToken[]): string {
+  return tokens
+    .map((token) => (token.kind === 'space' ? ' ' : token.character ?? '?'))
+    .join('')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
 function wordIndex(tokens: readonly FreeToken[]): number {
   return tokens.filter((token) => token.kind === 'space').length
 }
-
-/**
- * Printed text → keyed Morse.
- *
- * Spotlight words deliberately disclose the target character's element count:
- * this is the supported bridge from the lesson checkpoints. Every later stage
- * switches to pause-delimited open keying so the key no longer knows the
- * answer length. Press duration still chooses only dit/dah and never leaves
- * the shared control, so none of this can become sending-speed evidence.
- */
 export function SendRun({
   stage,
   progress,
   onProgress,
   onStage,
   onExit,
+  allowed,
   seed,
 }: SendRunProps) {
-  const {
-    prompts,
-    meta,
-    correctionAudio,
-    phase,
-    promptIndex,
-    review,
-    done,
-    characterIndex,
-    spotlightGiven,
-    spotlightFeedback,
-    tokens,
-    entry,
-    advanceToken,
-    target,
-    keyed,
-    continueSpotlightCorrection,
-    clearPause,
-    onFlowEntry,
-    commitPattern,
-    addWordGap,
-    answerSpotlight,
-    finishMessage,
-    nextFromReview,
-  } = useSendRun({ stage, progress, onProgress, onStage, onExit, seed })
-
+  const { prompts, meta, correctionAudio, phase, promptIndex, judgements, review, done, characterIndex, spotlightGiven, spotlightFeedback, tokens, entry, advanceToken, target, keyed, continueSpotlightCorrection, clearPause, commitPattern, onFlowEntry, addWordGap, answerSpotlight, finishMessage, nextFromReview } = useSendRun({ stage, progress, onProgress, onStage, onExit, allowed, seed })
   function renderTarget() {
     if (meta.interaction === 'spotlight') {
       return (
@@ -97,55 +74,29 @@ export function SendRun({
     )
   }
 
+  if (prompts.length === 0) {
+    return <SessionFrame kind="key" title="Key" onClose={onExit}>
+      <h2 className="session-prompt-heading">{LEVEL_REASON_LETTERS}</h2>
+    </SessionFrame>
+  }
+
+  const frame = { kind: 'key' as const, title: 'Key', onClose: onExit, progress: { current: phase === 'done' ? prompts.length : promptIndex + 1, total: prompts.length } }
   if (phase === 'done' && done) {
-    const next = nextSendStage(progress, stage)
-    return (
-      <section className="session send-run send-summary">
-        <div className="session-bar">
-          <p><span className="session-topic">Send</span></p>
-          <button className="ghost small" type="button" onClick={onExit}>Close</button>
-        </div>
-
-        <div className="send-summary-card">
-          <p className="send-kicker">Round complete</p>
-          <h1>{meta.title}</h1>
-          <p className="send-score tabular">{done.score}%</p>
-          <p className="send-summary-copy">
-            {done.improved ? 'New personal best.' : 'Round saved to your formative bests.'}
-          </p>
-
-          <div className="send-summary-actions">
-            <button type="button" onClick={() => onStage(next ?? stage)}>
-              {next ? `Next: ${SEND_STAGE_INFO[next].title}` : 'Another run'}
-            </button>
-            <button className="ghost" type="button" onClick={() => onStage(stage)}>
-              Repeat
-            </button>
-            <button className="quiet" type="button" onClick={onExit}>
-              Done
-            </button>
-          </div>
-        </div>
-      </section>
-    )
+    return <SessionFrame {...frame} className="send-run send-summary">
+      <RoundResult correct={judgements.filter(judgement => judgement.correct).length} total={prompts.length} onAgain={() => onStage(stage)} onDone={onExit} />
+    </SessionFrame>
   }
 
   if (phase === 'review' && review) {
     return (
-      <section className="session send-run send-review">
-        <div className="session-bar">
-          <p><span className="session-topic">Send</span></p>
-          <span className="session-count" aria-label={`Prompt ${promptIndex + 1} of ${prompts.length}`}>
-            {promptIndex + 1}<span className="session-count-of">/{prompts.length}</span>
-          </span>
-          <button className="ghost small" type="button" onClick={onExit}>Close</button>
-        </div>
+      <SessionFrame {...frame} className="send-run send-review">
 
         <div className="send-review-card">
           <p className="send-kicker">{review.correct ? 'Clean transmission' : 'Review'}</p>
-          <h1 className={review.correct ? 'is-correct' : undefined}>
+          <h2 className={`session-prompt-heading${review.correct ? ' is-correct' : ''}`}>
             {review.correct ? 'Received as sent' : 'Compare what arrived'}
-          </h1>
+          </h2>
+          {review.correct && <SessionCorrect target={review.expected} />}
 
           <dl className="send-compare">
             <div>
@@ -171,7 +122,7 @@ export function SendRun({
             {promptIndex + 1 < prompts.length ? 'Next' : 'Finish round'}
           </button>
         </div>
-      </section>
+      </SessionFrame>
     )
   }
 
@@ -181,27 +132,13 @@ export function SendRun({
       : undefined
 
   return (
-    <section className="session send-run">
-      <div className="session-bar">
-        <p><span className="session-topic">Send</span></p>
-        <span className="session-count" aria-label={`Prompt ${promptIndex + 1} of ${prompts.length}`}>
-          {promptIndex + 1}<span className="session-count-of">/{prompts.length}</span>
-        </span>
-        <button className="ghost small" type="button" onClick={onExit}>Close</button>
-      </div>
+    <SessionFrame {...frame} className="send-run">
 
       <div className="send-stage" data-kind={meta.interaction}>
         <header className="send-stage-head">
           <p className="send-kicker">{meta.title}</p>
-          <h1 className="sr-only">Send {target} in Morse.</h1>
+          <h2 className="session-prompt-heading sr-only">Send {target} in Morse.</h2>
           {renderTarget()}
-          <p className="send-purpose">
-            {meta.interaction === 'spotlight'
-              ? 'Key the highlighted letter. Correct letters advance automatically.'
-              : stage === 'flow'
-                ? 'Pause to finish each letter. The word is reviewed after its last letter.'
-                : 'Pause to finish a letter. Use Space between words, then finish the message.'}
-          </p>
         </header>
 
         <div className="send-output">
@@ -215,30 +152,29 @@ export function SendRun({
 
         {meta.interaction === 'spotlight' && spotlightLetter ? (
           <div className="send-key-zone">
-            <div className="send-feedback-slot" aria-live="assertive">
-              {spotlightFeedback ? (
-                <div className={`send-feedback ${spotlightFeedback.correct ? 'is-correct' : 'is-wrong'}`}>
-                  <strong>{spotlightFeedback.correct ? 'Correct' : 'Miss'}</strong>
-                  {!spotlightFeedback.correct && (
-                    <>
-                      <MorseCharacterSupport glyph={spotlightFeedback.letter} pattern={MORSE_LETTERS[spotlightFeedback.letter]} playing={correctionAudio.sounding?.glyph === spotlightFeedback.letter} onToggle={() => correctionAudio.toggle(spotlightFeedback.letter)} audioError={correctionAudio.audioError} />
-                      <button
-                        className="ghost small"
-                        type="button"
-                        onClick={continueSpotlightCorrection}
-                        disabled={!keyed.holding}
-                      >
-                        Continue
-                      </button>
-                    </>
-                  )}
-                </div>
-              ) : (
-                <span className="send-feedback-placeholder" aria-hidden="true">Ready</span>
-              )}
-            </div>
+            {spotlightFeedback && !spotlightFeedback.correct ? (
+              // The shared miss (#263), docked where the key was. The key stays
+              // mounted underneath, hidden, so its unlocked audio survives.
+              <SessionCorrect className="send-miss" miss={{
+                said: spotlightFeedback.pattern ? <MorseMarks pattern={spotlightFeedback.pattern} size="support" label={patternReading(spotlightFeedback.pattern)} /> : undefined,
+                saidLabel: 'You keyed',
+                answer: <MorseCharacterSupport glyph={spotlightFeedback.letter} pattern={MORSE_LETTERS[spotlightFeedback.letter]} playing={correctionAudio.sounding?.glyph === spotlightFeedback.letter} onToggle={() => correctionAudio.toggle(spotlightFeedback.letter)} audioError={correctionAudio.audioError} />,
+                onContinue: continueSpotlightCorrection,
+                continueDisabled: !keyed.holding,
+              }} />
+            ) : (
+              <div className="send-feedback-slot" aria-live="assertive">
+                {spotlightFeedback ? (
+                  <div className="send-feedback is-correct">
+                    <SessionCorrect target={spotlightFeedback.letter} announce={false} />
+                  </div>
+                ) : (
+                  <span className="send-feedback-placeholder" aria-hidden="true">Ready</span>
+                )}
+              </div>
+            )}
 
-            <div inert={!keyed.armed}>
+            <div inert={!keyed.armed} hidden={Boolean(spotlightFeedback && !spotlightFeedback.correct)}>
               <MorseKeyInput
                 expectedLength={MORSE_LETTERS[spotlightLetter].length}
                 advanceToken={`${promptIndex}-${characterIndex}`}
@@ -275,6 +211,7 @@ export function SendRun({
           </div>
         )}
       </div>
-    </section>
+    </SessionFrame>
   )
+
 }

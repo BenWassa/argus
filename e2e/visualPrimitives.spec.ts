@@ -72,16 +72,16 @@ test('Learn shows the visual with its caption and the text alternative, without 
   await page.goto('./')
   await page.locator('.nav-btn', { hasText: 'Library' }).click()
   await page.getByRole('button', { name: /Visual e2e/ }).click()
+  // The scored set shows its own picture beside the prompt and answer.
+  await expect(page.locator('.topic-items .topic-item.has-visual')).toHaveCount(2)
+  await noSidewaysScroll(page)
 
-  const summary = page.locator('summary', { hasText: 'Reading a dial' })
-  await expect(summary).toBeVisible()
-  await summary.click()
+  await page.getByRole('navigation', { name: 'Study' }).getByRole('button', { name: 'Learn', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Reading a dial' })).toBeVisible()
   await expect(
     page.getByRole('img', { name: 'A compass dial with one pointer, A, between north and east.' }).first(),
   ).toBeVisible()
   await expect(page.getByText('Pointer A at 45°.')).toBeVisible()
-  // The scored set shows its own picture beside the prompt and answer.
-  await expect(page.locator('.topic-recall-cards > li.has-visual')).toHaveCount(2)
   await noSidewaysScroll(page)
 })
 
@@ -89,7 +89,7 @@ test('Test asks each visual item as a graded choice with no self-grade, and scor
   await page.goto('./')
   await page.locator('.nav-btn', { hasText: 'Library' }).click()
   await page.getByRole('button', { name: /Visual e2e/ }).click()
-  await page.locator('.topic-primary').click()
+  await page.locator('.topic-tray [data-tile-id="test"]').click()
 
   for (let asked = 0; asked < 2; asked += 1) {
     await expect(page.getByText('Choose one')).toBeVisible()
@@ -122,7 +122,7 @@ test('a wrong choice holds the correction until the learner continues', async ({
   await page.goto('./')
   await page.locator('.nav-btn', { hasText: 'Library' }).click()
   await page.getByRole('button', { name: /Visual e2e/ }).click()
-  await page.locator('.topic-primary').click()
+  await page.locator('.topic-tray [data-tile-id="test"]').click()
 
   const alt = await page.locator('.choice-card [role="img"]').getAttribute('aria-label')
   const wrong = alt?.includes('right') ? 'West' : 'North'

@@ -137,11 +137,13 @@ test('Mariner earns from completed topics and keeps its badge', async ({ page })
   await expect(page.locator('.roles-medallion.is-earned.is-raster')).toHaveAttribute('src', /\/media\/roles\/mariner_unlocked\.png$/)
 })
 
-test('earned award stays earned after retention decay', async ({ page }) => {
+test('legacy repair records keep their earned award without a refresh state', async ({ page }) => {
   await openWith(page, true, true)
   await expect(page.getByText('Communicator earned', { exact: true })).toBeVisible()
   await expect(page.getByText('7 of 7 topics complete')).toBeVisible()
-  await expect(page.getByText('Some topics need repair. Your badge remains earned.')).toBeVisible()
+  await expect(page.locator('.roles-award-refresh')).toHaveCount(0)
+  await expect(page.locator('.role-topic-state.is-repair')).toHaveCount(0)
+  await expect(page.locator('.roles-continue')).toHaveCount(0)
   await expect(page.locator('.roles-medallion.is-earned')).toBeVisible()
   await page.locator('.roles-medallion').evaluate((image: HTMLImageElement) => image.decode())
   await expect(page.locator('.roles-path-count', { hasText: 'Complete' })).toHaveCount(3)

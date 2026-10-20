@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   PRACTICE_LIMIT,
   hasPractice,
+  lastTestMissedIds,
   missedTargets,
   practiceItemCount,
   practiceTargets,
@@ -52,9 +53,9 @@ function topicWith(items: IdentifiedItem[], itemEvidence: ItemEvidenceStore): To
     scope: 'A finite thing.',
     track: 'learning',
     items,
-    status: 'drilled',
+    status: 'learning',
     createdAt: '2026-01-01T00:00:00.000Z',
-    drilledAt: '2026-01-02T00:00:00.000Z',
+    drilledAt: null,
     learningAt: '2026-01-01T00:00:00.000Z',
     completedAt: null,
     lastTestedAt: '2026-01-02T00:00:00.000Z',
@@ -296,5 +297,43 @@ describe('libraries that are not pristine', () => {
     delete (topic as { itemEvidence?: unknown }).itemEvidence
     expect(() => practiceTargets(topic)).not.toThrow()
     expect(hasPractice(topic)).toBe(false)
+  })
+})
+
+describe('what the last Test missed, for items that write no evidence', () => {
+  const items = [FORWARD, BOTH, ALSO_BOTH]
+  const afterTest = (missedItemIds?: string[]): Topic => ({
+    ...topicWith(items, {}),
+    history: [{ at: '2026-02-01T00:00:00.000Z', correct: 1, total: 3, resolvedTo: 'learning', ...(missedItemIds ? { missedItemIds } : {}) }],
+  })
+
+  it('offers practice for them, with the same count the result screen offers', () => {
+    const topic = afterTest(['a', 'c'])
+    expect(lastTestMissedIds(topic)).toEqual(['a', 'c'])
+    expect(hasPractice(topic)).toBe(true)
+    expect(practiceItemCount(topic)).toBe(2)
+    const offered = new Set(targetsForItems(topic, ['a', 'c']).map((target) => target.item.id))
+    expect(practiceItemCount(topic)).toBe(offered.size)
+    expect(missedTargets(topic).every((target) => target.reason === 'missed')).toBe(true)
+  })
+
+  it('offers nothing after a clean Test, an old attempt with no record, or no Test', () => {
+    expect(hasPractice(afterTest([]))).toBe(false)
+    expect(hasPractice(afterTest())).toBe(false)
+    expect(hasPractice(topicWith(items, {}))).toBe(false)
+  })
+
+  it('drops an id whose item was since removed, and is replaced by the next Test', () => {
+    expect(lastTestMissedIds(afterTest(['a', 'gone']))).toEqual(['a'])
+    const next: Topic = { ...afterTest(['a']), history: [...afterTest(['a']).history, { at: '2026-03-01T00:00:00.000Z', correct: 3, total: 3, resolvedTo: 'completed' }] }
+    expect(hasPractice(next)).toBe(false)
+  })
+
+  it('reads practice off the stored Test and never writes evidence', () => {
+    const topic = afterTest(['b'])
+    const before = JSON.stringify(topic)
+    practiceTargets(topic)
+    expect(JSON.stringify(topic)).toBe(before)
+    expect(topic.itemEvidence ?? {}).toEqual({})
   })
 })

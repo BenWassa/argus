@@ -12,6 +12,8 @@
  * gives: operating practice is a separate competency.
  */
 
+import { materialFits } from './corpus'
+
 type Pick = <T>(list: readonly T[]) => T
 
 /** `n` different entries, so a list never reads "THE MAP, THE KEY AND THE MAP". */
@@ -159,13 +161,29 @@ function pickerFor(random: () => number): Pick {
   return (list) => list[Math.min(list.length - 1, Math.floor(random() * list.length))]
 }
 
+/**
+ * How many draws a restricted generator may spend per wanted prompt. Templates
+ * mostly fail a small roster, so it is generous; it is still bounded, and a
+ * restricted run returns fewer prompts rather than one with an unlearned letter.
+ */
+const RESTRICTED_TRIES_PER_PROMPT = 400
+
 function uniqueFrom(
   templates: readonly ((pick: Pick, random: () => number) => string)[],
   count: number,
   random: () => number,
+  allowed?: ReadonlySet<string>,
 ): string[] {
   const pick = pickerFor(random)
   const out: string[] = []
+  if (allowed) {
+    for (let tries = 0; out.length < count && tries < count * RESTRICTED_TRIES_PER_PROMPT; tries += 1) {
+      const template = templates[Math.floor(random() * templates.length)]
+      const text = template(pick, random)
+      if (!out.includes(text) && materialFits(text, allowed)) out.push(text)
+    }
+    return out
+  }
   // Bounded, so a template set too small to supply `count` distinct outputs
   // cannot spin forever; it then allows a repeat rather than hanging the run.
   for (let tries = 0; out.length < count && tries < count * 40; tries += 1) {
@@ -176,18 +194,23 @@ function uniqueFrom(
   return out
 }
 
-export function generatePhrases(count: number, random: () => number): string[] {
-  return uniqueFrom(PHRASE_TEMPLATES, count, random)
+/*
+ * `allowed`, when given, keeps only prompts made entirely of those characters
+ * (#257): a learner part-way through the alphabet is never asked to copy or
+ * send a letter they have not been taught. Omitted, output is unchanged.
+ */
+export function generatePhrases(count: number, random: () => number, allowed?: ReadonlySet<string>): string[] {
+  return uniqueFrom(PHRASE_TEMPLATES, count, random, allowed)
 }
 
-export function generateSentences(count: number, random: () => number): string[] {
-  return uniqueFrom(SENTENCE_TEMPLATES, count, random)
+export function generateSentences(count: number, random: () => number, allowed?: ReadonlySet<string>): string[] {
+  return uniqueFrom(SENTENCE_TEMPLATES, count, random, allowed)
 }
 
-export function generateNumbers(count: number, random: () => number): string[] {
-  return uniqueFrom(NUMBER_TEMPLATES, count, random)
+export function generateNumbers(count: number, random: () => number, allowed?: ReadonlySet<string>): string[] {
+  return uniqueFrom(NUMBER_TEMPLATES, count, random, allowed)
 }
 
-export function generateMixed(count: number, random: () => number): string[] {
-  return uniqueFrom(MIXED_TEMPLATES, count, random)
+export function generateMixed(count: number, random: () => number, allowed?: ReadonlySet<string>): string[] {
+  return uniqueFrom(MIXED_TEMPLATES, count, random, allowed)
 }

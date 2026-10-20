@@ -1,5 +1,5 @@
 import { isMorseCharacter } from '../code'
-import { fluencyWords, seededRandom, weightedSample } from './corpus'
+import { fluencyWords, materialFits, seededRandom, weightedSample } from './corpus'
 import { COPY_CLEAR_ACCURACY, copyRunScore, type CopyJudgement } from './copy'
 import { generatePhrases, generateSentences } from './sentences'
 import type { MorseFluencyProgress } from './progress'
@@ -90,32 +90,71 @@ function validated(prompt: string): string {
   return normalized
 }
 
-/** Build one finite, reproducible sending round. */
-export function sendPrompts(stage: SendStage, seed: number): string[] {
+// A fixed search budget and seed make eligibility independent of the requested
+// round length and seed. Readiness and every restricted run use this same pool.
+const eligiblePools = new Map<string, readonly string[]>()
+const SEND_POOL_SIZE = 32
+
+export function eligibleSendPool(stage: SendStage, allowed: ReadonlySet<string>): readonly string[] {
+  const key = `${stage}|${[...allowed].sort().join('')}`
+  const cached = eligiblePools.get(key)
+  if (cached) return cached
+  const random = seededRandom(0)
+  const fits = (text: string) => materialFits(text, allowed)
+  let pool: readonly string[]
+  switch (stage) {
+    case 'words':
+      pool = fluencyWords('short').filter((word) => word.length >= 3 && word.length <= 5 && fits(word))
+      break
+    case 'flow':
+      pool = [...fluencyWords('medium'), ...fluencyWords('long')]
+        .filter((word) => word.length >= 4 && word.length <= 7 && fits(word))
+      break
+    case 'phrases': pool = generatePhrases(SEND_POOL_SIZE, random, allowed); break
+    case 'messages': pool = generateSentences(SEND_POOL_SIZE, random, allowed); break
+    case 'dispatch': pool = DISPATCH_PROMPTS.filter(fits); break
+  }
+  const validatedPool = [...new Set(pool.map(validated))]
+  eligiblePools.set(key, validatedPool)
+  return validatedPool
+}
+
+/**
+ * Build one finite, reproducible sending round. `allowed`, when given, keeps
+ * only prompts made of those characters (#257), so a round may be shorter;
+ * `length` overrides the stage's round length, for sizing a restricted pool.
+ */
+export function sendPrompts(
+  stage: SendStage,
+  seed: number,
+  allowed?: ReadonlySet<string>,
+  length: number = SEND_STAGE_INFO[stage].length,
+): string[] {
   const random = seededRandom(seed)
-  const length = SEND_STAGE_INFO[stage].length
+  if (allowed) return shuffled(eligibleSendPool(stage, allowed), random).slice(0, length)
+  const fits = (text: string) => !allowed || materialFits(text, allowed)
   let prompts: string[]
 
   switch (stage) {
     case 'words': {
-      const pool = fluencyWords('short').filter((word) => word.length >= 3 && word.length <= 5)
+      const pool = fluencyWords('short').filter((word) => word.length >= 3 && word.length <= 5 && fits(word))
       prompts = weightedSample(shuffled(pool, random), length, random)
       break
     }
     case 'flow': {
       const pool = [...fluencyWords('medium'), ...fluencyWords('long')]
-        .filter((word) => word.length >= 4 && word.length <= 7)
+        .filter((word) => word.length >= 4 && word.length <= 7 && fits(word))
       prompts = weightedSample(shuffled(pool, random), length, random)
       break
     }
     case 'phrases':
-      prompts = generatePhrases(length, random)
+      prompts = generatePhrases(length, random, allowed)
       break
     case 'messages':
-      prompts = generateSentences(length, random)
+      prompts = generateSentences(length, random, allowed)
       break
     case 'dispatch':
-      prompts = weightedSample(shuffled(DISPATCH_PROMPTS, random), length, random)
+      prompts = weightedSample(shuffled(DISPATCH_PROMPTS.filter(fits), random), length, random)
       break
   }
 
