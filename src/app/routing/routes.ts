@@ -145,7 +145,9 @@ function isIdList(value: unknown): value is string[] {
 export function isParentRoute(value: unknown): value is ParentRoute {
   if (!isRecord(value) || typeof value.kind !== 'string') return false
   if (value.kind === 'section') return isView(value.view)
-  if (value.kind === 'role') return availableRoleId(value.roleId)
+  // History accepts structurally sound older role IDs. restoreRoute checks
+  // current availability and normalises removed/staged IDs to the overview.
+  if (value.kind === 'role') return typeof value.roleId === 'string' && value.roleId.length > 0
   return value.kind === 'topic' && typeof value.topicId === 'string' && value.topicId.length > 0
 }
 
