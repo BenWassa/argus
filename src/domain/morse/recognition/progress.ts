@@ -126,6 +126,9 @@ export function recordRecognitionOutcome(
 ): MorseRecognition {
   if (!validRecognitionStream(stream) || !validGlyph(glyph)) throw new RangeError('Invalid recognition stream or glyph.')
   if (options.independent === false || options.choices !== 4) return state
+  // Recognition evidence requires a previously presented question.
+  const presented = state.streams[stream]?.characters[glyph]
+  if (!presented || presented.shown < 1 || presented.lastShownSequence < 1) return state
   const track = state.streams[stream] ?? { sequence: 0, characters: {} }
   const previous = track.characters[glyph] ?? { outcomes: [], shown: 0, lastShownSequence: 0, recentCorrectMs: [] }
   const elapsed = isSpeed(stream) && correct ? cappedLatencyMs(options.elapsedMs ?? null) : null
