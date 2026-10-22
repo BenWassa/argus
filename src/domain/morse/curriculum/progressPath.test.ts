@@ -15,7 +15,9 @@ describe('Morse progress path', () => {
       if (journey.phase === 'banked') {
         expect(current, name).toHaveLength(0)
         expect(path.currentNodeId).toBeNull()
-        expect(path.nodes.find(node => node.id === 'test')?.state).toBe('done')
+        // Completed lessons leave Test available, not falsely passed.
+        const tested = topic.history.some((attempt) => attempt.total > 0 && attempt.correct === attempt.total)
+        expect(path.nodes.find(node => node.id === 'test')?.state).toBe(tested ? 'done' : 'reached')
         continue
       }
       expect(current, name).toHaveLength(1)
@@ -66,8 +68,9 @@ describe('Morse progress path', () => {
 
   it('preserves later reached lessons and checkpoints through a returning miss', () => {
     const path = morseProgressPath(modeTopicFixtures().returning)!
-    expect(path.currentNodeId).toBe('lesson-1')
-    expect(path.nodes.find((node) => node.id === 'lesson-5')).toMatchObject({ state: 'reached', action: { kind: 'replay-lesson', packetIndex: 4 } })
+    expect(path.currentNodeId).toBe('lesson-6')
+    expect(path.nodes.find((node) => node.id === 'lesson-1')).toMatchObject({ state: 'done', action: { kind: 'replay-lesson', packetIndex: 0 } })
+    expect(path.nodes.find((node) => node.id === 'lesson-5')).toMatchObject({ state: 'done', action: { kind: 'replay-lesson', packetIndex: 4 } })
     expect(path.nodes.find((node) => node.id === 'checkpoint-after-4')?.state).toBe('reached')
     expect(path.nodes.find((node) => node.id === 'lesson-7')?.state).toBe('locked')
   })
@@ -75,16 +78,16 @@ describe('Morse progress path', () => {
   it('distinguishes early, eligible and optional completed Tests, including legacy records', () => {
     const fixtures = modeTopicFixtures()
     for (const [name, state, early] of [
-      ['fresh', 'locked', true], ['ready', 'available', false], ['banked', 'banked', false], ['repair', 'banked', false],
+      ['fresh', 'locked', true], ['ready', 'available', false], ['banked', 'available', false], ['repair', 'available', false],
     ] as const) {
       const test = morseProgressPath(fixtures[name])!.nodes.find((node) => node.kind === 'test')!
       expect(test).toMatchObject({ testState: state, earlyRunPossible: early, testAction: { kind: 'test', early } })
       if (state !== 'locked') expect(test.action).toEqual({ kind: 'test', early })
     }
     const afterCourse = morseProgressPath(fixtures.afterCourse)!
-    expect(afterCourse.currentNodeId).toBe('test')
+    expect(afterCourse.currentNodeId).toBeNull()
     expect(afterCourse.nodes.find((node) => node.id === 'test')).toMatchObject({
-      state: 'current', testState: 'locked', action: { kind: 'after-course' },
+      state: 'reached', testState: 'available', action: { kind: 'test', early: false },
     })
     expect(afterCourse.nodes.filter((node) => node.kind === 'lesson').every((node) => node.state === 'done')).toBe(true)
   })
@@ -159,7 +162,7 @@ describe('Morse progress path', () => {
       const path = morseProgressPath(topic)!
       expect(path.currentNodeId).toBeNull()
       expect(path.nodes.filter((node) => node.state === 'current')).toEqual([])
-      expect(path.nodes.find(node => node.id === 'test')).toMatchObject({ state: 'done', testState: 'banked', action: { kind: 'test', early: false } })
+      expect(path.nodes.find(node => node.id === 'test')).toMatchObject({ state: 'reached', testState: 'available', action: { kind: 'test', early: false } })
       expect(path.nodes.filter((node) => node.kind === 'tier').every((node) => node.state !== 'locked')).toBe(true)
     }
   })
