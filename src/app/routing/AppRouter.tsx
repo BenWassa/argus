@@ -215,7 +215,7 @@ export function AppRouter() {
   function openReference(topicId: string) {
     const current = routeRef.current
     const origin: ParentRoute =
-      current.kind === 'section' || current.kind === 'topic' ? current : current.origin
+      current.kind === 'section' || current.kind === 'topic' || current.kind === 'role' ? current : current.origin
     navigate({ kind: 'reference', topicId, origin })
   }
 
