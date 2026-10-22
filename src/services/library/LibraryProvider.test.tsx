@@ -88,8 +88,8 @@ describe('production IndexedDB provider integration', () => {
     const original = hook.result.current.topics[0].title
     const baselineRevision = fixture.pending.get(ownerKey)
     fixture.failNext = true
-    act(() => hook.result.current.updateTopic(hook.result.current.topics[0].id, (topic) =>
-      ({ ...topic, title: 'Unsaved value' })))
+    act(() => { void hook.result.current.updateTopic(hook.result.current.topics[0].id, (topic) =>
+      ({ ...topic, title: 'Unsaved value' })) })
     await waitFor(() => expect(document.querySelector('[role="alert"]')?.textContent).toContain('Quota exceeded'))
     expect(hook.result.current.topics[0].title).toBe(original)
     expect(fixture.records.get(ownerKey)?.library.topics[0].title).toBe(original)
@@ -99,7 +99,7 @@ describe('production IndexedDB provider integration', () => {
   it('keeps UID-owned records isolated when switching accounts', async () => {
     const hook = await mounted()
     const id = hook.result.current.topics[0].id
-    act(() => hook.result.current.updateTopic(id, (topic) => ({ ...topic, title: 'Account A' })))
+    act(() => { void hook.result.current.updateTopic(id, (topic) => ({ ...topic, title: 'Account A' })) })
     await waitFor(() => expect(hook.result.current.topics[0].title).toBe('Account A'))
     await act(async () => { await hook.result.current.bindOwner('owner-a') })
     await act(async () => { await hook.result.current.bindOwner('owner-b') })
