@@ -1,11 +1,11 @@
 # Consolidated human acceptance checklist
 
-**Status:** open; prepared 2026-10-15. No checks below are passed by preparation, automated tests, PR merge or model review.
+**Status:** open; prepared 2026-10-15 and reconciled 2026-10-22. No checks below are passed by preparation, automated tests, PR merge or model review.
 **Authority:** coordination and evidence index only. Issue-specific contracts retain product, rights and release authority. Collect reviews here at the end of the small-work batch; preserve prerequisite gates before publishing gated content.
 
 ## How to use
 
-Current released review baseline: **v1.5.2**, tag commit `65d3d45`, deployed 2026-10-15. Record any later candidate changes before testing. Release alone does not pass any item below.
+The original prepared review baseline was **v1.5.2**, tag commit `65d3d45`, deployed 2026-10-15. It is **historical**. Since then the v1.5.3 release record and [main integration #271](https://github.com/BenWassa/argus/pull/271) exist; do not assume either is the installed build without recording the exact current candidate. Release alone does not pass any item below.
 
 Before the session, record the reviewed branch/commit, app version, deployment URL, Pixel model, Android/Chrome versions and installed-PWA status. For each completed check record reviewer name/qualification where relevant, date, result, evidence link and defects. Use **pass / fail / blocked / not run**, never an empty implied pass. Any changed reviewed source invalidates affected checks until rechecked.
 
@@ -47,9 +47,11 @@ Use the [radio reviewer pack](ISSUE_150_HUMAN_REVIEW.md) and maintained [maritim
 - [ ] Confirm locked/earned treatments and role labels remain readable, with no unintended role unlocks.
 - [ ] Review Responder resemblance concerns if that asset is proposed for publication; do not treat unshipped art as already accepted.
 
-### 5. Pixel / installed PWA — #193, #188, #191, #201
+### 5. Pixel / installed PWA — #193, #188, #191, #201, #225, #233, #280, #281
 
 - [ ] Home navigation, available next actions, bottom navigation and installed-PWA back/relaunch behave correctly.
+- [ ] On the merged Signal-on-Slate candidate, verify Morse path auto-jump, sticky Back, all four modes, progress readability, one session frame, landscape/320px/200% text, reduced motion and the five-minute open → play → close path. Compare against [#225](ISSUE_225_UI_OVERHAUL.md) and close [#233](https://github.com/BenWassa/argus/issues/233) only after owner acceptance and release evidence.
+- [ ] Shared key and correct/miss/word feedback produce *perceptible* vibration on Pixel Chrome and installed PWA; check switch-off, DND/system settings, rapid dits/dahs, return from background and cancellation. Haptic code coverage #280 is distinct from physical #281 acceptance.
 - [ ] Roles selector, permanent awards and badge rendering match the exact candidate role set.
 - [ ] First press produces Morse audio reliably after cold open and after interruption.
 - [ ] Sending timing, word gaps, touch release/cancel, background/foreground and interrupted sessions behave correctly.
