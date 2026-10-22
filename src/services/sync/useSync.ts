@@ -36,8 +36,8 @@ export type SyncState =
 /** What the hook needs from the library store, so it can be driven by a fake. */
 export interface SyncableStore {
   topics: Topic[]
-  upsertTopic: (topic: Topic) => void
-  removeTopic: (id: string) => void
+  upsertTopic: (topic: Topic) => void | Promise<boolean>
+  removeTopic: (id: string) => void | Promise<boolean>
   /** The account the local library belongs to; see `LibraryProvider`. */
   owner: string | null
   bindOwner: (uid: string) => void | Promise<void>
@@ -247,14 +247,17 @@ export function useSync(store: SyncableStore, injected?: SyncBackend) {
             // advanced, so a later build that understands it can still take it.
             const topic = parseSyncedTopic(action.json, action.topicId)
             if (!topic) break
-            store.upsertTopic(topic)
+            const saved = await store.upsertTopic(topic)
+            if (saved === false) throw new Error('The adopted topic could not be saved locally.')
             applied.push({ ...action, json: topicJson(topic) })
             break
           }
-          case 'dropLocal':
-            store.removeTopic(action.topicId)
+          case 'dropLocal': {
+            const saved = await store.removeTopic(action.topicId)
+            if (saved === false) throw new Error('The local deletion could not be saved.')
             applied.push(action)
             break
+          }
         }
       }
       ledger.current = nextLedger(ledger.current, applied, Date.now())
