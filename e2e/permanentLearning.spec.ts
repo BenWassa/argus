@@ -38,7 +38,7 @@ test('a later missed Test keeps learned progress and creates no repair obligatio
   expect(saved.status).toBe('completed')
   expect(saved.completedAt).toBe(completedAt)
   expect(saved.history.at(-1)).toMatchObject({ correct: 23, total: 26, resolvedTo: 'completed' })
-  expect(saved.history.at(-1).missedItemIds).toHaveLength(3)
+  expect(saved.history.at(-1)?.missedItemIds).toHaveLength(3)
   await page.getByRole('button', { name: 'Done', exact: true }).click()
   await expect(page.locator('.topic-state')).toHaveText('✓Learned')
   await expect(page.locator('.screen-header-readout')).toHaveText('26 / 26')
