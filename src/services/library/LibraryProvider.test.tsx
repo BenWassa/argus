@@ -108,4 +108,24 @@ describe('production IndexedDB provider integration', () => {
     expect(hook.result.current.topics[0].title).toBe('Account A')
     expect(fixture.records.get('owner-b')?.library.topics[0].title).not.toBe('Account A')
   })
+
+  it('preserves the committed learner record and outbox when import or reset fails', async () => {
+    const hook = await mounted()
+    const previous = fixture.records.get(ownerKey)!.library
+    const pending = fixture.pending.get(ownerKey)
+    fixture.failNext = true
+    await act(async () => {
+      expect(await hook.result.current.replaceLibrary({ version: 5, topics: [], catalogDelivered: [] })).toBe(false)
+    })
+    expect(fixture.records.get(ownerKey)?.library).toEqual(previous)
+    expect(fixture.pending.get(ownerKey)).toBe(pending)
+    expect(hook.result.current.topics).toEqual(previous.topics)
+    fixture.failNext = true
+    await act(async () => {
+      expect(await hook.result.current.resetLibrary()).toBe(false)
+    })
+    expect(fixture.records.get(ownerKey)?.library).toEqual(previous)
+    expect(fixture.pending.get(ownerKey)).toBe(pending)
+    expect(hook.result.current.topics).toEqual(previous.topics)
+  })
 })
