@@ -24,12 +24,12 @@
 | P2 | [CI measurement #273](https://github.com/BenWassa/argus/issues/273) | Review [draft scoping PR #278](https://github.com/BenWassa/argus/pull/278), establish clean-run numbers and same-SHA pilot before changing gates | Do not remove coverage or rename branch-protection jobs blindly |
 | P2 | Radio/maritime/role review | Complete [radio #150](ISSUE_150_HUMAN_REVIEW.md), [maritime independent review](ISSUE_147_148_MARITIME_DOMAIN_REVIEW.md), [badge #192](ISSUE_192_ROLE_BADGE_ART.md), [Analyst #197](ISSUE_197_EXPANDED_ROLE_ARCHITECTURE_RESEARCH.md) | Authoritative review and owner gates remain separate from CI |
 
-## Open PR triage (inspected 2026-10-22)
+## PR triage (inspected 2026-10-22; #222 now closed)
 
 | PR | Scope | Disposition |
 | --- | --- | --- |
 | [#214](https://github.com/BenWassa/argus/pull/214) | IndexedDB provider, draft | Keep open; needs current-main reconciliation, fresh tests and data-safety review |
-| [#222](https://github.com/BenWassa/argus/pull/222) | 2026-10-16 #221 documentation proposal | Compare against subsequently released #221 runtime and merged #271; do not merge stale navigation specification unreviewed |
+| [#222](https://github.com/BenWassa/argus/pull/222) | 2026-10-16 #221 documentation proposal | **Closed unmerged 2026-10-22:** duplicate/superseded by the maintained Morse #221 contract and merged #271 runtime |
 | [#278](https://github.com/BenWassa/argus/pull/278) | #273 CI scope, draft | Scope-only review; its companion file is in this PR, **not** on `main` |
 | [#282](https://github.com/BenWassa/argus/pull/282) | #280/#281 haptics scope | PR targets old `feat/ui-overhaul`; evaluate retargeting/rebasing to `main` after checking for duplicate integration, without treating document merge as haptic implementation |
 
