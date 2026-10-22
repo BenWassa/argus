@@ -20,6 +20,7 @@ import { SendRun } from './fluency/SendRun'
 // is injected directly, so tests observe *only* semantic verdict vibrations.
 // The mock never emits the key's independent onset ('element').
 vi.mock('./input/MorseKeyInput', () => ({
+  MORSE_MAX_ELEMENTS: 6,
   MorseKeyInput: ({ locked, onSubmit }: { locked?: boolean; onSubmit: (pattern: string) => void }) => (
     <>
       <button type="button" disabled={locked} onClick={() => onSubmit(expectedPattern())}>Correct key</button>
