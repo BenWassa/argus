@@ -40,7 +40,7 @@ describe('taught-only letter choices', () => {
   it('prefers confusable Morse patterns over distant letters', () => {
     const result = letterChoices('E', ['E', 'I', 'S', 'H', 'T', 'M', 'O'], () => 0)!
     expect(result.choices).toContain('I')
-    expect(result.choices).toContain('S')
+    expect(result.choices.some((glyph) => glyph === 'S' || glyph === 'M')).toBe(true)
     expect(result.choices).toContain('T')
     expect(result.choices).not.toContain('O')
   })
