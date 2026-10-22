@@ -152,7 +152,7 @@ describe('#280: Morse verdict haptics are emitted by the grading surface', () =>
     const vibrate = vibrateSpy()
     render(<MorsePlacementDialog topic={freshMorse()} onClose={vi.fn()} onNew={vi.fn()}
       onCommit={vi.fn()} onContinue={vi.fn()} />)
-    fireEvent.click(screen.getByRole('button', { name: 'Know some' }))
+    fireEvent.click(screen.getByRole('button', { name: /Know some Morse/ }))
     correct()
     expect(vibrate.mock.calls.map(([value]) => value)).toEqual([effect('settle')])
     next()
