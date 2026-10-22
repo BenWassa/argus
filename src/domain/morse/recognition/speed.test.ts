@@ -49,7 +49,10 @@ describe('bounded recognition response time', () => {
     expect(stopRecognitionClock(running, 1800, { visible: true, independent: true, interrupted: true }).elapsedMs).toBeNull()
     const stopped = stopRecognitionClock(running, 1800, { visible: true, independent: true })
     expect(stopRecognitionClock(stopped.clock, 1900, { visible: true, independent: true }).elapsedMs).toBeNull()
-    expect(stopRecognitionClock(invalidateRecognitionClock(running), 1800, { visible: true, independent: true }).elapsedMs).toBeNull()
+    const invalid = invalidateRecognitionClock(running)
+    expect(stopRecognitionClock(invalid, 1800, { visible: true, independent: true }).elapsedMs).toBeNull()
+    expect(armRecognitionClock(2000, read, invalid)).toBe(invalid)
+    expect(armRecognitionClock(2000, read, running)).toBe(running)
   })
 
   it('counts mistakes for accuracy, never as speed successes, and excludes invalid timing', () => {
@@ -63,8 +66,8 @@ describe('bounded recognition response time', () => {
       { correct: true, independent: true, choices: 4, elapsedMs: 100, interrupted: true },
     ]
     const result = summarizeRecognitionRound(attempts)
-    expect(result.graded).toBe(6)
-    expect(result.correct).toBe(4)
+    expect(result.graded).toBe(5)
+    expect(result.correct).toBe(3)
     expect(result.validSpeedSamples).toBe(3)
     expect(result.typicalCorrectMs).toBe(5_500)
     expect(result.roundScore).toBe(Math.round(100 * (recognitionUtility(1000)! + recognitionUtility(10_000)!) / 3))
