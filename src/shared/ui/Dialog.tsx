@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, type ReactNode } from 'react'
 import { registerBackBlocker } from '../../app/routing/history'
+import './Dialog.css'
 
 interface DialogProps {
   title: string
@@ -9,12 +10,14 @@ interface DialogProps {
   closeLabel?: string
   /** Centre the panel on every width instead of pinning it to the bottom edge on a phone. */
   centred?: boolean
+  /** A framed session supplies its own visible title and Close control. */
+  hideHeader?: boolean
 }
 
 const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
-export function Dialog({ title, onClose, children, closeLabel, centred }: DialogProps) {
+export function Dialog({ title, onClose, children, closeLabel, centred, hideHeader }: DialogProps) {
   const panel = useRef<HTMLDivElement>(null)
   const opener = useRef<Element | null>(null)
   const titleId = useId()
@@ -89,7 +92,7 @@ export function Dialog({ title, onClose, children, closeLabel, centred }: Dialog
         aria-labelledby={titleId}
         ref={panel}
       >
-        <div className="sheet-head">
+        {hideHeader ? <h2 id={titleId} className="sr-only">{title}</h2> : <div className="sheet-head">
           <h2 id={titleId}>{title}</h2>
           <button
             className="ghost icon"
@@ -101,7 +104,7 @@ export function Dialog({ title, onClose, children, closeLabel, centred }: Dialog
               <path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
             </svg>
           </button>
-        </div>
+        </div>}
         <div className="sheet-body">{children}</div>
       </div>
     </div>

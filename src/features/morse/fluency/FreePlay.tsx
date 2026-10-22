@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react'
 import { MorseAudioPlayer } from '../../../domain/morse/audio'
 import { canonicalPattern } from '../../../domain/morse/testing/acquisitionProfile'
 import {
@@ -12,6 +12,7 @@ import {
 } from '../../../domain/morse/fluency/freePlay'
 import { fluencyTiming, type FluencyRung } from '../../../domain/morse/fluency/timing'
 import { MORSE_MAX_ELEMENTS, MorseKeyInput } from '../input/MorseKeyInput'
+import { SessionFrame } from '../../../shared/ui/SessionFrame'
 import './Fluency.css'
 
 interface FreePlayProps {
@@ -29,6 +30,7 @@ type Side = 'key' | 'hear'
  */
 export function FreePlay({ rung, onExit }: FreePlayProps) {
   const [side, setSide] = useState<Side>('key')
+  const tabsId = useId()
   const [tokens, setTokens] = useState<FreeToken[]>([])
   const [entry, setEntry] = useState('')
   const [letterToken, setLetterToken] = useState(0)
@@ -40,11 +42,9 @@ export function FreePlay({ rung, onExit }: FreePlayProps) {
   const pauseTimer = useRef<number | null>(null)
   const playTimer = useRef<number | null>(null)
   const entryRef = useRef('')
-  const headingRef = useRef<HTMLHeadingElement>(null)
 
   useEffect(() => {
     playerRef.current = new MorseAudioPlayer()
-    headingRef.current?.focus({ preventScroll: true })
     return () => {
       if (pauseTimer.current !== null) window.clearTimeout(pauseTimer.current)
       if (playTimer.current !== null) window.clearTimeout(playTimer.current)
@@ -96,7 +96,8 @@ export function FreePlay({ rung, onExit }: FreePlayProps) {
   useEffect(() => {
     if (side !== 'key') return
     function onKeyDown(event: KeyboardEvent) {
-      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return
+      if (event.target instanceof Element && event.target.closest('input, textarea, select, button, a, [contenteditable], [role="tab"]')) return
+      if (event.altKey || event.ctrlKey || event.metaKey || event.repeat) return
       if (event.key === ' ') {
         event.preventDefault()
         space()
@@ -130,56 +131,54 @@ export function FreePlay({ rung, onExit }: FreePlayProps) {
     setPlaying(false)
   }
 
+  function selectSide(next: Side) {
+    finishLetter()
+    stop()
+    setSide(next)
+  }
+
+  function onTabKeyDown(event: ReactKeyboardEvent<HTMLDivElement>) {
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return
+    event.preventDefault()
+    const next = event.key === 'Home' ? 'key' : event.key === 'End' ? 'hear' : side === 'key' ? 'hear' : 'key'
+    selectSide(next)
+    document.getElementById(`${tabsId}-${next}-tab`)?.focus()
+  }
+
   const keyedText = tokensText(tokens)
   const hear = playableText(typed)
 
   return (
-    <section className="session fluency-home free-play">
-      <div className="session-bar">
-        <p>
-          <span className="session-topic">Free play</span>
-        </p>
-        <button className="ghost small" type="button" onClick={onExit}>
-          Close
-        </button>
-      </div>
-
-      <header className="fluency-head">
-        <h1 ref={headingRef} tabIndex={-1}>
-          Free play
-        </h1>
-        <p className="lede-text">
-          Nothing to get right. Key your own words and see what they spell, or type anything and
-          hear it. Nothing here is saved.
-        </p>
-      </header>
-
-      <div className="free-play-tabs" role="tablist" aria-label="Free play">
+    <SessionFrame kind="free" title="Free play" onClose={onExit} className="fluency-home free-play">
+      <div className="free-play-tabs" role="tablist" aria-label="Free play" onKeyDown={onTabKeyDown}>
         <button
           type="button"
           role="tab"
+          id={`${tabsId}-key-tab`}
+          aria-controls={`${tabsId}-panel`}
+          tabIndex={side === 'key' ? 0 : -1}
           aria-selected={side === 'key'}
           className={side === 'key' ? undefined : 'ghost'}
-          onClick={() => setSide('key')}
+          onClick={() => selectSide('key')}
         >
-          Key it
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8h5v8H3zm7 0h5v8h-5zm8-5h3v18h-3z" /></svg>Key
         </button>
         <button
           type="button"
           role="tab"
+          id={`${tabsId}-hear-tab`}
+          aria-controls={`${tabsId}-panel`}
+          tabIndex={side === 'hear' ? 0 : -1}
           aria-selected={side === 'hear'}
           className={side === 'hear' ? undefined : 'ghost'}
-          onClick={() => {
-            finishLetter()
-            setSide('hear')
-          }}
+          onClick={() => selectSide('hear')}
         >
-          Hear it
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 9h3v6H2zm5-4h3v14H7zm5-3h3v20h-3zm5 4h3v12h-3zm5 3h2v6h-2z" /></svg>Listen
         </button>
       </div>
 
       {side === 'key' ? (
-        <div className="free-play-body" role="tabpanel" aria-label="Key it">
+        <div className="free-play-body" role="tabpanel" id={`${tabsId}-panel`} aria-labelledby={`${tabsId}-key-tab`}>
           <p className="free-play-output mono" aria-live="polite" aria-label={keyedText ? `Spelled: ${keyedText}` : 'Nothing keyed yet'}>
             {tokens.length === 0 && !entry ? (
               <span className="free-play-placeholder">Start keying</span>
@@ -203,12 +202,15 @@ export function FreePlay({ rung, onExit }: FreePlayProps) {
             {entry && <span className="free-play-cursor" aria-hidden="true">▍</span>}
           </p>
 
-          <p className="note">Pause to finish a letter. Space between words.</p>
 
           <MorseKeyInput
             expectedLength={MORSE_MAX_ELEMENTS}
             advanceToken={letterToken}
             locked={playing}
+            onPressStart={() => {
+              if (pauseTimer.current !== null) window.clearTimeout(pauseTimer.current)
+              pauseTimer.current = null
+            }}
             onEntry={onEntry}
             onSubmit={finishLetter}
           />
@@ -232,12 +234,12 @@ export function FreePlay({ rung, onExit }: FreePlayProps) {
               Clear
             </button>
             <button type="button" onClick={() => (playing ? stop() : void play(keyedText))} disabled={!keyedText && !playing}>
-              {playing ? 'Stop' : 'Play it back'}
+              {playing ? 'Stop' : 'Play'}
             </button>
           </div>
         </div>
       ) : (
-        <div className="free-play-body" role="tabpanel" aria-label="Hear it">
+        <div className="free-play-body" role="tabpanel" id={`${tabsId}-panel`} aria-labelledby={`${tabsId}-hear-tab`}>
           <label className="sr-only" htmlFor="free-play-text">
             Text to hear
           </label>
@@ -254,7 +256,7 @@ export function FreePlay({ rung, onExit }: FreePlayProps) {
           />
           {hear.unsupported.length > 0 && (
             <p className="note">
-              No Morse here for {hear.unsupported.join(' ')} — {hear.unsupported.length === 1 ? 'it is' : 'they are'} skipped.
+              Skipped: {hear.unsupported.join(' ')}
             </p>
           )}
           <div className="free-play-actions">
@@ -270,7 +272,6 @@ export function FreePlay({ rung, onExit }: FreePlayProps) {
           {audioError}
         </p>
       )}
-      <p className="note free-play-foot">Plays at your spacing: {rung} WPM, characters at 20.</p>
-    </section>
+    </SessionFrame>
   )
 }

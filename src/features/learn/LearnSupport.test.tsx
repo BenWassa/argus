@@ -1,3 +1,8 @@
+// @vitest-environment jsdom
+import { cleanup, render, screen } from '@testing-library/react'
+import { seedLibrary } from '../../domain/library/catalogSeed'
+import { parseLibrary } from '../../infrastructure/persistence/libraryParser'
+import { morseLessonPath } from '../../domain/morse/curriculum/lessonPath'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import type { LearnContent } from '../../domain/learning/content'
@@ -13,7 +18,7 @@ describe('structured Learn rendering', () => {
     }
 
     const html = renderToStaticMarkup(<LearnSupport content={content} />)
-    expect(html).toContain('<summary>Why it works</summary>')
+    expect(html).not.toContain('<details')
     expect(html).toContain('A small amount of context')
     // Provenance and caveats are not in the body; `SourcesAndLimits` owns them.
     expect(html).not.toContain('Memory support only.')
@@ -66,12 +71,12 @@ describe('structured Learn rendering', () => {
 
     const html = renderToStaticMarkup(<LearnSupport content={content} />)
     expect(html).not.toContain('learn-support-kind')
-    expect(html).toContain('<span>Relationships</span>')
+    expect(html).toContain('<h3>Relationships</h3>')
     expect(html).toContain('<ul class="learn-list">')
     expect(html).toContain('<ol class="learn-list learn-steps">')
     expect(html).toContain('<dl class="learn-definitions">')
     expect(html).toContain('<th scope="col">Stage</th>')
-    expect(html).toContain('<summary>Case study: Integrated decision case</summary>')
+    expect(html).toContain('<h3>Case study: Integrated decision case</h3>')
     expect(html).toContain('<h4>Trace the whole loop</h4>')
     expect(html).toContain('The framework is iterative')
     expect(html).not.toContain('dangerouslySetInnerHTML')
@@ -110,3 +115,30 @@ describe('structured Learn rendering', () => {
     expect(html.indexOf('recall-slot')).toBeLessThan(html.indexOf('Near gale'))
   })
 })
+
+
+it('renders every ordinary catalogue topic’s authored Learn headings and text openly', () => {
+  const parsed = parseLibrary(seedLibrary())
+  if (!parsed.ok) throw new Error(parsed.error)
+  const topics = parsed.library.topics.filter((topic) => topic.learn && !morseLessonPath(topic))
+  expect(topics.some((topic) => topic.learn?.kind === 'briefing')).toBe(true)
+  expect(topics.some((topic) => topic.learn?.kind === 'concise')).toBe(true)
+  for (const topic of topics) {
+    const content = topic.learn!
+    const { container } = render(<LearnSupport content={content} />)
+    for (const section of [...(content.sections ?? []), ...(content.caseStudies ?? []).flatMap((study) => study.analysis)]) {
+      expect(screen.getAllByRole('heading', { name: section.heading }).length, topic.id).toBeGreaterThan(0)
+      for (const block of section.blocks) {
+        if (block.type === 'paragraph') expect(container.textContent, topic.id).toContain(block.text)
+      }
+    }
+    for (const study of content.caseStudies ?? []) {
+      expect(screen.getByRole('heading', { name: `Case study: ${study.title}` }), topic.id).toBeTruthy()
+      expect(container.textContent, topic.id).toContain(study.scenario)
+      if (study.takeaway) expect(container.textContent, topic.id).toContain(study.takeaway)
+    }
+    if (content.overview) expect(container.textContent, topic.id).toContain(content.overview)
+    expect(container.querySelector('details, summary'), topic.id).toBeNull()
+    cleanup()
+  }
+}, 20_000) // Renders every shipped topic; give it room on a loaded machine.

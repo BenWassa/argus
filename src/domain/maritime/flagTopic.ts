@@ -6,7 +6,7 @@ import { FLAG_CONFUSION_SETS, SIGNAL_FLAGS, type SignalFlag } from './flags'
 /**
  * The shipped topic of Maritime II (#148): twelve selected International Code of
  * Signals single-letter flags. Content authority is
- * `docs/open/ISSUE_138_MARITIME_VISUAL_LITERACY.md` §3D.
+ * `docs/closed/ISSUE_138_MARITIME_VISUAL_LITERACY.md` §3D.
  *
  * The twelve are an Argus editorial selection from the Code's already
  * prioritized single-letter signals, not an official sub-code, and the target

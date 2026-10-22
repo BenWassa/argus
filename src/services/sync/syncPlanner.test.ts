@@ -351,6 +351,24 @@ describe('a remote copy this build cannot read', () => {
   })
 })
 
+describe('formative Morse practice travels with the whole topic record', () => {
+  const practice = {
+    schemaVersion: 1 as const,
+    sequence: { key: 1, read: 0, listen: 0 },
+    characters: { key: { E: { outcomes: [true], shown: 1, lastShownSequence: 1 } }, read: {}, listen: {} },
+  }
+
+  it('serializes practice and reports concurrent practice edits as a topic conflict', () => {
+    const baseline = topic('morse', { morsePractice: practice })
+    const local = topic('morse', { morsePractice: { ...practice, sequence: { ...practice.sequence, key: 2 } } })
+    const theirs = topic('morse', { morsePractice: { ...practice, sequence: { ...practice.sequence, read: 1 } } })
+    expect(JSON.parse(topicJson(local)).morsePractice).toEqual(local.morsePractice)
+    const plan = planSync([local], [remote('morse', theirs, 2)], ledgerFor('morse', baseline, 1))
+    expect(plan.actions).toEqual([])
+    expect(plan.conflicts).toEqual(['morse'])
+  })
+})
+
 describe('library-level state', () => {
   it('travels as one canonical text for the same set of delivered topics', () => {
     expect(libraryMetaJson(['b', 'a', 'b'])).toBe(libraryMetaJson(['a', 'b']))

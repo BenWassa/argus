@@ -14,6 +14,8 @@ import {
 } from '../../infrastructure/persistence/storageStatus'
 import { collisions } from '../../domain/library/catalog'
 import { Confirm } from '../../shared/ui/Confirm'
+import { Plate } from '../../shared/ui/Plate'
+import { ScreenHeader } from '../../shared/ui/ScreenHeader'
 import { hapticsEnabled, hapticsSupported, setHapticsEnabled } from '../../shared/haptics'
 import packageMetadata from '../../../package.json'
 import './ProfilePage.css'
@@ -94,98 +96,93 @@ export function ProfilePage({ onBack }: { onBack: () => void }) {
       : { tone: 'ok', text: `Imported ${result.library.topics.length} topics.` })
   }
 
+  const lastRecovery = recovered[recovered.length - 1]
   return (
-    <>
-      <button className="quiet topic-back" type="button" aria-label="Back to Home" onClick={onBack}>
-        <span aria-hidden="true">←</span> Home
-      </button>
-
-      <h1>Profile</h1>
-      <p className="lede-text">
-        Account, sync and data controls. Learning content stays in Library; these controls manage
-        the copy of Argus that belongs to you.
-      </p>
+    <div className="profile-page">
+      <ScreenHeader title="Profile" onBack={onBack} backLabel="Back to Home" />
 
       <Sync state={sync.state} onSignIn={sync.signIn} onSignOut={sync.signOut} />
 
-      <h2 className="profile-section-title">Offline availability</h2>
-      <p className="lede-text">
-        <strong>{online ? 'Online' : 'Offline'}.</strong> The shipped curriculum is bundled with
-        Argus. Full offline relaunch and restart-safe sync are not yet guaranteed.
-      </p>
-      <p className="note">
-        {storage === null
-          ? 'Checking local storage…'
-          : storageMessage(storage)}
-      </p>
+      <Plate as="section" className="profile-section" aria-labelledby="profile-device">
+        <h2 id="profile-device">This device</h2>
+        <dl className="profile-readouts">
+          <Readout label="Network" value={online ? 'Online' : 'Offline'} />
+          <Readout label="Storage" value={storage === null ? 'Checking…' : storageProtection(storage)} />
+          {storage?.usage != null && (
+            <Readout
+              label="Used"
+              value={storage.quota === null
+                ? formatStorageBytes(storage.usage)
+                : `${formatStorageBytes(storage.usage)} of ${formatStorageBytes(storage.quota)}`}
+            />
+          )}
+          <Readout label="Offline reopen" value="Not guaranteed" />
+        </dl>
+        <Haptics />
+      </Plate>
 
-      <Haptics />
+      <Plate as="section" className="profile-section" aria-labelledby="profile-backup">
+        <h2 id="profile-backup">Data &amp; backup</h2>
+        <dl className="profile-readouts">
+          <Readout label="Topics" value={String(topics.length)} />
+        </dl>
+        <div className="profile-actions">
+          <button className="ghost" type="button" onClick={exportLibrary} disabled={topics.length === 0}>
+            Export JSON
+          </button>
+          <button className="ghost" type="button" onClick={() => fileInput.current?.click()}>
+            Import JSON
+          </button>
+          {/* Driven by the real button above, and hidden from the accessibility
+              tree so it is not announced twice. Keyboard users reach the button,
+              never a label wrapping an unfocusable input. */}
+          <input
+            ref={fileInput}
+            className="sr-only"
+            type="file"
+            accept="application/json,.json"
+            tabIndex={-1}
+            aria-hidden="true"
+            onChange={(e) => {
+              const file = e.target.files?.[0]
+              if (file) void reviewImport(file)
+              e.target.value = ''
+            }}
+          />
+        </div>
 
-      <h2 className="profile-section-title">Data &amp; backup</h2>
-      <p className="lede-text">
-        Export writes the whole learner record to a JSON file you own. Import replaces your local
-        learner record. An entirely empty legacy record is repaired back to the shipped baseline.
-      </p>
+        <p className={`profile-message${message?.tone === 'error' ? ' error' : ''}`} role="status" aria-live="polite">
+          {message?.text ?? ''}
+        </p>
 
-      <div className="actions start">
-        <button type="button" onClick={exportLibrary} disabled={topics.length === 0}>
-          Export JSON
-        </button>
-        <button className="ghost" type="button" onClick={() => fileInput.current?.click()}>
-          Import JSON
-        </button>
-        {/* Driven by the real button above, and hidden from the accessibility
-            tree so it is not announced twice. Keyboard users reach the button,
-            never a label wrapping an unfocusable input. */}
-        <input
-          ref={fileInput}
-          className="sr-only"
-          type="file"
-          accept="application/json,.json"
-          tabIndex={-1}
-          aria-hidden="true"
-          onChange={(e) => {
-            const file = e.target.files?.[0]
-            if (file) void reviewImport(file)
-            e.target.value = ''
-          }}
-        />
-      </div>
-
-      <p className={message?.tone === 'error' ? 'error' : 'note'} role="status" aria-live="polite">
-        {message?.text ?? ''}
-      </p>
+        {recovered.length > 0 && (
+          <div className="profile-recovered">
+            <p className="profile-recovered-text">
+              A stored library this version could not read was kept, not overwritten.
+              {lastRecovery && <span className="tabular"> Last on {new Date(lastRecovery.at).toLocaleDateString()}.</span>}
+            </p>
+            <button className="ghost" type="button" onClick={downloadRecovered}>
+              Download unreadable copy
+            </button>
+          </div>
+        )}
+      </Plate>
 
       <CatalogNotice added={catalogReport.added} withheld={collisions(catalogReport)} />
 
-      {recovered.length > 0 && (
-        <div className="profile-recovered">
-          <p className="note">
-            A stored library this version could not read was kept, not overwritten
-            {' '}(last on {new Date(recovered[recovered.length - 1].at).toLocaleDateString()}).
-          </p>
-          <button className="ghost" type="button" onClick={downloadRecovered}>
-            Download unreadable copy
-          </button>
-        </div>
-      )}
+      <Plate as="section" className="profile-section profile-danger-zone" aria-labelledby="profile-reset">
+        <h2 id="profile-reset">Reset</h2>
+        <button
+          className="profile-danger"
+          type="button"
+          disabled={topics.length === 0}
+          onClick={() => setConfirmReset(true)}
+        >
+          Reset learning data
+        </button>
+      </Plate>
 
-      <h3 className="profile-subsection-title">Reset learning data</h3>
-      <p className="lede-text">
-        Removes user-authored topics and learner progress from this device, then restores the
-        shipped Argus topics as fresh, unstarted content.
-      </p>
-      <button
-        className="danger"
-        type="button"
-        disabled={topics.length === 0}
-        onClick={() => setConfirmReset(true)}
-      >
-        Reset learning data
-      </button>
-
-      <h2 className="profile-section-title">About</h2>
-      <p className="note tabular">App version {packageMetadata.version} · build {__ARGUS_BUILD_ID__}</p>
+      <p className="profile-about tabular">App version {packageMetadata.version} · build {__ARGUS_BUILD_ID__}</p>
 
       {pendingImport && (
         <Confirm
@@ -216,23 +213,27 @@ export function ProfilePage({ onBack }: { onBack: () => void }) {
           }}
         />
       )}
-    </>
+    </div>
   )
 }
 
-function storageMessage(storage: StorageStatus): string {
-  const footprint = storage.usage === null
-    ? ''
-    : ` Approximate local usage: ${formatStorageBytes(storage.usage)}${
-      storage.quota === null ? '.' : ` of ${formatStorageBytes(storage.quota)} available.`
-    }`
+function Readout({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="profile-readout">
+      <dt>{label}</dt>
+      <dd className="tabular">{value}</dd>
+    </div>
+  )
+}
+
+function storageProtection(storage: StorageStatus): string {
   switch (storage.persistence) {
     case 'granted':
-      return `Browser storage protection is enabled.${footprint}`
+      return 'Protected'
     case 'denied':
-      return `Browser storage protection was not granted. Sync or export provides a recovery copy.${footprint}`
+      return 'Not granted'
     case 'unsupported':
-      return `This browser does not report storage protection.${footprint}`
+      return 'Not reported'
   }
 }
 
@@ -250,31 +251,22 @@ function CatalogNotice({ added, withheld }: CatalogNoticeProps) {
   if (added.length === 0 && withheld.length === 0) return null
 
   return (
-    <section className="catalog-notice">
-      <h2>Shipped catalog</h2>
-      {added.length > 0 && (
-        <p className="note">
-          {added.length === 1 ? '1 new shipped topic was' : `${added.length} new shipped topics were`}{' '}
-          added to this library as unstarted. Nothing already here was changed.
-        </p>
-      )}
+    <Plate as="section" className="profile-section" aria-labelledby="profile-catalog">
+      <h2 id="profile-catalog">Shipped catalog</h2>
+      <dl className="profile-readouts">
+        {added.length > 0 && <Readout label="Added, unstarted" value={String(added.length)} />}
+        {withheld.length > 0 && <Readout label="Withheld, id in use" value={String(withheld.length)} />}
+      </dl>
       {withheld.length > 0 && (
-        <>
-          <p className="note">
-            {withheld.length === 1 ? '1 shipped topic was' : `${withheld.length} shipped topics were`}{' '}
-            withheld because a topic of your own already uses the same id. Your version was kept as
-            it is. Rename or export yours if you want the shipped version instead.
-          </p>
-          <ul className="index">
-            {withheld.map((id) => (
-              <li key={id} className="catalog-notice-id tabular">
-                {id}
-              </li>
-            ))}
-          </ul>
-        </>
+        <ul className="profile-ids">
+          {withheld.map((id) => (
+            <li key={id} className="catalog-notice-id tabular">
+              {id}
+            </li>
+          ))}
+        </ul>
       )}
-    </section>
+    </Plate>
   )
 }
 
@@ -284,7 +276,8 @@ function CatalogNotice({ added, withheld }: CatalogNoticeProps) {
  * The one thing a person needs to be told here is what signing in does and does
  * not do, because a learning record is exactly the kind of thing people expect
  * an account to take custody of. It does not: the copy on this device stays the
- * one Argus reads, and signing out leaves it untouched.
+ * one Argus reads, and signing out leaves it untouched. The status line carries
+ * that, so the section is a reading and one action.
  */
 function Sync({
   state,
@@ -300,28 +293,24 @@ function Sync({
     // a broken one, so this says so rather than offering a button that cannot
     // work.
     return (
-      <>
-        <h2 className="profile-section-title">Account &amp; sync</h2>
-        <p className="lede-text">
-          This build has no Firebase configuration, so there is nothing to sign in to. Export and
-          import carry the library between devices instead.
-        </p>
-      </>
+      <Plate as="section" className="profile-section" aria-labelledby="profile-account">
+        <h2 id="profile-account">Account &amp; sync</h2>
+        <dl className="profile-readouts">
+          <Readout label="Sync" value="Unavailable in this build" />
+        </dl>
+      </Plate>
     )
   }
 
+  const signedOut = state.kind === 'signedOut' || state.kind === 'restoring'
   return (
-    <>
-      <h2 className="profile-section-title">Account &amp; sync</h2>
-      <p className="lede-text">
-        Signing in with Google keeps this library on your own devices in step. The copy in this
-        browser stays the one Argus reads and writes, so Argus works the same offline, and signing
-        out leaves everything here exactly as it is. If the same topic changes on two devices,
-        neither copy is overwritten and it is named below for you to settle.
+    <Plate as="section" className="profile-section" aria-labelledby="profile-account">
+      <h2 id="profile-account">Account &amp; sync</h2>
+      <p className={`profile-message${state.kind === 'error' ? ' error' : ''}`} role="status" aria-live="polite">
+        {syncMessage(state)}
       </p>
-
-      <div className="actions start">
-        {state.kind === 'signedOut' || state.kind === 'restoring' ? (
+      <div className="profile-actions">
+        {signedOut ? (
           <button type="button" onClick={() => void onSignIn()}>
             Sign in with Google
           </button>
@@ -331,11 +320,7 @@ function Sync({
           </button>
         )}
       </div>
-
-      <p className={state.kind === 'error' ? 'error' : 'note'} role="status" aria-live="polite">
-        {syncMessage(state)}
-      </p>
-    </>
+    </Plate>
   )
 }
 
@@ -385,23 +370,16 @@ function Haptics() {
   if (!supported) return null
 
   return (
-    <>
-      <h2 className="profile-section-title">Feedback</h2>
-      <p className="lede-text">
-        Short taps confirm a keyed element, a right answer and a wrong one. They
-        never carry information on their own.
-      </p>
-      <label className="profile-toggle">
-        <input
-          type="checkbox"
-          checked={enabled}
-          onChange={(event) => {
-            setHapticsEnabled(event.target.checked)
-            setEnabled(event.target.checked)
-          }}
-        />
-        <span>Vibration</span>
-      </label>
-    </>
+    <label className="profile-toggle">
+      <input
+        type="checkbox"
+        checked={enabled}
+        onChange={(event) => {
+          setHapticsEnabled(event.target.checked)
+          setEnabled(event.target.checked)
+        }}
+      />
+      <span>Vibration</span>
+    </label>
   )
 }

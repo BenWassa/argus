@@ -38,14 +38,10 @@ const MAY_IMPORT: Record<string, string[]> = {
 /**
  * Cross-feature imports that reach past a feature's root, and are known debt.
  *
- * One is left: the topic page shows the curriculum path. Either it becomes
- * part of `features/morse`'s root surface or the consumer stops needing it —
- * this list may shrink, never grow. The Test ladder's keyed answer took the
- * first route, and is now `features/morse/keyedResponse`.
+ * Morse exposes its path and mode composition at the feature root, so no
+ * sibling needs to reach inside it.
  */
-const DEEP_FEATURE_IMPORTS = new Set([
-  'src/features/library/TopicPage.tsx -> src/features/morse/lesson/MorsePath',
-])
+const DEEP_FEATURE_IMPORTS = new Set<string>()
 
 function sourceFiles(root: string): string[] {
   const found: string[] = []
@@ -143,5 +139,14 @@ describe('a feature owns its internals', () => {
       }
     }
     expect([...DEEP_FEATURE_IMPORTS].sort()).toEqual([...live].sort())
+  })
+})
+
+
+describe('feature content stays visible', () => {
+  it('contains no native accordions', () => {
+    for (const absolute of sources.filter((path) => asPath(path).startsWith('src/features/'))) {
+      expect(readFileSync(absolute, 'utf8'), asPath(absolute)).not.toMatch(/<(?:details|summary)\b/i)
+    }
   })
 })

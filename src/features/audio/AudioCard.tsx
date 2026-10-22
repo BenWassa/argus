@@ -136,9 +136,9 @@ export function AudioCard({ item, onAnswer, cardKey, now = defaultNow }: AudioCa
         label={item.prompt}
       />
 
-      <h1 id="audio-prompt" className="test-prompt is-question">
+      <h2 id="audio-prompt" className="session-prompt-heading test-prompt is-question">
         {item.prompt}
-      </h1>
+      </h2>
 
       {revealed && !result && (
         <p className="audio-assisted" role="status">

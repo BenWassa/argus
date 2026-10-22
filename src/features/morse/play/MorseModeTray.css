@@ -1,0 +1,7 @@
+/* The Morse stimuli inside the shared mode tray tiles. */
+.morse-mode-letter { font-size: 30px; font-weight: 800; line-height: 1; }
+.morse-mode-text { display: flex; align-items: center; gap: 3px; font-size: 26px; font-weight: 800; line-height: 1; }
+.morse-mode-cursor { width: 5px; height: 28px; background: currentColor; }
+.morse-mode-letter.is-small { font-size: 15px; }
+.morse-mode-text.is-small { gap: 1px; font-size: 12px; }
+.morse-mode-text.is-small .morse-mode-cursor { width: 2px; height: 12px; }

@@ -1,0 +1,50 @@
+.morse-character-support {
+  display: grid;
+  grid-template-columns: clamp(3.5rem, 16vw, 5rem) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0 var(--s-md);
+  min-width: 0;
+  width: 100%;
+  padding: var(--s-sm) var(--s-md);
+}
+
+.morse-character-support.is-sounding { border-color: var(--accent); }
+.morse-character-support-glyph {
+  display: grid;
+  place-items: center;
+  align-self: stretch;
+  border-inline-end: 1px solid var(--line);
+  padding-inline-end: var(--s-sm);
+  font-family: var(--font-display);
+  font-size: clamp(2.8rem, 14vw, 4.4rem);
+  font-weight: var(--w-display);
+  line-height: .9;
+}
+.morse-character-support-body { display: grid; gap: .25rem; min-width: 0; }
+.morse-character-support-notation,
+.morse-character-support-mnemonic { margin: 0; }
+.morse-character-support-notation {
+  font-family: var(--font-mono);
+  font-size: clamp(1.8rem, 8vw, 2.6rem);
+  font-weight: var(--w-strong);
+  line-height: 1;
+  letter-spacing: .08em;
+  overflow-wrap: anywhere;
+}
+.morse-character-support-mnemonic { font-size: 1rem; font-weight: var(--w-strong); }
+.morse-character-support > .morse-play { grid-column: 3; }
+.morse-character-support-audio-error { grid-column: 1 / -1; margin: var(--s-xs) 0 0; color: var(--muted); font-size: var(--t-small); }
+@media (max-width: 360px) {
+  .morse-character-support { grid-template-columns: min(3.2rem, 18vw) minmax(0, 1fr) auto; gap: 0 var(--s-sm); padding-inline: var(--s-sm); }
+  .morse-character-support-glyph { font-size: min(2.6rem, 15vw); }
+  .morse-character-support-notation { font-size: min(1.7rem, 8vw); }
+}
+
+/* Inside a narrow correction (a small phone or enlarged text), the letter
+   heads the row and the pattern and phrase take the full width beside Play,
+   so no phrase word breaks mid-word (#263). */
+@container (max-width: 18em) {
+  .morse-character-support { grid-template-columns: minmax(0, 1fr) auto; gap: 0 var(--s-sm); padding-inline: 0; }
+  .morse-character-support-glyph { grid-column: 1 / -1; justify-self: start; border: 0; padding: 0; margin-bottom: var(--s-xs); }
+  .morse-character-support > .morse-play { grid-column: 2; }
+}

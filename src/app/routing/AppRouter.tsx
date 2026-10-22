@@ -1,3 +1,4 @@
+import { LetterPracticeSurface } from '../../features/morse/practice/LetterPracticeSurface'
 import { useEffect, useRef, useState } from 'react'
 import { AppShell } from '../../shared/layout/AppShell'
 import { useLibrary } from '../../services/library/LibraryProvider'
@@ -10,6 +11,7 @@ import { LessonRun } from '../../features/morse/lesson/LessonRun'
 import { PracticeRun } from '../../features/practice/PracticeRun'
 import { FluencySurface } from '../../features/morse/fluency/FluencySurface'
 import { MorseReference } from '../../features/morse/reference/MorseReference'
+import { TopicReading } from '../../features/learn/TopicReading'
 import { morseLessonPath } from '../../domain/morse/curriculum/lessonPath'
 import {
   ROOT_ROUTE,
@@ -39,7 +41,10 @@ function focusAfterTraversal(previous: AppRoute, next: AppRoute) {
     // a topic. Wait two frames so its local openId state has committed before
     // restoring the heading focus target.
     window.requestAnimationFrame(() => {
-      window.requestAnimationFrame(() => document.querySelector<HTMLElement>('.topic-title')?.focus())
+      window.requestAnimationFrame(() => {
+        const heading = document.querySelector<HTMLElement>('.topic-title')
+        heading?.focus({ preventScroll: Boolean(heading.closest('.topic-morse')) })
+      })
     })
     return
   }
@@ -112,7 +117,7 @@ export function AppRouter() {
       // A completed/exited run has no persistent in-progress state to restore.
       // Forward into its old entry is therefore declined rather than replaying
       // Learn/Test side effects or creating a fresh scored attempt.
-      if (direction > 0 && state.route.kind === 'run') {
+      if (direction > 0 && state.route.kind === 'run' && liveRoute(state.route, topicsRef.current).kind === 'run') {
         window.history.back()
         return
       }
@@ -164,8 +169,15 @@ export function AppRouter() {
     if (replace) replaceNavigationState(next, historyIndex.current)
     else historyIndex.current = pushNavigationState(next, historyIndex.current)
 
+    // Clear the previous page's scroll before mounting the next task, so its
+    // own focus policy can still bring an input into view on short screens.
+    // Back/Forward retain the existing traversal/restoration path.
+    window.scrollTo(0, 0)
     routeRef.current = next
     setRoute(next)
+    if (next.kind === 'section') {
+      window.requestAnimationFrame(() => document.getElementById('main')?.focus({ preventScroll: true }))
+    }
   }
 
   function goBack() {
@@ -176,7 +188,7 @@ export function AppRouter() {
     if (topicIds.length === 0) return
     const current = routeRef.current
     const origin = replace && current.kind === 'run' ? current.origin : parentFor(current)
-    navigate({ kind: 'run', mode, topicIds, origin, target }, replace)
+    navigate(liveRoute({ kind: 'run', mode, topicIds, origin, target }, topicsRef.current), replace)
   }
 
   /**
@@ -225,6 +237,12 @@ export function AppRouter() {
     // Fluency is the post-acquisition surface. Like practice it is formative,
     // so it rides the `learn` mode rather than introducing a third mode some
     // future switch could mistake for scored.
+    if (route.mode === 'learn' && route.target?.kind === 'letter-practice') {
+      return <div className="app-shell session-shell"><main id="main" tabIndex={-1}>
+        <LetterPracticeSurface key={`${route.topicIds[0]}-${route.target.direction ?? 'any'}`} topicId={route.topicIds[0]} direction={route.target.direction} onExit={goBack} />
+      </main></div>
+    }
+
     if (route.mode === 'learn' && route.target?.kind === 'fluency') {
       return (
         <div className="app-shell session-shell">
@@ -234,6 +252,8 @@ export function AppRouter() {
               topicId={route.topicIds[0]}
               initialMode={route.target.mode}
               initialSend={route.target.send}
+              initialCopy={route.target.copy}
+              initialFree={route.target.free}
               letters={route.target.letters}
               onExit={goBack}
             />
@@ -305,6 +325,17 @@ export function AppRouter() {
     )
   }
 
+  // The reference route names a topic. Morse's is its A–Z alphabet; every
+  // other topic's is its Learn reading, a screen inside the shell.
+  const readingTopic = route.kind === 'reference' ? topics.find((candidate) => candidate.id === route.topicId) : undefined
+  if (route.kind === 'reference' && readingTopic && !morseLessonPath(readingTopic)) {
+    return (
+      <AppShell view="library" onNavigate={navigateSection}>
+        <TopicReading key={readingTopic.id} topic={readingTopic} onBack={goBack} />
+      </AppShell>
+    )
+  }
+
   if (route.kind === 'reference') {
     return (
       <div className="app-shell session-shell">
@@ -327,6 +358,7 @@ export function AppRouter() {
     <AppShell view={navView} onNavigate={navigateSection}>
       {view === 'today' && (
         <Today
+          onContinue={(action, id) => action === 'author' ? navigate({ kind: 'topic', topicId: id }) : start(action, [id])}
           onOpenTopic={(id) => navigate({ kind: 'topic', topicId: id })}
           onGoToLibrary={() => navigate({ kind: 'section', view: 'library' })}
           onAuthorTopic={() => {

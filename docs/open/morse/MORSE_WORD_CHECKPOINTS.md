@@ -1,0 +1,271 @@
+# Morse Learn — early word-application checkpoints
+
+> **#115 correction — 2026-09-18.** The #90 target-level retry rule is superseded. All four checkpoints now use an explicit local warm-up → word-character → complete progression. Warm-ups finish before word mode; a word remains visible and is keyed one highlighted letter at a time, contiguously through its final character. Misses receive local feedback but are never requeued inside or across words. The run remains formative and writes no saved Learn, Test, scheduler, evidence, retention, or completion state.
+>
+> **#90 closeout addendum — 2026-09-15.** The original #78 record below is retained for history, but its "exactly two" / "later-half non-goal" statements are superseded. The same formative checkpoint architecture now spans **Lessons 4, 7, 10 and 13**. Lesson 10 uses warm-ups `V F B P` with `FLOW`, `PLANT`; Lesson 13 uses `X C J Q` with `BOX`, `COZY`, `JAZZ`, `QUIZ`. All content is mechanically checked against `lessonPackets()` at its milestone, and the final checkpoint exercises every late-acquired `X C Z J Y Q` somewhere in its material. All four milestones use the existing #88 first-unlock invitation, remain skippable/non-gating and path-accessible, and checkpoint/replay answers still write no lesson support, sitting, `morseReview`, `DirectionEvidence`, retention timestamp or completion state.
+
+Issue: #78  
+Parent: #21  
+Status: **implemented by #78; integrated into the forward journey by #87/#88**
+
+This document records the durable product/architecture contract for the first
+whole-word application moments inside the existing Morse Learn journey.
+
+It does not change the formal Morse completion boundary, create a Practice mode,
+or define a new competency. The runtime implementation follows this contract in
+`src/domain/morse/curriculum/checkpoints.ts`, `src/features/morse/lesson/MorseCheckpoint.tsx`, and
+the existing `MorseProgramme` lesson path.
+
+## Implementation record
+
+#78 implements exactly two interstitial milestones after canonical Lessons 4 and
+7. Their eligibility is projected from the existing lesson path, their allowed
+letters are derived from `lessonPackets()`, and the curated corpus is validated
+against those derived sets at runtime/test time. The checkpoint runner owns only
+transient React state and reuses the shared #77 `MorseKeyInput`; its explicit
+run state advances through each word character without allowing other targets
+inside a word. It has no learner store, scheduler, Test-evidence,
+lesson-progress, sitting or completion write path.
+
+The canonical programme remains 13 lessons. A checkpoint never gates the next
+lesson and has no durable completion flag. Once a milestone has been reached,
+later lesson reach is sufficient proof to keep that checkpoint available if
+repair temporarily moves canonical Learn back to an older lesson. #88 additionally
+surfaces a newly unlocked checkpoint automatically at the lesson-completion
+boundary; this is an ephemeral handoff event, not a second unlock database.
+
+## Purpose
+
+The guided A–Z programme teaches and retrieves individual printed letter → Morse
+mappings. #78 adds two deliberately small moments where the learner combines
+mappings they have already encountered into familiar words.
+
+The objective is application and motivation, not broader Morse fluency.
+
+## Curriculum authority
+
+Checkpoint content must never rely on a duplicated hand-written acquisition
+sequence.
+
+Production authority remains:
+
+- `src/domain/morse/curriculum/lesson.ts` → `lessonPackets()`;
+- `src/domain/morse/curriculum/packetOrder.ts` → `buildCharacterPackets()` / generated acquisition
+  order;
+- `docs/open/morse/MORSE_CHARACTER_ORDER.md` for the rationale and pinned sequence.
+
+The current generated acquisition order is:
+
+```text
+E I T A N S M U R D W K G H O V F L B P X C Z J Y Q
+```
+
+With two novel characters per lesson, the current milestone sets are:
+
+- after Lesson 4: `E I T A N S M U`;
+- after Lesson 7: `E I T A N S M U R D W K G H`.
+
+`O` is introduced in Lesson 8, not Lesson 7.
+
+Implementation tests derive milestone sets from `lessonPackets()` and fail if any
+curated warm-up or word contains a letter not available at that point. The
+literal sets above document current truth; they are not a second runtime source
+of truth.
+
+## Checkpoint 1 — after Lesson 4
+
+The first checkpoint appears immediately after Lesson 4 in the visible Morse
+lesson path.
+
+Before Lesson 4 is complete it is locked. After Lesson 4 is complete it remains
+available to run again.
+
+Flow:
+
+1. four brief individual-letter keyed warm-ups chosen deterministically from the
+   known set;
+2. one simple familiar word, keyed one highlighted character at a time without interruption;
+3. concise completion state;
+4. continue naturally into the lesson journey.
+
+The shipped word is `TIME`.
+
+## Checkpoint 2 — after Lesson 7
+
+The second checkpoint appears immediately after Lesson 7.
+
+Flow:
+
+1. four brief individual-letter keyed warm-ups;
+2. two modest familiar words, each keyed one highlighted character at a time without interruption;
+3. concise completion state;
+4. continue naturally into the lesson journey.
+
+The shipped words are `TRAIN` and `GARDEN`.
+
+Do not use stale examples containing `O` before Lesson 8.
+
+## Lesson-path contract
+
+The canonical programme still contains exactly **13 lessons**.
+
+The checkpoints are interstitial milestones. They must not:
+
+- renumber the canonical lessons;
+- become Lesson 5 or Lesson 8;
+- gate access to later lessons;
+- create a parallel unlock database;
+- require a durable `checkpointCompleted` flag merely for presentation.
+
+Availability is derived from the existing lesson-path/acquisition authority. Once
+a milestone has genuinely been reached, its checkpoint remains available even if
+later repair causes an older lesson to become current again.
+
+Checkpoint completion itself is not an acquisition prerequisite. A learner may
+continue to Lesson 5 or Lesson 8 without passing the checkpoint.
+
+## Automatic milestone handoff (#88)
+
+When canonical progression **newly** reaches Lesson 4 or Lesson 7, the completion
+boundary automatically offers the corresponding checkpoint before ordinary
+forward navigation resumes. The invitation is deliberately small: a restrained
+lesson-complete acknowledgement, a one-line explanation of the word activity and
+the expected warm-up/word size. `Start checkpoint` enters it directly.
+
+Skipping is explicitly non-gating: the next lesson remains available and the
+checkpoint remains on the lesson path for later voluntary use. Replaying Lesson 4
+or 7, or repairing an older lesson after the milestone was already reached, must
+not falsely recreate a first-unlock event. Completing the checkpoint keeps the
+learner in the Morse journey and offers the next canonical continuation. None of
+these transitions writes checkpoint completion, skip or seen state.
+
+## Interaction contract
+
+Reuse the shared direct Morse key introduced by #77. Do not create a second
+keying widget or response model.
+
+For every warm-up target and every word character:
+
+- show the plaintext target;
+- for a word, keep the full word visible and highlight only the current character;
+- after per-letter feedback, advance automatically to the next character of the
+  same word until its final-character boundary;
+- learner enters Morse with the same tap/hold interaction as existing keyed
+  production;
+- expected element count auto-grades exactly once;
+- a mis-key is a miss and cannot be edited away;
+- show lightweight immediate correct/wrong feedback;
+- advance automatically to the next target after a *correct* answer;
+- hold a correction until the learner presses `Continue`.
+
+Do not introduce Back, delete, Submit or Check between characters, and no
+Continue after a correct answer. The one `Continue` on this surface belongs to a
+correction, and it is the shared rule rather than a local one — see the
+2026-09-19 contract in `MORSE_LESSON.md`. The bar names itself `Checkpoint` in
+one word and carries its position as a number, rather than
+`Checkpoint after lesson 4` plus `Warm-up 1 of 4`.
+
+Touch duration remains categorical input only. It is not sending timing, WPM,
+or formal evidence. #87 separates that classification from the audible element:
+every accepted dit/dah is rendered as a complete tone, the final tone finishes
+before the answer boundary advances, and the answer region remains locked through
+visible correct/wrong feedback and the target transition. A hit advances
+automatically; a correction waits on the learner. Reduced motion removes nonessential animation but not the safety
+gate, and the shared Morse key uses a tactile tonal/elevation press state rather
+than blue/accent styling.
+
+## Formative-only state boundary
+
+A checkpoint run is ephemeral application inside Learn.
+
+It must not mutate:
+
+- `Topic.lessonProgress`;
+- `Topic.lessonSitting`;
+- `Topic.acquisitionReadyAt`;
+- Test attempts/history;
+- `DirectionEvidence`;
+- scheduler/retention state;
+- completion state;
+- the 26-item printed bidirectional competency claim.
+
+A wrong response affects only transient checkpoint feedback and never invokes
+the canonical lesson support/repair ladder.
+
+Running an unlocked checkpoint again must not disturb the canonical current
+lesson, the active 10-retrieval sitting, acquisition support, formal evidence or
+retention state.
+
+## Content policy
+
+V1 intentionally uses a tiny deterministic curated corpus.
+
+Requirements:
+
+- every target mechanically validated against canonical milestone letters;
+- familiar everyday English words;
+- no dictionary generation;
+- no infinite practice stream;
+- no obscure words merely to satisfy the character set;
+- no phrases or sentences;
+- no auditory-only word reception;
+- no sending/WPM scoring.
+
+## UI/accessibility boundary
+
+The checkpoint looks and behaves like part of the existing phone-first Morse
+programme, not like a separate dashboard or mode.
+
+Preserve:
+
+- whole-word visibility with only the current character highlighted;
+- >=44 CSS px primary touch targets;
+- keyboard access and sensible focus restoration;
+- reduced-motion behaviour;
+- usable 200% text scaling;
+- #45 History API / Android Back semantics.
+
+## Validation contract
+
+#78/#87/#88 automated coverage establishes:
+
+- exact Lesson-4 and Lesson-7 unlock boundaries;
+- locked-before / available-after behaviour;
+- availability surviving later lesson repair;
+- 13 canonical lessons remaining 13 and later lessons not being gated;
+- milestone sets derived from `lessonPackets()`;
+- all curated content using only eligible letters;
+- explicit protection against `O` leaking into Lesson-7 content;
+- warm-up → word flow;
+- whole-word rendering with immediate feedback for the highlighted character;
+- expected-length auto-grading for each character pattern;
+- correct and wrong progression without correction controls;
+- replayability;
+- no mutation of acquisition, sitting, scheduler, Test evidence or completion;
+- phone width, focus/accessibility and 200% text;
+- preservation of #45, #75, corrected #76 and #77 behaviour.
+
+The full repository gate and exact production build remain the merge gate.
+
+## Explicit non-goals
+
+#78 does not implement:
+
+- later-half alphabet checkpoints;
+- phrases, sentences or continuous Morse;
+- auditory reception as a scored competency;
+- sending or WPM competence;
+- generated practice;
+- #29 advanced Morse work;
+- parked #79 desktop specialist review.
+
+## Relationship to later Morse work
+
+These checkpoints deliberately stop short of the broader groups/words/continuous
+material contemplated by #29. Their purpose is to test whether tiny formative
+application moments improve the A–Z learning journey without changing its
+completion claim.
+
+With #87/#88 implemented on current `main`, the next gate is fresh integrated
+real-device Pixel/PWA acceptance under #42 before deciding whether the A–Z
+foundation is mature enough to open #29 or other later competency work.

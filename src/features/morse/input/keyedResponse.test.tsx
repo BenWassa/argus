@@ -296,7 +296,7 @@ describe('the checkpoint boundary cannot be crossed by a tap still in flight', (
 
   it('holds a hit on screen for the shared dwell, then transitions before re-arming', async () => {
     render(<MorseCheckpoint checkpoint={checkpoint} onExit={vi.fn()} />)
-    expect(screen.getByText('1/4')).toBeTruthy()
+    expect(screen.getByRole('progressbar', { name: '0 of 8' })).toBeTruthy()
 
     const first = checkpoint.warmups[0]
     await keyPattern(MORSE_LETTERS[first])
@@ -307,7 +307,7 @@ describe('the checkpoint boundary cannot be crossed by a tap still in flight', (
     expect(screen.getByText('Correct')).toBeTruthy()
 
     advance(40)
-    expect(screen.getByText('2/4')).toBeTruthy()
+    expect(screen.getByRole('progressbar', { name: '1 of 8' })).toBeTruthy()
     // The next letter exists but is not yet answerable.
     expect(key().disabled).toBe(true)
 
@@ -327,15 +327,15 @@ describe('the checkpoint boundary cannot be crossed by a tap still in flight', (
     const wrong = MORSE_LETTERS[first] === '.' ? '-' : '.'
     await keyPattern(wrong.repeat(MORSE_LETTERS[first].length))
 
-    expect(screen.getByText('Miss')).toBeTruthy()
+    expect(screen.getByText('Not that one')).toBeTruthy()
 
     // Far past any dwell the old policy ever used.
     advance(60_000)
-    expect(screen.getByText('Miss')).toBeTruthy()
-    expect(screen.getByText('1/4')).toBeTruthy()
+    expect(screen.getByText('Not that one')).toBeTruthy()
+    expect(screen.getByRole('progressbar', { name: '0 of 8' })).toBeTruthy()
 
     fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
-    expect(screen.getByText('2/4')).toBeTruthy()
+    expect(screen.getByRole('progressbar', { name: '1 of 8' })).toBeTruthy()
     // The next letter is still gated for the transition, exactly as after a hit.
     expect(key().disabled).toBe(true)
     advance(MORSE_TRANSITION_MS)
@@ -358,7 +358,7 @@ describe('the checkpoint boundary cannot be crossed by a tap still in flight', (
 
     // The dwell ends and warm-up 2 appears, but it is mid-transition.
     advance(MORSE_FEEDBACK_CORRECT_MS)
-    expect(screen.getByText('2/4')).toBeTruthy()
+    expect(screen.getByRole('progressbar', { name: '1 of 8' })).toBeTruthy()
 
     // Tapping through the transition too.
     for (let press = 0; press < 4; press += 1) {
@@ -369,9 +369,9 @@ describe('the checkpoint boundary cannot be crossed by a tap still in flight', (
     // Warm-up 2 is reached un-answered: not one of those presses became an
     // answer to a letter the learner had not yet been shown.
     advance(MORSE_TRANSITION_MS)
-    expect(screen.getByText('2/4')).toBeTruthy()
+    expect(screen.getByRole('progressbar', { name: '1 of 8' })).toBeTruthy()
     expect(screen.queryByText('Correct')).toBeNull()
-    expect(screen.queryByText('Miss')).toBeNull()
+    expect(screen.queryByText('Not that one')).toBeNull()
     expect(key().disabled).toBe(false)
   })
 

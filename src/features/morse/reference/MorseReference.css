@@ -55,6 +55,11 @@
   padding: var(--s-sm) var(--s-md);
 }
 
+.morse-ref-card > .morse-ref-support {
+  grid-column: 1 / -1;
+  grid-row: 1 / -1;
+}
+
 .morse-ref-card.is-sounding {
   border-color: var(--accent);
   background: color-mix(in srgb, var(--accent) 8%, var(--surface));

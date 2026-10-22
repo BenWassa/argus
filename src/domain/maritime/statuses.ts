@@ -5,7 +5,7 @@ import type { LightColour } from './lights'
  * signatures and, for five of the same states, the day shape. Each is a
  * distinguishing legal reference configuration from the Collision Regulations,
  * not an exhaustive list of what the rule requires; optional and size-dependent
- * additions are Learn-only (`docs/open/ISSUE_138_MARITIME_VISUAL_LITERACY.md`
+ * additions are Learn-only (`docs/closed/ISSUE_138_MARITIME_VISUAL_LITERACY.md`
  * §B2, §C).
  *
  * A displayed signal is interpreted; the absence of one proves nothing, because

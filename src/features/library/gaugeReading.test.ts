@@ -106,7 +106,7 @@ describe('the gauge picks the most specific earned reading', () => {
    * motion and the live reading is the truthful one — the product treats decay
    * as information rather than as the loss of a completion.
    */
-  it('shows a decayed topic its live reading, not its banked one', () => {
+  it('keeps a legacy decayed topic fully learned', () => {
     const topic: Topic = {
       ...seeded(NATO_ID),
       status: 'decayed',
@@ -114,7 +114,7 @@ describe('the gauge picks the most specific earned reading', () => {
       drilledAt: ago(120),
       lastTestedAt: ago(1),
     }
-    expect(reading(topic).kind).not.toBe('complete')
+    expect(reading(topic).kind).toBe('complete')
   })
 })
 
@@ -143,7 +143,7 @@ describe('the gauge stays silent when it has nothing true to say', () => {
 
 describe('every reading names its own units', () => {
   it('labels each kind in the units it was measured in', () => {
-    expect(gaugeLabel({ kind: 'complete' })).toBe('Banked')
+    expect(gaugeLabel({ kind: 'complete' })).toBe('Learned')
     expect(gaugeLabel({ kind: 'acquisition', done: 18, total: 26 })).toBe(
       '18 of 26 letters',
     )

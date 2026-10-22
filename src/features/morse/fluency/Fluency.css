@@ -1,527 +1,129 @@
-/*
- * Fluency shares the session chrome with Learn and the checkpoints; what is
- * here is only what those do not already provide.
- *
- * The celebration rule this file implements: feedback weight is proportional
- * to how rare the event is. A correct character changes a colour and nothing
- * moves. A personal best is the only thing allowed a full-width moment, and
- * even that is one line of text and a short fade. Nothing here is bigger than
- * the thing it is reporting.
- */
-
-.fluency-home,
-.fluency-run {
-  display: grid;
-  align-content: start;
-  gap: var(--s-lg);
-  padding-bottom: max(var(--s-2xl), env(safe-area-inset-bottom));
-}
-
-.fluency-head {
-  display: grid;
-  gap: var(--s-sm);
-  width: min(100%, 36rem);
-  margin-inline: auto;
-}
-
-.fluency-head h1 {
-  margin: 0;
-  outline: none;
-}
-
-/* ---- the one dial ---------------------------------------------------- */
-
-.fluency-rung {
-  display: grid;
-  gap: var(--s-xs);
-  width: min(100%, 36rem);
-  margin-inline: auto;
-}
-
-.fluency-rung-label {
-  margin: 0;
-  font-size: var(--t-component);
-}
-
-.fluency-rung .note {
-  margin: 0;
-}
-
-.fluency-rung-controls {
-  display: flex;
-  gap: var(--s-sm);
-  margin-top: var(--s-xs);
-}
-
-/* ---- modes ------------------------------------------------------------ */
-
-.fluency-modes {
-  display: grid;
-  gap: var(--s-sm);
-  width: min(100%, 36rem);
-  margin: 0 auto;
-  padding: 0;
-  list-style: none;
-}
-
-/* A panel that is also a control, so it takes the panel face from the base
-   rather than the polished primary one the element would otherwise give it. */
-.fluency-mode {
-  display: grid;
-  gap: 2px;
-  width: 100%;
-  color: var(--ink);
-  text-align: left;
-  transition: border-color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
-}
-
-.fluency-mode:hover {
-  border-color: var(--line-hover);
-  background: var(--surface-2);
-}
-
-.fluency-mode-title {
-  font-size: var(--t-component);
-  font-weight: var(--w-section);
-}
-
-.fluency-mode-purpose {
-  color: var(--muted);
-  font-size: var(--t-small);
-}
-
-.fluency-mode-meta {
-  margin-top: var(--s-xs);
-  color: var(--subtle);
-  font-size: var(--t-label);
-}
-
-.fluency-mode.is-next {
-  border-color: var(--accent);
-}
-
-/* ---- copy ------------------------------------------------------------- */
-
-.fluency-section {
-  display: grid;
-  gap: var(--s-sm);
-  width: min(100%, 36rem);
-  margin-inline: auto;
-}
-
-.fluency-stage-picker {
-  width: min(100%, 36rem);
-  border-top: 1px solid var(--line);
-}
-
-.fluency-stage-picker > summary {
-  display: flex;
-  align-items: center;
-  min-height: var(--control-h);
-  color: var(--muted);
-  font-size: var(--t-small);
-  cursor: pointer;
-}
-
-.fluency-stage-picker[open] > summary {
-  margin-bottom: var(--s-sm);
-  color: var(--ink);
-}
-
-.copy-next-tag {
-  margin-left: var(--s-sm);
-  padding: 0 var(--s-xs);
-  border: 1px solid var(--accent);
-  border-radius: var(--r-pill);
-  color: var(--accent);
-  font-size: var(--t-label);
-  font-weight: var(--w-section);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  vertical-align: middle;
-}
-
-.copy-answer {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: var(--s-sm);
-  width: 100%;
-}
-
-.copy-input {
-  font-size: var(--t-component);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.copy-input::placeholder {
-  text-transform: none;
-  letter-spacing: 0;
-}
-
-.copy-expected {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.2em 0.45em;
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: clamp(1.4rem, 6vw, 2.2rem);
-  line-height: 1.15;
-  letter-spacing: 0.03em;
-}
-
-.copy-expected .is-wrong-char {
-  color: var(--danger-2);
-  text-decoration: underline;
-  text-underline-offset: 0.15em;
-}
-
-.copy-given {
-  margin: 0;
-  color: var(--muted);
-  font-size: var(--t-small);
-  overflow-wrap: anywhere;
-}
-
-.copy-given span {
-  color: var(--ink);
-}
-
-.copy-table {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
-  gap: var(--s-sm);
-  width: min(100%, 36rem);
-  margin: 0 auto;
-  padding: 0;
-  list-style: none;
-}
-
-.copy-table-entry {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--s-sm);
-  width: 100%;
-  min-height: var(--control-h);
-  padding: var(--s-xs) var(--s-md);
-  border: 1px solid var(--line);
-  border-radius: var(--r-md);
-  background: var(--surface);
-  color: var(--ink);
-}
-
-.copy-table-glyph {
-  font-size: var(--t-component);
-  font-weight: var(--w-section);
-}
-
-.copy-table-pattern {
-  color: var(--muted);
-  font-size: var(--t-small);
-  white-space: nowrap;
-}
-
-.copy-table-note,
-.copy-start {
-  justify-self: center;
-}
-
-/* ---- statistics ------------------------------------------------------- */
-
-.fluency-stats {
-  display: grid;
-  gap: var(--s-sm);
-  width: min(100%, 36rem);
-  margin-inline: auto;
-  /* Outline only. This reports on the modes above it rather than holding
-     anything, so it drops the base's fill and lets the hairline do the work. */
-  background: transparent;
-}
-
-.fluency-stats-title {
-  margin: 0;
-  font-size: var(--t-label);
-  font-weight: var(--w-section);
-  color: var(--subtle);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-.fluency-stat {
-  display: grid;
-  grid-template-columns: minmax(4.5rem, auto) 1fr;
-  gap: var(--s-sm);
-  align-items: baseline;
-  margin: 0;
-}
-
-.fluency-stat-value {
-  font-size: var(--t-readout);
-  font-weight: var(--w-section);
-}
-
-.fluency-stat-label {
-  color: var(--muted);
-  font-size: var(--t-small);
-}
-
-.fluency-empty {
-  width: min(100%, 36rem);
-  margin-inline: auto;
-}
-
-/* ---- the run ---------------------------------------------------------- */
-
-.fluency-target {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--s-md);
-  width: min(100%, 32rem);
-  margin-inline: auto;
-}
-
-.fluency-target .lesson-task {
-  margin: 0;
-}
-
-.fluency-listen {
-  display: grid;
-  justify-items: center;
-  gap: var(--s-sm);
-}
-
-.fluency-play {
-  min-width: 9rem;
-}
-
-/* How many characters are in this prompt, and which one the key is on.
-   Deliberately dots rather than letters: printing the target would turn a
-   sound-first drill into a reading exercise. */
-.fluency-shape {
-  display: flex;
-  gap: 0.5em;
-  margin: 0;
-  font-size: var(--t-readout);
-  color: var(--line-strong);
-  line-height: 1;
-}
-
-.fluency-shape .is-current {
-  color: var(--accent);
-}
-
-.fluency-audio-error {
-  margin: 0;
-  color: var(--warning);
-  font-size: var(--t-small);
-  text-align: center;
-}
-
-.fluency-answer-area {
-  width: 100%;
-}
-
-/* ---- feedback: scale 1 and scale 2 ------------------------------------ */
-
-.fluency-feedback {
-  display: grid;
-  justify-items: center;
-  gap: var(--s-sm);
-  width: 100%;
-  /* Outline only, like the stat block: the verdict is read against the page,
-     not lifted off it, so the run keeps a single plate on screen. */
-  background: transparent;
-  text-align: center;
-}
-
-.fluency-feedback.is-correct {
-  border-color: var(--ok);
-}
-
-.fluency-feedback.is-wrong {
-  border-color: var(--danger);
-}
-
-.fluency-feedback strong {
-  font-size: var(--t-label);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-.fluency-feedback.is-correct strong {
-  color: var(--ok);
-}
-
-.fluency-feedback.is-wrong strong {
-  color: var(--danger-2);
-}
-
-/* The word is the headline of a word result. The character that broke is
-   marked inside it rather than replacing it, so the learner reads the thing
-   they were asked for first and the diagnosis second. */
-.fluency-answer {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.06em;
-  font-family: var(--font-display);
-  font-size: clamp(2rem, 11vw, 3.4rem);
-  line-height: 1;
-  letter-spacing: 0.04em;
-}
-
-.fluency-answer .is-wrong-char {
-  color: var(--danger-2);
-}
-
-.fluency-pattern {
-  color: var(--muted);
-  font-size: var(--t-small);
-}
-
-/* ---- the end screen --------------------------------------------------- */
-
-.fluency-summary {
-  display: grid;
-  justify-items: center;
-  gap: var(--s-md);
-  width: min(100%, 32rem);
-  margin-inline: auto;
-  text-align: center;
-}
-
-.fluency-summary h1 {
-  margin: 0;
-  outline: none;
-}
-
-.fluency-score {
-  margin: 0;
-  font-size: var(--t-component);
-}
-
-.fluency-metric {
-  margin: 0;
-  color: var(--muted);
-  font-size: var(--t-small);
-}
-
-/*
- * Scale 4, and the only one in the file.
- *
- * A personal best is rare by construction — it has to beat every previous run
- * of that mode — so it is allowed a lit line and a short entrance. It is still
- * one line of text: the hierarchy works because the ordinary case stayed
- * quiet, not because this got loud.
- */
-.fluency-crest {
-  margin: 0;
-  padding: var(--s-xs) var(--s-md);
-  border-radius: var(--r-pill);
-  background: var(--accent);
-  color: var(--accent-ink);
-  font-size: var(--t-small);
-  font-weight: var(--w-section);
-  animation: fluency-crest-in 420ms var(--ease) both;
-}
-
-@keyframes fluency-crest-in {
-  from {
-    opacity: 0;
-    transform: translateY(4px) scale(0.96);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-/*
- * Reduced motion removes the entrance and keeps the message. Every celebration
- * in this file has a non-motion form for exactly this reason: a learner with
- * reduced motion set, haptics off and the phone muted must still be able to
- * tell a milestone from an ordinary screen.
- */
-@media (prefers-reduced-motion: reduce) {
-  .fluency-crest {
-    animation: none;
+@import './CopyRun.css';
+@import './FluencyRun.css';
+@import './FreePlay.css';
+
+/* ---- short landscape --------------------------------------------------- */
+
+/* A short landscape display has width to spare and no height: the prompt and
+   its Play control sit beside the key (or the typed answer) rather than above
+   it, the same arrangement the Morse checkpoint uses, so the first key press
+   is reachable without a scroll. */
+@media (orientation: landscape) and (max-height: 560px) and (min-width: 600px) {
+  .fluency-run .fluency-target {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+    grid-template-rows: auto auto auto;
+    align-content: center;
+    align-items: center;
+    justify-items: center;
+    gap: var(--s-sm) var(--s-lg);
+    width: min(100%, 44rem);
   }
 
-  .fluency-mode {
-    transition: none;
+  .fluency-run .fluency-target > * {
+    margin: 0;
   }
+
+  .fluency-run .fluency-target > .lesson-task {
+    grid-column: 1;
+    grid-row: 1;
+    align-self: end;
+  }
+
+  .fluency-run .fluency-target > .fluency-listen {
+    grid-column: 1;
+    grid-row: 2;
+    align-self: start;
+  }
+
+  .fluency-run .fluency-target > .fluency-audio-error {
+    grid-column: 1;
+    grid-row: 3;
+  }
+
+  .fluency-run .fluency-target > .fluency-answer-area,
+  .fluency-run .fluency-target > .fluency-feedback {
+    grid-column: 2;
+    grid-row: 1 / span 3;
+    align-self: start;
+    min-width: 0;
+  }
+
+  /* Copy keeps its field above the verdict, both in the right-hand column. */
+  .fluency-run .fluency-target > .copy-answer {
+    grid-column: 2;
+    grid-row: 1;
+    min-width: 0;
+  }
+
+  .fluency-run .fluency-target > .copy-feedback {
+    grid-column: 2;
+    grid-row: 2 / span 2;
+  }
+
+  .fluency-answer {
+    font-size: clamp(1.8rem, 6vw, 2.6rem);
+  }
+
+  .copy-expected {
+    font-size: 1.6rem;
+  }
+
+  .fluency-feedback {
+    gap: var(--s-xs);
+  }
+
+  /* A miss carries the whole correction (what was keyed, the word, the
+     broken character's pattern and Continue). It takes the full width, laid
+     out in two columns, because the Play control it sits under is not asking
+     for anything while the learner reads it. */
+  .fluency-run .fluency-target:has(> .fluency-miss) > .lesson-task,
+  .fluency-run .fluency-target:has(> .fluency-miss) > .fluency-listen {
+    display: none;
+  }
+
+  .fluency-run .fluency-target > .fluency-miss {
+    grid-column: 1 / -1;
+    grid-row: 1 / span 3;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+    align-items: center;
+    gap: var(--s-xs) var(--s-lg);
+    width: 100%;
+  }
+
+  /* The word joins the left column above Continue; the pattern takes the right. */
+  .fluency-run .fluency-miss > .fluency-answer { grid-column: 1; grid-row: 3; }
+  .fluency-run .fluency-miss > .session-miss-continue { grid-row: 4; }
+  .fluency-run .fluency-miss > .morse-character-support { grid-column: 2; grid-row: 1 / span 4; min-width: 0; }
+
+  /* Copy's correction sits under its field, as wide as the field. */
+  .fluency-run .fluency-target > .copy-miss {
+    grid-column: 2;
+    grid-row: 2 / span 2;
+    justify-self: stretch;
+    min-width: 0;
+  }
+
+  /* Half a screen wide: the correction stacks in one column. */
+  .fluency-run .fluency-target > .copy-miss { grid-template-columns: minmax(0, 1fr); }
+  .fluency-run .copy-miss > * { grid-column: 1; grid-row: auto; }
 }
 
-/* ---- free play -------------------------------------------------------- */
+/* Short landscape, any width: the free-play output and the copy table give back
+   height so the key stays on screen. */
+@media (max-height: 560px) {
+  .free-play-output {
+    min-height: 2.4em;
+    padding: var(--s-xs) var(--s-md);
+    font-size: clamp(1.1rem, 7vh, 1.5rem);
+  }
 
-.free-play-tabs {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--s-sm);
-  width: min(100%, 36rem);
-  margin-inline: auto;
-}
+  .free-play-body {
+    gap: var(--s-xs);
+  }
 
-.free-play-body {
-  display: grid;
-  gap: var(--s-md);
-  width: min(100%, 36rem);
-  margin-inline: auto;
-}
-
-.free-play-body .note,
-.free-play-foot {
-  margin: 0;
-  text-align: center;
-}
-
-/* What was keyed, as text. Wraps like prose, because it is a sentence. */
-.free-play-output {
-  min-height: 3.2em;
-  margin: 0;
-  padding: var(--s-md);
-  border: 1px solid var(--line);
-  border-radius: var(--r-lg);
-  background: var(--surface);
-  font-size: clamp(1.4rem, 6vw, 2rem);
-  line-height: 1.3;
-  letter-spacing: 0.05em;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
-
-.free-play-placeholder {
-  color: var(--placeholder);
-  font-size: var(--t-component);
-  letter-spacing: 0;
-}
-
-.free-play-unknown {
-  margin-inline: 0.15em;
-  color: var(--danger-2);
-  font-size: 0.6em;
-  vertical-align: middle;
-}
-
-.free-play-cursor {
-  color: var(--accent);
-}
-
-.free-play-actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: var(--s-sm);
-}
-
-.free-play-text {
-  font-size: var(--t-component);
-  text-transform: uppercase;
-}
-
-.free-play-text::placeholder {
-  text-transform: none;
+  .free-play-actions button {
+    min-height: var(--control-h);
+    padding-block: var(--s-xs);
+  }
 }

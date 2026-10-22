@@ -6,16 +6,27 @@
  * how the learner can tell, before answering anything, whether this run is
  * going on their record. */
 
-.practice-run {
-  display: grid;
-  align-content: start;
-  gap: var(--s-lg);
+/* The session frame owns the layout (#259). The question (and its revealed
+   answer) is the stimulus, centred; Reveal, or the two grades, is the response,
+   docked at the foot. A miss docks its correction in the response's place, and
+   the end screen centres its title over its actions. */
+.practice-stage {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-md);
+  width: min(100%, 34rem);
+  margin-inline: auto;
 }
 
-.practice-stage {
-  display: grid;
-  gap: var(--s-md);
-  max-width: 34rem;
+.practice-stage > .practice-question {
+  margin-block-start: auto;
+}
+
+.practice-stage > .practice-reveal,
+.practice-stage > .practice-grade,
+.practice-run > .practice-feedback {
+  margin-block-start: auto;
 }
 
 /* The panel base, lifted a tone and given the roomier pad: the question is the
@@ -62,51 +73,74 @@
 }
 
 .practice-reveal {
-  justify-self: start;
-}
-
-.practice-grade {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--s-sm);
+  min-height: var(--control-h-lg);
 }
 
 .practice-feedback {
-  display: grid;
-  gap: var(--s-xs);
-  /* A miss is the only thing that stops the run, so this block always reports
-     one. It reads in the same warning the rest of the app gives decay: it
-     routes work, it does not scold. The panel base carries the rest. */
-  border-color: var(--line-strong);
-  background: var(--surface-2);
-  max-width: 34rem;
+  width: min(100%, 34rem);
+  margin-inline: auto;
 }
 
-.practice-feedback strong,
-.practice-feedback span,
-.practice-summary h1,
-.practice-summary p {
-  margin: 0;
-}
-
-.practice-feedback button {
-  justify-self: start;
-  margin-top: var(--s-xs);
+.practice-feedback .practice-feedback-answer {
+  font-family: var(--font-display);
+  font-size: var(--t-section);
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
 }
 
 .practice-summary {
-  display: grid;
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   gap: var(--s-md);
-  max-width: 34rem;
-  justify-items: start;
+  width: min(100%, 34rem);
+  margin-inline: auto;
+  text-align: center;
 }
 
-.practice-summary h1 {
+.practice-summary > .session-prompt-heading {
+  margin-block-start: auto;
+}
+
+.practice-summary > :last-child {
+  align-self: stretch;
+  margin-block-start: auto;
+}
+
+.practice-summary .session-prompt-heading {
+  margin-inline: 0;
+  margin-block-end: 0;
   font-family: var(--font-display);
   font-size: var(--t-page);
   line-height: 1.08;
 }
 
-.practice-summary p {
-  color: var(--muted);
+.practice-summary-actions {
+  display: grid;
+  gap: var(--s-sm);
+}
+
+.practice-summary .session-prompt-heading:focus {
+  outline: none;
+}
+
+/* Short landscape: the question gives back its padding and display size. */
+@media (max-height: 560px) {
+  .practice-stage {
+    gap: var(--s-xs);
+  }
+
+  .practice-question,
+  .practice-answer {
+    padding: var(--s-sm) var(--s-md);
+  }
+
+  .practice-value {
+    font-size: var(--t-section);
+  }
+
+  .practice-reveal {
+    min-height: var(--control-h);
+  }
 }

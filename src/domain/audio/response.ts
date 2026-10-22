@@ -7,7 +7,7 @@ import type { CopyNormalizer, ItemResponse, ResponseField } from './audio'
  *
  * Normalization may ignore case and non-semantic punctuation and spacing, and
  * only that. It never ignores a wrong letter, digit, word, field or order — the
- * rule `docs/open/ISSUE_139_RADIO_COMMUNICATIONS_AUDIO.md` §7 sets for audio.
+ * rule `docs/closed/ISSUE_139_RADIO_COMMUNICATIONS_AUDIO.md` §7 sets for audio.
  */
 const PUNCTUATION = /[.,;:!?'"“”‘’()[\]{}<>/\\|*_~`^—–-]/g
 

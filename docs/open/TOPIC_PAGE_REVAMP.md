@@ -1,5 +1,7 @@
 # Topic page and Test revamp
 
+> **Progress authority update, 2026-10-19:** [Learning progress](PROGRESS_ARCHITECTURE.md) supersedes earlier decay/repair routing and repeated completion requirements in this document. Learned topics stay learned. Home continues the top unfinished topic.
+
 **Status:** shipped in v1.3.3 on 2026-10-03 through #175, including the #170 rebuild and #171 provenance modal. Current production colours and fallback hero plates are delivered; optional colour variants and external hero artwork remain separate follow-up work. D1–D6 were accepted through the owner’s instruction to scope and implement this plan.
 **Authority:** implementation contract for the topic-page revamp. [Progress architecture](PROGRESS_ARCHITECTURE.md) owns the one-test ladder; [topic icons](LIBRARY_TOPIC_ICONS.md) owns icon artwork. Deployment and final validation are recorded in [v1.3.3 closeout](../closed/RELEASE_1_3_3.md).
 **Relationship:** extends the Today/Library cleanup (#127) down into the topic page and the Test run, which is where the product is still dense.
@@ -196,6 +198,6 @@ Ordered learning topics use concise scope text such as “4 rules, in order.” 
 
 Rebuild validation before final compact-library integration: all 1,521 unit tests (115 files), TypeScript and the production build pass. The new topic/ordered-reference/weather browser gates pass 12 scenarios across 320 px, 390 px and desktop, including closed folds, fixed phone action, 200% text scaling, image loading and unscored cloud photos. The bundle remains 3.06 MiB (3.05 MiB app-shell precache), reusing already-staged media. The build retains its existing large-chunk advisory.
 
-The colour comparison is documented in [Topic colour spike](TOPIC_COLOUR_SPIKE.md). Generated 390 px comparisons live under `test-results/topic-colour/` in the colour worktree; reproduce with `scripts/captureTopicColour.mjs`. Hero assets for other topics remain external, not generated or fabricated as part of this work.
+The colour comparison is documented in [Topic colour spike](../closed/TOPIC_COLOUR_SPIKE.md). The development preview and capture script were retired in #248; the comparison is historical. Hero assets for other topics remain external, not generated or fabricated as part of this work.
 
 Existing browser coverage was updated for direct Test entry, recall cards and native folds. Five targeted navigation/Morse scenarios and 23 visual/audio scenarios pass at 390 px. A maritime light-aspects browser timeout passed on isolated rerun; the other maritime failure was an obsolete always-open-section assertion, now corrected. Together with the 12 new scenarios, 40 targeted browser cases cover the changed paths; that preliminary pass did not run the full Playwright suite. The final v1.3.3 release gate later passed all 348 applicable browser cases (16 intentional skips) and 1,602 unit tests.

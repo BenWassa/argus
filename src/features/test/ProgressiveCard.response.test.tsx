@@ -88,8 +88,8 @@ describe('a miss', () => {
     expect(correction.textContent).toContain('Not that one')
     // What was keyed, on its own row against what it should have been.
     expect(correction.textContent).toContain('You keyed')
-    expect(correction.textContent).toContain('Answer')
-    expect(correction.querySelectorAll('.test-correction-row')).toHaveLength(2)
+    expect(correction.querySelector('.morse-character-support-glyph')?.textContent).toBe('E')
+    expect(correction.querySelector('.morse-character-support-notation')?.textContent).toContain('·')
     expect(correction.querySelector('.test-correction-row')?.textContent).toContain('—')
 
     const next = (await screen.findByRole('button', { name: 'Continue' })) as HTMLButtonElement

@@ -1,7 +1,7 @@
 # Product
 
-**Status:** current product contract with Morse/Home (#195) and Communicator Roles (#196) merged on 2026-10-07; released and deployment-verified in v1.5.0 on 2026-10-07; real Pixel acceptance remains outstanding.
-**Authority:** product context. Maintained behaviour contracts live in `docs/open/`; the compact-topic and topic-page documents own the shipped #166 behaviour.
+**Status:** current product contract with Morse/Home (#195) and Communicator Roles (#196) merged on 2026-10-07; released and deployment-verified in v1.5.0 on 2026-10-07; real Pixel acceptance remains outstanding. Design Principle 5 and the brand personality were updated on 2026-10-17 for the Signal on Slate visual standard (#225/#226); see `DESIGN.md`.
+**Authority:** product context. The owner's 2026-10-19 permanent-learning decision in [Learning progress](docs/open/PROGRESS_ARCHITECTURE.md) supersedes prior decay/repair policies. Maintained behaviour contracts live in `docs/open/`; the compact-topic and topic-page documents own the shipped #166 behaviour.
 
 ## Register
 
@@ -18,7 +18,7 @@ The job to be done, every session: find a topic already in motion, open it, and 
 Opening an ordinary topic is learning: its complete finite reference and optional support are immediately available. Browsing writes no progress, history or evidence. There is no enrollment action.
 
 - **Learn** — ungraded acquisition through canonical lessons for curricula such as Morse. These lessons own acquisition writes.
-- **Test** — every scored item once, self-scored where needed. One clean eligible Test banks the topic, including a clean first run. A miss enters learning; a miss on a banked topic enters repair and preserves its completion record. A banked topic offers Test again at any time.
+- **Test** — every scored item once, self-scored where needed. One clean eligible Test completes the topic, including a clean first run. Once learned, it stays learned. Later Tests are optional and keep their scores without reopening learning or creating repair work.
 
 Morse keeps its lesson gate: an early Test is recorded but cannot advance or demote retention while acquisition is unfinished. The maintained authority is [Progress architecture](docs/open/PROGRESS_ARCHITECTURE.md).
 
@@ -39,11 +39,11 @@ The learner is not asked to hold all four at once. Home reports topic progressio
 
 ## Home and formative sending
 
-Home shows Completed (permanent completion records), In progress (started and never completed), and Last active (latest existing durable study timestamp). Repair preserves historical completion. Formative activity without a timestamp does not silently update Last active.
+Home shows Completed (permanent completion records), In progress (started and never completed), and Last active (latest existing durable study timestamp). Learned topics remain learned and leave the unfinished queue permanently. Formative activity without a timestamp does not silently update Last active.
 
-At most three started topics in motion appear in the existing journey priority order, including repair. Each plate opens its topic. Morse rings show settled characters out of the finite roster; ordinary topics without item evidence use a discrete Building recall dial, never a fabricated percentage. Repair is named in text as well as tarnish. Home reuses Library's Want-to-learn capture directly when available, otherwise opens the existing new-topic form. Internal `today` history entries remain compatible.
+At most three unfinished started topics appear in the shared journey priority order. Home's yellow Continue action enters the top topic's canonical next task; Add something to learn leads only when nothing is in progress. Each plate opens its topic. Morse rings show settled characters out of the finite roster; ordinary topics without item evidence use a discrete Building recall dial, never a fabricated percentage. Learned topics show their complete finite boundary, including after a later optional Test misses answers. Home reuses Library's Want-to-learn capture directly when available, otherwise opens the existing new-topic form. Internal `today` history entries remain compatible.
 
-After the Morse alphabet, guided sending leads Fluency: Spotlight words, Word flow, Phrases, Short messages and fictional Dispatch. Every stage remains available. A 90% formative best suggests progression; only `morseFluency.bests` changes, with no Test evidence, scheduler or completion writes. Continuous stages use pause-delimited letters and explicit word gaps. Listening spacing controls affect Copy/listening drills, not sending. Phone key duration classifies dit/dah and is never a sending-speed claim.
+Morse opens on one straight progress path, with Key, Listen, Read and Free play always within reach in a phone tray. The current path row marks position and sets where the path opens; there is no forced path, and every reached node is equally tappable (#242). The shared journey remains authoritative, with no required current task once the course is learned. Skip ahead opens placement; Begin enters the first lesson directly. Legacy Fluency chooser entries return to the topic. After the Morse alphabet, guided sending offers Spotlight words, Word flow, Phrases, Short messages and fictional Dispatch. Every stage remains available. A 90% formative best suggests progression; only `morseFluency.bests` changes, with no Test evidence, scheduler or completion writes. Continuous stages use pause-delimited letters and explicit word gaps. Listening spacing controls affect Copy/listening drills, not sending. Phone key duration classifies dit/dah and is never a sending-speed claim.
 
 ## Content boundary
 
@@ -78,7 +78,7 @@ Sync is deliberately narrow. It carries the record as the exact JSON the v5 stor
 
 Where a topic genuinely changed on two devices at once, **neither copy is overwritten**. Sync detects the conflict, leaves both devices exactly as they are, and names the topic in Profile for the owner to settle by export and import. A remote copy is likewise refused, not applied, if taking it would drop attempts or item evidence the local copy already holds — a learner's history only grows, so a shorter one is an older copy arriving late rather than a later edit.
 
-This is deliberate, and it is the policy `docs/open/ISSUE_93_FIREBASE_PROGRESS_SYNC.md` requires: silent last-write-wins is not acceptable for a record whose whole value is that it was actually earned. Explicit detection is the documented first-release position; field-level merge is the later option it leaves open.
+This is deliberate, and it is the policy `docs/closed/ISSUE_93_FIREBASE_PROGRESS_SYNC.md` requires: silent last-write-wins is not acceptable for a record whose whole value is that it was actually earned. Explicit detection is the documented first-release position; field-level merge is the later option it leaves open.
 
 Access is owner-only. Security Rules identify the owner by their verified Google address — every spelling one account may present, such as the `gmail.com`/`googlemail.com` pair, so a provider detail can never lock the real owner out — and key every path by their UID, so being signed in to Google is not authorization. No second account has a read or write path into the project. See `docs/open/CONTENT_INBOX.md` and `firestore.rules.template`.
 
@@ -86,7 +86,7 @@ Turning a request into curriculum is editorial work that happens in the reposito
 
 ## Product Purpose
 
-Argus is a personal skill library built entirely from topics that can be genuinely finished: a fixed alphabet, a named framework with a known number of parts, a defined protocol. Every topic states its own boundary (`scope`) at authoring time; topics without an edge are rejected, not managed later. One clean eligible scored Test banks an ordinary topic; exposure alone does not, and remains a durable, permanent record — a failed check routes a topic back to repair without erasing that it was once completed. Nothing in the ladder reads a clock: the learner chooses when to Test, whether they open Argus five days in a row or five times a year (owner, 2026-09-29).
+Argus is a personal skill library built entirely from topics that can be genuinely finished: a fixed alphabet, a named framework with a known number of parts, a defined protocol. Every topic states its own boundary (`scope`) at authoring time; topics without an edge are rejected, not managed later. One clean eligible scored Test banks an ordinary topic; exposure alone does not, and remains a durable, permanent record — later Tests cannot reverse completion or require more learning. Nothing in the ladder reads a clock: the learner chooses when to Test, whether they open Argus five days in a row or five times a year (owner, 2026-09-29).
 
 Success, twelve months in: 40–60 completed topics that the owner can still recall cold, weeks after last opening the app.
 
@@ -94,7 +94,7 @@ Success, twelve months in: 40–60 completed topics that the owner can still rec
 
 ## Brand Personality
 
-Capable. Deliberate. Unshowy. The interface should disappear into the task the way a well-kept field manual does — present when needed, silent otherwise. It earns trust through restraint and precision, not through reassurance copy or ceremony.
+Capable. Deliberate. Clear. The interface should get out of the way of the task the way a well-kept field manual does: you see what to do and what you are looking at without reading about it. It earns trust through clarity and precision, not through reassurance copy or ceremony.
 
 The tradecraft and survival tracks pull hard toward military, prepper, or tactical-game visual language; the product explicitly refuses that pull. The framing throughout is competence, not catastrophe — this is a memory tool, not a bunker simulator.
 
@@ -104,18 +104,18 @@ The tradecraft and survival tracks pull hard toward military, prepper, or tactic
 - The generic AI-generated dashboard: a hero, four equal metric cards, a grid of identical rounded topic cards. Flagged directly in design critique as "category-interchangeable" — recognizable ingredients, generic composition.
 - Repetitive card scaffolding used as a default container for everything (stats, topics, modes, panels) — it flattens hierarchy instead of establishing it.
 - Military, survivalist, or "prepper" visual language: tactical iconography, rugged/camo textures, alarm-red urgency, game-like HUD elements.
-- Gamification: streaks, XP, leaderboards, indiscriminate badges, shame-based nudging for missed days. The narrowly approved exception is one finite, evidence-backed badge per completed Argus role (#191); pathways earn no badges. Retention decay is information, not punishment. The ten-answer Morse Learn sitting is a finite retrieval budget and is named as one — earlier copy called it `XP`, which implied a currency the product does not have.
+- Gamification: streaks, XP, leaderboards, indiscriminate badges, shame-based nudging for missed days. The narrowly approved exception is one finite, evidence-backed badge per completed Argus role (#191); pathways earn no badges. The Morse progress path is a progress visualisation, not gamification. There is no retention decay or repair state. The ten-answer Morse Learn sitting is a finite retrieval budget and is named as one — earlier copy called it `XP`, which implied a currency the product does not have.
 - A single aggregate progress percentage. Acquisition, evidence, retention and completion answer different questions; one number combining them would be precise and untrue.
 - Desktop-as-widened-mobile: cosmetic breakpoint scaling instead of a real task-oriented desktop layout (side rail, dense authoring views).
-- Decorative gradients, ornamental rings, and non-functional visual flourish anywhere in the Test loop.
+- Decorative gradients, ornamental rings, translucent colour washes, glow, and non-functional visual flourish anywhere in the Test loop.
 
 ## Design Principles
 
 1. **Finishability is the entry gate.** Every topic must state a hard boundary before it can exist in the library; the UI enforces this at authoring time rather than relying on discipline later.
 2. **Task-first over showcase-first.** The interface opens to "what's due" and "start Test," not to a summary or a pitch. Marketing-page instincts (heroes, slogans, eyebrows) are actively rejected on functional screens.
-3. **Retention over exposure, decay as routing not punishment.** One clean eligible Test banks the topic, and a banked topic can be checked whenever the learner chooses; a failed check is decay. No rung, availability or label waits on elapsed time. Surfacing decay is diagnostic information, framed the same way as any other status, never as a failure state.
+3. **Learned means learned.** One clean eligible Test completes the topic. Completion is permanent: a later optional Test records a score without decay, repair, expiry or required extra learning. No progress state waits on elapsed time.
 4. **Portable and owner-owned.** Full JSON export/import is a first-class feature, not a settings-page afterthought — including optional structured Learn support. The interface should never make data feel trapped.
-5. **Restraint reads as competence.** One accent color, minimal chrome, and native typography carry the "capable and deliberate" tone. Restraint is not the same as flatness: the interface earns its calm through material, real typographic hierarchy, and one lit surface per view, not by removing contrast until everything sits at the same pitch.
+5. **Clarity reads as competence.** One action colour says what to do next. Solid plates, large readable type and few words carry the "capable and deliberate" tone, and colour is spent on meaning and wayfinding (Morse modes and subject tracks) rather than withheld. A tile shows what the task will put in front of you instead of describing it. Clarity is not the same as sparseness: the interface keeps real contrast and typographic hierarchy, with one lifted surface per view, and does not remove colour until everything sits at the same pitch.
 6. **The form must not lie about the content.** A card shape promises a concealed answer; a list promises scannability. Matching the surface to the actual task is a correctness requirement, not a style choice. Learn support therefore uses editorial structure, never concealed-answer styling.
 
 ## Accessibility & Inclusion
@@ -132,4 +132,4 @@ Target WCAG 2.1 AA. Established and non-negotiable baseline (already implemented
 
 ## Role designations (approved v1 exception, #191)
 
-Roles are rare permanent awards for completing a finite cross-topic learning boundary, not credentials, XP or a new retention rung. Only **Communicator** is visible in v1. It requires seven shipped topics across three fully open pathways in suggested order. The page reports completed-topic counts and pathway states, never an aggregate mastery percentage. The badge remains earned when a previously completed topic decays. See `docs/open/ISSUE_191_ROLE_DESIGNATIONS.md` and `docs/open/ISSUE_192_ROLE_BADGE_ART.md`.
+Roles are rare permanent awards for completing a finite cross-topic learning boundary, not credentials, XP or a new retention rung. Only **Communicator** is visible in v1. It requires seven shipped topics across three fully open pathways in suggested order. The page reports completed-topic counts and pathway states, never an aggregate mastery percentage. Learned topics and earned badges remain complete permanently. See `docs/open/ISSUE_191_ROLE_DESIGNATIONS.md` and `docs/open/ISSUE_192_ROLE_BADGE_ART.md`.

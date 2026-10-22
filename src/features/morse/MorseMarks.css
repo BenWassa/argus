@@ -1,0 +1,44 @@
+/* Morse marks (#263): round dits and pill dahs on one centre line. Every mark
+   is one unit tall; a dit is one unit wide, a dah three, and the gap between
+   marks is one unit, so the drawing is the timing. The colour is the current
+   colour, so a mark takes ink on the page and the tile's ink on a tile. */
+.morse-marks {
+  --morse-unit: 12px;
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--morse-unit);
+  max-width: 100%;
+  line-height: 0;
+  vertical-align: middle;
+}
+
+.morse-mark {
+  display: block;
+  flex: none;
+  block-size: var(--morse-unit);
+  inline-size: var(--morse-unit);
+  overflow: hidden;
+  border-radius: var(--r-pill);
+  background: currentColor;
+  /* The notation character stays in the text for copying; the box is drawn,
+     and the glyph itself takes no size. */
+  font-size: 0;
+}
+
+.morse-mark.is-dah { inline-size: calc(3 * var(--morse-unit)); }
+
+.morse-marks.is-pip { --morse-unit: 4px; }
+.morse-marks.is-tile { --morse-unit: 10px; }
+.morse-marks.is-support { --morse-unit: max(8px, 0.28em); }
+.morse-marks.is-stimulus { --morse-unit: clamp(14px, 5.2vw, 26px); }
+
+/* Short landscape: the stimulus gives back height. */
+@media (max-height: 560px) {
+  .morse-marks.is-stimulus { --morse-unit: clamp(10px, 4.5vh, 18px); }
+}
+
+@media (forced-colors: active) {
+  .morse-mark { background: CanvasText; forced-color-adjust: none; }
+}

@@ -2,6 +2,7 @@ import type { Topic } from '../../domain/library/topic'
 import type { Mode } from '../../domain/study/mode'
 import { FLUENCY_MODES, type FluencyMode } from '../../domain/morse/fluency/session'
 import { SEND_STAGES, type SendStage } from '../../domain/morse/fluency/send'
+import { COPY_LEVELS, type CopyLevel } from '../../domain/morse/fluency/copy'
 
 /**
  * The route model: what a destination is, whether an unknown value is one, and
@@ -37,11 +38,8 @@ export type ParentRoute =
  * learner state, so a reloaded run entry falling back to its origin loses
  * nothing it was responsible for.
  *
- * Fluency names no path entry and no items. It is the post-acquisition
- * surface: absent `mode` is its home screen, and a named mode is one run. A
- * Fluency run holds its queue in memory and persists only aggregate statistics
- * at the end, so a reloaded entry falling back to its origin loses at most an
- * unfinished run — the same trade replay and the checkpoints already make.
+ * Fluency names a direct formative run. Historical hub entries normalize to
+ * the Morse topic without introducing another history stop.
  *
  * Practice names no path entry either, but it may name items. A check's end
  * screen knows exactly what the learner just missed, including for an ordinary
@@ -51,6 +49,8 @@ export type ParentRoute =
  * either way, so a reloaded entry falling back to its origin loses nothing.
  */
 export type RunTarget =
+  /** Adaptive letter practice; a mode tile fixes the direction. */
+  | { kind: 'letter-practice'; direction?: 'key' | 'read' | 'listen' }
   | { kind: 'lesson' }
   /** A Test run the learner chose as the short unscored review (`review.ts`). */
   | { kind: 'review' }
@@ -61,13 +61,14 @@ export type RunTarget =
    * Fluency, optionally over just these letters — the keyed way to practise
    * what a check or a lesson missed. Letters absent means the whole alphabet.
    */
-  | { kind: 'fluency'; mode?: FluencyMode; letters?: string[]; send?: SendStage }
+  | { kind: 'fluency'; mode?: FluencyMode; letters?: string[]; send?: SendStage; copy?: CopyLevel; free?: true }
   /** A keyed review of the letters the finished course still owes (`startAfterCourse`). */
   | { kind: 'after-course' }
 
 export type AppRoute =
   | ParentRoute
   | { kind: 'run'; mode: Mode; topicIds: string[]; origin: ParentRoute; target?: RunTarget }
+  /** A topic's reference: Morse's A–Z alphabet, or an ordinary topic's Learn reading (#244). */
   | { kind: 'reference'; topicId: string; origin: ParentRoute }
 
 /** Today is the docket, and the final Argus boundary before platform exit. */
@@ -92,15 +93,24 @@ function isMode(value: unknown): value is Mode {
 
 function isRunTarget(value: unknown): value is RunTarget {
   if (!isRecord(value)) return false
+  if (value.kind === 'letter-practice') {
+    return value.direction === undefined || value.direction === 'key' || value.direction === 'read' || value.direction === 'listen'
+  }
   if (value.kind === 'lesson' || value.kind === 'review' || value.kind === 'after-course') return true
   if (value.kind === 'practice') {
     return value.itemIds === undefined || isIdList(value.itemIds)
   }
   if (value.kind === 'fluency') {
+    // Exactly one optional direct destination. Older hub and sprint routes
+    // remain valid; malformed competing destinations cannot start a run.
+    const choices = [value.mode, value.send, value.copy, value.free].filter((entry) => entry !== undefined).length
     return (
+      choices <= 1 &&
       (value.mode === undefined || FLUENCY_MODES.includes(value.mode as FluencyMode)) &&
       (value.letters === undefined || isIdList(value.letters)) &&
-      (value.send === undefined || SEND_STAGES.includes(value.send as SendStage))
+      (value.send === undefined || SEND_STAGES.includes(value.send as SendStage)) &&
+      (value.copy === undefined || COPY_LEVELS.includes(value.copy as CopyLevel)) &&
+      (value.free === undefined || value.free === true)
     )
   }
   if (value.kind === 'replay') return Number.isInteger(value.index) && (value.index as number) >= 0
@@ -162,6 +172,7 @@ export function sameRoute(left: AppRoute, right: AppRoute): boolean {
 function sameTarget(left: RunTarget | undefined, right: RunTarget | undefined): boolean {
   if (!left || !right) return !left && !right
   if (left.kind !== right.kind) return false
+  if (left.kind === 'letter-practice' && right.kind === 'letter-practice') return left.direction === right.direction
   if (left.kind === 'replay' && right.kind === 'replay') return left.index === right.index
   if (left.kind === 'checkpoint' && right.kind === 'checkpoint') {
     return left.afterLesson === right.afterLesson
@@ -172,6 +183,8 @@ function sameTarget(left: RunTarget | undefined, right: RunTarget | undefined): 
     return (
       left.mode === right.mode &&
       left.send === right.send &&
+      left.copy === right.copy &&
+      left.free === right.free &&
       (left.letters ?? []).join() === (right.letters ?? []).join()
     )
   }
@@ -238,6 +251,11 @@ export function restoreRoute(route: AppRoute, topics: Topic[], restoreRun: boole
 
   const origin = safeParent(route.origin, topics)
 
+  if (route.kind === 'run' && route.target?.kind === 'fluency' &&
+    !route.target.mode && !route.target.send && !route.target.copy && !route.target.free) {
+    return safeParent({ kind: 'topic', topicId: route.topicIds[0] }, topics)
+  }
+
   if (route.kind === 'reference') {
     return topics.some((topic) => topic.id === route.topicId)
       ? { ...route, origin }
@@ -252,6 +270,9 @@ export function restoreRoute(route: AppRoute, topics: Topic[], restoreRun: boole
 
 export function liveRoute(route: AppRoute, topics: Topic[]): AppRoute {
   if (route.kind === 'run') {
+    if (route.target?.kind === 'fluency' && !route.target.mode && !route.target.send && !route.target.copy && !route.target.free) {
+      return restoreRoute(route, topics, true)
+    }
     const origin = safeParent(route.origin, topics)
     return route.topicIds.every((id) => topics.some((topic) => topic.id === id))
       ? { ...route, origin }

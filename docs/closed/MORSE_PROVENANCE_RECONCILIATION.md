@@ -78,8 +78,8 @@ It is still generated from Argus's own complexity + confusable-split rule. The
 provenance correction weakens unsupported external attributions; it does not add
 new evidence that would make the Argus sequence “official” or “optimal.”
 
-`docs/open/MORSE_CHARACTER_ORDER.md` now contains the detailed comparison and source
-record. `docs/open/MORSE_PROGRAMME_PLAN.md` uses the same corrected terminology.
+`docs/open/morse/MORSE_CHARACTER_ORDER.md` now contains the detailed comparison and source
+record. `docs/open/morse/MORSE_PROGRAMME_PLAN.md` uses the same corrected terminology.
 
 ## PR #22 — decision and action
 
@@ -127,13 +127,13 @@ README navigation. The stale v4 snapshot itself is not merged.
     differ;
   - records v5 as the current storage/export boundary;
   - adds the durable Morse research/programme/order/provenance documents.
-- `docs/open/MORSE_CHARACTER_ORDER.md`
+- `docs/open/morse/MORSE_CHARACTER_ORDER.md`
   - removes the unsupported fixed-Koch-sequence implication;
   - identifies CW Academy Beginner as the current character-acquisition source;
   - records the verified published letter introduction order;
   - removes the false implication that Fundamental supplies that order;
   - keeps the Argus order explicitly non-official/non-optimal.
-- `docs/open/MORSE_PROGRAMME_PLAN.md`
+- `docs/open/morse/MORSE_PROGRAMME_PLAN.md`
   - changes the old “current v4” framing into historical pre-v5 context;
   - records #23–#27 as merged and #28 as the untouched next runtime workstream;
   - reconciles P1/P4 provenance language;

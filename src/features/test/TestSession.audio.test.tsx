@@ -67,7 +67,7 @@ function open(onPractice = vi.fn()) {
   return onPractice
 }
 
-const prompt = () => screen.getByRole('heading', { level: 1 }).textContent ?? ''
+const prompt = () => screen.getByRole('heading', { level: 2 }).textContent ?? ''
 
 // The deck is shuffled, so each helper waits for the card on screen to change.
 let lastPrompt = ''
@@ -168,7 +168,7 @@ describe('Test with listening items', () => {
     open()
     await answer(true)
     await onNewCard() // the first answer has been handed over and the next card is up
-    fireEvent.click(screen.getByRole('button', { name: 'End test' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }))
     fireEvent.click(screen.getByRole('button', { name: 'End test' }))
     await waitFor(() => expect(Object.keys(stored().audioEvidence ?? {}).length).toBe(1))
     expect(stored().history).toEqual([]) // the partial attempt itself is discarded

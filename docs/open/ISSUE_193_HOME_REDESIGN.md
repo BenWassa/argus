@@ -1,5 +1,7 @@
 # Issue #193 — Selected Home redesign
 
+> **Progress authority update, 2026-10-19:** [Learning progress](PROGRESS_ARCHITECTURE.md) supersedes earlier decay/repair routing and repeated completion requirements in this document. Learned topics stay learned. Home continues the top unfinished topic.
+
 **Status:** merged via #195 (2026-10-07); automated regression passed; included in the owner-authorized v1.5.0 release; real Pixel acceptance remains outstanding.
 **Authority:** implementation contract for #193. #126 and #127 remain the exploration/decision history.  
 **Related:** #191 role/designation progression; #192 role badge art.
@@ -519,5 +521,5 @@ The selected neutral dial takes the leading slot on Home, replacing subject icon
 - [x] Capture action reuses the existing Want-to-learn workflow.
 - [x] Rounded mobile nav remains restrained and uses existing Argus materials.
 - [x] Empty/repair/overflow/accessibility states pass.
-- [x] PRODUCT/DESIGN documentation reflects candidate behavior with deployment pending.
+- [x] PRODUCT/DESIGN documentation reflects the behavior; shipped in v1.5.0 (production deployment confirmed by the release, not by Pixel acceptance).
 - [ ] Owner verifies the production build on Pixel before close.

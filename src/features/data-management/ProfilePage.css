@@ -1,20 +1,135 @@
-.profile-section-title {
-  margin-top: var(--s-2xl);
-  padding-top: var(--s-lg);
+/* Profile on the screen kit (#247): a ScreenHeader, then one plate per concern.
+   Counts and states are mono readouts; the only copper-free colour here is the
+   danger on the reset control. */
+.profile-page {
+  display: grid;
+  gap: var(--s-lg);
+  width: 100%;
+  max-width: 720px;
+}
+
+.profile-page > * { min-width: 0; }
+
+.profile-section {
+  display: grid;
+  gap: var(--s-md);
+  padding: var(--s-lg);
+}
+
+.profile-section h2 {
+  margin: 0;
+  font-size: var(--t-component);
+  font-weight: var(--w-component);
+  letter-spacing: 0;
+  line-height: 1.3;
+}
+
+/* Label left, reading right, a hairline between each pair. */
+.profile-readouts {
+  display: grid;
+  margin: 0;
+}
+
+.profile-readout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-xs) var(--s-md);
+  padding: var(--s-sm) 0;
   border-top: 1px solid var(--line);
 }
 
-.profile-subsection-title {
-  margin-top: var(--s-xl);
+.profile-readout:first-child { border-top: 0; padding-top: 0; }
+
+.profile-readout dt {
+  font-size: var(--t-small);
+  color: var(--muted);
 }
 
-/* The haptics switch. Text-weight like every other utility on this page:
-   it is a preference, not an action. */
+.profile-readout dd {
+  margin: 0;
+  font-size: var(--t-small);
+  font-weight: 700;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.profile-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-sm);
+}
+
+.profile-actions > button { flex: 1 1 9rem; }
+
+.profile-message {
+  margin: 0;
+  font-size: var(--t-small);
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.profile-message.error { color: var(--danger); }
+
+/* Nothing to say is nothing taking room. */
+.profile-message:empty { display: none; }
+
+.profile-recovered {
+  display: grid;
+  gap: var(--s-sm);
+  padding-top: var(--s-md);
+  border-top: 1px solid var(--line);
+}
+
+.profile-recovered-text {
+  margin: 0;
+  font-size: var(--t-small);
+  color: var(--muted);
+}
+
+.profile-ids {
+  display: grid;
+  gap: var(--s-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.catalog-notice-id {
+  overflow-wrap: anywhere;
+  font-size: var(--t-small);
+  color: var(--muted);
+}
+
+/* Reset is a danger text button on its plate: a danger line and danger words,
+   the solid danger fill left for the confirmation that actually performs it. */
+.profile-danger-zone { border-color: var(--line); }
+
+button.profile-danger {
+  width: 100%;
+  border-color: var(--danger);
+  color: var(--danger);
+  background: var(--plate);
+  box-shadow: none;
+}
+
+button.profile-danger:hover:not(:disabled) {
+  border-color: var(--danger-2);
+  color: var(--danger-ink);
+  background: var(--danger);
+}
+
+button.profile-danger:active:not(:disabled) { box-shadow: var(--press); }
+
+/* The haptics switch: a preference, not an action. */
 .profile-toggle {
   display: flex;
   gap: var(--s-sm);
   align-items: center;
-  margin-bottom: var(--s-lg);
+  min-height: 44px;
+  padding-top: var(--s-xs);
+  border-top: 1px solid var(--line);
   font-size: var(--t-small);
   cursor: pointer;
 }
@@ -23,4 +138,11 @@
   width: 1.1rem;
   height: 1.1rem;
   accent-color: var(--accent);
+}
+
+.profile-about {
+  margin: 0;
+  padding-inline: 2px;
+  font-size: var(--t-readout);
+  color: var(--subtle);
 }

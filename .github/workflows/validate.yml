@@ -4,6 +4,8 @@ on:
   pull_request:
     branches:
       - main
+      # Integration branch for #225; sub-PRs land here before one PR to main.
+      - feat/ui-overhaul
   push:
     branches:
       - main

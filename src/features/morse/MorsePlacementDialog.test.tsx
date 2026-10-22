@@ -29,7 +29,7 @@ describe('Morse placement response boundary', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Know some Morse/i }))
 
-    expect(screen.getByRole('dialog', { name: 'Morse placement check' })).toBeTruthy()
+    expect(screen.getByText('Placement')).toBeTruthy()
     expect(screen.getByRole('button', { name: /Morse key/i })).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Check pattern' })).toBeNull()
     expect(screen.queryByText(/Key the full pattern, then check/i)).toBeNull()

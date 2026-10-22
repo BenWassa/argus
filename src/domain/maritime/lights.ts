@@ -4,7 +4,7 @@
  * One source-derived geometry model that the diagrams and the answer keys are
  * both computed from. The sector values are those of the Collision Regulations
  * (C.R.C., c. 1416, Schedule 1) Rule 21, as recorded in
- * `docs/open/ISSUE_138_MARITIME_VISUAL_LITERACY.md` §B1:
+ * `docs/closed/ISSUE_138_MARITIME_VISUAL_LITERACY.md` §B1:
  *
  * - masthead light: white, 225°, from right ahead to 22.5° abaft the beam on
  *   each side;

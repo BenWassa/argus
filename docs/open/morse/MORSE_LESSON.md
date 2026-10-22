@@ -1,0 +1,614 @@
+# Morse Learn: guided acquisition, finite sittings, listening, path, and reference
+
+**Status:** implemented; maintained contract for Morse Learn. The dated correction blocks below supersede older statements where they conflict.
+
+> **After the course — 2026-09-30.** The thirteen lessons alone could not make a real learner ready. Readiness needs every letter produced correctly in a sitting after the one that taught it. Q and Y are taught in the last lesson, and the confusable-separation rule keeps B and Z (and, for a clean learner, C and J) out of the rosters that follow. A whole-programme simulation confirmed that every learner with lesson history ended with `ready = false` and no way forward. `lesson.ts` adds two functions:
+>
+> - **`owedLetters(topic)`** returns the letters still unconfirmed (before readiness), plus any unrepaired miss.
+> - **`startAfterCourse(topic)`** returns a keyed, review-only run over those letters. The owed letters come first, the roster is filled to five by priority, and no confusable filter is applied. It is available once every letter has been met.
+>
+> The run opens in a sitting of its own (`LessonRun` closes any sitting still open), so its correct answers confirm. The journey names it **Go over missed letters** when the course is done but not ready, and the path shows **Go over Y · Q**. The end screen names what is still owed and offers another round, or the Test once nothing is. Learn still writes no ladder state. The simulation now asserts readiness within three after-course sittings, and that B, Q, Y and Z are repaired.
+
+> **Current correction, repair-review and chrome contract — 2026-09-19.** This
+> maintained contract supersedes the correction-dwell, review-marking and
+> session-chrome statements below where they conflict.
+>
+> **A correction holds until the learner dismisses it.** A hit keeps its short
+> automatic dwell (`MORSE_FEEDBACK_CORRECT_MS`); a miss has no duration at all.
+> `useKeyedResponse` starts no timer for it, and the surface shows a `Continue`
+> control that calls `acknowledge`. This reverses #87's original "neither verdict
+> takes a confirmation" rule, which was right about a hit and wrong about a miss:
+> every duration ever chosen for a correction (1400ms, then 2000ms, then 2000ms
+> plus an audio-replay poll) was a guess at the learner's reading speed, and each
+> one still removed the correction at a moment they had not chosen. The input
+> gate is unchanged — `armed` stays closed for the whole hold — and the rule is
+> identical in Learn, replay and the word checkpoints. `MORSE_FEEDBACK_WRONG_MS`
+> and `morseFeedbackMs` are removed; there is no duration left to tune.
+>
+> **Review is selected by what the learner actually missed.**
+> `MorseReviewItem.missedIn` records the sitting of an unrepaired printed miss.
+> It opens on a miss and closes only on a correct printed retrieval in a *later*
+> sitting — the immediate in-lesson confirmation proves the learner can copy a
+> correction still on screen, which is a different claim.
+> `PRIORITY_UNREPAIRED_MISS` dominates every other term in `retrievalPriority`,
+> and an outstanding repair is exempt from the two-sitting cooling-off guard in
+> `ordinaryReviewRoster`. Before this, nothing durable survived a miss once its
+> support level came back up, so two learners with opposite error histories were
+> handed identical rosters — a property the whole-programme simulations now
+> assert against. The acquisition-separation rule still outranks a repair, and a
+> character missed in the final lesson has no later lesson to be repaired in, so
+> `B`, `Q`, `Y` and `Z` remain unreachable inside the thirteen; the simulation
+> names them rather than hiding them.
+>
+> **Returning material is marked on the step, not on the run.** The `Review`
+> mark moved off `LessonRun.reviewOnly` — which nothing in the app builds, so in
+> practice no lesson ever showed it — onto every check whose entry is not novel.
+> It is a chip carrying a circling-arrow mark and the word, in `--learning`, and
+> the glyph is tinted and enlarged to match.
+>
+> **One word and one number in the session bar.** Every run surface — Learn,
+> word checkpoints, Test, Practice and the alphabet — names itself in one word on
+> the left and carries its position as a number in `.session-count` on the right.
+> `Lesson 4 of 13` over `7 retrievals`, `Checkpoint after lesson 4`,
+> `Test · 3 of 26` and `Practice · 5 to go` are all retired. In-lesson progress
+> is the engraved `.lesson-progress` bar rather than the sentence
+> `Lesson progress: 2 of 5 settled`.
+
+> **Current pacing contract — 2026-09-18.** This maintained contract supersedes the ten-answer budget and review-filler policy below. New letters receive one supported check and one unaided confirmation; returning letters need one correct printed check. After a mistake, the next correct recall ends that letter's repair; further mistakes keep it pending. Completed letters are never reopened as spacers. A settled letter with a successful later-sitting review is omitted from ordinary review until at least a two-sitting gap; empty review slots stay empty. A lesson ends when its roster is done, even before ten answers, and unresolved corrections continue beyond ten. Automatic listening is limited to unfinished returning letters, once successfully per lesson, with a retry after a miss; it never grants printed mastery. Continuing to the next lesson closes the sitting and starts a fresh one. Whole-programme simulations enforce at most two successful prompts per letter per error-free lesson, including listening, and four printed answers for the first lesson.
+
+> **#90/#92/#96 closeout addendum — 2026-09-15.** Current implementation supersedes stale status/details later in this historical contract where they conflict. `Topic.morseReview` is additive formative scheduling state, now including a printed-retrieval count used only to break genuinely equal review need fairly; one 10-retrieval sitting may introduce at most one two-character novel pair and fills the remainder with cumulative item-aware review. New learners require later-sitting **printed** success before acquisition readiness while legacy/previously-ready learners are not regressed; listening is selected by need and remains unable to alter printed evidence/history. Ordinary lesson returns are now selected from actual need rather than static packet position, while any unsettled historical packet return remains an obligation. Cumulative continuation is visibly but quietly marked **Review**. Listening choice placement rotates by listening-slot ordinal rather than lesson step, so fixed cadence cannot teach a correct-answer position. The formative checkpoint arc is now **Lessons 4, 7, 10 and 13**, with #88 first-unlock handoff at all four, late-acquired characters in later material, one bounded local retry after intervening targets where practical, and a local-only completion summary. Checkpoint/replay work still writes no lesson support, sitting, `morseReview`, `DirectionEvidence`, retention timestamp or completion. The deterministic one-pair/review-only sitting policy is settled; the final same-day continuation/spacing **copy and presentation** remains an owner decision under #92. The shipped Morse topic currently uses a quiet `Morse alphabet` link rather than embedding all 26 cards; that placement remains an explicit #92 owner decision. #29 stays outside this contract and #42 remains the separate Pixel acceptance track.
+
+Issues #48, #51, #52, #56, #75, #76, #77, #78, #87 and #88. Parent #21. Preserves #28's
+completion boundary and the #42/#44 mnemonic treatment. #29 remains the separate
+future boundary for claimed auditory-reception competency, sending/WPM and
+broader groups/continuous material; #78's tiny word checkpoints are formative
+application only and do not open that boundary.
+
+Primary code:
+
+- `src/domain/morse/curriculum/lesson.ts` — durable printed-acquisition and packet policy;
+- `src/domain/morse/curriculum/lessonSitting.ts` — finite-sitting policy over the durable
+  `Topic.lessonSitting` field (#66);
+- `src/domain/morse/curriculum/lessonSittingStorage.ts` — one-way migration door for the retired
+  `argus.morse-learn-sittings.v1` sidecar; it can read and delete, never write;
+- `src/domain/morse/curriculum/listening.ts` — within-lesson listening-question policy;
+- `src/domain/morse/curriculum/lessonPath.ts` — the canonical 13-lesson path and ephemeral
+  completed-lesson replay projection (#75);
+- `src/domain/morse/curriculum/checkpoints.ts` — mechanically eligible, deterministic
+  interstitial word-checkpoint projection (#78);
+- `src/domain/study/journey.ts` — the shared learner-journey derivation, and the
+  acquisition-readiness anchor Learn stamps (#67);
+- `src/features/morse/lesson/MorseLesson.tsx` — guided lesson surface;
+- `src/features/learn/MorseProgramme.tsx` — visible lesson/checkpoint path;
+- `src/features/morse/lesson/MorseCheckpoint.tsx` — local-only word checkpoint runner;
+- `src/features/morse/input/MorseKeyInput.tsx` — shared letter → Morse response control;
+- `src/domain/morse/response.ts` / `src/features/morse/input/useKeyedResponse.ts` — shared
+  keyed feedback/transition timing and interaction gate (#87);
+- `src/features/morse/reference/MorseReference.tsx` — shared A–Z lookup cards used by the
+  standalone reference and the always-visible Topic-page alphabet (#76).
+
+## Product model and evidence boundary
+
+Morse still has only **Learn + Test** as product modes. Learn is guided
+acquisition; Test is the sole formal scored retention/completion path; Morse
+alphabet is a freely available non-scored reference. The #75 lesson map, lesson
+replays and #78 word checkpoints all live inside Learn rather than creating a
+Practice mode.
+
+The formal completion claim remains exactly:
+
+> Can independently recall all A–Z printed Morse mappings in both directions.
+
+There are exactly 26 logical scoring units, all typed bidirectional. Nothing in
+Learn — including a listening answer, lesson replay or word-checkpoint answer —
+can satisfy directional evidence, advance the scheduler or award completion.
+
+Normal canonical Learn persists exactly three things, all of them formative:
+
+- `Topic.lessonProgress` — one printed-acquisition support enum per item;
+- `Topic.lessonSitting` — progress through the current finite sitting (#66);
+- `Topic.acquisitionReadyAt` — when every letter had been produced unaided at
+  least once in Learn (#67).
+
+None of them is evidence. None can write `DirectionEvidence`, advance the
+scheduler or award completion. `acquisitionReadyAt` is the one that touches the
+schedule at all, and only in the restrictive direction: it is what stops a Test
+from banking retention before acquisition is finished, and it anchors the
+qualifying `learning → drilled` gap at readiness rather than at the learner's
+first sight of packet 1. See `docs/open/PROGRESS_ARCHITECTURE.md`.
+
+Lesson replay and word checkpoints persist **none** of those fields. Their run,
+feedback and position are component-local and disappear on exit.
+
+Audio playback position, key-press timing, the within-lesson queue and
+transient feedback remain runtime-only and are never written anywhere.
+
+## Two independent progress clocks
+
+Every normal Morse Learn sitting has a fixed target of **10 answered formative
+retrievals**.
+
+- each answered retrieval consumes one unit whether correct or wrong;
+- introductions and correction/reteach screens consume no budget;
+- `Can't listen now` consumes no budget because it is not an answered retrieval;
+- mistakes change teaching/support, not sitting length;
+- a packet may span several sittings;
+- if a packet genuinely settles before the tenth retrieval, the same sitting may
+  continue into the next packet.
+
+Packet readiness remains separate durable acquisition state: every character on
+the roster must be `settled` under the **printed** Learn support ladder. The
+packet index is derived from that state rather than stored independently.
+
+The UI therefore shows `Packet N of 13` and `X / 10 retrievals`. The main bar is
+the finite sitting target; the packet settled count is secondary context. The
+endpoint summary reports the retrieval count, correct count, unique letters to
+revisit, current packet progress and packet(s) settled during the sitting.
+
+The count is a finite retrieval budget, not an economy. Earlier copy called it
+`XP`, which implied a currency Argus does not have and does not want; #62 retired
+that wording. There is no global XP, streak, league, currency, shop, badge or
+daily-goal schema. #78 adds no checkpoint XP/progress counter.
+
+### The sitting is durable (#66)
+
+`Topic.lessonSitting` is the single durable authority for the active sitting. It
+stores the retrieval count, the correct count, the unique ids still to revisit
+and whether the learner declined listening for this sitting — and nothing else.
+It round-trips through export/import losslessly, survives reload and topic
+edits, and is validated at the storage boundary like every other per-item store.
+
+A fresh sitting has exactly one representation: the absent field. Starting the
+next sitting removes it rather than writing zeroes, so an old v5 record with no
+sitting and a record whose sitting has just been reset are the same state.
+
+The pre-#66 `argus.morse-learn-sittings.v1` sidecar is retired. On the first
+upgraded load, a sitting it still holds is adopted onto a topic that has none,
+and the key is then deleted. Import and reset clear it outright, so a sitting
+belonging to a replaced library can never surface inside its successor.
+
+## Printed acquisition support ladder
+
+#56 makes the response rule intentionally simple:
+
+> **If the answer is a Morse pattern, the learner produces the pattern.**
+
+The support level changes only what help is visible. It never switches the
+learner between recognition and production.
+
+| Support | Printed letter → Morse question | Response |
+| --- | --- | --- |
+| `taught` | rhythmic phrase with beat marks | shared Morse key |
+| `cued` | element count only | shared Morse key |
+| `solo` | glyph only | shared Morse key |
+| `settled` | same unaided format as `solo` when interleaved | shared Morse key |
+
+The shared `MorseKeyInput` is used by Learn, Test, lesson replay and #78 word
+checkpoints under the #77 direct-entry contract:
+
+- a fresh response is visually blank;
+- one visible primary touch target remains;
+- tap / short press commits dit `·`;
+- press-and-hold commits dah `—`;
+- entered elements become visible immediately;
+- the caller supplies only the expected element count;
+- reaching that count locks and submits the response exactly once automatically;
+- there is no Back/delete or Check/Submit path, and no Continue between a
+  *correct* answer and the next target;
+- a mis-key is therefore a miss and cannot be edited into correctness;
+- keyboard `.` and `-` use the same automatic grading contract; Backspace and
+  Enter are not correction/confirmation controls.
+
+The hold threshold is an **input classification**, not sending evidence. Press
+duration is not returned to Learn, Test, the scheduler or the evidence store and
+must never become a WPM/sending claim through this control.
+
+The learner-generated sidetone uses the same core tone/level and click-free edge
+shaping as sample playback. To preserve the first key sound on mobile, the key
+starts its oscillator in the direct press event before waiting for
+`AudioContext.resume()`; a quick release still sounds its canonical element
+once before it is committed. Audio failure remains non-blocking to categorical
+key entry. `docs/open/morse/MORSE_AUDIO_RUNTIME.md` is the maintained cross-surface
+lifecycle and device-acceptance contract.
+
+Pointer cancellation/lost capture produces no element. The key suppresses
+long-press browser UI and touch scrolling while an active press is being
+classified, so one press cannot accidentally become a dit plus a dah or a page
+gesture.
+
+#87 now owns the complete keyed-response boundary. Press duration chooses only
+dit versus dah; the shared audio path renders that accepted element completely,
+so a quick tap is not a clipped chirp and the final element finishes before the
+answer advances. Once an answer commits, keyed input is inert through the
+feedback and the target transition alike. A `Correct` verdict advances
+automatically after the shared dwell; a correction holds until the learner
+presses `Continue` (2026-09-19, above). Either way the next target is not live
+until the transition behind it has finished. Learn, replay
+and word checkpoints share this policy. Reduced motion may remove the visual
+movement but never the input gate. The Morse key's pressed state is tactile and
+tonal/elevation-based rather than blue/accent. None of this changes lesson
+support, Test evidence, scoring, readiness or retention semantics.
+
+The #52 answer-safety rule remains: **no unanswered printed recall question
+exposes target playback**. A one-signal question such as `T` may show `1 signal`,
+but there is no Play control that can reveal whether the answer is dit or dah.
+
+Instructional target audio remains available during introduction, after an
+answer in correction/reteach, and in the A–Z reference. Audio is either teaching
+outside the live recall decision, or it is the stimulus of a distinct listening
+question.
+
+One correct printed retrieval fades support one level. A printed miss restores
+support appropriate to the failed format and enters the existing delayed weak-
+item recurrence policy. `settled` is only a Learn-scaffold state; it is not
+retention or completion.
+
+## Listening is a separate formative question type
+
+A listening question is **Morse sound → letter** and is the one V1 Morse Learn
+interaction that retains multiple-choice recognition.
+
+While unanswered:
+
+- the sound is the stimulus;
+- the target letter, canonical pattern, mnemonic and SVG are not shown as the
+  identified answer;
+- the Play/Stop control has the neutral accessible name `Play Morse sound` /
+  `Stop Morse sound`, so a screen reader does not receive the hidden answer;
+- replay is allowed;
+- the learner chooses from a compact deterministic set containing only
+  characters already introduced anywhere in the topic so far — not only the
+  current packet's own small roster, which stays capped at a handful of
+  characters for the whole lesson and would otherwise keep offering the same
+  one or two distractors long after the learner has met many more.
+
+Listening is deliberately restrained and deterministic in V1. It is eligible on
+retrieval slots 3, 6 and 9, only after the target has moved beyond `taught` in
+printed acquisition. The immediately previous target is excluded from an
+instant modality flip, and answering a listening question defers that target in
+the ephemeral queue so the next question is not simply the same answer visually.
+
+**Which character gets the slot is chosen by need (#90 §5).** The cadence is
+unchanged; what changed is that the slot no longer goes to whichever character
+the printed queue happened to offer. `chooseListeningTarget` ranks every
+eligible character by `listeningNeed`: coverage first, so a character never met
+in sound outranks every character that has been; then balance, so fewer times
+heard wins; then a bounded nudge for a character whose last listening answer
+was wrong. Ties fall back to roster order.
+
+The old rule was the cadence *alone*, which is why the measured baseline landed
+51 listening questions on a repeating subset while other letters were never
+heard once. Nothing eligible yields the slot back to the visual path rather
+than losing the coverage — need is recomputed from durable state on every slot,
+so the character gets its turn on the next one.
+
+Listening counters live in `morseReview` and are kept strictly apart from
+printed ones: a listening answer moves neither `laterCorrect` nor `lastSeenIn`,
+so it can neither satisfy a printed claim nor reset printed staleness. #29
+remains the boundary for any auditory competency claim, and none is made here.
+
+### Auditory answers do not change printed packet readiness
+
+`answerListeningQuestion` does not fade or restore `LessonSupport`, does not set
+`asked`/`done`, and therefore cannot settle a printed packet. It changes only
+runtime queue timing and returns runtime feedback.
+
+A correct or wrong listening answer does count as one of the sitting's 10
+formative retrievals, because the learner completed a question, but the result
+is not durable auditory evidence and does not create an auditory competency
+claim. A listening miss may be shown corrective material after the answer; it
+still carries no printed-support penalty.
+
+## `Can't listen now` and technical audio failure
+
+Every live listening prompt exposes the secondary action:
+
+> Can't listen now
+
+Choosing it:
+
+- applies no correctness or support penalty;
+- consumes no retrieval slot;
+- writes no formal or auditory evidence;
+- suppresses further listening prompts for the rest of the current sitting;
+- immediately leaves eligible visual work to occupy the unanswered slot.
+
+Suppression is durable for the sitting it belongs to (#66): `Can't listen now`
+is a statement about the sitting the learner is in, and a sitting now survives
+exit and reload, so resuming at 6/10 must not silently hand back listening
+questions. An audio *failure* is different — that is a fact about the device
+right now, not a decision — so it suppresses listening for the running lesson
+only and lifts on reload. `Next lesson` starts a new finite sitting with
+listening eligible again.
+
+A technical audio error follows the same non-blocking product path: playback is
+stopped, listening is suppressed for the rest of that sitting, a concise status
+message is announced, and Learn continues visually. The audio-error state is
+cleared when the next sitting begins.
+
+A fully visual sitting still reaches the same 10-retrieval endpoint, including
+when all listening is skipped or unavailable.
+
+## Packet ordering, weak items and interleaving
+
+P1/P2 from `docs/open/morse/MORSE_CHARACTER_ORDER.md` remain authoritative:
+complexity-ascending ordering with final-element confusables separated, two novel
+characters per packet, and up to five characters on a roster.
+
+### One novel pair per sitting, then cumulative review (#90 §3)
+
+A packet that settles before retrieval 10 used to roll straight into the next
+packet's introductions, so one sitting could quietly teach four letters or more
+— the measured baseline's first sitting introduced `E I T A`. It no longer can:
+a continuation inside a sitting asks `startLesson` for a run that **cannot**
+introduce anything (`{ allowNovel: false }`), and that run fills its roster from
+everything the learner has already met.
+
+Spacing is **soft**: continuing immediately is allowed and contains review only,
+with the next novel pair recommended later. Hard spacing was rejected because it
+punishes the learner who usually has five minutes and today has twenty.
+
+### Review material is chosen by need, not by packet position (#90 §2)
+
+`byStaleness` orders a packet roster well and orders a programme badly: it knows
+nothing about whether a character has ever survived a gap between sittings, how
+weak its scaffolding is, or how long since it was last seen. Under it, eleven
+letters received no later review at all, because review material was drawn from
+packet position.
+
+`morseLessonPriority.ts` ranks the whole introduced set by a transparent
+weighted priority — consolidation, then scaffolding, then capped staleness, then
+a listening nudge. When those needs are genuinely equal, fewer prior **printed**
+retrievals wins before acquisition order is consulted. This preserves need
+priority while preventing a fixed early-letter tie from repeating forever; the
+small printed counter is formative-only and legacy records begin at zero.
+
+Ordinary novel-pair lessons use the same ranking for their returning capacity.
+An unsettled return from the historical packet remains required so packet
+readiness keeps its existing meaning; settled static returns no longer consume a
+slot merely because their alphabet position created more future packets.
+
+### Acquisition readiness now requires consolidation (#90 §4)
+
+Settling every character is necessary but not sufficient. A character produced
+unaided inside the very sitting that taught it has survived no gap, so
+`morseAcquisitionPosition` also reports `awaitingConsolidation` and withholds
+`ready` until every character the review history knows about has a correct
+retrieval in a *later* sitting.
+
+Conservative by construction: a record written before that history existed has
+no entries to be held to, and `acquisitionReadyAt` is permanent, so no learner
+who already reached the boundary is dragged back.
+
+Printed misses remain barred for `WEAK_ITEM_DELAY_STEPS = 2` lesson steps and
+are not immediately repeated after correction. Returning characters from prior
+packets arrive settled and are retrieved unaided; a printed miss on one can
+restore support and block true packet readiness.
+
+Visual pattern distractors are no longer part of the Learn response model.
+Confusion metadata still informs curriculum sequencing and can remain useful in
+other discrimination contexts. Listening choices remain deterministic and never
+pad with an unintroduced letter.
+
+## Visible lesson path, replay and word checkpoints
+
+#75 exposes the existing `lessonPackets()` plan directly as **13 canonical
+lessons**. Completed/current/locked state comes from the same durable acquisition
+support that normal Learn uses. Completed or previously reached lessons can be
+replayed, but replay is local-only: it never demotes saved support, moves the
+canonical current lesson, changes an active sitting, or writes formal evidence.
+
+**#117 — replay is a mode of the lesson, not a surface beside it.** Replay was
+originally its own component rendering a flat uncued queue: every mapping
+pre-introduced at `solo`, capped at ten retrievals, with no mnemonic, canonical
+notation, audio, introduction screen or word checkpoint. A learner who had
+finished the course and chose to go back over Lesson 1 was shown a bare glyph
+and a key. That surface is gone.
+
+`startReplayLesson(topic, index)` now builds its run by calling the canonical
+`startLesson` against a copy of the topic rewound to the position that lesson
+was first opened at — every earlier packet settled, the lesson itself untouched.
+The packet, roster, novel pair, interleaved review selection and
+introduce-then-retrieve shape are therefore produced by exactly the code that
+produced them the first time, and cannot drift from it. `MorseLesson` renders
+the run with `replay`, which changes three things and nothing else: the record
+writes nothing, `Next lesson` walks the printed order via `nextReplayLesson`
+rather than the learner's durable position, and the copy stops implying a first
+meeting. Word checkpoints are offered where the replayed lesson reaches them.
+
+The isolation is structural and lives in one place: `useLessonRecord(topicId,
+replay)` substitutes a no-op for `updateTopic`, and `MorseLesson` has no other
+write path. `MorseLesson.replay.test.tsx` drives a complete replayed lesson and
+asserts the stored record is unchanged byte for byte.
+
+## Screen presentation (2026-09-19 review)
+
+Four presentation defects found by driving the shipped app at phone width across
+a fresh, a mid-course and a finished learner. None of them changes a boundary;
+all four are pinned by `MorseScreens.test.tsx`.
+
+**The course's own support had nowhere to render.** `LearnSupport` was mounted
+only in `TopicPage`'s ordinary-topic branch, which a curriculum topic never
+takes, so the authored Morse overview — dits and dahs, the 1:3:7 spacing, how
+the lesson chooses what to show next, what the completion claim does and does not
+cover — was written, shipped and displayed on no surface. It is now a
+`How this course works` fold below the curriculum.
+
+**The mark grammar is explained at first meeting only.** `MorseBeatGrammarNote`
+appeared under every introduction — twenty-six times across the course, plus
+every replay — always illustrated with `ZOOM ZOOM ZIP ZIP`, a letter other than
+the one being taught. It now shows while `introducedGlyphs(topic).length < 3`,
+which is a statement about the learner rather than the lesson's position and so
+stays correct for someone placed into the middle of the course. Its permanent
+home is the fold above.
+
+**A retrieval screen uses the height it is given.** The prompt and key packed to
+the top and the composition ended around 540px of an 844px phone, leaving a third
+of the display empty beneath the control being pressed. Screens rendering a step
+carry `data-step`, and the step is centred in the run: prompt, support and key
+stay one object and the key lands in the lower half. Terminal screens and
+feedback cards are excluded and still read from the top.
+
+**The Morse key states its own mechanic.** `Tap for dit; press and hold for dah`
+existed only in `aria-label`. `TAP · HOLD —` is now on the key face, in the same
+marks the mnemonic uses, hidden from assistive tech because the button label
+already says it in sentences.
+
+**The path opens near the current lesson.** Thirteen lessons, four checkpoints
+and a Test is eighteen rows; at lesson 6 the current row sat at 945px on an 844px
+screen. The completed run above the current lesson now collapses to one fold row,
+carrying any checkpoint whose milestone falls inside it, which brings the current
+row to 771px. Nothing ahead folds — seeing the end of a finite curriculum is the
+premise — and a learner who has finished the course keeps the full index. On a
+667px phone the row still falls below the fold; closing that fully means
+condensing the topic header, which this pass did not do.
+
+#78 inserts two non-numbered path milestones immediately after Lessons 4 and 7.
+They do not become lessons, do not block Lesson 5/8 and carry no durable
+completion flag. Eligibility comes from the canonical path; later lesson reach
+keeps an earlier checkpoint available even when repair temporarily makes an old
+lesson current again.
+
+Each checkpoint starts with four deterministic keyed letter warm-ups, then uses
+a tiny curated word corpus. Allowed letters are derived from `lessonPackets()`
+and every warm-up/word is mechanically checked against that set. Current content
+is `TIME` after Lesson 4 and `TRAIN` + `GARDEN` after Lesson 7; `O` is explicitly
+ineligible there because it first appears in Lesson 8. The full word remains
+visible while the current character is emphasized. Correct and wrong responses
+both receive the shared #87 feedback/transition treatment and advance
+automatically; a miss changes nothing outside that transient feedback.
+
+#88 adds the forward milestone handoff without adding checkpoint state. When
+canonical progression newly unlocks the Lesson-4 or Lesson-7 checkpoint, the
+lesson completion boundary automatically presents a brief invitation. Starting
+there enters the checkpoint directly. Skipping remains non-gating and leaves the
+unlocked checkpoint available from the lesson path; replay or later repair of an
+already reached lesson does not recreate a first-unlock invitation. Completing a
+checkpoint continues naturally into the lesson journey rather than requiring the
+learner to rediscover their place.
+
+Lesson selection, replay and checkpoint selection remain microstate inside the
+existing Learn route, preserving #45 browser History / Android Back behavior.
+
+## Leaving and resuming
+
+`Topic.lessonProgress` persists meaningful printed acquisition changes, and since
+#66 `Topic.lessonSitting` persists where the learner is inside the sitting they
+were doing. The within-lesson queue and listening feedback do not.
+
+Therefore reopening canonical Learn resumes the sitting in progress — its
+retrieval count, correct count, letters to revisit and listening declination —
+and rebuilds the lesson itself from the first packet not fully settled. Already
+introduced items stay introduced; weak printed items retain their support level.
+The queue is reconstructed rather than restored, which is the deliberate #48
+behaviour: what resumes is the learner's position, not a frozen screen.
+
+Lesson replay and word-checkpoint position are deliberately not resumed. Exiting
+one returns to the path without touching the canonical sitting or lesson state.
+
+There is still no second durable session record and no auditory state machine.
+`lessonSitting` is one small value on the topic, sitting beside `lessonProgress`,
+and both are formative.
+
+## Morse alphabet and acquisition audio
+
+The reference exposes all 26 letters alphabetically with rhythmic phrase,
+canonical notation, timing drawing and compact Play/Stop control, and writes no
+learner progress. #76 reuses the same reference-card implementation directly on
+the Morse Topic page instead of the generic `Show all 26 items` disclosure; all
+26 cards are visible there without creating a second representation.
+
+#42/#44 remain in force:
+
+- rhythmic verbal mnemonic is the primary early memory hook;
+- SVG is secondary;
+- audio is generated from canonical Morse timing;
+- acquisition playback uses `LEARN_ACQUISITION_MORSE_TIMING` at 12 character
+  WPM;
+- canonical dit:dah timing remains 1:3;
+- the compact audio control remains touch-sized and accessible;
+- no mnemonic/SVG/audio cue leaks into the formal uncued Test boundary.
+
+See `docs/open/morse/MORSE_VERBAL_MNEMONICS.md` for mnemonic grammar and provenance.
+
+## Structural safeguards
+
+1. `morseLesson.ts` imports no scheduler or formal Test-evidence module.
+2. `answerLesson` mutates only a `LessonRun` and never receives a `Topic`.
+3. `withLessonProgress` is the only acquisition-support write path and changes
+   only `lessonProgress`.
+4. `morseLessonListening.ts` is within-lesson policy, and
+   `morseLessonSitting.ts` owns only the formative sitting field; neither is an
+   evidence-policy module and neither writes a learner record by itself.
+5. `MorseLesson.tsx` performs canonical Learn writes through narrow functional
+   topic updates for lesson support/readiness and the durable sitting.
+6. Listening answers do not call the printed-support durable write path.
+7. `MorseKeyInput` reports only the completed dot/dash string. It does not report
+   press duration, speed or sending metrics.
+8. Learn and Test import that same shared input rather than maintaining separate
+   dit/dah entry widgets.
+9. `MorseCheckpoint.tsx` imports no learner-store write path, and `MorseLesson.tsx`
+   in replay mode is handed a `useLessonRecord` whose writes are no-ops (#117);
+   their answers and misses are ephemeral.
+10. Checkpoint unlock/content projection is derived from `lessonPackets()` /
+    `morseLessonPath()` and does not add a durable checkpoint database.
+
+The existing first-exposure `unstarted → learning` transition remains in
+`Learn.tsx`; it is not evidence from a formative retrieval.
+
+## Preserved boundaries
+
+The current Morse Learn programme does not change:
+
+- the exact printed A–Z completion claim;
+- the 26 typed bidirectional scoring units;
+- scheduler/retention resolution or the requirement for both directions;
+- Learn acquisition evidence vs formal Test evidence separation;
+- migration or export/import integrity;
+- any non-Morse topic;
+- #29's future separately stated auditory-reception, sending/WPM and broader
+  groups/continuous-material competency.
+
+#56 intentionally changed the **response mechanism** on supported printed Test
+rungs from multiple choice to keyed production. #77 simplified that keyed
+interaction to direct automatic grading without changing cue, scheduler or
+completion semantics. #75/#76/#78 change Learn navigation/reference/application
+surfaces only.
+
+## Validation boundary
+
+Automated coverage establishes, among other invariants:
+
+- every unanswered visual letter → Morse Learn check uses keyed production and
+  exposes no pattern alternatives;
+- all forward printed Test rungs use the same shared keyed-production control;
+- one short press classifies as one dit and one hold as one dah;
+- keyed entry starts blank, commits once at expected length and exposes no
+  Back/delete/Submit/Check correction flow;
+- interrupted pointers produce no phantom element;
+- keyboard and accessible alternatives remain available;
+- no target Play control exists on unanswered printed questions, including the
+  one-signal `T` case;
+- listening prompt/control text does not identify the hidden target;
+- listening remains the only Morse Learn multiple-choice prompt;
+- listening answers do not fade, restore, settle or durably write printed
+  acquisition state;
+- `Can't listen now` applies no retrieval/support penalty and suppresses the
+  rest of the sitting;
+- a fully audio-suppressed sitting still ends at exactly 10 answered retrievals;
+- #51 packet/sitting separation remains intact;
+- the visible path remains 13 canonical lessons and #75 replays are isolated;
+- #76 keeps the A–Z cards shared, always visible on the Morse Topic page and
+  lookup-only;
+- #78 checkpoints unlock only at canonical Lesson-4/Lesson-7 boundaries, keep
+  eligibility during later repair, reject out-of-milestone content (including
+  `O` at Lesson 7), auto-advance after misses, and write no durable learner
+  state;
+- Learn still cannot award formal directional, retention, scheduler or
+  completion evidence;
+- touch sizing, keyboard/screen-reader semantics, phone width, 200% text scaling
+  and reduced motion remain covered by the repository gate.
+
+These tests establish product/evidence correctness, not auditory learning
+effectiveness or a reception-performance claim. Real-device learner validation
+remains necessary for those pedagogical judgments.

@@ -18,7 +18,7 @@ import {
  * exercise specifications whose answers and distractors are all computed from
  * `bearings.ts`. No answer is typed in: each bank lists the inputs, and the
  * key is what the tested arithmetic says. The inventories and coverage rules
- * are those of `docs/open/ISSUE_140_COMPASS_BEARINGS_TOPO.md` §5.
+ * are those of `docs/closed/ISSUE_140_COMPASS_BEARINGS_TOPO.md` §5.
  *
  * Every item is an objectively graded choice (#146). Distractors model the
  * errors these calculations actually attract — reading the wrong way round,

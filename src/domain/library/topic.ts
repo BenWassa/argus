@@ -5,6 +5,7 @@ import type {
   MorseReviewProgress,
 } from '../morse/progress'
 import type { MorseFluencyProgress } from '../morse/fluency/progress'
+import type { MorsePractice } from '../morse/practice'
 import type { LearnContent } from '../learning/content'
 import type { ItemChoice, Visual } from '../visual/visual'
 import type { AudioStimulus, ItemResponse } from '../audio/audio'
@@ -21,16 +22,8 @@ export const TRACKS = ['learning', 'survival', 'tradecraft'] as const
 export type Track = (typeof TRACKS)[number]
 
 /**
- * The status ladder. Every topic sits on exactly one rung, and the rung
- * decides both what the topic looks like and when it comes back.
- *
- *   unstarted / learning / decayed -> completed
- *                          ^             |
- *                          +-- decayed --+
- *
- * `drilled` remains a parseable legacy status and reads as completed.
- * `completed` is permanent: decay routes a topic back to drilling without
- * erasing the fact that it was once completed.
+ * Learning moves from unstarted to learning to permanent completion.
+ * `drilled` and `decayed` are legacy import/history values, never new live states.
  */
 export const STATUSES = ['unstarted', 'learning', 'drilled', 'completed', 'decayed'] as const
 export type Status = (typeof STATUSES)[number]
@@ -89,6 +82,13 @@ export interface Attempt {
   total: number
   /** Status the topic held after this attempt resolved. */
   resolvedTo: Status
+  /**
+   * Ids of the items this run answered wrong. Additive within v5: absent means
+   * a clean run or an attempt that predates the record. It is the one durable
+   * trace a reveal-and-grade topic keeps of what was missed, because those
+   * items write no per-item evidence.
+   */
+  missedItemIds?: string[]
 }
 
 export interface TopicSequence {
@@ -113,9 +113,9 @@ export interface Topic {
   createdAt: string
   /** Legacy timestamp when the topic first reached `drilled`; retained for compatibility. */
   drilledAt: string | null
-  /** When acquisition or corrective learning began. No elapsed-time gate. */
+  /** When learning began. No elapsed-time gate. */
   learningAt: string | null
-  /** Set once, the first time the topic completes. Never cleared by decay. */
+  /** Set once, the first time the topic completes. Never cleared by a later Test. */
   completedAt: string | null
   /** Most recent scored Test, whether scheduled or voluntary. */
   lastTestedAt: string | null
@@ -163,6 +163,12 @@ export interface Topic {
    * retention state or completion.
    */
   morseFluency?: MorseFluencyProgress
+  /**
+   * Formative, direction-specific Morse practice (#221). Additive within v5:
+   * absent means the learner has no recorded practice; it carries no dates and
+   * never changes acquisition evidence, history, or completion.
+   */
+  morsePractice?: MorsePractice
   /**
    * When progressive acquisition first became ready — for Morse, when every
    * required item had been produced unaided at least once in Learn (#67).

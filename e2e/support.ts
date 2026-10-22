@@ -43,7 +43,7 @@ export async function openNatoTest(page: Page) {
   await page.goto('./')
   // Today's plate opens the topic; the topic page's one action starts the Test.
   await page.locator('.docket .index-row').first().click()
-  await page.locator('.topic-primary').click()
+  await page.locator('.topic-tray [data-tile-id="test"]').click()
   await expect(page.locator('.flip-card')).toBeVisible()
 }
 
@@ -188,21 +188,15 @@ export async function assertNoAnswerLeaked(page: Page, minimumPrompts = 1) {
   }
 }
 
-/** The card counter in the session bar, as a number. */
+/** The card now on screen, as a number: the frame's progress counts answered cards, so it is one more. */
 export async function cardNumber(page: Page): Promise<number> {
-  const label = (await page.locator('.session-count').first().getAttribute('aria-label')) ?? ''
+  const label = (await page.locator('.session-frame-progress').first().getAttribute('aria-label')) ?? ''
   const match = /(\d+) of/.exec(label)
-  return match ? Number(match[1]) : Number.NaN
+  return match ? Number(match[1]) + 1 : Number.NaN
 }
 
-/**
- * Open the folded run of finished lessons on the Morse topic page. A learner
- * who has finished the alphabet sees the whole run collapsed into one row, so
- * its replays and checkpoints are one tap further in.
- */
+/** Finished lessons and checkpoints remain visible on the Morse topic page. */
 export async function openFinishedLessons(page: Page) {
-  const fold = page.locator('.morse-path-fold')
-  await expect(fold).toBeVisible()
-  if ((await fold.getAttribute('open')) === null) await fold.locator('summary').click()
-  await expect(fold).toHaveAttribute('open', '')
+  await expect(page.getByRole('list', { name: 'Course path' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Lesson 1, E and I, done', exact: true })).toBeVisible()
 }

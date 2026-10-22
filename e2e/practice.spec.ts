@@ -80,7 +80,7 @@ async function storedTopic(page: Page) {
  */
 async function runDeck(page: Page, wrongCount: number) {
   for (let i = 0; i < nato.items.length; i += 1) {
-    if ((await page.locator('.session-done').count()) > 0) break
+    if ((await page.locator('.test-done').count()) > 0) break
     await expect(page.locator('.flip-card')).toBeVisible()
     const prompt = await page.locator('#prompt-heading').textContent()
     await page.keyboard.press(' ')
@@ -92,20 +92,20 @@ async function runDeck(page: Page, wrongCount: number) {
     await expect
       .poll(
         async () => {
-          if ((await page.locator('.session-done').count()) > 0) return 'done'
+          if ((await page.locator('.test-done').count()) > 0) return 'done'
           return page.locator('#prompt-heading').textContent().catch(() => null)
         },
         { timeout: 15000 },
       )
       .not.toBe(prompt)
   }
-  await expect(page.locator('.session-done')).toBeVisible()
+  await expect(page.locator('.test-done')).toBeVisible()
 }
 
 async function startCheck(page: Page) {
   // A Today plate opens its topic; the check starts from the topic page.
   await page.getByRole('button', { name: /NATO Alphabet/ }).first().click()
-  await page.locator('.topic-primary').click()
+  await page.locator('.topic-tray [data-tile-id="test"]').click()
   await expect(page.locator('.flip-card')).toBeVisible()
 }
 
@@ -162,6 +162,32 @@ test('a missed check offers practice, which asks those items and banks nothing',
   expect(afterPractice).toEqual(afterCheck)
 })
 
+test('after a missed Test the topic page agrees: Practice enabled with the same count, and a bar from the Test', async ({ page }) => {
+  await openApp(page)
+  await startCheck(page)
+  await runDeck(page, 3)
+  await expect(page.getByRole('button', { name: 'Practise 3 items' })).toBeVisible()
+  await expect(page.locator('.test-outcome')).toHaveText('Still learning · 3 to practise')
+  await page.getByRole('button', { name: 'Done' }).click()
+
+  await page.locator('.nav-btn', { hasText: 'Library' }).click()
+  await page.getByRole('button', { name: /NATO Alphabet/ }).first().click()
+  const practice = page.locator('.topic-tray [data-tile-id="practice"]')
+  await expect(practice).toBeEnabled()
+  await expect(practice.locator('.topic-tile-count')).toHaveText('3')
+  await expect(page.locator('.screen-header-readout')).toHaveText(`${nato.items.length - 3} / ${nato.items.length}`)
+  await expect(page.locator('.topic-item.is-missed')).toHaveCount(3)
+  // The three missed items are copper with a diamond, and the status line says what happened.
+  await expect(page.locator('.topic-items .topic-item.is-missed')).toHaveCount(3)
+  await expect(page.locator('.topic-items .spine-row.is-repair')).toHaveCount(0)
+  await expect(page.locator('.topic-state')).toHaveText(`${nato.items.length - 3} / ${nato.items.length} · 3 to practise`)
+
+  await practice.click()
+  const practiceRoute = await route(page)
+  expect(practiceRoute.target?.kind).toBe('practice')
+  await expect(page.locator('.practice-question')).toBeVisible()
+})
+
 test('practice hands back to the check rather than banking on its own', async ({ page }) => {
   await openApp(page)
   await startCheck(page)
@@ -172,10 +198,10 @@ test('practice hands back to the check rather than banking on its own', async ({
   await page.getByRole('button', { name: 'Got it' }).click()
 
   await expect(page.getByRole('heading', { name: 'Practice done' })).toBeVisible()
-  const summary = await page.locator('.practice-summary').textContent()
-  expect(summary).toContain('Nothing was recorded and nothing moved')
+  // A title and its actions: no sentence about the record.
+  await expect(page.locator('.practice-summary p')).toHaveCount(0)
 
-  await page.getByRole('button', { name: 'Take the check' }).click()
+  await page.getByRole('button', { name: 'Test', exact: true }).click()
   await expect(page.locator('.flip-card')).toBeVisible()
 })
 
@@ -203,5 +229,5 @@ test('a clean check offers no practice at all', async ({ page }) => {
   await runDeck(page, 0)
 
   await expect(page.locator('.practice-offer')).toHaveCount(0)
-  await expect(page.getByRole('button', { name: 'Back to today' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Done' })).toBeVisible()
 })

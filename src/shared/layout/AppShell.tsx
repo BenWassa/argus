@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useLayoutEffect, useRef, type ReactNode } from 'react'
 import type { View } from '../../app/routing/routes'
 import { isDemoBuild } from '../../demo/demoMode'
 
@@ -28,9 +28,32 @@ const NAV: { id: NavView; label: string; path: string }[] = [
 ]
 
 export function AppShell({ view, onNavigate, children }: AppShellProps) {
+  const shell = useRef<HTMLDivElement>(null)
+  const nav = useRef<HTMLElement>(null)
+
+  useLayoutEffect(() => {
+    const node = nav.current
+    if (!node) return
+    // The inset navigation grows with text size. Its real top edge, including
+    // safe-area spacing, is the boundary for every docked mobile control.
+    const measure = () => {
+      const clearance = window.innerWidth >= 980
+        ? 0 : window.innerHeight - node.getBoundingClientRect().top
+      shell.current?.style.setProperty('--nav-clearance', `${clearance}px`)
+    }
+    measure()
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure)
+    observer?.observe(node)
+    window.addEventListener('resize', measure)
+    return () => {
+      observer?.disconnect()
+      window.removeEventListener('resize', measure)
+    }
+  }, [])
+
   return (
-    <div className="app-shell">
-      <nav className="nav" aria-label="Sections">
+    <div className="app-shell" ref={shell}>
+      <nav ref={nav} className="nav" aria-label="Sections">
         <p className="brand">
           <span className="brand-name">Argus</span>
           <span className="brand-note">Closed-scope skill library</span>

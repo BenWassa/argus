@@ -3,7 +3,7 @@
 **Status:** shipped (PR #154, merged 2026-09-30); the domain reviewer's second pass of the answer keys is still owed (see below).  
 **Issue:** #147  
 **Depends on:** #146  
-**Research authority:** `docs/open/ISSUE_138_MARITIME_VISUAL_LITERACY.md`  
+**Research authority:** `docs/closed/ISSUE_138_MARITIME_VISUAL_LITERACY.md`  
 **Code:** `src/domain/maritime/` (light model, statuses, geometry, banks, topic definitions); figure kinds in `src/domain/visual/figures.ts`
 
 ## Locked boundary (met)

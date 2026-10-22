@@ -1,8 +1,6 @@
 import { useEffect, useRef } from 'react'
-import { canonicalNotation, spokenRhythm } from '../../../domain/morse/mnemonics'
 import { MORSE_FIGURES, MORSE_LETTERS, MORSE_PUNCTUATION, type MorseLetter } from '../../../domain/morse/code'
-import { verbalMnemonic } from '../../../domain/morse/verbalMnemonics'
-import { MorsePlayButton } from '../MorsePlayButton'
+import { MorseCharacterSupport } from '../MorseCharacterSupport'
 import { useMorseAudio } from '../useMorseAudio'
 import './MorseReference.css'
 
@@ -31,23 +29,10 @@ function ReferenceCard({
   onToggle: () => void
 }) {
   const pattern = MORSE_LETTERS[glyph]
-  const mnemonic = verbalMnemonic(glyph)
 
   return (
     <li className={`morse-ref-card${playing ? ' is-sounding' : ''}`}>
-      <span className="morse-ref-letter" aria-hidden="true">{glyph}</span>
-
-      <div className="morse-ref-body">
-        <p className="morse-ref-pattern">
-          <span aria-hidden="true">{canonicalNotation(pattern)}</span>
-          <span className="sr-only">{glyph}: {spokenRhythm(pattern)}</span>
-        </p>
-        <p className="morse-ref-mnemonic" aria-label={`Mnemonic for ${glyph}: ${mnemonic.phrase}`}>
-          {mnemonic.phrase}
-        </p>
-      </div>
-
-      <MorsePlayButton glyph={glyph} playing={playing} onToggle={onToggle} />
+      <MorseCharacterSupport glyph={glyph} pattern={pattern} playing={playing} onToggle={onToggle} className="morse-ref-support" />
     </li>
   )
 }
@@ -89,15 +74,7 @@ function MorseFigureCards() {
       <ul className="morse-ref-list">
         {EXTRAS.map(([glyph, pattern]) => (
           <li key={glyph} className={`morse-ref-card is-extra${sounding?.glyph === glyph ? ' is-sounding' : ''}`}>
-            <span className="morse-ref-letter" aria-hidden="true">{glyph}</span>
-            <div className="morse-ref-body">
-              <p className="morse-ref-pattern">
-                <span aria-hidden="true">{canonicalNotation(pattern)}</span>
-                <span className="sr-only">{glyph}: {spokenRhythm(pattern)}</span>
-              </p>
-              <p className="morse-ref-mnemonic">{EXTRA_CAPTIONS[glyph]}</p>
-            </div>
-            <MorsePlayButton glyph={glyph} playing={sounding?.glyph === glyph} onToggle={() => toggle(glyph)} />
+            <MorseCharacterSupport glyph={glyph} pattern={pattern} mnemonic={EXTRA_CAPTIONS[glyph]} playing={sounding?.glyph === glyph} onToggle={() => toggle(glyph)} className="morse-ref-support" />
           </li>
         ))}
       </ul>
@@ -157,11 +134,6 @@ export function MorseReference({ onExit }: { onExit: () => void }) {
       </div>
 
       <h1 ref={headingRef} tabIndex={-1} className="morse-ref-title">Morse alphabet</h1>
-
-      <p className="morse-ref-lede">
-        Letter, pattern, mnemonic, sound. This is a reference: use it whenever you want, and it
-        changes nothing about your progress.
-      </p>
 
       <MorseReferenceCards />
 

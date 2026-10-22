@@ -7,7 +7,7 @@
    exemplar where `A` is the short beat. Every visible word is now rendered
    uppercase by `MorsePhrase`, so casing carries no information and can carry no
    contradiction; the `·`/`—` mark beneath each word carries the duration, and
-   `docs/open/MORSE_VERBAL_MNEMONICS.md` records the same rule. The authored casing
+   `docs/open/morse/MORSE_VERBAL_MNEMONICS.md` records the same rule. The authored casing
    survives in the accessible text equivalent.
 
    Aligning one mark under one word is also what stops deliberate repetition
@@ -55,7 +55,8 @@
   font-size: 0.72em;
   line-height: 1;
   letter-spacing: 0.02em;
-  color: var(--accent);
+  /* Muted, not Signal: yellow belongs to the action (#263). */
+  color: var(--muted);
 }
 
 .morse-phrase-beat.is-hidden .morse-phrase-word,
@@ -65,5 +66,5 @@
 
 .morse-grammar-mark {
   font-family: var(--font-mono);
-  color: var(--accent);
+  color: var(--muted);
 }

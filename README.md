@@ -58,16 +58,27 @@ Signing in with Google keeps the library in step across the owner's own devices.
 
 The production build asks who you are before showing anything, so sign-in is not optional there. A build with no Firebase configuration — what the browser test suite runs against — has nothing to gate and stays entirely local.
 
-The **full offline-first runtime guarantee is active scope in #113**, not yet a claim about the current localStorage/service-worker implementation. #113 moves canonical persistence to IndexedDB, makes sync intent durable across restart, hardens provisioned-device offline auth startup and makes the production Vite app shell deterministic for cold offline launch. See `PRODUCT.md`, `docs/open/ISSUE_93_FIREBASE_PROGRESS_SYNC.md` and `docs/open/ISSUE_113_OFFLINE_FIRST_RUNTIME.md`.
+The **full offline-first runtime guarantee is active scope in #113**, not yet a claim about the current localStorage/service-worker implementation. #113 moves canonical persistence to IndexedDB, makes sync intent durable across restart, hardens provisioned-device offline auth startup and makes the production Vite app shell deterministic for cold offline launch. See `PRODUCT.md`, `docs/closed/ISSUE_93_FIREBASE_PROGRESS_SYNC.md` and `docs/open/ISSUE_113_OFFLINE_FIRST_RUNTIME.md`.
 
 ## Durable product and programme documentation
+
+- [Release v1.5.3](docs/closed/RELEASE_1_5_3.md) — adaptive letter practice, shared Morse corrections and simpler navigation; production and demo deployment verified.
+- [Release v1.5.2](docs/closed/RELEASE_1_5_2.md) — Morse Play entry, Mariner/PNG delivery, staged review packs and verified Hosting deployment; human acceptance remains open.
 
 - [Release v1.5.0](docs/closed/RELEASE_1_5_0.md) — integrated Morse, Home and Communicator Roles release, deployment verification and remaining device acceptance.
 
 - [Roles evaluation closeout](docs/closed/ROLES_SCREEN_EVALUATION.md) — Communicator MVP and SVG review, merge verification and deployment hold.
 - [Expanded role architecture research (#197)](docs/open/ISSUE_197_EXPANDED_ROLE_ARCHITECTURE_RESEARCH.md) — full 24-topic MECE Library inventory, cross-role matrix and proposed cognitive/technical/advanced/capstone learning lines; research only.
 - [Scored-content audit (#197)](docs/open/ISSUE_197_SCORED_CONTENT_AUDIT.md) — per-item audit of all 24 shipped topics: 342 items, 29.5% objective, application only in Navigation.
+- [Analyst blind review](docs/open/ISSUE_197_ANALYST_HUMAN_REVIEW.md) and [separate facilitator key](docs/open/ISSUE_197_ANALYST_REVIEW_KEY.md) — 36 staged questions; human acceptance pending.
+- [Radio reviewer worksheet](docs/open/ISSUE_150_HUMAN_REVIEW.md) — 28 scored items and independent qualified review record.
+- [CAF permission request draft](docs/open/ISSUE_178_PERMISSION_REQUEST_DRAFT.md) — intended-use text and 57-image metadata inventory; not submitted.
+- [Morse next-slice recommendation](docs/open/morse/ISSUE_201_NEXT_SLICE_RECOMMENDATION.md) — validate the existing S1A draft; [scope/CI review](docs/open/morse/ISSUE_201_S1A_SCOPE_REVIEW.md) distinguishes approved architecture from pending visual/device checks.
+- [Scuba asset review](docs/open/ISSUE_132_SCUBA_ASSET_REVIEW.md) — four sourced photo candidates and two remaining image briefs; Learn-only scope.
+- [Pre-release PR review](docs/closed/PRE_RELEASE_PR_REVIEW.md) — merge readiness, prepared cleanup and the outstanding offline durability blocker.
+- [Human acceptance checklist](docs/open/HUMAN_ACCEPTANCE_CHECKLIST.md) — one review session for prepared scuba, Analyst, radio, badge, Pixel, offline and permission gates.
 - [Next-batch checkpoint](docs/open/NEXT_BATCHES.md) — completed merges, remaining offline integration and owner/external gates.
+- [UI overhaul plan (#225)](docs/open/ISSUE_225_UI_OVERHAUL.md) — implemented on `feat/ui-overhaul`, awaiting owner Pixel sign-off and release; scope, decisions, delivery map and critique results (Morse 31/40, target 32/40).
 - [Offline shell and update safety](docs/open/ISSUE_113_OFFLINE_SHELL.md) — generation-pinned navigation and failed-update verification; merged hardening.
 - [IndexedDB persistence foundation](docs/open/ISSUE_113_INDEXEDDB_FOUNDATION.md) — native database/outbox boundary and browser verification; production integration remains open.
 - [Signal flag authoritative comparison](docs/open/ISSUE_148_PUB102_COMPARISON.md) — NGA comparison findings and remaining IMO/domain acceptance gates.
@@ -87,34 +98,38 @@ The **full offline-first runtime guarantee is active scope in #113**, not yet a 
 - `docs/closed/RELEASE_1_3_3.md` — v1.3.3 review, release-gate and verified Firebase Hosting delivery record.
 - `docs/open/LEARN_CONTENT_MODEL.md` — structured Learn schema/editorial contract.
 - `docs/open/AUDIO_DRILLS_RUNTIME.md` — maintained contract for prerecorded speech drills: audio stimulus and response modes, deterministic grading, separate listening evidence, transcript-assisted rule and the production asset-QA gate.
-- `docs/open/ISSUE_146_VISUAL_CONTENT_PRIMITIVES.md` — maintained contract for the shared visual Learn block, visual-choice items and the finite figure registry.
+- `docs/closed/ISSUE_146_VISUAL_CONTENT_PRIMITIVES.md` — maintained contract for the shared visual Learn block, visual-choice items and the finite figure registry.
 - `docs/closed/ISSUE_104_EDITORIAL_IDENTITY.md` — historical editorial framing from the completed #104 expansion programme.
 - `docs/closed/ISSUE_104_LIBRARY_EXPANSION_RESEARCH.md` — historical first-pass library research; its Batch A shipped as five catalog topics.
 - `docs/closed/ISSUE_104_FIELD_HUMAN_SKILLS_EXPANSION.md` — historical practical human-systems research; detailed candidate papers remain under `docs/open/library-research/` as source material.
 - `docs/closed/ISSUE_104_SCENARIO_ITEMS.md` — historical proposal for generic authored scenario items.
-- `docs/open/ISSUE_138_MARITIME_VISUAL_LITERACY.md` — active P0 research brief for vessel orientation, navigation lights/day shapes and signal flags.
-- `docs/open/ISSUE_139_RADIO_COMMUNICATIONS_AUDIO.md` — active P0 research brief for source-scoped radio procedure and audio drills.
-- `docs/open/ISSUE_140_COMPASS_BEARINGS_TOPO.md` — active P0 compass/bearings research plus the P1 topographic-map spike.
+- `docs/closed/ISSUE_138_MARITIME_VISUAL_LITERACY.md` — active P0 research brief for vessel orientation, navigation lights/day shapes and signal flags.
+- `docs/closed/ISSUE_139_RADIO_COMMUNICATIONS_AUDIO.md` — active P0 research brief for source-scoped radio procedure and audio drills.
+- `docs/closed/ISSUE_140_COMPASS_BEARINGS_TOPO.md` — active P0 compass/bearings research plus the P1 topographic-map spike.
 - [Topic-page revamp](docs/open/TOPIC_PAGE_REVAMP.md) — one-test completion, ordered recall, folded reference support and artwork delivery.
 - [Cloud visual guide and asset ledger](docs/closed/ISSUE_131_WMO_CLOUD_VISUAL_GUIDE.md) — shipped textual vocabulary Test with unscored, credited photographs.
 - `docs/closed/ISSUE_141_CLOUD_WEATHER_RECOGNITION.md` — completed cloud/weather recognition research authority; scored photographic recognition remains deferred.
-- `docs/open/ISSUE_127_TODAY_REDESIGN_CONCEPTS.md` — Home exploration history (#127); the selected implementation is maintained in #193.
+- `docs/closed/ISSUE_127_TODAY_REDESIGN_CONCEPTS.md` — Home exploration history (#127); the selected implementation is maintained in #193.
 - `docs/closed/LIBRARY_AUDIT.md` — reconciled shipped-library boundary/content audit.
 - `docs/closed/SEEDED_CONTENT_PROVENANCE.md` — authoritative source record and Test boundary for every shipped catalog topic.
 - `docs/open/CONTENT_INBOX.md` — content-inbox and curated-ingestion architecture, and the Firebase setup it needs.
-- [Topic colour comparison](docs/open/TOPIC_COLOUR_SPIKE.md) — development-only current/raised previews and reproducible 390 px screen captures; owner choice pending.
+- [Topic colour comparison](docs/closed/TOPIC_COLOUR_SPIKE.md) — historical study superseded by Signal on Slate; development preview retired.
 - `docs/open/REDESIGN_INPUT_AUDIT.md` — current factual screen, state, issue-reconciliation, acceptance, and redesign-risk input package.
+- [Learning progress](docs/open/PROGRESS_ARCHITECTURE.md) — permanent completion, one unfinished-learning queue, optional later Tests, and compatibility with old records.
 - `docs/open/TARGETED_PRACTICE.md` — the formative practice run: its evidence boundary, how it selects what to practise, and why it is not called repair.
 - `docs/closed/PROGRAMME.md` — Learn/Test + content-quality programme closeout.
+- [Morse documentation hub](docs/open/morse/README.md) — reading order, maintained contracts and implementation maps.
 - `docs/closed/MORSE_CODE_LEARNING_PRD.md` — dated Morse research/design baseline retained for rationale; later ratified decisions supersede its deliberately open implementation questions.
-- `docs/open/MORSE_PROGRAMME_PLAN.md` — current Morse programme decisions, workstream ownership and implementation status.
-- `docs/open/MORSE_CHARACTER_ORDER.md` — shipped character order/packet rule and verified Koch/CW Academy provenance comparison.
-- `docs/open/ISSUE_105_MORSE_PLACEMENT_ASSESSMENT.md` — maintained contract for fresh-start Morse placement, bounded confirmation, and evidence-safe progress application.
-- `docs/open/MORSE_AUDIO_RUNTIME.md` — maintained Web Audio lifecycle and first-press regression contract for every Morse audio surface.
-- `docs/open/MORSE_FLUENCY.md` — maintained contract for the post-acquisition Fluency surface: the pinned character speed and Farnsworth ladder, the four modes, the automaticity measures, the haptic vocabulary and the formative-only evidence boundary.
-- `docs/open/MORSE_INTERMEDIATE_PATH.md` — maintained contract for Morse after the alphabet: the uncued Test floor, a full check or a short review whenever the learner chooses, Copy (letters to sentences, figures and punctuation), free play and the spacing ladder to 20 WPM.
-- `docs/open/ISSUE_188_MORSE_SENDING_GAMEPLAY.md` — maintained guided Send and Dispatch scope, with later modes and in-course enhancements explicitly deferred.
-- [Morse continuous gameplay and engagement (#201)](docs/open/ISSUE_201_MORSE_GAMEPLAY_CONTINUITY.md) — active UX/implementation proposal for post-A–Z handoff, visible permanent Play entry, optional known-letter play, independent skill tracks, adaptive next challenges and repeatable progression; **not yet shipped**.
+- `docs/open/morse/MORSE_PROGRAMME_PLAN.md` — current Morse programme decisions, workstream ownership and implementation status.
+- `docs/open/morse/MORSE_CHARACTER_ORDER.md` — shipped character order/packet rule and verified Koch/CW Academy provenance comparison.
+- `docs/closed/ISSUE_105_MORSE_PLACEMENT_ASSESSMENT.md` — maintained contract for fresh-start Morse placement, bounded confirmation, and evidence-safe progress application.
+- `docs/open/morse/MORSE_AUDIO_RUNTIME.md` — maintained Web Audio lifecycle and first-press regression contract for every Morse audio surface.
+- `docs/open/morse/MORSE_FLUENCY.md` — maintained formative runner, timing, haptic and evidence contract; historical hub replaced by Key, Listen, Read and Free play on `feat/ui-overhaul`.
+- `docs/open/morse/MORSE_INTERMEDIATE_PATH.md` — maintained contract for Morse after the alphabet: the uncued Test floor, a full check or a short review whenever the learner chooses, Copy (letters to sentences, figures and punctuation), free play and the spacing ladder to 20 WPM.
+- `docs/open/morse/ISSUE_188_MORSE_SENDING_GAMEPLAY.md` — maintained guided Send and Dispatch scope, with later modes and in-course enhancements explicitly deferred.
+- [Morse UX consolidation and adaptive letter practice (#221)](docs/open/morse/ISSUE_221_MORSE_UX_CONSOLIDATION.md) — maintained practice/teaching contract and historical release evidence; navigation superseded on `feat/ui-overhaul`, with Pixel acceptance open.
+- [Morse continuous gameplay and engagement (#201)](docs/open/morse/ISSUE_201_MORSE_GAMEPLAY_CONTINUITY.md) — active UX/implementation proposal for post-A–Z handoff, visible permanent Play entry, optional known-letter play, independent skill tracks, adaptive next challenges and repeatable progression; **not yet shipped**.
+- [Persistent Morse Play visual reference (#212)](docs/open/morse/ISSUE_201_PERSISTENT_PLAY_UX_REVIEW.md) — embedded Topic-page architecture approved; six static mockups retain pending detailed visual and runtime/device acceptance.
 - `docs/closed/ISSUE_119_MORSE_POST_ACQUISITION_FLUENCY_RESEARCH.md` — the sources, architecture audit and rejected options behind `MORSE_FLUENCY.md`.
 - `docs/open/ISSUE_113_OFFLINE_FIRST_RUNTIME.md` — active contract for IndexedDB local authority, durable sync/outbox, deterministic offline PWA launch, storage lifecycle and content-size/download policy.
 - `docs/closed/MORSE_PROVENANCE_RECONCILIATION.md` — provenance/doc-reconciliation closeout for the pre-#28 documentation lane.

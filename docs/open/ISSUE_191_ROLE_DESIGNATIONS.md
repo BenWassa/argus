@@ -1,5 +1,7 @@
 # Issue #191 — Role-based learning designations
 
+> **Progress authority update, 2026-10-19:** [Learning progress](PROGRESS_ARCHITECTURE.md) supersedes earlier decay/repair routing and repeated completion requirements in this document. Learned topics stay learned. Home continues the top unfinished topic.
+
 **Status:** Communicator MVP merged via #196; included in v1.5.0; real-device acceptance remains outstanding — 2026-10-07.
 **Authority:** maintained Communicator MVP contract and broader role-design proposals for #191. The owner-approved MVP is merged; unimplemented roles and alternatives remain proposals.
 **Companion asset lane:** #192 — custom role badge art system.
@@ -273,6 +275,8 @@ Only after owner approval:
 - update `PRODUCT.md` / `DESIGN.md`.
 
 ## 14. Decisions still required
+
+> **Superseded 2026-10-15.** The owner ratified D1–D9 on 2026-10-13; see the [#197 decision record](ISSUE_197_ROLE_DECISION_RECORD.md), which now answers these questions: the screen is Roles, the first earnable roles are Communicator and Navigator (Mariner followed on 2026-10-15), Medic and the global rank system are not pursued, versioning follows the permanent-receipt policy (D6), and tiers are rejected (D2). Kept below as the historical question list; do not treat any box as open.
 
 - [ ] Final screen name: Roles vs another label.
 - [ ] First earnable roles.

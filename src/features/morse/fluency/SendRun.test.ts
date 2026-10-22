@@ -7,7 +7,10 @@ function read(path: string): string {
 }
 
 describe('guided Morse sending surface', () => {
-  const source = read('src/features/morse/fluency/SendRun.tsx')
+  const source = [
+    'src/features/morse/fluency/SendRun.tsx',
+    'src/features/morse/fluency/useSendRun.ts',
+  ].map(read).join('\n')
   const css = read('src/features/morse/fluency/SendRun.css')
   const domain = read('src/domain/morse/fluency/send.ts')
 
@@ -38,14 +41,18 @@ describe('guided Morse sending surface', () => {
   })
 
   it('uses the Argus session grammar instead of an arcade skin', () => {
-    expect(source).toContain('className="session send-run"')
-    expect(source).toContain('className="session-bar"')
+    expect(source).toContain('className="send-run"')
+    expect(source).toContain('<SessionFrame {...frame}')
     expect(source).toContain('<MorseKeyInput')
     expect(css).toContain('var(--field)')
     expect(css).toContain('var(--surface)')
-    expect(css).toContain('var(--accent)')
+    // The current letter is marked in the mode's own colour; signal yellow is
+    // kept for the action (#259).
+    expect(css).toContain('var(--session-colour, var(--ink))')
+    expect(css).not.toContain('var(--accent)')
     expect(css).toContain('var(--font-mono)')
-    expect(css).toContain('min-height: 100svh')
+    // The viewport-tall column is the shared frame's, not this surface's.
+    expect(read('src/shared/ui/SessionFrame.css')).toContain('min-height: 100svh')
     expect(css).toContain('@media (prefers-reduced-motion: reduce)')
     expect(css).not.toMatch(/#[0-9a-f]{3,8}/i)
   })

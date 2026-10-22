@@ -1,5 +1,7 @@
 # Argus learning-experience overhaul — ratification package (#92)
 
+> **Progress authority update, 2026-10-19:** [Learning progress](PROGRESS_ARCHITECTURE.md) supersedes earlier decay/repair routing and repeated completion requirements in this document. Learned topics stay learned. Home continues the top unfinished topic.
+
 **Status:** ratified and substantially implemented (#92, closed 2026-09-15); retained as the programme-level decision package. The dated addenda below govern where the original text is stale.
 
 > **#109 navigation addendum — 2026-09-17.** Profile now owns account, sync,

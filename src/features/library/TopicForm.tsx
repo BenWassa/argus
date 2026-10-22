@@ -2,6 +2,7 @@ import { sequenceFor } from '../../domain/library/catalog'
 import { parseSequence } from '../../infrastructure/persistence/sequenceParser'
 import { useEffect, useId, useMemo, useState } from 'react'
 import { Dialog } from '../../shared/ui/Dialog'
+import './Sheets.css'
 import { TRACK_LABELS } from '../../shared/ui/trackLabels'
 import {
   pruneItemEvidence,
@@ -198,12 +199,11 @@ export function TopicForm({
   if (confirmingDiscard) {
     return (
       <Dialog title="Discard changes" onClose={() => setConfirmingDiscard(false)}>
-        <p>
-          This topic has unsaved edits. Closing now loses them, and there is no draft to come back
-          to.
+        <p className="sheet-note">
+          This topic has unsaved edits. Closing now loses them.
         </p>
         <div className="actions">
-          <button className="ghost" type="button" onClick={() => setConfirmingDiscard(false)}>
+          <button className="quiet" type="button" onClick={() => setConfirmingDiscard(false)}>
             Keep editing
           </button>
           <button className="danger" type="button" onClick={onClose}>
@@ -235,11 +235,11 @@ export function TopicForm({
 
         <div className="field-row">
           <label htmlFor={ids.scope}>Scope</label>
-          <p className="help">Where does this topic end? Argus only holds topics that can be finished.</p>
           <textarea
             id={ids.scope}
             className="field"
             rows={2}
+            placeholder="Where it ends, e.g. the four cardinal points and their degrees"
             value={scope}
             onChange={(e) => setScope(e.target.value)}
             {...invalid('scope')}
@@ -269,13 +269,12 @@ export function TopicForm({
 
         <div className="field-row">
           <label htmlFor={ids.items}>Items</label>
-          <p className="help" id={`${ids.items}-help`}>
-            One per line, written as <code>prompt | answer</code>.
-          </p>
+          <p className="help" id={`${ids.items}-help`}>One per line: prompt | answer</p>
           <textarea
             id={ids.items}
             className="field mono"
             rows={8}
+            placeholder="North | 0°"
             value={raw}
             onChange={(e) => setRaw(e.target.value)}
             {...invalid('items', `${ids.items}-help`)}
@@ -292,7 +291,7 @@ export function TopicForm({
         </div>
 
         <div className="actions">
-          <button className="ghost" type="button" onClick={requestClose}>
+          <button className="quiet" type="button" onClick={requestClose}>
             Cancel
           </button>
           <button type="submit">{topic ? 'Save changes' : 'Create topic'}</button>

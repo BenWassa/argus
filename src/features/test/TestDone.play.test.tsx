@@ -1,7 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
-import { createRef } from 'react'
 import { seedLibrary } from '../../domain/library/catalogSeed'
 import type { Topic } from '../../domain/library/topic'
 import type { Resolution } from '../../domain/study/scheduling'
@@ -22,11 +21,11 @@ function seeded(id: string): Topic {
 }
 
 const MORSE = seeded('international-morse-letters-printed')
-const NATO = seeded('nato-phonetic')
+const NATO: Topic = { ...seeded('nato-phonetic'), status: 'learning', drilledAt: null, completedAt: null }
 
 function attempt(topic: Topic, over: Partial<Resolution> = {}, extra: Partial<BankedAttempt> = {}): BankedAttempt {
   return {
-    resolution: { topic, from: 'drilled', to: 'completed', completed: true, decayed: false, ...over },
+    resolution: { topic, from: 'drilled', to: 'completed', completed: true, ...over },
     withheldByAcquisition: false,
     nonQualifying: false,
     ...extra,
@@ -40,7 +39,7 @@ function renderDone(banked: BankedAttempt[], onPlayMorse = vi.fn(), missed: Reco
       missed={missed}
       onExit={vi.fn()}
       onPlayMorse={onPlayMorse}
-      headingRef={createRef<HTMLHeadingElement>()}
+      score={{ correct: 3, total: 4 }}
     />,
   )
   return onPlayMorse
@@ -53,7 +52,8 @@ describe('the Test end screen hands Morse learners to play', () => {
     const onPlay = renderDone([attempt(MORSE)])
     const send = screen.getByRole('button', { name: 'Send five words' })
     expect(send.className).not.toContain('ghost')
-    expect(screen.getByRole('button', { name: 'Back to today' }).className).toContain('ghost')
+    expect(screen.getByRole('button', { name: 'Done' }).className).toContain('ghost')
+    expect(screen.getByRole('heading', { name: '3 of 4 correct' })).toBeTruthy()
     fireEvent.click(send)
     expect(onPlay).toHaveBeenCalledWith(MORSE.id)
   })
@@ -65,8 +65,8 @@ describe('the Test end screen hands Morse learners to play', () => {
     expect(play.className).toContain('ghost')
   })
 
-  it('keeps play discoverable in repair, without a celebration', () => {
-    renderDone([attempt(MORSE, { completed: false, decayed: true, from: 'completed', to: 'decayed' })])
+  it('keeps optional play discoverable after a later Test, without a new completion celebration', () => {
+    renderDone([attempt(MORSE, { completed: false, from: 'completed', to: 'decayed' })])
     expect(screen.getByRole('button', { name: 'Play with words' }).className).toContain('ghost')
     expect(screen.queryByText(/Next: send your first words/)).toBeNull()
   })
@@ -84,6 +84,18 @@ describe('the Test end screen hands Morse learners to play', () => {
   it('offers nothing for a topic that is not the Morse course', () => {
     renderDone([attempt(NATO)])
     expect(screen.queryByRole('button', { name: /Send five words|Play with words/ })).toBeNull()
-    expect(screen.getByRole('button', { name: 'Back to today' }).className).not.toContain('ghost')
+    expect(screen.getByRole('button', { name: 'Done' }).className).not.toContain('ghost')
+  })
+})
+
+describe('the Test end screen counts in one unit', () => {
+  it('names Morse practice in letters and an ordinary topic in items', () => {
+    const morseMissed = MORSE.items.slice(0, 2).map((item) => item.id!)
+    const { unmount } = render(<TestDone banked={[attempt(MORSE)]} missed={{ [MORSE.id]: morseMissed }} onExit={vi.fn()} onPractice={vi.fn()} score={{ correct: 24, total: 26 }} />)
+    expect(screen.getByRole('button', { name: 'Practise 2 letters' })).toBeTruthy()
+    unmount()
+    render(<TestDone banked={[attempt(NATO)]} missed={{ [NATO.id]: [NATO.items[0].id!] }} onExit={vi.fn()} onPractice={vi.fn()} score={{ correct: 25, total: 26 }} />)
+    expect(screen.getByRole('button', { name: 'Practise 1 item' })).toBeTruthy()
+    expect(document.querySelector('.test-missed-chip')?.textContent).toContain(NATO.items[0].prompt)
   })
 })

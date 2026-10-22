@@ -3,9 +3,14 @@ import { fileURLToPath } from 'node:url'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { MORSE_LETTERS, type MorseLetter } from '../../../domain/morse/code'
-import { canonicalNotation, spokenRhythm } from '../../../domain/morse/mnemonics'
+import { spokenRhythm } from '../../../domain/morse/mnemonics'
 import { verbalMnemonic } from '../../../domain/morse/verbalMnemonics'
 import { MorseReference, MorseReferenceCards } from './MorseReference'
+
+/** The drawn marks for a pattern, as MorseMarks renders them (#263). */
+function drawn(pattern: string): string {
+  return Array.from(pattern).map((mark) => mark === '.' ? '<span class="morse-mark is-dit">·</span>' : '<span class="morse-mark is-dah">—</span>').join('')
+}
 
 const letters = Object.keys(MORSE_LETTERS) as MorseLetter[]
 const html = renderToStaticMarkup(<MorseReference onExit={() => undefined} />)
@@ -17,7 +22,7 @@ function source(file: string): string {
 
 describe('the Morse alphabet is complete and alphabetical', () => {
   it('lists all 26 letters, A to Z, in alphabetical order', () => {
-    const shown = [...html.matchAll(/<span class="morse-ref-letter" aria-hidden="true">([A-Z])<\/span>/g)]
+    const shown = [...html.matchAll(/<span class="morse-character-support-glyph morse-ref-letter" aria-hidden="true">([A-Z])<\/span>/g)]
       .map((match) => match[1])
     expect(shown).toHaveLength(26)
     expect(shown).toEqual([...letters].sort())
@@ -31,7 +36,7 @@ describe('the Morse alphabet is complete and alphabetical', () => {
     for (const letter of letters) {
       const pattern = MORSE_LETTERS[letter]
       expect(html).toContain(`aria-label="Play ${letter} Morse"`)
-      expect(html).toContain(canonicalNotation(pattern))
+      expect(html).toContain(drawn(pattern))
       expect(html).toContain(spokenRhythm(pattern))
       expect(html).toContain(verbalMnemonic(letter).phrase)
     }
@@ -49,7 +54,10 @@ describe('the Morse alphabet is complete and alphabetical', () => {
   it('keeps the reference focused on letter, pattern, phrase and sound rather than duplicating the Learn SVG', () => {
     expect(html).not.toContain('morse-mnemonic')
     expect(html).not.toContain('morse-mnemonic-svg')
-    expect(html).toContain('Letter, pattern, mnemonic, sound')
+    // No explanatory paragraph above the letters (#257): the cards lead.
+    expect(html).not.toContain('Dits last one unit, dahs three')
+    expect(html).not.toContain('Lessons introduce letters in pairs')
+    expect(html).not.toContain('<details')
   })
 
   it('agrees with the canonical ITU table on every written pattern', () => {
@@ -57,7 +65,7 @@ describe('the Morse alphabet is complete and alphabetical', () => {
     const cards = html.split('<li class="morse-ref-card')
     for (const letter of alphabetical) {
       const card = cards[alphabetical.indexOf(letter) + 1]
-      expect(card).toContain(canonicalNotation(MORSE_LETTERS[letter]))
+      expect(card).toContain(drawn(MORSE_LETTERS[letter]))
       expect(card).toContain(verbalMnemonic(letter).phrase)
       expect(verbalMnemonic(letter).beats).toHaveLength(MORSE_LETTERS[letter].length)
     }
@@ -68,7 +76,6 @@ describe('the Morse alphabet is complete and alphabetical', () => {
     expect(html).not.toContain('aria-expanded')
     expect(html).not.toContain('lesson-option')
     expect(html).not.toContain('flip-card')
-    expect(html).toContain('changes nothing about your progress')
     expect(html).toContain('proved in Test')
   })
 })

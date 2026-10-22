@@ -1,0 +1,122 @@
+/* ---- the run ---------------------------------------------------------- */
+
+.fluency-target {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-md);
+  width: min(100%, 32rem);
+  margin-inline: auto;
+}
+
+.fluency-target > .lesson-task {
+  margin: auto 0 0;
+}
+
+/* The key, the typed answer, or the correction that replaces them. */
+.fluency-target > .fluency-answer-area,
+.fluency-target > .copy-answer,
+.fluency-target > .fluency-feedback:not(.copy-feedback),
+.fluency-target > .session-miss {
+  margin-block-start: auto;
+}
+
+.fluency-listen {
+  display: grid;
+  justify-items: center;
+  gap: var(--s-sm);
+}
+
+/* A miss's answer: the word, centred over the broken character's pattern. */
+.fluency-miss > .fluency-answer { justify-self: center; }
+
+/* How many characters are in this prompt, and which one the key is on.
+   Deliberately dots rather than letters: printing the target would turn a
+   sound-first drill into a reading exercise. */
+.fluency-shape {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  line-height: 0;
+}
+
+/* One drawn dot per character, the current one in the mode colour. */
+.fluency-shape > span {
+  display: block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--line-strong);
+  font-size: 0;
+}
+
+.fluency-shape > .is-current {
+  background: var(--session-colour, var(--ink));
+}
+
+.fluency-audio-error {
+  margin: 0;
+  color: var(--warning);
+  font-size: var(--t-small);
+  text-align: center;
+}
+
+.fluency-answer-area {
+  width: 100%;
+}
+
+/* ---- feedback: scale 1 and scale 2 ------------------------------------ */
+
+.fluency-feedback {
+  display: grid;
+  justify-items: center;
+  gap: var(--s-sm);
+  width: 100%;
+  /* Outline only, like the stat block: the verdict is read against the page,
+     not lifted off it, so the run keeps a single plate on screen. */
+  background: transparent;
+  text-align: center;
+}
+
+.fluency-feedback.is-correct {
+  border-color: var(--ok);
+}
+
+.fluency-feedback.is-wrong {
+  border-color: var(--danger);
+}
+
+.fluency-feedback strong {
+  font-size: var(--t-label);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.fluency-feedback.is-correct strong {
+  color: var(--ok);
+}
+
+.fluency-feedback.is-wrong strong {
+  color: var(--danger-2);
+}
+
+/* The word is the headline of a word result. The character that broke is
+   marked inside it rather than replacing it, so the learner reads the thing
+   they were asked for first and the diagnosis second. */
+.fluency-answer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.06em;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 11vw, 3.4rem);
+  line-height: 1;
+  letter-spacing: 0.04em;
+}
+
+.fluency-answer .is-wrong-char {
+  color: var(--danger-2);
+}
+

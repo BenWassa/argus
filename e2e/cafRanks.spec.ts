@@ -9,9 +9,8 @@ test.beforeEach(async ({ page }) => {
 
 test('CAF rank equivalencies render the full two-direction boundary without horizontal overflow', async ({ page }) => {
   await expect(page.locator('.topic-title')).toHaveText('CAF Rank Equivalencies')
-  await expect(page.locator('.topic-state-meta')).toContainText('38 items')
-  await expect(page.locator('.topic-recall-cards li')).toHaveCount(38)
-  await expect(page.locator('.topic-scope')).toContainText('statutory hierarchy has 17 ranks')
+  await expect(page.locator('.screen-header-readout')).toHaveCount(0)
+  await expect(page.locator('.topic-items .topic-item')).toHaveCount(38)
 
   await expect(page.getByText('Army / RCAF — General', { exact: true }).first()).toBeVisible()
   await expect(page.getByText('RCN — Admiral', { exact: true }).first()).toBeVisible()
@@ -23,6 +22,10 @@ test('CAF rank equivalencies render the full two-direction boundary without hori
 })
 
 test('CAF rank Learn material keeps appointment and nomenclature caveats visible', async ({ page }) => {
+  await page.getByRole('navigation', { name: 'Study' }).getByRole('button', { name: 'Learn', exact: true }).click()
+  // The lede opens Learn; the scope (with the 17-rank caveat) leads the sources sheet.
+  await expect(page.locator('.topic-scope')).toHaveCount(0)
+  await expect(page.locator('.learn-overview')).toBeVisible()
   await page.getByText('The practical hierarchy', { exact: true }).click()
   await expect(page.getByText(/MCpl\/MS is an appointment/)).toBeVisible()
   await expect(page.getByText(/older Seaman designations/)).toBeVisible()
@@ -30,6 +33,7 @@ test('CAF rank Learn material keeps appointment and nomenclature caveats visible
   const opener = page.getByRole('button', { name: 'Sources and limitations', exact: true })
   await opener.click()
   const dialog = page.getByRole('dialog', { name: 'Sources and limitations' })
+  await expect(dialog.locator('section').first()).toContainText('statutory hierarchy has 17 ranks')
   await expect(dialog).toContainText('QR&O Volume I, Chapter 3')
   await expect(dialog).toContainText('CAFMPI 01/26')
   await expect(dialog).toContainText('insignia recognition')

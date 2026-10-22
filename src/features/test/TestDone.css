@@ -1,0 +1,61 @@
+/* The Test result is a RoundResult in the shared session frame: one reading in
+   ink, centred, the ladder outcome as short lines under it, and the next step
+   docked at the foot with every other session's response (#259). */
+
+.test-done .test-outcome {
+  max-width: 34ch;
+  margin: 0 auto;
+  color: var(--muted);
+}
+
+/* The reading takes focus when the result opens, for screen readers; it is
+   not a control, so it carries no ring. */
+.test-done .session-round-reading:focus {
+  outline: none;
+}
+
+/* The items this run missed: solid neutral chips, prompt then answer. */
+.test-done .test-missed {
+  display: grid;
+  justify-items: center;
+  gap: var(--s-sm);
+  max-width: 100%;
+}
+
+.test-done .test-missed-head {
+  margin: 0;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  font-weight: var(--w-label);
+  letter-spacing: var(--track-readout);
+  text-transform: uppercase;
+}
+
+.test-done .test-missed-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--s-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.test-done .test-missed-chip,
+.test-done .test-missed-more {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--s-xs);
+  max-width: 100%;
+  padding: var(--s-xs) var(--s-md);
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+  font-size: var(--t-small);
+  overflow-wrap: anywhere;
+}
+
+.test-done .test-missed-prompt { font-weight: 600; }
+.test-done .test-missed-answer { color: var(--muted); }
+.test-done .test-missed-more { background: transparent; color: var(--muted); }

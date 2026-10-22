@@ -18,7 +18,7 @@ test('sources modal centres, scrolls at 200% text, traps focus and returns it on
   const close = page.getByRole('button', { name: 'Close sources and limitations' })
   await expect(close).toBeFocused()
   await expect(dialog.locator('.learn-sources li')).toHaveCount(9)
-  await expect(dialog.locator('section').first().getByRole('heading')).toHaveText('Limitations')
+  await expect(dialog.locator('section').first().getByRole('heading')).toHaveText('Scope and limits')
   const box = await dialog.boundingBox()
   const viewport = page.viewportSize()!
   expect(Math.abs(box!.x + box!.width / 2 - viewport.width / 2)).toBeLessThanOrEqual(1)
@@ -50,18 +50,21 @@ for (const [title, boundary] of [
   ['Primary Survey', 'not first-aid or clinical training'],
   ['Firearm Safety', 'not handling a firearm'],
 ]) {
-  test(`${title} keeps its safety scope visible with support closed`, async ({ page }) => {
+  test(`${title} keeps its safety scope in the sources sheet and visible on Learn`, async ({ page }) => {
     await page.getByRole('button', { name: new RegExp(title) }).click()
+    await page.getByRole('button', { name: 'Sources and limitations', exact: true }).click()
+    await expect(page.getByRole('dialog', { name: 'Sources and limitations' }).locator('section').first()).toContainText(boundary)
+    await page.keyboard.press('Escape')
+    await page.getByRole('navigation', { name: 'Study' }).getByRole('button', { name: 'Learn', exact: true }).click()
     await expect(page.locator('.topic-scope')).toContainText(boundary)
     await expect(page.locator('.topic-scope')).toBeVisible()
-    await expect(page.locator('.topic details[open]')).toHaveCount(0)
+    await expect(page.locator('.topic-reading details, .topic-reading summary')).toHaveCount(0)
   })
 }
 
 
-test('a sources-only topic closes on browser Back without leaving the topic', async ({ page }) => {
-  // NATO now has limits. A user-authored fixture keeps sources-only coverage
-  // independent of future editorial changes to shipped Learn material.
+test('a topic with scope and sources closes on browser Back without leaving the topic', async ({ page }) => {
+  // A user-authored fixture keeps coverage independent of catalogue changes.
   const library = await readLocalLibrary(page)
   await writeLocalLibrary(page, { ...library, topics: [...library.topics, {
       ...library.topics[0],
@@ -70,9 +73,9 @@ test('a sources-only topic closes on browser Back without leaving the topic', as
     }] })
   await page.reload()
   await page.getByRole('button', { name: /Sources-only fixture/ }).click()
-  const opener = page.getByRole('button', { name: 'Sources', exact: true })
+  const opener = page.getByRole('button', { name: 'Sources and limitations', exact: true })
   await opener.click()
-  await expect(page.getByRole('dialog', { name: 'Sources', exact: true })).toBeVisible()
+  await expect(page.getByRole('dialog', { name: 'Sources and limitations', exact: true })).toBeVisible()
   await page.goBack()
   await expect(page.getByRole('dialog')).toHaveCount(0)
   await expect(page.locator('.topic-title')).toHaveText('Sources-only fixture')

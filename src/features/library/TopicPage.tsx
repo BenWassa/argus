@@ -1,28 +1,25 @@
-import { useLayoutEffect, useRef, useState } from 'react'
-import { KEEP_GOING, journeyFor } from '../../domain/study/journey'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { journeyFor } from '../../domain/study/journey'
 import { resolveStudy } from '../../domain/study/scheduling'
 import { useLibrary } from '../../services/library/LibraryProvider'
-import { morseLessonPath } from '../../domain/morse/curriculum/lessonPath'
-import { morseWordCheckpointPath } from '../../domain/morse/curriculum/checkpoints'
+import { morseProgressPath } from '../../domain/morse/curriculum/progressPath'
 import { statusLabel } from '../../shared/ui/StatusTag'
+import { ScreenHeader } from '../../shared/ui/ScreenHeader'
+import { ProgressSpine, type SpineRow, type SpineState } from '../../shared/ui/ProgressSpine'
+import { ModeTray } from '../../shared/ui/ModeTray'
 import { topicIcon } from './topicIcon'
-import { sequenceFor } from '../../domain/library/catalog'
-import { LearnSupport } from '../learn/LearnSupport'
+import { TopicGlyph } from './TopicGlyph'
+import { topicBar, topicItemGroups, type ItemStanding, type TopicItemEntry } from './topicItems'
 import { SourcesAndLimits } from '../learn/SourcesAndLimits'
+import { hasReading } from '../learn/TopicReading'
 import { VisualView } from '../visual/VisualView'
 import { listeningCoverage } from '../../domain/audio/evidence'
 import { AudioReference } from '../audio/AudioReference'
-import { MorseBeatGrammarNote } from '../morse/MorsePhrase'
-import { MorsePath } from '../morse/lesson/MorsePath'
+import { MorseProgressPath, MorseModeTray, morseRunAction } from '../morse/play'
 import { MorsePlacementDialog } from '../morse/MorsePlacementDialog'
 import { applyMorsePlacement, canOfferMorsePlacement } from '../../domain/morse/placement'
-// The reference and the structured support keep the editorial treatment they
-// were designed with; only where they are rendered changed.
-import '../learn/Reading.css'
 import type { RunTarget } from '../../app/routing/routes'
-import { hasPractice, practiceItemCount } from '../../domain/study/practiceTargets'
-import { REVIEW_LENGTH, isReviewTopic } from '../../domain/study/review'
-import { morseFocusLetters } from '../../domain/morse/fluency/focus'
+import { hasPractice, lastTestMissedIds, missedTargets, practiceItemCount } from '../../domain/study/practiceTargets'
 import type { Mode } from '../../domain/study/mode'
 import type { Topic } from '../../domain/library/topic'
 import './TopicPage.css'
@@ -44,7 +41,7 @@ function stamp(iso: string): string {
   })
 }
 
-/** Content first, explanatory support folded, one persistent action. */
+/** Morse opens on its path; ordinary topics open on their items, with the same screen kit. */
 export function TopicPage({
   topic,
   onBack,
@@ -56,386 +53,244 @@ export function TopicPage({
   const { updateTopic } = useLibrary()
   const heading = useRef<HTMLHeadingElement>(null)
   const [placementOpen, setPlacementOpen] = useState(false)
+  // Morse opens scrolled to its position; once the page is scrolled at all,
+  // its header pins in compact form so the title and n / 26 stay in view.
+  const top = useRef<HTMLSpanElement>(null)
+  const [compact, setCompact] = useState(false)
   const runnable = topic.items.length > 0
-
-  const path = runnable ? morseLessonPath(topic) : null
-  const checkpoints = path ? morseWordCheckpointPath(topic) : null
-  const course = Boolean(path && checkpoints)
-
-  /**
-   * The topic body is reference material. Rendering or revisiting it is read-only
-   * browsing and must not create learner state. The journey therefore reads the
-   * stored topic exactly as it stands.
-   */
-  const sequence = sequenceFor(topic)
+  const path = runnable ? morseProgressPath(topic) : null
+  const course = Boolean(path)
+  // Browsing reads the durable record without starting acquisition or Test.
   const journey = journeyFor(topic)
+  const banked = journey.phase === 'banked'
+  const bar = course ? null : topicBar(topic)
   const listening = listeningCoverage(topic.items, topic.audioEvidence)
-
-  // Restore the page heading before the browser paints the traversed entry.
-  // A passive effect can lose a race with Playwright/browser focus handling
-  // after history.forward(), leaving the restored topic visible but unfocused.
-  useLayoutEffect(() => {
-    heading.current?.focus()
-  }, [topic.id])
-
-  const { acquisition } = journey
-  const testing = journey.action === 'test'
-  const placementEligible = course && canOfferMorsePlacement(topic)
-
-  // Once the course is banked, the useful thing to do is keep learning — words,
-  // then sentences. The full check and a short review sit beside it, and the
-  // learner chooses: nothing waits on a clock. While the ladder is still moving,
-  // or the topic needs repair, the check leads: only it can earn anything.
-  const afterAlphabet = course && acquisition.ready
-  const keepGoing = afterAlphabet && journey.primaryLabel === KEEP_GOING
-  const reviewable = isReviewTopic(topic)
-
-  function openFluency() {
-    onStart('learn', [topic.id], { kind: 'fluency' })
-  }
-
-  // How many items a check has left outstanding, counted in items rather than
-  // in directions: a bidirectional item missed both ways is one thing to go and
-  // fix. Zero for any topic that keeps no per-item evidence, which is why an
-  // ordinary topic's offer lives on its check's end screen instead.
   const practiceCount = hasPractice(topic) ? practiceItemCount(topic) : 0
+  // Misses can guide unfinished learning; learned topics stay complete.
+  const toPractise = course ? 0 : lastTestMissedIds(topic).length
+  const lastTest = topic.history[topic.history.length - 1]
+  const stateLabel = toPractise > 0
+    ? `${lastTest && lastTest.total === topic.items.length ? `${lastTest.correct} / ${lastTest.total} · ` : ''}${toPractise} to practise`
+    : journey.statusLabel
+  const offersPlacement = path?.nodes.some(node => node.kind === 'start' && node.offersPlacement) && canOfferMorsePlacement(topic)
 
-  function startCheck() {
-    onStart('test', [topic.id])
-  }
+  useLayoutEffect(() => {
+    // Keep the path's initial current-row scroll when focusing its page title.
+    heading.current?.focus({ preventScroll: course })
+  }, [topic.id, course])
 
-  function startReview() {
-    onStart('test', [topic.id], { kind: 'review' })
-  }
+  useEffect(() => {
+    const sentinel = top.current
+    if (!course || !sentinel || typeof IntersectionObserver === 'undefined') return
+    const observer = new IntersectionObserver(([entry]) => setCompact(!entry.isIntersecting && entry.boundingClientRect.top < 0))
+    observer.observe(sentinel)
+    return () => observer.disconnect()
+  }, [course])
 
-  function startCurrentMorseLesson() {
-    if (placementEligible) {
-      setPlacementOpen(true)
-      return
+  function startMorse(action: Parameters<typeof morseRunAction>[0]) {
+    // Start is the existing New-to-Morse choice; Skip ahead owns placement.
+    if (action.kind === 'start-lesson' && canOfferMorsePlacement(topic)) {
+      updateTopic(topic.id, current => resolveStudy(current))
     }
-    // After the thirteen lessons, "the lesson" is going over what the course
-    // still owes; lesson 13 again could not confirm it.
-    if (acquisition.afterCourse && acquisition.owed.length > 0 && !acquisition.ready) {
-      startGoingOver()
-      return
-    }
-    onStart('learn', [topic.id], { kind: 'lesson' })
+    const run = morseRunAction(action)
+    if (run.target) onStart(run.mode, [topic.id], run.target)
+    else onStart(run.mode, [topic.id])
   }
 
-  function startGoingOver() {
-    onStart('learn', [topic.id], { kind: 'after-course' })
-  }
+  // Edit is a quiet header action. Delete is rarely wanted and never one tap
+  // from Back, so it waits at the foot of the page beside Sources and
+  // limitations; the pinned Morse header carries neither it nor Edit's weight.
+  // Names stay full for assistive technology.
+  const editAction = <button className="quiet topic-edit" type="button" aria-label="Edit topic" onClick={onEdit}>Edit</button>
 
   return (
-    <article className={`topic topic-track-${topic.track}`}>
-      <button className="quiet topic-back" type="button" aria-label="Back to Library" onClick={onBack}>
-        <span aria-hidden="true">←</span> Library
-      </button>
-
-      <TopicHero topic={topic} />
-      <header className="topic-head">
-        <h1 ref={heading} tabIndex={-1} className="topic-title">
-          {topic.title}
-        </h1>
-
-        {/* The boundary is the reason the topic is allowed to exist, so it reads
-            as content rather than as a caption under the title. */}
-        <p className="topic-scope">{sequence && topic.track !== 'survival' ? `${topic.items.length} rules, in order.` : topic.scope}</p>
-
-        {/* One line of state, in the learner's words. Four dimensions still exist
-            and still disagree usefully; this is the journey's one sentence about
-            all of them. */}
-        <p className="topic-state">
-          <span className="topic-state-meta tabular">
-            {topic.items.length} {topic.items.length === 1 ? 'item' : 'items'}
-          </span>
-          <span className={`topic-state-label${journey.phase === 'repair' ? ' is-repair' : topic.status === 'completed' || topic.status === 'drilled' ? ' is-banked' : ''}`}>
-            {journey.statusLabel}
-          </span>
+    <article className={`topic topic-track-${topic.track}${course ? ' topic-morse' : ''}`}>
+      {course && <span ref={top} className="topic-morse-top" aria-hidden="true" />}
+      {course ? <ScreenHeader ref={heading} titleClassName="topic-title" title={topic.title}
+        className={`topic-morse-header${compact ? ' is-compact' : ''}`}
+        onBack={onBack}
+        actions={<>
+          <button className="quiet topic-morse-reference" type="button" onClick={() => onReference(topic.id)}>A–Z</button>
+          {editAction}
+        </>}
+        progress={{ value: journey.acquisition.settled, max: 26, label: `${journey.acquisition.settled} of 26 letters` }}
+        readout={`${journey.acquisition.settled} / 26`} /> : <ScreenHeader ref={heading} titleClassName="topic-title" title={topic.title}
+        className={banked ? 'is-banked' : undefined}
+        onBack={onBack}
+        actions={editAction}
+        glyph={topicIcon(topic.id) ? <TopicGlyph topicId={topic.id} /> : undefined}
+        progress={bar ?? undefined}
+        readout={bar ? `${bar.value} / ${bar.max}` : undefined}>
+        <p className={`topic-state${banked ? ' is-banked' : ''}`}>
+          {banked ? <span className="topic-state-mark" aria-hidden="true">✓</span> : null}
+          <span className="topic-state-label">{stateLabel}</span>
         </p>
+        {listening.total > 0 && <p className="topic-listening">Listening · {listening.unaided} / {listening.total} unaided</p>}
+      </ScreenHeader>}
 
-        {/* Listening is its own claim (#151): read only from the separate audio
-            record, so text or choice evidence can never complete it. */}
-        {listening.total > 0 && (
-          <p className="topic-detail topic-listening">
-            Listening: {listening.unaided} of {listening.total} answered by ear, unaided
-          </p>
-        )}
+      {!runnable && <div className="topic-unfinished">
+        <p>This topic has no items yet. Add them as <code>prompt | answer</code>, one per line.</p>
+        <button type="button" onClick={onEdit}>Add items</button>
+      </div>}
 
-      </header>
+      {course ? <>
+        <MorseModeTray className="topic-morse-tray" topic={topic} onStart={(_mode, entry) => { if (entry) startMorse(entry) }} />
+        <MorseProgressPath topic={topic} onAction={startMorse} showJump={false}
+          onPlacement={offersPlacement ? () => setPlacementOpen(true) : undefined} />
+      </> : runnable ? <>
+        <TopicTray topic={topic} label={banked ? 'Test again' : 'Test'}
+          practiceCount={practiceCount} onStart={onStart} onReference={onReference} />
+        <TopicItems topic={topic} />
+      </> : null}
 
-      {!runnable && (
-        <div className="topic-unfinished">
-          <p>This topic has no items yet. Add them as <code>prompt | answer</code>, one per line.</p>
-          <button type="button" onClick={onEdit}>Add items</button>
-        </div>
-      )}
-
-      {course && path && checkpoints ? (
-        <section className="topic-body" aria-labelledby="topic-course-head">
-          <div className="topic-body-head">
-            <h2 id="topic-course-head">Curriculum</h2>
-            <button className="quiet" type="button" onClick={() => onReference(topic.id)}>
-              Morse alphabet
-            </button>
-          </div>
-
-          <MorsePath
-            path={path}
-            checkpoints={checkpoints}
-            ready={acquisition.ready}
-            onLesson={(index, replay) => {
-              if (!replay && placementEligible) {
-                setPlacementOpen(true)
-                return
-              }
-              onStart('learn', [topic.id], replay ? { kind: 'replay', index } : { kind: 'lesson' })
-            }}
-            onCheckpoint={(checkpoint) =>
-              onStart('learn', [topic.id], {
-                kind: 'checkpoint',
-                afterLesson: checkpoint.afterLesson,
-              })
-            }
-            onCheck={startCheck}
-            owed={acquisition.owed}
-            onGoOver={startGoingOver}
-          />
-
-          {/* The course's own explanatory support, which had nowhere to be.
-              `LearnSupport` was rendered only in the ordinary-topic branch
-              below, so for a curriculum topic the authored overview — what a
-              dit and a dah are, how the spacing works, how the lesson chooses
-              what to show next, and what the completion claim does and does not
-              cover — was written, shipped and displayed nowhere at all.
-
-              It is a fold rather than a band of prose: the curriculum is what
-              this page is for, and this is the thing you come back to once,
-              when something stops making sense. The mark grammar joins it here,
-              because the lesson now explains that only at first meeting. */}
-          {course && (
-            <details className="fold topic-course-notes">
-              <summary>How this course works</summary>
-              <p className="topic-course-rule">
-                Replays and word checkpoints run the same lessons and record nothing at all. Test
-                is the only place the A–Z claim is proved.
-              </p>
-              {sequence && <details className="fold"><summary>Scope and limits</summary><p className="topic-course-rule">{topic.scope}</p></details>}
-          {topic.learn && <LearnSupport content={topic.learn} />}
-              <MorseBeatGrammarNote className="topic-course-grammar" />
-            </details>
-          )}
-        </section>
-      ) : runnable ? (
-        <section className="topic-body" aria-labelledby="topic-reference-head">
-          <RecallReference topic={topic} heading="What to remember" />
-          {sequence && <details className="fold"><summary>Scope and limits</summary><p className="topic-course-rule">{topic.scope}</p></details>}
-          {topic.learn && <LearnSupport content={topic.learn} />}
-        </section>
-      ) : null}
-
-      {/* Play is not a footnote (#201). Once the alphabet is acquired and the
-          check is the primary action, sending and copying sit in plain view
-          rather than behind "More options". A banked course already leads with
-          them, so this row would only repeat that primary. Acquisition
-          readiness makes it useful independently of scoring. */}
-      {runnable && afterAlphabet && !keepGoing && (
-        <div className="topic-play">
-          <button className="quiet topic-alt" type="button" onClick={openFluency}>
-            Send, copy and speed practice
-          </button>
-          <p className="topic-consequence">Play records nothing against your Test.</p>
-        </div>
-      )}
-
-      {runnable && (course || practiceCount > 0) && (
-        <details className="fold topic-options">
-          <summary aria-label="More learning options">⋯ More options</summary>
-          <div className="topic-alternates">
-          {/* A banked course is checked when the learner chooses. The full
-              check is scored and can send the topic to repair; the review asks
-              the weakest letters and moves nothing. */}
-          {keepGoing && (
-            <button className="quiet topic-alt" type="button" onClick={startCheck}>
-              Full test: all {topic.items.length} letters, scored
-            </button>
-          )}
-          {reviewable && (
-            <button className="quiet topic-alt" type="button" onClick={startReview}>
-              Quick review: {REVIEW_LENGTH} letters, no hints
-            </button>
-          )}
-
-          {/* The standing offer to go back over what a check missed (#92 batch
-              5). Text weight, never the primary control: the recommended move
-              is still the check, because only the check can re-earn anything.
-              It disappears on its own once a later check answers those items
-              correctly, which is why nothing here has to remember being taken.
-
-              It appears only for a topic that keeps per-item evidence. An
-              ordinary reveal-and-grade topic records no per-item result, so
-              after its check ends there is nothing left to select on; that
-              topic's offer lives on the check's end screen instead. */}
-          {practiceCount > 0 && (
-            <button
-              className="quiet topic-alt"
-              type="button"
-              onClick={() =>
-                course
-                  ? // Keyed and by ear, over just the letters missed.
-                    onStart('learn', [topic.id], {
-                      kind: 'fluency',
-                      mode: 'sprint',
-                      letters: morseFocusLetters(topic),
-                    })
-                  : onStart('learn', [topic.id], { kind: 'practice' })
-              }
-            >
-              {course
-                ? `Practise the letters you missed: ${morseFocusLetters(topic).join(' ')}`
-                : `Practise the ${practiceCount} ${practiceCount === 1 ? 'item' : 'items'} you missed`}
-            </button>
-          )}
-
-          {/* The path not recommended, at text weight. It never takes the shape
-              of the primary control, and it states its own consequence.
-
-              It launches a replay rather than `{ kind: 'lesson' }` (#117). A
-              learner who has settled every letter has no unsettled packet left,
-              so asking for "the lesson" handed them the end-of-curriculum
-              screen: a control labelled `Go back over a lesson` that could not
-              go back over one. Replay runs the canonical course from Lesson 1,
-              through the same screens, and records nothing. */}
-          {course && testing && (
-            <button
-              className="quiet topic-alt"
-              type="button"
-              onClick={() => onStart('learn', [topic.id], { kind: 'replay', index: 0 })}
-            >
-              Replay the course from lesson 1
-            </button>
-          )}
-          </div>
-        </details>
-      )}
-
-      {runnable && (
-        <div className={`topic-action-bar${journey.phase === 'repair' ? ' is-repair' : topic.status === 'completed' || topic.status === 'drilled' ? ' is-banked' : ''}`}>
-          <button className="topic-primary" type="button" onClick={keepGoing ? openFluency : course && journey.action === 'learn' ? startCurrentMorseLesson : startCheck}>
-            {course ? journey.primaryLabel : journey.phase === 'repair' ? 'Repair' : topic.status === 'completed' || topic.status === 'drilled' ? 'Test again' : 'Test'}
-          </button>
-        </div>
-      )}
-
-      {topic.history.length > 0 && (
-        <details className="fold">
-          <summary>
-            History, {topic.history.length}{' '}
-            {topic.history.length === 1 ? 'attempt' : 'attempts'}
-          </summary>
-          <ol className="fold-history">
-            {[...topic.history].reverse().map((attempt) => (
-              <li key={attempt.at}>
-                <span className="tabular">{stamp(attempt.at)}</span>
-                <span className="tabular">
-                  {attempt.correct}/{attempt.total}
-                </span>
-                <span className="fold-resolved">{statusLabel(attempt.resolvedTo)}</span>
-              </li>
-            ))}
-          </ol>
-        </details>
-      )}
-
-      {topic.completedAt && (
-        <p className="topic-earned">
-          First completed {stamp(topic.completedAt)}. That stays true whatever happens next.
-        </p>
-      )}
-
-      {/* Editing and deleting are administration, not learning. They sit below
-          the content at text weight so they never compete with the action. */}
-      <div className="topic-admin">
-        <button className="quiet" type="button" onClick={onEdit}>
-          Edit topic
-        </button>
-        <button className="quiet is-danger" type="button" onClick={onDelete}>
-          Delete topic
-        </button>
-      </div>
-      {topic.learn && <SourcesAndLimits content={topic.learn} />}
-      {placementOpen && course && (
-        <MorsePlacementDialog
-          topic={topic}
-          onClose={() => setPlacementOpen(false)}
-          onNew={() => {
-            // "New" is itself the learner's placement decision. Record the
-            // ordinary curriculum start before entering LessonRun so its
-            // boundary gate does not ask the same question a second time.
-            updateTopic(topic.id, (current) => resolveStudy(current))
-            setPlacementOpen(false)
-            onStart('learn', [topic.id], { kind: 'lesson' })
-          }}
-          onCommit={(result) => {
-            updateTopic(topic.id, (current) => applyMorsePlacement(current, result))
-          }}
-          onContinue={(result) => {
-            setPlacementOpen(false)
-            if (result.nextLesson !== null) {
-              onStart('learn', [topic.id], { kind: 'lesson' })
-            }
-          }}
-        />
-      )}
+      {!course && topic.history.length > 0 && <AttemptPips topic={topic} />}
+      {!course && topic.completedAt && <p className="topic-earned">First completed · {stamp(topic.completedAt)}</p>}
+      <footer className="topic-foot">
+        <SourcesAndLimits content={topic.learn} scope={topic.scope} />
+        <button className="quiet topic-delete is-danger" type="button" aria-label="Delete topic" onClick={onDelete}>Delete</button>
+      </footer>
+      {placementOpen && course && <MorsePlacementDialog topic={topic}
+        onClose={() => setPlacementOpen(false)}
+        onNew={() => {
+          updateTopic(topic.id, current => resolveStudy(current))
+          setPlacementOpen(false)
+          onStart('learn', [topic.id], { kind: 'lesson' })
+        }}
+        onCommit={result => updateTopic(topic.id, current => applyMorsePlacement(current, result))}
+        onContinue={result => {
+          setPlacementOpen(false)
+          if (result.nextLesson !== null) onStart('learn', [topic.id], { kind: 'lesson' })
+        }}
+      />}
     </article>
   )
 }
 
-function TopicHero({ topic }: { topic: Topic }) {
-  const icon = topicIcon(topic.id)
+const SPINE_STATE: Record<ItemStanding, SpineState> = {
+  settled: 'done',
+  missed: 'reached',
+  seen: 'reached',
+  unseen: 'reached',
+}
+
+const STANDING_WORDS: Record<ItemStanding, string> = {
+  settled: 'settled',
+  missed: 'missed last time',
+  seen: 'tested',
+  unseen: 'not tested yet',
+}
+
+/** A group's node takes the weakest standing among its items. */
+function groupState(entries: TopicItemEntry[]): SpineState {
+  return entries.length > 0 && entries.every(entry => entry.standing === 'settled') ? 'done' : 'reached'
+}
+
+/**
+ * The complete scored set as reading, one row per item on the shared spine.
+ * There is no forced path, so no row is the position; rows are not controls.
+ */
+function TopicItems({ topic }: { topic: Topic }) {
+  const groups = topicItemGroups(topic)
+  const rows: SpineRow[] = groups.flatMap((group, groupIndex) => {
+    const heading: SpineRow[] = group.label ? [{
+      id: `group-${groupIndex}`,
+      shape: 'square',
+      state: groupState(group.entries),
+      label: group.label,
+      accessibleLabel: `${group.label}, ${group.entries.length} ${group.entries.length === 1 ? 'rule' : 'rules'}`,
+      group: true,
+      plate: true,
+      className: `topic-item-group${group.entries.every(entry => entry.standing === 'unseen') ? ' is-unseen' : ''}`,
+    }] : []
+    return [...heading, ...group.entries.map(({ item, marker, standing }, index): SpineRow => {
+      const visual = Boolean(item.stimulus || item.audio)
+      return {
+        id: item.id ?? `${groupIndex}-${index}`,
+        shape: 'round',
+        mark: standing === 'settled' && !group.label ? '✓' : marker,
+        state: SPINE_STATE[standing],
+        // A pictured item's picture is its prompt; the authored question
+        // wording is for the Test card, so the row names the answer.
+        label: item.stimulus ? item.answer : item.prompt,
+        detail: item.stimulus ? undefined : item.answer,
+        accessibleLabel: `${item.prompt}: ${item.answer}, ${STANDING_WORDS[standing]}`,
+        group: true,
+        className: `topic-item is-${standing}${visual ? ' has-visual' : ''}`,
+        after: visual ? <div className="topic-item-visual">
+          {item.stimulus && <VisualView visual={item.stimulus} compact />}
+          {item.audio && <AudioReference item={item as typeof item & { audio: NonNullable<typeof item.audio> }} />}
+        </div> : undefined,
+      }
+    })]
+  })
+  return <ProgressSpine rows={rows} label="Items" className="topic-items" />
+}
+
+/** An open page: the reading this topic carries. */
+const PAGE = <svg width="40" height="28" viewBox="0 0 40 28" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinejoin="round" focusable="false">
+  <path d="M20 6C15 2.5 8 2 3 3v21c5-1 12-.5 17 3 5-3.5 12-4 17-3V3c-5-1-12-.5-17 3Z" />
+  <path d="M20 6v21" />
+</svg>
+
+interface TopicTrayProps {
+  topic: Topic
+  label: string
+  practiceCount: number
+  onStart: TopicPageProps['onStart']
+  onReference: TopicPageProps['onReference']
+}
+
+/** Learn and Practice in the topic's track colour; Test in the action colour. */
+function TopicTray({ topic, label, practiceCount, onStart, onReference }: TopicTrayProps) {
   return (
-    <div className="topic-hero">
-      {topic.hero ? <VisualView key={topic.id} visual={topic.hero} /> : (
-        <div className="topic-hero-fallback" aria-hidden="true">
-          {icon ? <img src={icon} alt="" /> : <span>{topic.title.slice(0, 1)}</span>}
-        </div>
-      )}
-    </div>
+    <ModeTray label="Study" className="topic-tray" tiles={[
+      {
+        id: 'learn',
+        label: 'Learn',
+        stimulus: PAGE,
+        colour: 'var(--topic-track)',
+        ink: 'var(--topic-track-ink)',
+        disabled: !hasReading(topic),
+        onSelect: () => onReference(topic.id),
+      },
+      {
+        id: 'practice',
+        label: 'Practice',
+        stimulus: <span className="topic-tile-count">{practiceCount || '—'}</span>,
+        colour: 'var(--topic-track)',
+        ink: 'var(--topic-track-ink)',
+        disabled: practiceCount === 0,
+        onSelect: () => onStart('learn', [topic.id], { kind: 'practice', itemIds: [...new Set(missedTargets(topic).map(target => target.item.id))] }),
+      },
+      {
+        id: 'test',
+        label,
+        stimulus: <span className="topic-tile-count">{topic.items.length}</span>,
+        colour: 'var(--action)',
+        ink: 'var(--action-ink)',
+        onSelect: () => onStart('test', [topic.id]),
+      },
+    ]} />
   )
 }
 
-/** The complete scored set, as reading. */
-function RecallReference({ topic, heading }: { topic: Topic; heading: string }) {
-  const groups = sequenceFor(topic)?.groups
-  const sets = groups ? groups.map(group => ({
-    label: group.label,
-    entries: group.itemIds.map((id, i) => ({ item: topic.items.find(item => item.id === id)!, marker: Array.from(group.letters)[i] })),
-  })) : [{ label: undefined, entries: topic.items.map((item, i) => ({ item, marker: String(i + 1).padStart(2, '0') })) }]
+/** Every attempt as one pip, filled to its score. A reading, not a list to scan. */
+function AttemptPips({ topic }: { topic: Topic }) {
+  const count = topic.history.length
   return (
-    <div className="topic-reference">
-      <h2 id="topic-reference-head" className="topic-reference-head">{heading}</h2>
-      {sets.map((set, groupIndex) => <div className="topic-recall-group" key={set.label ?? groupIndex}>
-      {set.label && <h3 className="topic-recall-group-label">{set.label}</h3>}
-      <ol className="topic-recall-cards">
-        {set.entries.map(({ item, marker }, i) => (
-          <li key={item.id ?? `${item.prompt}-${i}`} className={item.stimulus || item.audio ? 'has-visual' : undefined}>
-            <span className="topic-recall-marker tabular">{marker}</span>
-            {item.stimulus && (
-              <div className="sheet-visual">
-                <VisualView visual={item.stimulus} compact />
-              </div>
-            )}
-            {item.audio && (
-              <div className="sheet-visual">
-                <AudioReference item={item as typeof item & { audio: NonNullable<typeof item.audio> }} />
-              </div>
-            )}
-            <span className="topic-recall-prompt">{item.prompt}</span>
-            <span className="topic-recall-answer">{item.answer}</span>
+    <section className="topic-history" aria-labelledby="topic-history-head">
+      <h2 id="topic-history-head" className="topic-history-head">{count} {count === 1 ? 'attempt' : 'attempts'}</h2>
+      <ol className="topic-pips">
+        {topic.history.map((attempt, index) => {
+          const share = attempt.total > 0 ? Math.max(0, Math.min(1, attempt.correct / attempt.total)) : 0
+          return <li key={`${attempt.at}-${index}`}>
+            <span className="topic-pip" role="img"
+              aria-label={`${stamp(attempt.at)}: ${attempt.correct} of ${attempt.total}, ${statusLabel(attempt.resolvedTo)}`}>
+              <span style={{ height: `${share * 100}%` }} />
+            </span>
           </li>
-        ))}
+        })}
       </ol>
-      </div>)}
-    </div>
+    </section>
   )
 }

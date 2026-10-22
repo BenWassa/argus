@@ -8,7 +8,7 @@
  * operating-system flag.
  *
  * Authority. The retained single-letter meanings are those of
- * `docs/open/ISSUE_138_MARITIME_VISUAL_LITERACY.md` §3D, an **Argus editorial
+ * `docs/closed/ISSUE_138_MARITIME_VISUAL_LITERACY.md` §3D, an **Argus editorial
  * selection** of twelve of the International Code's prioritized single-letter
  * signals, not an official sub-code. The designs are project redraws; their
  * verification against the IMO and NGA Pub. 102 depictions is tracked per flag in

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { isAppRoute, restoreRoute, sameRoute, type AppRoute } from './routes'
+import { isAppRoute, liveRoute, restoreRoute, sameRoute, type AppRoute } from './routes'
 import type { Topic } from '../../domain/library/topic'
 
 describe('the route model', () => {
@@ -193,6 +193,19 @@ describe('fluency routes', () => {
     ).toBe(false)
   })
 
+  it('accepts direct receiving and free-play routes without conflating them', () => {
+    const copy = { ...run(), target: { kind: 'fluency' as const, copy: 'common' as const } }
+    const free = { ...run(), target: { kind: 'fluency' as const, free: true as const } }
+    expect(isAppRoute(copy)).toBe(true)
+    expect(isAppRoute(free)).toBe(true)
+    expect(sameRoute(copy, free)).toBe(false)
+    expect(sameRoute(copy, { ...run(), target: { kind: 'fluency' as const, copy: 'letters' as const } })).toBe(false)
+    expect(sameRoute(free, run())).toBe(false)
+    expect(isAppRoute({ ...run(), target: { kind: 'fluency', copy: 'missing' } })).toBe(false)
+    expect(isAppRoute({ ...run(), target: { kind: 'fluency', free: false } })).toBe(false)
+    expect(isAppRoute({ ...run(), target: { kind: 'fluency', mode: 'sprint', free: true } })).toBe(false)
+  })
+
   it('treats the home screen and a mode as different places', () => {
     expect(sameRoute(run(), run('sprint'))).toBe(false)
     expect(sameRoute(run('sprint'), run('words'))).toBe(false)
@@ -208,4 +221,29 @@ describe('fluency routes', () => {
     const topics = [{ id: 'morse' } as never]
     expect(restoreRoute(run('sprint'), topics, false)).toEqual(origin)
   })
+})
+
+describe('retired Morse hub history', () => {
+  it('normalizes live, reloaded and traversed hub entries to the topic', () => {
+    const topics = [{ id: 'morse' }] as Topic[]
+    const route: AppRoute = { kind: 'run', mode: 'learn', topicIds: ['morse'],
+      origin: { kind: 'section', view: 'library' }, target: { kind: 'fluency' } }
+    const topic = { kind: 'topic', topicId: 'morse' }
+    expect(liveRoute(route, topics)).toEqual(topic)
+    expect(restoreRoute(route, topics, false)).toEqual(topic)
+    expect(restoreRoute(route, topics, true)).toEqual(topic)
+    expect(restoreRoute(route, [], true)).toEqual({ kind: 'section', view: 'library' })
+  })
+})
+
+it('compares every letter-practice direction including an unspecified direction', () => {
+  const route = (direction?: 'key' | 'read' | 'listen'): AppRoute => ({
+    kind: 'run', mode: 'learn', topicIds: ['morse'],
+    origin: { kind: 'topic', topicId: 'morse' }, target: { kind: 'letter-practice', direction },
+  })
+  for (const left of ['key', 'read', 'listen', undefined] as const) {
+    for (const right of ['key', 'read', 'listen', undefined] as const) {
+      expect(sameRoute(route(left), route(right)), `${left} / ${right}`).toBe(left === right)
+    }
+  }
 })

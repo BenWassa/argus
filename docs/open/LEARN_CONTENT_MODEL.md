@@ -208,7 +208,7 @@ An entry may have no fields; it may not have an empty label or text.
 
 ### The `visual` block and entry visuals (#146)
 
-A `visual` block renders one picture — a deterministic figure from the finite registry or a local `/media/` image — with its caption as HTML text. The same `Visual` may sit on a `LearnEntry`. Every visual has required alt text; essential explanation stays in surrounding HTML, never in image pixels. The shapes, validation, figure registry and the scored-item companions (`Item.choice`/`Item.stimulus`) are specified in `docs/open/ISSUE_146_VISUAL_CONTENT_PRIMITIVES.md`.
+A `visual` block renders one picture — a deterministic figure from the finite registry or a local `/media/` image — with its caption as HTML text. The same `Visual` may sit on a `LearnEntry`. Every visual has required alt text; essential explanation stays in surrounding HTML, never in image pixels. The shapes, validation, figure registry and the scored-item companions (`Item.choice`/`Item.stimulus`) are specified in `docs/closed/ISSUE_146_VISUAL_CONTENT_PRIMITIVES.md`.
 
 ### What to remember
 
@@ -225,8 +225,8 @@ notation and spoken rhythm as visible text beneath, and an explicit play control
 for synchronised audio. Nothing plays without a click.
 
 The grammar, its accessibility contract and its provenance are specified in
-`docs/open/MORSE_MNEMONIC_GRAMMAR.md`; the sequence and packet composition in
-`docs/open/MORSE_CHARACTER_ORDER.md`.
+`docs/open/morse/MORSE_MNEMONIC_GRAMMAR.md`; the sequence and packet composition in
+`docs/open/morse/MORSE_CHARACTER_ORDER.md`.
 
 Packets are Learn content, so the block obeys every rule above: no card is
 locked, hidden, gated or scored, and the packet surface holds no progress state

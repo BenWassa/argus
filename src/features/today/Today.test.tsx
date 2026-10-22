@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import type { Topic } from '../../domain/library/topic'
 import { seedLibrary } from '../../domain/library/catalogSeed'
+import { readFileSync } from 'node:fs'
 import { Today } from './Today'
 
 const state = vi.hoisted(() => ({ topics: [] as Topic[], ready: false, addRequest: vi.fn() }))
@@ -13,7 +14,7 @@ beforeEach(() => { state.topics = []; state.ready = false; state.addRequest.mock
 afterEach(cleanup)
 
 function open() {
-  const actions = { onOpenTopic: vi.fn(), onGoToLibrary: vi.fn(), onAuthorTopic: vi.fn(), onOpenProfile: vi.fn() }
+  const actions = { onContinue: vi.fn(), onOpenTopic: vi.fn(), onGoToLibrary: vi.fn(), onAuthorTopic: vi.fn(), onOpenProfile: vi.fn() }
   const view = render(<Today {...actions} />)
   return { ...actions, ...view }
 }
@@ -36,6 +37,35 @@ describe('Home', () => {
     fireEvent.click(screen.getByRole('button', { name: 'See all' }))
     expect(view.onGoToLibrary).toHaveBeenCalledOnce()
     expect(state.topics).toEqual(before)
+  })
+
+  it('keeps solid active plates and excludes learned legacy repair records', () => {
+    state.topics = [{ ...building('one'), status: 'decayed', completedAt: '2026-09-01T12:00:00Z' }, building('two')]
+    const view = open()
+    const plates = [...view.container.querySelectorAll<HTMLElement>('.today-plate')]
+    expect(plates).toHaveLength(1)
+    for (const plate of plates) expect(plate.className).toContain('plate plate-raised')
+    expect(view.container.querySelectorAll('.plate-repair')).toHaveLength(0)
+    expect(screen.queryByText('Needs repair')).toBeNull()
+    expect(view.container.querySelector('.home-panel.plate')).toBeTruthy()
+    expect(view.container.querySelector('h1.today-brand')?.textContent).toBe('ARGUS')
+    expect(view.container.querySelector('details')).toBeNull()
+  })
+
+  it('continues the top unfinished topic, leaving learned topics out of the queue', () => {
+    state.topics = [{ ...building('learned'), status: 'decayed', completedAt: '2026-01-01T00:00:00Z' }, building('next')]
+    const view = open()
+    fireEvent.click(screen.getByRole('button', { name: 'Continue: next' }))
+    expect(view.onContinue).toHaveBeenCalledWith('test', 'next')
+    expect(screen.queryByRole('button', { name: /Continue: learned/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: '+ Add something to learn' })).toBeNull()
+  })
+
+  it('keeps Home and Library styles free of alpha fills, gradients and texture', () => {
+    for (const file of ['src/features/today/Today.css', 'src/features/library/LibraryPage.css']) {
+      const css = readFileSync(file, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '')
+      expect(css, file).not.toMatch(/rgba?\(|hsla?\(|gradient|backdrop-filter|--grain|--machining|--convex|--sheen|--engrave/)
+    }
   })
 
   it('keeps the readout and a library path in an empty state, with deterministic authoring fallback', () => {

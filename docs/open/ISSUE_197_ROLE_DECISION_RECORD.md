@@ -68,13 +68,13 @@ A role becomes earnable only when all six gates hold. These are owner-approved e
 |---|---|---|---|---|---|---|---|
 | Communicator | 7 | 105 | 3 pathways | Signal Flags | 4 own | NATO Learn limits merged #203 | Pass |
 | Navigator | 5 | 60 | 2 pathways | 44 apply items | 5 own | Compass Learn limits merged #203 | Pass; owner artwork pending |
-| Mariner | 7 | 69 | 3 pathways | Lights, shapes, flags | 4 own | #147 and #148 domain reviews open | **Pass once #147 and #148 reviews close** |
+| Mariner | 7 | 69 | 3 pathways | Lights, shapes, flags | 4 own | #147 and #148 domain reviews open | Shipped 2026-10-15 on an owner waiver of the G6 review; reviews remain open |
 | Diver | 1 | 13 | no | no | — | — | Fail |
 | Responder | 1 | 5 | no | no | — | — | Fail |
 | Operator / Analyst | 1 | 4 | no | no | — | — | Fail |
 | Technical | 3 | 64 | no | no | — | — | Fail |
 
-Mariner is therefore **blocked on content review, not on engineering**. Navigator has no review dependency.
+Mariner was blocked on content review, not engineering. On 2026-10-15 the owner waived that gate and will review the deployed content. Navigator has no review dependency.
 
 ### D5 — Capstone and advanced evidence
 
@@ -91,7 +91,7 @@ Today `earned` is derived from local topic records, so deleting or importing top
 - Add a small **award receipt**: `{ roleId, roleVersion, earnedAt, topicIds }`, written the first time a derivation passes, stored with learner data, and carried through export, import and sync.
 - `earned` = a receipt exists **or** the live derivation passes. Retention decay and topic deletion never remove a receipt. Only the existing reset-all-data action does.
 - Role definitions are **versioned**. Adding a requirement creates v2 as an optional update; the learner keeps "Earned v1" and sees "2 new topics" for v2. Never un-earn.
-- Open check before building: how a new field interacts with the owner-only Firebase sync and its rules (conflicts are detected, not resolved). Verify against `docs/open/ISSUE_93_FIREBASE_PROGRESS_SYNC.md` first.
+- Open check before building: how a new field interacts with the owner-only Firebase sync and its rules (conflicts are detected, not resolved). Verify against `docs/closed/ISSUE_93_FIREBASE_PROGRESS_SYNC.md` first.
 - This also settles the gap for Communicator, which currently has no receipt.
 
 ### D7 — Roles UX
@@ -141,4 +141,7 @@ Each new topic ships under the existing method in `docs/LIBRARY_RESEARCH_METHOD.
 |---|---|---|
 | 2026-10-08 | Scored-content audit of all 24 topics complete; 342 items, 29.5% objective | [Audit](ISSUE_197_SCORED_CONTENT_AUDIT.md) |
 | 2026-10-08 | D1–D9 recommended | Historical recommendation, ratified below |
+| 2026-10-15 | Mariner released ahead of the independent #147/#148 reviews | Owner: “do mariner ill check when deployed”. Overrides D4/G6 for Mariner only; reviews stay open and corrections ship as a versioned optional update (D6). |
+| 2026-10-15 | Analyst fifth topic: Decision Under Uncertainty I | Owner: “add decision under uncertainty”. Roadmap entry required before implementation. |
+| 2026-10-15 | Communicator PNG replaces the vetted SVG | Owner: “pngs replace” |
 | 2026-10-13 | D1–D9 ratified; owner creates artwork | Owner: “approve all. ill make the artwork myself”; art order and factual-review gates retained |

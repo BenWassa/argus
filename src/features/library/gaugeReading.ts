@@ -1,38 +1,7 @@
 import type { TopicJourney } from '../../domain/study/journey'
 import type { Topic } from '../../domain/library/topic'
 
-/**
- * Which progress reading a topic is entitled to show, and in what units.
- *
- * `journeyFor` already computes independent progress ratios — acquisition
- * settlement, formal evidence coverage and the lesson sitting — and until now
- * the interface rendered essentially none of them. The Library row carried a
- * three-pixel `aria-hidden` sliver of a retention gap (since removed), and the
- * topic page, which is the page *about one topic*, carried no progress at all.
- * Nothing here computes a new measure. It chooses which existing one is the
- * true thing to say and hands over its units.
- *
- * ## Why this is a precedence list rather than a percentage
- *
- * The readings are not interchangeable and must never be averaged into a single
- * "mastery" number. They answer different questions, they become meaningful at
- * different times, and a topic that has not reached a given stage has no
- * honest value for that stage's measure. So exactly one is shown, the most
- * specific one the topic has actually earned, and it is labelled in its own
- * units — the instrument rule the rest of the product already follows.
- *
- * ## The reading that must not be shown
- *
- * `evidence.covered` counts items carrying complete directional evidence, which
- * requires both a durable item id and recorded per-item cue evidence. An
- * ordinary reveal-and-grade topic has neither: its items may carry no id at all
- * and its checks write no per-item evidence by design. Reading `covered/total`
- * for one of those returns `0 / 26` forever, no matter how thoroughly it has
- * been drilled or how long it has been banked. That is not a quiet
- * imprecision, it is the gauge contradicting the status line beside it, so
- * `keepsItemEvidence` gates that branch and such a topic falls through to the
- * gap — which for it is a true statement about a real clock.
- */
+/** A truthful finite reading: learned completion, acquisition or item evidence. */
 export type GaugeReading =
   /** Nothing truthful to measure: no items, still being authored. */
   | { kind: 'none' }
@@ -60,9 +29,7 @@ function keepsItemEvidence(topic: Topic): boolean {
 export function gaugeReading(topic: Topic, journey: TopicJourney): GaugeReading {
   if (topic.items.length === 0 || journey.phase === 'authoring') return { kind: 'none' }
 
-  // Completion outranks every measure of work in progress. A banked topic that
-  // has since decayed is deliberately not caught here: it is back in motion,
-  // and its live reading is the truthful one to show.
+  // Learned progress stays full after optional later Tests.
   if (journey.retention.status === 'completed') return { kind: 'complete' }
 
   const { acquisition, evidence } = journey
@@ -92,7 +59,7 @@ export function gaugeLabel(reading: GaugeReading): string | null {
     case 'none':
       return null
     case 'complete':
-      return 'Banked'
+      return 'Learned'
     case 'acquisition':
       return `${reading.done} of ${reading.total} letters`
     case 'evidence':

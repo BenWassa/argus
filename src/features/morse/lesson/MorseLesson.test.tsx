@@ -83,7 +83,10 @@ function guidedRun(topicId: string): string {
 }
 
 function source(file: string): string {
-  return readFileSync(fileURLToPath(new URL(file, import.meta.url)), 'utf8')
+  const files = file === './MorseLesson.tsx'
+    ? ['./useCheckpointHandoff.ts', './useLessonProgression.ts', './MorseLesson.tsx', './LessonBar.tsx']
+    : [file]
+  return files.map((path) => readFileSync(fileURLToPath(new URL(path, import.meta.url)), 'utf8')).join('\n')
 }
 
 function runAtFormat(topic: Topic, format: 'taught' | 'cued' | 'solo'): LessonRun {
@@ -350,7 +353,9 @@ describe('feedback and modality boundaries', () => {
     if (step?.kind !== 'check') throw new Error('expected a check')
     const html = render(topic, answerLesson(run, step.entry.itemId, '-----'))
     expect(html).toContain('Not that one')
-    expect(html).toContain('class="morse-mnemonic"')
+    expect(html).toContain('class="morse-character-support"')
+    expect(html).toContain('class="morse-character-support-notation"')
+    expect(html).toContain('class="morse-phrase"')
     expect(html).toContain(`aria-label="Play ${step.entry.glyph} Morse"`)
     expect(html).toMatch(/>\s*Continue\s*</)
   })
@@ -369,7 +374,7 @@ describe('feedback and modality boundaries', () => {
     expect(code).not.toContain('setTimeout(')
     // The dismissal is the hook's, gated on the hook's own hold state, so it
     // cannot appear beside a hit or advance one early.
-    expect(code).toContain('onClick={continueFromMiss} disabled={!holding}')
+    expect(code).toContain('onContinue: continueFromMiss, continueDisabled: !holding')
     expect(code).toContain('acknowledge()')
   })
 
@@ -401,8 +406,8 @@ describe('lesson progress and evidence honesty', () => {
    */
   it('gives the position as one number and draws in-lesson progress', () => {
     const html = render(topic, startLesson(topic) as LessonRun)
-    expect(html).toContain('aria-label="Lesson 1 of 13"')
-    expect(html).toContain('session-count')
+    expect(html).toContain('>Lesson 1<')
+    expect(html).toContain('session-frame-progress')
     expect(html).not.toContain('XP')
     expect(html).not.toContain('retrievals')
     expect(html).not.toContain('Lesson progress:')
@@ -436,7 +441,7 @@ describe('lesson progress and evidence honesty', () => {
       current = withLessonProgress(current, lessonProgressOf(run))
     }
     const html = render(current, startLesson(current) as LessonRun)
-    expect(html).toContain('That is acquisition, not proof')
+    expect(html).toContain('Every letter covered')
     expect(html).toContain('Test me')
   })
 })
@@ -646,7 +651,7 @@ describe('#88 automatic word-checkpoint handoff at lesson completion', () => {
     await driveUntilCheckpointInviteOrDone()
 
     expect(screen.getByRole('heading', { name: 'Checkpoint' })).toBeTruthy()
-    expect(screen.getByText(/Real words/)).toBeTruthy()
+    expect(screen.queryByText(/Real words/)).toBeNull()
     expect(screen.getByRole('button', { name: 'Start' })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Skip' })).toBeTruthy()
   })
@@ -669,7 +674,7 @@ describe('#88 automatic word-checkpoint handoff at lesson completion', () => {
     expect(start.closest('.lesson-exits')?.hasAttribute('inert')).toBe(false)
 
     fireEvent.click(start)
-    expect(screen.getByText('1/4')).toBeTruthy()
+    expect(screen.getByRole('progressbar', { name: '0 of 8' })).toBeTruthy()
   })
 
   it('resumes the lesson untouched when the invitation is skipped, leaving the checkpoint for later replay', async () => {
@@ -691,7 +696,7 @@ describe('#88 automatic word-checkpoint handoff at lesson completion', () => {
     expect(screen.queryByRole('button', { name: 'Start' })).toBeNull()
     expect(screen.getByText('Lesson 4 done')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Next lesson' }))
-    expect(screen.getByLabelText('Lesson 5 of 13')).toBeTruthy()
+    expect(screen.getByText('Lesson 5', { exact: true })).toBeTruthy()
   })
 
   it('returns to the lesson after completing the checkpoint, without a stop at the path', async () => {
@@ -708,7 +713,7 @@ describe('#88 automatic word-checkpoint handoff at lesson completion', () => {
     advanceTime(MORSE_TRANSITION_MS)
     fireEvent.click(screen.getByRole('button', { name: 'Start' }))
 
-    expect(screen.getByText('1/4')).toBeTruthy()
+    expect(screen.getByRole('progressbar', { name: '0 of 8' })).toBeTruthy()
     await completeCheckpoint()
     expect(screen.getByRole('heading', { name: 'Checkpoint done' })).toBeTruthy()
 
@@ -716,7 +721,7 @@ describe('#88 automatic word-checkpoint handoff at lesson completion', () => {
     expect(screen.queryByRole('heading', { name: 'Learn Morse A–Z' })).toBeNull()
     expect(screen.getByText('Lesson 4 done')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Next lesson' }))
-    expect(screen.getByLabelText('Lesson 5 of 13')).toBeTruthy()
+    expect(screen.getByText('Lesson 5', { exact: true })).toBeTruthy()
   })
 
   it('does not invite again when the already-unlocked checkpoint is replayed from the path', () => {
@@ -746,7 +751,7 @@ describe('#88 automatic word-checkpoint handoff at lesson completion', () => {
     // Still said, once, in the line that also gives the length. It was a
     // standalone sentence under the buttons, which is where copy goes to be
     // skipped.
-    expect(code).toContain('Optional.')
+    expect(code).not.toContain('Optional.')
   })
 
   it('reuses the #87 touch-safe boundary for every terminal screen, not only the new one', () => {

@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react'
 import { useLibrary } from '../../../services/library/LibraryProvider'
 import {
   newFluencyProgress,
+  setFluencyRung,
   type MorseFluencyProgress,
 } from '../../../domain/morse/fluency/progress'
 import type { FluencyMode } from '../../../domain/morse/fluency/session'
@@ -9,11 +10,22 @@ import type { CopyLevel } from '../../../domain/morse/fluency/copy'
 import type { SendStage } from '../../../domain/morse/fluency/send'
 import { morseFocusLetters } from '../../../domain/morse/fluency/focus'
 import type { MorseLetter } from '../../../domain/morse/code'
+import { LEVEL_REASON_LETTERS, levelReadiness, levelsFor, modeMaterialCharacters, type MorseMode } from '../../../domain/morse/modes'
+import type { Topic } from '../../../domain/library/topic'
+import { SessionFrame } from '../../../shared/ui/SessionFrame'
 import { CopyRun } from './CopyRun'
 import { FreePlay } from './FreePlay'
-import { FluencyHome } from './FluencyHome'
 import { FluencyRun } from './FluencyRun'
 import { SendRun } from './SendRun'
+import { ListeningSpacing } from './ListeningSpacing'
+
+/** Why the requested level cannot start for this learner (#257), or null when it can. */
+function blockedReason(topic: Topic, mode: Exclude<MorseMode, 'free'>, levelId: string): string | null {
+  const level = levelsFor(mode).find((candidate) => candidate.id === levelId)
+  if (!level) return null
+  const readiness = levelReadiness(topic, level)
+  return readiness.startable ? null : readiness.reason
+}
 
 interface FluencySurfaceProps {
   topicId: string
@@ -21,6 +33,10 @@ interface FluencySurfaceProps {
   initialMode?: FluencyMode
   /** Set when the route went straight into a sending stage (a handoff, not the hub). */
   initialSend?: SendStage
+  /** Opens the first receiving round directly from Morse Topic. */
+  initialCopy?: CopyLevel
+  /** Free transmission has no score or evidence write. */
+  initialFree?: true
   /** Set when the route asked to practise just these letters. */
   letters?: string[]
   onExit: () => void
@@ -29,32 +45,27 @@ interface FluencySurfaceProps {
 /**
  * The one place Fluency is allowed to write.
  *
- * `FluencyHome` and `FluencyRun` import no store at all. This wrapper holds
- * the only `updateTopic` call in the feature, and it writes exactly one field.
- * That is the same structural boundary `PracticeRun` uses — a surface that
- * cannot reach durable state cannot corrupt it — adapted for a surface that
- * legitimately keeps statistics: instead of "writes nothing", the guarantee is
- * "writes `morseFluency` and nothing else, from one function".
- *
- * `FluencySurface.test.tsx` asserts that the run and home modules import no
- * write path, so an edit that reaches for `useLibrary` inside one of them
- * fails the suite rather than quietly widening what Fluency can touch.
+ * Runs import no store. This wrapper writes only `morseFluency`.
  */
-export function FluencySurface({ topicId, initialMode, initialSend, letters, onExit }: FluencySurfaceProps) {
+export function FluencySurface({ topicId, initialMode, initialSend, initialCopy, initialFree, letters, onExit }: FluencySurfaceProps) {
   const { topics, updateTopic } = useLibrary()
   const topic = topics.find((candidate) => candidate.id === topicId)
   // Read once, when Fluency opens: what the learner is missing weights every
   // run, and a practise-missed entry asks only those letters, in its first run.
   const [focus] = useState<ReadonlySet<MorseLetter>>(() => new Set(topic ? morseFocusLetters(topic) : []))
-  const [only, setOnly] = useState<MorseLetter[]>(() =>
+  const [only] = useState<MorseLetter[]>(() =>
     (letters ?? []).filter((letter): letter is MorseLetter => /^[A-Z]$/.test(letter)),
   )
-  const [mode, setMode] = useState<FluencyMode | null>(initialMode ?? null)
-  const [copy, setCopy] = useState<{ level: CopyLevel; run: number } | null>(null)
+  const mode = initialMode ?? null
+  const [copy, setCopy] = useState<{ level: CopyLevel; run: number } | null>(
+    initialCopy ? { level: initialCopy, run: 0 } : null,
+  )
   const [send, setSend] = useState<{ stage: SendStage; run: number } | null>(
     initialSend ? { stage: initialSend, run: 0 } : null,
   )
-  const [free, setFree] = useState(false)
+  const free = Boolean(initialFree)
+  // Read once, like focus: before acquisition, material keeps to taught letters.
+  const [allowed] = useState<ReadonlySet<string> | undefined>(() => (topic ? modeMaterialCharacters(topic) ?? undefined : undefined))
 
   const commit = useCallback(
     (next: MorseFluencyProgress) => {
@@ -66,9 +77,27 @@ export function FluencySurface({ topicId, initialMode, initialSend, letters, onE
   if (!topic) return null
 
   const progress = topic.morseFluency
+  const current = progress ?? newFluencyProgress()
+  const spacing = <ListeningSpacing rung={current.rung} onChange={(rung) => commit(setFluencyRung(current, rung))} />
 
   if (free) {
-    return <FreePlay rung={(progress ?? newFluencyProgress()).rung} onExit={() => setFree(false)} />
+    return <FreePlay rung={(progress ?? newFluencyProgress()).rung} onExit={onExit} />
+  }
+
+  const blocked = send ? blockedReason(topic, 'key', `send:${send.stage}`)
+    : copy ? blockedReason(topic, 'listen', `copy:${copy.level}`)
+      : mode ? (() => {
+        const readiness = levelReadiness(topic, { kind: 'fluency', challenge: mode, id: `fluency:${mode}`, label: mode, tier: mode === 'groups' ? 'groups' : mode === 'words' ? 'words' : 'letters' })
+        if (!readiness.startable) return readiness.reason
+        if (only.length && allowed && !only.some((letter) => allowed.has(letter)) && mode !== 'words') return LEVEL_REASON_LETTERS
+        return null
+      })() : null
+  if (blocked) {
+    return (
+      <SessionFrame kind={send ? 'key' : 'listen'} title={send ? 'Key' : 'Listen'} onClose={onExit}>
+        <h2 className="session-prompt-heading">{blocked}</h2>
+      </SessionFrame>
+    )
   }
 
   if (send) {
@@ -76,12 +105,14 @@ export function FluencySurface({ topicId, initialMode, initialSend, letters, onE
       <SendRun
         key={`send-${send.stage}-${send.run}`}
         stage={send.stage}
+        seed={send.run}
         progress={progress ?? newFluencyProgress()}
         onProgress={commit}
+        allowed={allowed}
         onStage={(stage) =>
           setSend((previous) => ({ stage, run: (previous?.run ?? 0) + 1 }))
         }
-        onExit={() => setSend(null)}
+        onExit={onExit}
       />
     )
   }
@@ -92,12 +123,15 @@ export function FluencySurface({ topicId, initialMode, initialSend, letters, onE
         // A new key per run, so "Another run" draws fresh material.
         key={`copy-${copy.level}-${copy.run}`}
         level={copy.level}
+        seed={copy.run}
         rung={(progress ?? newFluencyProgress()).rung}
         progress={progress ?? newFluencyProgress()}
         focus={focus}
+        allowed={allowed}
+        toolbar={spacing}
         onProgress={commit}
         onLevel={(level) => setCopy((previous) => ({ level, run: (previous?.run ?? 0) + 1 }))}
-        onExit={() => setCopy(null)}
+        onExit={onExit}
       />
     )
   }
@@ -105,32 +139,19 @@ export function FluencySurface({ topicId, initialMode, initialSend, letters, onE
   if (mode) {
     return (
       <FluencyRun
-        key={`${mode}-${progress?.rung ?? 'first'}`}
+        key={mode}
         mode={mode}
         rung={(progress ?? newFluencyProgress()).rung}
         progress={progress ?? newFluencyProgress()}
         focus={focus}
         only={only}
+        allowed={allowed}
+        toolbar={spacing}
         onProgress={commit}
-        onExit={() => {
-          // The letters were for the run the learner came to practise; Fluency
-          // after it is the whole alphabet again.
-          setOnly([])
-          setMode(null)
-        }}
+        onExit={onExit}
       />
     )
   }
 
-  return (
-    <FluencyHome
-      progress={progress}
-      onProgress={commit}
-      onStart={setMode}
-      onCopy={(level) => setCopy({ level, run: 0 })}
-      onSend={(stage) => setSend({ stage, run: 0 })}
-      onFreePlay={() => setFree(true)}
-      onExit={onExit}
-    />
-  )
+  return null
 }

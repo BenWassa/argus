@@ -66,12 +66,12 @@ describe('when a Test runs as a review', () => {
     expect(isReviewTopic(acquired({ completedAt: '2020-01-01T00:00:00.000Z' }))).toBe(true)
   })
 
-  it('runs the full deck for repair, which is always due', () => {
-    expect(isReviewTopic(acquired({ status: 'decayed', completedAt: '2026-01-01T00:00:00.000Z' }))).toBe(false)
+  it('allows old repair records to choose an optional review', () => {
+    expect(isReviewTopic(acquired({ status: 'decayed', completedAt: '2026-01-01T00:00:00.000Z' }))).toBe(true)
   })
 
   it('never reviews mid-curriculum or an ordinary topic', () => {
-    expect(isReviewTopic(acquired({ acquisitionReadyAt: undefined, lessonProgress: {} }))).toBe(false)
+    expect(isReviewTopic(acquired({ status: 'learning', completedAt: null, acquisitionReadyAt: undefined, lessonProgress: {} }))).toBe(false)
     const nato: Topic = { ...seeded('nato-phonetic'), status: 'drilled', drilledAt: '2026-09-24T00:00:00.000Z' }
     expect(isReviewTopic(nato)).toBe(false)
   })
@@ -111,6 +111,6 @@ describe('what a review asks', () => {
     expect(buildDeck([banked], new Map(), new Set())).toHaveLength(banked.items.length)
 
     const repair = acquired({ status: 'decayed', completedAt: '2020-01-01T00:00:00.000Z' })
-    expect(reviewTopics([repair]).size).toBe(0)
+    expect(reviewTopics([repair]).size).toBe(1)
   })
 })

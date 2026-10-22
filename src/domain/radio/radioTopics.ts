@@ -3,7 +3,7 @@ import type { IdentifiedItem, Topic } from '../library/topic'
 
 /**
  * The three shipped text topics of the Canadian radio programme (#150). Content
- * authority is `docs/open/ISSUE_139_RADIO_COMMUNICATIONS_AUDIO.md`, with every
+ * authority is `docs/closed/ISSUE_139_RADIO_COMMUNICATIONS_AUDIO.md`, with every
  * scored answer checked against its controlling publication on 2026-10-06:
  *
  * - Radio Procedure: ISED RIC-22 only, the general Canadian radio substrate;
@@ -393,7 +393,7 @@ const marinePriorityLearn: LearnContent = {
   ],
   limitations: [
     'Memory of published structure only. Not emergency decision-making, DSC operation or certification.',
-    'A real distress also involves a DSC alert; this topic scores only the spoken call and message.',
+    'Spoken distress calls can proceed when no DSC alert has been sent. DSC operation is not taught or scored.',
   ],
   sources: [
     RAMN_PART_4,

@@ -9,7 +9,10 @@ import {
 } from '../../domain/morse/testing/acquisitionProfile'
 import type { CueRung } from '../../domain/study/cueLadder'
 import type { CueNote } from './cueNote'
+import { MorseMarks } from '../morse/MorseMarks'
 import { MorsePhrase } from '../morse/MorsePhrase'
+import { MorseCharacterSupport } from '../morse/MorseCharacterSupport'
+import { useMorseAudio } from '../morse/useMorseAudio'
 import { MorseKeyInput, useKeyedResponse } from '../morse/keyedResponse'
 
 export interface ProgressiveAnswer {
@@ -87,6 +90,7 @@ export function ProgressiveCard({
   const pending = useRef<ProgressiveAnswer | null>(null)
   const onAnswerRef = useRef(onAnswer)
   onAnswerRef.current = onAnswer
+  const correctionAudio = useMorseAudio()
 
   /**
    * The same keyed-answer lifecycle Learn and the word checkpoints use: a hit
@@ -104,6 +108,11 @@ export function ProgressiveCard({
     pending.current = null
     if (answer) onAnswerRef.current(answer)
   })
+
+  function continueCorrection() {
+    correctionAudio.stop()
+    acknowledge()
+  }
 
   const keying = rung.direction === 'prompt-to-answer'
   const prompt = useMemo(() => promptFor(rung, character), [rung, character])
@@ -182,26 +191,19 @@ export function ProgressiveCard({
       <p className="test-task">{keying ? 'Key it' : 'Name it'}</p>
 
       {keying ? (
-        <h1 id="prompt-heading" className="test-prompt">
+        <h2 id="prompt-heading" className="session-prompt-heading test-prompt" tabIndex={-1}>
           {character.glyph}
-        </h1>
+        </h2>
       ) : (
-        <h1 id="prompt-heading" className="test-prompt is-pattern">
+        <h2 id="prompt-heading" className="session-prompt-heading test-prompt is-pattern" tabIndex={-1}>
           {/* Drawn from the canonical notation rather than set in it. At the
               size a prompt wants to be, `— — · —` is four rules of arbitrary
               length with a speck in the middle; a dah drawn three times the
               width of a dit is the timing itself, which is what the question
               is actually asking the learner to read. */}
-          <span className="test-pattern" aria-hidden="true">
-            {prompt.split(' ').map((mark, index) => (
-              <span
-                className={`test-pattern-mark is-${mark === '·' ? 'dit' : 'dah'}`}
-                key={`${mark}-${index}`}
-              />
-            ))}
-          </span>
+          <MorseMarks pattern={prompt} size="stimulus" className="test-pattern" />
           <span className="sr-only">{patternReading(character.pattern)}</span>
-        </h1>
+        </h2>
       )}
 
       {!result && support}
@@ -277,21 +279,7 @@ export function ProgressiveCard({
                 </span>
               )}
             </p>
-            <p className="test-correction-row">
-              <span className="test-correction-label">Answer</span>
-              {keying ? (
-                <>
-                  <span className="test-correction-value mono" aria-hidden="true">
-                    {canonicalPattern(character.pattern)}
-                  </span>
-                  <span className="sr-only">{character.reading}</span>
-                </>
-              ) : (
-                <span className="test-correction-value test-correction-glyph">
-                  {character.glyph}
-                </span>
-              )}
-            </p>
+            <MorseCharacterSupport glyph={character.glyph} pattern={character.pattern} className="test-correction-support" playing={correctionAudio.sounding?.glyph === character.glyph} onToggle={() => correctionAudio.toggle(character.glyph)} audioError={correctionAudio.audioError} />
           </div>
           {/* Said after the correction, never before it: the thing to read
               first is what the answer actually was. */}
@@ -300,7 +288,7 @@ export function ProgressiveCard({
             ref={continueRef}
             className="test-next"
             type="button"
-            onClick={acknowledge}
+            onClick={continueCorrection}
             disabled={!holding}
           >
             Continue

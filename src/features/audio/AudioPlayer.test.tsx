@@ -105,4 +105,14 @@ describe('AudioPlayer', () => {
     const status = screen.getByRole('status')
     expect(status.getAttribute('aria-live')).toBe('polite')
   })
+
+  it('stops when switching tabs and offers Replay when returning', () => {
+    render(<AudioPlayer src="/media/audio/a.mp3" label="x" />)
+    fireEvent(audioElement(), new Event('playing'))
+    vi.spyOn(document, 'hidden', 'get').mockReturnValue(true)
+    fireEvent(document, new Event('visibilitychange'))
+    expect(pause).toHaveBeenCalledTimes(1)
+    expect(screen.getByRole('button', { name: /Replay recording/ })).toBeTruthy()
+  })
+
 })

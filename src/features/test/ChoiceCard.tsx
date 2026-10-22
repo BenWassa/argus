@@ -95,9 +95,9 @@ export function ChoiceCard({ item, onAnswer, cardKey, now = defaultNow }: Choice
 
       {item.stimulus && <VisualView visual={item.stimulus} showCaption={false} />}
 
-      <h1 id="choice-prompt" className="test-prompt is-question">
+      <h2 id="choice-prompt" className="session-prompt-heading test-prompt is-question">
         {item.prompt}
-      </h1>
+      </h2>
 
       <div className="choice-options" role="group" aria-labelledby="choice-prompt">
         {options.map((option) => {

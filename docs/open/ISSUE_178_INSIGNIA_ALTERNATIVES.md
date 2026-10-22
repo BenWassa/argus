@@ -6,7 +6,7 @@
 >
 > **Not legal advice.** The statutory and case-law reading below is a research summary for the owner. The questions in [section 9](#9-open-questions-for-the-owner-or-counsel) need counsel before anything here is relied on.
 >
-> **Related:** [#178](ISSUE_178_CAF_RANK_INSIGNIA_VISUAL_RECOGNITION.md) (rights gate, licence request) · [#176](../closed/ISSUE_176_CAF_RANKS_INSIGNIA.md) (programme research) · [#146](ISSUE_146_VISUAL_CONTENT_PRIMITIVES.md) (visual primitives) · `src/domain/military/cafRankRecognitionPlan.ts` (metadata only)
+> **Related:** [#178](ISSUE_178_CAF_RANK_INSIGNIA_VISUAL_RECOGNITION.md) (rights gate, licence request) · [#176](../closed/ISSUE_176_CAF_RANKS_INSIGNIA.md) (programme research) · [#146](../closed/ISSUE_146_VISUAL_CONTENT_PRIMITIVES.md) (visual primitives) · `src/domain/military/cafRankRecognitionPlan.ts` (metadata only)
 
 ## 1. Bottom line
 

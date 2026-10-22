@@ -15,11 +15,12 @@ Topic icons are compact recognition aids beside shipped topic titles on Library.
 - Production format is SVG whenever the result survives small-size QA cleanly. PNG is the fallback only when vector simplification materially damages the concept.
 - Standard canvas: `32 × 32` viewBox.
 - Standard stroke: `1.75`, round caps and joins.
-- Standard colour: Steel Ash `#979fac`.
+- Colour: the topic's solid track colour (`--learning`, `--survival`, `--tradecraft`), applied by `TopicGlyph` as a CSS mask, so the SVG's own stroke colour is ignored (Signal on Slate, #232, 2026-10-17). The SVG files keep their neutral stroke for use outside the app.
 - Transparent background; no tile, badge, gradient, shadow, texture, or decorative frame.
+- On Library plates the icon is a 28px column at the plate's left padding, identical on started and not-started plates so icons align down the list (#246). Home does not render topic icons.
 - Avoid tiny mechanical detail. The icon is judged at the actual Library-row size, about 26–28 px, not at source scale.
 - Text inside icons is normally avoided. Symbol systems may use their own characters when that is the clearest possible identifier; the Greek alphabet icon is the current exception.
-- Track colours remain typographic labels only. Topic icons do not inherit Learning/Survival/Tradecraft colours.
+- Since #232 (2026-10-17) topic icons take their track colour on Library plates and topic heroes; this supersedes the earlier "track colours are typographic labels only" rule.
 - User-authored topics do not receive a fake generic icon. Absence of a shipped mapping leaves the title-led row layout intact.
 
 ## Workflow for new shipped topics

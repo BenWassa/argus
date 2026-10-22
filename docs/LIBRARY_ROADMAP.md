@@ -1,7 +1,7 @@
 # Argus Library Roadmap
 
 **Status:** authoritative current library-expansion priority index  
-**Last reviewed:** 2026-10-07
+**Last reviewed:** 2026-10-15
 **Research method:** `docs/LIBRARY_RESEARCH_METHOD.md`
 
 ## Purpose
@@ -44,15 +44,16 @@ Research approval does not itself authorize implementation. A build issue exists
 
 | Priority | Family / candidate | Current state | Owner issue | Intended medium | Decision / note |
 | --- | --- | --- | --- | --- | --- |
-| **P0** | Shared visual content primitives | **Shipped** | #146 | Learn media + deterministic visual-choice item | Shipped shapes recorded in `docs/open/ISSUE_146_VISUAL_CONTENT_PRIMITIVES.md`; now used by the shipped cloud guide and other visual topics. |
+| **P0** | Shared visual content primitives | **Shipped** | #146 | Learn media + deterministic visual-choice item | Shipped shapes recorded in `docs/closed/ISSUE_146_VISUAL_CONTENT_PRIMITIVES.md`; now used by the shipped cloud guide and other visual topics. |
 | **P0** | Maritime — vessel orientation, navigation lights & day shapes | **Shipped** | #147 | HTML + deterministic SVG/React + objective visual choice | Learn-only orientation prerequisite; 16 light/aspect items + 5 day shapes. Detail and the pending domain-review note in `docs/open/ISSUE_147_MARITIME_LIGHTS_DAY_SHAPES.md`. |
-| **P0** | Maritime — selected International Code of Signals flags | **Shipped** (Pub. 102 comparison still open) | #148 | deterministic/redrawn SVG + visual recognition | 12 signals: A, B, D, F, J, L, M, O, U, V, W, Y. Designs await comparison with IMO/NGA depictions before merge; checklist in `docs/open/ISSUE_148_SIGNAL_FLAGS.md`. |
+| **P0** | Maritime — selected International Code of Signals flags | **Shipped** (NGA compared; IMO/domain acceptance open) | #148 | deterministic/redrawn SVG + visual recognition | 12 signals: A, B, D, F, J, L, M, O, U, V, W, Y. NGA depiction compared in PR #204; exact IMO proportions and independent domain acceptance remain open. See `docs/open/ISSUE_148_SIGNAL_FLAGS.md` and `docs/open/ISSUE_147_148_MARITIME_DOMAIN_REVIEW.md`. |
 | **P0** | Communications — Canadian radio procedure + marine VHF | **Shipped in v1.4.0** | #150 | HTML + finite recall / objective sequence choice | Merged via #184: three topics, 28 scored items, sourced from ISED RIC-22 and CCG RAMN 2026. Independent domain review remains open; see `docs/open/ISSUE_150_RADIO_TEXT_PROGRAMME.md`. |
 | **P0** | Communications — prerecorded listening/copy drills | **Runtime implemented; production blocked** | #151 | local prerecorded speech + transcript + objective drill | Runtime shipped (`docs/open/AUDIO_DRILLS_RUNTIME.md`); production scripts depend on #150 and the TTS bake-off needs model access and human listening QA. No microphone/ASR in first release. |
 | **P0** | Environment — WMO cloud genera visual field guide | **Shipped** | #131 | sourced real imagery + HTML Learn guide | Ten CC BY-SA photographs, provenance, WMO-grounded recognition cues and all-ten browser coverage shipped. Photographs remain Learn-only; scored photographic recognition is deferred. |
-| **P0** | Navigation — compass & bearing skills | **Shipped** | #149 | deterministic SVG/React + calculations | Existing eight-point topic remains prerequisite; four follow-on topics (12/12/16/12 items) shipped per #140. Detail in `docs/open/ISSUE_149_COMPASS_BEARINGS_IMPLEMENTATION.md`. |
+| **P0** | Navigation — compass & bearing skills | **Shipped** | #149 | deterministic SVG/React + calculations | Existing eight-point topic remains prerequisite; four follow-on topics (12/12/16/12 items) shipped per #140. Detail in `docs/closed/ISSUE_149_COMPASS_BEARINGS_IMPLEMENTATION.md`. |
 | **P0** | Military identity — CAF rank hierarchy & equivalencies | **Shipped** | #177 | structured HTML + 19 equivalency pairs / 38 directional prompts | Shipped via #180. #176 fixes the distinction between 17 statutory ranks and the practical 19-level recognition ladder, including MCpl/MS appointment and Basic/Trained junior classifications. |
 | **P0** | Military identity — Army / RCN / RCAF rank-insignia recognition | **Prepared; rights-blocked** | #178 | licensed official local imagery + objective visual choice | Licence-safe 57-item preparation shipped via #181. DND/CAF requires a licence to reproduce CAF insignia, so no insignia asset enters Git until written permission covers the public PWA/repository use. |
+| **P0** | Human Factors — observation, bias, situational awareness, decisions | **Authored and staged; not delivered** | #197 | single-best-answer vignettes on the existing objective-choice item | Owner approved on 2026-10-15 with Decision Under Uncertainty I as the fifth topic. Four topics × 9 items (36) plus shipped OODA (4) = 40. Staged in `src/domain/humanFactors/`, outside the seed and manifest, until an independent answer-key review passes. Contract and gates: `docs/open/ISSUE_197_ANALYST_WAVE1_HUMAN_FACTORS.md`. Not an earnable role. |
 | **P1** | Military identity — CANSOFCOM rank-insignia recognition | **Later extension** | #176 research | licensed official local imagery + objective visual choice | Names substantially duplicate the Army/RCAF hierarchy; defer the extra visual set until the three core environments ship and prove useful. |
 | **P1** | Navigation — topographic map literacy | **Later, research completed** | #140 research | synthetic deterministic contours / later real-map transfer | Valid beginner subset exists, but defer until #149 proves the shared visual-exercise system and cartographic QA is available. |
 | **P2** | Rigging / mechanical advantage | Parked | — | deterministic diagrams + calculations | Principles may fit; physical knot/rigging execution does not. |
@@ -112,6 +113,10 @@ Clouds proceed as a real-image-first WMO genus field guide. Natural variation is
 The first cloud release is Learn/reference only. Scored photo recognition requires the later dataset and held-out-image gate defined by #141. Weather associations remain narrower than forecasting. Fronts/weather-map literacy is a separate future topic.
 
 Beaufort remains a useful shipped environmental reference and should not be duplicated inside cloud work.
+
+### Human Factors
+
+Four bounded S1 topics (Observation vs Inference, Bias Control, Situational Awareness I, Decision Under Uncertainty I) teach recognition and selection inside short invented scenarios, beside the shipped OODA Loop. They are authored and tested but **not delivered**: they stay out of the seed and manifest until an independent reviewer has checked every answer key and mapped each item to its source. The line may later underpin the Analyst role (working title) only after all six D4 gates pass. No claim about real-world judgement, threat recognition or psychological expertise is made, and appearance is never treated as evidence of risk.
 
 ### Military identity
 

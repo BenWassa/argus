@@ -43,6 +43,7 @@ import {
   parseFluencyProgress,
   type MorseFluencyProgress,
 } from '../../domain/morse/fluency/progress'
+import { parseMorsePractice, type MorsePractice } from '../../domain/morse/practice'
 import { inferredOrigin } from '../../domain/library/catalog'
 import { parseChoice, parseVisual } from './visualParser'
 import { parseAudio, parseAudioEvidence, parseResponse } from './audioParser'
@@ -692,6 +693,26 @@ function parseFluency(
 }
 
 /**
+ * Formative direction-specific Morse practice (#221). It is an additive v5
+ * extension: pre-existing exports have no such state, while malformed or
+ * future-version values must reject the import instead of erasing progress.
+ */
+function parseMorsePracticeState(
+  value: unknown,
+  where: string,
+  sourceVersion: 2 | 3 | 4 | 5,
+): { ok: true; value: MorsePractice | undefined } | { ok: false; error: string } {
+  if (sourceVersion < 5) return { ok: true, value: undefined }
+  if (value === undefined || value === null) return { ok: true, value: undefined }
+  const parsed = parseMorsePractice(value)
+  if (!parsed.ok) return { ok: false, error: `${where} morsePractice ${parsed.error}` }
+  const progress = parsed.value
+  const fresh = progress.sequence.key === 0 && progress.sequence.read === 0 && progress.sequence.listen === 0 &&
+    Object.values(progress.characters).every((records) => Object.keys(records).length === 0)
+  return { ok: true, value: fresh ? undefined : progress }
+}
+
+/**
  * One character's review record, checked against the sittings that can
  * actually have elapsed.
  *
@@ -891,7 +912,16 @@ function parseHistory(value: unknown): Topic['history'] {
     if (correct > total) continue
     if (!STATUSES.includes(resolvedTo as never)) continue
 
-    history.push({ at, correct, total, resolvedTo: resolvedTo as Topic['status'] })
+    const missedItemIds = Array.isArray(entry.missedItemIds)
+      ? [...new Set(entry.missedItemIds.filter((id): id is string => typeof id === 'string' && id.length > 0))]
+      : []
+    history.push({
+      at,
+      correct,
+      total,
+      resolvedTo: resolvedTo as Topic['status'],
+      ...(missedItemIds.length > 0 ? { missedItemIds } : {}),
+    })
   }
   return history
 }
@@ -985,13 +1015,20 @@ function parseTopic(
   const morseFluency = parseFluency(t.morseFluency, `${where} ("${title}")`)
   if (!morseFluency.ok) return morseFluency
 
+  const morsePractice = parseMorsePracticeState(
+    t.morsePractice,
+    `${where} ("${title}")`,
+    sourceVersion,
+  )
+  if (!morsePractice.ok) return morsePractice
+
   const track = TRACKS.includes(t.track as never) ? (t.track as Topic['track']) : 'learning'
   let status = STATUSES.includes(t.status as never) ? (t.status as Topic['status']) : 'unstarted'
   const completedAt = typeof t.completedAt === 'string' ? t.completedAt : null
-  // A completed or decayed topic without a completion date would be counted
-  // in one place and missing from another. Demote rather than display a
-  // record that does not exist.
-  if (!completedAt && (status === 'completed' || status === 'decayed')) status = 'drilled'
+  // Old repair/learning records with completion stay learned. Preserve the
+  // existing drilled fallback when a legacy completion has no dated receipt.
+  if (completedAt) status = 'completed'
+  else if (status === 'completed' || status === 'decayed') status = 'drilled'
 
   return {
     ok: true,
@@ -1033,6 +1070,7 @@ function parseTopic(
       ...(lessonSitting.value ? { lessonSitting: lessonSitting.value } : {}),
       ...(morseReview.value ? { morseReview: morseReview.value } : {}),
       ...(morseFluency.value ? { morseFluency: morseFluency.value } : {}),
+      ...(morsePractice.value ? { morsePractice: morsePractice.value } : {}),
       // Absent on a record written before the anchor existed. The journey layer
       // treats that as "unknown" and falls back to `learningAt`, so an upgrade
       // can never make an already-acquired topic wait longer than it did before.
