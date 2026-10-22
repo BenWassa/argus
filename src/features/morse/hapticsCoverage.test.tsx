@@ -115,8 +115,9 @@ describe('#280: Morse verdict haptics are emitted by the grading surface', () =>
     expect(vibrate).not.toHaveBeenCalled()
     correct()
     expect(vibrate.mock.calls.map(([value]) => value)).toEqual([effect('settle')])
-    // The answer gate becomes inert while its feedback remains.
-    correct()
+    // Learn replaces the key with visible feedback, so no second submission
+    // can occur while the result stands. Its dwell/advance emits no new pulse.
+    expect(screen.queryByRole('button', { name: 'Correct key' })).toBeNull()
     expect(vibrate).toHaveBeenCalledTimes(1)
     next()
     expect(vibrate).toHaveBeenCalledTimes(1)
