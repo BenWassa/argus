@@ -60,6 +60,12 @@ The production build asks who you are before showing anything, so sign-in is not
 
 The **full offline-first runtime guarantee is active scope in #113**, not yet a claim about the current localStorage/service-worker implementation. #113 moves canonical persistence to IndexedDB, makes sync intent durable across restart, hardens provisioned-device offline auth startup and makes the production Vite app shell deterministic for cold offline launch. See `PRODUCT.md`, `docs/closed/ISSUE_93_FIREBASE_PROGRESS_SYNC.md` and `docs/open/ISSUE_113_OFFLINE_FIRST_RUNTIME.md`.
 
+## Current integration status (2026-10-22)
+
+The Signal-on-Slate overhaul landed on `main` in [#271](https://github.com/BenWassa/argus/pull/271) with sticky Morse Back follow-up [#272](https://github.com/BenWassa/argus/pull/272). This is repository integration **not** proof of production deployment or physical Pixel acceptance. The owner/device/release gates remain under [#225](https://github.com/BenWassa/argus/issues/225) and [#233](https://github.com/BenWassa/argus/issues/233). New work should branch from `main`, not the historical `feat/ui-overhaul` lane.
+
+The active [execution checkpoint](docs/open/NEXT_BATCHES.md) lists four currently open PRs (#214, #222, #278 and #282), including outstanding source review, and distinguishes the new [Morse speed](https://github.com/BenWassa/argus/issues/279), [haptics](https://github.com/BenWassa/argus/issues/280), [Pixel calibration](https://github.com/BenWassa/argus/issues/281) and [lesson-completion](https://github.com/BenWassa/argus/issues/276) issues from shipped behavior. The full offline-first guarantee remains open in #113.
+
 ## Durable product and programme documentation
 
 - [Release v1.5.3](docs/closed/RELEASE_1_5_3.md) — adaptive letter practice, shared Morse corrections and simpler navigation; production and demo deployment verified.
@@ -77,8 +83,8 @@ The **full offline-first runtime guarantee is active scope in #113**, not yet a 
 - [Scuba asset review](docs/open/ISSUE_132_SCUBA_ASSET_REVIEW.md) — four sourced photo candidates and two remaining image briefs; Learn-only scope.
 - [Pre-release PR review](docs/closed/PRE_RELEASE_PR_REVIEW.md) — merge readiness, prepared cleanup and the outstanding offline durability blocker.
 - [Human acceptance checklist](docs/open/HUMAN_ACCEPTANCE_CHECKLIST.md) — one review session for prepared scuba, Analyst, radio, badge, Pixel, offline and permission gates.
-- [Next-batch checkpoint](docs/open/NEXT_BATCHES.md) — completed merges, remaining offline integration and owner/external gates.
-- [UI overhaul plan (#225)](docs/open/ISSUE_225_UI_OVERHAUL.md) — implemented on `feat/ui-overhaul`, awaiting owner Pixel sign-off and release; scope, decisions, delivery map and critique results (Morse 31/40, target 32/40).
+- [Current execution queue (22 October 2026)](docs/open/NEXT_BATCHES.md) — merged implementation vs open PRs, Pixel acceptance, offline integration and source-review gates; [October 15 checkpoint](docs/closed/NEXT_BATCHES_2026_10_15.md) is archived.
+- [Signal-on-Slate overhaul (#225)](docs/open/ISSUE_225_UI_OVERHAUL.md) — integrated to `main` via [#271](https://github.com/BenWassa/argus/pull/271) on 20 October; child implementation issues closed, owner Pixel/release acceptance still open under #225/#233 (Morse critique 31/40, target 32/40).
 - [Offline shell and update safety](docs/open/ISSUE_113_OFFLINE_SHELL.md) — generation-pinned navigation and failed-update verification; merged hardening.
 - [IndexedDB persistence foundation](docs/open/ISSUE_113_INDEXEDDB_FOUNDATION.md) — native database/outbox boundary and browser verification; production integration remains open.
 - [Signal flag authoritative comparison](docs/open/ISSUE_148_PUB102_COMPARISON.md) — NGA comparison findings and remaining IMO/domain acceptance gates.
@@ -103,9 +109,9 @@ The **full offline-first runtime guarantee is active scope in #113**, not yet a 
 - `docs/closed/ISSUE_104_LIBRARY_EXPANSION_RESEARCH.md` — historical first-pass library research; its Batch A shipped as five catalog topics.
 - `docs/closed/ISSUE_104_FIELD_HUMAN_SKILLS_EXPANSION.md` — historical practical human-systems research; detailed candidate papers remain under `docs/open/library-research/` as source material.
 - `docs/closed/ISSUE_104_SCENARIO_ITEMS.md` — historical proposal for generic authored scenario items.
-- `docs/closed/ISSUE_138_MARITIME_VISUAL_LITERACY.md` — active P0 research brief for vessel orientation, navigation lights/day shapes and signal flags.
-- `docs/closed/ISSUE_139_RADIO_COMMUNICATIONS_AUDIO.md` — active P0 research brief for source-scoped radio procedure and audio drills.
-- `docs/closed/ISSUE_140_COMPASS_BEARINGS_TOPO.md` — active P0 compass/bearings research plus the P1 topographic-map spike.
+- `docs/closed/ISSUE_138_MARITIME_VISUAL_LITERACY.md` — completed historical P0 research brief for vessel orientation, navigation lights/day shapes and signal flags; current independent review is still open.
+- `docs/closed/ISSUE_139_RADIO_COMMUNICATIONS_AUDIO.md` — completed historical P0 research brief; current radio reviewer approval remains open.
+- `docs/closed/ISSUE_140_COMPASS_BEARINGS_TOPO.md` — historical compass/bearings research and proposed topographic-map spike.
 - [Topic-page revamp](docs/open/TOPIC_PAGE_REVAMP.md) — one-test completion, ordered recall, folded reference support and artwork delivery.
 - [Cloud visual guide and asset ledger](docs/closed/ISSUE_131_WMO_CLOUD_VISUAL_GUIDE.md) — shipped textual vocabulary Test with unscored, credited photographs.
 - `docs/closed/ISSUE_141_CLOUD_WEATHER_RECOGNITION.md` — completed cloud/weather recognition research authority; scored photographic recognition remains deferred.
