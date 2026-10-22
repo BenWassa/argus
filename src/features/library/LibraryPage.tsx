@@ -225,9 +225,17 @@ export function LibraryPage({
           focusItems={focusItems}
           onClose={closeForm}
           onSave={(topic) => {
-            upsertTopic(topic)
-            setAnnouncement(editing ? `${topic.title} saved.` : `${topic.title} added to the library.`)
-            closeForm()
+            const result = upsertTopic(topic)
+            const settled = (saved?: boolean) => {
+              if (saved === false) {
+                setAnnouncement(`${topic.title} was not saved; the editor remains open.`)
+                return
+              }
+              setAnnouncement(editing ? `${topic.title} saved.` : `${topic.title} added to the library.`)
+              closeForm()
+            }
+            if (result && typeof result.then === 'function') void result.then(settled)
+            else settled()
           }}
         />
       )}
@@ -255,9 +263,18 @@ export function LibraryPage({
           confirmLabel="Delete topic"
           onCancel={() => setPendingDelete(null)}
           onConfirm={() => {
-            removeTopic(pendingDelete.id)
-            setAnnouncement(`${pendingDelete.title} deleted.`)
-            setPendingDelete(null)
+            const topic = pendingDelete
+            const result = removeTopic(topic.id)
+            const settled = (saved?: boolean) => {
+              if (saved === false) {
+                setAnnouncement(`${topic.title} was not deleted; the library is unchanged.`)
+                return
+              }
+              setAnnouncement(`${topic.title} deleted.`)
+              setPendingDelete(null)
+            }
+            if (result && typeof result.then === 'function') void result.then(settled)
+            else settled()
           }}
         />
       )}
