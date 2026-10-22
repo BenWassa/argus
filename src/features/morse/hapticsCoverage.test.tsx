@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, renderHook, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { MORSE_LETTERS, type MorseLetter } from '../../domain/morse/code'
 import { morseWordCheckpoints } from '../../domain/morse/curriculum/checkpoints'
@@ -12,6 +12,7 @@ import { MORSE_FEEDBACK_CORRECT_MS, MORSE_TRANSITION_MS } from '../../domain/mor
 import { HAPTIC_PATTERNS, setHapticsEnabled } from '../../shared/haptics'
 import { LibraryProvider } from '../../services/library/LibraryProvider'
 import { MorseLesson } from './lesson/MorseLesson'
+import { useLessonProgression } from './lesson/useLessonProgression'
 import { MorseCheckpoint } from './lesson/MorseCheckpoint'
 import { MorsePlacementDialog } from './MorsePlacementDialog'
 import { SendRun } from './fluency/SendRun'
@@ -121,6 +122,22 @@ describe('#280: Morse verdict haptics are emitted by the grading surface', () =>
     expect(vibrate).toHaveBeenCalledTimes(1)
   })
 
+  it('grades Learn listening once at the accepted answer boundary, not on replayed callbacks', () => {
+    const vibrate = vibrateSpy()
+    const topic = freshMorse()
+    const initialRun = firstCheck()
+    const entry = initialRun.entries.find((candidate) => candidate.introduced)
+    if (!entry) throw new Error('Missing introduced listening entry.')
+    const { result } = renderHook(() => useLessonProgression({
+      topic, initialRun, onExit: vi.fn(), onTest: vi.fn(), onReference: vi.fn(),
+    }), { wrapper: LibraryProvider })
+    expect(vibrate).not.toHaveBeenCalled()
+    act(() => result.current.answerListening(entry.itemId, entry.glyph))
+    expect(vibrate.mock.calls.map(([value]) => value)).toEqual([effect('settle')])
+    act(() => result.current.answerListening(entry.itemId, entry.glyph))
+    expect(vibrate).toHaveBeenCalledTimes(1)
+  })
+
   it('grades each checkpoint warmup, then one complete word without doubling its final character', () => {
     const vibrate = vibrateSpy()
     render(<MorseCheckpoint checkpoint={morseWordCheckpoints()[0]} onExit={vi.fn()} />)
@@ -161,6 +178,19 @@ describe('#280: Morse verdict haptics are emitted by the grading surface', () =>
     wrong()
     expect(vibrate).toHaveBeenCalledTimes(1)
     expect(document.querySelector('.morse-placement-feedback')).toBeTruthy()
+  })
+
+  it('uses one whole-word placement result instead of per-letter pulses', () => {
+    const vibrate = vibrateSpy()
+    render(<MorsePlacementDialog topic={freshMorse()} onClose={vi.fn()} onNew={vi.fn()}
+      onCommit={vi.fn()} onContinue={vi.fn()} />)
+    fireEvent.click(screen.getByRole('button', { name: /Know some Morse/ }))
+    for (let i = 0; i < 8; i += 1) { correct(); next() }
+    expect(screen.getByRole('button', { name: 'Correct word' })).toBeTruthy()
+    const before = vibrate.mock.calls.length
+    fireEvent.click(screen.getByRole('button', { name: 'Correct word' }))
+    expect(vibrate.mock.calls.length).toBe(before + 1)
+    expect(vibrate.mock.lastCall?.[0]).toEqual(effect('word'))
   })
 
   it('sends a Spotlight word with only one final word verdict and no review duplicate', () => {
