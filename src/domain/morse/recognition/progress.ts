@@ -137,7 +137,7 @@ export function recordRecognitionOutcome(
   if (!presented || presented.shown < 1 || presented.lastShownSequence < 1 ||
       presented.lastShownSequence !== options.presentedSequence ||
       presented.lastGradedSequence === options.presentedSequence) return state
-  const track = state.streams[stream] ?? { sequence: 0, characters: {} }
+  const track: RecognitionTrack = state.streams[stream] ?? { sequence: 0, characters: {} }
   const previous = track.characters[glyph]!
   const elapsed = isSpeed(stream) && correct ? cappedLatencyMs(options.elapsedMs ?? null) : null
   const next: RecognitionCharacter = {
@@ -172,7 +172,7 @@ function schedulerView(track: RecognitionTrack, direction: PracticeDirection): M
 }
 
 export function recognitionPriority(state: MorseRecognition, stream: RecognitionStream, glyph: MorseLetter): number {
-  const track = state.streams[stream] ?? { sequence: 0, characters: {} }
+  const track: RecognitionTrack = state.streams[stream] ?? { sequence: 0, characters: {} }
   const base = practiceWeight(schedulerView(track, streamDirection(stream)), streamDirection(stream), glyph)
   const correctSamples = track.characters[glyph]?.recentCorrectMs ?? []
   const typical = correctSamples.length >= RECOGNITION_SPEED.minSpeedSamples ? median(correctSamples) : null
@@ -187,7 +187,7 @@ export function selectRecognitionLetter(
   options: { recent?: readonly MorseLetter[]; rng?: () => number } = {},
 ): { letter: MorseLetter | null; progress: MorseRecognition } {
   if (!validRecognitionStream(stream)) throw new RangeError('Invalid recognition stream.')
-  const track = state.streams[stream] ?? { sequence: 0, characters: {} }
+  const track: RecognitionTrack = state.streams[stream] ?? { sequence: 0, characters: {} }
   const direction = streamDirection(stream)
   const selected = selectPracticeLetter(schedulerView(track, direction), direction, eligible, {
     ...options,
