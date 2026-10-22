@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { MORSE_LETTERS, type MorseLetter } from '../../domain/morse/code'
 import { morseWordCheckpoints } from '../../domain/morse/curriculum/checkpoints'
 import {
-  advanceLesson, answerLesson, currentStep, introduceLesson, startLesson, type LessonRun,
+  currentStep, introduceLesson, startLesson, type LessonRun,
 } from '../../domain/morse/curriculum/lesson'
 import { catalogDefinition, freshCatalogTopic } from '../../domain/library/catalog'
 import { newFluencyProgress } from '../../domain/morse/fluency/progress'
