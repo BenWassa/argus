@@ -90,7 +90,8 @@ describe('#276: lessons finish once; Test is independent', () => {
   })
 
   it('does not mistake an ordinary untested topic for completed learning', () => {
-    const ordinary = seedLibrary().topics.find((topic) => topic.id === 'cardinal-bearings')!
+    const seeded = seedLibrary().topics.find((topic) => topic.id === 'cardinal-bearings')!
+    const ordinary: Topic = { ...seeded, status: 'unstarted', completedAt: null, drilledAt: null, history: [] }
     expect(isLearned(ordinary)).toBe(false)
     expect(journeyFor(ordinary).action).toBe('test')
     expect(journeyFor(ordinary).due).toBe(true)

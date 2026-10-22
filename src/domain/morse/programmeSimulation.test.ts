@@ -36,7 +36,6 @@ import {
 } from './curriculum/review'
 import { ALL_MORSE_LETTERS } from './curriculum/packetOrder'
 import { journeyFor } from '../study/journey'
-import { resolveStudy } from '../study/scheduling'
 import { parseLibrary } from '../../infrastructure/persistence/libraryParser'
 import { seedLibrary } from '../library/catalogSeed'
 import type { MorseLetter } from './code'

@@ -109,7 +109,7 @@ describe('Morse word checkpoint curriculum', () => {
     progress[itemIdForGlyph(base, lessonPackets()[0].novel[0])] = 'cued'
     const repairing = { ...base, lessonProgress: progress }
 
-    expect(morseLessonPath(repairing)![0].state).toBe('current')
+    expect(morseLessonPath(repairing)![0].state).toBe('completed')
     expect(morseWordCheckpointPath(repairing)!.map((checkpoint) => checkpoint.unlocked)).toEqual([true, true, true, true])
   })
 
