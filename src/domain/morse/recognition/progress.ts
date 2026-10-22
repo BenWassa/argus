@@ -16,6 +16,8 @@ export interface RecognitionCharacter {
   outcomes: boolean[]
   shown: number
   lastShownSequence: number
+  /** Prevent duplicate/stale grading for the same presented prompt. */
+  lastGradedSequence: number
   /** Correct, independent, full-MC4 Speed response times only; oldest first. */
   recentCorrectMs: number[]
 }
@@ -81,12 +83,15 @@ export function parseMorseRecognition(value: unknown):
         return fail('Invalid recognition letter.')
       }
       const item = rawCharacter as Record<string, unknown>
-      if (Object.keys(item).some((k) => !['outcomes', 'shown', 'lastShownSequence', 'recentCorrectMs'].includes(k)) ||
+      if (Object.keys(item).some((k) => !['outcomes', 'shown', 'lastShownSequence', 'lastGradedSequence', 'recentCorrectMs'].includes(k)) ||
           !Array.isArray(item.outcomes) || item.outcomes.length > 8 ||
           item.outcomes.some((outcome) => typeof outcome !== 'boolean') ||
           !Number.isSafeInteger(item.shown) || (item.shown as number) < 0 || (item.shown as number) > COUNTER_MAX ||
           !Number.isSafeInteger(item.lastShownSequence) || (item.lastShownSequence as number) < 0 ||
           (item.lastShownSequence as number) > (track.sequence as number) ||
+          !Number.isSafeInteger(item.lastGradedSequence) || (item.lastGradedSequence as number) < 0 ||
+          (item.lastGradedSequence as number) > (item.lastShownSequence as number) ||
+          (item.outcomes.length > 0 && (item.lastGradedSequence as number) === 0) ||
           ((item.shown as number) === 0) !== ((item.lastShownSequence as number) === 0) ||
           item.outcomes.length > Math.min(item.shown as number, 8) ||
           !Array.isArray(item.recentCorrectMs) || item.recentCorrectMs.length > 8 ||
@@ -106,6 +111,7 @@ export function parseMorseRecognition(value: unknown):
       const item = raw as RecognitionCharacter
       characters[glyph as MorseLetter] = {
         outcomes: [...item.outcomes], shown: item.shown, lastShownSequence: item.lastShownSequence,
+        lastGradedSequence: item.lastGradedSequence,
         recentCorrectMs: [...item.recentCorrectMs],
       }
     }
@@ -122,18 +128,21 @@ export function recordRecognitionOutcome(
   stream: RecognitionStream,
   glyph: MorseLetter,
   correct: boolean,
-  options: { independent?: boolean; choices: number; elapsedMs?: number | null },
+  options: { independent: boolean; choices: number; presentedSequence: number; elapsedMs?: number | null },
 ): MorseRecognition {
   if (!validRecognitionStream(stream) || !validGlyph(glyph)) throw new RangeError('Invalid recognition stream or glyph.')
-  if (options.independent === false || options.choices !== 4) return state
+  if (!options.independent || options.choices !== 4) return state
   // Recognition evidence requires a previously presented question.
   const presented = state.streams[stream]?.characters[glyph]
-  if (!presented || presented.shown < 1 || presented.lastShownSequence < 1) return state
+  if (!presented || presented.shown < 1 || presented.lastShownSequence < 1 ||
+      presented.lastShownSequence !== options.presentedSequence ||
+      presented.lastGradedSequence === options.presentedSequence) return state
   const track = state.streams[stream] ?? { sequence: 0, characters: {} }
-  const previous = track.characters[glyph] ?? { outcomes: [], shown: 0, lastShownSequence: 0, recentCorrectMs: [] }
+  const previous = track.characters[glyph]!
   const elapsed = isSpeed(stream) && correct ? cappedLatencyMs(options.elapsedMs ?? null) : null
   const next: RecognitionCharacter = {
     ...previous,
+    lastGradedSequence: options.presentedSequence,
     outcomes: [...previous.outcomes, correct].slice(-8),
     recentCorrectMs: elapsed === null ? previous.recentCorrectMs :
       [...previous.recentCorrectMs, elapsed].slice(-RECOGNITION_SPEED.typicalWindow),
@@ -191,6 +200,7 @@ export function selectRecognitionLetter(
     const previous = characters[glyph as MorseLetter]
     characters[glyph as MorseLetter] = {
       outcomes: [...value.outcomes], shown: value.shown, lastShownSequence: value.lastShownSequence,
+      lastGradedSequence: previous?.lastGradedSequence ?? 0,
       recentCorrectMs: previous?.recentCorrectMs ?? [],
     }
   }
