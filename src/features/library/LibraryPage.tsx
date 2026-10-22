@@ -161,7 +161,7 @@ export function LibraryPage({
 
     raf = requestAnimationFrame(settle)
     return () => cancelAnimationFrame(raf)
-  }, [open, topics])
+  }, [open, topics, openTopicOnMount])
 
   function openTopic(id: string) {
     setOpenId(id)
