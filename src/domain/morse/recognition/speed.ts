@@ -55,7 +55,9 @@ export interface RecognitionReadiness {
   visible: boolean
 }
 
-export function armRecognitionClock(nowMs: number, ready: RecognitionReadiness): RecognitionClock {
+export function armRecognitionClock(nowMs: number, ready: RecognitionReadiness, previous: RecognitionClock = IDLE_RECOGNITION_CLOCK): RecognitionClock {
+  // Never restart the clock for an interrupted/replayed or already-started prompt.
+  if (previous.phase !== 'idle') return previous
   if (!Number.isFinite(nowMs) || !ready.visible || !ready.tilesReady || ready.choices !== 4 ||
       (ready.direction === 'listen' && ready.playbackFinished !== true)) return IDLE_RECOGNITION_CLOCK
   return { phase: 'running', startedAtMs: nowMs }
@@ -107,7 +109,7 @@ export function recognitionUtility(rawMs: number): number | null {
 
 /** Score one homogeneous stream only (same response method and audio rate). */
 export function summarizeRecognitionRound(attempts: readonly RecognitionAttempt[]): RecognitionRoundSummary {
-  const graded = attempts.filter((attempt) => attempt.independent)
+  const graded = attempts.filter((attempt) => attempt.independent && attempt.choices === 4)
   const valid = graded.flatMap((attempt) => {
     const capped = cappedLatencyMs(attempt.elapsedMs)
     return attempt.choices === 4 && !attempt.interrupted && capped !== null
