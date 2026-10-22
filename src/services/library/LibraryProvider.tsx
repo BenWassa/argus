@@ -48,7 +48,7 @@ interface LibraryStore {
    * Whole-object replacement. Correct for creation, authoring and import, where
    * replacing the record *is* the intent.
    */
-  upsertTopic: (topic: Topic) => void
+  upsertTopic: (topic: Topic) => void | Promise<boolean>
   /**
    * Functional update, and the primitive independent learner-progress writes
    * should use (#62).
@@ -66,8 +66,8 @@ interface LibraryStore {
    * and is handed here as a pure `current => next` function. An updater for a
    * topic that no longer exists is dropped rather than recreating it.
    */
-  updateTopic: (id: string, update: (current: Topic) => Topic) => void
-  removeTopic: (id: string) => void
+  updateTopic: (id: string, update: (current: Topic) => Topic) => void | Promise<boolean>
+  removeTopic: (id: string) => void | Promise<boolean>
   replaceLibrary: (library: CurrentLibrary) => void | Promise<boolean>
   resetLibrary: () => void | Promise<boolean>
   /** Catalog topics this library has been offered, for sync's library-level record. */
@@ -334,7 +334,7 @@ function IndexedLibraryProvider({ children }: { children: ReactNode }) {
 
   const upsertTopic = useCallback((written: Topic) => {
     const topic = normalizeWrittenTopic(written)
-    transact((prev) => {
+    return transact((prev) => {
       const i = prev.topics.findIndex((t) => t.id === topic.id)
       const topics = i < 0
         ? [...prev.topics, { ...topic, origin: topic.origin ?? ('user' as const) }]
@@ -344,7 +344,7 @@ function IndexedLibraryProvider({ children }: { children: ReactNode }) {
   }, [transact])
 
   const updateTopic = useCallback((id: string, update: (current: Topic) => Topic) => {
-    transact((prev) => {
+    return transact((prev) => {
       const at = prev.topics.findIndex((topic) => topic.id === id)
       if (at < 0) return prev
       const next = update(prev.topics[at])
@@ -356,7 +356,7 @@ function IndexedLibraryProvider({ children }: { children: ReactNode }) {
   }, [transact])
 
   const removeTopic = useCallback((id: string) => {
-    transact((prev) => ({ ...prev, topics: prev.topics.filter((t) => t.id !== id) }))
+    return transact((prev) => ({ ...prev, topics: prev.topics.filter((t) => t.id !== id) }))
   }, [transact])
 
   const replaceLibrary = useCallback((next: CurrentLibrary) => {
@@ -365,7 +365,7 @@ function IndexedLibraryProvider({ children }: { children: ReactNode }) {
       ...reconciled.library,
       roleAwards: mergeRoleAwards(prev.roleAwards ?? [], reconciled.library.roleAwards ?? []),
       roleAwardGeneration: prev.roleAwardGeneration ?? 0,
-    }))
+    })).then((saved) => { if (saved) clearAllLessonSittings(); return saved })
     // Sidecar is retired only after the canonical transaction succeeds.
   }, [transact])
 
@@ -374,7 +374,7 @@ function IndexedLibraryProvider({ children }: { children: ReactNode }) {
       ...reconcileLoadedLibrary(emptyLibrary()).library,
       roleAwards: [],
       roleAwardGeneration: (prev.roleAwardGeneration ?? 0) + 1,
-    }))
+    })).then((saved) => { if (saved) clearAllLessonSittings(); return saved })
   }, [transact])
 
   const bindOwner = useCallback(async (uid: string) => {
@@ -404,7 +404,7 @@ function IndexedLibraryProvider({ children }: { children: ReactNode }) {
   }, [install])
 
   const mergeCatalogDelivered = useCallback((ids: readonly string[]) => {
-    transact((prev) => {
+    return transact((prev) => {
       const known = new Set(prev.catalogDelivered ?? [])
       if (ids.every((id) => known.has(id))) return prev
       return { ...prev, catalogDelivered: [...new Set([...known, ...ids])].sort() }
@@ -412,7 +412,7 @@ function IndexedLibraryProvider({ children }: { children: ReactNode }) {
   }, [transact])
 
   const mergeAwards = useCallback((awards: readonly RoleAward[], generation: number) => {
-    transact((prev) => {
+    return transact((prev) => {
       const localGeneration = prev.roleAwardGeneration ?? 0
       if (generation < localGeneration) return prev
       const merged = generation > localGeneration
