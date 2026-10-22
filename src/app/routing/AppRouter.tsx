@@ -85,9 +85,15 @@ export function AppRouter() {
   const roleOverviewScroll = useRef(0)
 
   useEffect(() => {
-    // Seed/normalise the existing document entry. Never push a synthetic root:
-    // Today must remain the final Argus boundary before browser/platform exit.
-    replaceNavigationState(routeRef.current, historyIndex.current)
+    // A pasted role link has no Roles entry underneath it. Create exactly that
+    // overview stop so Android/browser Back closes detail before leaving Argus.
+    // Ordinary entry still seeds in place, never adding a phantom Today root.
+    if (!initialHistory && routeRef.current.kind === 'role') {
+      replaceNavigationState({ kind: 'section', view: 'roles' }, 0)
+      historyIndex.current = pushNavigationState(routeRef.current, 0)
+    } else {
+      replaceNavigationState(routeRef.current, historyIndex.current)
+    }
 
     function onPopState(event: PopStateEvent) {
       const state = readNavigationState(event.state)
