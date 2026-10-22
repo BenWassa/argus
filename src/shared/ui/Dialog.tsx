@@ -12,12 +12,15 @@ interface DialogProps {
   centred?: boolean
   /** A framed session supplies its own visible title and Close control. */
   hideHeader?: boolean
+  /** A route-backed detail uses real browser Back, not the transient-dialog blocker. */
+  blockBack?: boolean
+  className?: string
 }
 
 const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
-export function Dialog({ title, onClose, children, closeLabel, centred, hideHeader }: DialogProps) {
+export function Dialog({ title, onClose, children, closeLabel, centred, hideHeader, blockBack = true, className = '' }: DialogProps) {
   const panel = useRef<HTMLDivElement>(null)
   const opener = useRef<Element | null>(null)
   const titleId = useId()
@@ -39,10 +42,10 @@ export function Dialog({ title, onClose, children, closeLabel, centred, hideHead
     // App history adapter bounces the attempted route pop, while this callback
     // reuses the dialog's existing close policy (including TopicForm's dirty
     // discard safeguard) instead of inventing a parallel Android path.
-    const unregisterBack = registerBackBlocker(() => {
+    const unregisterBack = blockBack ? registerBackBlocker(() => {
       close.current()
       return true
-    })
+    }) : () => {}
 
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === 'Escape') {
@@ -81,10 +84,10 @@ export function Dialog({ title, onClose, children, closeLabel, centred, hideHead
         else document.getElementById('main')?.focus()
       })
     }
-  }, [])
+  }, [blockBack])
 
   return (
-    <div className={centred ? 'backdrop is-centred' : 'backdrop'} onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+    <div className={`${centred ? 'backdrop is-centred' : 'backdrop'}${className ? ` ${className}` : ''}`} onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <div
         className="sheet"
         role="dialog"
