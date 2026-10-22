@@ -5,6 +5,7 @@ import { parseSyncedTopic, useSync, type SyncableStore } from './useSync'
 import { rememberSignedIn } from './syncSession'
 import { unconfiguredSyncBackend, type SyncBackend, type SyncUser } from './syncBackend'
 import { libraryMetaJson, topicJson, type RemoteRecord } from './syncPlanner'
+import { loadLedger } from './syncLedger'
 import { seedLibrary } from '../../domain/library/catalogSeed'
 import type { Topic } from '../../domain/library/topic'
 import type { RoleAward } from '../../domain/roles/awards'
@@ -225,6 +226,24 @@ describe('carrying out a plan', () => {
     await waitFor(() => expect(result.current.state.kind).toBe('error'))
     expect(store.removed).toEqual([])
     expect(store.upserted).toEqual([])
+  })
+
+  it('does not acknowledge remote adoption when the local IndexedDB commit fails', async () => {
+    const topic = realTopic()
+    const store = fakeStore([])
+    store.upsertTopic = async () => false
+    const backend = fakeBackend()
+    const { result } = renderHook(() => useSync(store, backend))
+
+    act(() => backend.emitUser(OWNER))
+    act(() => backend.emitRecords([
+      { topicId: topic.id, json: topicJson(topic), revision: 2, updatedAtMs: 1000 },
+    ]))
+
+    await waitFor(() => expect(result.current.state.kind).toBe('error'))
+    expect(store.upserted).toHaveLength(0)
+    expect(loadLedger(OWNER.uid)).toEqual({})
+    expect(backend.pushed).toHaveLength(0)
   })
 
   it('signs out without touching the record on this device', async () => {
