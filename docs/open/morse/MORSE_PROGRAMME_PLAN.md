@@ -1,5 +1,7 @@
 # Argus programme — progressive Morse-code learning
 
+> **Current owner decision — #276, 2026-10-22:** Every required lesson counts once, permanently. All thirteen complete Morse as Learned; later-sitting consolidation, compulsory after-course review and required Test are superseded. Test remains optional, independent and formally scored. Historical policies retained below are not current gates.
+
 > **Progress authority update, 2026-10-19:** [Learning progress](../PROGRESS_ARCHITECTURE.md) supersedes earlier decay/repair routing and repeated completion requirements in this document. Learned topics stay learned. Home continues the top unfinished topic.
 
 > **After-course addendum — 2026-09-30.** A finished course now always has a next step. Letters it could not confirm or repair are gone over in keyed after-course runs (`MORSE_LESSON.md`). Missed letters lead Fluency and have a keyed practise-missed sprint (`MORSE_FLUENCY.md`). A full scored check or a quick review is available whenever the learner chooses (`MORSE_INTERMEDIATE_PATH.md`, no-clock addendum).
