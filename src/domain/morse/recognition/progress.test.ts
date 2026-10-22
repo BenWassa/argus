@@ -19,9 +19,9 @@ function withHistories(): MorseRecognition {
       'read/speed': {
         sequence: 12,
         characters: {
-          E: { shown: 6, lastShownSequence: 8, outcomes: [true, true, true, true, true], recentCorrectMs: [9000, 9000, 9000] },
-          Y: { shown: 4, lastShownSequence: 12, outcomes: [false, false, false, false], recentCorrectMs: [] },
-          M: { shown: 2, lastShownSequence: 5, outcomes: [true, true], recentCorrectMs: [10_000, 10_000] },
+          E: { shown: 6, lastShownSequence: 8, lastGradedSequence: 8, outcomes: [true, true, true, true, true], recentCorrectMs: [9000, 9000, 9000] },
+          Y: { shown: 4, lastShownSequence: 12, lastGradedSequence: 12, outcomes: [false, false, false, false], recentCorrectMs: [] },
+          M: { shown: 2, lastShownSequence: 5, lastGradedSequence: 5, outcomes: [true, true], recentCorrectMs: [10_000, 10_000] },
         },
       },
     },
@@ -40,7 +40,7 @@ describe('independent formative MC4 recognition history', () => {
     const freeResponse = newMorsePractice()
     const presented = selectRecognitionLetter(source, 'read/speed', ['A', 'E', 'M', 'Y'], { rng: () => 0 })
     const graded = recordRecognitionOutcome(presented.progress, 'read/speed', presented.letter!, true,
-      { independent: true, choices: 4, elapsedMs: 300_000 })
+      { independent: true, choices: 4, presentedSequence: presented.progress.streams['read/speed']!.sequence, elapsedMs: 300_000 })
     expect(graded.streams['read/speed']?.characters[presented.letter!]?.recentCorrectMs).toEqual([10_000])
     expect(graded.streams['read/practice']).toBeUndefined()
     expect(graded.streams['listen/speed@20']).toBeUndefined()
@@ -50,16 +50,21 @@ describe('independent formative MC4 recognition history', () => {
 
   it('rejects grading an unpresented or non-four-choice item, and ignores assisted evidence', () => {
     const initial = newMorseRecognition()
-    expect(recordRecognitionOutcome(initial, 'read/speed', 'E', true, { choices: 4, elapsedMs: 100 })).toBe(initial)
+    expect(recordRecognitionOutcome(initial, 'read/speed', 'E', true, { independent: true, choices: 4, presentedSequence: 1, elapsedMs: 100 })).toBe(initial)
     const selected = selectRecognitionLetter(initial, 'read/speed', ['E', 'A', 'I'], { rng: () => 0 })
+    const presentedSequence = selected.progress.streams['read/speed']!.sequence
     expect(recordRecognitionOutcome(selected.progress, 'read/speed', selected.letter!, true,
-      { choices: 3, elapsedMs: 100 })).toBe(selected.progress)
+      { independent: true, choices: 3, presentedSequence, elapsedMs: 100 })).toBe(selected.progress)
     expect(recordRecognitionOutcome(selected.progress, 'read/speed', selected.letter!, true,
-      { choices: 4, independent: false, elapsedMs: 100 })).toBe(selected.progress)
+      { choices: 4, independent: false, presentedSequence, elapsedMs: 100 })).toBe(selected.progress)
     const ordinary = recordRecognitionOutcome(selected.progress, 'read/speed', selected.letter!, false,
-      { choices: 4, elapsedMs: 100 })
+      { choices: 4, independent: true, presentedSequence, elapsedMs: 100 })
     expect(ordinary.streams['read/speed']?.characters[selected.letter!]?.outcomes).toEqual([false])
     expect(ordinary.streams['read/speed']?.characters[selected.letter!]?.recentCorrectMs).toEqual([])
+    expect(recordRecognitionOutcome(ordinary, 'read/speed', selected.letter!, true,
+      { choices: 4, independent: true, presentedSequence, elapsedMs: 1 })).toBe(ordinary)
+    expect(recordRecognitionOutcome(selected.progress, 'read/speed', selected.letter!, true,
+      { choices: 4, independent: true, presentedSequence: presentedSequence - 1, elapsedMs: 1 })).toBe(selected.progress)
   })
 
   it('uses the existing accuracy scheduler with bounded secondary speed pressure', () => {
@@ -95,7 +100,7 @@ describe('independent formative MC4 recognition history', () => {
     const badTrack = (item: unknown) => ({
       schemaVersion: 1, streams: { 'read/speed': { sequence: 1, characters: { E: item } } },
     })
-    const base = { shown: 1, lastShownSequence: 1, outcomes: [true], recentCorrectMs: [999] }
+    const base = { shown: 1, lastShownSequence: 1, lastGradedSequence: 1, outcomes: [true], recentCorrectMs: [999] }
     for (const invalid of [
       { ...base, outcomes: [true, 'yes'] },
       { ...base, recentCorrectMs: [NaN] },
@@ -103,6 +108,8 @@ describe('independent formative MC4 recognition history', () => {
       { ...base, recentCorrectMs: [-1] },
       { ...base, shown: -1 },
       { ...base, lastShownSequence: 4 },
+      { ...base, lastGradedSequence: 2 },
+      { ...base, lastGradedSequence: -1 },
       { ...base, shown: 0 },
       { ...base, recentCorrectMs: Array(9).fill(100) },
     ]) expect(parseMorseRecognition(badTrack(invalid)).ok).toBe(false)
