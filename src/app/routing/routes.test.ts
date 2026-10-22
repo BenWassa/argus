@@ -257,7 +257,12 @@ describe('role detail routes (#223)', () => {
     expect(isAppRoute(role)).toBe(true)
     expect(isAppRoute({ kind: 'role', roleId: 'communicator' })).toBe(true)
     expect(isAppRoute({ kind: 'role', roleId: 'mariner' })).toBe(true)
-    for (const invalid of ['diver', 'responder', 'operator', 'analyst', '', null]) {
+    for (const retired of ['diver', 'responder', 'operator', 'analyst']) {
+      const old = { kind: 'role', roleId: retired } as AppRoute
+      expect(isAppRoute(old)).toBe(true)
+      expect(restoreRoute(old, topics, false)).toEqual(overview)
+    }
+    for (const invalid of ['', null]) {
       expect(isAppRoute({ kind: 'role', roleId: invalid })).toBe(false)
     }
     expect(sameRoute(role, role)).toBe(true)
