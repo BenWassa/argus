@@ -22,7 +22,7 @@ async function seed(page: Page, topics = baseline) {
 async function openWith(page: Page, earned = false, legacyDecay = false) {
   const topics = baseline.map((topic) => !IDS.has(topic.id) ? topic : earned ? {
     ...topic,
-    status: legacyDecay && topic.id === 'nato-phonetic' ? 'decayed' : 'completed',
+    status: legacyDecay && topic.id === 'nato-phonetic' ? 'decayed' as const : 'completed' as const,
     completedAt: '2026-10-07T12:00:00Z',
   } : topic)
   await seed(page, topics)
@@ -74,6 +74,10 @@ test('collection-first entry and Communicator requirements preserve topic return
 test('role history Back/Forward, reload, invalid link and direct entry', async ({ page }) => {
   await seed(page)
   await page.goto('./?role=navigator')
+  await expect(page.getByRole('dialog', { name: 'Navigator' })).toBeVisible()
+  await page.goBack()
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await page.goForward()
   await expect(page.getByRole('dialog', { name: 'Navigator' })).toBeVisible()
   await page.reload()
   await expect(page.getByRole('dialog', { name: 'Navigator' })).toBeVisible()
