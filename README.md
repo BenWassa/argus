@@ -64,7 +64,7 @@ The **full offline-first runtime guarantee is active scope in #113**, not yet a 
 
 The Signal-on-Slate overhaul landed on `main` in [#271](https://github.com/BenWassa/argus/pull/271) with sticky Morse Back follow-up [#272](https://github.com/BenWassa/argus/pull/272). This is repository integration **not** proof of production deployment or physical Pixel acceptance. The owner/device/release gates remain under [#225](https://github.com/BenWassa/argus/issues/225) and [#233](https://github.com/BenWassa/argus/issues/233). New work should branch from `main`, not the historical `feat/ui-overhaul` lane.
 
-The active [execution checkpoint](docs/open/NEXT_BATCHES.md) lists four currently open PRs (#214, #222, #278 and #282), including outstanding source review, and distinguishes the new [Morse speed](https://github.com/BenWassa/argus/issues/279), [haptics](https://github.com/BenWassa/argus/issues/280), [Pixel calibration](https://github.com/BenWassa/argus/issues/281) and [lesson-completion](https://github.com/BenWassa/argus/issues/276) issues from shipped behavior. The full offline-first guarantee remains open in #113.
+The active [execution checkpoint](docs/open/NEXT_BATCHES.md) tracks three open PRs (#214, #278 and #282) plus superseded PR #222 (closed unmerged), including outstanding source review, and distinguishes the new [Morse speed](https://github.com/BenWassa/argus/issues/279), [haptics](https://github.com/BenWassa/argus/issues/280), [Pixel calibration](https://github.com/BenWassa/argus/issues/281) and [lesson-completion](https://github.com/BenWassa/argus/issues/276) issues from shipped behavior. The full offline-first guarantee remains open in #113.
 
 ## Durable product and programme documentation
 
