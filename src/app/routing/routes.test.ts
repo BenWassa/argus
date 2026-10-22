@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { isAppRoute, liveRoute, restoreRoute, sameRoute, type AppRoute } from './routes'
+import { isAppRoute, liveRoute, parentFor, restoreRoute, roleRouteFromSearch, sameRoute, type AppRoute } from './routes'
 import type { Topic } from '../../domain/library/topic'
 
 describe('the route model', () => {
@@ -246,4 +246,44 @@ it('compares every letter-practice direction including an unspecified direction'
       expect(sameRoute(route(left), route(right)), `${left} / ${right}`).toBe(left === right)
     }
   }
+})
+
+describe('role detail routes (#223)', () => {
+  const role = { kind: 'role', roleId: 'navigator' } as const
+  const overview = { kind: 'section', view: 'roles' } as const
+  const topics = [{ id: 'topic-a' }] as Topic[]
+
+  it('accepts only available role IDs, never staged or malformed identities', () => {
+    expect(isAppRoute(role)).toBe(true)
+    expect(isAppRoute({ kind: 'role', roleId: 'communicator' })).toBe(true)
+    expect(isAppRoute({ kind: 'role', roleId: 'mariner' })).toBe(true)
+    for (const invalid of ['diver', 'responder', 'operator', 'analyst', '', null]) {
+      expect(isAppRoute({ kind: 'role', roleId: invalid })).toBe(false)
+    }
+    expect(sameRoute(role, role)).toBe(true)
+    expect(sameRoute(role, { kind: 'role', roleId: 'mariner' })).toBe(false)
+    expect(sameRoute(role, overview)).toBe(false)
+  })
+
+  it('restores valid role detail on refresh and falls back for removed identities', () => {
+    expect(restoreRoute(role, topics, false)).toEqual(role)
+    expect(liveRoute(role, [])).toEqual(role)
+    const removed = { kind: 'role', roleId: 'diver' } as unknown as AppRoute
+    expect(restoreRoute(removed, topics, false)).toEqual(overview)
+    expect(roleRouteFromSearch('?role=navigator')).toEqual(role)
+    expect(roleRouteFromSearch('?role=diver')).toEqual(overview)
+    expect(roleRouteFromSearch('?role=unknown')).toEqual(overview)
+    expect(roleRouteFromSearch('?role=')).toEqual(overview)
+    expect(roleRouteFromSearch('?source=homescreen')).toBeNull()
+  })
+
+  it('uses role detail as origin without fabricating a new scored Test attempt', () => {
+    expect(parentFor(role)).toEqual(role)
+    const test: AppRoute = { kind: 'run', mode: 'test', topicIds: ['topic-a'], origin: role }
+    expect(isAppRoute(test)).toBe(true)
+    expect(restoreRoute(test, topics, false)).toEqual(role)
+    expect(restoreRoute(test, topics, true)).toEqual(test)
+    expect(sameRoute(test, { ...test, origin: overview })).toBe(false)
+    expect(restoreRoute({ ...test, origin: { kind: 'role', roleId: 'diver' } as never }, topics, false)).toEqual(overview)
+  })
 })
