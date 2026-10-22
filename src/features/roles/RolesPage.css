@@ -233,8 +233,8 @@ button.role-topic-plate:focus-visible { outline: 2px solid var(--action); outlin
 
 @media (max-width: 699px) {
   /* An actual phone screen, not a floating desktop modal. One scroll region. */
-  .role-detail-dialog { padding: 0; align-items: stretch; }
-  .role-detail-dialog .sheet {
+  .backdrop.role-detail-dialog.is-centred { padding: 0; align-items: stretch; }
+  .backdrop.role-detail-dialog.is-centred .sheet {
     width: 100%;
     height: 100dvh;
     max-height: none;
