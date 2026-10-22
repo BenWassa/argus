@@ -83,7 +83,7 @@ export function morseProgressPath(topic: Topic): MorseProgressPath | null {
   if (!lessons || !checkpoints) return null
   const journey = journeyFor(topic)
   const unstarted = journey.action === 'learn' && !journey.acquisition.started
-  const afterCourse = journey.action === 'learn' && journey.acquisition.afterCourse && journey.acquisition.owed.length > 0
+  const afterCourse = false // #276: review after lessons is never obligatory.
   const currentNodeId = journey.phase === 'banked' ? null : journey.action === 'test' || afterCourse
     ? 'test'
     : unstarted ? 'start' : `lesson-${journey.acquisition.packet}`
@@ -117,7 +117,8 @@ export function morseProgressPath(topic: Topic): MorseProgressPath | null {
     }
   }
 
-  const testState = journey.phase === 'banked' ? 'banked'
+  const hasCleanTest = topic.history.some((attempt) => attempt.total > 0 && attempt.correct === attempt.total)
+  const testState = hasCleanTest ? 'banked'
     : journey.advancementEligible ? 'available' : 'locked'
   const testAction = { kind: 'test', early: !journey.advancementEligible } as const
   add({ id: 'test', kind: 'test', label: 'A–Z Test', accessibleLabel: '',
