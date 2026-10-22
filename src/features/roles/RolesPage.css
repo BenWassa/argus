@@ -93,7 +93,7 @@
   line-height: 1.4;
 }
 
-.role-detail-dialog .sheet {
+.backdrop.role-detail-dialog.is-centred .sheet {
   width: min(100%, 740px);
   max-height: min(88dvh, 880px);
 }
