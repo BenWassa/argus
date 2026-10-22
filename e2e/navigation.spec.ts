@@ -70,6 +70,8 @@ async function installLibrary(page: Page, initialState: unknown = null, library 
 async function openApp(page: Page, initialState: unknown = null, library = LIBRARY) {
   await installLibrary(page, initialState, library)
   await page.goto('./')
+  // The router mounts after IndexedDB hydration.
+  await expect(page.getByRole('button', { name: 'Home', exact: true })).toBeVisible()
 }
 
 async function navigationState(page: Page): Promise<NavigationState> {
