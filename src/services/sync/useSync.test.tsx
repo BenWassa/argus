@@ -57,8 +57,8 @@ function fakeStore(
     upserted,
     removed,
     merged,
-    upsertTopic: (topic) => upserted.push(topic),
-    removeTopic: (id) => removed.push(id),
+    upsertTopic: (topic) => { upserted.push(topic) },
+    removeTopic: (id) => { removed.push(id) },
     owner: null,
     bindOwner: (uid) => {
       store.owner = uid
