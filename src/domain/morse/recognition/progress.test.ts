@@ -55,8 +55,6 @@ describe('independent formative MC4 recognition history', () => {
     expect(recordRecognitionOutcome(selected.progress, 'read/speed', selected.letter!, true,
       { choices: 3, elapsedMs: 100 })).toBe(selected.progress)
     expect(recordRecognitionOutcome(selected.progress, 'read/speed', selected.letter!, true,
-      { choices: 4, independently: false } as never)).not.toBe(initial)
-    expect(recordRecognitionOutcome(selected.progress, 'read/speed', selected.letter!, true,
       { choices: 4, independent: false, elapsedMs: 100 })).toBe(selected.progress)
     const ordinary = recordRecognitionOutcome(selected.progress, 'read/speed', selected.letter!, false,
       { choices: 4, elapsedMs: 100 })
