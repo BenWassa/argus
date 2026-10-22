@@ -1,4 +1,6 @@
 import type { Topic } from '../../domain/library/topic'
+import { AVAILABLE_ROLES } from '../../domain/roles/definitions'
+import type { RoleId } from '../../domain/roles/roles'
 import type { Mode } from '../../domain/study/mode'
 import { FLUENCY_MODES, type FluencyMode } from '../../domain/morse/fluency/session'
 import { SEND_STAGES, type SendStage } from '../../domain/morse/fluency/send'
@@ -28,6 +30,8 @@ export type View = 'today' | 'roles' | 'library' | 'profile' | 'data'
 export type ParentRoute =
   | { kind: 'section'; view: View }
   | { kind: 'topic'; topicId: string }
+  /** An open role is a navigable destination, not transient selected UI state. */
+  | { kind: 'role'; roleId: RoleId }
 
 /**
  * Which task inside a guided run the learner asked for.
@@ -73,6 +77,18 @@ export type AppRoute =
 
 /** Today is the docket, and the final Argus boundary before platform exit. */
 export const ROOT_ROUTE: ParentRoute = { kind: 'section', view: 'today' }
+
+export function availableRoleId(value: unknown): value is RoleId {
+  return typeof value === 'string' && AVAILABLE_ROLES.some((role) => role.id === value)
+}
+
+/** Stable static-hosting deep link: existing base path and other query keys survive. */
+export function roleRouteFromSearch(search: string): ParentRoute | null {
+  const params = new URLSearchParams(search)
+  if (!params.has('role')) return null
+  const roleId = params.get('role')
+  return availableRoleId(roleId) ? { kind: 'role', roleId } : { kind: 'section', view: 'roles' }
+}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
@@ -129,6 +145,7 @@ function isIdList(value: unknown): value is string[] {
 export function isParentRoute(value: unknown): value is ParentRoute {
   if (!isRecord(value) || typeof value.kind !== 'string') return false
   if (value.kind === 'section') return isView(value.view)
+  if (value.kind === 'role') return availableRoleId(value.roleId)
   return value.kind === 'topic' && typeof value.topicId === 'string' && value.topicId.length > 0
 }
 
@@ -153,6 +170,7 @@ export function sameRoute(left: AppRoute, right: AppRoute): boolean {
 
   if (left.kind === 'section' && right.kind === 'section') return left.view === right.view
   if (left.kind === 'topic' && right.kind === 'topic') return left.topicId === right.topicId
+  if (left.kind === 'role' && right.kind === 'role') return left.roleId === right.roleId
   if (left.kind === 'reference' && right.kind === 'reference') {
     return left.topicId === right.topicId && sameParent(left.origin, right.origin)
   }
@@ -204,18 +222,19 @@ function sameTarget(left: RunTarget | undefined, right: RunTarget | undefined): 
 
 function sameParent(left: ParentRoute, right: ParentRoute): boolean {
   if (left.kind !== right.kind) return false
-  return left.kind === 'section' && right.kind === 'section'
-    ? left.view === right.view
-    : left.kind === 'topic' && right.kind === 'topic' && left.topicId === right.topicId
+  if (left.kind === 'section' && right.kind === 'section') return left.view === right.view
+  if (left.kind === 'role' && right.kind === 'role') return left.roleId === right.roleId
+  return left.kind === 'topic' && right.kind === 'topic' && left.topicId === right.topicId
 }
 
 export function parentFor(route: AppRoute): ParentRoute {
-  if (route.kind === 'section' || route.kind === 'topic') return route
+  if (route.kind === 'section' || route.kind === 'topic' || route.kind === 'role') return route
   return route.origin
 }
 
 function safeParent(route: ParentRoute, topics: Topic[]): ParentRoute {
   if (route.kind === 'section') return route
+  if (route.kind === 'role') return availableRoleId(route.roleId) ? route : { kind: 'section', view: 'roles' }
   return topics.some((topic) => topic.id === route.topicId)
     ? route
     : { kind: 'section', view: 'library' }
@@ -247,7 +266,7 @@ function resumableRun(route: Extract<AppRoute, { kind: 'run' }>): boolean {
 export function restoreRoute(route: AppRoute, topics: Topic[], restoreRun: boolean): AppRoute {
   if (route.kind === 'section') return route
 
-  if (route.kind === 'topic') return safeParent(route, topics)
+  if (route.kind === 'topic' || route.kind === 'role') return safeParent(route, topics)
 
   const origin = safeParent(route.origin, topics)
 
