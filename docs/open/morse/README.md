@@ -9,7 +9,7 @@ Morse teaches the finite International Morse A–Z printed mappings through guid
 
 - **On `main`:** the Signal-on-Slate Morse topic is one open progress path with Key, Listen, Read and Free play, plus shared session frames. [#271](https://github.com/BenWassa/argus/pull/271) supersedes historical embedded-Play, separate Fluency hub and `feat/ui-overhaul` planning states; [#272](https://github.com/BenWassa/argus/pull/272) corrects the sticky Back control. Child implementation issues are closed, but owner Pixel sign-off ([#225/#233](../ISSUE_225_UI_OVERHAUL.md)) is not recorded.
 - **New open implementation:** [speed variant #279](https://github.com/BenWassa/argus/issues/279), [shared haptics #280](https://github.com/BenWassa/argus/issues/280), [Pixel vibration acceptance #281](https://github.com/BenWassa/argus/issues/281), and [one-pass lesson completion #276](https://github.com/BenWassa/argus/issues/276). Owner-approved lesson completion is not yet claimed implemented: until then, this hub's Test-based completion description refers to the current shipped rules.
-- **Historical proposals remain readable:** #201 documentation scope is closed, and older #212/#215 and #221 design records show what was proposed at the time. They do not override the merged UI, current progress contract or active [batch queue](../NEXT_BATCHES.md).
+- **Historical proposals remain readable:** #201 documentation scope is closed; the duplicate draft [#222](https://github.com/BenWassa/argus/pull/222) was closed unmerged on 2026-10-22. Older #212/#215 and #221 design records show what was proposed at the time. They do not override the merged UI, current progress contract or active [batch queue](../NEXT_BATCHES.md).
 
 ## Where to start
 
