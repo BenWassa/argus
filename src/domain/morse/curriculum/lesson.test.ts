@@ -535,7 +535,10 @@ describe('a Learn answer cannot become formal evidence', () => {
 
     expect(plain.to).toBe('learning')
     expect(taught.to).toBe('completed')
-    expect(taught.topic.history).toEqual(plain.topic.history)
+    expect(taught.topic.history.map(({ resolvedTo: _ignored, ...score }) => score))
+      .toEqual(plain.topic.history.map(({ resolvedTo: _ignored, ...score }) => score))
+    expect(taught.topic.history[0].resolvedTo).toBe('completed')
+    expect(plain.topic.history[0].resolvedTo).toBe('learning')
     expect(taught.topic.lastTestedAt).toBe(plain.topic.lastTestedAt)
   })
 })

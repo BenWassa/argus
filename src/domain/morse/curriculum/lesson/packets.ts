@@ -51,7 +51,7 @@ export interface MorseAcquisitionPosition {
   packetCount: number
   /** True once the learner has met any of it. */
   started: boolean
-  /** True once every character has been produced unaided at least once. */
+  /** True once all thirteen lessons' novel letters have been settled once. */
   ready: boolean
   /** Retired mandatory consolidation gate; always empty for compatibility. */
   awaitingConsolidation: MorseLetter[]
@@ -86,10 +86,10 @@ export function morseAcquisitionPosition(topic: Topic): MorseAcquisitionPosition
 }
 
 /**
- * The first packet the learner has not fully settled — the whole of the
- * lesson's durable position. An unsettled historical return remains an
- * obligation, while settled material is selected by current review need.
- * Returns `packets.length` when every packet obligation is settled.
+ * Each packet is complete once its two novel mappings are settled. Returning
+ * review material can lose support again without reopening a passed lesson;
+ * it remains available through optional practice. Returns `packets.length`
+ * when each required lesson's novel mappings have been learned once.
  */
 export function firstUnsettledPacket(
   packets: CharacterPacket[],
@@ -106,7 +106,7 @@ export function firstUnsettledPacket(
 
   for (const packet of packets) {
     if (packet.index < reached) continue
-    if (!packet.characters.every((glyph) => {
+    if (!packet.novel.every((glyph) => {
       const character = byGlyph.get(glyph)
       return character ? store[character.itemId] === 'settled' : false
     })) return packet.index
