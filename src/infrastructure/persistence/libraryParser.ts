@@ -44,6 +44,7 @@ import {
   type MorseFluencyProgress,
 } from '../../domain/morse/fluency/progress'
 import { parseMorsePractice, type MorsePractice } from '../../domain/morse/practice'
+import { parseMorseRecognition, type MorseRecognition } from '../../domain/morse/recognition/progress'
 import { inferredOrigin } from '../../domain/library/catalog'
 import { parseChoice, parseVisual } from './visualParser'
 import { parseAudio, parseAudioEvidence, parseResponse } from './audioParser'
@@ -713,6 +714,23 @@ function parseMorsePracticeState(
 }
 
 /**
+ * Formative four-choice recognition (#279). Additive v5 field with the same
+ * rule as practice: absent and empty are one representation, while corrupt,
+ * future-version or exotic values reject the import rather than erase progress.
+ */
+function parseMorseRecognitionState(
+  value: unknown,
+  where: string,
+  sourceVersion: 2 | 3 | 4 | 5,
+): { ok: true; value: MorseRecognition | undefined } | { ok: false; error: string } {
+  if (sourceVersion < 5) return { ok: true, value: undefined }
+  if (value === undefined || value === null) return { ok: true, value: undefined }
+  const parsed = parseMorseRecognition(value)
+  if (!parsed.ok) return { ok: false, error: `${where} morseRecognition ${parsed.error}` }
+  return { ok: true, value: Object.keys(parsed.value.streams).length === 0 ? undefined : parsed.value }
+}
+
+/**
  * One character's review record, checked against the sittings that can
  * actually have elapsed.
  *
@@ -1022,6 +1040,13 @@ function parseTopic(
   )
   if (!morsePractice.ok) return morsePractice
 
+  const morseRecognition = parseMorseRecognitionState(
+    t.morseRecognition,
+    `${where} ("${title}")`,
+    sourceVersion,
+  )
+  if (!morseRecognition.ok) return morseRecognition
+
   const track = TRACKS.includes(t.track as never) ? (t.track as Topic['track']) : 'learning'
   let status = STATUSES.includes(t.status as never) ? (t.status as Topic['status']) : 'unstarted'
   const completedAt = typeof t.completedAt === 'string' ? t.completedAt : null
@@ -1071,6 +1096,7 @@ function parseTopic(
       ...(morseReview.value ? { morseReview: morseReview.value } : {}),
       ...(morseFluency.value ? { morseFluency: morseFluency.value } : {}),
       ...(morsePractice.value ? { morsePractice: morsePractice.value } : {}),
+      ...(morseRecognition.value ? { morseRecognition: morseRecognition.value } : {}),
       // Absent on a record written before the anchor existed. The journey layer
       // treats that as "unknown" and falls back to `learningAt`, so an upgrade
       // can never make an already-acquired topic wait longer than it did before.

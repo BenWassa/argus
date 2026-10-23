@@ -5,6 +5,8 @@ import { parseLibrary } from '../../../infrastructure/persistence/libraryParser'
 import { seedLibrary } from '../../../domain/library/catalogSeed'
 import type { Topic } from '../../../domain/library/topic'
 import { LibraryProvider } from '../../../services/library/LibraryProvider'
+import { MORSE_LETTERS } from '../../../domain/morse/code'
+import { spokenRhythm } from '../../../domain/morse/mnemonics'
 import { LetterPracticeSurface } from './LetterPracticeSurface'
 
 vi.mock('../input/MorseKeyInput', () => ({
@@ -33,6 +35,17 @@ function preparedTopic(settled: boolean): Topic {
   }
 }
 
+function topicWithLetters(letters: string[]): Topic {
+  const base = preparedTopic(false)
+  const progress: Record<string, 'settled'> = {}
+  for (const letter of letters) {
+    const item = base.items.find((candidate) => candidate.prompt === letter)
+    if (!item?.id) throw new Error(`The ${letter} item is missing an id.`)
+    progress[item.id] = 'settled'
+  }
+  return { ...base, lessonProgress: progress }
+}
+
 function storeTopic(topic: Topic) {
   const parsed = parseLibrary(seedLibrary())
   if (!parsed.ok) throw new Error(parsed.error)
@@ -42,8 +55,8 @@ function storeTopic(topic: Topic) {
   }))
 }
 
-function renderSurface(onExit = vi.fn()) {
-  render(<LibraryProvider><LetterPracticeSurface topicId={MORSE_ID} onExit={onExit} /></LibraryProvider>)
+function renderSurface(onExit = vi.fn(), direction?: 'read' | 'listen') {
+  render(<LibraryProvider><LetterPracticeSurface topicId={MORSE_ID} direction={direction} onExit={onExit} /></LibraryProvider>)
   return onExit
 }
 
@@ -66,5 +79,36 @@ describe('LetterPracticeSurface', () => {
 
     expect(after.morsePractice.characters.key.E.outcomes).toEqual([true])
     expect({ ...after, morsePractice: undefined }).toEqual({ ...before, morsePractice: undefined })
+  })
+
+  it('persists Read answers only in the separate recognition record', () => {
+    storeTopic(topicWithLetters(['E', 'T', 'I', 'M']))
+    renderSurface(vi.fn(), 'read')
+    const before = JSON.parse(localStorage.getItem(STORAGE_KEY)!).topics.find((topic: Topic) => topic.id === MORSE_ID)
+    expect(screen.getAllByRole('button', { name: /^Letter [A-Z]$/ })).toHaveLength(4)
+    const rhythm = screen.getByRole('img', { name: /^(dit|dah)/ }).getAttribute('aria-label')
+    const target = (['E', 'T', 'I', 'M'] as const).find((letter) => spokenRhythm(MORSE_LETTERS[letter]) === rhythm)!
+    fireEvent.click(screen.getByRole('button', { name: `Letter ${target}` }))
+    const after = JSON.parse(localStorage.getItem(STORAGE_KEY)!).topics.find((topic: Topic) => topic.id === MORSE_ID)
+
+    expect(after.morseRecognition.streams['read/practice'].characters[target].outcomes).toEqual([true])
+    expect(after.morsePractice).toBeUndefined()
+    expect({ ...after, morseRecognition: undefined }).toEqual({ ...before, morseRecognition: undefined })
+  })
+
+  it('keeps Speed as a bounded variant: its own stream, no Test or completion evidence', () => {
+    storeTopic(topicWithLetters(['E', 'T', 'I', 'M']))
+    renderSurface(vi.fn(), 'read')
+    const before = JSON.parse(localStorage.getItem(STORAGE_KEY)!).topics.find((topic: Topic) => topic.id === MORSE_ID)
+    fireEvent.click(screen.getByRole('button', { name: 'Speed' }))
+    const rhythm = screen.getByRole('img', { name: /^(dit|dah)/ }).getAttribute('aria-label')
+    const target = (['E', 'T', 'I', 'M'] as const).find((letter) => spokenRhythm(MORSE_LETTERS[letter]) === rhythm)!
+    fireEvent.click(screen.getByRole('button', { name: `Letter ${target}` }))
+    const after = JSON.parse(localStorage.getItem(STORAGE_KEY)!).topics.find((topic: Topic) => topic.id === MORSE_ID)
+
+    expect(Object.keys(after.morseRecognition.streams)).toEqual(['read/speed'])
+    for (const field of ['itemEvidence', 'history', 'lessonProgress', 'status', 'completedAt', 'lastTestedAt', 'acquisitionReadyAt', 'morseFluency']) {
+      expect(after[field], field).toEqual(before[field])
+    }
   })
 })

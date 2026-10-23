@@ -76,8 +76,9 @@ test('Read draws its pattern as marks on one centre line, and a miss keeps it ab
   if (info.project.name.startsWith('phone-')) expect(boxes[0].height).toBeGreaterThanOrEqual(14)
 
   const letter = RHYTHM_TO_LETTER.get((await stimulus.getAttribute('aria-label'))!)!
-  const wrong = letter === 'Q' ? 'Z' : 'Q'
-  await page.getByRole('textbox', { name: 'Letter' }).fill(wrong)
+  const offered = await page.getByRole('group', { name: 'Choose the letter' }).getByRole('button').evaluateAll(buttons => buttons.map(b => b.textContent!))
+  const wrong = offered.find(candidate => candidate !== letter)!
+  await page.getByRole('button', { name: `Letter ${wrong}` }).click()
   const miss = page.getByRole('status').filter({ hasText: 'Not that one' })
   await expect(miss).toContainText(`You said ${wrong}`)
   await expect(stimulus).toBeInViewport()

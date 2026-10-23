@@ -235,3 +235,47 @@ test('closes on schema upgrade and refuses to downgrade a newer database', async
   expect(result.refused).toBe(true)
   expect(result.saved).toMatchObject({ owner: 'owner-a', revision: 1, library: initial })
 })
+
+test('formative Morse recognition (#279) is validated, stored, updated and re-read without loss', async ({ page }) => {
+  const recognition = {
+    schemaVersion: 1 as const,
+    streams: {
+      'read/speed': {
+        sequence: 4,
+        characters: {
+          E: { outcomes: [true, true, false], shown: 3, lastShownSequence: 4, lastGradedSequence: 4, recentCorrectMs: [1800, 2400] },
+        },
+      },
+      'listen/practice@12': {
+        sequence: 1,
+        characters: { T: { outcomes: [true], shown: 1, lastShownSequence: 1, lastGradedSequence: 1, recentCorrectMs: [] } },
+      },
+    },
+  }
+  const seed = {
+    ...initial,
+    topics: initial.topics.map((topic, index) => (index === 0 ? { ...topic, morseRecognition: recognition } : topic)),
+  }
+  const result = await page.evaluate(async (library) => {
+    const repo = await window.ArgusIDB.openIndexedLibraryRepository('recognition')
+    const first = await repo.initialize('owner-a', { seed: library })
+    // An unrelated functional write must compose onto, not replace, the record.
+    await repo.update('owner-a', (current) => ({
+      ...current,
+      topics: current.topics.map((topic, index) => (index === 0 ? { ...topic, title: `${topic.title}!` } : topic)),
+    }))
+    repo.close()
+    const reopened = await window.ArgusIDB.openIndexedLibraryRepository('recognition')
+    const saved = await reopened.read('owner-a')
+    const pending = await reopened.pending('owner-a')
+    reopened.close()
+    return {
+      first: first.library.topics[0].morseRecognition,
+      saved: saved?.library.topics[0].morseRecognition,
+      pending: pending?.library.topics[0].morseRecognition,
+    }
+  }, seed)
+  expect(result.first).toEqual(recognition)
+  expect(result.saved).toEqual(recognition)
+  expect(result.pending).toEqual(recognition)
+})

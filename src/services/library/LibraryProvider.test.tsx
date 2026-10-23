@@ -76,6 +76,44 @@ describe('production IndexedDB provider integration', () => {
     hook.unmount()
   })
 
+  it('migrates, hydrates, updates and re-parks formative Morse recognition (#279) without loss', async () => {
+    const recognition = {
+      schemaVersion: 1 as const,
+      streams: {
+        'read/speed': {
+          sequence: 4,
+          characters: {
+            E: { outcomes: [true, true, false], shown: 3, lastShownSequence: 4, lastGradedSequence: 4, recentCorrectMs: [1800, 2400] },
+          },
+        },
+      },
+    }
+    const old = readyLibrary()
+    const withRecognition = { ...old, topics: old.topics.map((topic, index) => index === 0 ? { ...topic, morseRecognition: recognition } : topic) }
+    const id = withRecognition.topics[0].id
+    localStorage.setItem(key, JSON.stringify(withRecognition))
+    const hook = await mounted()
+    // Migrated into the canonical record and hydrated into the visible library.
+    expect(fixture.records.get(ownerKey)?.library.topics[0].morseRecognition).toEqual(recognition)
+    expect(hook.result.current.topics[0].morseRecognition).toEqual(recognition)
+    // The write path the practice surface uses, then an unrelated write on top of it.
+    const next = { ...recognition, streams: { ...recognition.streams, 'listen/practice@12': { sequence: 1, characters: {} } } }
+    await act(async () => {
+      expect(await hook.result.current.updateTopic(id, (topic) => ({ ...topic, morseRecognition: next }))).toBe(true)
+    })
+    await act(async () => {
+      expect(await hook.result.current.updateTopic(id, (topic) => ({ ...topic, scope: 'Unrelated' }))).toBe(true)
+    })
+    expect(fixture.records.get(ownerKey)?.library.topics[0].morseRecognition).toEqual(next)
+    // It travels with the account across a switch and back.
+    await act(async () => { await hook.result.current.bindOwner('owner-a') })
+    await act(async () => { await hook.result.current.bindOwner('owner-b') })
+    expect(hook.result.current.topics[0].morseRecognition).toBeUndefined()
+    await act(async () => { await hook.result.current.bindOwner('owner-a') })
+    expect(hook.result.current.topics[0].morseRecognition).toEqual(next)
+    expect(fixture.records.get('owner-a')?.library.topics[0].morseRecognition).toEqual(next)
+  })
+
   it('commits sequential functional updates and outbox before publishing state', async () => {
     const hook = await mounted()
     const id = hook.result.current.topics[0].id
