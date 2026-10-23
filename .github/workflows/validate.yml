@@ -65,6 +65,7 @@ jobs:
   browser-shard:
     name: browser-shard (${{ matrix.shard }}/4)
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     strategy:
       # A failure in one shard must not hide a failure in another.
       fail-fast: false
@@ -83,8 +84,16 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # The system packages come from the runner's apt mirror, which now and then
+      # crawls (one shard spent 11 minutes on a 22 MB download). Bound each
+      # attempt and retry, so a slow mirror costs minutes rather than a job.
       - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+        run: |
+          for attempt in 1 2 3; do
+            timeout 150 npx playwright install --with-deps chromium && exit 0
+            echo "Chromium install attempt $attempt did not finish; retrying"
+          done
+          exit 1
 
       - name: Browser tests
         run: npm run test:browser -- --shard=${{ matrix.shard }}/4
