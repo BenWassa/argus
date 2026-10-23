@@ -16,6 +16,12 @@
 > every older single-UID authorization example below. Paths remain keyed by
 > `request.auth.uid`; the inbox client still uses `VITE_ARGUS_INBOX_UID`.
 
+> **Sync update — 2026-10-23.** Independent installs may have different topic
+> creation timestamps. Otherwise identical records sync automatically, including
+> when JSON keys have a different order. Profile shows a short pending-sync
+> message for genuine conflicts, without topic IDs or export/import instructions.
+> Both copies remain intact when their learning records or content differ.
+
 # Content Inbox and Curated Ingestion
 
 **Status:** implemented; maintained design record for the content inbox. The superseded notes above correct two premises of the text below.

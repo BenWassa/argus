@@ -348,15 +348,7 @@ function syncMessage(state: SyncState): string {
     case 'synced': {
       const who = state.user.email ?? state.user.uid
       if (state.conflicts.length === 0) return `Signed in as ${who}. Everything is in step.`
-      // Naming them matters, because nothing has been decided: both copies are
-      // intact and the person is the only one who can say which is right. The
-      // wording has to avoid implying it has been handled.
-      const named = state.conflicts.join(', ')
-      return `Signed in as ${who}. ${
-        state.conflicts.length === 1
-          ? 'One topic was changed on two devices and is waiting for you'
-          : `${state.conflicts.length} topics were changed on two devices and are waiting for you`
-      }: ${named}. Nothing was overwritten on either device. Export from the one you want to keep, then import it on the other.`
+      return `Signed in as ${who}. Some changes haven’t synced yet. Your progress is saved on this device.`
     }
     case 'error':
       return `${state.message} The library on this device is unaffected.`

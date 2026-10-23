@@ -10,6 +10,7 @@ import {
   type Ledger,
   type RemoteRecord,
 } from './syncPlanner'
+import { freshSeedLibrary } from '../../infrastructure/persistence/libraryMigrations'
 import type { Topic } from '../../domain/library/topic'
 
 describe('transactional role metadata merge', () => {
@@ -284,6 +285,36 @@ describe('the first sync on a new device', () => {
   const earned = topic('knots', {
     history: [{ at: '2026-01-01T00:00:00.000Z' }, { at: '2026-02-01T00:00:00.000Z' }],
   } as Partial<Topic>)
+
+  it('syncs the whole fresh catalog between independently installed devices', () => {
+    const phone = freshSeedLibrary(new Date('2026-10-01T12:00:00Z')).topics
+    const tablet = freshSeedLibrary(new Date('2026-10-23T12:00:00Z')).topics
+    const records = tablet.map((entry) => remote(entry.id, entry, 4))
+    const plan = planSync(phone, records, {})
+    expect(phone.length).toBeGreaterThan(20)
+    expect(plan.conflicts).toEqual([])
+    expect(plan.actions).toHaveLength(phone.length)
+    expect(plan.actions.every((action) => action.kind === 'adopt')).toBe(true)
+    const settled = nextLedger({}, plan.actions, 5000)
+    expect(planSync(tablet, records, settled)).toEqual({ actions: [], conflicts: [] })
+  })
+
+  it('settles equivalent records with reordered keys after both devices synced', () => {
+    const baseline = topic('knots', { createdAt: '2026-10-01T00:00:00Z' })
+    const mine = { ...baseline, createdAt: '2026-10-23T00:00:00Z' }
+    const theirs = { ...mine, createdAt: '2026-10-02T00:00:00Z' }
+    const record = remote('knots', theirs, 4)
+    record.json = JSON.stringify(Object.fromEntries(Object.entries(theirs).reverse()))
+    const plan = planSync([mine], [record], ledgerFor('knots', baseline, 3))
+    expect(plan.conflicts).toEqual([])
+    expect(plan.actions).toEqual([{ kind: 'adopt', topicId: 'knots', json: record.json, revision: 4 }])
+  })
+
+  it('retains real content edits even when progress counts match', () => {
+    const mine = topic('knots', { title: 'My knots' })
+    const theirs = topic('knots', { title: 'Different knots' })
+    expect(planSync([mine], [remote('knots', theirs, 4)], {})).toEqual({ actions: [], conflicts: ['knots'] })
+  })
 
   it('takes the fuller copy when it covers what this device holds', () => {
     const plan = planSync([untouched], [remote('knots', earned, 4)], {})
