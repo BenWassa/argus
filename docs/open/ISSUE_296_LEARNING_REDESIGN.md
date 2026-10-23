@@ -186,7 +186,7 @@ Full tables: [`ISSUE_296_AUDITS.md`](ISSUE_296_AUDITS.md).
 | C. Reference only | 0 | None: every topic has useful finite recall |
 | D. Own engine | 1 | International Morse Code |
 
-Five of the B topics (Cloud Genera, SCUBA, Radio Numbers, Beaufort, and in part CAF) are B only for their existing scored boundary. Photo identification, equipment use, pronunciation and weather interpretation would be new reviewed content. The seven topics with an open or pending domain review (#147/#148, #150, #132) cannot ship lesson text before that review.
+Four of the B topics (Cloud Genera, SCUBA Equipment, Radio Numbers, Beaufort Scale) are B only for their existing scored boundary. Photo identification, equipment use, pronunciation and weather interpretation would be new reviewed content. The seven topics with an open or pending domain review (#147/#148, #150, #132) cannot ship lesson text before that review.
 
 **Practice (about 60 call sites).**
 
