@@ -7,7 +7,7 @@
 ## Hierarchy and responsive design
 
 - Entry is `Roles`, a short completion statement, a literal `earned / available` count and the collection; the role dropdown is absent.
-- Collection items contain only the approved locked/unlocked PNG, role name and `Not started`, `X of Y topics complete` or `Earned`. The existing authored `AVAILABLE_ROLES` order remains stable. No synthetic role is shipped.
+- Current three-role collection is one shallow row on phones, with 72–80px artwork and no inherited raised-button shadows. Collection items contain only the approved locked/unlocked PNG, role name and `Not started`, `X of Y topics complete` or `Earned`. The existing authored `AVAILABLE_ROLES` order remains stable. No synthetic role is shipped.
 - All current available roles (Communicator, Navigator, Mariner) remain discoverable; Diver/Responder/Operator art and Analyst research do **not** create available/earnable roles.
 - Desktop/tablet detail: one centered bounded-width modal with one scrollable content region; collection visible behind the inert backdrop.
 - Phone detail (below 700 CSS pixels): full-viewport modal, safe-area insets, visible Close and one scroll region. At 320–390px, badge and description share a compact row; next action precedes requirements.
@@ -43,3 +43,7 @@ No new palette, animation, award type, trophy effects, persistence schema or agg
 4. Review enlarged PNG readability (especially unearned art) and the current v1 award/qualification text. No additional art is approved here.
 
 **Merge gate:** keep PR draft until owner visual approval and green repository CI; no deployment is implied by the branch.
+
+## Local review follow-up (2026-10-22)
+
+The resumed review corrected role fixtures to reset all available requirements and exercise durable individual deletion without triggering the existing empty-library recovery policy. It also fixed focus return to a remounted badge after a topic visit and guarded delayed section focus from taking focus from a newly opened modal. Local checks: TypeScript clean, 83 focused route/role/shared UI tests passed, and all 32 Roles browser cases passed across the four configured viewports. Actual overview/detail PNGs are captured by the responsive browser case after badge decoding. These are engineering checks; owner and physical Pixel acceptance remain pending.

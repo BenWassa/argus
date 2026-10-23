@@ -14,13 +14,15 @@ interface DialogProps {
   hideHeader?: boolean
   /** A route-backed detail uses real browser Back, not the transient-dialog blocker. */
   blockBack?: boolean
+  /** A route can remount the opener; restore its current equivalent. */
+  returnFocusSelector?: string
   className?: string
 }
 
 const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
-export function Dialog({ title, onClose, children, closeLabel, centred, hideHeader, blockBack = true, className = '' }: DialogProps) {
+export function Dialog({ title, onClose, children, closeLabel, centred, hideHeader, blockBack = true, returnFocusSelector, className = '' }: DialogProps) {
   const panel = useRef<HTMLDivElement>(null)
   const opener = useRef<Element | null>(null)
   const titleId = useId()
@@ -80,11 +82,13 @@ export function Dialog({ title, onClose, children, closeLabel, centred, hideHead
       // copy left over from the render that opened the dialog.
       const target = opener.current
       requestAnimationFrame(() => {
-        if (target instanceof HTMLElement && target.isConnected) target.focus()
+        const equivalent = returnFocusSelector ? document.querySelector<HTMLElement>(returnFocusSelector) : null
+        if (equivalent) equivalent.focus({ preventScroll: true })
+        else if (target instanceof HTMLElement && target.isConnected) target.focus()
         else document.getElementById('main')?.focus()
       })
     }
-  }, [blockBack])
+  }, [blockBack, returnFocusSelector])
 
   return (
     <div className={`${centred ? 'backdrop is-centred' : 'backdrop'}${className ? ` ${className}` : ''}`} onMouseDown={(e) => e.target === e.currentTarget && onClose()}>

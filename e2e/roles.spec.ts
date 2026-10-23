@@ -1,9 +1,10 @@
 import { expect, test, type Page } from '@playwright/test'
 import { seedLibrary } from '../src/domain/library/catalogSeed'
-import { COMMUNICATOR, MARINER, NAVIGATOR } from '../src/domain/roles/definitions'
+import { AVAILABLE_ROLES, COMMUNICATOR, MARINER, NAVIGATOR } from '../src/domain/roles/definitions'
 
 const STORE = 'argus.library.v5'
-const IDS = new Set<string>(COMMUNICATOR.pathways.flatMap((path) => [...path.topicIds]))
+const IDS = new Set<string>(AVAILABLE_ROLES.flatMap((role) => role.pathways.flatMap((path) => [...path.topicIds])))
+const COMMUNICATOR_IDS = new Set<string>(COMMUNICATOR.pathways.flatMap((path) => [...path.topicIds]))
 const baseline = seedLibrary().topics.map((topic) =>
   IDS.has(topic.id) ? {
     ...topic, origin: 'catalog' as const, status: 'unstarted' as const,
@@ -20,7 +21,7 @@ async function seed(page: Page, topics = baseline) {
 }
 
 async function openWith(page: Page, earned = false, legacyDecay = false) {
-  const topics = baseline.map((topic) => !IDS.has(topic.id) ? topic : earned ? {
+  const topics = baseline.map((topic) => !COMMUNICATOR_IDS.has(topic.id) ? topic : earned ? {
     ...topic,
     status: legacyDecay && topic.id === 'nato-phonetic' ? 'decayed' as const : 'completed' as const,
     completedAt: '2026-10-07T12:00:00Z',
@@ -137,11 +138,11 @@ test('Navigator award persists through topic deletion and reload; explicit reset
   await earnedBadge.evaluate((image: HTMLImageElement) => image.decode())
   expect(await earnedBadge.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBe(512)
 
-  await page.evaluate((key) => {
+  await page.evaluate(([key, navigatorIds]) => {
     const library = JSON.parse(localStorage.getItem(key)!)
-    library.topics = []
+    library.topics = library.topics.filter((topic: { id: string }) => !navigatorIds.includes(topic.id))
     localStorage.setItem(key, JSON.stringify(library))
-  }, STORE)
+  }, [STORE, [...ids]] as const)
   await page.reload()
   await expect(page.getByRole('dialog', { name: 'Navigator' })).toBeVisible()
   await expect(page.getByText('Navigator earned', { exact: true })).toBeVisible()
@@ -195,13 +196,16 @@ test('legacy decay and later optional Test do not create repair or revoke award'
 
 test('responsive role overlay is accessible, bounded and dismissible', async ({ page }, testInfo) => {
   await openWith(page)
+  await page.locator('.role-collection-badge').evaluateAll((images) => Promise.all(images.map((image) => (image as HTMLImageElement).decode())))
+  await page.screenshot({ path: testInfo.outputPath('roles-overview.png'), fullPage: true })
   await badge(page, 'Navigator').focus()
   await page.keyboard.press('Enter')
   const dialog = page.getByRole('dialog', { name: 'Navigator' })
   await expect(dialog).toBeVisible()
-  expect(await page.evaluate(() => document.activeElement?.closest('[role="dialog"]') !== null)).toBe(true)
+  await expect(page.getByRole('button', { name: 'Close Navigator details' })).toBeFocused()
   await expect(page.locator('.roles-overview')).toHaveAttribute('inert', '')
   await expect(page.locator('.nav')).toHaveAttribute('inert', '')
+  await page.screenshot({ path: testInfo.outputPath('role-detail.png'), fullPage: true })
   const size = await dialog.boundingBox()
   expect(size).not.toBeNull()
   if (testInfo.project.name.startsWith('phone')) {

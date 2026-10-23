@@ -40,7 +40,7 @@
 
 .role-collection {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--s-sm);
   padding: 0;
   margin: 0;
@@ -57,8 +57,8 @@
   gap: var(--s-xs);
   width: 100%;
   min-width: 0;
-  min-height: 174px;
-  padding: var(--s-md) var(--s-xs);
+  padding: var(--s-sm) 2px;
+  box-shadow: none;
   border: 1px solid transparent;
   border-radius: var(--r-lg);
   background: transparent;
@@ -76,15 +76,15 @@
 
 .role-collection-badge {
   display: block;
-  width: min(100%, 106px);
-  height: 106px;
+  width: min(100%, 80px);
+  height: 80px;
   object-fit: contain;
 }
 
 .role-collection-name {
   max-width: 100%;
   overflow-wrap: anywhere;
-  font-size: var(--t-component);
+  font-size: var(--t-small);
   font-weight: var(--w-component);
 }
 
@@ -228,7 +228,9 @@ button.role-topic-plate:focus-visible { outline: 2px solid var(--action); outlin
 .roles-award-version { padding-inline: 2px; }
 
 @media (min-width: 700px) {
-  .role-collection { grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: var(--s-lg); }
+  .role-collection { column-gap: var(--s-lg); }
+  .role-collection-badge { height: 106px; width: min(100%, 106px); }
+  .role-collection-name { font-size: var(--t-component); }
 }
 
 @media (max-width: 699px) {
@@ -253,7 +255,7 @@ button.role-topic-plate:focus-visible { outline: 2px solid var(--action); outlin
 
 @media (max-width: 370px) {
   .role-collection-button { padding-inline: 2px; }
-  .role-collection-badge { height: 88px; width: min(100%, 88px); }
+  .role-collection-badge { height: 72px; width: min(100%, 72px); }
   .roles-award { grid-template-columns: 80px minmax(0, 1fr); gap: var(--s-sm); }
   button.role-topic-plate { grid-template-columns: 1.2em minmax(0, 1fr); }
   .role-topic-state { grid-column: 2; grid-row: 2; justify-content: flex-start; text-align: left; }

@@ -187,7 +187,9 @@ export function AppRouter() {
     routeRef.current = next
     setRoute(next)
     if (next.kind === 'section') {
-      window.requestAnimationFrame(() => document.getElementById('main')?.focus({ preventScroll: true }))
+      window.requestAnimationFrame(() => {
+        if (sameRoute(routeRef.current, next)) document.getElementById('main')?.focus({ preventScroll: true })
+      })
     }
   }
 

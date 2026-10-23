@@ -43,7 +43,7 @@ export function RoleCollectionItem({ entry, onOpen }: { entry: RoleCollectionEnt
   const { role, progress } = entry
   return (
     <li className="role-collection-entry">
-      <button className="role-collection-button" type="button" onClick={() => onOpen(role.id)}>
+      <button className="role-collection-button" data-role-id={role.id} type="button" onClick={() => onOpen(role.id)}>
         <img className="role-collection-badge" src={badgeSource(role.id, progress.earned)}
           alt="" loading="lazy" width={112} height={112} />
         <span className="role-collection-name">{role.title}</span>
@@ -161,7 +161,8 @@ export function RolesPage({ onOpenTopic, onContinue, selectedRole, onSelectRole,
       {selected && (
         <Dialog title={selected.role.title} onClose={onCloseRole}
           closeLabel={`Close ${selected.role.title} details`}
-          centred className="role-detail-dialog" blockBack={false}>
+          centred className="role-detail-dialog" blockBack={false}
+          returnFocusSelector={`[data-role-id="${selected.role.id}"]`}>
           <RoleDetail entry={selected} onOpenTopic={onOpenTopic} onContinue={onContinue} />
         </Dialog>
       )}
