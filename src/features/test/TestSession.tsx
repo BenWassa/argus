@@ -613,6 +613,7 @@ export function TestSession({ topicIds, review = false, onExit, onPractice, onPl
       <section className="session" role="status" aria-live="polite">
         <h1>Saving your result</h1>
         <p>Keeping this on your device before showing it.</p>
+        <div className="save-bar" aria-hidden="true" />
       </section>
     )
   }

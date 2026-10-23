@@ -179,7 +179,12 @@ export function TestDone({
   return (
     <SessionFrame kind="test" title={banked.length === 0 && reviewed.length > 0 ? 'Review' : 'Test'}
       progress={{ current: score.total, total: score.total }} onClose={onExit} className="test-done">
-      {saveNote && <p className="test-outcome test-save-note" role="status">{saveNote}</p>}
+      {saveNote && (
+        <div className="test-save-note">
+          <p className="test-outcome" role="status">{saveNote}</p>
+          <div className="save-bar" aria-hidden="true" />
+        </div>
+      )}
       <RoundResult
         correct={score.correct}
         total={score.total}

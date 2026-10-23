@@ -4,7 +4,7 @@ import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 export type StoreWrite = void | Promise<boolean>
 
 /** How long a write may stay unanswered before a surface should offer a way out. */
-export const STALLED_AFTER_MS = 3000
+export const STALLED_AFTER_MS = 2000
 
 export interface DurableWrites {
   /** Writes issued and not yet committed or failed. */
