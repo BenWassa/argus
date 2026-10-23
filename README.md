@@ -88,7 +88,7 @@ The active [execution checkpoint](docs/open/NEXT_BATCHES.md) tracks three open P
 - [Offline shell and update safety](docs/open/ISSUE_113_OFFLINE_SHELL.md) — generation-pinned navigation and failed-update verification; merged hardening.
 - [IndexedDB persistence foundation](docs/open/ISSUE_113_INDEXEDDB_FOUNDATION.md) — native database/outbox boundary and browser verification; production integration remains open.
 - [Signal flag authoritative comparison](docs/open/ISSUE_148_PUB102_COMPARISON.md) — NGA comparison findings and remaining IMO/domain acceptance gates.
-- [Role receipt and Navigator runtime](docs/open/ISSUE_197_ROLE_RUNTIME.md) — permanent receipts, owner-only sync and two-role focus selector; merged implementation with owner artwork pending.
+- [Role receipt and Navigator runtime](docs/open/ISSUE_197_ROLE_RUNTIME.md) — permanent receipts, owner-only sync and available-role progress. [Collection-first Roles UX](docs/open/ISSUE_223_ROLE_COLLECTION.md) is a draft visual-approval implementation.
 - [Role decision record (#197)](docs/open/ISSUE_197_ROLE_DECISION_RECORD.md) — owner-ratified names, achievement model, earnability gates and curriculum sequencing; artwork supplied by the owner.
 - [Combined Morse and Home candidate](docs/closed/MORSE_HOME_RELEASE_CANDIDATE.md) — historical pre-release scope and merge evidence, superseded by v1.5.0.
 - [Selected Home implementation](docs/open/ISSUE_193_HOME_REDESIGN.md) — combined candidate behavior and remaining Pixel acceptance.

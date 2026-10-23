@@ -343,6 +343,10 @@ Active topics lead the body, bounded to three plates in the journey's priority o
 
 The whole plate opens its topic; rings are informational and have a visible text equivalent. Home ends with one full-width signal-yellow action: `Continue: <topic>` enters the top unfinished topic's canonical next task. With no active topic, `+ Add something to learn` uses the existing capture or deterministic authoring fallback. The empty state is one short plate line and a quiet Open Library. The mobile navigation is pinned solid to the bottom edge, full width with a top hairline and no radius, so nothing shows beneath it; its current destination is marked in the action colour. Desktop keeps its attached left rail. The route remains internally `today` for restored history.
 
+### Roles
+
+Roles opens with a shallow collection of the available Communicator, Navigator and Mariner badges. On a phone the three compact approved locked/unlocked images share one row, with each role name and literal completion status beneath; no dropdown or raised card surrounds each badge. Selecting one opens a centered bounded detail modal on desktop and a full-screen detail on phones, with the larger approved artwork, requirements, relevant Start/Continue action and qualification boundary. The collection stays mounted and inert behind the modal. Back closes detail, Forward reopens it, and Close restores focus to that role badge even after visiting a topic.
+
 ### Guided Morse sending
 
 Sending uses the shared full-screen session grammar, one stable written target, a recessed sent readout and the shared Morse key. Spotlight highlights one letter and reserves feedback space; continuous sending retains the whole target, with explicit word gaps for phrases/messages. Review presents target and received text with one primary next action. Sending leads Fluency, while listening spacing remains separate. Reduced motion, keyboard input and audio/haptic absence preserve the interaction state.
