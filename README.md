@@ -23,6 +23,8 @@ npm run dev
 Other commands:
 
 - `npm run check` — run the test suite, type-check, production build and the browser suite
+- `npm run check:quick` — type-check and run the unit suite only (fast feedback; does not build or run the browser or Rules suites)
+- `npm run check:full` — `check` plus the Firestore Rules suite, i.e. everything CI gates on (needs Java)
 - `npm run build` — type-check and create the production build in `dist/`
 - `npm run preview` — serve the production build locally
 - `npm run typecheck` — run TypeScript without building
