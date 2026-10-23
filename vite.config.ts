@@ -84,7 +84,9 @@ export default defineConfig(({ mode }) => {
       // The Security Rules suite needs a live Firestore emulator, so it runs
       // under its own config rather than in the ordinary unit run.
       // Browser-level coverage runs under Playwright, against the built app.
-      exclude: ['**/node_modules/**', '**/dist/**', '**/dist-demo/**', 'firestore/**', 'e2e/**'],
+      // `.claude/worktrees` holds other sessions' complete checkouts; their tests are
+      // not this tree's tests, and without node_modules they fail wholesale.
+      exclude: ['**/node_modules/**', '**/dist/**', '**/dist-demo/**', '**/.claude/**', 'firestore/**', 'e2e/**'],
     },
   }
 })
