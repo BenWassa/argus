@@ -1,5 +1,6 @@
 import { readFileSync, readdirSync } from 'node:fs'
 import { join, relative } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import postcss from 'postcss'
 import { describe, expect, it } from 'vitest'
 
@@ -7,7 +8,7 @@ import { describe, expect, it } from 'vitest'
  * One unclosed rule swallows every stylesheet bundled after it, and the app
  * renders unstyled with no build error. Every stylesheet must parse on its own.
  */
-const root = new URL('..', import.meta.url).pathname
+const root = fileURLToPath(new URL('..', import.meta.url))
 function stylesheets(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
     const path = join(dir, entry.name)
