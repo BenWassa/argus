@@ -142,7 +142,7 @@ test('Navigator award persists through topic deletion and reload; explicit reset
   const canonical = await readLocalLibrary(page)
   await writeLocalLibrary(page, {
     ...canonical,
-    topics: (canonical.topics as { id: string }[]).filter((topic) => !ids.has(topic.id)),
+    topics: canonical.topics.filter((topic) => !ids.has(topic.id)),
   })
   await page.reload()
   await expect(page.getByRole('dialog', { name: 'Navigator' })).toBeVisible()
