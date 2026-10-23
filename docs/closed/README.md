@@ -11,4 +11,4 @@ This folder archives completed GitHub issue specifications, prior research, rele
 
 - [Progress architecture before permanent learning](PROGRESS_ARCHITECTURE_2026_10_19.md): superseded on 2026-10-19; retained for rationale.
 
-- [UI review, 2026-10-17](IMPECCABLE_UI_REVIEW_2026_10_17.md) — historical pre-overhaul findings.
+- [October 15 execution checkpoint](NEXT_BATCHES_2026_10_15.md): historical PR and release-state table; the current queue is maintained in [docs/open/NEXT_BATCHES.md](../open/NEXT_BATCHES.md).

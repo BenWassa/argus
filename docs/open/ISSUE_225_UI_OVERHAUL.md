@@ -1,6 +1,6 @@
 # #225: UI overhaul (colour, a Morse progress path, four Morse modes, no accordions)
 
-**Status:** Implemented on `feat/ui-overhaul`; awaiting owner Pixel sign-off and release.
+**Status (2026-10-22):** Integrated into `main` by [PR #271](https://github.com/BenWassa/argus/pull/271) on 2026-10-20, with Back-navigation follow-up [#272](https://github.com/BenWassa/argus/pull/272). **Not yet owner Pixel-accepted or released on this evidence.** Child implementation issues are closed; [#225](https://github.com/BenWassa/argus/issues/225) and [#233](https://github.com/BenWassa/argus/issues/233) remain open for final acceptance.
 **Authority:** Still the authority for the overhaul's scope and decisions until released. The owner's 2026-10-19 decisions below supersede earlier repair/decay and Home-action wording. `DESIGN.md`, `DESIGN.json` and `PRODUCT.md` record the implemented contracts.
 **Issue:** https://github.com/BenWassa/argus/issues/225
 **Related:** #221 (Morse consolidation, Pixel pending), #188 (sending stages), #201, #193 (Home, Pixel pending), #223 (Roles), #113 (offline), [Topic colour spike](../closed/TOPIC_COLOUR_SPIKE.md) (superseded historical study).
@@ -153,7 +153,7 @@ The path keeps exactly one current node aligned with the existing journey: Start
 
 ## Results (2026-10-19)
 
-Implemented on `feat/ui-overhaul`; owner Pixel sign-off and release remain outstanding.
+Implemented on `main` through PR #271 (2026-10-20); owner Pixel sign-off and release remain outstanding. This dossier's earlier `feat/ui-overhaul` branching and mockup notes are **historical execution instructions**, not the branch target for new PRs.
 
 ### Critique scores
 
@@ -187,7 +187,7 @@ Round-2 findings landed as #267 (#263 Morse) and #265 (#264 topics, Test, Practi
 | #264 topic truth and grading round 2 | #265 |
 | Review fixes: safe runs, session headings, exact Practice queue | #268 |
 
-#233 acceptance remains open.
+#233 acceptance remains open. The 19 completed child implementation issues were reconciled and closed on 2026-10-22 against their merged PRs, separately from device acceptance. New changes should target `main`, not the historical `feat/ui-overhaul` integration lane.
 
 ### Decisions recorded
 
@@ -205,3 +205,8 @@ Round-2 findings landed as #267 (#263 Morse) and #265 (#264 topics, Test, Practi
 ### Main integration, 2026-10-19
 
 The owner requested that the normal dev server running from `main` show the latest UI. This supersedes the earlier order that held the final main PR until Pixel acceptance. Physical Pixel sign-off and release acceptance remain outstanding; this document stays open. Main integration preserves the Morse modularisation and documentation relocation from #224, with the overhaul views using extracted state controllers and split stylesheets. PR #270 implements permanent learning and Home Continue. Sign-in artwork remains unchanged under #269.
+
+
+### Housekeeping checkpoint — 2026-10-22
+
+The historical delivery map remains as provenance for merged sub-PRs; all corresponding child implementation issues (#226–#232, #242–#248, #257–#259 and #263–#264) are now closed. Follow-up work on input speed (#279), shared haptics (#280/#281), global lesson completion (#276), Roles (#223) and small UI changes (#274/#275/#277) belongs to its own issue. The latest active execution queue is [NEXT_BATCHES](NEXT_BATCHES.md). Neither main integration nor GitHub issue cleanup grants physical Pixel acceptance or release approval.
