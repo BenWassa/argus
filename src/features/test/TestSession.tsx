@@ -608,6 +608,23 @@ export function TestSession({ topicIds, review = false, onExit, onPractice, onPl
     )
   }
 
+  if (view.kind === 'done' && writes.pending > 0 && writes.stalled) {
+    return (
+      <section className="session" role="status" aria-live="polite">
+        <h1>Still saving your result</h1>
+        <p>
+          This device is taking longer than usual. Your answers are held here and the save may
+          still finish. If you leave, it carries on while Argus stays open.
+        </p>
+        <div className="rate">
+          <button className="ghost" type="button" onClick={onExit}>
+            Back to today
+          </button>
+        </div>
+      </section>
+    )
+  }
+
   if (view.kind === 'done' && writes.pending > 0) {
     return (
       <section className="session" role="status" aria-live="polite">

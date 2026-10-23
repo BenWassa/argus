@@ -43,6 +43,12 @@ vi.mock('../../infrastructure/persistence/indexedLibraryRepository', () => ({
   }),
 }))
 
+// A shortened stall threshold; the production value is STALLED_AFTER_MS.
+vi.mock('../../services/library/useDurableWrites', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../services/library/useDurableWrites')>()
+  return { ...actual, useDurableWrites: () => actual.useDurableWrites(500) }
+})
+
 vi.setConfig({ testTimeout: 20_000 })
 
 const ownerKey = '__argus_unclaimed_local__'
@@ -126,5 +132,39 @@ describe('a Test result is announced only after the library has committed it', (
     fireEvent.click(screen.getByRole('button', { name: 'Try saving again' }))
     await waitFor(() => expect(document.querySelector('.test-done')).not.toBeNull(), { timeout: 8000 })
     expect(stored().history).toHaveLength(1)
+  })
+
+  describe('a save that never answers', () => {
+    async function gradeThenStall(onExit = () => undefined) {
+      render(<LibraryProvider><TestSession topicIds={['user-one']} onExit={onExit} /></LibraryProvider>)
+      await waitFor(() => expect(document.querySelector('.flip-card')).not.toBeNull())
+      fixture.armed = true
+      press(' ')
+      press('2')
+      await screen.findByText('Saving your result', {}, { timeout: 4000 })
+    }
+
+    it('offers a way out instead of saving indefinitely, and never shows the result or a failure', async () => {
+      fixture.gate = new Promise<void>(() => {})
+      const onExit = vi.fn()
+      await gradeThenStall(onExit)
+      await screen.findByText('Still saving your result', {}, { timeout: 4000 })
+      expect(screen.queryByText('Result not saved')).toBeNull()
+      expect(document.querySelector('.test-done')).toBeNull()
+      expect(stored().history).toHaveLength(0)
+      fireEvent.click(screen.getByRole('button', { name: 'Back to today' }))
+      expect(onExit).toHaveBeenCalledTimes(1)
+    })
+
+    it('shows the result once, banked once, if the held write commits after the way out appeared', async () => {
+      let release!: () => void
+      fixture.gate = new Promise<void>((resolve) => { release = resolve })
+      await gradeThenStall()
+      await screen.findByText('Still saving your result', {}, { timeout: 4000 })
+      release()
+      await waitFor(() => expect(document.querySelector('.test-done')).not.toBeNull(), { timeout: 8000 })
+      expect(screen.queryByText('Still saving your result')).toBeNull()
+      expect(stored().history).toHaveLength(1)
+    })
   })
 })
