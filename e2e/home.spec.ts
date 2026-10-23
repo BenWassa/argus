@@ -6,7 +6,7 @@ const { topicIds: SHIPPED_CATALOG_TOPIC_IDS } = JSON.parse(readFileSync(fileURLT
 
 const seed = seedLibrary()
 const base = seed.topics.find(({ id }) => id === 'nato-phonetic')!
-const topics = Array.from({ length: 4 }, (_, i) => ({ ...base, id: `home-${i}`, title: `Active topic ${i + 1}`,
+const topics = Array.from({ length: 4 }, (_, i) => ({ ...base, id: i === 1 ? base.id : `home-${i}`, title: `Active topic ${i + 1}`,
   status: i === 0 ? 'decayed' : 'learning', completedAt: i === 0 ? '2026-09-01T12:00:00Z' : null,
   learningAt: '2026-10-02T15:00:00Z', drilledAt: null, lastTestedAt: null, history: [],
 }))
@@ -28,6 +28,15 @@ test('Home keeps truthful readings, bounded topics and accessible navigation at 
   await expect(page.locator('.today-plate').filter({ hasText: 'Active topic 1' })).toHaveCount(0)
   await expect(page.locator('.docket .gauge-track')).toHaveCount(0)
   await expect(page.locator('.home-dial-arc')).toHaveCount(0)
+  await expect(page.locator('.home-dial .topic-icon')).toHaveCount(1)
+  await expect(page.locator('.home-topic-fallback')).toHaveCount(2)
+  await expect(page.locator('.home-readout-icon')).toHaveCount(3)
+  const centered = await page.locator('.home-dial .topic-icon').evaluate((icon) => {
+    const glyph = icon.getBoundingClientRect()
+    const ring = icon.closest('.home-dial')!.getBoundingClientRect()
+    return Math.abs(glyph.x + glyph.width / 2 - ring.x - ring.width / 2) < 1 && Math.abs(glyph.y + glyph.height / 2 - ring.y - ring.height / 2) < 1
+  })
+  expect(centered).toBe(true)
   if (testInfo.project.name === 'phone-390') await page.screenshot({ path: '/tmp/argus-home-390.png', fullPage: true })
   await page.evaluate(() => { document.documentElement.style.fontSize = '200%' })
   const overflow = await page.evaluate(() => ({ width: document.documentElement.clientWidth, scroll: document.documentElement.scrollWidth }))
