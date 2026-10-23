@@ -219,8 +219,10 @@ test('a reloaded practice entry falls back to its origin instead of restarting',
   // Practice persists nothing, so restoring it would silently restart a run the
   // learner did not ask for. It falls back the way replay and checkpoints do.
   await expect(page.locator('.practice-question')).toHaveCount(0)
-  const restored = await route(page)
-  expect(restored.kind).not.toBe('run')
+  // The production provider opens IndexedDB before the app mounts, so the
+  // fallback lands once the library has hydrated rather than synchronously.
+  await expect.poll(async () => (await route(page)).kind).not.toBe('run')
+  await expect(page.locator('.practice-question')).toHaveCount(0)
 })
 
 test('a clean check offers no practice at all', async ({ page }) => {
