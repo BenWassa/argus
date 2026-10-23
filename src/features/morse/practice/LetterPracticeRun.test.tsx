@@ -3,7 +3,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { newMorsePractice, type MorsePractice } from '../../../domain/morse/practice'
 import { MORSE_FEEDBACK_CORRECT_MS, MORSE_TRANSITION_MS } from '../../../domain/morse/response'
+import { fire } from '../../../shared/haptics'
 import { LetterPracticeRun } from './LetterPracticeRun'
+
+vi.mock('../../../shared/haptics', () => ({ fire: vi.fn() }))
 
 vi.mock('../input/MorseKeyInput', () => ({
   MorseKeyInput: ({ onSubmit }: { onSubmit: (pattern: string) => void }) => (
@@ -33,7 +36,7 @@ vi.mock('../useMorseAudio', async () => {
 
 const empty = newMorsePractice()
 
-beforeEach(() => vi.useFakeTimers())
+beforeEach(() => { vi.useFakeTimers(); vi.mocked(fire).mockClear() })
 afterEach(() => { cleanup(); vi.useRealTimers() })
 
 function renderRun(initialProgress: MorsePractice = empty) {
@@ -49,6 +52,33 @@ function finishCorrectDwell() {
 }
 
 describe('LetterPracticeRun', () => {
+  it.each(['key', 'read', 'listen'] as const)('emits one independent %s verdict and none for playback or feedback dwell', direction => {
+    render(<LetterPracticeRun direction={direction} eligible={['E']} onProgress={vi.fn()} onExit={vi.fn()} onAnother={vi.fn()} />)
+    if (direction === 'listen') {
+      fireEvent.click(screen.getByRole('button', { name: 'Play Morse sound' }))
+      act(() => vi.advanceTimersByTime(100))
+    }
+    expect(fire).not.toHaveBeenCalled()
+    if (direction === 'key') fireEvent.click(screen.getByRole('button', { name: 'Key correct' }))
+    else fireEvent.change(screen.getByRole('textbox', { name: 'Letter' }), { target: { value: 'E' } })
+    expect(fire).toHaveBeenCalledExactlyOnceWith('settle')
+    finishCorrectDwell()
+    expect(fire).toHaveBeenCalledTimes(1)
+  })
+
+  it.each(['key', 'read', 'listen'] as const)('emits one %s miss and no extra verdict while correction stands', direction => {
+    render(<LetterPracticeRun direction={direction} eligible={['E']} onProgress={vi.fn()} onExit={vi.fn()} onAnother={vi.fn()} />)
+    if (direction === 'listen') {
+      fireEvent.click(screen.getByRole('button', { name: 'Play Morse sound' }))
+      act(() => vi.advanceTimersByTime(100))
+    }
+    if (direction === 'key') fireEvent.click(screen.getByRole('button', { name: 'Key wrong' }))
+    else fireEvent.change(screen.getByRole('textbox', { name: 'Letter' }), { target: { value: 'T' } })
+    expect(fire).toHaveBeenCalledExactlyOnceWith('miss')
+    act(() => vi.advanceTimersByTime(10_000))
+    expect(fire).toHaveBeenCalledTimes(1)
+  })
+
   it('gives Key entry focus to its single session heading', () => {
     renderRun()
     expect(document.activeElement).toBe(screen.getByRole('heading', { level: 1, name: 'Key' }))
@@ -83,6 +113,7 @@ describe('LetterPracticeRun', () => {
     expect(screen.getByText('Correct')).toBeTruthy()
     expect(onProgress).toHaveBeenCalled()
     expect(onProgress.mock.lastCall?.[0].characters.key.E?.outcomes).toEqual([])
+    expect(fire).not.toHaveBeenCalled()
   })
 
   it('keeps a wrong answer visible until Continue is chosen', () => {

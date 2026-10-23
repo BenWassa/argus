@@ -33,6 +33,7 @@ import {
 } from '../../../domain/morse/curriculum/listening'
 import { completeSitting, morseReviewOf, withMorseReview } from '../../../domain/morse/curriculum/review'
 import { useLibrary } from '../../../services/library/LibraryProvider'
+import { fire } from '../../../shared/haptics'
 import { useKeyedResponse } from '../input/useKeyedResponse'
 import { useMorseAudio } from '../useMorseAudio'
 import { useCheckpointHandoff } from './useCheckpointHandoff'
@@ -219,6 +220,7 @@ export function useLessonProgression({ topic, initialRun, replay = false, onExit
     // existed in state for less than a frame and the learner never saw it. Both
     // verdicts now stand for their policy duration before the surface moves.
     pendingAdvance.current = () => movePastVisualFeedback(next, pathBeforeAnswer)
+    fire(next.feedback.correct ? 'settle' : 'miss')
     answered(next.feedback.correct)
   }
 
@@ -234,6 +236,7 @@ export function useLessonProgression({ topic, initialRun, replay = false, onExit
     noteListening(itemId, result.feedback.correct)
     setListeningFeedback(result.feedback)
     pendingAdvance.current = () => setListeningFeedback(null)
+    fire(result.feedback.correct ? 'settle' : 'miss')
     answered(result.feedback.correct)
   }
 
