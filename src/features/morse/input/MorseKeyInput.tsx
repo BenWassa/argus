@@ -14,12 +14,13 @@ export { MORSE_HOLD_MS, MORSE_MAX_ELEMENTS, morseElementForPressDuration, nextMo
  *
  * Press duration is never returned to the caller and therefore cannot become
  * sending-speed/WPM evidence. What press duration *does* decide is only which
- * element was meant. How long that element then sounds is canonical (#87): a
- * released press is extended to the full dit/dah length from
- * `morseElementDurationMs` rather than being cut off at finger-contact
- * duration, so a quick stab is a complete dit instead of a clipped chirp. The
- * sidetone shares the sample player's tone, level and click-free edge shaping
- * so keyed and played Morse sound like one system.
+ * element was meant. The touched tone lasts exactly as long as the touch
+ * (2026-10-23, superseding #87's canonical extension). Only a keyboard element,
+ * or a first press released before audio resumed, sounds the canonical
+ * `morseElementDurationMs` length. The sidetone shares the sample player's
+ * tone, level and click-free edge shaping
+ * so keyed and played Morse sound like one system. The key does not vibrate
+ * (deferred 2026-10-23; see ISSUE_280_281_MORSE_HAPTICS.md).
  *
  * An element is never committed before its audible form has finished. Its
  * oscillator starts inside the direct first press, even when the context is

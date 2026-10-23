@@ -71,10 +71,11 @@ export function useMorseSidetone(
   /**
    * Close out a tone that is already sounding under the finger.
    *
-   * The element runs to its canonical length measured from when the tone
-   * actually started, not from when the finger left, so releasing early
-   * lengthens the tone rather than truncating it. A dah held past its own
-   * length simply ends at release. The commit waits for that end.
+   * The tone lasts exactly as long as the touch: it ends at release with only
+   * a click-free edge, so the sound follows the finger rather than a fixed
+   * dit/dah length. Press duration still decides which element was keyed. Keyboard elements have no
+   * touch to follow and keep the canonical length (`playReleasedTone`), as does
+   * a first press released before the context finished resuming.
    */
   const finishSustainedTone = useCallback((element: '.' | '-') => {
     const context = audioContextRef.current
@@ -92,7 +93,12 @@ export function useMorseSidetone(
 
     const at = context.currentTime
     const edgeSeconds = MORSE_AUDIO_EDGE_RAMP_MS / 1000
-    const end = Math.max(at + edgeSeconds * 2, startedAt + morseElementDurationMs(element) / 1000)
+    // Touch length, unless the context is still waking up: then nothing has
+    // been audible yet, so the first press keeps its full element and is
+    // still heard once resume lands (see MORSE_AUDIO_RUNTIME.md).
+    const end = context.state === 'running'
+      ? at + edgeSeconds * 2
+      : Math.max(at + edgeSeconds * 2, startedAt + morseElementDurationMs(element) / 1000)
     const ramp = Math.min(edgeSeconds, (end - at) / 4)
 
     audioGenerationRef.current += 1

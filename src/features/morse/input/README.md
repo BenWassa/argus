@@ -12,7 +12,7 @@ whose implementation lives in `morseKeying.ts`.
 cancellation, parent locks and in-place target resets. It calls
 `useMorseSidetone.ts` for the mounted AudioContext and oscillator lifecycle.
 Sidetone starts in the direct press before resume is awaited, and the final
-element's canonical audible tail delays submission. Changing `advanceToken`
+element's release edge (or, for keyboard and a pre-resume first press, its canonical tail) delays submission. Changing `advanceToken`
 clears the response while retaining the context.
 
 `MorseWordKeyInput.tsx` collects character patterns with one mounted key for a

@@ -1,7 +1,14 @@
 // Owns categorical press timing and bounded Morse entry construction.
 
-/** Hold long enough to mean a dah, but short enough to stay comfortable one-handed. */
-export const MORSE_HOLD_MS = 300
+/**
+ * The dit/dah cutoff: the midpoint between a canonical dit (100ms) and dah
+ * (300ms) at the Learn rate, the same 2-unit boundary Morse decoders use.
+ *
+ * It used to be 300ms, the dah's *full* length, so a dah released even a touch
+ * early (a natural 250ms hold) was recorded as a dit. A tap rarely lasts past
+ * ~150ms, so 200ms leaves room on both sides.
+ */
+export const MORSE_HOLD_MS = 200
 
 /** The longest character Argus plays: six elements, the punctuation marks. */
 export const MORSE_MAX_ELEMENTS = 6

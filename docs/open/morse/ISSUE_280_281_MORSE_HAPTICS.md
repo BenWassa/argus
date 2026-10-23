@@ -17,15 +17,15 @@ Do not create a new key, a mode-specific vibrating button, a second `navigator.v
 
 | Surface | Owns response / current keying | Existing haptic | Target contract |
 | --- | --- | --- | --- |
-| Shared physical Morse key | `input/useMorseKeyPress.ts` → `MorseKeyInput.tsx`; word wrapper `MorseWordKeyInput.tsx` | `element` on accepted pointer/keyboard onset | Exactly one onset; no release tick; cancel yields no *verdict* |
+| Shared physical Morse key | `input/useMorseKeyPress.ts` → `MorseKeyInput.tsx`; word wrapper `MorseWordKeyInput.tsx` | None for the key itself (deferred 2026-10-23) | Key vibration removed after Pixel trials; cancel yields no *verdict* |
 | Guided Learn, visual + listening | `lesson/useLessonProgression.ts` | No explicit correct/miss | Character `settle` or `miss` once at authoritative judgement |
-| Learn word checkpoints | `lesson/MorseCheckpoint.tsx` | Key-onset only | Character/word judgements per existing checkpoint semantics; prevent both on same result |
+| Learn word checkpoints | `lesson/MorseCheckpoint.tsx` | None for the key (deferred) | Character/word judgements per existing checkpoint semantics; prevent both on same result |
 | Placement | `MorsePlacementDialog.tsx` | Audit required | Same character result treatment, no evidence or difficulty changes |
-| Adaptive letter practice (Key/Read/Listen) | `practice/LetterPracticeRun.tsx` | Key-onset only for Key | `settle`/`miss` for three directions, one per response |
+| Adaptive letter practice (Key/Read/Listen) | `practice/LetterPracticeRun.tsx` | None for the key (deferred) | `settle`/`miss` for three directions, one per response |
 | Key/Send | `fluency/useSendRun.ts` | `settle`, `miss`, `word`, `crest` already in callbacks | Preserve, deduplicate at word vs character boundary |
 | Listen fluency | `fluency/useFluencyRun.ts` | `settle`, `miss`, `word`, `crest` | Preserve, review repeated call conditions |
 | Copy | `fluency/useCopyRun.ts` | `settle`, `miss`, `word`, `crest` | Preserve, review repeated call conditions |
-| Free play | `fluency/FreePlay.tsx` → common `MorseKeyInput` | `element` only | Intentional: no correctness vibration, because no target |
+| Free play | `fluency/FreePlay.tsx` → common `MorseKeyInput` | None (key vibration deferred) | Intentional: no correctness vibration, because no target |
 | Formal A–Z Test | `features/test/TestSession.tsx` | `settle`/`miss` already, generic test reveal `element` | Preserve formal flow. Avoid accidental double haptic with key onset and generic reveal |
 | End of Test | `features/test/TestDone.tsx` | Completion feedback already | At most one `crest`, triggered on real milestone |
 
@@ -39,12 +39,12 @@ The key itself does **not** know correctness and should not: it only receives `e
 
 | Event | Named effect | Emission point / exclusions |
 | --- | --- | --- |
-| Accepted key onset (touch or keyboard) | `element` | Solely `useMorseKeyPress`, once per started press. If later canceled, onset cannot be taken back; **no result pulse or committed element** follows. |
+| Accepted key press (touch or keyboard) | **None (deferred, 2026-10-23)** | The key does not vibrate. A fixed 8ms onset, a steady buzz, a ratchet of ticks and a single click were each tried on a Pixel and rejected (indistinct dit/dah, felt like a call, felt like several clicks, felt like a press then a release). Key vibration is a future enhancement; the sidetone and visible pressed state are the key's feedback. Result pulses (`settle`, `miss`, `word`, `crest`) are unaffected. |
 | Correct character | `settle` | Only at definitive answer judgement, not at render, not at every keyed element |
 | Incorrect answer | `miss` | Once; the learner sees the correction independently |
 | Completed word/group correctly | `word` | One group verdict, **instead of** a duplicate final-character verdict |
 | Stage, personal-best or run milestone | `crest` | Genuine milestone, max once per appropriate session; never for an unscored Free Play word |
-| Free Play / interrupted / backgrounded / blocked key | None beyond any already-started valid key onset | No simulated success, grading or silent evidence write |
+| Free Play / interrupted / backgrounded / blocked key | None | No simulated success, grading or silent evidence write |
 
 Keep the five existing named effects. Changing waveform/duration is owned by #281 after physical calibration, not by mode authors.
 
@@ -82,6 +82,12 @@ Keep the five existing named effects. Changing waveform/duration is owned by #28
 ## Platform facts
 
 [MDN `Navigator.vibrate()`](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/vibrate) reports limited cross-browser support and notes that OS settings can suppress vibration. The [20 May 2026 W3C Candidate Recommendation Draft](https://www.w3.org/TR/2026/CRD-vibration-20260520/) describes required page visibility and sticky user activation, permits refusal/rate-limiting, and replaces an in-progress pattern when a new call arrives. The draft identifies Chromium implementations and opposition from WebKit; Firefox's implementation was removed. Therefore, the browser API is best-effort tactile confirmation rather than a deterministic signal or Morse-duration encoder.
+
+### Pixel finding (2026-10-23): `vibrate()` returns `true` while the phone is silent
+
+On a physical Pixel, Chrome's `navigator.vibrate()` returned `true` for every pattern, up to 400ms, and nothing was felt, in Argus and in a bare test page alike. The cause was an Android system setting, and enabling **Settings → Sound & vibration → Vibration & haptics** fixed it with no code change. If the key does not buzz on a Pixel, check that first, then Do Not Disturb / silent mode and Battery Saver, before suspecting `src/shared/haptics.ts`.
+
+This is the concrete case behind "never infer perceptibility from the API returning `true`": a `true` return means Chrome handed the call to Android, not that the motor ran. Argus cannot detect it, so the sidetone and the visible pressed state stay the primary feedback.
 
 ## Completion definition
 
