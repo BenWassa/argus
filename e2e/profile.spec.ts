@@ -104,14 +104,15 @@ test('confirming Profile reset restores only fresh shipped topics', async ({ pag
     .toBe(true)
 })
 
-test('a corrupt first-run library blocks unsafe seeding and preserves recoverable bytes', async ({ page }) => {
+test('a corrupt first-run library keeps a recovery copy, preserves its bytes and starts fresh', async ({ page }) => {
   const raw = '{ "version": 5, "topics": [ damaged'
   await page.addInitScript(([storeKey, splashKey, bytes]) => {
     localStorage.setItem(splashKey, 'true')
     localStorage.setItem(storeKey, bytes)
   }, [STORE_KEY, SPLASH_KEY, raw] as const)
   await page.goto('./')
-  await expect(page.getByRole('alert')).toContainText('Existing data has not been replaced.')
+  await expect(page.getByRole('button', { name: 'Open profile' })).toBeVisible()
   expect(await page.evaluate((key) => localStorage.getItem(key), STORE_KEY)).toBe(raw)
-  await expect(page.getByRole('button', { name: 'Open profile' })).toHaveCount(0)
+  const recovery = await page.evaluate(() => JSON.parse(localStorage.getItem('argus.library.recovery.v1') ?? '[]') as { raw: string }[])
+  expect(recovery.map((entry) => entry.raw)).toEqual([raw])
 })

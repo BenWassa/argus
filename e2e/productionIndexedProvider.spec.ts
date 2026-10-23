@@ -42,13 +42,16 @@ test('production provider migrates legacy bytes, preserves them and prefers cano
   expect(await page.evaluate(() => localStorage.getItem('argus.library.v5'))).toBe('{broken legacy')
 })
 
-test('invalid first-run legacy data is retained and blocks unsafe reseeding', async ({ page }) => {
+test('invalid first-run legacy data is kept as a recovery copy and the learner starts fresh', async ({ page }) => {
   await page.addInitScript(() => {
     localStorage.setItem('argus-splash-seen', 'true')
     localStorage.setItem('argus.library.v5', '{damaged')
   })
   await page.goto('./')
-  await expect(page.getByRole('alert')).toContainText('Existing data has not been replaced')
+  await expect(page.getByRole('button', { name: 'Library', exact: true })).toBeVisible()
+  // The unreadable bytes are never overwritten, and a copy is kept to recover from.
   expect(await page.evaluate(() => localStorage.getItem('argus.library.v5'))).toBe('{damaged')
-  expect(await stored(page)).toBeUndefined()
+  const recovery = await page.evaluate(() => JSON.parse(localStorage.getItem('argus.library.recovery.v1') ?? '[]') as { raw: string }[])
+  expect(recovery.map((entry) => entry.raw)).toEqual(['{damaged'])
+  expect((await stored(page))?.library.topics.length).toBeGreaterThan(0)
 })
