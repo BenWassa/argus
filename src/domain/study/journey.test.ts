@@ -156,10 +156,10 @@ describe('progressive acquisition routes the learner to Learn until it is ready'
     // A miss in a later lesson legitimately restores that letter's support.
     const slipped = withLessonProgress(ready, { [ready.items[0].id as string]: 'cued' })
 
-    expect(morseAcquisitionPosition(slipped)?.ready).toBe(false)
+    expect(morseAcquisitionPosition(slipped)?.ready).toBe(true)
     // ...but the learner did produce all 26 unaided, and that is a fact.
     expect(journeyFor(slipped).acquisition.ready).toBe(true)
-    expect(journeyFor(slipped).action).toBe('test')
+    expect(journeyFor(slipped).phase).toBe('banked')
     expect(withAcquisitionReadiness(slipped, NOW).acquisitionReadyAt).toBe(ready.acquisitionReadyAt)
   })
 })
@@ -186,14 +186,14 @@ describe('acquisition gates the ladder, and no clock does', () => {
     // Ready today, and there is nothing to wait for.
     const today = journeyFor(ready)
     expect(today.action).toBe('test')
-    expect(today.due).toBe(true)
-    expect(today.phase).toBe('due')
-    expect(today.statusLabel).toBe('Ready to test')
+    expect(today.due).toBe(false)
+    expect(today.phase).toBe('banked')
+    expect(today.statusLabel).toBe('Learned')
 
     const tomorrow = journeyFor(ready)
-    expect(tomorrow.due).toBe(true)
-    expect(tomorrow.phase).toBe('due')
-    expect(tomorrow.statusLabel).toBe('Ready to test')
+    expect(tomorrow.due).toBe(false)
+    expect(tomorrow.phase).toBe('banked')
+    expect(tomorrow.statusLabel).toBe('Learned')
   })
 
   it('treats a record written before the readiness anchor existed the same way', () => {
@@ -201,7 +201,8 @@ describe('acquisition gates the ladder, and no clock does', () => {
     expect(legacy.acquisitionReadyAt).toBeUndefined()
 
     const journey = journeyFor(legacy)
-    expect(journey.due).toBe(true)
+    expect(journey.due).toBe(false)
+    expect(journey.phase).toBe('banked')
     expect(journey.action).toBe('test')
   })
 
@@ -212,6 +213,9 @@ describe('acquisition gates the ladder, and no clock does', () => {
 
     const finished = withAcquisitionReadiness(acquire(nearlyThere, 3), NOW)
     expect(finished.acquisitionReadyAt).toBe(NOW.toISOString())
+    expect(finished.completedAt).toBe(NOW.toISOString())
+    expect(finished.status).toBe('completed')
+    expect(finished.history).toEqual([])
   })
 })
 

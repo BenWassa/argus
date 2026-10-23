@@ -25,7 +25,7 @@ describe('Morse progress path', () => {
     const current = container.querySelectorAll('[aria-current="step"]')
     if (!path.currentNodeId) {
       expect(current).toHaveLength(0)
-      expect(screen.getByText('Learned')).toBeTruthy()
+      expect(screen.getByText(/Learned · Test optional|Learned · Test passed/)).toBeTruthy()
       return
     }
     expect(current).toHaveLength(1)
@@ -51,7 +51,7 @@ describe('Morse progress path', () => {
     const test = screen.getByText('A–Z TEST').closest('button')!.querySelector('.spine-node-square')!
     expect(test.textContent).toBe('A–Z')
     expect(test.querySelector('svg')).toBeNull()
-    expect(screen.getByText('Learned')).toBeTruthy()
+    expect(screen.getByText(/Learned · Test optional|Learned · Test passed/)).toBeTruthy()
     expect(screen.queryByText(/Needs repair/)).toBeNull()
   })
 

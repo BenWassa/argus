@@ -3,7 +3,6 @@ import { useLibrary } from '../../services/library/LibraryProvider'
 import { journeysFor, type JourneyEntry } from '../../domain/study/journey'
 import { libraryGroups } from '../../domain/study/libraryGroups'
 import type { RunTarget } from '../../app/routing/routes'
-import { Confirm } from '../../shared/ui/Confirm'
 import { Plate } from '../../shared/ui/Plate'
 import { ScreenHeader } from '../../shared/ui/ScreenHeader'
 import { TRACK_LABELS } from '../../shared/ui/trackLabels'
@@ -65,14 +64,13 @@ export function LibraryPage({
   openFormOnMount = false,
   openTopicOnMount = null,
 }: LibraryProps) {
-  const { topics, upsertTopic, removeTopic } = useLibrary()
+  const { topics, upsertTopic } = useLibrary()
 
   const [openId, setOpenId] = useState<string | null>(openTopicOnMount)
   const [editing, setEditing] = useState<Topic | null>(null)
   const [draft, setDraft] = useState<Draft | null>(null)
   const [formOpen, setFormOpen] = useState(openFormOnMount)
   const [focusItems, setFocusItems] = useState(false)
-  const [pendingDelete, setPendingDelete] = useState<Topic | null>(null)
   const [addMenuOpen, setAddMenuOpen] = useState(false)
 
   // The inbox is a neighbour of the library, never a part of it. Capture is
@@ -123,7 +121,7 @@ export function LibraryPage({
     setOpenId(openTopicOnMount)
   }, [openTopicOnMount])
 
-  // A topic deleted from its own page has nowhere to return to but the list.
+  // A topic removed externally has nowhere to return to but the list.
   useEffect(() => {
     if (openId && !topics.some((t) => t.id === openId)) setOpenId(null)
   }, [openId, topics])
@@ -256,29 +254,6 @@ export function LibraryPage({
 
       {capture.overlay}
 
-      {pendingDelete && (
-        <Confirm
-          title="Delete topic"
-          body={`"${pendingDelete.title}" and its test history will be removed from this device. Export your library first if you want a copy.`}
-          confirmLabel="Delete topic"
-          onCancel={() => setPendingDelete(null)}
-          onConfirm={() => {
-            const topic = pendingDelete
-            const result = removeTopic(topic.id)
-            const settled = (saved?: boolean) => {
-              if (saved === false) {
-                setAnnouncement(`${topic.title} was not deleted; the library is unchanged.`)
-                return
-              }
-              setAnnouncement(`${topic.title} deleted.`)
-              setPendingDelete(null)
-            }
-            if (result && typeof result.then === 'function') void result.then(settled)
-            else settled()
-          }}
-        />
-      )}
-
       <p className="sr-only" role="status" aria-live="polite">
         {announcement}
       </p>
@@ -294,7 +269,6 @@ export function LibraryPage({
           onStart={onStart}
           onReference={onReference}
           onEdit={() => editTopic(open, open.items.length === 0)}
-          onDelete={() => setPendingDelete(open)}
         />
         {overlays}
       </>

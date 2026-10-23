@@ -527,15 +527,19 @@ describe('a Learn answer cannot become formal evidence', () => {
     expect(resolution.topic.completedAt).toBe(drilled.drilledAt)
   })
 
-  it('resolves an attempt identically whether or not a lesson ever happened', () => {
+  it('keeps actual scored Test history identical even when lessons independently complete learning', () => {
     const topic: Topic = { ...morseTopic(), status: 'learning', learningAt: '2026-01-01T00:00:00.000Z' }
     const now = new Date('2026-02-01T00:00:00.000Z')
     const plain = resolveAttempt(topic, 20, 26, now)
     const taught = resolveAttempt(settleEverything(topic), 20, 26, now)
 
-    expect(taught.to).toBe(plain.to)
-    expect(taught.completed).toBe(plain.completed)
-    expect(taught.topic.history).toEqual(plain.topic.history)
+    expect(plain.to).toBe('learning')
+    expect(taught.to).toBe('completed')
+    expect(taught.topic.history.map(({ resolvedTo: _ignored, ...score }) => score))
+      .toEqual(plain.topic.history.map(({ resolvedTo: _ignored, ...score }) => score))
+    expect(taught.topic.history[0].resolvedTo).toBe('completed')
+    expect(plain.topic.history[0].resolvedTo).toBe('learning')
+    expect(taught.topic.lastTestedAt).toBe(plain.topic.lastTestedAt)
   })
 })
 

@@ -126,8 +126,7 @@
 
 /* ------------------------------------------------------------- foot -- */
 
-/* Sources and limitations and Delete share the page foot: small, quiet, last.
-   Delete is never in a header, pinned or not. */
+/* Sources and limitations remain small, quiet and last. */
 .topic-foot {
   display: flex;
   flex-wrap: wrap;
@@ -138,8 +137,6 @@
 }
 
 .topic-foot button.sources-link { margin: 0; }
-.topic-foot .quiet.is-danger { min-height: 44px; color: var(--danger); font-size: var(--t-small); }
-.topic-foot .quiet.is-danger:hover { color: var(--danger-2); }
 
 /* Morse: ScreenHeader, ModeTray and ProgressSpine own the layout. The tray is
    fixed above phone navigation, reserves its own height, and sits above the
@@ -188,8 +185,7 @@
   white-space: nowrap;
   text-overflow: ellipsis;
 }
-.topic-morse-header.is-compact .topic-edit,
-.topic-morse-header.is-compact .topic-delete { display: none; }
+.topic-morse-header.is-compact .topic-edit { display: none; }
 /* Rows keep clear of the pinned header above and the tray and navigation
    below, so the path opens with its position centred in the free space. */
 .topic-morse .spine-row,

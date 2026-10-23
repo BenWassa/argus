@@ -170,7 +170,7 @@ describe('offering practice after a check', () => {
     const onStart = vi.fn()
     const { container } = render(
       <LibraryProvider>
-        <TopicPage topic={stored} onBack={vi.fn()} onStart={onStart} onReference={vi.fn()} onEdit={vi.fn()} onDelete={vi.fn()} />
+        <TopicPage topic={stored} onBack={vi.fn()} onStart={onStart} onReference={vi.fn()} onEdit={vi.fn()} />
       </LibraryProvider>,
     )
     const practice = container.querySelector<HTMLButtonElement>('.topic-tray [data-tile-id="practice"]')!

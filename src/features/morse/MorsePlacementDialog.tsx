@@ -15,6 +15,7 @@ import { MorseKeyInput } from './input/MorseKeyInput'
 import { MorseWordKeyInput } from './input/MorseWordKeyInput'
 import { useKeyedResponse } from './input/useKeyedResponse'
 import { SessionFrame, SessionCorrect } from '../../shared/ui/SessionFrame'
+import { fire } from '../../shared/haptics'
 import './MorsePlacement.css'
 
 interface MorsePlacementDialogProps {
@@ -91,6 +92,7 @@ export function MorsePlacementDialog({
       : response === expectedMorsePlacementPattern(target)
     pendingRun.current = answerMorsePlacement(run, response)
     setFeedback({ correct, letter: target.letter })
+    fire(correct ? (target.kind === 'word' ? 'word' : 'settle') : 'miss')
     answered(correct)
   }
 

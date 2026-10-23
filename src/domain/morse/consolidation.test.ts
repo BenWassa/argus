@@ -13,17 +13,7 @@ import { ALL_MORSE_LETTERS } from './curriculum/packetOrder'
 import type { Topic } from '../library/topic'
 import type { ItemLessonStore, MorseReviewProgress } from './progress'
 
-/**
- * #90 §4: settling every character is necessary but not sufficient for
- * acquisition readiness. A character produced unaided inside the very sitting
- * that taught it has not survived any gap, and surviving a gap is the whole
- * difference between "I can do this now" and "I know this".
- *
- * The risk this file exists to pin down is the other half: the new gate must
- * not drag a learner who is *already* finished back into acquisition. Two
- * things stop it. `acquisitionReadyAt` is permanent, and a record written
- * before the review history existed has no entries to be held to.
- */
+/** Historical review evidence survives without retaining the old repeat gate. */
 
 function morseTopic(): Topic {
   const parsed = parseLibrary(seedLibrary())
@@ -61,48 +51,26 @@ function consolidateAll(topic: Topic, review: MorseReviewProgress): MorseReviewP
   return next
 }
 
-describe('consolidation gates acquisition readiness', () => {
-  it('withholds readiness while characters have only ever been right in their own sitting', () => {
+describe('one pass replaces mandatory consolidation', () => {
+  it('completes the lessons even when nobody has a later-sitting success', () => {
     const topic = allSettled(morseTopic())
-    const withReview = withMorseReview(topic, introducedAll(topic))
-    const position = morseAcquisitionPosition(withReview)
-
+    const position = morseAcquisitionPosition(withMorseReview(topic, introducedAll(topic)))
     expect(position?.settled).toBe(26)
-    expect(position?.awaitingConsolidation).toHaveLength(26)
-    expect(position?.ready).toBe(false)
-  })
-
-  it('grants readiness once every character has survived a later sitting', () => {
-    const topic = allSettled(morseTopic())
-    const review = consolidateAll(topic, introducedAll(topic))
-    const position = morseAcquisitionPosition(withMorseReview(topic, review))
-
     expect(position?.awaitingConsolidation).toEqual([])
     expect(position?.ready).toBe(true)
   })
 
-  it('names exactly the characters still outstanding', () => {
+  it('does not require a second sitting for Q, J or any other letter', () => {
     const topic = allSettled(morseTopic())
-    let review = consolidateAll(topic, introducedAll(topic))
-    // Q and J are re-introduced late and have no later-sitting success yet.
-    review = {
-      ...review,
-      items: {
-        ...review.items,
-        [itemIdFor(topic, 'Q')]: { ...review.items[itemIdFor(topic, 'Q')], laterCorrect: 0 },
-        [itemIdFor(topic, 'J')]: { ...review.items[itemIdFor(topic, 'J')], laterCorrect: 0 },
-      },
-    }
-    const position = morseAcquisitionPosition(withMorseReview(topic, review))
-
-    expect(new Set(position?.awaitingConsolidation)).toEqual(new Set(['Q', 'J']))
-    expect(position?.ready).toBe(false)
+    const review = consolidateAll(topic, introducedAll(topic))
+    review.items[itemIdFor(topic, 'Q')].laterCorrect = 0
+    review.items[itemIdFor(topic, 'J')].laterCorrect = 0
+    expect(morseAcquisitionPosition(withMorseReview(topic, review))?.ready).toBe(true)
   })
 
-  it('still withholds readiness when a packet is unsettled, review history or not', () => {
+  it('does not learn from introductions alone', () => {
     const topic = morseTopic()
-    const position = morseAcquisitionPosition(withMorseReview(topic, introducedAll(topic)))
-    expect(position?.ready).toBe(false)
+    expect(morseAcquisitionPosition(withMorseReview(topic, introducedAll(topic)))?.ready).toBe(false)
   })
 })
 
@@ -141,7 +109,7 @@ describe('the gate never drags a finished learner backwards', () => {
     review = recordIntroduced(review, itemIdFor(topic, 'Q'))
     const position = morseAcquisitionPosition(withMorseReview(topic, review))
 
-    expect(position?.awaitingConsolidation).toEqual(['Q'])
-    expect(position?.ready).toBe(false)
+    expect(position?.awaitingConsolidation).toEqual([])
+    expect(position?.ready).toBe(true)
   })
 })

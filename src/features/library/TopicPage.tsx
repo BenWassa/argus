@@ -30,7 +30,6 @@ interface TopicPageProps {
   onStart: (mode: Mode, topicIds: string[], target?: RunTarget) => void
   onReference: (topicId: string) => void
   onEdit: () => void
-  onDelete: () => void
 }
 
 function stamp(iso: string): string {
@@ -48,7 +47,6 @@ export function TopicPage({
   onStart,
   onReference,
   onEdit,
-  onDelete,
 }: TopicPageProps) {
   const { updateTopic } = useLibrary()
   const heading = useRef<HTMLHeadingElement>(null)
@@ -97,10 +95,7 @@ export function TopicPage({
     else onStart(run.mode, [topic.id])
   }
 
-  // Edit is a quiet header action. Delete is rarely wanted and never one tap
-  // from Back, so it waits at the foot of the page beside Sources and
-  // limitations; the pinned Morse header carries neither it nor Edit's weight.
-  // Names stay full for assistive technology.
+  // Edit remains a quiet header action, with its full accessible name.
   const editAction = <button className="quiet topic-edit" type="button" aria-label="Edit topic" onClick={onEdit}>Edit</button>
 
   return (
@@ -147,7 +142,6 @@ export function TopicPage({
       {!course && topic.completedAt && <p className="topic-earned">First completed · {stamp(topic.completedAt)}</p>}
       <footer className="topic-foot">
         <SourcesAndLimits content={topic.learn} scope={topic.scope} />
-        <button className="quiet topic-delete is-danger" type="button" aria-label="Delete topic" onClick={onDelete}>Delete</button>
       </footer>
       {placementOpen && course && <MorsePlacementDialog topic={topic}
         onClose={() => setPlacementOpen(false)}

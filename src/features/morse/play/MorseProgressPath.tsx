@@ -2,6 +2,7 @@ import { useState, type ReactNode } from 'react'
 import type { Topic } from '../../../domain/library/topic'
 import { morseProgressPath, type MorseProgressAction, type MorseProgressNode } from '../../../domain/morse/curriculum/progressPath'
 import { MORSE_MODES } from '../../../domain/morse/modes'
+import { isLearned } from '../../../domain/study/scheduling'
 import { ProgressSpine, type SpineRow, type SpineState } from '../../../shared/ui/ProgressSpine'
 import { MorseModeGlyph } from './MorseModeTray'
 import './MorseProgressPath.css'
@@ -37,13 +38,14 @@ function spineState(node: MorseProgressNode): SpineState {
   return node.state
 }
 
-function words(node: MorseProgressNode): Pick<SpineRow, 'label' | 'detail' | 'trailing'> {
+function words(node: MorseProgressNode, learned: boolean): Pick<SpineRow, 'label' | 'detail' | 'trailing'> {
   if (node.kind === 'start') return { label: 'Begin' }
   if (node.kind === 'lesson') return { label: node.novel.join(' '), trailing: <span className="morse-progress-label">{node.label}</span> }
   if (node.kind === 'checkpoint') return { label: 'WORD CHECK', detail: node.words.slice(0, 3).join(' · ') }
   if (node.kind === 'test') return {
     label: 'A–Z TEST',
-    detail: node.testState === 'banked' ? 'Learned' : node.testState === 'available' ? 'Ready' : 'Locked',
+    detail: node.testState === 'banked' ? 'Learned · Test passed'
+      : node.testState === 'available' ? (learned ? 'Learned · Test optional' : 'Ready') : 'Locked',
   }
   return { label: node.label }
 }
@@ -96,7 +98,7 @@ export function MorseProgressPath({ topic, onAction, showJump = true, onPlacemen
       shape: node.kind === 'checkpoint' || node.kind === 'test' ? 'square' : 'round',
       mark: mark(node),
       state: spineState(node),
-      ...words(node),
+      ...words(node, isLearned(topic)),
       ...(node.kind === 'tier' ? { group: true, trailing: <TierPips node={node} onAction={act} onLocked={say} /> } : {}),
       accessibleLabel: node.accessibleLabel,
       // Plates are for tests alone; levels after the alphabet are plain rows (#263).

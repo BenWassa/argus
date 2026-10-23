@@ -18,6 +18,7 @@ import {
   liveRoute,
   parentFor,
   restoreRoute,
+  roleRouteFromSearch,
   sameRoute,
   type AppRoute,
   type ParentRoute,
@@ -32,10 +33,11 @@ import {
 } from './history'
 import type { View } from './routes'
 import type { Mode } from '../../domain/study/mode'
-import type { RoleId } from '../../domain/roles/roles'
 
 function focusAfterTraversal(previous: AppRoute, next: AppRoute) {
   if (sameRoute(previous, next)) return
+  // Dialog entry owns focus, and Dialog cleanup restores the invoking badge.
+  if (next.kind === 'role' || (previous.kind === 'role' && next.kind === 'section' && next.view === 'roles')) return
   if (next.kind === 'topic') {
     // Library keeps the page component mounted while browser history restores
     // a topic. Wait two frames so its local openId state has committed before
@@ -70,10 +72,9 @@ export function AppRouter() {
   const { topics } = useLibrary()
   const [initialHistory] = useState(readNavigationState)
   const [route, setRoute] = useState<AppRoute>(() =>
-    restoreRoute(initialHistory?.route ?? ROOT_ROUTE, topics, false),
+    restoreRoute(initialHistory?.route ?? roleRouteFromSearch(window.location.search) ?? ROOT_ROUTE, topics, false),
   )
   const [authorOnEntry, setAuthorOnEntry] = useState(false)
-  const [selectedRole, setSelectedRole] = useState<RoleId>('communicator')
 
   const routeRef = useRef(route)
   routeRef.current = route
@@ -81,11 +82,18 @@ export function AppRouter() {
   topicsRef.current = topics
   const historyIndex = useRef(initialHistory?.index ?? 0)
   const blockedBackBounce = useRef(false)
+  const roleOverviewScroll = useRef(0)
 
   useEffect(() => {
-    // Seed/normalise the existing document entry. Never push a synthetic root:
-    // Today must remain the final Argus boundary before browser/platform exit.
-    replaceNavigationState(routeRef.current, historyIndex.current)
+    // A pasted role link has no Roles entry underneath it. Create exactly that
+    // overview stop so Android/browser Back closes detail before leaving Argus.
+    // Ordinary entry still seeds in place, never adding a phantom Today root.
+    if (!initialHistory && routeRef.current.kind === 'role') {
+      replaceNavigationState({ kind: 'section', view: 'roles' }, 0)
+      historyIndex.current = pushNavigationState(routeRef.current, 0)
+    } else {
+      replaceNavigationState(routeRef.current, historyIndex.current)
+    }
 
     function onPopState(event: PopStateEvent) {
       const state = readNavigationState(event.state)
@@ -131,6 +139,9 @@ export function AppRouter() {
       setAuthorOnEntry(false)
       setRoute(next)
       focusAfterTraversal(previous, next)
+      if (next.kind === 'role' || (next.kind === 'section' && next.view === 'roles')) {
+        window.requestAnimationFrame(() => window.scrollTo(0, roleOverviewScroll.current))
+      }
     }
 
     window.addEventListener('popstate', onPopState)
@@ -169,19 +180,27 @@ export function AppRouter() {
     if (replace) replaceNavigationState(next, historyIndex.current)
     else historyIndex.current = pushNavigationState(next, historyIndex.current)
 
-    // Clear the previous page's scroll before mounting the next task, so its
-    // own focus policy can still bring an input into view on short screens.
-    // Back/Forward retain the existing traversal/restoration path.
-    window.scrollTo(0, 0)
+    // An open role overlays the collection without resetting its position.
+    // Other destinations begin at the top; Back restores the stored overview.
+    if (next.kind === 'role') roleOverviewScroll.current = window.scrollY
+    else window.scrollTo(0, 0)
     routeRef.current = next
     setRoute(next)
     if (next.kind === 'section') {
-      window.requestAnimationFrame(() => document.getElementById('main')?.focus({ preventScroll: true }))
+      window.requestAnimationFrame(() => {
+        if (sameRoute(routeRef.current, next)) document.getElementById('main')?.focus({ preventScroll: true })
+      })
     }
   }
 
   function goBack() {
     backNavigation()
+  }
+
+  function closeRole() {
+    // A pasted direct link has no Argus overview entry to return to.
+    if (historyIndex.current === 0) navigate({ kind: 'section', view: 'roles' }, true)
+    else goBack()
   }
 
   function start(mode: Mode, topicIds: string[], target?: RunTarget, replace = false) {
@@ -204,7 +223,7 @@ export function AppRouter() {
   function openReference(topicId: string) {
     const current = routeRef.current
     const origin: ParentRoute =
-      current.kind === 'section' || current.kind === 'topic' ? current : current.origin
+      current.kind === 'section' || current.kind === 'topic' || current.kind === 'role' ? current : current.origin
     navigate({ kind: 'reference', topicId, origin })
   }
 
@@ -346,7 +365,7 @@ export function AppRouter() {
     )
   }
 
-  const view: View = route.kind === 'topic' ? 'library' : route.view
+  const view: View = route.kind === 'topic' ? 'library' : route.kind === 'role' ? 'roles' : route.view
   const topicId = route.kind === 'topic' ? route.topicId : null
   // `data` remains valid only so old browser history can open the utility it
   // named. Profile belongs to Today; neither utility becomes primary nav.
@@ -370,8 +389,9 @@ export function AppRouter() {
       )}
       {view === 'roles' && (
         <RolesPage
-          selectedRole={selectedRole}
-          onSelectRole={setSelectedRole}
+          selectedRole={route.kind === 'role' ? route.roleId : null}
+          onSelectRole={(roleId) => navigate({ kind: 'role', roleId })}
+          onCloseRole={closeRole}
           onOpenTopic={(id) => navigate({ kind: 'topic', topicId: id })}
           onContinue={(action, id) => action === 'author' ? navigate({ kind: 'topic', topicId: id }) : start(action, [id])}
         />

@@ -41,17 +41,25 @@ export function readNavigationState(value: unknown = window.history.state): Argu
   }
 }
 
+/** The role query is an actual shareable URL, not just history.state. */
+function urlFor(route: AppRoute): string {
+  const url = new URL(window.location.href)
+  if (route.kind === 'role') url.searchParams.set('role', route.roleId)
+  else url.searchParams.delete('role')
+  return `${url.pathname}${url.search}${url.hash}`
+}
+
 function stateFor(route: AppRoute, index: number): ArgusHistoryState {
   return { argusNavigation: ARGUS_NAVIGATION_VERSION, index, route }
 }
 
 export function replaceNavigationState(route: AppRoute, index: number) {
-  window.history.replaceState(stateFor(route, index), '')
+  window.history.replaceState(stateFor(route, index), '', urlFor(route))
 }
 
 export function pushNavigationState(route: AppRoute, currentIndex: number): number {
   const nextIndex = currentIndex + 1
-  window.history.pushState(stateFor(route, nextIndex), '')
+  window.history.pushState(stateFor(route, nextIndex), '', urlFor(route))
   return nextIndex
 }
 

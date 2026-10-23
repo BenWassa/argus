@@ -146,7 +146,6 @@ function renderTopicPage(topic: Topic) {
         onStart={() => undefined}
         onReference={() => undefined}
         onEdit={() => undefined}
-        onDelete={() => undefined}
       />
     </LibraryProvider>,
   )
@@ -333,7 +332,9 @@ describe('one learner state, three surfaces, one recommendation', () => {
       // Topic browsing is side-effect free and therefore renders the same
       // journey as Today and Library, including for a fresh ordinary topic.
       install([topic])
-      expect(topicPrimary(topic)).toBe(journey.primaryLabel)
+      if (topic.id === MORSE_ID && journey.phase === 'banked') {
+        expect(topicPrimary(topic)).toBe('') // Completed path has no required current action.
+      } else expect(topicPrimary(topic)).toBe(journey.primaryLabel)
       cleanup()
       install([topic])
       if (topic.id === MORSE_ID) {
@@ -413,7 +414,8 @@ describe('partially acquired Morse is never routed to Test', () => {
     renderLibrary()
     const row = rowFor(partial.title)
     expect(row.querySelector('.gauge-acquisition')).not.toBeNull()
-    expect(row.querySelector('.gauge-row .gauge-label')?.textContent).toContain('letters')
+    expect(row.querySelector('.gauge-row .sr-only')?.textContent).toContain('letters')
+    expect(row.querySelector('.gauge-row .gauge-label')).toBeNull()
     // The gap bar means retention, and this topic has not entered a gap.
     expect(row.querySelector('.gauge-gap')).toBeNull()
   })
@@ -442,50 +444,38 @@ describe('partially acquired Morse is never routed to Test', () => {
   })
 })
 
-describe('acquisition readiness moves every surface together', () => {
+describe('curriculum completion moves every surface together', () => {
   const ready = (): Topic => ({
     ...acquire(resolveStudy(blank(MORSE_ID), new Date(Date.now() - 40 * DAY)), 14),
     acquisitionReadyAt: ago(0),
   })
 
-  it('switches the recommendation from lesson to Test at the same instant', () => {
+  it('stops recommending mandatory lessons or Tests immediately upon learning', () => {
     const topic = ready()
     install([topic])
-
-    // The page's fuller recommendation between checks: keep learning past the
-    // alphabet. Its Test is still one tap away, as a short review.
-    expect(topicPrimary(topic)).toBe('Test')
+    expect(journeyFor(topic).phase).toBe('banked')
+    expect(journeyFor(topic).due).toBe(false)
+    expect(topicPrimary(topic)).toBe('')
     cleanup()
-    // It is in motion, so Today shows it with its ladder label, and pressing
-    // it opens the topic.
-    renderToday()
-    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('ARGUS')
-    const row = rowFor(topic.title, todayDocket())
-    expect(row.querySelector('.home-topic-reading')?.textContent).toBe(homeProgress(topic, journeyFor(topic)).label)
-    cleanup()
-    expect(todayOpens(topic)).toBe(topic.id)
+    expect(onToday(topic)).toBe(false)
   })
 
-  it('starts the delayed-test clock at readiness rather than at first exposure', () => {
+  it('offers optional scored Test separately from the learned course', () => {
     const topic = ready()
     install([topic])
-
-    // First exposure was forty days ago. Under the old rule the topic has read
-    // `Ready to drill` for thirty-nine of them.
     expect(topic.learningAt).not.toBeNull()
     renderTopicPage(topic)
-    expect(screen.getByRole('button', { name: 'A–Z Test, available, current' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'A–Z Test, available, reached' })).toBeTruthy()
     cleanup()
     expect(libraryGroup(topic)).toBe('Started')
   })
 
-  it('becomes due once the anchored gap has actually passed', () => {
+  it('does not reopen learned topics when an old acquisition date changes', () => {
     const topic = { ...ready(), acquisitionReadyAt: ago(3) }
     install([topic])
-
-    expect(todayOpens(topic)).toBe(topic.id)
-    cleanup()
-    expect(todaySchedule(topic)).toBe(homeProgress(topic, journeyFor(topic)).label)
+    expect(journeyFor(topic).phase).toBe('banked')
+    expect(journeyFor(topic).due).toBe(false)
+    expect(onToday(topic)).toBe(false)
     cleanup()
     expect(libraryGroup(topic)).toBe('Started')
   })
@@ -596,7 +586,7 @@ describe('ordinary topic browsing and enrollment', () => {
     render(
       <LibraryProvider>
         <TopicPage topic={briefed} onBack={() => undefined} onStart={() => undefined}
-          onReference={onReference} onEdit={() => undefined} onDelete={() => undefined} />
+          onReference={onReference} onEdit={() => undefined} />
       </LibraryProvider>,
     )
     // The topic page carries the scored set; the explanation is one tile away.

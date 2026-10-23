@@ -9,7 +9,7 @@
       "primary": "Current path row only; no docked duplicate",
       "modes": "Key, Listen, Read, Free play; opaque tray above phone navigation, normal flow above path at 980px",
       "placement": "Skip ahead opens placement; Start enters the first lesson",
-      "footer": "Edit, Delete, Sources and limitations",
+      "footer": "Sources and limitations; Edit remains in the header; no learner-facing Delete",
       "history": "Legacy Fluency hub entries normalize to the Morse topic"
     },
     "colorMeta": {

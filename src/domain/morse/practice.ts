@@ -155,7 +155,7 @@ export function selectPracticeLetter(
   progress: MorsePractice,
   direction: PracticeDirection,
   eligible: readonly MorseLetter[],
-  options: { recent?: readonly MorseLetter[]; rng?: () => number } = {},
+  options: { recent?: readonly MorseLetter[]; rng?: () => number; weight?: (progress: MorsePractice, direction: PracticeDirection, glyph: MorseLetter) => number } = {},
 ): { letter: MorseLetter | null; progress: MorsePractice } {
   const rng = options.rng ?? Math.random
   const roster = [...new Set(eligible)].filter((glyph) => Object.prototype.hasOwnProperty.call(MORSE_LETTERS, glyph))
@@ -177,7 +177,10 @@ export function selectPracticeLetter(
     const ties = candidates.filter((glyph) => lastShown(glyph) === oldest)
     chosen = ties[Math.min(ties.length - 1, Math.floor(clampRandom(rng()) * ties.length))]
   } else {
-    const weights = candidates.map((glyph) => practiceWeight(normalized, direction, glyph))
+    const weights = candidates.map((glyph) => {
+      const value = options.weight?.(normalized, direction, glyph) ?? practiceWeight(normalized, direction, glyph)
+      return Number.isFinite(value) && value > 0 ? value : practiceWeight(normalized, direction, glyph)
+    })
     const total = weights.reduce((sum, weight) => sum + weight, 0)
     let point = clampRandom(rng()) * total
     let position = weights.findIndex((weight) => (point -= weight) < 0)

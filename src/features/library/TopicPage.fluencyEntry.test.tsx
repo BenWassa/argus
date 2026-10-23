@@ -60,7 +60,6 @@ function Harness({ onStart }: { onStart: (mode: Mode, ids: string[], target?: Ru
       onStart={onStart}
       onReference={() => undefined}
       onEdit={() => undefined}
-      onDelete={() => undefined}
     />
   )
 }
@@ -77,7 +76,6 @@ function NatoHarness() {
       onStart={vi.fn()}
       onReference={() => undefined}
       onEdit={() => undefined}
-      onDelete={() => undefined}
     />
   )
 }
@@ -145,14 +143,14 @@ describe('one Morse topic screen', () => {
     expect(screen.queryByRole('button', { name: 'Skip ahead' })).toBeNull()
   })
 
-  it('keeps a finished pre-anchor learner active with nine controls outside the path', () => {
+  it('keeps a finished pre-anchor learner active with eight controls outside the path', () => {
     const onStart = open(morse({ lessonProgress: allSettled(), status: 'completed', completedAt: '2026-01-01T00:00:00Z' }))
     expect(screen.getByRole('img', { name: '26 of 26 letters' })).toBeTruthy()
     const controls = [...document.querySelectorAll('button')].filter(button => !button.closest('.morse-progress-path'))
-    expect(controls).toHaveLength(9)
+    expect(controls).toHaveLength(8)
     expect(document.querySelector('.topic-action-bar, .topic-options, .topic-play, .topic-state, .topic-scope')).toBeNull()
     expect(screen.queryByRole('heading', { name: 'Curriculum' })).toBeNull()
-    fireEvent.click(screen.getByRole('button', { name: /A–Z Test, banked, done/ }))
+    fireEvent.click(screen.getByRole('button', { name: /A–Z Test, available, reached/ }))
     expect(onStart).toHaveBeenLastCalledWith('test', [MORSE_ID])
     fireEvent.click(screen.getByRole('button', { name: /Lesson 1, E and I, done/ }))
     expect(onStart).toHaveBeenLastCalledWith('learn', [MORSE_ID], { kind: 'replay', index: 0 })

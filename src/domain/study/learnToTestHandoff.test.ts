@@ -216,15 +216,15 @@ describe('the climb is untouched for anyone who has not finished the curriculum'
 })
 
 
-describe('one-test handoff keeps the curriculum gate', () => {
-  it('banks a ready Morse topic on its first clean eligible Test', () => {
+describe('optional Test does not own curriculum completion', () => {
+  it('scores a fully learned Morse topic without creating a second completion', () => {
     const now = new Date('2026-10-02T12:00:00.000Z')
     const topic = { ...morseTopic(), status: 'learning' as const, acquisitionReadyAt: now.toISOString(), history: [], completedAt: null }
     const journey = journeyFor(topic)
     expect(journey.advancementEligible).toBe(true)
     const result = resolveAttempt(topic, topic.items.length, topic.items.length, now, { advancementEligible: journey.advancementEligible })
     expect(result.to).toBe('completed')
-    expect(result.completed).toBe(true)
+    expect(result.completed).toBe(false)
     expect(result.topic.completedAt).toBe(now.toISOString())
   })
 })

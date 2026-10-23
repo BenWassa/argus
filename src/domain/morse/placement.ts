@@ -1,5 +1,6 @@
 import type { Topic } from '../library/topic'
 import { resolveStudy } from '../study/scheduling'
+import { withAcquisitionReadiness } from '../study/journey'
 import { MORSE_LETTERS, type MorseLetter } from './code'
 import { morseWordCheckpoints } from './curriculum/checkpoints'
 import { lessonPackets } from './curriculum/lesson'
@@ -328,8 +329,8 @@ export function applyMorsePlacement(
 
   let next = resolveStudy(topic, now)
   next = { ...next, lessonProgress }
-  if (result.throughLesson >= lessonPackets().length && !next.acquisitionReadyAt) {
-    next = { ...next, acquisitionReadyAt: now.toISOString() }
+  if (result.throughLesson >= lessonPackets().length) {
+    next = withAcquisitionReadiness(next, now)
   }
   return next
 }

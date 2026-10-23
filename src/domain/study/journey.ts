@@ -11,7 +11,8 @@ import type { Status, Topic } from '../library/topic'
 /**
  * One pure interpretation of the durable learning record for every surface.
  * Unfinished curricula continue their canonical acquisition task; ordinary
- * topics offer Test. A qualifying Test completes learning permanently.
+ * topics offer Test. Each required lesson once completes a curriculum; an
+ * ordinary topic completes after a qualifying Test.
  * Existing evidence and lesson stores retain their own boundaries, but never
  * reopen a learned topic or create decay/repair work.
  */
@@ -197,27 +198,6 @@ export function journeyFor(topic: Topic): TopicJourney {
     }
   }
 
-  if (gated && acquisition.afterCourse && acquisition.owed.length > 0) {
-    // The thirteen lessons have run, and some letters still need a later
-    // sitting before the course is ready for its Test (`startAfterCourse`).
-    // Without this the learner was offered lesson 13 again, which is finished
-    // and cannot confirm them.
-    return {
-      topicId: topic.id,
-      phase: 'acquiring',
-      acquisition,
-      evidence,
-      retention: { ...retention, label: 'Not yet drilling', due: false },
-      sitting,
-      action: 'learn',
-      actionLabel: 'Continue',
-      primaryLabel: 'Go over missed letters',
-      statusLabel: 'Lessons done',
-      detail: `Still to confirm: ${acquisition.owed.join(' ')}`,
-      due: true,
-      advancementEligible: false,
-    }
-  }
 
   if (gated) {
     // Acquisition is the work. It is available now — that is what makes the
@@ -314,7 +294,7 @@ export function dueEntries(entries: JourneyEntry[]): JourneyEntry[] {
 /** Shown wherever a Test action is offered, so Today and Library never drift
  *  into stating this consequence two different ways. */
 export const TEST_CONSEQUENCE_NOTE =
-  'Tests are scored. One clean test completes a topic permanently. Further tests are optional.'
+  'Tests are scored. A curriculum completes after each lesson once; ordinary topics need a clean Test. Later Tests are optional.'
 
 export type ShelfId = 'due' | 'banked' | 'unfinished'
 
@@ -358,8 +338,14 @@ export function journeyShelves(entries: JourneyEntry[]): JourneyShelf[] {
  * learner, not a description of the lesson's current scaffolding.
  */
 export function withAcquisitionReadiness(topic: Topic, now: Date = new Date()): Topic {
-  if (topic.acquisitionReadyAt) return topic
   const position = morseAcquisitionPosition(topic)
   if (!position?.ready) return topic
-  return { ...topic, acquisitionReadyAt: now.toISOString() }
+
+  // A legacy readiness date is authoritative. For older all-settled records
+  // without the date, normalize on the next actual write; never add Test data.
+  const readyAt = topic.acquisitionReadyAt ?? now.toISOString()
+  const completedAt = topic.completedAt ?? readyAt
+  if (topic.status === 'completed' &&
+      topic.acquisitionReadyAt === readyAt && topic.completedAt === completedAt) return topic
+  return { ...topic, acquisitionReadyAt: readyAt, completedAt, status: 'completed' }
 }

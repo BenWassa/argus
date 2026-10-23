@@ -74,27 +74,15 @@ test('section Back and Forward land focus on main', async ({ page }) => {
   expect(await historyIndex(page)).toBe(1)
 })
 
-test('deleting the open Topic returns through the existing Library entry', async ({ page }) => {
+test('topic has no Delete action and Back preserves its existing Library entry', async ({ page }) => {
   await openApp(page)
   await page.getByRole('button', { name: 'Library', exact: true }).click()
   await page.locator(`[data-row="${TOPIC_ID}"]`).click()
   await expect(page.getByRole('heading', { name: TOPIC_TITLE, level: 1 })).toBeVisible()
   expect(await historyIndex(page)).toBe(2)
-
-  await page.getByRole('button', { name: 'Delete topic' }).click()
-  const confirm = page.getByRole('dialog', { name: 'Delete topic' })
-  await expect(confirm).toBeVisible()
-  await confirm.getByRole('button', { name: 'Delete topic', exact: true }).click()
-
+  await expect(page.getByRole('button', { name: /delete/i })).toHaveCount(0)
+  await page.getByRole('button', { name: 'Back to previous screen', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Library', level: 1 })).toBeVisible()
-  await expect(page.locator(`[data-row="${TOPIC_ID}"]`)).toHaveCount(0)
-  await expect(page.locator('#main')).toBeFocused()
+  await expect(page.locator(`[data-row="${TOPIC_ID}"]`)).toBeVisible()
   await expect.poll(() => historyIndex(page)).toBe(1)
-
-  await page.evaluate(() => window.history.back())
-  await expect(page.getByRole('button', { name: 'Home', exact: true })).toHaveAttribute(
-    'aria-current',
-    'page',
-  )
-  expect(await historyIndex(page)).toBe(0)
 })

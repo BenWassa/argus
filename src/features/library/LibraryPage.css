@@ -268,23 +268,19 @@
   height: 28px;
 }
 
-/* The row's gauge is a short straight line with its reading beside it: the
-   same recessed track the ScreenHeader bar uses (8px, 1px line, 4px radius),
-   filled solid in the topic's track colour. The reading wraps beneath it at
-   enlarged text. The stagger carries on into the fill, so each bar fills just
-   after its plate lands. */
+/* The Library gauge fills the plate's inner width, including the icon column.
+   Numeric readings stay accessible but never compete with the title. Learned
+   is the one visible gauge label, beneath the full-width recessed track. */
 .index-row.lib-row .gauge-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--s-xs) var(--s-md);
+  display: grid;
+  min-width: 0;
+  gap: var(--s-xs);
   --gauge-delay: calc(var(--order, 0) * 24ms + 180ms);
 }
 
 .index-row.lib-row .gauge-row .gauge-track {
-  flex: 0 1 112px;
-  width: 112px;
-  min-width: 56px;
+  width: 100%;
+  min-width: 0;
   height: 8px;
   border: 1px solid var(--line);
   border-radius: 4px;

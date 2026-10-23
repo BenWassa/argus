@@ -102,7 +102,7 @@ async function finishCheckpointWarmups(page: Page) {
   await expect(page.getByRole('progressbar', { name: '4 of 8', exact: true })).toBeVisible({ timeout: 2_000 })
 }
 
-test('the alphabet round-trip preserves the topic and its unfinished confirmation route', async ({ page }) => {
+test('the alphabet round-trip preserves the learned topic and its optional Test route', async ({ page }) => {
   const confirming: Topic = {
     ...morse,
     status: 'learning',
@@ -119,30 +119,30 @@ test('the alphabet round-trip preserves the topic and its unfinished confirmatio
   }
   await openApp(page, JSON.stringify({ version: 5, topics: [confirming], catalogDelivered: shippedCatalog.topicIds }))
 
-  // Completed lessons still owe confirmation. The primary opens that task;
-  // alphabet lookup belongs to the Topic page, not the live retrieval screen.
-  await page.locator('.docket .index-row').click()
+  // Completed lessons grant permanent learning. The optional Test still opens
+  // a scored run; alphabet lookup belongs to the Topic page.
+  await openMorseTopic(page)
   await expect(page.getByRole('heading', { name: 'International Morse Code', level: 1 })).toBeVisible()
-  expect(await state(page)).toMatchObject({ index: 1, route: { kind: 'topic', topicId: MORSE_ID } })
-  await page.getByRole('button', { name: 'A–Z Test, Confirm letters, current' }).click()
-  await expect(page.locator('.morse-key')).toBeVisible()
-  expect(await state(page)).toMatchObject({ index: 2, route: { kind: 'run', mode: 'learn' } })
+  expect(await state(page)).toMatchObject({ index: 2, route: { kind: 'topic', topicId: MORSE_ID } })
+  await page.getByRole('button', { name: 'A–Z Test, available, reached' }).click()
+  await expect(page.getByRole('heading', { name: 'A–Z Test', level: 1 })).toBeVisible()
+  expect(await state(page)).toMatchObject({ index: 3, route: { kind: 'run', mode: 'test' } })
 
   await page.evaluate(() => window.history.back())
   await expect(page.getByRole('heading', { name: 'International Morse Code', level: 1 })).toBeVisible()
-  expect((await state(page)).index).toBe(1)
+  expect((await state(page)).index).toBe(2)
   await page.getByRole('button', { name: 'A–Z', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Morse alphabet', level: 1 })).toBeVisible()
-  expect(await state(page)).toMatchObject({ index: 2, route: { kind: 'reference', topicId: MORSE_ID, origin: { kind: 'topic', topicId: MORSE_ID } } })
+  expect(await state(page)).toMatchObject({ index: 3, route: { kind: 'reference', topicId: MORSE_ID, origin: { kind: 'topic', topicId: MORSE_ID } } })
 
   await page.evaluate(() => window.history.back())
   await expect(page.getByRole('heading', { name: 'International Morse Code', level: 1 })).toBeFocused()
-  await expect(page.getByRole('button', { name: 'A–Z Test, Confirm letters, current' })).toBeVisible()
-  expect((await state(page)).index).toBe(1)
+  await expect(page.getByRole('button', { name: 'A–Z Test, available, reached' })).toBeVisible()
+  expect((await state(page)).index).toBe(2)
 
   await page.evaluate(() => window.history.back())
-  await expect(page.getByRole('button', { name: 'Home', exact: true })).toHaveAttribute('aria-current', 'page')
-  expect((await state(page)).index).toBe(0)
+  await expect(page.getByRole('button', { name: 'Library', exact: true })).toHaveAttribute('aria-current', 'page')
+  expect((await state(page)).index).toBe(1)
 })
 
 test('opening Morse lands on the curriculum, with the alphabet a step away', async ({ page }) => {

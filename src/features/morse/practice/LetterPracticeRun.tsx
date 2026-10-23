@@ -9,6 +9,7 @@ import { MorseMarks } from '../MorseMarks'
 import { MorseCharacterSupport } from '../MorseCharacterSupport'
 import { useMorseAudio } from '../useMorseAudio'
 import { SessionFrame, SessionCorrect, RoundResult } from '../../../shared/ui/SessionFrame'
+import { fire } from '../../../shared/haptics'
 import './LetterPractice.css'
 
 export function LetterPracticeRun({ eligible, initialProgress = newMorsePractice(), onProgress, onAnother, onExit, direction: fixedDirection }: {
@@ -71,6 +72,8 @@ export function LetterPracticeRun({ eligible, initialProgress = newMorsePractice
     audio.stop()
     const correct = direction === 'key' ? value === pattern : value.trim().toUpperCase() === glyph
     const next = recordPracticeOutcome(selection.progress, direction, glyph, correct, !helped)
+    // A helped answer is support, not an independent grading verdict.
+    if (!helped) fire(correct ? 'settle' : 'miss')
     if (correct) setCorrectCount(n => n + 1)
     progress.current = next; onProgress(next); setGiven(direction === 'key' ? value : value.trim().toUpperCase()); setResult(correct); response.answered(correct)
   }

@@ -1,12 +1,14 @@
+import { morseAcquisitionPosition } from '../morse/curriculum/lesson/packets'
 import type { Status, Topic } from '../library/topic'
 
-/** One clean eligible Test completes a topic permanently. */
+/** One clean eligible Test completes an ordinary topic permanently. */
 export const PASS_THRESHOLD = 1
 
 /** Completion is permanent, including records written by the retired ladder. */
 export function isLearned(topic: Topic): boolean {
   return Boolean(topic.completedAt ||
-    topic.status === 'completed' || topic.status === 'drilled' || topic.status === 'decayed')
+    topic.status === 'completed' || topic.status === 'drilled' || topic.status === 'decayed' ||
+    morseAcquisitionPosition(topic)?.ready)
 }
 
 export interface DueReason {
@@ -85,7 +87,7 @@ export function resolveAttempt(
   if (isLearned(topic)) {
     // Later Tests keep their scores and misses, but never reopen learned work.
     next.status = 'completed'
-    next.completedAt = topic.completedAt ?? topic.drilledAt ?? at
+    next.completedAt = topic.completedAt ?? topic.acquisitionReadyAt ?? topic.drilledAt ?? at
     if (clean) next.spotCheckedAt = at
   } else if (!eligible) {
     // An early or supported Test cannot finish the learning boundary.

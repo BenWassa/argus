@@ -23,7 +23,7 @@ const firearm = () => seeded('firearm-safety-acts-prove')
 function open(topic: Topic) {
   const onStart = vi.fn()
   const onReference = vi.fn()
-  const view = render(<TopicPage topic={topic} onStart={onStart} onBack={vi.fn()} onReference={onReference} onEdit={vi.fn()} onDelete={vi.fn()} />)
+  const view = render(<TopicPage topic={topic} onStart={onStart} onBack={vi.fn()} onReference={onReference} onEdit={vi.fn()} />)
   return { ...view, onStart, onReference }
 }
 
@@ -242,33 +242,16 @@ describe('the Learn screen', () => {
   })
 })
 
-describe('Edit and Delete', () => {
-  it('keeps Edit in the header and puts Delete at the foot, beside Sources', () => {
+describe('Learner topic actions', () => {
+  it.each(['firearm-safety', 'international-morse-letters-printed'])('keeps Edit and Sources without a destructive action on %s', (id) => {
     const onEdit = vi.fn()
-    const onDelete = vi.fn()
-    const { container } = render(<TopicPage topic={firearm()} onStart={vi.fn()} onBack={vi.fn()} onReference={vi.fn()} onEdit={onEdit} onDelete={onDelete} />)
-    const header = container.querySelector('.screen-header')!
+    const topic = id === 'firearm-safety' ? firearm() : seeded(id)
+    const { container } = render(<TopicPage topic={topic} onStart={vi.fn()} onBack={vi.fn()} onReference={vi.fn()} onEdit={onEdit} />)
     const edit = screen.getByRole('button', { name: 'Edit topic' })
-    const remove = screen.getByRole('button', { name: 'Delete topic' })
-    const sources = screen.getByRole('button', { name: /Sources and limitations/ })
-    expect(header.contains(edit)).toBe(true)
-    expect(header.contains(remove)).toBe(false)
-    expect(remove.closest('.topic-foot')).toBe(sources.closest('.topic-foot'))
-    expect(edit.textContent).toBe('Edit')
-    expect(remove.textContent).toBe('Delete')
-    expect(container.querySelector('.topic-admin')).toBeNull()
+    expect(container.querySelector('.screen-header')!.contains(edit)).toBe(true)
+    expect(screen.queryByRole('button', { name: /delete/i })).toBeNull()
+    expect(screen.getByRole('button', { name: /Sources and limitations/ })).toBeTruthy()
     fireEvent.click(edit)
-    fireEvent.click(remove)
     expect(onEdit).toHaveBeenCalledOnce()
-    expect(onDelete).toHaveBeenCalledOnce()
-  })
-
-  it('does the same on the Morse course, so a pinned header never carries Delete', () => {
-    const morse = seeded('international-morse-letters-printed')
-    const { container } = render(<TopicPage topic={morse} onStart={vi.fn()} onBack={vi.fn()} onReference={vi.fn()} onEdit={vi.fn()} onDelete={vi.fn()} />)
-    const header = container.querySelector('.screen-header')!
-    expect(header.contains(screen.getByRole('button', { name: 'Edit topic' }))).toBe(true)
-    expect(header.contains(screen.getByRole('button', { name: 'Delete topic' }))).toBe(false)
-    expect(screen.getByRole('button', { name: 'Delete topic' }).closest('.topic-foot')).toBe(container.querySelector('article')!.lastElementChild)
   })
 })

@@ -1,69 +1,40 @@
-# Next batches: implementation checkpoint
+# Next batches — current Argus execution checkpoint
 
-**Status:** active work and owner gates, updated 2026-10-15 (role/artwork reconciliation).
-**Authority:** execution checkpoint for the owner’s request to tackle the batches one by one. The [ratified #197 record](ISSUE_197_ROLE_DECISION_RECORD.md), [offline contract](ISSUE_113_OFFLINE_FIRST_RUNTIME.md) and Library Roadmap retain their respective product/implementation authority. This is not a release closeout.
+**Status:** active, updated 2026-10-22 after GitHub issue reconciliation. **Authority:** operational queue and dependency map only; product requirements remain in their owning issue, `PRODUCT.md`, `DESIGN.md`, [progress architecture](PROGRESS_ARCHITECTURE.md), [role decisions](ISSUE_197_ROLE_DECISION_RECORD.md) and the [offline-first contract](ISSUE_113_OFFLINE_FIRST_RUNTIME.md). This document is not a release record or a substitute for real-device and domain review.
 
-## Completed repository work
+## Verified implementation baseline
 
-- Housekeeping: #198, #199, #185 and #200 merged; obsolete #104 redirects removed; historical banners/references repaired; Morse marked shipped. `fix/communicator-symbols` deleted. #126/#127 closed; #193 remains open for Pixel acceptance.
-- Role decisions: D1–D9 ratified by the owner. The owner will create artwork.
-- Navigator/receipts: #203/#207 merged. Learn limits, role/manifest drift checks, permanent versioned awards, import/export/account isolation, transactional metadata sync, explicit reset generations, optional-version proof reuse and the two-role focus/Continue UI are implemented. Navigator uses the owner-approved locked/earned PNG pair on main via #217. PR #218 adds Mariner and replaces Communicator’s SVG with the owner-authorized PNG pair; its merge/deployment is not implied by this checkpoint.
-- Maritime: #204 merged. Official NGA plate/meaning source inspected; unresolved proportions and current IMO comparison recorded. No flags are marked finally accepted. PR #218 makes Mariner available under the owner’s waiver of the pre-release #147/#148 independent reviews (2026-10-15); the owner will review deployed content. Neither independent review is accepted by that release decision.
-- Offline foundations: #205 native owner-isolated IndexedDB repository/outbox and #206 generation-safe app shell are merged. The database boundary is not yet the production provider’s storage mechanism.
+- [PR #271](https://github.com/BenWassa/argus/pull/271) merged Signal-on-Slate to `main` on **2026-10-20**: tokens, common screen/session kit, the open Morse progress path, Key/Listen/Read/Free play, compact Home/Library/Topic/Role surfaces, and round-2 polish. [PR #272](https://github.com/BenWassa/argus/pull/272) subsequently restored visible Morse Back navigation in the sticky header. **Neither merge is a Pixel acceptance or production release record.**
+- Child implementation issues **#226–#232, #242–#248, #257–#259, #263–#264** were closed as implemented on 2026-10-22. The umbrella [#225](https://github.com/BenWassa/argus/issues/225) and final owner/device acceptance [#233](https://github.com/BenWassa/argus/issues/233) remain open.
+- Permanent completion and Home Continue were integrated through [#270](https://github.com/BenWassa/argus/pull/270). Owner's newer lesson-completion rule is separately scoped in [#276](https://github.com/BenWassa/argus/issues/276) and is **not yet claimed implemented**.
+- [#201](https://github.com/BenWassa/argus/issues/201) is closed for its bounded documentation/handoff scope, not proof that every proposed endless-play extension has shipped. Use the merged #271 UX and active Morse contracts as current navigation truth.
+- Roles: Communicator, Navigator and Mariner runtime/badge work has been delivered, while badge device review, independent maritime acceptance and further role requirements are not universally approved. Analyst Human Factors material is staged for review only and is not earnable.
+- [#113](https://github.com/BenWassa/argus/issues/113) remains open. IndexedDB repository/outbox foundation and shell safety are merged (#205/#206); [draft PR #214](https://github.com/BenWassa/argus/pull/214) is **not merged**, so full offline-first and durable sync must not be claimed.
 
-## Next engineering steps
+## Execute before further feature expansion
 
-1. Integrate the IndexedDB repository with LibraryProvider. Await local transactions before treating actions as saved; surface local failure and preserve recovery bytes. Keep demo behavior isolated. Update component/browser fixtures to read the canonical store rather than assuming localStorage is authoritative.
-2. Integrate the durable ledger/outbox with the existing conservative sync planner. Handle partial acknowledgements, conflicts, bounded retries, reconnect/restart drain and owner isolation without losing a newer queued revision.
-3. Add provisioned-owner offline auth/bootstrap, including new-device connection-required behavior and corrupt/missing-local cloud recovery before seeding.
-4. Complete Profile status/retry/recovery and the end-to-end offline learner traces. Build precaching and footprint reporting already existed; shell update safety is now covered separately.
-5. Wave 1’s four S1 vignette topics are authored and staged (2026-10-15) in `src/domain/humanFactors/`, outside the seed and manifest, with Decision Under Uncertainty I as the fifth topic. Next: independent human key review, item-level source verification, ethical/content review, authorized delivery work and phone/Pixel presentation acceptance. Catalog registration and any role earnability remain separate gated changes. See [Wave 1 §8](ISSUE_197_ANALYST_WAVE1_HUMAN_FACTORS.md).
+| Priority | Workstream | Current truth and next action | Boundary |
+| --- | --- | --- | --- |
+| P0 | [UI/Pixel acceptance #225/#233](ISSUE_225_UI_OVERHAUL.md) | Run/record installed-PWA and Chrome acceptance, accessibility, audio, Back, path jump, and five-minute Morse route. Re-score against existing target, log defects | No implicit owner sign-off; no release inferred |
+| P1 | [Morse speed #279](https://github.com/BenWassa/argus/issues/279) | Implement independently graded timing bands and four large letter options; review 390px interactions first | Session variant of Read/Listen, not a fifth mode |
+| P1 | [Shared haptics #280](https://github.com/BenWassa/argus/issues/280) and [Pixel calibration #281](https://github.com/BenWassa/argus/issues/281) | Complete existing shared service coverage, then tune on real Pixel | No duplicate keyer; tactile perception is not established by tests |
+| P1 | [Offline-first #113](ISSUE_113_OFFLINE_FIRST_RUNTIME.md) | Reconcile and review #214 against current main, then durable outbox/drain, offline auth/bootstrap and recovery | Preserve user data, namespaces and conflict policy; no blind merge |
+| P1 | [Learning rule #276](https://github.com/BenWassa/argus/issues/276) | Implement owner-approved 'required lessons once → Learned; Test optional' with evidence separation | Preserve original history and scores |
+| P2 | [UI polish #223/#274–#277](https://github.com/BenWassa/argus/issues/223) | Small reviewable changes: Roles collection, Library bars, icons, safe removal of Delete. Coordinate with #276 | No unapproved new roles or change to storage deletion semantics |
+| P2 | [CI measurement #273](https://github.com/BenWassa/argus/issues/273) | Review [draft scoping PR #278](https://github.com/BenWassa/argus/pull/278), establish clean-run numbers and same-SHA pilot before changing gates | Do not remove coverage or rename branch-protection jobs blindly |
+| P2 | Radio/maritime/role review | Complete [radio #150](ISSUE_150_HUMAN_REVIEW.md), [maritime independent review](ISSUE_147_148_MARITIME_DOMAIN_REVIEW.md), [badge #192](ISSUE_192_ROLE_BADGE_ART.md), [Analyst #197](ISSUE_197_EXPANDED_ROLE_ARCHITECTURE_RESEARCH.md) | Authoritative review and owner gates remain separate from CI |
 
-## Owner and external gates
+## PR triage (inspected 2026-10-22; #222 now closed)
 
-| Gate | Needed |
-|---|---|
-| Role artwork device QA | Navigator PNGs are approved and integrated via #217; PR #218 adds approved Mariner/Communicator PNGs. Physical Pixel, installed-PWA and high-DPI checks remain open |
-| Communicator symbols | Owner authorized PNG replacement (“pngs replace”); former vector-fidelity choice is resolved. PNG flag/Morse accuracy is unverified; do not transfer archived SVG verification to it |
-| Mariner (post-deploy) | Owner review of the deployed #147 light/day-shape keys and #148 flags; disposition of the current IMO flag comparison/proportions. Corrections ship as a versioned optional update |
-| v1.5.0 Pixel | Continuous Morse timing/word gaps, first-press audio, interruption/backgrounding, installed-PWA navigation and high-DPI badge checks |
-| #113 Pixel | Production offline bootstrap, cold restart, durable Morse/Test writes, prolonged pending state, reconnect and sync/recovery traces after integration |
-| CAF/DND imagery | Written permission covering the intended repo/PWA use; #185 research does not remove this gate |
-| Audio production pack | Model access and human listening QA; the closed implementation issue #151 does not prove production pack acceptance |
-| Scuba reference scope | Owner choice: original six visuals, or all 13 terms using ten equipment references plus a shared HP/LP/IP diagram |
+| PR | Scope | Disposition |
+| --- | --- | --- |
+| [#214](https://github.com/BenWassa/argus/pull/214) | IndexedDB provider, draft | Keep open; needs current-main reconciliation, fresh tests and data-safety review |
+| [#222](https://github.com/BenWassa/argus/pull/222) | 2026-10-16 #221 documentation proposal | **Closed unmerged 2026-10-22:** duplicate/superseded by the maintained Morse #221 contract and merged #271 runtime |
+| [#278](https://github.com/BenWassa/argus/pull/278) | #273 CI scope, draft | Scope-only review; its companion file is in this PR, **not** on `main` |
+| [#282](https://github.com/BenWassa/argus/pull/282) | #280/#281 haptics scope | PR targets old `feat/ui-overhaul`; evaluate retargeting/rebasing to `main` after checking for duplicate integration, without treating document merge as haptic implementation |
 
-## Verification and release state
+## Human and release gates
 
-#203 CI passed web/browser/rules. The combined #205/#206 workflow passed web/browser/rules, including 40 native database checks and eight shell checks across four viewports. #207 additionally passed 74 focused role/persistence/sync tests and 16 Roles browser checks. These are automated checks, not Pixel or domain-review acceptance.
+Use the [consolidated checklist](HUMAN_ACCEPTANCE_CHECKLIST.md) for exact candidate/build identity, Pixel Chrome and installed-PWA results, role badge review, radio/IMO maritime keys, Analyst vignette keys, scuba/licensing and CAF permission. A checked CI job, owner-approved mockup, merged PR and physical acceptance are **different evidence types**. The full offline-first guarantee, production voice pack, unapproved new role earnability and release/deployment require separate sign-off.
 
-No version, tag or deployment was changed. Production remains v1.5.0. Main now contains the merged follow-up source; #113 remains open and the full offline-first guarantee is not complete.
-
-## October 14 housekeeping closeout — historical execution state
-
-**Historical checkpoint:** the role-artwork statements below are superseded by the October 15 state above. Other lanes retain their own PR status and acceptance evidence; this role-only reconciliation does not re-audit #113.
-
-**Completed on `main`:** PR [#210](https://github.com/BenWassa/argus/pull/210) (radio DSC wording correction; CI passed), [#211](https://github.com/BenWassa/argus/pull/211) (maritime evidence and unresolved reviewer gate), [#213](https://github.com/BenWassa/argus/pull/213) (Analyst Wave 1 research), and [#216](https://github.com/BenWassa/argus/pull/216) (agent-work reconciliation). Direct housekeeping commit [`1339c85`](https://github.com/BenWassa/argus/commit/1339c85118745c1d90efe586e0d1583ade2bcc4c) archived ten completed issue specifications to `docs/closed/`, created open/closed folder indexes, and repaired in-repository references. GitHub issue links were updated separately.
-
-**Still open (do not merge without the named gate):**
-
-| Lane | PR | Status | Blocking gate |
-|---|---|---|---|
-| Morse UX review #201 | [#212](https://github.com/BenWassa/argus/pull/212) | CI passed; design proposal | Owner visual approval of the remaining mockup decisions |
-| IndexedDB LibraryProvider #113 | [#214](https://github.com/BenWassa/argus/pull/214) | **Draft; latest browser CI failed** (web/rules passed) | Resolve navigation/focus/practice browser regressions, then full CI and migration safety review |
-| Morse Play entry #201 | [#215](https://github.com/BenWassa/argus/pull/215) | Draft; CI passed | Confirm complete scope against approved design, then real Pixel acceptance |
-
-**External acceptance remains open even after merging a document or corrective PR:** marine-radio #150 independent qualified review; maritime #147/#148 lights, day-shape and flag review; Analyst #197 source/answer-key/ethical review; role-artwork device QA; CAF imagery rights; Morse real-device acceptance.
-
-### Next engineering order
-
-1. Fix #214 browser failures and re-run all checks. Preserve migration bytes and account isolation; only merge after persistence review.
-2. Resolve #212 owner mockup decisions and confirm #215 implementation alignment, then validate on Pixel.
-3. Once #214 lands, work on separate durable outbox/retry, offline auth/bootstrap, and Profile recovery lanes.
-4. After #213 research sign-off, author/implement Analyst content in a separate workstream without making the role prematurely earnable.
-5. Maintain open and closed documentation indexes and release gate records. **No production release or issue closure is implied by these housekeeping changes.**
-
-## October 15 integration checkpoint — supersedes earlier PR-state tables
-
-Owner-authorized integration merged #220, #212 (including approval/path cleanup), #219 (staged Analyst and human-review packs), #218 (Mariner and PNGs, with status cleanup) and #215 (bounded Morse S1A). Combined main is `08ee4f2`. The earlier tables above retain checkpoint history and do not describe these PRs as still open.
-
-#214 remains draft and excluded from the release: conflicting remote branch, failed browser CI and remote-adoption durability sequencing require the active #113 lane. Do not claim full offline-first behavior. No Analyst topics or scuba references enter the learner catalog. CAF permission, Pixel acceptance and independent domain/content reviews remain in the [consolidated checklist](HUMAN_ACCEPTANCE_CHECKLIST.md).
+**Historical checkpoint:** [15 October 2026 execution record](../closed/NEXT_BATCHES_2026_10_15.md). It is retained for provenance, not active PR state.

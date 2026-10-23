@@ -1,6 +1,6 @@
 # Argus navigation and system-back contract
 
-Status: implementation contract for [#45](https://github.com/BenWassa/argus/issues/45).
+Status: maintained implementation contract for [#45](https://github.com/BenWassa/argus/issues/45).
 
 ## Why this exists
 
@@ -118,7 +118,7 @@ must push a topic route, and Back must restore Library.
 
 The current `Library.openId` state should no longer be the sole authority for whether the topic page is active. The durable topic identity must be represented in the navigation layer so browser Back/Forward can restore it.
 
-If a historical topic entry points to a topic that has since been deleted, restoration must degrade deterministically to Library rather than crash, show stale content, or create a Back loop.
+Topic deletion is not a learner-facing action. External library replacement or synchronization can still remove a topic. If a historical topic entry points to a topic that has since been deleted, restoration must degrade deterministically to Library rather than crash, show stale content, or create a Back loop.
 
 ### Learn/Test run route
 
@@ -152,7 +152,6 @@ Current relevant layers include:
 
 - New/Edit Topic form;
 - Want to learn capture sheet;
-- Delete topic confirmation;
 - dirty-topic-form discard confirmation;
 - partial-Test exit confirmation.
 

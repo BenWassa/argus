@@ -12,6 +12,7 @@ import { spokenRhythm } from '../../../domain/morse/mnemonics'
 import { useMorseAudio } from '../useMorseAudio'
 import { useKeyedResponse } from '../input/useKeyedResponse'
 import { SessionFrame, SessionCorrect } from '../../../shared/ui/SessionFrame'
+import { fire, type HapticEffect } from '../../../shared/haptics'
 import './MorseCheckpoint.css'
 
 interface MorseCheckpointProps {
@@ -49,6 +50,9 @@ export function MorseCheckpoint({ checkpoint, onExit, onContinue, continueLabel 
   const correctionAudio = useMorseAudio()
   const headingRef = useRef<HTMLHeadingElement>(null)
   const targetRef = useRef<HTMLDivElement>(null)
+  // Checkpoint feedback is transient; a word is successful only if every
+  // character in that word was right, including earlier characters.
+  const wordAccuracy = useRef({ index: -1, allCorrect: true })
 
   const { phase, armed, holding, answered, acknowledge } = useKeyedResponse(() => {
     setFeedback(null)
@@ -84,6 +88,17 @@ export function MorseCheckpoint({ checkpoint, onExit, onContinue, continueLabel 
       setCorrectAnswers((count) => count + 1)
     }
     setFeedback({ correct, letter, pattern: pattern as string })
+    let effect: HapticEffect = correct ? 'settle' : 'miss'
+    if (run.phase === 'word') {
+      if (wordAccuracy.current.index !== run.wordIndex) {
+        wordAccuracy.current = { index: run.wordIndex, allCorrect: true }
+      }
+      wordAccuracy.current.allCorrect = wordAccuracy.current.allCorrect && correct
+      if (correct && wordAccuracy.current.allCorrect && run.characterIndex === word!.length - 1) {
+        effect = 'word' // Replaces, never accompanies, the final character verdict.
+      }
+    }
+    fire(effect)
     answered(correct)
   }
 

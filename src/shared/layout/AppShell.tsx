@@ -21,9 +21,27 @@ interface AppShellProps {
  *
  * Profile is reached from Home and marks Home current while it is open.
  */
+/*
+ * Home and Roles: Lucide house / medal, retrieved with Better Icons.
+ * https://github.com/lucide-icons/lucide/blob/02eb9161b57917ccaa262f1bf070507cddde3b08/icons/house.svg
+ * https://github.com/lucide-icons/lucide/blob/02eb9161b57917ccaa262f1bf070507cddde3b08/icons/medal.svg
+ * Adapted to the navigation's existing 1.6px outline; circle expressed as arcs.
+ * Licence: https://github.com/lucide-icons/lucide/blob/02eb9161b57917ccaa262f1bf070507cddde3b08/LICENSE
+ * ISC License — Copyright (c) 2026 Lucide Icons and Contributors
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ */
 const NAV: { id: NavView; label: string; path: string }[] = [
-  { id: 'today', label: 'Home', path: 'M4 7h16M4 12h16M4 17h9' },
-  { id: 'roles', label: 'Roles', path: 'M12 3l3 3 4.3.7-.7 4.3 2.4 4-3.8 2.1L12 21l-3.2-4.9L5 14l2.4-4-.7-4.3L11 6zM9 10l3 2 3-2' },
+  { id: 'today', label: 'Home', path: 'M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z' },
+  { id: 'roles', label: 'Roles', path: 'M7.21 15L2.66 7.14a2 2 0 0 1 .13-2.2L4.4 2.8A2 2 0 0 1 6 2h12a2 2 0 0 1 1.6.8l1.6 2.14a2 2 0 0 1 .14 2.2L16.79 15M11 12L5.12 2.2M13 12l5.88-9.8M8 7h8M17 17a5 5 0 1 1-10 0 5 5 0 0 1 10 0M12 18v-2h-.5' },
   { id: 'library', label: 'Library', path: 'M5 4h5v16H5zM14 4h5v16h-5' },
 ]
 

@@ -1,44 +1,124 @@
-/* Roles on the screen kit (#247): a ScreenHeader, one award plate, one primary
-   action, and each pathway as a mono label over its own topic plates. */
+/* Role collection: open gallery first, separate bounded detail (#223).
+   Signal-on-Slate tokens are authoritative; art is the already-approved PNG. */
 .roles-page {
+  width: 100%;
+  max-width: 860px;
+  min-width: 0;
+}
+
+.roles-overview {
+  min-width: 0;
+}
+
+.roles-intro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-sm) var(--s-lg);
+  margin: var(--s-sm) 0 var(--s-xl);
+}
+
+.roles-intro p {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--t-body);
+}
+
+.roles-collection-count,
+.role-collection-status,
+.roles-award-count,
+.roles-award-note,
+.roles-award-version,
+.roles-path-count {
+  font-family: var(--font-mono);
+  font-size: var(--t-readout);
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+.roles-collection-count { white-space: nowrap; }
+
+.role-collection {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s-sm);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.role-collection-entry { min-width: 0; }
+
+.role-collection-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--s-xs);
+  width: 100%;
+  min-width: 0;
+  padding: var(--s-sm) 2px;
+  box-shadow: none;
+  border: 1px solid transparent;
+  border-radius: var(--r-lg);
+  background: transparent;
+  color: var(--ink);
+  text-align: center;
+}
+
+.role-collection-button:hover {
+  border-color: var(--line);
+  background: var(--surface);
+}
+
+.role-collection-button:active { background: var(--surface-2); }
+.role-collection-button:focus-visible { outline: 2px solid var(--action); outline-offset: 2px; }
+
+.role-collection-badge {
+  display: block;
+  width: min(100%, 80px);
+  height: 80px;
+  object-fit: contain;
+}
+
+.role-collection-name {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  font-size: var(--t-small);
+  font-weight: var(--w-component);
+}
+
+.role-collection-status {
+  overflow-wrap: anywhere;
+  line-height: 1.4;
+}
+
+.backdrop.role-detail-dialog.is-centred .sheet {
+  width: min(100%, 740px);
+  max-height: min(88dvh, 880px);
+}
+.role-detail-dialog .sheet-body { padding: var(--s-lg) var(--s-xl) calc(var(--s-xl) + env(safe-area-inset-bottom)); }
+.role-detail-dialog .sheet-head h2 { font-size: var(--t-section); }
+
+.role-detail-content {
   display: grid;
   gap: var(--s-lg);
-  width: 100%;
-  max-width: 720px;
-}
-
-.roles-page > * { min-width: 0; }
-
-.roles-page .screen-header-title,
-.roles-award-status { overflow-wrap: anywhere; }
-
-/* The selector is the header's one trailing control: a recessed field. */
-.roles-selector {
-  width: auto;
-  max-width: 100%;
   min-width: 0;
-  padding-right: 32px;
 }
 
-/* The award plate: art on the left, the reading beside it. */
 .roles-award {
   display: grid;
-  grid-template-columns: 112px minmax(0, 1fr);
-  align-items: center;
+  grid-template-columns: minmax(96px, 148px) minmax(0, 1fr);
   gap: var(--s-lg);
-  padding: var(--s-lg);
+  align-items: start;
 }
 
 .roles-medallion {
-  display: block;
   width: 100%;
-  max-width: 112px;
   height: auto;
   aspect-ratio: 1;
   object-fit: contain;
 }
-
-.roles-medallion.is-unearned { pointer-events: none; }
 
 .roles-award-copy {
   display: grid;
@@ -46,91 +126,52 @@
   min-width: 0;
 }
 
-.roles-award-status {
-  font-size: var(--t-component);
-  font-weight: var(--w-component);
-}
-
-.roles-award-count,
-.roles-award-note,
-.roles-award-refresh {
-  margin: 0;
-  font-family: var(--font-mono);
-  font-size: var(--t-readout);
-  font-weight: var(--w-label);
-  letter-spacing: var(--track-readout);
-  font-variant-numeric: tabular-nums;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-/* Decay is copper, with its diamond and its words. */
-.roles-award-refresh {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--warning);
-}
-
-.roles-award-refresh::before,
-.role-topic-state.is-repair::before {
-  content: '';
-  flex: none;
-  width: 6px;
-  height: 6px;
-  background: var(--warning);
-  transform: rotate(45deg);
-}
-
-/* The one action: Signal, the tall step. */
-.roles-continue {
-  width: 100%;
-  min-height: var(--control-h-lg);
-  white-space: normal;
-  text-align: center;
+.roles-description {
+  margin: 0 0 var(--s-xs);
+  color: var(--ink);
+  font-size: var(--t-body);
   overflow-wrap: anywhere;
 }
 
-.roles-pathways {
-  display: grid;
-  gap: var(--s-xl);
+.roles-award-status { overflow-wrap: anywhere; font-size: var(--t-component); }
+.roles-award-count,
+.roles-award-note,
+.roles-award-version { margin: 0; overflow-wrap: anywhere; }
+.roles-award-note { line-height: 1.5; }
+
+.roles-continue {
+  min-height: var(--control-h-lg);
+  width: 100%;
+  padding-inline: var(--s-md);
+  text-align: center;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
-/* Heading and count share a mono baseline, the way a Library shelf reads. */
+.roles-pathways { display: grid; gap: var(--s-xl); }
+
 .roles-path-heading {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
   justify-content: space-between;
-  gap: var(--s-md);
+  align-items: baseline;
+  gap: var(--s-sm);
   padding-inline: 2px;
 }
 
-.roles-path-heading h2 {
-  min-width: 0;
+.roles-path-heading h3 {
   margin: 0;
-  overflow-wrap: anywhere;
   font-family: var(--font-mono);
   font-size: var(--t-readout);
   font-weight: var(--w-label);
   letter-spacing: var(--track-readout);
-  line-height: 1.2;
   text-transform: uppercase;
+  overflow-wrap: anywhere;
   color: var(--muted);
 }
 
-.roles-path-count {
-  margin: 0;
-  font-family: var(--font-mono);
-  font-size: var(--t-readout);
-  font-weight: var(--w-label);
-  letter-spacing: var(--track-readout);
-  text-transform: uppercase;
-  white-space: nowrap;
-  color: var(--subtle);
-}
+.roles-path-count { margin: 0; white-space: nowrap; color: var(--subtle); }
 
-/* Topics are plates 8px apart. The plate is the control, so no chevron. */
 .roles-topic-list {
   display: grid;
   gap: var(--s-sm);
@@ -155,69 +196,71 @@ button.role-topic-plate {
   box-shadow: none;
 }
 
-button.role-topic-plate.plate-repair { border-color: var(--warning); }
-
 button.role-topic-plate:not(:disabled):hover {
   border-color: var(--line-hover);
   background: var(--surface-2);
 }
+button.role-topic-plate:not(:disabled):active { background: var(--surface-3); box-shadow: var(--press); }
+button.role-topic-plate:disabled { color: var(--subtle); cursor: default; }
+button.role-topic-plate:focus-visible { outline: 2px solid var(--action); outline-offset: 2px; }
 
-button.role-topic-plate.plate-repair:not(:disabled):hover { border-color: var(--warning); }
-
-button.role-topic-plate:not(:disabled):active {
-  background: var(--surface-3);
-  box-shadow: var(--press);
-}
-
-button.role-topic-plate:disabled {
-  color: var(--subtle);
-  cursor: default;
-}
-
-.role-topic-title {
-  font-weight: var(--w-component);
-  overflow-wrap: anywhere;
-}
+.role-topic-title { font-weight: var(--w-component); overflow-wrap: anywhere; }
 
 .role-topic-state {
   display: inline-flex;
-  align-items: center;
   gap: 8px;
   justify-content: flex-end;
   font-family: var(--font-mono);
   font-size: var(--t-readout);
-  letter-spacing: var(--track-readout);
   text-align: right;
-  text-transform: uppercase;
   color: var(--muted);
 }
 
-.role-topic-state.is-repair { color: var(--warning); }
-
-.role-topic-mark {
-  font-size: 1.2rem;
-  color: var(--subtle);
-}
-
+.role-topic-mark { font-size: 1.2rem; color: var(--subtle); }
 .role-topic-mark.is-done { color: var(--ok); }
 
 .roles-boundary {
   margin: 0;
   padding-inline: 2px;
-  font-size: var(--t-label);
-  color: var(--subtle);
+  font-size: var(--t-small);
+  color: var(--muted);
+}
+.roles-award-version { padding-inline: 2px; }
+
+@media (min-width: 700px) {
+  .role-collection { column-gap: var(--s-lg); }
+  .role-collection-badge { height: 106px; width: min(100%, 106px); }
+  .role-collection-name { font-size: var(--t-component); }
 }
 
-@media (max-width: 560px) {
-  .roles-award {
-    grid-template-columns: 88px minmax(0, 1fr);
-    gap: var(--s-md);
-    padding: var(--s-md);
+@media (max-width: 699px) {
+  /* An actual phone screen, not a floating desktop modal. One scroll region. */
+  .backdrop.role-detail-dialog.is-centred { padding: 0; align-items: stretch; }
+  .backdrop.role-detail-dialog.is-centred .sheet {
+    width: 100%;
+    height: 100dvh;
+    max-height: none;
+    border-radius: 0;
+    border-inline: 0;
   }
-  .roles-medallion { max-width: 88px; }
+  .role-detail-dialog .sheet-head {
+    padding-top: calc(var(--s-md) + env(safe-area-inset-top));
+  }
+  .role-detail-dialog .sheet-body {
+    padding: var(--s-md) var(--s-lg) calc(var(--s-2xl) + env(safe-area-inset-bottom));
+  }
+  .roles-award { grid-template-columns: 96px minmax(0, 1fr); gap: var(--s-md); }
+  .role-detail-dialog .sheet-head h2 { font-size: var(--t-component); }
 }
 
 @media (max-width: 370px) {
+  .role-collection-button { padding-inline: 2px; }
+  .role-collection-badge { height: 72px; width: min(100%, 72px); }
+  .roles-award { grid-template-columns: 80px minmax(0, 1fr); gap: var(--s-sm); }
   button.role-topic-plate { grid-template-columns: 1.2em minmax(0, 1fr); }
   .role-topic-state { grid-column: 2; grid-row: 2; justify-content: flex-start; text-align: left; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .role-collection-button, .role-detail-dialog .sheet { transition: none; animation: none; }
 }

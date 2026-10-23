@@ -1,6 +1,5 @@
 // Packet identity, introduced material and durable acquisition position.
 import { morseAcquisitionProfile, type AcquisitionCharacter } from '../../testing/acquisitionProfile'
-import { hasLaterSittingSuccess, morseReviewOf } from '../review'
 import type { MorseLetter } from '../../code'
 import { ACQUISITION_ORDER, ALL_MORSE_LETTERS, buildCharacterPackets, type CharacterPacket } from '../packetOrder'
 import type { Topic } from '../../../library/topic'
@@ -52,13 +51,9 @@ export interface MorseAcquisitionPosition {
   packetCount: number
   /** True once the learner has met any of it. */
   started: boolean
-  /** True once every character has been produced unaided at least once. */
+  /** True once all thirteen lessons' novel letters have been settled once. */
   ready: boolean
-  /**
-   * Characters still owing a correct retrieval in a sitting later than the one
-   * that introduced them (#90 §4). Empty for a learner with no review history,
-   * which is what every record written before that history existed looks like.
-   */
+  /** Retired mandatory consolidation gate; always empty for compatibility. */
   awaitingConsolidation: MorseLetter[]
   /** True once every letter has been met, whether or not all are settled. */
   metAll: boolean
@@ -75,28 +70,8 @@ export function morseAcquisitionPosition(topic: Topic): MorseAcquisitionPosition
   const packetIndex = firstUnsettledPacket(packets, byGlyph, store)
   const settledEverything = packetIndex >= packets.length
 
-  /**
-   * #90 §4: settling every character is necessary but not sufficient. A
-   * character the learner produced unaided inside the sitting that taught it
-   * has not yet survived any gap, and surviving a gap is the whole difference
-   * between "I can do this now" and "I know this".
-   *
-   * Only characters the review history actually knows about are held to it. A
-   * record written before that history existed has no entries at all, so it
-   * reports nothing outstanding and a learner mid-programme on the old policy
-   * is neither blocked nor credited with successes they never earned. The
-   * permanence of `acquisitionReadyAt` covers anyone already past the line.
-   */
-  const review = morseReviewOf(topic)
-  const awaitingConsolidation = topic.acquisitionReadyAt
-    ? []
-    : [...byGlyph.entries()]
-        .filter(
-          ([, character]) =>
-            review.items[character.itemId] !== undefined &&
-            !hasLaterSittingSuccess(review, character.itemId),
-        )
-        .map(([glyph]) => glyph)
+  // Earlier sittings remain useful for optional practice, not completion.
+  const awaitingConsolidation: MorseLetter[] = []
 
   return {
     settled: supports.filter((support) => support === 'settled').length,
@@ -104,29 +79,37 @@ export function morseAcquisitionPosition(topic: Topic): MorseAcquisitionPosition
     packet: Math.min(packetIndex + 1, packets.length),
     packetCount: packets.length,
     started: supports.some((support) => support !== undefined),
-    ready: settledEverything && awaitingConsolidation.length === 0,
+    ready: settledEverything || Boolean(topic.acquisitionReadyAt),
     awaitingConsolidation,
     metAll: supports.every((support) => support !== undefined),
   }
 }
 
 /**
- * The first packet the learner has not fully settled — the whole of the
- * lesson's durable position. An unsettled historical return remains an
- * obligation, while settled material is selected by current review need.
- * Returns `packets.length` when every packet obligation is settled.
+ * Each packet is complete once its two novel mappings are settled. Returning
+ * review material can lose support again without reopening a passed lesson;
+ * it remains available through optional practice. Returns `packets.length`
+ * when each required lesson's novel mappings have been learned once.
  */
 export function firstUnsettledPacket(
   packets: CharacterPacket[],
   byGlyph: Map<MorseLetter, AcquisitionCharacter>,
   store: ItemLessonStore,
 ): number {
+  // Opening the novel pair of a later packet proves earlier packets were
+  // completed. Subsequent review misses can restore support, but not the path.
+  const reached = packets.reduce((highest, packet) =>
+    packet.novel.some((glyph) => {
+      const id = byGlyph.get(glyph)?.itemId
+      return id !== undefined && store[id] !== undefined
+    }) ? Math.max(highest, packet.index) : highest, 0)
+
   for (const packet of packets) {
-    const settled = packet.characters.every((glyph) => {
+    if (packet.index < reached) continue
+    if (!packet.novel.every((glyph) => {
       const character = byGlyph.get(glyph)
       return character ? store[character.itemId] === 'settled' : false
-    })
-    if (!settled) return packet.index
+    })) return packet.index
   }
   return packets.length
 }
