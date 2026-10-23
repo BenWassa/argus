@@ -61,7 +61,6 @@ function Harness({
       onStart={onStart}
       onReference={() => undefined}
       onEdit={() => undefined}
-      onDelete={() => undefined}
     />
   )
 }

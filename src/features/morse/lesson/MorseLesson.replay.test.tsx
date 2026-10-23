@@ -298,7 +298,6 @@ describe('#117 a finished learner has somewhere to replay from', () => {
           onStart={onStart}
           onReference={vi.fn()}
           onEdit={vi.fn()}
-          onDelete={vi.fn()}
         />
       </LibraryProvider>,
     )

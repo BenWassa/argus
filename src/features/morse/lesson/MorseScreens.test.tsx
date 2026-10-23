@@ -98,7 +98,6 @@ function renderTopic(topic: Topic) {
         onStart={vi.fn()}
         onReference={vi.fn()}
         onEdit={vi.fn()}
-        onDelete={vi.fn()}
       />
     </LibraryProvider>,
   )

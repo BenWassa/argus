@@ -16,7 +16,7 @@ test('topic tray clears navigation and final controls remain reachable with enla
     }).toBe(true)
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
-    const target = await page.getByRole('button', { name: /^Delete( topic)?$/ }).boundingBox()
+    const target = await page.getByRole('button', { name: /Sources and limitations/ }).boundingBox()
     const dock = await page.locator('.topic-tray, .topic-morse-tray').boundingBox()
     if (page.viewportSize()!.width < 980) expect(target!.y + target!.height).toBeLessThanOrEqual(dock!.y)
   }
