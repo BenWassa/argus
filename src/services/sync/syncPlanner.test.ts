@@ -369,6 +369,23 @@ describe('formative Morse practice travels with the whole topic record', () => {
   })
 })
 
+describe('formative Morse recognition travels with the whole topic record (#279)', () => {
+  const recognition = {
+    schemaVersion: 1 as const,
+    streams: { 'read/speed': { sequence: 1, characters: { E: { outcomes: [true], shown: 1, lastShownSequence: 1, lastGradedSequence: 1, recentCorrectMs: [2000] } } } },
+  }
+
+  it('serializes recognition and reports concurrent edits as a topic conflict', () => {
+    const baseline = topic('morse', { morseRecognition: recognition })
+    const local = topic('morse', { morseRecognition: { ...recognition, streams: { 'read/speed': { ...recognition.streams['read/speed'], sequence: 2 } } } })
+    const theirs = topic('morse', { morseRecognition: { ...recognition, streams: { 'read/speed': { ...recognition.streams['read/speed'], sequence: 3 } } } })
+    expect(JSON.parse(topicJson(local)).morseRecognition).toEqual(local.morseRecognition)
+    const plan = planSync([local], [remote('morse', theirs, 2)], ledgerFor('morse', baseline, 1))
+    expect(plan.actions).toEqual([])
+    expect(plan.conflicts).toEqual(['morse'])
+  })
+})
+
 describe('library-level state', () => {
   it('travels as one canonical text for the same set of delivered topics', () => {
     expect(libraryMetaJson(['b', 'a', 'b'])).toBe(libraryMetaJson(['a', 'b']))

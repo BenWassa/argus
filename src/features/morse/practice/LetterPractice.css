@@ -6,8 +6,21 @@
 .letter-practice-stimulus { display: grid; place-items: center; min-height: 9rem; }
 /* Read draws its pattern with the shared marks, in ink, at stimulus size. */
 .letter-practice-stimulus .letter-practice-marks { color: var(--ink); }
-.letter-practice-entry { display: grid; gap: .5rem; width: min(100%, 12rem); margin: 0 auto; }
-.letter-practice-entry input { text-align: center; font-size: 1.5rem; min-height: 48px; }
+/* Four answer tiles (#279): a 2x2 grid of large, stable targets in place of the
+   one-letter field, so the phone keyboard never opens. Positions never move. */
+.letter-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-sm); }
+.letter-choices:focus { outline: none; }
+.letter-choice { min-height: 76px; padding: var(--s-sm); font-size: 1.9rem; font-weight: 700; letter-spacing: 0; line-height: 1; }
+.letter-choice:active:not(:disabled) { border-color: var(--session-colour); }
+.letter-practice-cue { margin: 0; text-align: center; font-family: var(--font-mono); font-size: var(--t-readout); letter-spacing: var(--track-readout); text-transform: uppercase; color: var(--muted); }
+.letter-practice-stimulus { gap: var(--s-sm); align-content: center; }
+.letter-practice-speed { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-sm); }
+.letter-practice-speed > button { min-width: 44px; min-height: 44px; }
+.letter-practice-speed > button[aria-pressed="true"] { background: var(--surface-3); border-color: var(--session-colour); box-shadow: inset 0 -2px var(--session-colour); }
+.letter-practice-speed-note { font-family: var(--font-mono); font-size: var(--t-readout); letter-spacing: var(--track-readout); text-transform: uppercase; color: var(--muted); }
+.letter-practice-speed-result { display: grid; gap: var(--s-xs); text-align: center; }
+.letter-practice-speed-result > p { margin: 0; color: var(--ink); }
+.letter-practice-speed-result > .letter-practice-speed-basis { color: var(--muted); font-size: var(--t-small); }
 /* The response zone: the key or the letter field, with Help under it. */
 .letter-practice-response { display: grid; gap: var(--s-sm); }
 .letter-practice-response > .quiet { justify-self: center; }
@@ -26,8 +39,16 @@
 @media (max-height: 560px) {
   .letter-practice-stimulus { min-height: 0; }
   .letter-practice-stimulus .lesson-glyph { font-size: clamp(2.2rem, 14vh, 3rem); }
-  /* The field's name sits beside it rather than over it. */
-  .letter-practice-entry { grid-template-columns: auto 8rem; align-items: center; justify-content: center; width: auto; }
-  .letter-practice-entry input { min-height: var(--control-h); font-size: 1.25rem; }
   .letter-practice-response { gap: 0; }
+  /* Visually quiet, still read by assistive technology. */
+  .letter-practice-cue { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+}
+
+/* Short landscape has width and no height: the four tiles run in one row. */
+@media (max-height: 560px) and (min-width: 480px) {
+  .letter-choices { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .letter-choice { min-height: 56px; font-size: 1.6rem; }
+}
+@media (max-height: 560px) and (max-width: 479px) {
+  .letter-choice { min-height: 48px; }
 }

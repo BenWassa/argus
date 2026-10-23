@@ -6,6 +6,7 @@ import type {
 } from '../morse/progress'
 import type { MorseFluencyProgress } from '../morse/fluency/progress'
 import type { MorsePractice } from '../morse/practice'
+import type { MorseRecognition } from '../morse/recognition/progress'
 import type { LearnContent } from '../learning/content'
 import type { ItemChoice, Visual } from '../visual/visual'
 import type { AudioStimulus, ItemResponse } from '../audio/audio'
@@ -169,6 +170,14 @@ export interface Topic {
    * never changes acquisition evidence, history, or completion.
    */
   morsePractice?: MorsePractice
+  /**
+   * Formative four-choice letter recognition for Read and Listen (#279).
+   * Additive within v5: absent means no recorded recognition. It is a separate
+   * record from `morsePractice` (typed recall) and `morseFluency` (audio/keying
+   * latency), carries event order and capped durations but no dates, and never
+   * reaches Test evidence, retention, lessons or completion.
+   */
+  morseRecognition?: MorseRecognition
   /**
    * When progressive acquisition first became ready — for Morse, when every
    * required item had been produced unaided at least once in Learn (#67).
