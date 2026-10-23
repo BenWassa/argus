@@ -186,12 +186,12 @@ async function runToSummary(page: Page) {
 }
 
 test.describe('fluency', () => {
-  test('offers four modes and one current Test on the path', async ({ page }) => {
+  test('offers four modes and one optional Test after the lessons', async ({ page }) => {
     await openTopic(page)
     for (const name of ['Key', 'Listen', 'Read', 'Free play']) {
       await expect(page.getByRole('navigation', { name: 'Play' }).getByRole('button', { name, exact: true })).toBeVisible()
     }
-    await expect(page.getByRole('button', { name: 'A–Z Test, available, current' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'A–Z Test, available, reached' })).toBeVisible()
     await expect(page.locator('.topic-tray')).toHaveCount(0)
   })
 
@@ -206,9 +206,9 @@ test.describe('fluency', () => {
     expect(overflow.scroll).toBeLessThanOrEqual(overflow.client)
   })
 
-  test('keeps the banked Test on the path and later tiers available', async ({ page }) => {
+  test('keeps an untested learned topic honest and later tiers available', async ({ page }) => {
     await openTopic(page, betweenChecks())
-    await expect(page.getByRole('button', { name: 'A–Z Test, banked, done' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'A–Z Test, available, reached' })).toBeVisible()
     await page.getByRole('button', { name: 'Words, Key, available' }).click()
     await expect(page.locator('.send-run')).toBeVisible()
   })

@@ -77,7 +77,7 @@ test('the completed legacy course is Learned without a consolidation run or requ
   await openMorse(page)
   await expect(page.getByRole('button', { name: /A–Z Test, available/ })).toBeVisible()
   await expect(page.getByRole('button', { name: /^Go over/ })).toHaveCount(0)
-  await expect(page.getByText('Learned', { exact: true }).first()).toBeVisible()
+  await expect(page.getByText('Learned · Test optional', { exact: true })).toBeVisible()
 
   const stored = await page.evaluate((key) => JSON.parse(window.localStorage.getItem(key) ?? '{}'), STORE_KEY)
   const morse = (stored.topics as Topic[]).find((topic) => topic.id === MORSE_ID)

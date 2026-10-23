@@ -38,10 +38,8 @@ function identity(topic: Topic): Map<MorseLetter, AcquisitionCharacter> | null {
  * support store that drive Learn. There is no second unlock/progress database.
  *
  * A later lesson having any durable novel-item support is proof that it was
- * reached. That matters when a returning miss temporarily sends the current
- * acquisition policy back to repair an older packet: already reached later
- * lessons stay visibly unlocked rather than pretending the learner never saw
- * them.
+ * reached, so historical restored scaffolding cannot reopen earlier lessons.
+ * Completed lessons stay passed; current corrective help belongs to the run.
  */
 export function morseLessonPath(topic: Topic): MorseLessonPathItem[] | null {
   const byGlyph = identity(topic)

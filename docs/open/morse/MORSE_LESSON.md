@@ -2,7 +2,7 @@
 
 **Status:** maintained contract; #276 owner decision (2026-10-22) supersedes the historical consolidation and after-course sections below.
 
-> **Current completion rule — #276.** Each of the thirteen required lessons counts permanently when finished once. Finishing Lesson 13 marks Morse **Learned** without a later-sitting success, required after-course review or formal Test. Replays and optional practice/misses cannot reopen learning. Test is independently scored, optional after lessons and the only source of formal Test evidence. Historical consolidation instructions below are superseded.
+> **Current completion rule — #276.** Each of the thirteen required lessons counts permanently when finished once. Finishing Lesson 13 marks Morse **Learned** without a later-sitting success, required after-course review or formal Test. Replays and optional practice/misses cannot reopen learning. Test is independently scored, optional after lessons and the only source of formal Test evidence. Durable `settled` acquisition never downgrades: mistakes can restore help inside the current run, while saved completion stays earned. Historical consolidation instructions below are superseded.
 
 > **After the course — 2026-09-30.** The thirteen lessons alone could not make a real learner ready. Readiness needs every letter produced correctly in a sitting after the one that taught it. Q and Y are taught in the last lesson, and the confusable-separation rule keeps B and Z (and, for a clean learner, C and J) out of the rosters that follow. A whole-programme simulation confirmed that every learner with lesson history ended with `ready = false` and no way forward. `lesson.ts` adds two functions:
 >

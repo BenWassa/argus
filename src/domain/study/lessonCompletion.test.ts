@@ -50,6 +50,17 @@ describe('#276: lessons finish once; Test is independent', () => {
     expect(morseLessonPath(learned)?.every((lesson) => lesson.state === 'completed')).toBe(true)
   })
 
+  it('keeps a settled pair complete before the next lesson is opened', () => {
+    const first = lessonPackets()[0]
+    const progress = Object.fromEntries(first.novel.map((glyph) =>
+      [morse.items.find((item) => item.prompt === glyph)!.id!, 'settled' as const]))
+    const completed = { ...morse, lessonProgress: progress }
+    const slipped = withLessonProgress(completed, { [Object.keys(progress)[0]]: 'cued' })
+    expect(slipped).toBe(completed)
+    expect(morseLessonPath(slipped)?.[0].state).toBe('completed')
+    expect(startLesson(slipped)?.packetIndex).toBe(1)
+  })
+
   it('does not reopen passed lessons after a later review miss or optional Test miss', () => {
     const learned = completeOnce()
     const firstId = learned.items.find((item) => item.prompt === 'E')!.id!
