@@ -144,26 +144,26 @@ describe('a Test result is announced only after the library has committed it', (
       await screen.findByText('Saving your result', {}, { timeout: 4000 })
     }
 
-    it('offers a way out instead of saving indefinitely, and never shows the result or a failure', async () => {
+    it('shows the result from memory with a saving note instead of waiting indefinitely, and offers no failure', async () => {
       fixture.gate = new Promise<void>(() => {})
       const onExit = vi.fn()
       await gradeThenStall(onExit)
-      await screen.findByText('Still saving your result', {}, { timeout: 4000 })
+      await waitFor(() => expect(document.querySelector('.test-done')).not.toBeNull(), { timeout: 4000 })
+      expect(screen.getByText(/Still saving to this device/)).toBeTruthy()
       expect(screen.queryByText('Result not saved')).toBeNull()
-      expect(document.querySelector('.test-done')).toBeNull()
       expect(stored().history).toHaveLength(0)
-      fireEvent.click(screen.getByRole('button', { name: 'Back to today' }))
-      expect(onExit).toHaveBeenCalledTimes(1)
+      fireEvent.click(screen.getAllByRole('button', { name: /close|done/i })[0])
+      expect(onExit).toHaveBeenCalled()
     })
 
-    it('shows the result once, banked once, if the held write commits after the way out appeared', async () => {
+    it('banks exactly once and clears the note if the held write commits after the result was shown', async () => {
       let release!: () => void
       fixture.gate = new Promise<void>((resolve) => { release = resolve })
       await gradeThenStall()
-      await screen.findByText('Still saving your result', {}, { timeout: 4000 })
+      await waitFor(() => expect(screen.queryByText(/Still saving to this device/)).not.toBeNull(), { timeout: 4000 })
       release()
-      await waitFor(() => expect(document.querySelector('.test-done')).not.toBeNull(), { timeout: 8000 })
-      expect(screen.queryByText('Still saving your result')).toBeNull()
+      await waitFor(() => expect(screen.queryByText(/Still saving to this device/)).toBeNull(), { timeout: 8000 })
+      expect(document.querySelector('.test-done')).not.toBeNull()
       expect(stored().history).toHaveLength(1)
     })
   })

@@ -55,6 +55,7 @@ export function TestDone({
   onPractice,
   onPlayMorse,
   score,
+  saveNote,
 }: {
   banked: BankedAttempt[]
   reviewed?: ReviewResult[]
@@ -66,6 +67,8 @@ export function TestDone({
   onPlayMorse?: (topicId: string) => void
   /** Every answer given in this run, across topics: the one reading on the result. */
   score: { correct: number; total: number }
+  /** Shown while the result is still being written to this device. */
+  saveNote?: string
 }) {
   const withheld = banked.filter((entry) => entry.withheldByAcquisition)
   // Correct end to end, and still not a qualifying run. Named separately because
@@ -176,6 +179,7 @@ export function TestDone({
   return (
     <SessionFrame kind="test" title={banked.length === 0 && reviewed.length > 0 ? 'Review' : 'Test'}
       progress={{ current: score.total, total: score.total }} onClose={onExit} className="test-done">
+      {saveNote && <p className="test-outcome test-save-note" role="status">{saveNote}</p>}
       <RoundResult
         correct={score.correct}
         total={score.total}
