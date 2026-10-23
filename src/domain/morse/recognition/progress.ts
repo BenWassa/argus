@@ -132,9 +132,11 @@ export function recordRecognitionOutcome(
 ): MorseRecognition {
   if (!validRecognitionStream(stream) || !validGlyph(glyph)) throw new RangeError('Invalid recognition stream or glyph.')
   if (!options.independent || options.choices !== 4) return state
-  // Recognition evidence requires a previously presented question.
+  // Only the current presented question may be graded. A different next
+  // glyph leaves the older character sequence intact, so check the stream too.
   const presented = state.streams[stream]?.characters[glyph]
-  if (!presented || presented.shown < 1 || presented.lastShownSequence < 1 ||
+  if (state.streams[stream]?.sequence !== options.presentedSequence ||
+      !presented || presented.shown < 1 || presented.lastShownSequence < 1 ||
       presented.lastShownSequence !== options.presentedSequence ||
       presented.lastGradedSequence === options.presentedSequence) return state
   const track: RecognitionTrack = state.streams[stream] ?? { sequence: 0, characters: {} }

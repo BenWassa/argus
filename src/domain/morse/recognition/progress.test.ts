@@ -67,6 +67,27 @@ describe('independent formative MC4 recognition history', () => {
       { choices: 4, independent: true, presentedSequence: presentedSequence - 1, elapsedMs: 1 })).toBe(selected.progress)
   })
 
+  it('ignores a late answer after a different letter becomes the current question', () => {
+    const stream = 'read/speed'
+    const roster: MorseLetter[] = ['E', 'A', 'I', 'M']
+    const first = selectRecognitionLetter(newMorseRecognition(), stream, roster, { rng: () => 0 })
+    const second = selectRecognitionLetter(first.progress, stream, roster, { rng: () => 0 })
+    expect(second.letter).not.toBe(first.letter)
+    const stale = recordRecognitionOutcome(second.progress, stream, first.letter!, true, {
+      independent: true, choices: 4,
+      presentedSequence: first.progress.streams[stream]!.sequence, elapsedMs: 10,
+    })
+    expect(stale).toBe(second.progress)
+    expect(stale.streams[stream]!.characters[first.letter!]!.outcomes).toEqual([])
+    expect(stale.streams[stream]!.characters[first.letter!]!.recentCorrectMs).toEqual([])
+    const current = recordRecognitionOutcome(second.progress, stream, second.letter!, true, {
+      independent: true, choices: 4,
+      presentedSequence: second.progress.streams[stream]!.sequence, elapsedMs: 900,
+    })
+    expect(current.streams[stream]!.characters[second.letter!]!.outcomes).toEqual([true])
+    expect(current.streams[stream]!.characters[second.letter!]!.recentCorrectMs).toEqual([900])
+  })
+
   it('uses the existing accuracy scheduler with bounded secondary speed pressure', () => {
     const state = withHistories()
     const e = recognitionPriority(state, 'read/speed', 'E')
