@@ -32,6 +32,7 @@ import { journeyFor } from '../../domain/study/journey'
 import type { Topic } from '../../domain/library/topic'
 import type { CurrentLibrary } from '../../domain/library/library'
 import { captureRoleAwards, mergeRoleAwards, type RoleAward } from '../../domain/roles/awards'
+import { recordSave } from './saveTimings'
 
 /** An unclaimed library stays separate from all UID namespaces. */
 const UNCLAIMED_OWNER = '__argus_unclaimed_local__'
@@ -393,11 +394,15 @@ function IndexedLibraryProvider({ children }: { children: ReactNode }) {
       if (activeOwner.current === key) install(row.library)
       setFailure(null)
     }
-    const result = queue.current.then(run).finally(() => {
+    let wrote = true
+    const result = queue.current.then(run).catch((error: unknown) => { wrote = false; throw error }).finally(() => {
       clearTimeout(watchdog)
-      if (phase !== 'queued' && Date.now() - queuedAt >= SLOW_SAVE_MS) {
-        console.info('[argus] slow local save settled', { waitedMs: Date.now() - queuedAt })
+      const now = Date.now()
+      if (phase !== 'queued' && now - queuedAt >= SLOW_SAVE_MS) {
+        console.info('[argus] slow local save settled', { waitedMs: now - queuedAt })
       }
+      // A write that never started (refused for another account) has no timing worth showing.
+      if (startedAt) recordSave({ waitMs: startedAt - queuedAt, writeMs: now - startedAt, ok: wrote })
       phase = 'settled'
     }).then(() => true, (error: unknown) => {
       // A change made for another account is refused, not a fault of this
