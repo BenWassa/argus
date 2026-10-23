@@ -85,13 +85,21 @@ jobs:
         run: npm ci
 
       # The system packages come from the runner's apt mirror, which now and then
-      # crawls (one shard spent 11 minutes on a 22 MB download). Bound each
-      # attempt and retry, so a slow mirror costs minutes rather than a job.
+      # stalls on one download (one shard lost 11 minutes to a single 5 MB font
+      # package). apt waits 120s of silence by default; give up on a stalled
+      # download after 15s and retry it instead. If the install still fails, a
+      # killed apt leaves the dpkg lock held, so clear it before trying again.
       - name: Install Chromium
         run: |
+          printf 'Acquire::http::Timeout "15";\nAcquire::https::Timeout "15";\nAcquire::Retries "5";\n' \
+            | sudo tee /etc/apt/apt.conf.d/99-fail-fast >/dev/null
           for attempt in 1 2 3; do
-            timeout 150 npx playwright install --with-deps chromium && exit 0
+            timeout 240 npx playwright install --with-deps chromium && exit 0
             echo "Chromium install attempt $attempt did not finish; retrying"
+            sudo pkill -KILL -x apt-get || true
+            sudo pkill -KILL -x dpkg || true
+            sudo rm -f /var/lib/dpkg/lock-frontend /var/lib/dpkg/lock /var/lib/apt/lists/lock /var/cache/apt/archives/lock
+            sudo dpkg --configure -a || true
           done
           exit 1
 
