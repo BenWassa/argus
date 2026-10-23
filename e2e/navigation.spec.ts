@@ -1,3 +1,4 @@
+import { readLocalLibrary } from './helpers/readLocalLibrary'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Page } from '@playwright/test'
@@ -69,6 +70,8 @@ async function installLibrary(page: Page, initialState: unknown = null, library 
 async function openApp(page: Page, initialState: unknown = null, library = LIBRARY) {
   await installLibrary(page, initialState, library)
   await page.goto('./')
+  // The router mounts after IndexedDB hydration.
+  await expect(page.getByRole('button', { name: 'Home', exact: true })).toBeVisible()
 }
 
 async function navigationState(page: Page): Promise<NavigationState> {
@@ -76,17 +79,9 @@ async function navigationState(page: Page): Promise<NavigationState> {
 }
 
 async function storedTopic(page: Page): Promise<Topic> {
-  return page.evaluate(
-    ([storeKey, topicId]) => {
-      const raw = window.localStorage.getItem(storeKey)
-      if (!raw) throw new Error('Missing Argus library')
-      const parsed = JSON.parse(raw) as { topics: Topic[] }
-      const topic = parsed.topics.find((candidate) => candidate.id === topicId)
-      if (!topic) throw new Error(`Missing topic ${topicId}`)
-      return topic
-    },
-    [STORE_KEY, TOPIC.id] as const,
-  )
+  const topic = (await readLocalLibrary(page)).topics.find((candidate) => candidate.id === TOPIC.id)
+  if (!topic) throw new Error(`Missing topic ${TOPIC.id}`)
+  return topic
 }
 
 async function systemBack(page: Page) {
@@ -275,15 +270,7 @@ test('partial Test Back reuses End test, Back resumes, and confirmed exit preser
   await page.getByRole('button', { name: 'End test', exact: true }).click()
   await expect(page.getByRole('heading', { name: TOPIC.title, level: 1 })).toBeVisible()
 
-  const history = await page.evaluate(
-    ([storeKey, topicId]) => {
-      const parsed = JSON.parse(window.localStorage.getItem(storeKey) ?? '{}') as {
-        topics?: { id: string; history?: unknown[] }[]
-      }
-      return parsed.topics?.find((topic) => topic.id === topicId)?.history ?? null
-    },
-    [STORE_KEY, TOPIC.id] as const,
-  )
+  const history = (await readLocalLibrary(page)).topics.find((topic) => topic.id === TOPIC.id)?.history ?? null
   expect(history).toEqual([])
 })
 

@@ -1,3 +1,4 @@
+import { readLocalLibrary, writeLocalLibrary } from './helpers/readLocalLibrary'
 import { expect, test, type Page } from '@playwright/test'
 import { seedLibrary } from '../src/domain/library/catalogSeed'
 import { AVAILABLE_ROLES, COMMUNICATOR, MARINER, NAVIGATOR } from '../src/domain/roles/definitions'
@@ -138,11 +139,11 @@ test('Navigator award persists through topic deletion and reload; explicit reset
   await earnedBadge.evaluate((image: HTMLImageElement) => image.decode())
   expect(await earnedBadge.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBe(512)
 
-  await page.evaluate(([key, navigatorIds]) => {
-    const library = JSON.parse(localStorage.getItem(key)!)
-    library.topics = library.topics.filter((topic: { id: string }) => !navigatorIds.includes(topic.id))
-    localStorage.setItem(key, JSON.stringify(library))
-  }, [STORE, [...ids]] as const)
+  const canonical = await readLocalLibrary(page)
+  await writeLocalLibrary(page, {
+    ...canonical,
+    topics: canonical.topics.filter((topic) => !ids.has(topic.id)),
+  })
   await page.reload()
   await expect(page.getByRole('dialog', { name: 'Navigator' })).toBeVisible()
   await expect(page.getByText('Navigator earned', { exact: true })).toBeVisible()

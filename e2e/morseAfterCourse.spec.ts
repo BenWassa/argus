@@ -1,3 +1,4 @@
+import { readLocalLibrary } from './helpers/readLocalLibrary'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Page } from '@playwright/test'
@@ -79,7 +80,7 @@ test('the completed legacy course is Learned without a consolidation run or requ
   await expect(page.getByRole('button', { name: /^Go over/ })).toHaveCount(0)
   await expect(page.getByText('Learned · Test optional', { exact: true })).toBeVisible()
 
-  const stored = await page.evaluate((key) => JSON.parse(window.localStorage.getItem(key) ?? '{}'), STORE_KEY)
+  const stored = await readLocalLibrary(page)
   const morse = (stored.topics as Topic[]).find((topic) => topic.id === MORSE_ID)
   expect(morse?.history).toEqual([])
   expect(Object.values(morse?.lessonProgress ?? {}).every((support) => support === 'settled')).toBe(true)

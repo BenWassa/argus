@@ -1,3 +1,4 @@
+import { readLocalLibrary } from './helpers/readLocalLibrary'
 import { expect, test } from '@playwright/test'
 import { seedLibrary } from '../src/domain/library/catalogSeed'
 import { readFileSync } from 'node:fs'
@@ -33,11 +34,11 @@ test('a later missed Test keeps learned progress and creates no repair obligatio
   await expect(page.getByRole('heading', { name: '23 of 26 correct' })).toBeVisible()
   await expect(page.locator('.test-outcome')).toHaveText('Learned')
   await expect(page.getByRole('button', { name: /^Practise/ })).toHaveCount(0)
-  const saved = await page.evaluate(id => JSON.parse(localStorage.getItem('argus.library.v5')!).topics.find((value: { id: string }) => value.id === id), topic.id)
+  const saved = await readLocalLibrary(page).then((library) => library.topics.find((value) => value.id === topic.id)!)
   expect(saved.status).toBe('completed')
   expect(saved.completedAt).toBe(completedAt)
   expect(saved.history.at(-1)).toMatchObject({ correct: 23, total: 26, resolvedTo: 'completed' })
-  expect(saved.history.at(-1).missedItemIds).toHaveLength(3)
+  expect(saved.history.at(-1)?.missedItemIds).toHaveLength(3)
   await page.getByRole('button', { name: 'Done', exact: true }).click()
   await expect(page.locator('.topic-state')).toHaveText('✓Learned')
   await expect(page.locator('.screen-header-readout')).toHaveText('26 / 26')

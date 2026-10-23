@@ -66,7 +66,7 @@ export function useLessonProgression({ topic, initialRun, replay = false, onExit
   const headingRef = useRef<HTMLHeadingElement>(null)
   const stepRef = useRef<HTMLDivElement>(null)
 
-  const [run, setRun] = useState<LessonRun>(initialRun)
+  const [earnedRun, setRun] = useState<LessonRun>(initialRun)
   // The sitting resumes from the topic itself (#66). There is no sidecar store:
   // what the learner sees at 6/10 is the same value an export carries.
   //
@@ -93,11 +93,58 @@ export function useLessonProgression({ topic, initialRun, replay = false, onExit
    * it must act on are the ones that existed when the learner responded.
    */
   const pendingAdvance = useRef<(() => void) | null>(null)
+  /**
+   * A step that is ready to move on but whose answer the device has not kept.
+   *
+   * Moving on is what announces progress — "Lesson done", the next prompt — so
+   * it waits for the canonical record. The earned answer stays on screen with
+   * its verdict, and the same advance runs once a retry commits.
+   */
+  const heldAdvance = useRef<(() => void) | null>(null)
+  const [saveHeld, setSaveHeld] = useState(false)
+  /**
+   * The answer that finished the lesson is in `earnedRun`, but the device has
+   * not yet kept it. `run` is what the learner is shown, and it does not say
+   * "done" until the canonical record does.
+   */
+  const [completionUnconfirmed, setCompletionUnconfirmed] = useState(false)
+  const run: LessonRun = completionUnconfirmed ? { ...earnedRun, complete: false } : earnedRun
+  const packetAdvancing = useRef(false)
+  function advanceWhenSaved(advance: () => void) {
+    const settled = record.settle()
+    if (settled === true) { advance(); return }
+    void settled.then((ok) => {
+      if (ok) { advance(); return }
+      heldAdvance.current = advance
+      setSaveHeld(true)
+    })
+  }
+  function retrySave() {
+    const advance = heldAdvance.current
+    void Promise.resolve(record.retry()).then((ok) => {
+      if (!ok) return
+      heldAdvance.current = null
+      setSaveHeld(false)
+      setCompletionUnconfirmed(false)
+      advance?.()
+    })
+  }
+  /** Called once an answer's writes are issued; withholds "done" until they commit. */
+  function confirmCompletion(answered: LessonRun) {
+    if (!answered.complete) return
+    const settled = record.settle()
+    if (settled === true) return
+    setCompletionUnconfirmed(true)
+    void settled.then((ok) => {
+      if (ok) setCompletionUnconfirmed(false)
+      else setSaveHeld(true)
+    })
+  }
   const { phase, armed, holding, answered, acknowledge, reset: resetResponse } = useKeyedResponse(
     () => {
       const advance = pendingAdvance.current
       pendingAdvance.current = null
-      advance?.()
+      if (advance) advanceWhenSaved(advance)
     },
   )
 
@@ -164,6 +211,7 @@ export function useLessonProgression({ topic, initialRun, replay = false, onExit
   function commit(next: LessonRun) {
     setRun(next)
     record.commitProgress(next)
+    confirmCompletion(next)
   }
 
   function persistSitting(next: LessonSitting) {
@@ -234,6 +282,7 @@ export function useLessonProgression({ topic, initialRun, replay = false, onExit
     const nextSitting = recordLessonRetrieval(sitting, itemId, result.feedback.correct)
     persistSitting(nextSitting)
     noteListening(itemId, result.feedback.correct)
+    confirmCompletion(result.run)
     setListeningFeedback(result.feedback)
     pendingAdvance.current = () => setListeningFeedback(null)
     fire(result.feedback.correct ? 'settle' : 'miss')
@@ -254,6 +303,9 @@ export function useLessonProgression({ topic, initialRun, replay = false, onExit
   }
 
   function nextPacket() {
+    // One press, one close: while the close is saving or waiting on a retry, a
+    // second press must not count the sitting twice.
+    if (packetAdvancing.current) return
     // A replay walks the printed curriculum, because the learner's durable
     // position is the one thing it is not moving: asking `startLesson` for
     // "the next lesson" would hand back wherever acquisition actually stands.
@@ -271,22 +323,27 @@ export function useLessonProgression({ topic, initialRun, replay = false, onExit
       if (replay || run.afterCourse) onExit()
       return
     }
-    stop()
-    clearError()
-    resetResponse()
-    pendingAdvance.current = null
-    setRun(next)
-    // A packet completes the current sitting. The next packet begins clean,
-    // and a clean sitting is represented by the absent durable field.
-    setSitting(newLessonSitting())
     // Count the close when the learner actually proceeds. This makes the next
     // retrieval a later-sitting success without crediting an abandoned run.
     record.closeSitting()
-    setListeningState(newLessonListeningState())
-    setListeningFeedback(null)
-    setAudioNotice(null)
+    // The next packet only opens once this one, and its close, are kept.
+    packetAdvancing.current = true
+    advanceWhenSaved(() => {
+      packetAdvancing.current = false
+      stop()
+      clearError()
+      resetResponse()
+      pendingAdvance.current = null
+      setRun(next)
+      // A packet completes the current sitting. The next packet begins clean,
+      // and a clean sitting is represented by the absent durable field.
+      setSitting(newLessonSitting())
+      setListeningState(newLessonListeningState())
+      setListeningFeedback(null)
+      setAudioNotice(null)
+    })
   }
 
 
-  return { sounding, audioError, toggle, headingRef, stepRef, run, listeningFeedback, audioNotice, checkpointInvite, runningCheckpoint, phase, armed, holding, continueFromMiss, topicRef, hasFeedback, step, packetProgress, listeningEntry, listening, audioOptions, introduce, startInvitedCheckpoint, skipInvitedCheckpoint, finishRunningCheckpoint, answerVisual, answerListening, skipListening, nextPacket }
+  return { sounding, audioError, toggle, headingRef, stepRef, run, listeningFeedback, audioNotice, checkpointInvite, runningCheckpoint, phase, armed, holding, continueFromMiss, topicRef, hasFeedback, saveHeld, retrySave, step, packetProgress, listeningEntry, listening, audioOptions, introduce, startInvitedCheckpoint, skipInvitedCheckpoint, finishRunningCheckpoint, answerVisual, answerListening, skipListening, nextPacket }
 }

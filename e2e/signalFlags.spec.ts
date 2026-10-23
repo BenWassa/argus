@@ -1,3 +1,4 @@
+import { readLocalLibrary } from './helpers/readLocalLibrary'
 import { expect, test, type Page } from '@playwright/test'
 
 /**
@@ -82,12 +83,7 @@ test('answering all twelve flags correctly banks a clean run', async ({ page }) 
   }
   expect(seen.size).toBe(12)
   const history = () =>
-    page.evaluate(
-      () =>
-        JSON.parse(localStorage.getItem('argus.library.v5')!).topics.find(
-          (t: { id: string }) => t.id === 'signal-flags',
-        ).history,
-    )
+    readLocalLibrary(page).then((library) => library.topics.find((topic) => topic.id === 'signal-flags')!.history)
   await expect.poll(async () => (await history()).length, { timeout: 8000 }).toBe(1)
   expect((await history())[0]).toMatchObject({ correct: 12, total: 12 })
 })

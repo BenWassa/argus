@@ -1,3 +1,4 @@
+import { readLocalLibrary } from './helpers/readLocalLibrary'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Page } from '@playwright/test'
@@ -58,7 +59,7 @@ async function keyElement(page: Page, element: '.' | '-') {
 
 test('placement grades a complete keyed pattern directly and abandons cleanly', async ({ page }) => {
   await openFreshMorse(page)
-  const before = await page.evaluate((key) => window.localStorage.getItem(key), STORE_KEY)
+  const before = await JSON.stringify(await readLocalLibrary(page))
 
   await page.getByRole('button', { name: 'Skip ahead' }).click()
   await expect(page.getByRole('dialog', { name: 'Check your Morse level' })).toBeVisible()
@@ -79,5 +80,5 @@ test('placement grades a complete keyed pattern directly and abandons cleanly', 
 
   await page.getByRole('button', { name: 'Close' }).click()
   await expect(page.locator('.session-frame-title').filter({ hasText: /^Placement$/ })).toHaveCount(0)
-  expect(await page.evaluate((key) => window.localStorage.getItem(key), STORE_KEY)).toBe(before)
+  expect(await JSON.stringify(await readLocalLibrary(page))).toBe(before)
 })

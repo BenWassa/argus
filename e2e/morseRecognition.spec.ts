@@ -1,3 +1,4 @@
+import { readLocalLibrary } from './helpers/readLocalLibrary'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Page } from '@playwright/test'
@@ -48,7 +49,19 @@ const tiles = (page: Page) => page.getByRole('group', { name: 'Choose the letter
 async function target(page: Page) {
   return RHYTHM_TO_LETTER.get((await page.locator('.letter-practice-stimulus [role="img"]').getAttribute('aria-label'))!)!
 }
-const stored = (page: Page) => page.evaluate((key) => JSON.parse(localStorage.getItem(key)!).topics[0], STORE_KEY)
+interface StoredTopic {
+  morseRecognition: { streams: Record<string, { sequence: number; characters: Record<string, { outcomes: boolean[]; shown: number; recentCorrectMs: number[] }> }> }
+  [field: string]: any // eslint-disable-line @typescript-eslint/no-explicit-any
+}
+/** The canonical IndexedDB record: the app never writes the retained legacy localStorage key. */
+const stored = async (page: Page) => (await readLocalLibrary(page)).topics[0] as unknown as StoredTopic
+/** Published state follows the local commit, so wait for the record rather than race it. */
+async function storedWhen(page: Page, ready: (topic: StoredTopic) => boolean) {
+  await expect.poll(async () => ready(await stored(page))).toBe(true)
+  return stored(page)
+}
+const shownIn = (topic: StoredTopic, stream: string) =>
+  Object.values(topic.morseRecognition?.streams[stream]?.characters ?? {}).reduce((total, entry) => total + entry.shown, 0)
 
 test('Read offers four large, stable tiles and no keyboard field', async ({ page }, info) => {
   await openRead(page, learner(6))
@@ -87,7 +100,7 @@ test('a tap grades once, locks the tiles and writes only the recognition record'
   await tile.dblclick()
   await expect(page.getByRole('status')).toContainText('Correct')
   await expect(tiles(page)).toHaveCount(0)
-  const after = await stored(page)
+  const after = await storedWhen(page, (topic) => shownIn(topic, 'read/practice') === 1)
   expect(after.morseRecognition.streams['read/practice'].characters[letter].outcomes).toEqual([true])
   expect(after.morsePractice).toBeUndefined()
   const { morseRecognition: _recognition, ...formal } = after
@@ -135,7 +148,7 @@ test('Speed is a ten-letter variant inside Read with its own stream and honest s
   await expect(page.getByText(/^Typical correct choice/)).toBeVisible()
   await expect(page.getByText('10 timed answers')).toBeVisible()
   await expect(page.locator('body')).not.toContainText(/\bscore\b|\brank\b|wpm/i)
-  const after = await stored(page)
+  const after = await storedWhen(page, (topic) => shownIn(topic, 'read/speed') === 10)
   expect(Object.keys(after.morseRecognition.streams)).toEqual(['read/speed'])
   const samples = Object.values<{ recentCorrectMs: number[] }>(after.morseRecognition.streams['read/speed'].characters).flatMap((c) => c.recentCorrectMs)
   expect(samples.length).toBeGreaterThan(0)
@@ -145,6 +158,27 @@ test('Speed is a ten-letter variant inside Read with its own stream and honest s
   }
   await page.getByRole('button', { name: 'Again' }).click()
   await expect(page.getByRole('button', { name: 'Speed', exact: true })).toHaveAttribute('aria-pressed', 'true')
+})
+
+test('recognition survives write, IndexedDB, reload and hydrate, and keeps accumulating on the stored record', async ({ page }) => {
+  await openRead(page, learner(6))
+  await page.getByRole('button', { name: `Letter ${await target(page)}`, exact: true }).click()
+  await expect(page.getByRole('status')).toContainText('Correct')
+  const first = await storedWhen(page, (topic) => shownIn(topic, 'read/practice') === 1)
+
+  // The init script re-seeds the retained legacy key on every load; the canonical record must win.
+  await page.reload()
+  // A reloaded run falls back to the topic it was opened from.
+  await expect(page.locator('.topic-title')).toBeVisible()
+  await page.getByRole('navigation', { name: 'Play' }).getByRole('button', { name: 'Read', exact: true }).click()
+  await expect(page.getByRole('group', { name: 'Choose the letter' })).toBeVisible()
+  expect((await stored(page)).morseRecognition).toEqual(first.morseRecognition)
+
+  // A fresh answer extends the hydrated record instead of starting a new one.
+  await page.getByRole('button', { name: `Letter ${await target(page)}`, exact: true }).click()
+  await expect(page.getByRole('status')).toContainText('Correct')
+  const second = await storedWhen(page, (topic) => shownIn(topic, 'read/practice') === 2)
+  expect(second.morseRecognition.streams['read/practice'].sequence).toBeGreaterThan(first.morseRecognition.streams['read/practice'].sequence)
 })
 
 test('only one taught letter is a teaching step, never a single-choice question', async ({ page }) => {

@@ -1,3 +1,4 @@
+import { readLocalLibrary } from './helpers/readLocalLibrary'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Page } from '@playwright/test'
@@ -174,7 +175,7 @@ test('a lesson replay reruns the real lesson, writes nothing and returns to the 
   await openApp(page)
   await openMorseTopic(page)
 
-  const before = await page.evaluate((key) => window.localStorage.getItem(key), STORE_KEY)
+  const before = JSON.stringify(await readLocalLibrary(page))
   const onTopic = await state(page)
   await openFinishedLessons(page)
   await page.getByRole('button', { name: 'Lesson 1, E and I, done', exact: true }).click()
@@ -204,7 +205,7 @@ test('a lesson replay reruns the real lesson, writes nothing and returns to the 
 
   await page.getByRole('button', { name: 'Close' }).click()
   await expect(page.getByRole('heading', { name: 'International Morse Code', level: 1 })).toBeFocused()
-  expect(await page.evaluate((key) => window.localStorage.getItem(key), STORE_KEY)).toBe(before)
+  expect(await JSON.stringify(await readLocalLibrary(page))).toBe(before)
   expect(await state(page)).toEqual(onTopic)
 })
 
@@ -212,7 +213,7 @@ test('unlocked word checkpoint holds a miss until dismissed and never mutates sa
   await openApp(page)
   await openMorseTopic(page)
 
-  const before = await page.evaluate((key) => window.localStorage.getItem(key), STORE_KEY)
+  const before = await JSON.stringify(await readLocalLibrary(page))
   const onTopic = await state(page)
   await openFinishedLessons(page)
   await page.getByRole('button', { name: 'Words after Lesson 4, reached' }).click()
@@ -255,13 +256,13 @@ test('unlocked word checkpoint holds a miss until dismissed and never mutates sa
 
   await expect(page.getByRole('heading', { name: 'Checkpoint done' })).toBeVisible({ timeout: 2_000 })
   await expect(page.getByText('6 of 8 correct')).toBeVisible()
-  expect(await page.evaluate((key) => window.localStorage.getItem(key), STORE_KEY)).toBe(before)
+  expect(JSON.stringify(await readLocalLibrary(page))).toBe(before)
 
   await page.getByRole('button', { name: 'Back to lessons' }).click()
   await expect(page.getByRole('heading', { name: 'International Morse Code', level: 1 })).toBeFocused()
   await openFinishedLessons(page)
   await expect(page.getByRole('button', { name: 'Words after Lesson 4, reached' })).toBeVisible()
-  expect(await page.evaluate((key) => window.localStorage.getItem(key), STORE_KEY)).toBe(before)
+  expect(JSON.stringify(await readLocalLibrary(page))).toBe(before)
   expect(await state(page)).toEqual(onTopic)
 })
 
@@ -326,8 +327,8 @@ test('reference playback does not write learner state', async ({ page }) => {
   await openMorseTopic(page)
   await page.getByRole('button', { name: 'A–Z', exact: true }).click()
 
-  const before = await page.evaluate((key) => window.localStorage.getItem(key), STORE_KEY)
+  const before = await JSON.stringify(await readLocalLibrary(page))
   await page.getByRole('button', { name: 'Play A Morse' }).click()
   await expect(page.getByRole('button', { name: /Stop A Morse|Play A Morse/ })).toBeVisible()
-  expect(await page.evaluate((key) => window.localStorage.getItem(key), STORE_KEY)).toBe(before)
+  expect(await JSON.stringify(await readLocalLibrary(page))).toBe(before)
 })

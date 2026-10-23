@@ -5,6 +5,7 @@ import { parseSyncedTopic, useSync, type SyncableStore } from './useSync'
 import { rememberSignedIn } from './syncSession'
 import { unconfiguredSyncBackend, type SyncBackend, type SyncUser } from './syncBackend'
 import { libraryMetaJson, topicJson, type RemoteRecord } from './syncPlanner'
+import { loadLedger } from './syncLedger'
 import { seedLibrary } from '../../domain/library/catalogSeed'
 import type { Topic } from '../../domain/library/topic'
 import type { RoleAward } from '../../domain/roles/awards'
@@ -56,8 +57,8 @@ function fakeStore(
     upserted,
     removed,
     merged,
-    upsertTopic: (topic) => upserted.push(topic),
-    removeTopic: (id) => removed.push(id),
+    upsertTopic: (topic) => { upserted.push(topic) },
+    removeTopic: (id) => { removed.push(id) },
     owner: null,
     bindOwner: (uid) => {
       store.owner = uid
@@ -225,6 +226,24 @@ describe('carrying out a plan', () => {
     await waitFor(() => expect(result.current.state.kind).toBe('error'))
     expect(store.removed).toEqual([])
     expect(store.upserted).toEqual([])
+  })
+
+  it('does not acknowledge remote adoption when the local IndexedDB commit fails', async () => {
+    const topic = realTopic()
+    const store = fakeStore([])
+    store.upsertTopic = async () => false
+    const backend = fakeBackend()
+    const { result } = renderHook(() => useSync(store, backend))
+
+    act(() => backend.emitUser(OWNER))
+    act(() => backend.emitRecords([
+      { topicId: topic.id, json: topicJson(topic), revision: 2, updatedAtMs: 1000 },
+    ]))
+
+    await waitFor(() => expect(result.current.state.kind).toBe('error'))
+    expect(store.upserted).toHaveLength(0)
+    expect(loadLedger(OWNER.uid)).toEqual({})
+    expect(backend.pushed).toHaveLength(0)
   })
 
   it('signs out without touching the record on this device', async () => {
@@ -434,5 +453,46 @@ describe('library-level state', () => {
     await act(async () => {})
     expect(backend.metaPushed).toHaveLength(0)
     expect(store.merged).toHaveLength(0)
+  })
+})
+
+describe('an account switch while a plan is being applied', () => {
+  it('stops adopting into the library once another account is current', async () => {
+    const [first, second] = seedLibrary().topics
+    let release!: () => void
+    const gate = new Promise<void>((resolve) => { release = resolve })
+    const store = fakeStore([])
+    store.upsertTopic = async (topic) => {
+      store.upserted.push(topic)
+      if (store.upserted.length === 1) await gate
+      return true
+    }
+    const backend = fakeBackend()
+    renderHook(() => useSync(store, backend))
+
+    act(() => backend.emitUser(OWNER))
+    act(() => backend.emitRecords([
+      { topicId: first.id, json: topicJson(first), revision: 1, updatedAtMs: 1000 },
+      { topicId: second.id, json: topicJson(second), revision: 1, updatedAtMs: 1000 },
+    ]))
+    await waitFor(() => expect(store.upserted).toHaveLength(1))
+
+    act(() => backend.emitUser({ uid: 'other-uid', email: 'other@example.test', displayName: 'Other' }))
+    release()
+    await act(async () => { await new Promise((r) => setTimeout(r, 30)) })
+
+    expect(store.upserted).toHaveLength(1)
+    expect(backend.pushed).toHaveLength(0)
+    expect(loadLedger(OWNER.uid)).toEqual({})
+  })
+
+  it('cancels binds that have not started when the account signs out', async () => {
+    const store = fakeStore([realTopic()])
+    store.cancelPendingBinds = vi.fn()
+    const backend = fakeBackend()
+    renderHook(() => useSync(store, backend))
+    act(() => backend.emitUser(OWNER))
+    act(() => backend.emitUser(null))
+    expect(store.cancelPendingBinds).toHaveBeenCalled()
   })
 })

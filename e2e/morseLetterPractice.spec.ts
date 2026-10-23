@@ -1,3 +1,4 @@
+import { readLocalLibrary } from './helpers/readLocalLibrary'
 import { expect, test } from '@playwright/test'
 import { seedLibrary } from '../src/domain/library/catalogSeed'
 import { readFileSync } from 'node:fs'
@@ -25,7 +26,7 @@ test('direct letter practice, durable isolation, correction and return', async (
   }
   await expect(page.getByRole('button', { name: 'Read', exact: true })).toBeVisible()
   if (info.project.name.startsWith('phone-')) await page.screenshot({ path: `${folder}/${info.project.name}-topic.png`, fullPage: true })
-  const before = await page.evaluate(() => JSON.parse(localStorage.getItem('argus.library.v5')!).topics[0])
+  const before = await readLocalLibrary(page).then((library) => library.topics[0])
   await page.getByRole('button', { name: 'Read', exact: true }).click()
   await expect(page.locator('.session-frame-title').filter({ hasText: /^Read$/ })).toBeVisible()
   if (info.project.name.startsWith('phone-')) await page.screenshot({ path: `${folder}/${info.project.name}-active.png`, fullPage: true })
@@ -39,10 +40,11 @@ test('direct letter practice, durable isolation, correction and return', async (
   if (info.project.name.startsWith('phone-')) await page.screenshot({ path: `${folder}/${info.project.name}-correction.png`, fullPage: true })
   await page.waitForTimeout(1200)
   await expect(page.getByRole('button', { name: 'Continue', exact: true })).toBeVisible()
-  const after = await page.evaluate(() => JSON.parse(localStorage.getItem('argus.library.v5')!).topics[0])
+  const after = await readLocalLibrary(page).then((library) => library.topics[0])
   // Read is answered by choice (#279): its record is morseRecognition, never typed-recall practice.
   const { morseRecognition, ...formalAfter } = after
-  expect(morseRecognition.streams['read/practice'].characters[target].outcomes).toEqual([false])
+  const stream = (morseRecognition as unknown as { streams: Record<string, { characters: Record<string, { outcomes: boolean[] }> }> }).streams['read/practice']
+  expect(stream.characters[target].outcomes).toEqual([false])
   expect(formalAfter).toEqual(before)
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
   await page.getByRole('button', { name: 'Continue', exact: true }).click()

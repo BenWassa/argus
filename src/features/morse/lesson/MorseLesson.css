@@ -420,3 +420,12 @@
     grid-column: 2;
   }
 }
+
+/* The device refused an answer's write; the earned result stays on screen. */
+.lesson-save-hold {
+  display: grid;
+  gap: var(--s-sm);
+  padding: var(--s-lg);
+  background: var(--surface-2);
+  color: var(--muted);
+}

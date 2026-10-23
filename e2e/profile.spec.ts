@@ -1,3 +1,4 @@
+import { readLocalLibrary } from './helpers/readLocalLibrary'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { expect, test, type Page } from '@playwright/test'
@@ -84,47 +85,34 @@ test('confirming Profile reset restores only fresh shipped topics', async ({ pag
   )
 
   await expect
-    .poll(async () =>
-      page.evaluate(([storeKey, expectedIds]) => {
-        const stored = JSON.parse(window.localStorage.getItem(storeKey) ?? '{}') as {
-          topics?: Topic[]
-        }
-        const topics = stored.topics ?? []
-        return (
-          topics.map((topic) => topic.id).sort().join('|') === [...expectedIds].sort().join('|') &&
-          topics.every(
-            (topic) =>
-              topic.origin === 'catalog' &&
-              topic.status === 'unstarted' &&
-              topic.history.length === 0 &&
-              topic.learningAt === null &&
-              topic.drilledAt === null &&
-              topic.completedAt === null &&
-              topic.lastTestedAt === null &&
-              topic.spotCheckedAt === null,
-          )
+    .poll(async () => {
+      const topics = (await readLocalLibrary(page)).topics
+      return (
+        topics.map((topic) => topic.id).sort().join('|') === [...shippedCatalog.topicIds].sort().join('|') &&
+        topics.every((topic) =>
+          topic.origin === 'catalog' &&
+          topic.status === 'unstarted' &&
+          topic.history.length === 0 &&
+          topic.learningAt === null &&
+          topic.drilledAt === null &&
+          topic.completedAt === null &&
+          topic.lastTestedAt === null &&
+          topic.spotCheckedAt === null,
         )
-      }, [STORE_KEY, shippedCatalog.topicIds] as const),
-    )
+      )
+    })
     .toBe(true)
 })
 
-test('a stored library this version cannot read is kept, and Profile offers it back', async ({ page }) => {
-  await page.addInitScript(
-    ([storeKey, splashKey]) => {
-      window.localStorage.setItem(splashKey, 'true')
-      // Only the first load finds the damaged record; a reload must not
-      // re-plant it over the fresh library.
-      if (window.localStorage.getItem('argus.library.recovery.v1') === null) {
-        window.localStorage.setItem(storeKey, '{ "version": 5, "topics": [ damaged')
-      }
-    },
-    [STORE_KEY, SPLASH_KEY] as const,
-  )
+test('a corrupt first-run library keeps a recovery copy, preserves its bytes and starts fresh', async ({ page }) => {
+  const raw = '{ "version": 5, "topics": [ damaged'
+  await page.addInitScript(([storeKey, splashKey, bytes]) => {
+    localStorage.setItem(splashKey, 'true')
+    localStorage.setItem(storeKey, bytes)
+  }, [STORE_KEY, SPLASH_KEY, raw] as const)
   await page.goto('./')
-  await page.getByRole('button', { name: 'Open profile' }).click()
-  await expect(page.getByText(/could not read was kept, not overwritten/)).toBeVisible()
-  const download = page.waitForEvent('download')
-  await page.getByRole('button', { name: 'Download unreadable copy' }).click()
-  expect((await download).suggestedFilename()).toMatch(/^argus-unreadable-\d{4}-\d{2}-\d{2}\.json$/)
+  await expect(page.getByRole('button', { name: 'Open profile' })).toBeVisible()
+  expect(await page.evaluate((key) => localStorage.getItem(key), STORE_KEY)).toBe(raw)
+  const recovery = await page.evaluate(() => JSON.parse(localStorage.getItem('argus.library.recovery.v1') ?? '[]') as { raw: string }[])
+  expect(recovery.map((entry) => entry.raw)).toEqual([raw])
 })

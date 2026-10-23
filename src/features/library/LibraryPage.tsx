@@ -162,7 +162,7 @@ export function LibraryPage({
 
     raf = requestAnimationFrame(settle)
     return () => cancelAnimationFrame(raf)
-  }, [open, topics])
+  }, [open, topics, openTopicOnMount])
 
   function openTopic(id: string) {
     setOpenId(id)
@@ -223,9 +223,17 @@ export function LibraryPage({
           focusItems={focusItems}
           onClose={closeForm}
           onSave={(topic) => {
-            upsertTopic(topic)
-            setAnnouncement(editing ? `${topic.title} saved.` : `${topic.title} added to the library.`)
-            closeForm()
+            const result = upsertTopic(topic)
+            const settled = (saved?: boolean) => {
+              if (saved === false) {
+                setAnnouncement(`${topic.title} was not saved; the editor remains open.`)
+                return
+              }
+              setAnnouncement(editing ? `${topic.title} saved.` : `${topic.title} added to the library.`)
+              closeForm()
+            }
+            if (result && typeof result.then === 'function') void result.then(settled)
+            else settled()
           }}
         />
       )}

@@ -36,11 +36,13 @@ export type SyncState =
 /** What the hook needs from the library store, so it can be driven by a fake. */
 export interface SyncableStore {
   topics: Topic[]
-  upsertTopic: (topic: Topic) => void
-  removeTopic: (id: string) => void
+  upsertTopic: (topic: Topic) => void | Promise<boolean>
+  removeTopic: (id: string) => void | Promise<boolean>
   /** The account the local library belongs to; see `LibraryProvider`. */
   owner: string | null
-  bindOwner: (uid: string) => void
+  bindOwner: (uid: string) => void | Promise<void>
+  /** Withdraw binds that have not started writing; called on sign-out. */
+  cancelPendingBinds?: () => void
   catalogDelivered: readonly string[] | undefined
   mergeCatalogDelivered: (ids: readonly string[]) => void
   roleAwards?: readonly RoleAward[]
@@ -108,6 +110,8 @@ export function useSync(store: SyncableStore, injected?: SyncBackend) {
   // The user subscription outlives any one render of the store it binds.
   const storeRef = useRef(store)
   storeRef.current = store
+  const userRef = useRef(user)
+  userRef.current = user
   /**
    * Firebase is not loaded, and Google is not contacted, until there is a
    * reason. A device that has never signed in has no reason on load, and the
@@ -117,33 +121,53 @@ export function useSync(store: SyncableStore, injected?: SyncBackend) {
 
   useEffect(() => {
     if (!backend.configured || !watching) return
-    return backend.observeUser((next) => {
-      if (next) {
-        try {
-          // Before anything is shown or synced, the library on this device must
-          // be this account's. A library another account left here is parked,
-          // never pushed into this account's cloud copy (#93).
-          storeRef.current.bindOwner(next.uid)
-        } catch {
-          setUser(null)
-          setRecords(null)
-          ledger.current = {}
-          setState({
-            kind: 'error',
-            user: null,
-            message:
-              'This device could not set aside the library another account left here, so it will not open this one. Free some storage and sign in again.',
-          })
-          return
-        }
-        rememberSignedIn()
+    let active = true
+    let sequence = 0
+    const unsubscribe = backend.observeUser((next) => {
+      const generation = ++sequence
+      if (!next) {
+        storeRef.current.cancelPendingBinds?.()
+        pushedMeta.current = null
+        setUser(null)
+        setRecords(null)
+        ledger.current = {}
+        setState({ kind: 'signedOut' })
+        return
       }
-      pushedMeta.current = null
-      setUser(next)
+      // Auth callbacks must not open the gate or start remote subscriptions
+      // until the durable UID-bound local library has been loaded.
+      setUser(null)
       setRecords(null)
-      ledger.current = next ? loadLedger(next.uid) : {}
-      setState(next ? { kind: 'syncing', user: next } : { kind: 'signedOut' })
+      setState({ kind: 'restoring' })
+      const finish = () => {
+        if (!active || generation !== sequence) return
+        rememberSignedIn()
+        pushedMeta.current = null
+        ledger.current = loadLedger(next.uid)
+        setUser(next)
+        setState({ kind: 'syncing', user: next })
+      }
+      const fail = (error: unknown) => {
+        if (!active || generation !== sequence) return
+        setUser(null)
+        setRecords(null)
+        ledger.current = {}
+        setState({
+          kind: 'error',
+          user: null,
+          message: error instanceof Error ? error.message : 'The local library could not be opened for this account.',
+        })
+      }
+      try {
+        const binding = storeRef.current.bindOwner(next.uid)
+        // Legacy synchronous test stores retain synchronous observations, while
+        // the production provider with an async durable owner switch cannot
+        // expose the authenticated library before that promise completes.
+        if (binding && typeof binding.then === 'function') void binding.then(finish, fail)
+        else finish()
+      } catch (error) { fail(error) }
     })
+    return () => { active = false; ++sequence; storeRef.current.cancelPendingBinds?.(); unsubscribe() }
   }, [backend, watching])
 
   useEffect(() => {
@@ -204,6 +228,9 @@ export function useSync(store: SyncableStore, injected?: SyncBackend) {
     }
 
     applying.current = true
+    // The plan belongs to this account. Once another is current, nothing more of
+    // it may reach the library on screen, the ledger or the cloud.
+    const stale = () => userRef.current?.uid !== user.uid || storeRef.current.owner !== user.uid
     const run = async () => {
       // What the ledger records is what actually happened, which is not always
       // what was planned: a record that would not parse is not adopted, and an
@@ -213,6 +240,7 @@ export function useSync(store: SyncableStore, injected?: SyncBackend) {
       // anything, and every later pass would push a needless revision.
       const applied: SyncAction[] = []
       for (const action of plan.actions) {
+        if (stale()) return
         switch (action.kind) {
           case 'push':
             await backend.pushTopic(user.uid, action.topicId, action.json, action.revision)
@@ -228,16 +256,20 @@ export function useSync(store: SyncableStore, injected?: SyncBackend) {
             // advanced, so a later build that understands it can still take it.
             const topic = parseSyncedTopic(action.json, action.topicId)
             if (!topic) break
-            store.upsertTopic(topic)
+            const saved = await store.upsertTopic(topic)
+            if (saved === false) throw new Error('The adopted topic could not be saved locally.')
             applied.push({ ...action, json: topicJson(topic) })
             break
           }
-          case 'dropLocal':
-            store.removeTopic(action.topicId)
+          case 'dropLocal': {
+            const saved = await store.removeTopic(action.topicId)
+            if (saved === false) throw new Error('The local deletion could not be saved.')
             applied.push(action)
             break
+          }
         }
       }
+      if (stale()) return
       ledger.current = nextLedger(ledger.current, applied, Date.now())
       saveLedger(user.uid, ledger.current)
       setState({ kind: 'synced', user, at: new Date(), conflicts: plan.conflicts })
@@ -245,6 +277,7 @@ export function useSync(store: SyncableStore, injected?: SyncBackend) {
 
     void run()
       .catch((error: unknown) => {
+        if (stale()) return
         setState({
           kind: 'error',
           user,

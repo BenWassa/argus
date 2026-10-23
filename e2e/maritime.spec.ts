@@ -1,3 +1,4 @@
+import { readLocalLibrary } from './helpers/readLocalLibrary'
 import { expect, test, type Page } from '@playwright/test'
 
 /**
@@ -99,12 +100,7 @@ test('day shapes: answering every shape correctly banks a clean run', async ({ p
   }
   await expect(page.locator('.choice-card')).toHaveCount(0)
   const history = () =>
-    page.evaluate(
-      () =>
-        JSON.parse(localStorage.getItem('argus.library.v5')!).topics.find(
-          (t: { id: string }) => t.id === 'vessel-day-shapes',
-        ).history,
-    )
+    readLocalLibrary(page).then((library) => library.topics.find((topic) => topic.id === 'vessel-day-shapes')!.history)
   await expect.poll(async () => (await history()).length).toBe(1)
   expect((await history())[0]).toMatchObject({ correct: 5, total: 5 })
 })
@@ -138,12 +134,7 @@ test('light aspects: the observer is drawn, the key matches the research table, 
   }
   expect(aspects).toBe(8)
   const history = () =>
-    page.evaluate(
-      () =>
-        JSON.parse(localStorage.getItem('argus.library.v5')!).topics.find(
-          (t: { id: string }) => t.id === 'navigation-lights',
-        ).history,
-    )
+    readLocalLibrary(page).then((library) => library.topics.find((topic) => topic.id === 'navigation-lights')!.history)
   await expect.poll(async () => (await history()).length, { timeout: 8000 }).toBe(1)
   expect((await history())[0]).toMatchObject({ correct: 16, total: 16 })
 })
