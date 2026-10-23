@@ -414,7 +414,8 @@ describe('partially acquired Morse is never routed to Test', () => {
     renderLibrary()
     const row = rowFor(partial.title)
     expect(row.querySelector('.gauge-acquisition')).not.toBeNull()
-    expect(row.querySelector('.gauge-row .gauge-label')?.textContent).toContain('letters')
+    expect(row.querySelector('.gauge-row .sr-only')?.textContent).toContain('letters')
+    expect(row.querySelector('.gauge-row .gauge-label')).toBeNull()
     // The gap bar means retention, and this topic has not entered a gap.
     expect(row.querySelector('.gauge-gap')).toBeNull()
   })

@@ -18,11 +18,11 @@ import { gaugeFill, gaugeLabel, gaugeReading } from './gaugeReading'
  * a check (`is-banked`), so "banked" is a glyph and a word, not a change of
  * colour.
  *
- * `variant` is density, not meaning. A row sets the reading beside a short bar,
- * because a bar with no units on a list of titles is a shape to decode. The
- * topic page sets it beneath a full-width one, and may replace it with a fuller
- * caption in the same units. The legacy `bare` variant keeps its reading for screen readers. Home now
- * uses a separate circular progress instrument.
+ * `variant` is density, not meaning. Library rows use a full-width bar and
+ * keep numeric readings for screen readers only; Learned remains visible.
+ * Topic pages retain their visible reading or fuller caption in the same units.
+ * The legacy `bare` variant keeps its reading for screen readers. Home uses a
+ * separate circular progress instrument.
  */
 export function TopicGauge({
   topic,
@@ -66,7 +66,7 @@ export function TopicGauge({
     return (
       <span className="gauge gauge-row" style={hue}>
         {track}
-        <span className={labelClass}>{label}</span>
+        <span className={reading.kind === 'complete' ? labelClass : 'sr-only'}>{label}</span>
       </span>
     )
   }

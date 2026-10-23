@@ -1,12 +1,12 @@
 # Shipped topic icon system
 
 - **Status:** active design authority
-- **Scope:** shipped topics on Library (Home uses progress dials in the combined candidate)
+- **Scope:** shipped topics on Library and inside Home progress dials (#288)
 - **Implementation:** `src/assets/library-icons/` + `src/features/library/topicIcon.ts`
 
 ## Purpose
 
-Topic icons are compact recognition aids beside shipped topic titles on Library. They are not badges, achievements, category colours, or replacement labels. A learner should understand the subject faster when the icon and title are seen together.
+Topic icons are compact recognition aids beside shipped topic titles on Library and inside Home progress rings. They are not badges, achievements, category colours, or replacement labels. A learner should understand the subject faster when the icon and title are seen together.
 
 ## Production rules
 
@@ -17,11 +17,11 @@ Topic icons are compact recognition aids beside shipped topic titles on Library.
 - Standard stroke: `1.75`, round caps and joins.
 - Colour: the topic's solid track colour (`--learning`, `--survival`, `--tradecraft`), applied by `TopicGlyph` as a CSS mask, so the SVG's own stroke colour is ignored (Signal on Slate, #232, 2026-10-17). The SVG files keep their neutral stroke for use outside the app.
 - Transparent background; no tile, badge, gradient, shadow, texture, or decorative frame.
-- On Library plates the icon is a 28px column at the plate's left padding, identical on started and not-started plates so icons align down the list (#246). Home does not render topic icons.
+- On Library plates the icon is a 28px column at the plate's left padding, identical on started and not-started plates so icons align down the list (#246). Home centres the same 28px recognition glyph inside each progress dial.
 - Avoid tiny mechanical detail. The icon is judged at the actual Library-row size, about 26–28 px, not at source scale.
 - Text inside icons is normally avoided. Symbol systems may use their own characters when that is the clearest possible identifier; the Greek alphabet icon is the current exception.
 - Since #232 (2026-10-17) topic icons take their track colour on Library plates and topic heroes; this supersedes the earlier "track colours are typographic labels only" rule.
-- User-authored topics do not receive a fake generic icon. Absence of a shipped mapping leaves the title-led row layout intact.
+- User-authored topics keep the title-led Library layout. Home uses a quiet document outline inside the existing dial when no shipped mapping exists; it does not imply a topic-specific illustration.
 
 ## Workflow for new shipped topics
 

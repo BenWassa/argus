@@ -201,7 +201,7 @@
   background: var(--field);
 }
 
-.home-dial svg { position: absolute; inset: -1px; width: calc(100% + 2px); height: calc(100% + 2px); transform: rotate(-90deg); }
+.home-dial > svg { position: absolute; inset: -1px; width: calc(100% + 2px); height: calc(100% + 2px); transform: rotate(-90deg); }
 .home-dial circle { fill: none; stroke-width: 3; }
 .home-dial-track { stroke: var(--line-strong); }
 .home-dial-arc { stroke: var(--track-hue, var(--ink)); stroke-linecap: round; }
@@ -226,3 +226,9 @@
 @media (prefers-reduced-motion: reduce) {
   .index-row.today-plate { transition: none; }
 }
+
+.home-readout dd { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35em; }
+.home-readout-icon { width: 0.85em; height: 0.85em; flex: none; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.home-dial-mark { display: grid; place-items: center; width: 28px; height: 28px; }
+.home-dial-mark .topic-icon { width: 100%; height: 100%; }
+.home-topic-fallback { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
