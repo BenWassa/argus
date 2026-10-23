@@ -10,11 +10,19 @@ const fixture = vi.hoisted(() => ({
   records: new Map<string, { owner: string; revision: number; library: CurrentLibrary }>(),
   pending: new Map<string, number>(),
   failNext: false,
+  /** Deferred repository calls, keyed `${operation}:${owner}`; a test resolves them in any order. */
+  holds: new Map<string, Promise<void>>(),
+  calls: [] as string[],
 }))
+async function held(operation: string, owner: string) {
+  fixture.calls.push(`${operation}:${owner}`)
+  await fixture.holds.get(`${operation}:${owner}`)
+}
 vi.mock('../../infrastructure/persistence/indexedLibraryRepository', () => ({
   openIndexedLibraryRepository: async () => ({
-    read: async (owner: string) => fixture.records.get(owner) ?? null,
+    read: async (owner: string) => { await held('read', owner); return fixture.records.get(owner) ?? null },
     initialize: async (owner: string, input: { seed: CurrentLibrary; legacy?: { raw: string } }) => {
+      await held('initialize', owner)
       if (!fixture.records.has(owner)) {
         const library = input.legacy ? JSON.parse(input.legacy.raw) as CurrentLibrary : input.seed
         fixture.records.set(owner, { owner, revision: 1, library })
@@ -23,6 +31,7 @@ vi.mock('../../infrastructure/persistence/indexedLibraryRepository', () => ({
       return fixture.records.get(owner)!
     },
     update: async (owner: string, change: (library: CurrentLibrary) => CurrentLibrary) => {
+      await held('update', owner)
       if (fixture.failNext) { fixture.failNext = false; throw new Error('Quota exceeded') }
       const before = fixture.records.get(owner)!
       const next = change(before.library)
@@ -39,7 +48,7 @@ const now = new Date('2026-10-13T15:00:00Z')
 const ids = COMMUNICATOR.pathways.flatMap((path) => [...path.topicIds])
 const key = 'argus.library.v5'
 const ownerKey = '__argus_unclaimed_local__'
-beforeEach(() => { (globalThis as { __argusIndexedProviderTests?: boolean }).__argusIndexedProviderTests = true; fixture.records.clear(); fixture.pending.clear(); fixture.failNext = false; localStorage.clear() })
+beforeEach(() => { (globalThis as { __argusIndexedProviderTests?: boolean }).__argusIndexedProviderTests = true; fixture.records.clear(); fixture.pending.clear(); fixture.failNext = false; fixture.holds.clear(); fixture.calls = []; localStorage.clear() })
 afterEach(() => { cleanup(); (globalThis as { __argusIndexedProviderTests?: boolean }).__argusIndexedProviderTests = false })
 
 function readyLibrary() {
@@ -107,6 +116,72 @@ describe('production IndexedDB provider integration', () => {
     await act(async () => { await hook.result.current.bindOwner('owner-a') })
     expect(hook.result.current.topics[0].title).toBe('Account A')
     expect(fixture.records.get('owner-b')?.library.topics[0].title).not.toBe('Account A')
+  })
+
+  /** A deferred repository operation that the test releases explicitly. */
+  function hold(operation: string, owner: string) {
+    let release!: () => void
+    fixture.holds.set(`${operation}:${owner}`, new Promise<void>((resolve) => { release = resolve }))
+    return release
+  }
+  const MARKER = 'Unclaimed progress'
+  function titlesHolding(title: string) {
+    return [...fixture.records.values()].filter((record) => record.owner !== ownerKey && record.library.topics.some((t) => t.title === title))
+      .map((record) => record.owner)
+  }
+  async function unclaimedWithProgress() {
+    const hook = await mounted()
+    await act(async () => {
+      await hook.result.current.updateTopic(hook.result.current.topics[0].id, (topic) => ({ ...topic, title: MARKER }))
+    })
+    expect(fixture.records.get(ownerKey)?.library.topics[0].title).toBe(MARKER)
+    return hook
+  }
+
+  it('lets a superseded bind neither claim the unclaimed library nor publish over the newer account', async () => {
+    const hook = await unclaimedWithProgress()
+    const releaseA = hold('read', 'owner-a')
+    let a!: Promise<void>, b!: Promise<void>
+    act(() => {
+      a = Promise.resolve(hook.result.current.bindOwner('owner-a')).catch(() => {})
+      b = Promise.resolve(hook.result.current.bindOwner('owner-b')).catch(() => {})
+    })
+    // The newer account's calls may run first; the older one resolves last.
+    await act(async () => { await new Promise((r) => setTimeout(r, 20)); releaseA(); await Promise.all([a, b]) })
+    expect(hook.result.current.owner).toBe('owner-b')
+    expect(localStorage.getItem('argus.library.owner.v1')).toBe('owner-b')
+    expect(hook.result.current.topics[0].title).toBe(MARKER)
+    // The unclaimed library is claimed exactly once, by the account that is current.
+    expect(titlesHolding(MARKER)).toEqual(['owner-b'])
+    expect(fixture.records.has('owner-a')).toBe(false)
+  })
+
+  it('claims the unclaimed library once when an overlapping bind starts after the first committed', async () => {
+    const hook = await unclaimedWithProgress()
+    const releaseUpdate = hold('update', 'owner-a')
+    let a!: Promise<void>, b!: Promise<void>
+    act(() => { a = Promise.resolve(hook.result.current.bindOwner('owner-a')).catch(() => {}) })
+    await waitFor(() => expect(fixture.calls).toContain('update:owner-a'))
+    act(() => { b = Promise.resolve(hook.result.current.bindOwner('owner-b')).catch(() => {}) })
+    await act(async () => { await new Promise((r) => setTimeout(r, 20)); releaseUpdate(); await Promise.all([a, b]) })
+    expect(hook.result.current.owner).toBe('owner-b')
+    expect(localStorage.getItem('argus.library.owner.v1')).toBe('owner-b')
+    expect(titlesHolding(MARKER)).toHaveLength(1)
+    expect(fixture.records.get('owner-b')?.library.topics[0].title).not.toBe(MARKER)
+    expect(hook.result.current.topics[0].title).not.toBe(MARKER)
+  })
+
+  it('never lets an obsolete bind restore its account after A to B to A overlap', async () => {
+    const hook = await mounted()
+    const release = hold('read', 'owner-a')
+    let all!: Promise<unknown>
+    act(() => {
+      all = Promise.all(['owner-a', 'owner-b', 'owner-c'].map((uid) =>
+        Promise.resolve(hook.result.current.bindOwner(uid)).catch(() => {})))
+    })
+    await act(async () => { await new Promise((r) => setTimeout(r, 20)); release(); await all })
+    expect(hook.result.current.owner).toBe('owner-c')
+    expect(localStorage.getItem('argus.library.owner.v1')).toBe('owner-c')
   })
 
   it('preserves the committed learner record and outbox when import or reset fails', async () => {

@@ -32,6 +32,14 @@ import type { Topic } from '../../domain/library/topic'
 import type { CurrentLibrary } from '../../domain/library/library'
 import { captureRoleAwards, mergeRoleAwards, type RoleAward } from '../../domain/roles/awards'
 
+/** A bind that a newer one replaced before it wrote anything. It changed nothing. */
+export class BindSupersededError extends Error {
+  constructor(public readonly uid: string) {
+    super('A newer account sign-in replaced this one before it was applied.')
+    this.name = 'BindSupersededError'
+  }
+}
+
 /** Normalize legacy ordinary progress only as part of an explicit topic write. */
 function normalizeWrittenTopic(topic: Topic): Topic {
   if (topic.status !== 'drilled' || journeyFor(topic).acquisition.progressive) return topic
@@ -263,6 +271,7 @@ function IndexedLibraryProvider({ children }: { children: ReactNode }) {
   const repository = useRef<IndexedLibraryRepository | null>(null)
   const activeOwner = useRef<string | null>(null)
   const queue = useRef<Promise<unknown>>(Promise.resolve())
+  const bindEpoch = useRef(0)
   const current = useRef(library)
   current.current = library
   // An unclaimed library stays separate from all UID namespaces.
@@ -377,30 +386,54 @@ function IndexedLibraryProvider({ children }: { children: ReactNode }) {
     })).then((saved) => { if (saved) clearAllLessonSittings(); return saved })
   }, [transact])
 
-  const bindOwner = useCallback(async (uid: string) => {
-    if (!uid || uid.length > 256) throw new Error('Invalid account identifier.')
-    await queue.current
-    const db = repository.current
-    const previousKey = activeOwner.current
-    if (!db || !previousKey) throw new Error('Local storage is unavailable.')
-    if (previousKey === uid) { setOwner(uid); return }
-    const previous = libraryOwner()
-    // An unclaimed local library is claimable exactly once; a library already
-    // assigned to another UID never becomes a seed for this UID.
-    const local = previous === null ? await db.read(previousKey) : null
-    const existing = await db.read(uid)
-    const legacy = existing || local ? undefined : legacyFor(uid, previous)
-    const seed = existing?.library ?? local?.library ?? migrationSeed(legacy)
-    await db.initialize(uid, { seed, ...(legacy ? { legacy } : {}) })
-    const row = await db.update(uid, (library) => reconcileLoadedLibrary(library).library)
-    // A failed owner marker is a failed account switch; never publish the new
-    // account using an ambiguous owner marker.
-    localStorage.setItem('argus.library.owner.v1', uid)
-    activeOwner.current = uid
-    clearAllLessonSittings()
-    install(row.library)
-    setOwner(uid)
-    setFailure(null)
+  /**
+   * Account lifecycle. Every bind joins the same queue as every library write,
+   * so a bind never overlaps another bind or a transaction, and the only state
+   * a bind can observe is the state the one before it left.
+   *
+   * `bindEpoch` is taken when the call is made, not when it runs. A bind that
+   * is no longer the newest by the time it is allowed to start, or by the time
+   * it is about to perform its first durable write, ends with
+   * `BindSupersededError` having done nothing: it cannot claim the unclaimed
+   * library, seed a namespace, move the owner marker or publish a library.
+   * Once the first write has started the bind is committed and completes as one
+   * step: the durable writes are followed, with no await between, by the owner
+   * marker, the active owner and the published library. The newer bind then runs
+   * after it, finds the library already claimed, and seeds its own account.
+   */
+  const bindOwner = useCallback((uid: string): Promise<void> => {
+    if (!uid || uid.length > 256) return Promise.reject(new Error('Invalid account identifier.'))
+    const epoch = ++bindEpoch.current
+    const superseded = () => epoch !== bindEpoch.current
+    const run = async () => {
+      if (superseded()) throw new BindSupersededError(uid)
+      const db = repository.current
+      const previousKey = activeOwner.current
+      if (!db || !previousKey) throw new Error('Local storage is unavailable.')
+      if (previousKey === uid) { setOwner(uid); return }
+      const previous = libraryOwner()
+      // An unclaimed local library is claimable exactly once; a library already
+      // assigned to another UID never becomes a seed for this UID.
+      const local = previous === null ? await db.read(previousKey) : null
+      const existing = await db.read(uid)
+      const legacy = existing || local ? undefined : legacyFor(uid, previous)
+      const seed = existing?.library ?? local?.library ?? migrationSeed(legacy)
+      // The last point at which this bind can still stand down without a trace.
+      if (superseded()) throw new BindSupersededError(uid)
+      await db.initialize(uid, { seed, ...(legacy ? { legacy } : {}) })
+      const row = await db.update(uid, (library) => reconcileLoadedLibrary(library).library)
+      // Nothing below awaits. A failed owner marker is a failed account switch;
+      // never publish the new account using an ambiguous owner marker.
+      localStorage.setItem('argus.library.owner.v1', uid)
+      activeOwner.current = uid
+      clearAllLessonSittings()
+      install(row.library)
+      setOwner(uid)
+      setFailure(null)
+    }
+    const result = queue.current.then(run)
+    queue.current = result.catch(() => undefined)
+    return result
   }, [install])
 
   const mergeCatalogDelivered = useCallback((ids: readonly string[]) => {

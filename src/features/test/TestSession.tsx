@@ -10,6 +10,7 @@ import {
   type PanInfo,
 } from 'motion/react'
 import { useLibrary } from '../../services/library/LibraryProvider'
+import { useDurableWrites } from '../../services/library/useDurableWrites'
 import { applyResolution } from '../../domain/study/scheduling'
 import {
   isAssistedRung,
@@ -96,6 +97,9 @@ interface TestSessionProps {
 
 export function TestSession({ topicIds, review = false, onExit, onPractice, onPlayMorse }: TestSessionProps) {
   const { topics, updateTopic } = useLibrary()
+  // Banked results and reviewed evidence are held here until the library has
+  // durably committed them. The done screen waits on this, never on the tally.
+  const writes = useDurableWrites()
 
   // Snapshot the topics and deck at session start. A bankable attempt always
   // runs every item in a topic; fast interaction must not weaken the boundary.
@@ -171,6 +175,9 @@ export function TestSession({ topicIds, review = false, onExit, onPractice, onPl
       setConfirmingExit(false)
       return true
     }
+    // A result that is saving, or did not save, is only ever left through the
+    // buttons that say so; a stray Back must not silently drop it.
+    if (writes.pending > 0 || writes.failed > 0) return true
     if (tally.total > 0) {
       setConfirmingExit(true)
       return true
@@ -272,7 +279,8 @@ export function TestSession({ topicIds, review = false, onExit, onPractice, onPl
     // kept; nothing else about the topic moves, and no history entry claims a
     // whole-deck run that did not happen.
     if (reviews.has(topicId)) {
-      updateTopic(topicId, (current) => withListening(mergeItemEvidence(current, evidence), topicId))
+      writes.track(() =>
+        updateTopic(topicId, (current) => withListening(mergeItemEvidence(current, evidence), topicId)))
       const merged = withListening(mergeItemEvidence(topic, evidence), topicId)
       setReviewed((previous) => [
         ...previous,
@@ -290,8 +298,10 @@ export function TestSession({ topicIds, review = false, onExit, onPractice, onPl
     // Composed onto the latest topic rather than written back whole, so lesson
     // support, the active sitting and anything else earned since the deck was
     // built survive the bank.
-    updateTopic(topicId, (current) =>
-      withListening(mergeItemEvidence(applyResolution(current, entry.resolution), evidence), topicId),
+    writes.track(() =>
+      updateTopic(topicId, (current) =>
+        withListening(mergeItemEvidence(applyResolution(current, entry.resolution), evidence), topicId),
+      ),
     )
     setBanked((previous) => [...previous, entry])
   }
@@ -594,6 +604,35 @@ export function TestSession({ topicIds, review = false, onExit, onPractice, onPl
         <button type="button" onClick={onExit}>
           Back to today
         </button>
+      </section>
+    )
+  }
+
+  if (view.kind === 'done' && writes.pending > 0) {
+    return (
+      <section className="session" role="status" aria-live="polite">
+        <h1>Saving your result</h1>
+        <p>Keeping this on your device before showing it.</p>
+      </section>
+    )
+  }
+
+  if (view.kind === 'done' && writes.failed > 0) {
+    return (
+      <section className="session" role="alert">
+        <h1>Result not saved</h1>
+        <p>
+          Your answers are kept on this screen, but this device could not save them. Free some
+          storage and try again, or leave and the result is lost.
+        </p>
+        <div className="rate">
+          <button className="ghost" type="button" onClick={onExit}>
+            Leave without saving
+          </button>
+          <button type="button" onClick={() => void writes.retry()}>
+            Try saving again
+          </button>
+        </div>
       </section>
     )
   }

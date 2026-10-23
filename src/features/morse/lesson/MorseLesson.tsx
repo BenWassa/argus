@@ -10,6 +10,20 @@ import { CharacterStage, ListeningCheckStep, StepLabel, VisualCheckStep } from '
 import { MorseCheckpoint } from './MorseCheckpoint'
 import './MorseLesson.css'
 import { useLessonProgression, type MorseLessonProps } from './useLessonProgression'
+/**
+ * Shown when the device refused an answer's write. The lesson has not moved
+ * on: what was earned stays on screen, and trying again repeats the same write.
+ */
+function SaveHold({ held, onRetry }: { held: boolean; onRetry: () => void }) {
+  if (!held) return null
+  return (
+    <div className="lesson-save-hold" role="alert">
+      <p>Your answer was not saved on this device. Nothing is lost yet.</p>
+      <button type="button" onClick={onRetry}>Try saving again</button>
+    </div>
+  )
+}
+
 export function MorseLesson({
   topic,
   initialRun,
@@ -19,7 +33,7 @@ export function MorseLesson({
   onReference,
   onPlay,
 }: MorseLessonProps) {
-  const { sounding, audioError, toggle, headingRef, stepRef, run, listeningFeedback, audioNotice, checkpointInvite, runningCheckpoint, phase, armed, holding, continueFromMiss, topicRef, hasFeedback, step, packetProgress, listeningEntry, listening, audioOptions, introduce, startInvitedCheckpoint, skipInvitedCheckpoint, finishRunningCheckpoint, answerVisual, answerListening, skipListening, nextPacket } = useLessonProgression({ topic, initialRun, replay, onExit, onTest, onReference, onPlay })
+  const { sounding, audioError, toggle, headingRef, stepRef, run, listeningFeedback, audioNotice, checkpointInvite, runningCheckpoint, phase, armed, holding, continueFromMiss, topicRef, hasFeedback, saveHeld, retrySave, step, packetProgress, listeningEntry, listening, audioOptions, introduce, startInvitedCheckpoint, skipInvitedCheckpoint, finishRunningCheckpoint, answerVisual, answerListening, skipListening, nextPacket } = useLessonProgression({ topic, initialRun, replay, onExit, onTest, onReference, onPlay })
   const frame = {
     kind: 'lesson' as const,
     title: run.finished ? 'Lessons' : run.afterCourse ? 'Review' : `Lesson ${run.packetIndex + 1}`,
@@ -55,6 +69,7 @@ export function MorseLesson({
     return (
       <SessionFrame {...frame} className="morse-lesson">
         <h2 ref={headingRef} tabIndex={-1} className="session-prompt-heading lesson-title">Every letter covered</h2>
+        <SaveHold held={saveHeld} onRetry={retrySave} />
         <div className="lesson-exits" inert={!armed}>
           <button type="button" onClick={onTest}>Test me</button>
           {/* Play opens with acquisition, not with the Test: the letters can be
@@ -77,6 +92,7 @@ export function MorseLesson({
         <h2 ref={headingRef} tabIndex={-1} className="session-prompt-heading lesson-title">
           {still.length === 0 ? 'Every letter confirmed' : 'Letters gone over'}
         </h2>
+        <SaveHold held={saveHeld} onRetry={retrySave} />
         <div className="lesson-exits" inert={!armed}>
           {still.length === 0 ? (
             <>
@@ -101,6 +117,7 @@ export function MorseLesson({
         <h2 ref={headingRef} tabIndex={-1} className="session-prompt-heading lesson-title">
           Lesson {run.packetIndex + 1} {replay ? 'replayed' : 'done'}
         </h2>
+        <SaveHold held={saveHeld} onRetry={retrySave} />
         <div className="lesson-exits" inert={!armed}>
           <button type="button" onClick={nextPacket}>{last ? 'Finish' : 'Next lesson'}</button>
           <button className="ghost" type="button" onClick={onExit}>Stop here</button>
@@ -175,6 +192,8 @@ export function MorseLesson({
         <VisualCheckStep key={`visual-${step.entry.itemId}-${run.step}`} regionRef={stepRef} entry={step.entry}
           format={step.format} armed={armed} onAnswer={(response) => answerVisual(step.entry.itemId, response)} />
       )}
+
+      <SaveHold held={saveHeld} onRetry={retrySave} />
 
       {(audioNotice || audioError) && <p className="morse-audio-error" role="status">{audioNotice ?? `${audioError} Continuing visually.`}</p>}
     </SessionFrame>

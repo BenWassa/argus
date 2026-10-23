@@ -1,6 +1,6 @@
 # IndexedDB persistence foundation (#113 Lane A)
 
-**Status:** repository boundary merged via #205, 2026-10-13. Production LibraryProvider integration is under verification in draft PR #214; the durable Firebase sync worker is still separate work.
+**Status:** repository boundary merged via #205, 2026-10-13. Production LibraryProvider integration is carried by the PR that supersedes draft #214 (branch `fix/214-durability-v2`), which closes #214's two review blockers (account-switch serialization and completion durability, below); the durable Firebase sync worker is still separate work.
 **Authority:** maintained schema/repository contract under [#113 offline runtime](ISSUE_113_OFFLINE_FIRST_RUNTIME.md). [Progress architecture](PROGRESS_ARCHITECTURE.md) and the existing v5 parser remain semantic authorities.
 
 ## Schema v1
@@ -32,10 +32,28 @@ An acknowledgement removes pending work only if its revision matches the snapsho
 
 Connections close on version-change requests. A client cannot downgrade a newer database. Blocked upgrades and unavailable storage reject explicitly. Quota/clone failures reject and roll back, preserving the last committed learner state and queue.
 
+## Account lifecycle contract (owner binds)
+
+`bindOwner(uid)` is part of the provider's single write queue, so a bind never overlaps another bind or a library transaction. Each call takes an epoch when it is *called*. A bind that is no longer the newest when it is allowed to start, or at the last point before its first durable write, rejects with `BindSupersededError` having done nothing: it cannot seed a namespace, claim the unclaimed library, move the `argus.library.owner.v1` marker, change the active owner or publish a library. Once its first write has started, a bind is committed and finishes as one step (initialize, reconcile, then marker, active owner and published library with no await between). The newer bind then runs, finds the library already claimed (or the marker set), and seeds its own account from its own parked/legacy data. The unclaimed library therefore seeds at most one UID namespace, and the last-requested account is always the one finally visible. Regressions: `LibraryProvider.test.tsx` (deferred overlapping binds, in both race windows, and an A/B/C overlap).
+
+Residual: if the localStorage owner marker cannot be written after the IndexedDB writes of a claiming bind, the bind fails; a *different* account binding next could still be offered the unclaimed library. The marker lives in `localStorage` by design until the owner marker moves into the database.
+
+## Completion durability contract
+
+Durability is awaited at every boundary that announces earned progress; the earned result is retained until it commits.
+
+- **Test and review** (`TestSession`): each bank is tracked (`useDurableWrites`). The result screen is replaced by "Saving your result" while any write is in flight, and by "Result not saved" with *Try saving again* and *Leave without saving* when the device refused one. The banked entries stay in component state, a retry repeats the identical functional update, and `TestDone` (including its completion haptic) mounts only when every write committed. Back is blocked in those two states so a result is never dropped silently.
+- **Morse lesson** (`useLessonProgression`/`useLessonRecord`): every lesson write is tracked. The answer that completes a packet is held back from "Lesson N done" until its writes commit (`completionUnconfirmed`); every verdict-to-next-step advance and `nextPacket` (which also closes the sitting) wait for the same. A refused write leaves the verdict on screen with an alert and *Try saving again*; retrying repeats the writes in order and then performs the held move. A second press on *Next lesson* while the close is saving is ignored, so a sitting is never closed twice.
+- The synchronous demo/test store returns no promise; tracking is then a no-op and behavior is unchanged.
+
+Regressions: `TestSession.durability.test.tsx` and `useLessonProgression.durability.test.tsx` run the production provider over a repository whose writes can be held and refused.
+
+Not covered (no completion announcement depends on them, failures surface through the provider alert): early-exit cue evidence, Morse placement result, fluency and letter-practice progress, topic-page study resolution.
+
 ## Verification and remaining work
 
 Forty real-Chromium checks across 320px phone, 390px phone, short landscape and desktop cover creation, legacy migration, interrupted verification, corruption preservation, update composition, atomic rollback, deletion/recreation, reload/offline database access, owner isolation, stale acknowledgements, failed acknowledgements, no-op writes and schema upgrades.
 
-PR #214 integrates the production provider with the canonical database, awaits local commits before publishing state, retains recoverable legacy bytes, and gates sync on asynchronous UID binding. It remains unmerged until its full CI and browser regressions pass. #113’s durable sync/retry, provisioned offline auth, cold offline shell/update tests and physical Pixel traces remain open. These repository checks do not establish the full production offline guarantee.
+The production-provider integration (originally draft #214) integrates the provider with the canonical database, awaits local commits before publishing state, retains recoverable legacy bytes, and gates sync on asynchronous UID binding. Its review blockers are closed by the two contracts below. #113’s durable sync/retry, provisioned offline auth, cold offline shell/update tests and physical Pixel traces remain open. These repository checks do not establish the full production offline guarantee.
 
 Implementation references: [repository](../../src/infrastructure/persistence/indexedLibraryRepository.ts), [browser tests](../../e2e/indexedLibraryRepository.spec.ts). Durability behavior follows the [IndexedDB standard](https://www.w3.org/TR/IndexedDB/) and browser transaction completion events.

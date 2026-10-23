@@ -1,4 +1,5 @@
 import { useLibrary } from '../../../services/library/LibraryProvider'
+import { useDurableWrites } from '../../../services/library/useDurableWrites'
 import {
   lessonProgressOf,
   withLessonProgress,
@@ -38,10 +39,23 @@ import { withAcquisitionReadiness } from '../../../domain/study/journey'
  * reach them.
  */
 export function useLessonRecord(topicId: string, replay = false) {
-  const { updateTopic: write } = useLibrary()
+  const { updateTopic: store } = useLibrary()
+  const writes = useDurableWrites()
+  // Every write is remembered until the library has durably committed it, so
+  // the lesson can wait for it at a completion boundary and repeat it if the
+  // device refused it. A replay writes nothing and so is always settled.
+  const write: typeof store = (id, update) => { writes.track(() => store(id, update)) }
   const updateTopic: typeof write = replay ? () => {} : write
 
   return {
+    /** Whether any lesson write is saving, and whether any still needs repeating. */
+    saving: writes.pending > 0,
+    unsaved: writes.failed > 0,
+    /** `true` when everything written is committed; otherwise whether it now is. */
+    settle: writes.settle,
+    /** Repeat every refused write, in order, and report whether all committed. */
+    retry: writes.retry,
+
     /**
      * Persist one lesson step. `withAcquisitionReadiness` stamps the readiness
      * anchor in the same update as the answer that earned it, so the retention
