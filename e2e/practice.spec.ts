@@ -88,16 +88,18 @@ async function runDeck(page: Page, wrongCount: number) {
     // The card leaves under a spring and the next index moves only once that
     // exit completes, so a fixed delay would drop grades on a slow machine.
     // Wait for the prompt to actually turn over — or for the run to end, which
-    // removes the heading entirely and is why this reads the count first.
-    await expect
-      .poll(
-        async () => {
-          if ((await page.locator('.test-done').count()) > 0) return 'done'
-          return page.locator('#prompt-heading').textContent().catch(() => null)
-        },
-        { timeout: 15000 },
-      )
-      .not.toBe(prompt)
+    // removes the heading entirely, so check the done marker first.
+    // Observe the same turnover predicate in the page on animation frames.
+    // expect.poll's increasing intervals repeatedly leave a completed spring
+    // waiting for the next Node/browser round trip across all 26 cards.
+    await page.waitForFunction(
+      (previousPrompt) => {
+        if (document.querySelector('.test-done')) return true
+        return document.querySelector('#prompt-heading')?.textContent !== previousPrompt
+      },
+      prompt,
+      { timeout: 15_000, polling: 'raf' },
+    )
   }
   await expect(page.locator('.test-done')).toBeVisible()
 }

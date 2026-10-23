@@ -146,12 +146,33 @@ async function keyUntilAnswered(page: Page) {
     const key = page.locator('.morse-key')
     if ((await key.count()) === 0) return
     if (await key.isDisabled()) return
+    const before = await page.evaluate(() => ({
+      entry: document.querySelector('.morse-key-entry')?.getAttribute('aria-label'),
+      character: Array.from(document.querySelectorAll('.fluency-shape span'))
+        .findIndex(span => span.classList.contains('is-current')),
+    }))
     await keyElement(page, '.')
-    // Past the #87 boundary before looking again: an element offered while the
-    // previous one is still committing is dropped by design, and a driver that
-    // raced it would silently key fewer elements than it thinks.
-    await page.waitForTimeout(140)
+    // Observe the commit, including a completed letter that clears its entry
+    // in place. Do not race the key's own audio/response boundary.
+    await page.waitForFunction(previous => {
+      const entry = document.querySelector('.morse-key-entry')
+      const character = Array.from(document.querySelectorAll('.fluency-shape span'))
+        .findIndex(span => span.classList.contains('is-current'))
+      const key = document.querySelector<HTMLButtonElement>('.morse-key')
+      return !entry || (key !== null && !key.disabled &&
+        (entry.getAttribute('aria-label') !== previous.entry || character !== previous.character))
+    }, before, { timeout: 10_000 })
   }
+}
+
+async function waitForFluencyAction(page: Page) {
+  await page.waitForFunction(() => {
+    const key = document.querySelector<HTMLButtonElement>('.morse-key')
+    const cont = Array.from(document.querySelectorAll<HTMLButtonElement>('button'))
+      .find(button => button.textContent?.trim() === 'Continue')
+    return document.querySelector('.session-round-result') !== null ||
+      (cont !== undefined && !cont.disabled) || (key !== null && !key.disabled)
+  }, undefined, { timeout: 10_000 })
 }
 
 /**
@@ -169,8 +190,8 @@ async function runToSummary(page: Page) {
 
     const cont = page.getByRole('button', { name: 'Continue' })
     if ((await cont.count()) > 0) {
-      if (await cont.isEnabled()) await cont.click()
-      await page.waitForTimeout(240)
+      await cont.click({ timeout: 10_000 })
+      await waitForFluencyAction(page)
       continue
     }
 
@@ -178,7 +199,7 @@ async function runToSummary(page: Page) {
     if ((await play.count()) > 0 && (await play.isEnabled())) await play.click()
     await expect(page.locator('.morse-key')).toBeEnabled({ timeout: 8000 })
     await keyUntilAnswered(page)
-    await page.waitForTimeout(240)
+    await waitForFluencyAction(page)
   }
   throw new Error('the fluency run never reached its summary')
 }
@@ -224,11 +245,15 @@ test.describe('fluency', () => {
       await page.getByRole('button', { name: 'Check' }).click()
       const cont = page.getByRole('button', { name: 'Continue' })
       // A right answer moves on by itself; a wrong one waits to be read.
-      await Promise.race([
-        cont.waitFor({ state: 'visible', timeout: 4000 }).then(() => cont.click()).catch(() => undefined),
-        page.locator('.copy-feedback.is-correct').waitFor({ timeout: 4000 }).catch(() => undefined),
-      ])
-      await page.waitForTimeout(1000)
+      await expect(cont.or(page.locator('.copy-feedback.is-correct'))).toBeVisible({ timeout: 10_000 })
+      if (await cont.isVisible()) await cont.click()
+      if (prompt < 9) {
+        // Feedback is gone and the next prompt has reset the same input.
+        await expect(page.getByLabel('What you heard')).toBeEditable({ timeout: 10_000 })
+        await expect(page.getByLabel('What you heard')).toHaveValue('')
+      } else {
+        await expect(page.locator('.session-round-reading')).toBeVisible({ timeout: 10_000 })
+      }
     }
 
     await expect(page.locator('.session-round-reading')).toBeVisible()
@@ -271,11 +296,19 @@ test.describe('fluency', () => {
     for (let prompt = 0; prompt < 5; prompt += 1) {
       for (let guard = 0; guard < 8; guard += 1) {
         if ((await page.locator('.send-review-card').count()) > 0) break
-        const current = (await page.locator('.send-target .is-current').textContent())?.trim() as MorseLetter | undefined
+        const currentLetter = page.locator('.send-target .is-current')
+        // Use the position, not the glyph: successive letters can be equal.
+        const position = await currentLetter.evaluate(element => Array.from(element.parentElement!.children).indexOf(element))
+        const current = (await currentLetter.textContent())?.trim() as MorseLetter | undefined
         if (!current) throw new Error('Spotlight word lost its current letter.')
         await expect(page.locator('.morse-key')).toBeEnabled({ timeout: 4_000 })
         await page.keyboard.type(MORSE_LETTERS[current], { delay: 80 })
-        await page.waitForTimeout(1400)
+        await page.waitForFunction(previousPosition => {
+          if (document.querySelector('.send-review-card')) return true
+          const current = document.querySelector('.send-target .is-current')
+          return current !== null &&
+            Array.from(current.parentElement!.children).indexOf(current) !== previousPosition
+        }, position, { timeout: 10_000 })
       }
 
       await expect(page.locator('.send-review-card')).toBeVisible()
@@ -336,8 +369,10 @@ test.describe('fluency', () => {
         if (index === 0) {
           // Real pointer holds classify dits/dahs; later letters use the keyboard fallback.
           for (const element of pattern) {
+            const entry = page.locator('.morse-key-entry')
+            const before = await entry.getAttribute('aria-label')
             await keyElement(page, element as '.' | '-')
-            await page.waitForTimeout(140)
+            await expect(entry).not.toHaveAttribute('aria-label', before!, { timeout: 10_000 })
           }
         } else {
           await page.keyboard.type(pattern, { delay: 80 })
@@ -354,14 +389,14 @@ test.describe('fluency', () => {
   })
 
   test('runs Groups and records only fluency statistics', async ({ page }) => {
-    // Ten prompts of real pointer input against a real AudioContext, each
+    // A full run of real pointer input against a real AudioContext, each prompt
     // gated by the #87 response boundary. That is genuinely slow, and it is
     // the point: nothing here is driven through a test-only path.
     test.setTimeout(150_000)
     await openChallenges(page)
     const before = await storedTopic(page)
 
-    // Ten prompts, each played and then keyed back. The answer is never on
+    // Every prompt is played and then keyed back. The answer is never on
     // screen before the learner gives it, so the only way to know what to key
     // is to have heard it — which a headless browser cannot do. Keying the
     // wrong thing is still a valid run: the boundary claim does not depend on
