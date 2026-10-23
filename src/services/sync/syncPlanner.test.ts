@@ -228,6 +228,19 @@ describe('a remote copy that would lose evidence', () => {
     ).toBe(true)
   })
 
+  it('refuses a remote copy that would erase finished lesson stages (#296)', () => {
+    const staged = topic('radio-procedure', {
+      stageProgress: { agree: '2026-10-23T12:00:00.000Z', 'ending-turns': '2026-10-23T12:05:00.000Z' },
+    } as Partial<Topic>)
+    const stripped = topic('radio-procedure')
+    // Another device saved the topic without the field, as a build that predates it would.
+    expect(wouldLoseEvidence(topicJson(stripped), staged)).toBe(true)
+    expect(wouldLoseEvidence(topicJson(staged), stripped)).toBe(false)
+    expect(wouldLoseEvidence(topicJson(staged), staged)).toBe(false)
+    const plan = planSync([staged], [remote('radio-procedure', stripped, 4)], ledgerFor('radio-procedure', topic('radio-procedure'), 3))
+    expect(plan.conflicts).toEqual(['radio-procedure'])
+  })
+
   it('refuses a remote copy that would erase Morse placement progress', () => {
     const placedOut = topic('morse-code', {
       status: 'learning',
