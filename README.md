@@ -28,7 +28,7 @@ Other commands:
 - `npm run typecheck` — run TypeScript without building
 - `npm run test:browser` — run the Playwright suite against the built app at phone, short-landscape and desktop sizes (needs `npx playwright install chromium` once)
 - `npm run test:rules` — run the Firestore Security Rules suite against a local emulator (needs Java)
-- `npm run inbox:rules` — render `firestore.rules` from its template for the configured owner (`ARGUS_OWNER_EMAIL`)
+- `npm run inbox:rules` — render `firestore.rules` from its template for the configured exact UID/email pairs (`ARGUS_ALLOWED_IDENTITIES`)
 - `npm run rules:deploy` — re-render the rules and deploy them; `npm run rules:check` refuses a ruleset left behind by the emulator suite
 - `npm run deploy:hosting` — build and deploy to Firebase Hosting
 - `npm run build:demo` / `npm run preview:demo` — build the embeddable demo into `dist-demo/` and serve it at http://localhost:4174/argus/ (see Demo build)
@@ -175,4 +175,4 @@ npm run deploy:hosting                  # dist/ -> Firebase Hosting
 npm run rules:deploy                    # render + deploy Firestore Security Rules
 ```
 
-`npm run rules:deploy` needs `ARGUS_OWNER_EMAIL` set to the owner's Google address; see `.env.example`.
+`npm run rules:deploy` needs `ARGUS_ALLOWED_IDENTITIES` set to a JSON array of exact `{uid, email}` pairs; see `.env.example`. Alternate email spellings are not inferred.

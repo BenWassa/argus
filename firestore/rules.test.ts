@@ -31,7 +31,7 @@ import { libraryMetaJson, mergeLibraryMetaJson } from '../src/services/sync/sync
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const OWNER_EMAIL = 'owner@googlemail.com'
-/** The same account, spelled the way Google may also present it. */
+/** An alternate spelling is deliberately not authorized. */
 const OWNER_TWIN = 'owner@gmail.com'
 const AUTHORIZED_UID = 'argus-authorized-uid-000001'
 const OTHER_UID = 'some-other-google-account-99'
@@ -39,11 +39,6 @@ const OTHER_EMAIL = 'someone.else@example.test'
 
 let env: RulesTestEnvironment
 
-/**
- * The owner is their verified address, not their UID, so a test identity has to
- * carry the token claims a real Google sign-in would. A UID alone proves
- * nothing now, which is the point of the model and is asserted below.
- */
 function ownerDb(uid: string = AUTHORIZED_UID) {
   return env
     .authenticatedContext(uid, { email: OWNER_EMAIL, email_verified: true })
@@ -79,7 +74,7 @@ beforeAll(async () => {
   env = await initializeTestEnvironment({
     projectId: 'argus-rules-test',
     firestore: {
-      rules: renderRules(readFileSync(join(ROOT, 'firestore.rules.template'), 'utf8'), OWNER_EMAIL),
+      rules: renderRules(readFileSync(join(ROOT, 'firestore.rules.template'), 'utf8'), [{ uid: AUTHORIZED_UID, email: OWNER_EMAIL }, { uid: 'second-allowed-uid', email: 'second@example.test' }]),
       host: '127.0.0.1',
       port: 8080,
     },
@@ -145,15 +140,24 @@ describe('who may use the inbox', () => {
     await assertFails(setDoc(doc(db, `${library(AUTHORIZED_UID)}/nato`), syncedTopic('nato')))
   })
 
-  it('accepts the same account under its other Google spelling', async () => {
-    // One account created on googlemail.com answers to gmail.com too, and which
-    // one reaches the token is not ours to choose. Refusing the other spelling
-    // would deny the real owner and look like sync being broken.
-    const db = env
-      .authenticatedContext(AUTHORIZED_UID, { email: OWNER_TWIN, email_verified: true })
-      .firestore()
-    await assertSucceeds(getDocs(collection(db, inbox(AUTHORIZED_UID))))
-    await assertSucceeds(setDoc(doc(db, `${library(AUTHORIZED_UID)}/nato`), syncedTopic('nato')))
+  it('denies an unlisted alias and mismatched UID/email pairs', async () => {
+    for (const [uid, email] of [
+      [AUTHORIZED_UID, OWNER_TWIN],
+      [OTHER_UID, OWNER_EMAIL],
+      [AUTHORIZED_UID, 'second@example.test'],
+      ['second-allowed-uid', OWNER_EMAIL],
+    ]) {
+      const db = env.authenticatedContext(uid, { email, email_verified: true }).firestore()
+      await assertFails(getDocs(collection(db, inbox(uid))))
+      await assertFails(setDoc(doc(db, `${library(uid)}/nato`), syncedTopic('nato')))
+    }
+  })
+
+  it('accepts the second exact pair only in its own subtree', async () => {
+    const uid = 'second-allowed-uid'
+    const db = env.authenticatedContext(uid, { email: 'second@example.test', email_verified: true }).firestore()
+    await assertSucceeds(setDoc(doc(db, `${library(uid)}/nato`), syncedTopic('nato')))
+    await assertFails(getDocs(collection(db, library(AUTHORIZED_UID))))
   })
 
   it('denies a signed-in account with no address claim at all', async () => {

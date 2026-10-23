@@ -9,13 +9,12 @@
 > and writes, offline and without an account — and the v5 parse boundary still
 > governs what a topic may be. See `PRODUCT.md`'s *Sync* section.
 >
-> **2. The rules identify the owner by verified address, not by a pinned UID.**
-> Every `AUTHORIZED_UID` / `VITE_ARGUS_INBOX_UID` statement about *Security
-> Rules* below is superseded by `ARGUS_OWNER_EMAIL`. A UID exists only after a
-> first sign-in, which made the rules undeployable until somebody had already
-> authenticated against rules that did not yet name them; an address is known
-> beforehand. Paths are still keyed by `request.auth.uid`, and the inbox client
-> still reads `VITE_ARGUS_INBOX_UID` to build its collection path.
+> **2. Access requires exact verified email–UID pairs (2026-10-23).**
+> Security Rules are rendered from `ARGUS_ALLOWED_IDENTITIES`, a JSON array of
+> `{uid, email}` entries. Both claims must match the same entry; no alternate
+> email spelling is inferred. This supersedes the earlier email-only model and
+> every older single-UID authorization example below. Paths remain keyed by
+> `request.auth.uid`; the inbox client still uses `VITE_ARGUS_INBOX_UID`.
 
 # Content Inbox and Curated Ingestion
 
@@ -542,7 +541,7 @@ Steps 1, 2 and 5 were carried out on 2026-09-15 against project `argus-b7a5a`, f
 2. Enable the Google sign-in provider in Firebase Authentication, and authorize the deployed origin. Both can be done from the repository: put an `auth` block in `firebase.json` and run `firebase deploy --only auth`, which provisions the OAuth client too.
 3. Provide the web app configuration to the production build as `VITE_*` variables (see `.env.example`). Sync needs only these four.
 4. For the **inbox** only, sign in once as the intended Google account and read its UID from Authentication → Users. That UID is `VITE_ARGUS_INBOX_UID` and `ARGUS_INBOX_UID`. The rules no longer need it; the inbox client builds its collection path from it before anybody has signed in.
-5. Deploy the rules: `ARGUS_OWNER_EMAIL=<address> npm run inbox:rules && npx firebase deploy --only firestore:rules`.
+5. Deploy the rules: `ARGUS_ALLOWED_IDENTITIES='<JSON array of {uid,email} pairs>' npm run rules:deploy`.
 6. For ingestion only, create a service account with Firestore access and keep its key file outside this repository, pointed at by `GOOGLE_APPLICATION_CREDENTIALS`.
 
 No real project id, web API key, UID or owner address is invented anywhere in the repository.
