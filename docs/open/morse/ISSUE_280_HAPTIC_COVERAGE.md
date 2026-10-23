@@ -32,7 +32,7 @@ Only `src/shared/haptics.ts` calls `navigator.vibrate`; `useMorseKeyPress` emits
 
 This main-based integration adds the missing existing `fire` call to `src/features/morse/practice/LetterPracticeRun.tsx` after a gated, independent single-letter decision. #279 must retain exactly this logical verdict boundary when it changes Read/Listen input. That applies to Key, Read, Listen, ordinary adaptive practice and optional four-choice Speed variants. Correct option selection is a character, never `word` or `crest`. Do not put calls in the generic `useKeyedResponse`, multiple-choice tile callbacks that can double-activate, or mode-switch effects. Retain #279's method-specific score and speed invalidation rules unchanged; assistive/late/ignored activations receive no outcome effect.
 
-Integration review when #279 merges: add direct outcome tests for its Read/Listen/Key handlers, repeated taps, speed interruption, choice gating, and replay; rerun these haptics tests against the merged branch. **Current shipped-mode coverage is implemented here; future #279 MC4 wiring must preserve it before #279 activates.**
+Integration review when #279 merges: add direct outcome tests for its Read/Listen/Key handlers, repeated taps, speed interruption, choice gating, and replay; rerun these haptics tests against the merged branch. **Current shipped-mode coverage is implemented here. #279's tile wiring (recognition UI PR) keeps one `fire` per unhelped choice inside `choose`, behind its ref lock; the tests in `LetterPracticeRun.test.tsx` cover repeated taps, Help, replay and dwell.**
 
 ## Automated/physical boundary
 

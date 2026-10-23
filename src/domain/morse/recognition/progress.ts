@@ -1,4 +1,4 @@
-import { MORSE_LETTERS, type MorseLetter } from '../code'
+import { LEARN_ACQUISITION_MORSE_TIMING, MORSE_LETTERS, type MorseLetter } from '../code'
 import {
   newMorsePractice, practiceWeight, selectPracticeLetter,
   type MorsePractice, type PracticeDirection,
@@ -42,6 +42,13 @@ export function validRecognitionStream(key: string): key is RecognitionStream {
   if (key === 'read/practice' || key === 'read/speed') return true
   const match = /^listen\/(practice|speed)@([1-9][0-9]?)$/.exec(key)
   return match !== null && Number(match[2]) >= 5 && Number(match[2]) <= 60
+}
+
+/** The stream a Read or Listen presentation belongs to. Listen is keyed by the
+ * playback rate it is actually sounded at (#44's acquisition speed today). */
+export function recognitionStreamFor(direction: 'read' | 'listen', speed: boolean): RecognitionStream {
+  const kind = speed ? 'speed' : 'practice'
+  return direction === 'read' ? `read/${kind}` : `listen/${kind}@${LEARN_ACQUISITION_MORSE_TIMING.characterWpm}`
 }
 
 function streamDirection(key: RecognitionStream): PracticeDirection {

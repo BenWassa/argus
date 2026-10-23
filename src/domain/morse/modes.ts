@@ -141,17 +141,27 @@ export function levelReadiness(topic: Topic, level: MorseLevel): LevelReadiness 
 
 const LETTER_STABILITY_ANSWERS = 3
 
+const latestAllCorrect = (outcomes: readonly boolean[]) =>
+  outcomes.length >= LETTER_STABILITY_ANSWERS && outcomes.slice(-LETTER_STABILITY_ANSWERS).every(Boolean)
+
 /**
  * Letters are stable when all 26 are eligible and each has three latest
  * independently graded correct outcomes in this direction, oldest to newest;
  * no dates, elapsed time, other direction or helped answer can satisfy it.
+ *
+ * Read and Listen are answered by four-choice recognition (#279), whose
+ * history is its own record. One stream's three latest independent four-way
+ * hits qualify a letter here as a suggestion to move on; the stream is never
+ * merged into the typed-recall history, never pooled across streams, and
+ * grants no lesson, Test or completion evidence. Speed is not consulted.
  */
 export function lettersStable(topic: Topic, direction: PracticeDirection): boolean {
   const eligible = modeEligibleLetters(topic)
-  return new Set(eligible).size === 26 && eligible.every((glyph) => {
-    const outcomes = topic.morsePractice?.characters[direction][glyph]?.outcomes ?? []
-    return outcomes.length >= LETTER_STABILITY_ANSWERS && outcomes.slice(-LETTER_STABILITY_ANSWERS).every(Boolean)
-  })
+  const streams = direction === 'key' ? [] : Object.entries(topic.morseRecognition?.streams ?? {})
+    .filter(([key]) => key.startsWith(`${direction}/`)).map(([, track]) => track)
+  return new Set(eligible).size === 26 && eligible.every((glyph) =>
+    latestAllCorrect(topic.morsePractice?.characters[direction][glyph]?.outcomes ?? []) ||
+    streams.some((track) => latestAllCorrect(track?.characters[glyph]?.outcomes ?? [])))
 }
 
 /** Historical same-direction clears preserve suggestions without inventing practice history. */

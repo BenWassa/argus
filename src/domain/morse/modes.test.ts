@@ -146,6 +146,21 @@ describe('Morse modes', () => {
     expect(lettersStable(topic, 'key')).toBe(false)
   })
 
+  it('lets four-choice Read and Listen history suggest the next level without pooling streams or touching Key', () => {
+    const topic = { ...morseTopic(13), morsePractice: newMorsePractice() }
+    const characters = Object.fromEntries(modeEligibleLetters(topic).map((glyph) => [glyph, {
+      outcomes: [false, true, true, true], shown: 4, lastShownSequence: 1, lastGradedSequence: 1, recentCorrectMs: [],
+    }]))
+    const track = { sequence: 1, characters }
+    expect(lettersStable({ ...topic, morseRecognition: { schemaVersion: 1, streams: { 'read/practice': track } } }, 'read')).toBe(true)
+    expect(lettersStable({ ...topic, morseRecognition: { schemaVersion: 1, streams: { 'listen/practice@12': track } } }, 'listen')).toBe(true)
+    // Read hits never stand in for Listen or Key, and a miss in the latest three disqualifies a letter.
+    expect(lettersStable({ ...topic, morseRecognition: { schemaVersion: 1, streams: { 'read/practice': track } } }, 'listen')).toBe(false)
+    expect(lettersStable({ ...topic, morseRecognition: { schemaVersion: 1, streams: { 'read/practice': track } } }, 'key')).toBe(false)
+    const missed = { ...characters, E: { ...characters.E, outcomes: [true, true, false] } }
+    expect(lettersStable({ ...topic, morseRecognition: { schemaVersion: 1, streams: { 'read/practice': { sequence: 1, characters: missed } } } }, 'read')).toBe(false)
+  })
+
   it('reuses 90% clears, preserves historical same-direction suggestions and keeps levels replayable', () => {
     const topic = modeTopicFixtures().advanced
     expect(currentLevel(topic, 'key')?.id).toBe('send:phrases')

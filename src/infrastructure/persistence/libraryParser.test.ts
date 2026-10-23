@@ -874,6 +874,78 @@ describe('post-acquisition fluency statistics are durable and portable (#119)', 
   })
 })
 
+describe('formative Morse recognition is durable and portable (#279)', () => {
+  const RECOGNITION = {
+    schemaVersion: 1,
+    streams: {
+      'read/speed': {
+        sequence: 4,
+        characters: {
+          E: { outcomes: [true, true, false], shown: 3, lastShownSequence: 4, lastGradedSequence: 4, recentCorrectMs: [1800, 2400] },
+        },
+      },
+      'listen/practice@12': {
+        sequence: 1,
+        characters: { T: { outcomes: [true], shown: 1, lastShownSequence: 1, lastGradedSequence: 1, recentCorrectMs: [] } },
+      },
+    },
+  }
+
+  function parsed(morseRecognition: unknown) {
+    const result = parseLibrary({ version: 5, topics: [currentTopic({ morseRecognition })] })
+    if (!result.ok) throw new Error(result.error)
+    return result.library.topics[0]
+  }
+  function rejection(morseRecognition: unknown): string {
+    const result = parseLibrary({ version: 5, topics: [currentTopic({ morseRecognition })] })
+    if (result.ok) throw new Error('Expected the import to be rejected.')
+    return result.error
+  }
+
+  it('round-trips recognition without touching practice, evidence, history or completion', () => {
+    const topic = currentTopic({ morseRecognition: RECOGNITION, history: [{ at: timestamp, correct: 1, total: 1, resolvedTo: 'drilled' }], acquisitionReadyAt: timestamp })
+    const imported = parseLibrary({ version: 5, topics: [topic] })
+    expect(imported.ok).toBe(true)
+    if (!imported.ok) return
+    const roundTripped = parseLibrary(JSON.parse(JSON.stringify(imported.library)))
+    expect(roundTripped).toEqual(imported)
+    if (roundTripped.ok) {
+      const result = roundTripped.library.topics[0]
+      expect(result.morseRecognition).toEqual(RECOGNITION)
+      expect(result.morsePractice).toBeUndefined()
+      expect(result.morseFluency).toBeUndefined()
+      expect(result.history).toEqual(topic.history)
+      expect(result.itemEvidence).toEqual(imported.library.topics[0].itemEvidence)
+    }
+  })
+
+  it('reads old records as no recognition and normalises an empty record to absent', () => {
+    expect(parsed(undefined).morseRecognition).toBeUndefined()
+    expect(parsed({ schemaVersion: 1, streams: {} }).morseRecognition).toBeUndefined()
+  })
+
+  it('rejects future, corrupt and hostile recognition instead of dropping it', () => {
+    expect(rejection({ ...RECOGNITION, schemaVersion: 2 })).toContain('morseRecognition')
+    expect(rejection({ schemaVersion: 1, streams: { 'read/exam': RECOGNITION.streams['read/speed'] } })).toContain('morseRecognition')
+    expect(rejection({ schemaVersion: 1, streams: { 'listen/speed@999': RECOGNITION.streams['read/speed'] } })).toContain('morseRecognition')
+    const bad = (mutate: (e: Record<string, unknown>) => void) => {
+      const entry = { ...RECOGNITION.streams['read/speed'].characters.E } as Record<string, unknown>
+      mutate(entry)
+      return { schemaVersion: 1, streams: { 'read/speed': { sequence: 4, characters: { E: entry } } } }
+    }
+    expect(rejection(bad(e => { e.recentCorrectMs = [10_001] }))).toContain('morseRecognition')
+    expect(rejection(bad(e => { e.recentCorrectMs = [-1] }))).toContain('morseRecognition')
+    expect(rejection(bad(e => { e.outcomes = ['yes'] }))).toContain('morseRecognition')
+    expect(rejection(bad(e => { e.at = '2026-10-22T00:00:00Z' }))).toContain('morseRecognition')
+    expect(rejection(JSON.parse('{"schemaVersion":1,"streams":{"read/speed":{"sequence":0,"characters":{"__proto__":{"outcomes":[],"shown":0,"lastShownSequence":0,"lastGradedSequence":0,"recentCorrectMs":[]}}}}}'))).toContain('morseRecognition')
+  })
+
+  it('does not carry recognition in a version-4 library, which predates it', () => {
+    const result = parseLibrary({ version: 4, topics: [currentTopic({ morseRecognition: RECOGNITION })] })
+    if (result.ok) expect(result.library.topics[0].morseRecognition).toBeUndefined()
+  })
+})
+
 describe('formative Morse practice is durable and portable (#221)', () => {
   const PRACTICE = {
     schemaVersion: 1,

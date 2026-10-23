@@ -3,7 +3,7 @@ import type { MorseLetter } from '../code'
 import { newMorsePractice } from '../practice'
 import {
   newMorseRecognition, parseMorseRecognition, recognitionPriority,
-  recordRecognitionOutcome, selectRecognitionLetter, validRecognitionStream,
+  recognitionStreamFor, recordRecognitionOutcome, selectRecognitionLetter, validRecognitionStream,
   type MorseRecognition,
 } from './progress'
 
@@ -139,5 +139,17 @@ describe('independent formative MC4 recognition history', () => {
         'read/practice': { sequence: 1, characters: { E: { ...base } } },
       },
     }).ok).toBe(false)
+  })
+})
+
+describe('which stream a presentation belongs to', () => {
+  it('separates Read from Listen, ordinary play from Speed, and keys Listen by its playback rate', () => {
+    expect(recognitionStreamFor('read', false)).toBe('read/practice')
+    expect(recognitionStreamFor('read', true)).toBe('read/speed')
+    expect(recognitionStreamFor('listen', false)).toBe('listen/practice@12')
+    expect(recognitionStreamFor('listen', true)).toBe('listen/speed@12')
+    for (const stream of [recognitionStreamFor('read', true), recognitionStreamFor('listen', true), recognitionStreamFor('listen', false)]) {
+      expect(validRecognitionStream(stream)).toBe(true)
+    }
   })
 })

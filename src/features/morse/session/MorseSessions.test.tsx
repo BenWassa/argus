@@ -27,8 +27,8 @@ describe('every Morse session shares the frame', () => {
     ['lesson', <MorseLesson topic={topic} initialRun={startLesson(topic)!} onExit={noop} onTest={noop} onReference={noop} />],
     ['checkpoint', <MorseCheckpoint checkpoint={morseWordCheckpoints()[0]} onExit={noop} />],
     ['key', <LetterPracticeRun eligible={['E']} direction="key" onProgress={noop} onAnother={noop} onExit={noop} />],
-    ['read', <LetterPracticeRun eligible={['E']} direction="read" onProgress={noop} onAnother={noop} onExit={noop} />],
-    ['listen', <LetterPracticeRun eligible={['E']} direction="listen" onProgress={noop} onAnother={noop} onExit={noop} />],
+    ['read', <LetterPracticeRun eligible={['E', 'T', 'I', 'M']} direction="read" onProgress={noop} onAnother={noop} onExit={noop} />],
+    ['listen', <LetterPracticeRun eligible={['E', 'T', 'I', 'M']} direction="listen" onProgress={noop} onAnother={noop} onExit={noop} />],
     ['key', <SendRun stage="words" progress={progress} onProgress={noop} onStage={noop} onExit={noop} />],
     ['listen', <CopyRun level="letters" rung={6} progress={progress} onProgress={noop} onLevel={noop} onExit={noop} />],
     ['listen', <FluencyRun mode="sprint" rung={6} progress={progress} onProgress={noop} onExit={noop} />],
@@ -53,10 +53,11 @@ describe('every Morse session shares the frame', () => {
   })
 
   it('fixes practice direction when entry supplies it', () => {
-    const { container } = render(<LetterPracticeRun eligible={['E']} direction="read" onProgress={noop} onAnother={noop} onExit={noop} />)
+    const { container } = render(<LetterPracticeRun eligible={['E', 'T', 'I', 'M']} direction="read" onProgress={noop} onAnother={noop} onExit={noop} />)
     expect(screen.getByText('Read')).toBeTruthy()
     expect(container.querySelector('.letter-practice-directions')).toBeNull()
-    expect(screen.getByRole('textbox', { name: 'Letter' })).toBeTruthy()
+    expect(screen.getByRole('group', { name: 'Choose the letter' })).toBeTruthy()
+    expect(screen.queryByRole('textbox')).toBeNull()
   })
 })
 
