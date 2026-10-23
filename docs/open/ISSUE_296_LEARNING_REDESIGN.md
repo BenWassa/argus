@@ -1,7 +1,7 @@
 # Issue #296 — Staged learning, optional final Test: design brief
 
-> **Status: proposed, owner approval required. No code is authorized by this document.**
-> **Authority:** a design brief for [#296](https://github.com/BenWassa/argus/issues/296). It extends [Learning progress](PROGRESS_ARCHITECTURE.md) (#276) to topics that do not have lessons yet, and it does not change that contract's rules about permanence, no clocks or no decay. Where this brief and the issue disagree, the issue's owner decision (2026-10-23) wins and the disagreement is listed in §9.
+> **Status: owner decisions D1-D7 approved on 2026-10-23. Implementation is authorized slice by slice (§8).** Lesson text for any safety or procedure topic still needs the independent domain review named in §5-6 before it ships.
+> **Authority:** the design contract for [#296](https://github.com/BenWassa/argus/issues/296). It extends [Learning progress](PROGRESS_ARCHITECTURE.md) (#276) to topics that do not have lessons yet, and it does not change that contract's rules about permanence, no clocks or no decay. Where this brief and the issue disagree, the issue's owner decision (2026-10-23) wins.
 > **Written:** 2026-10-23. **Evidence for the code references:** `main` at v1.6.1.
 
 ## 1. What is wrong today, and what changes
@@ -141,8 +141,9 @@ Each stage: `show` the flag large with its name and practical meaning, `choose` 
 | Slice | Who | Needs |
 |---|---|---|
 | 0. Practice call-site audit and catalog inventory (read-only) | Codex | Done: [`ISSUE_296_AUDITS.md`](ISSUE_296_AUDITS.md). |
-| 1. Step schema, validators, runner shell, stage-progress store and parser | Claude | Approval of §4 and §7 |
-| 2. Landing page and tray change | Claude | Approval of §3 mockup |
+| 1a. Step schema, validators and the `stageProgress` parser that **accepts and preserves** the field, with no writer | Claude | Approved (D1-D7). Ships as its own release |
+| 1b. Lesson runner and stage-progress writes | Claude | Release 1a out for at least one release on every device |
+| 2. Landing page and tray change | Claude | Slice 1b; mockup approved (D7) |
 | 3. Radio Procedure content | Codex drafts as data; Claude checks each line against RIC-22; owner/domain review before it ships | Slice 1; #150 review |
 | 4. Signal Flags content | Same | Slice 1; #147 / #148 review |
 | 5. Practice removal and Test end-screen redirect | Codex implements from the audit; Claude reviews and runs the browser suite | Slices 1-2 |
@@ -150,21 +151,17 @@ Each stage: `show` the flag large with its name and practical meaning, `choose` 
 
 Two jobs cannot be fanned out: the visual decisions, and the domain review of any safety or procedure text. Codex's own sandbox cannot run Playwright or commit, so all browser verification and commits stay with Claude, as in earlier waves.
 
-## 9. Decisions needed from the owner
+## 9. Owner decisions (approved 2026-10-23)
 
-**D1 — Can a learner test out?** The issue puts the Final Test after the lessons. The progress contract currently lets one clean Test complete an ordinary topic. Recommendation: **keep that**. A learner who already knows Radio Procedure can go straight to the Final Test, and a clean result completes the topic exactly as it does today. Without it, someone who knows the material must click through every lesson. If you want completion to come only from lessons, say so.
-
-**D2 — Final Test visibility before the lessons are done.** The issue says the Final Test appears after the required lessons. “No forced path” says nothing is hidden. Recommendation: **a quiet square node always on the path, and the tray action only becomes Final Test once the lessons are complete**. This is the same position as D1.
-
-**D3 — Stage length.** Five stages of three to five items each (§5-6). A stage should take about two minutes. Say if you want fewer, larger stages.
-
-**D4 — Where unscored Radio words go.** Stay in Reference (recommended) or become teaching-only steps in a sixth stage.
-
-**D5 — Existing learners.** A topic with `completedAt` shows every stage done and the Final Test immediately. A topic in progress with Test history keeps its history, shows the path from the start, and shows the Final Test immediately. No one is reset or stranded.
-
-**D6 — Topics with no authored curriculum yet.** Until its inventory slice, such a topic keeps a clearly marked transitional Test and the old reading as Reference (the issue's own fallback). User-authored topics get a guided small-batch recall fallback and no custom lessons.
-
-**D7 — Mockups.** Approve or amend the two frames in the design mockups (landing page and one `choose` step with feedback) before slice 2.
+| | Decision |
+|---|---|
+| **D1** | **Test-out is allowed.** A learner who already knows a topic can go straight to the Final Test, and a clean result completes the topic exactly as it does today. Completion is therefore lessons *or* one clean Test. |
+| **D2** | **The Final Test is always a quiet square node on the path**, never the tray action until the lessons are done; then it becomes the tray action in a quiet fill. |
+| **D3** | **About two minutes per lesson, 3-5 items.** Five lessons each for Radio Procedure and Signal Flags (§5-6). |
+| **D4** | **The unscored Radio words stay in Reference.** Teaching them would widen the topic, which is a separate Test-boundary decision. |
+| **D5** | **Existing learners are never reset.** A topic with `completedAt` shows every lesson done and the Final Test available. A topic in progress keeps its history, starts the path at lesson 1, and shows the Final Test immediately. |
+| **D6** | **Topics without lessons keep a clearly marked transitional Test and their reading, now called Reference.** User-authored and imported topics get a guided small-batch recall mode and no custom lessons. No one is stranded. |
+| **D7** | **The four mockup frames are approved as drawn.** |
 
 ## 10. Verification outline
 
