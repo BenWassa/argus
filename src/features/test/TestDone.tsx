@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { isLearned } from '../../domain/study/scheduling'
 import { targetsForItems } from '../../domain/study/practiceTargets'
 import { morseLessonPath } from '../../domain/morse/curriculum/lessonPath'
@@ -76,15 +76,18 @@ export function TestDone({
     .map((entry) => entry.resolution)
   const completed = moved.filter((resolution) => resolution.completed)
 
+  const completionHapticSent = useRef(false)
   // `crest` is the pattern's own definition of what it is for: "stage advance,
   // personal best, session complete." A completion banking is exactly that
   // event and, until now, was the one occurrence in that list with no haptic
   // and no entrance behind it — the plate simply appeared fully formed, same
   // as every ordinary transition line below it. Depends only on the length so
-  // it cannot re-fire on a re-render this screen never causes.
+  // it cannot re-fire on a re-render this screen never causes. A ref also
+  // guards React StrictMode's effect replay on a committed completion screen.
   useEffect(() => {
-    if (completed.length > 0) fire('crest')
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (completed.length === 0 || completionHapticSent.current) return
+    completionHapticSent.current = true
+    fire('crest')
   }, [completed.length])
   const learned = moved.filter(resolution => !resolution.completed && isLearned(resolution.topic))
   const continuing = moved.filter(resolution => !resolution.completed && !isLearned(resolution.topic))

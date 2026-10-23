@@ -17,6 +17,8 @@ Morse teaches the finite International Morse A–Z printed mappings through guid
 2. For acquisition, read [lesson policy](MORSE_LESSON.md), [character order](MORSE_CHARACTER_ORDER.md), [verbal mnemonics](MORSE_VERBAL_MNEMONICS.md), [visual grammar](MORSE_MNEMONIC_GRAMMAR.md), [Test cues](MORSE_CUE_LADDER.md) and [word checkpoints](MORSE_WORD_CHECKPOINTS.md), including their correction blocks.
 3. For continued practice, read [Fluency](MORSE_FLUENCY.md), [the intermediate path](MORSE_INTERMEDIATE_PATH.md), [selected Send mechanics](ISSUE_188_MORSE_SENDING_GAMEPLAY.md) and [#221's implementation record](ISSUE_221_MORSE_UX_CONSOLIDATION.md).
 4. Read [the audio contract](MORSE_AUDIO_RUNTIME.md) before touching any playback or keyed input. Use the code map below to find implementation ownership.
+   For Morse vibration events, consult [the #280 coverage matrix and #279 handoff](ISSUE_280_HAPTIC_COVERAGE.md). Pixel hardware sign-off remains separate in #281.
+   See also [#280/#281 scope and physical acceptance](ISSUE_280_281_MORSE_HAPTICS.md) for engineering coverage followed by real Pixel Chrome/PWA calibration.
 5. Consult the #201 proposal/reviews and closed records for pending decisions and rationale; do not infer shipped behaviour from proposed sections.
 
 ## Document inventory

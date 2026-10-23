@@ -79,10 +79,12 @@ export function useSendRun({ stage, progress, onProgress, allowed, seed }: SendR
 
   const target = prompts[promptIndex] ?? ''
 
-  const beginReview = useCallback((judgement: CopyJudgement) => {
+  const beginReview = useCallback((judgement: CopyJudgement, emitVerdict = true) => {
     setReview(judgement)
     setPhase('review')
-    fire(judgement.correct ? 'word' : 'miss')
+    // Spotlight has already graded each keyed character, including its final
+    // word boundary. Flow has only this one whole-prompt judgement.
+    if (emitVerdict) fire(judgement.correct ? 'word' : 'miss')
   }, [])
 
   const keyed = useKeyedResponse(() => {
@@ -96,7 +98,7 @@ export function useSendRun({ stage, progress, onProgress, allowed, seed }: SendR
       return
     }
 
-    beginReview(judgeCopy(word, spotlightGivenRef.current))
+    beginReview(judgeCopy(word, spotlightGivenRef.current), false)
   })
 
   function continueSpotlightCorrection() {
@@ -173,8 +175,8 @@ export function useSendRun({ stage, progress, onProgress, allowed, seed }: SendR
     const current = finishLetter()
     const next = addSpace(current)
     if (next.length !== current.length) {
+      // A separator is not a graded answer or a successful character.
       setFlowTokens(next)
-      fire('settle')
     }
   }, [finishLetter, phase, setFlowTokens])
 
@@ -190,7 +192,10 @@ export function useSendRun({ stage, progress, onProgress, allowed, seed }: SendR
     spotlightGivenRef.current = nextGiven
     setSpotlightGiven(nextGiven)
     setSpotlightFeedback({ correct, letter, pattern })
-    fire(correct ? 'settle' : 'miss')
+    // The final correct character earns one word-level verdict only when the
+    // entire word is correct. No second verdict on the review transition.
+    const wordComplete = characterIndex === word.length - 1 && nextGiven === word
+    fire(correct ? (wordComplete ? 'word' : 'settle') : 'miss')
     keyed.answered(correct)
   }
 
@@ -229,7 +234,9 @@ export function useSendRun({ stage, progress, onProgress, allowed, seed }: SendR
     setJudgements(all)
     setDone({ score, improved: recorded.improved })
     setPhase('done')
-    fire(recorded.improved ? 'crest' : 'word')
+    // A first run is a baseline, not a personal best; finishing without an
+    // improvement is not another word judgement or a milestone.
+    if (recorded.improved && progress.bests[sendBestKey(stage)] !== undefined) fire('crest')
   }
 
 
