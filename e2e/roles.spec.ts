@@ -196,7 +196,14 @@ test('legacy decay and later optional Test do not create repair or revoke award'
 
 test('responsive role overlay is accessible, bounded and dismissible', async ({ page }, testInfo) => {
   await openWith(page)
-  await page.locator('.role-collection-badge').evaluateAll((images) => Promise.all(images.map((image) => (image as HTMLImageElement).decode())))
+  const badges = page.locator('.role-collection-badge')
+  await expect(badges).toHaveCount(3)
+  // Lazy requests may not have a currentSrc in the first frame. Poll actual
+  // loaded pixels instead of calling decode() before a request is selected.
+  await expect.poll(() => badges.evaluateAll((images) => images.every((image) => {
+    const badge = image as HTMLImageElement
+    return badge.complete && badge.naturalWidth > 0
+  }))).toBe(true)
   await page.screenshot({ path: testInfo.outputPath('roles-overview.png'), fullPage: true })
   await badge(page, 'Navigator').focus()
   await page.keyboard.press('Enter')
