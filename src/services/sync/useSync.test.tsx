@@ -455,3 +455,44 @@ describe('library-level state', () => {
     expect(store.merged).toHaveLength(0)
   })
 })
+
+describe('an account switch while a plan is being applied', () => {
+  it('stops adopting into the library once another account is current', async () => {
+    const [first, second] = seedLibrary().topics
+    let release!: () => void
+    const gate = new Promise<void>((resolve) => { release = resolve })
+    const store = fakeStore([])
+    store.upsertTopic = async (topic) => {
+      store.upserted.push(topic)
+      if (store.upserted.length === 1) await gate
+      return true
+    }
+    const backend = fakeBackend()
+    renderHook(() => useSync(store, backend))
+
+    act(() => backend.emitUser(OWNER))
+    act(() => backend.emitRecords([
+      { topicId: first.id, json: topicJson(first), revision: 1, updatedAtMs: 1000 },
+      { topicId: second.id, json: topicJson(second), revision: 1, updatedAtMs: 1000 },
+    ]))
+    await waitFor(() => expect(store.upserted).toHaveLength(1))
+
+    act(() => backend.emitUser({ uid: 'other-uid', email: 'other@example.test', displayName: 'Other' }))
+    release()
+    await act(async () => { await new Promise((r) => setTimeout(r, 30)) })
+
+    expect(store.upserted).toHaveLength(1)
+    expect(backend.pushed).toHaveLength(0)
+    expect(loadLedger(OWNER.uid)).toEqual({})
+  })
+
+  it('cancels binds that have not started when the account signs out', async () => {
+    const store = fakeStore([realTopic()])
+    store.cancelPendingBinds = vi.fn()
+    const backend = fakeBackend()
+    renderHook(() => useSync(store, backend))
+    act(() => backend.emitUser(OWNER))
+    act(() => backend.emitUser(null))
+    expect(store.cancelPendingBinds).toHaveBeenCalled()
+  })
+})

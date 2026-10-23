@@ -2,7 +2,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react'
 import { LibraryProvider, useLibrary } from './LibraryProvider'
-import { freshSeedLibrary } from '../../infrastructure/persistence/libraryMigrations'
+import { freshSeedLibrary, reconcileLoadedLibrary } from '../../infrastructure/persistence/libraryMigrations'
+import { recoveryEntries } from '../../infrastructure/persistence/localLibraryRepository'
 import { COMMUNICATOR } from '../../domain/roles/definitions'
 import type { CurrentLibrary } from '../../domain/library/library'
 
@@ -220,6 +221,105 @@ describe('production IndexedDB provider integration', () => {
     await act(async () => { await new Promise((r) => setTimeout(r, 20)); release(); await all })
     expect(hook.result.current.owner).toBe('owner-c')
     expect(localStorage.getItem('argus.library.owner.v1')).toBe('owner-c')
+  })
+
+  describe('writes belong to the account that was on screen when they were made', () => {
+    async function boundToA() {
+      const hook = await mounted()
+      await act(async () => { await hook.result.current.bindOwner('owner-a') })
+      return hook
+    }
+
+    it('rejects a write issued for account A after bindOwner(B) was called but before it published', async () => {
+      const hook = await boundToA()
+      const id = hook.result.current.topics[0].id
+      const stale = hook.result.current
+      const releaseB = hold('read', 'owner-b')
+      let binding!: Promise<void>
+      let write!: Promise<boolean | void>
+      act(() => { binding = Promise.resolve(hook.result.current.bindOwner('owner-b')) })
+      act(() => { write = Promise.resolve(stale.updateTopic(id, (topic) => ({ ...topic, title: 'Stale write for A' }))) })
+      await act(async () => { await new Promise((r) => setTimeout(r, 20)); releaseB(); await binding })
+      expect(await write).toBe(false)
+      expect(fixture.records.get('owner-b')?.library.topics[0].title).not.toBe('Stale write for A')
+      expect(fixture.records.get('owner-a')?.library.topics[0].title).not.toBe('Stale write for A')
+      expect(hook.result.current.owner).toBe('owner-b')
+    })
+
+    it('refuses a retry from account A\'s screen once account B is active, and never lands it in B', async () => {
+      const hook = await boundToA()
+      const id = hook.result.current.topics[0].id
+      const stale = hook.result.current
+      await act(async () => { await hook.result.current.bindOwner('owner-b') })
+      const before = JSON.stringify(fixture.records.get('owner-b')?.library)
+      await act(async () => {
+        expect(await stale.updateTopic(id, (topic) => ({ ...topic, title: 'Late retry for A' }))).toBe(false)
+        expect(await stale.upsertTopic({ ...stale.topics[0], title: 'Late upsert for A' })).toBe(false)
+      })
+      expect(JSON.stringify(fixture.records.get('owner-b')?.library)).toBe(before)
+      // The refusal is the caller's to report; it is not a storage failure of B's library.
+      expect(document.querySelector('[role="alert"]')).toBeNull()
+    })
+
+    it('still commits a write issued for A before the switch to A, ahead of the bind', async () => {
+      const hook = await boundToA()
+      const id = hook.result.current.topics[0].id
+      let write!: Promise<boolean | void>
+      let binding!: Promise<void>
+      act(() => {
+        write = Promise.resolve(hook.result.current.updateTopic(id, (topic) => ({ ...topic, title: 'A edit' })))
+        binding = Promise.resolve(hook.result.current.bindOwner('owner-b'))
+      })
+      await act(async () => { await Promise.all([write, binding]) })
+      expect(await write).toBe(true)
+      expect(fixture.records.get('owner-a')?.library.topics[0].title).toBe('A edit')
+      expect(fixture.records.get('owner-b')?.library.topics[0].title).not.toBe('A edit')
+    })
+  })
+
+  it('does not leave the unclaimed library claimable by another account when the owner marker cannot be written', async () => {
+    const hook = await unclaimedWithProgress()
+    const original = Storage.prototype.setItem
+    const spy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(function (this: Storage, name: string, value: string) {
+      if (name === 'argus.library.owner.v1') throw new Error('QuotaExceededError')
+      return original.call(this, name, value)
+    })
+    await act(async () => { await expect(Promise.resolve(hook.result.current.bindOwner('owner-a'))).rejects.toThrow() })
+    spy.mockRestore()
+    expect(localStorage.getItem('argus.library.owner.v1')).toBeNull()
+    await act(async () => { await hook.result.current.bindOwner('owner-b') })
+    expect(titlesHolding(MARKER)).toEqual(['owner-a'])
+    expect(hook.result.current.topics[0].title).not.toBe(MARKER)
+  })
+
+  it('lets sign-out cancel a bind that has not started writing', async () => {
+    const hook = await unclaimedWithProgress()
+    const release = hold('read', 'owner-a')
+    let binding!: Promise<void>
+    act(() => { binding = Promise.resolve(hook.result.current.bindOwner('owner-a')).catch(() => {}) })
+    act(() => { hook.result.current.cancelPendingBinds() })
+    await act(async () => { await new Promise((r) => setTimeout(r, 20)); release(); await binding })
+    expect(hook.result.current.owner).toBeNull()
+    expect(fixture.records.has('owner-a')).toBe(false)
+    expect(localStorage.getItem('argus.library.owner.v1')).toBeNull()
+  })
+
+  it('keeps a recovery copy and starts fresh when the old local library cannot be read', async () => {
+    localStorage.setItem(key, '{not json')
+    const hook = await mounted()
+    expect(hook.result.current.topics.length).toBeGreaterThan(0)
+    expect(recoveryEntries()).toHaveLength(1)
+    expect(recoveryEntries()[0].raw).toBe('{not json')
+    expect(localStorage.getItem(key)).toBe('{not json')
+    expect(fixture.records.get(ownerKey)).toBeDefined()
+  })
+
+  it('reports the catalog reconciliation of an import, not of the already-reconciled result', async () => {
+    const hook = await mounted()
+    const next = { version: 5 as const, topics: [], catalogDelivered: [] }
+    const expected = reconcileLoadedLibrary(next).report
+    await act(async () => { expect(await hook.result.current.replaceLibrary(next)).toBe(true) })
+    expect(hook.result.current.catalogReport).toEqual(expected)
   })
 
   it('preserves the committed learner record and outbox when import or reset fails', async () => {

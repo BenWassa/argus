@@ -41,6 +41,8 @@ export interface SyncableStore {
   /** The account the local library belongs to; see `LibraryProvider`. */
   owner: string | null
   bindOwner: (uid: string) => void | Promise<void>
+  /** Withdraw binds that have not started writing; called on sign-out. */
+  cancelPendingBinds?: () => void
   catalogDelivered: readonly string[] | undefined
   mergeCatalogDelivered: (ids: readonly string[]) => void
   roleAwards?: readonly RoleAward[]
@@ -108,6 +110,8 @@ export function useSync(store: SyncableStore, injected?: SyncBackend) {
   // The user subscription outlives any one render of the store it binds.
   const storeRef = useRef(store)
   storeRef.current = store
+  const userRef = useRef(user)
+  userRef.current = user
   /**
    * Firebase is not loaded, and Google is not contacted, until there is a
    * reason. A device that has never signed in has no reason on load, and the
@@ -122,6 +126,7 @@ export function useSync(store: SyncableStore, injected?: SyncBackend) {
     const unsubscribe = backend.observeUser((next) => {
       const generation = ++sequence
       if (!next) {
+        storeRef.current.cancelPendingBinds?.()
         pushedMeta.current = null
         setUser(null)
         setRecords(null)
@@ -162,7 +167,7 @@ export function useSync(store: SyncableStore, injected?: SyncBackend) {
         else finish()
       } catch (error) { fail(error) }
     })
-    return () => { active = false; ++sequence; unsubscribe() }
+    return () => { active = false; ++sequence; storeRef.current.cancelPendingBinds?.(); unsubscribe() }
   }, [backend, watching])
 
   useEffect(() => {
@@ -223,6 +228,9 @@ export function useSync(store: SyncableStore, injected?: SyncBackend) {
     }
 
     applying.current = true
+    // The plan belongs to this account. Once another is current, nothing more of
+    // it may reach the library on screen, the ledger or the cloud.
+    const stale = () => userRef.current?.uid !== user.uid || storeRef.current.owner !== user.uid
     const run = async () => {
       // What the ledger records is what actually happened, which is not always
       // what was planned: a record that would not parse is not adopted, and an
@@ -232,6 +240,7 @@ export function useSync(store: SyncableStore, injected?: SyncBackend) {
       // anything, and every later pass would push a needless revision.
       const applied: SyncAction[] = []
       for (const action of plan.actions) {
+        if (stale()) return
         switch (action.kind) {
           case 'push':
             await backend.pushTopic(user.uid, action.topicId, action.json, action.revision)
@@ -260,6 +269,7 @@ export function useSync(store: SyncableStore, injected?: SyncBackend) {
           }
         }
       }
+      if (stale()) return
       ledger.current = nextLedger(ledger.current, applied, Date.now())
       saveLedger(user.uid, ledger.current)
       setState({ kind: 'synced', user, at: new Date(), conflicts: plan.conflicts })
@@ -267,6 +277,7 @@ export function useSync(store: SyncableStore, injected?: SyncBackend) {
 
     void run()
       .catch((error: unknown) => {
+        if (stale()) return
         setState({
           kind: 'error',
           user,

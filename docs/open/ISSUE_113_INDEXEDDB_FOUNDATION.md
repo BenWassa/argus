@@ -36,7 +36,17 @@ Connections close on version-change requests. A client cannot downgrade a newer 
 
 `bindOwner(uid)` is part of the provider's single write queue, so a bind never overlaps another bind or a library transaction. Each call takes an epoch when it is *called*. A bind that is no longer the newest when it is allowed to start, or at the last point before its first durable write, rejects with `BindSupersededError` having done nothing: it cannot seed a namespace, claim the unclaimed library, move the `argus.library.owner.v1` marker, change the active owner or publish a library. Once its first write has started, a bind is committed and finishes as one step (initialize, reconcile, then marker, active owner and published library with no await between). The newer bind then runs, finds the library already claimed (or the marker set), and seeds its own account from its own parked/legacy data. The unclaimed library therefore seeds at most one UID namespace, and the last-requested account is always the one finally visible. Regressions: `LibraryProvider.test.tsx` (deferred overlapping binds, in both race windows, and an A/B/C overlap).
 
-Residual: if the localStorage owner marker cannot be written after the IndexedDB writes of a claiming bind, the bind fails; a *different* account binding next could still be offered the unclaimed library. The marker lives in `localStorage` by design until the owner marker moves into the database.
+Write ownership. Every write function the provider hands out (`updateTopic`, `upsertTopic`, `removeTopic`, `replaceLibrary`, `resetLibrary`, the sync merges) is bound to the namespace of the render that returned it, not to whichever account is active when the queue reaches it. If the active account has changed by then, the write is refused (`false`, no global storage alert) and nothing is written: a Test bank, a retry or a late callback made for account A cannot land in account B's namespace or its outbox. Writes issued for A before `bindOwner(B)` was called are queued ahead of the bind and still commit to A. `useSync`'s apply loop checks, before every action and before recording the ledger, that the planned account is still the signed-in one and still owns the library, so a switch mid-loop stops it.
+
+Sign-out calls `cancelPendingBinds()`, which supersedes any bind that has not started writing, so a slow bind cannot publish a library after the learner signed out.
+
+Claiming. The unclaimed library is copied into the claiming account's namespace first and the `argus.library.owner.v1` marker is written last. If that marker write fails, the bind fails and the provider remembers in memory that the unclaimed library was claimed by that account, so no other account can be offered it during the session; the same account can claim again idempotently.
+
+Unreadable legacy data. A corrupt or strict-invalid `argus.library.v5` (or parked) record is copied to the recovery list (`recoveryEntries`) and the learner starts from a fresh seed, as the retired loader did. The original key is never modified, and the canonical IndexedDB record takes precedence on every later start.
+
+Import and reset report the catalog reconciliation of the library actually imported (the first reconciliation), not of the already-reconciled result.
+
+Residual: if `localStorage` rejects the owner marker and the tab is then reloaded, the in-memory claim is forgotten; a different account binding first after that reload could be offered the unclaimed library as well. The marker lives in `localStorage` by design until the owner marker moves into the database.
 
 ## Completion durability contract
 

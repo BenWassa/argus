@@ -120,7 +120,7 @@ export interface RecoveryEntry {
   raw: string
 }
 
-function preserveRecovery(key: string, reason: string, raw: string, now: Date): void {
+export function preserveRecovery(key: string, reason: string, raw: string, now: Date): void {
   try {
     const kept = recoveryEntries()
     // The same unreadable record found again is not a second loss.

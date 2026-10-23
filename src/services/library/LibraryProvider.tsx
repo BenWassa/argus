@@ -18,6 +18,7 @@ import {
   clearLibrary,
   libraryOwner,
   loadLibraryWithReport,
+  preserveRecovery,
   saveLibrary,
   switchLibraryOwner,
 } from '../../infrastructure/persistence/localLibraryRepository'
@@ -31,6 +32,17 @@ import { journeyFor } from '../../domain/study/journey'
 import type { Topic } from '../../domain/library/topic'
 import type { CurrentLibrary } from '../../domain/library/library'
 import { captureRoleAwards, mergeRoleAwards, type RoleAward } from '../../domain/roles/awards'
+
+/** An unclaimed library stays separate from all UID namespaces. */
+const UNCLAIMED_OWNER = '__argus_unclaimed_local__'
+
+/** A write made for an account that is no longer the one whose library is open. */
+class AccountChangedError extends Error {
+  constructor() {
+    super('The account changed before this could be saved.')
+    this.name = 'AccountChangedError'
+  }
+}
 
 /** A bind that a newer one replaced before it wrote anything. It changed nothing. */
 export class BindSupersededError extends Error {
@@ -87,6 +99,11 @@ interface LibraryStore {
    * account's. Throws when that cannot be done safely; see `switchLibraryOwner`.
    */
   bindOwner: (uid: string) => void | Promise<void>
+  /**
+   * Withdraw every bind that has been requested but has not started writing, as
+   * when the account signs out while its library is still being opened.
+   */
+  cancelPendingBinds: () => void
   /**
    * Record catalog topics another device has already delivered. The set only
    * grows, so taking the union is the whole merge.
@@ -176,6 +193,7 @@ function DemoLibraryProvider({ children }: { children: ReactNode }) {
     }
     setOwner(uid)
   }, [])
+  const cancelPendingBinds = useCallback(() => {}, [])
 
   const mergeCatalogDelivered = useCallback((ids: readonly string[]) => {
     setLibrary((prev) => {
@@ -208,6 +226,7 @@ function DemoLibraryProvider({ children }: { children: ReactNode }) {
       catalogDelivered: library.catalogDelivered,
       owner,
       bindOwner,
+      cancelPendingBinds,
       mergeCatalogDelivered,
       roleAwards: library.roleAwards,
       roleAwardGeneration: library.roleAwardGeneration,
@@ -223,6 +242,7 @@ function DemoLibraryProvider({ children }: { children: ReactNode }) {
       resetLibrary,
       owner,
       bindOwner,
+      cancelPendingBinds,
       mergeCatalogDelivered,
       mergeAwards,
     ],
@@ -247,16 +267,30 @@ function legacyFor(owner: string, previousOwner: string | null): { key: string; 
   return undefined
 }
 
-function migrationSeed(legacy: { key: string; raw: string } | undefined): CurrentLibrary {
-  if (!legacy) return freshSeedLibrary()
-  // Do not call the old localStorage loader: it promotes and overwrites bytes,
-  // and silently seeds after a parse failure.
+/**
+ * What to initialise a namespace with. Readable legacy bytes migrate; unreadable
+ * ones are copied to the recovery list and the learner starts fresh, exactly as
+ * the retired loader did. The original key is never touched, so nothing is lost
+ * and a learner is never left on a screen with no way forward.
+ */
+function migrationInput(
+  legacy: { key: string; raw: string } | undefined,
+): { seed: CurrentLibrary; legacy?: { key: string; raw: string } } {
+  if (!legacy) return { seed: freshSeedLibrary() }
+  // Do not call the old localStorage loader: it promotes and overwrites bytes.
+  const now = new Date()
   let value: unknown
   try { value = JSON.parse(legacy.raw) }
-  catch { throw new Error(`Cannot migrate ${legacy.key}; original data was preserved.`) }
+  catch {
+    preserveRecovery(legacy.key, 'Not valid JSON.', legacy.raw, now)
+    return { seed: freshSeedLibrary(now) }
+  }
   const parsed = parseLibrary(value)
-  if (!parsed.ok) throw new Error(`Cannot migrate ${legacy.key}: ${parsed.error}. Original data was preserved.`)
-  return reconcileLoadedLibrary(parsed.library).library
+  if (!parsed.ok) {
+    preserveRecovery(legacy.key, parsed.error, legacy.raw, now)
+    return { seed: freshSeedLibrary(now) }
+  }
+  return { seed: reconcileLoadedLibrary(parsed.library).library, legacy }
 }
 
 /** Production: committed IndexedDB state is the only published learner state. */
@@ -272,10 +306,16 @@ function IndexedLibraryProvider({ children }: { children: ReactNode }) {
   const activeOwner = useRef<string | null>(null)
   const queue = useRef<Promise<unknown>>(Promise.resolve())
   const bindEpoch = useRef(0)
+  // The unclaimed library has been copied into this account's namespace, even if
+  // the owner marker could not be written afterwards. No other account may take it.
+  const claimedBy = useRef<string | null>(null)
+  // The namespace the library on screen belongs to, as render state. Every write
+  // function is bound to the key of the render that handed it out, so a retry
+  // or a late callback from account A's screen can never reach account B.
+  const [libraryKey, setLibraryKey] = useState<string | null>(null)
   const current = useRef(library)
   current.current = library
-  // An unclaimed library stays separate from all UID namespaces.
-  const localOwner = '__argus_unclaimed_local__'
+  const localOwner = UNCLAIMED_OWNER
 
   const install = useCallback((next: CurrentLibrary) => {
     const reconciled = reconcileLoadedLibrary(next)
@@ -296,8 +336,8 @@ function IndexedLibraryProvider({ children }: { children: ReactNode }) {
         const previous = libraryOwner()
         const key = previous ?? localOwner
         const existing = await db.read(key)
-        const legacy = existing ? undefined : legacyFor(key, previous)
-        await db.initialize(key, { seed: existing?.library ?? migrationSeed(legacy), legacy })
+        const input = existing ? { seed: existing.library } : migrationInput(legacyFor(key, previous))
+        await db.initialize(key, input)
         // Reconciliation and retired sitting adoption must be durable before
         // any recovered topic is exposed. No old bytes are removed on failure.
         const row = await db.update(key, (library) =>
@@ -305,6 +345,7 @@ function IndexedLibraryProvider({ children }: { children: ReactNode }) {
         if (cancelled) return
         clearAllLessonSittings()
         activeOwner.current = key
+        setLibraryKey(key)
         setOwner(previous)
         install(row.library)
         setReady(true)
@@ -325,21 +366,28 @@ function IndexedLibraryProvider({ children }: { children: ReactNode }) {
   /** Serialize against IndexedDB, not a render-time snapshot. A rejected
    * transaction never updates the visible library or outbox. */
   const transact = useCallback((change: (previous: CurrentLibrary) => CurrentLibrary) => {
+    // Bound to the namespace of the render that handed this function out, not to
+    // whichever account is active when the queue reaches it.
+    const key = libraryKey
     const run = async () => {
       const db = repository.current
-      const key = activeOwner.current
       if (!db || !key) throw new Error('Local storage is not ready.')
+      if (activeOwner.current !== key) throw new AccountChangedError()
       const row = await db.update(key, change)
       if (activeOwner.current === key) install(row.library)
       setFailure(null)
     }
     const result = queue.current.then(run).then(() => true, (error: unknown) => {
-      setFailure(error instanceof Error ? error.message : 'This change could not be saved.')
+      // A change made for another account is refused, not a fault of this
+      // device's storage; the caller reports it and nothing is shown globally.
+      if (!(error instanceof AccountChangedError)) {
+        setFailure(error instanceof Error ? error.message : 'This change could not be saved.')
+      }
       return false
     })
     queue.current = result
     return result
-  }, [install])
+  }, [install, libraryKey])
 
   const upsertTopic = useCallback((written: Topic) => {
     const topic = normalizeWrittenTopic(written)
@@ -374,16 +422,31 @@ function IndexedLibraryProvider({ children }: { children: ReactNode }) {
       ...reconciled.library,
       roleAwards: mergeRoleAwards(prev.roleAwards ?? [], reconciled.library.roleAwards ?? []),
       roleAwardGeneration: prev.roleAwardGeneration ?? 0,
-    })).then((saved) => { if (saved) clearAllLessonSittings(); return saved })
+    })).then((saved) => {
+      if (saved) {
+        clearAllLessonSittings()
+        // `install` reconciled an already-reconciled library; the report that
+        // describes this import is the first reconciliation's.
+        setCatalogReport(reconciled.report)
+      }
+      return saved
+    })
     // Sidecar is retired only after the canonical transaction succeeds.
   }, [transact])
 
   const resetLibrary = useCallback(() => {
+    const reset = reconcileLoadedLibrary(emptyLibrary())
     return transact((prev) => ({
-      ...reconcileLoadedLibrary(emptyLibrary()).library,
+      ...reset.library,
       roleAwards: [],
       roleAwardGeneration: (prev.roleAwardGeneration ?? 0) + 1,
-    })).then((saved) => { if (saved) clearAllLessonSittings(); return saved })
+    })).then((saved) => {
+      if (saved) {
+        clearAllLessonSittings()
+        setCatalogReport(reset.report)
+      }
+      return saved
+    })
   }, [transact])
 
   /**
@@ -413,19 +476,24 @@ function IndexedLibraryProvider({ children }: { children: ReactNode }) {
       if (previousKey === uid) { setOwner(uid); return }
       const previous = libraryOwner()
       // An unclaimed local library is claimable exactly once; a library already
-      // assigned to another UID never becomes a seed for this UID.
-      const local = previous === null ? await db.read(previousKey) : null
+      // assigned to another UID never becomes a seed for this UID. A claim whose
+      // marker write failed still counts: it was copied, so nobody else may take it.
+      const claimable = previous === null && (claimedBy.current === null || claimedBy.current === uid)
+      const local = claimable && previousKey === UNCLAIMED_OWNER ? await db.read(previousKey) : null
       const existing = await db.read(uid)
-      const legacy = existing || local ? undefined : legacyFor(uid, previous)
-      const seed = existing?.library ?? local?.library ?? migrationSeed(legacy)
+      const input = existing || local
+        ? { seed: (existing ?? local)!.library }
+        : migrationInput(legacyFor(uid, previous))
       // The last point at which this bind can still stand down without a trace.
       if (superseded()) throw new BindSupersededError(uid)
-      await db.initialize(uid, { seed, ...(legacy ? { legacy } : {}) })
+      await db.initialize(uid, input)
+      if (!existing && local) claimedBy.current = uid
       const row = await db.update(uid, (library) => reconcileLoadedLibrary(library).library)
       // Nothing below awaits. A failed owner marker is a failed account switch;
       // never publish the new account using an ambiguous owner marker.
       localStorage.setItem('argus.library.owner.v1', uid)
       activeOwner.current = uid
+      setLibraryKey(uid)
       clearAllLessonSittings()
       install(row.library)
       setOwner(uid)
@@ -435,6 +503,8 @@ function IndexedLibraryProvider({ children }: { children: ReactNode }) {
     queue.current = result.catch(() => undefined)
     return result
   }, [install])
+
+  const cancelPendingBinds = useCallback(() => { bindEpoch.current += 1 }, [])
 
   const mergeCatalogDelivered = useCallback((ids: readonly string[]) => {
     return transact((prev) => {
@@ -459,10 +529,10 @@ function IndexedLibraryProvider({ children }: { children: ReactNode }) {
   const value = useMemo<LibraryStore>(() => ({
     topics: library.topics, library, catalogReport, upsertTopic, updateTopic,
     removeTopic, replaceLibrary, resetLibrary, catalogDelivered: library.catalogDelivered,
-    owner, bindOwner, mergeCatalogDelivered, roleAwards: library.roleAwards,
+    owner, bindOwner, cancelPendingBinds, mergeCatalogDelivered, roleAwards: library.roleAwards,
     roleAwardGeneration: library.roleAwardGeneration, mergeRoleAwards: mergeAwards,
   }), [library, catalogReport, upsertTopic, updateTopic, removeTopic, replaceLibrary,
-    resetLibrary, owner, bindOwner, mergeCatalogDelivered, mergeAwards])
+    resetLibrary, owner, bindOwner, cancelPendingBinds, mergeCatalogDelivered, mergeAwards])
 
   if (failure && !ready) return <main role="alert">
     <p>Argus cannot open the local learner library. Existing data has not been replaced.</p>
