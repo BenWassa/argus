@@ -116,7 +116,7 @@ multi-character, which `buildMorseSchedule` already supports and
 
 `MorseKeyInput` is the one shared key. Relevant properties:
 
-- one categorical control: tap = dit, hold ≥ `MORSE_HOLD_MS` (300ms) = dah;
+- one categorical control: tap = dit, hold ≥ `MORSE_HOLD_MS` (now 200ms; it was 300ms when this was written) = dah;
 - **press duration is never returned to the caller.** The comment says why:
   so it cannot become sending-speed evidence. Play must preserve this;
 - a released press is *extended* to the canonical element length, so keyed and

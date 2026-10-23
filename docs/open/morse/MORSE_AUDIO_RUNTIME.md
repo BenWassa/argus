@@ -26,8 +26,9 @@ tap expire while that promise settles.
 - Every shared `MorseKeyInput` press creates and starts its oscillator in the
   pointer or keyboard event, before waiting for resume. A source started while
   suspended waits for the direct user action to unlock the context.
-- A quick first release still plays its canonical dit/dah once and only submits
-  after that element's audible window. Audio failure never blocks Morse entry.
+- A touched element sounds for exactly as long as the touch (2026-10-23). A
+  quick first release made before the context finished resuming still plays its
+  canonical dit/dah once, and only submits after that element's audible window. Audio failure never blocks Morse entry.
 - Backgrounding cancels active sound without app-issued suspension. The next
   explicit action reopens/resumes output; no autoplay is permitted.
 - Learn, replay, checkpoints, placement and any future keyed prompt must use

@@ -1,7 +1,6 @@
 // Owns entry, pointer/keyboard activation and cancellation for one mounted key.
 
 import { useCallback, useEffect, useRef, useState, type PointerEvent } from 'react'
-import { fire } from '../../../shared/haptics'
 import { defaultNow, KEYBOARD_POINTER_ID, morseElementForPressDuration, nextMorseEntry, type PressState } from './morseKeying'
 import { useMorseSidetone } from './useMorseSidetone'
 
@@ -106,7 +105,6 @@ export function useMorseKeyPress({
     if (lockedRef.current) return
     onPressStart?.()
     pressRef.current = { pointerId: KEYBOARD_POINTER_ID, startedAt: now(), releasedElement: element }
-    fire('element')
     startTone(KEYBOARD_POINTER_ID)
   }, [now, onPressStart, startTone])
 
@@ -224,13 +222,6 @@ export function useMorseKeyPress({
     event.preventDefault()
     onPressStart?.()
     pressRef.current = { pointerId: event.pointerId, startedAt: now() }
-    // A key should feel like a key. Onset only, and the lightest effect
-    // in the vocabulary: a second pulse on release would compete with
-    // the sidetone's own tail, and press onset is the moment the
-    // learner's intent actually lands. Silently absent on iOS, which is
-    // why the visible pressed state and the tone are the real feedback
-    // and this is the third channel rather than the first.
-    fire('element')
     setPressed(true)
     event.currentTarget.setPointerCapture?.(event.pointerId)
     startTone(event.pointerId)
@@ -244,9 +235,8 @@ export function useMorseKeyPress({
     pressRef.current = { ...press, releasedElement: element }
 
     if (tonePointerRef.current === event.pointerId) {
-      // The tone under the finger becomes the canonical element: it is
-      // extended to full length if the press was shorter, and the commit
-      // waits for it rather than racing it.
+      // The tone under the finger stops with the finger, and the commit
+      // waits for its short release edge rather than racing it.
       finishSustainedTone(element)
     } else {
       // This only occurs if pointer-down could not create the tone (for

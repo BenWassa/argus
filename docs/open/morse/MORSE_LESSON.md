@@ -219,9 +219,11 @@ classified, so one press cannot accidentally become a dit plus a dah or a page
 gesture.
 
 #87 now owns the complete keyed-response boundary. Press duration chooses only
-dit versus dah; the shared audio path renders that accepted element completely,
-so a quick tap is not a clipped chirp and the final element finishes before the
-answer advances. Once an answer commits, keyed input is inert through the
+dit versus dah. Since 2026-10-23 a touched element sounds (and, when chosen,
+vibrates) exactly as long as the touch rather than being extended to the
+canonical dit/dah length; keyboard elements and a first press released before
+audio resumed keep the canonical length. The final element's release edge
+finishes before the answer advances. Once an answer commits, keyed input is inert through the
 feedback and the target transition alike. A `Correct` verdict advances
 automatically after the shared dwell; a correction holds until the learner
 presses `Continue` (2026-09-19, above). Either way the next target is not live

@@ -18,7 +18,7 @@ function source(file: string): string {
 
 describe('one-touch Morse key', () => {
   it('classifies a short press as dit and a hold as dah at one explicit threshold', () => {
-    expect(MORSE_HOLD_MS).toBe(300)
+    expect(MORSE_HOLD_MS).toBe(200)
     expect(morseElementForPressDuration(0)).toBe('.')
     expect(morseElementForPressDuration(MORSE_HOLD_MS - 1)).toBe('.')
     expect(morseElementForPressDuration(MORSE_HOLD_MS)).toBe('-')
@@ -85,11 +85,14 @@ describe('one-touch Morse key', () => {
     expect(code).toContain('linearRampToValueAtTime(0')
   })
 
-  it('sounds a complete element rather than cutting the tone at finger-contact duration', () => {
+  it('ends a touched tone with the finger, then commits after its release edge', () => {
     const code = source('./MorseKeyInput.tsx')
     expect(code).toContain('finishSustainedTone')
-    // The release path extends the live tone to the canonical element length
-    // measured from when the tone started, then commits when it ends.
+    // The tone lasts as long as the touch: it is not extended to a canonical
+    // element length, so sound and vibration both follow the finger.
+    expect(code).toContain("context.state === 'running'\n      ? at + edgeSeconds * 2")
+    // Only a press released before resume keeps the canonical length, so the
+    // first tap on a phone is still heard.
     expect(code).toContain('startedAt + morseElementDurationMs(element) / 1000')
     expect(code).toContain('commitElement(element, Math.max(0, (end - at) * 1000)')
     // The old behaviour stopped the oscillator and graded in the same breath.
