@@ -3,7 +3,8 @@
  *
  * Every record here is formative: it describes how much help the guided lesson
  * is still giving and where the learner is in a sitting. None of it is evidence,
- * none of it can qualify a completion, and none of it may reach the scored Test
+ * none of it can fabricate a scored Test. A full required lesson curriculum
+ * qualifies permanent learning independently; formal Test keeps its own
  * boundary — `domain/study/evidence.ts` is the only thing that speaks for that.
  */
 /**
@@ -23,9 +24,9 @@
  *   solo     retrieved with nothing but the glyph, by keying the pattern
  *   settled  produced unaided at least once; the lesson stops scaffolding it
  *
- * `settled` is a statement about lesson scaffolding and nothing else. It is not
- * retention, it is not completion, and it cannot satisfy any part of the Test
- * boundary.
+ * `settled` is about an item's lesson scaffold, not scored Test evidence.
+ * Completing every required lesson once grants learning completion (#276),
+ * but never creates a scored Test attempt.
  */
 export const LESSON_SUPPORTS = ['taught', 'cued', 'solo', 'settled'] as const
 export type LessonSupport = (typeof LESSON_SUPPORTS)[number]

@@ -188,7 +188,7 @@ describe('Morse placement application', () => {
     expect(canOfferMorsePlacement(applied)).toBe(false)
   })
 
-  it('full placement reaches acquisition readiness without banking formal completion', () => {
+  it('full placement completes the curriculum without inventing formal Test evidence', () => {
     const topic = freshMorse()
     const run = perfect(topic, 'most')
     const applied = applyMorsePlacement(topic, run.result!, NOW)
@@ -197,9 +197,9 @@ describe('Morse placement application', () => {
     expect(position?.settled).toBe(26)
     expect(position?.ready).toBe(true)
     expect(applied.acquisitionReadyAt).toBe(NOW.toISOString())
-    expect(applied.status).toBe('learning')
+    expect(applied.status).toBe('completed')
     expect(applied.drilledAt).toBeNull()
-    expect(applied.completedAt).toBeNull()
+    expect(applied.completedAt).toBe(NOW.toISOString())
     expect(applied.history).toEqual([])
     expect(applied.itemEvidence).toEqual(topic.itemEvidence)
   })

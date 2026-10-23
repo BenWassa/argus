@@ -61,7 +61,7 @@ describe('Morse lesson path', () => {
     expect(path[2].state).toBe('locked')
   })
 
-  it('keeps already reached later lessons unlocked if returning material temporarily needs repair', () => {
+  it('keeps completed lessons passed when historical review support is restored', () => {
     const value = topic()
     const packets = lessonPackets()
     const progress: ItemLessonStore = {}
@@ -74,10 +74,11 @@ describe('Morse lesson path', () => {
     progress[itemIdForGlyph(value, packets[0].novel[0])] = 'cued'
 
     const path = morseLessonPath(withProgress(value, progress))!
-    expect(path[0].state).toBe('current')
-    expect(path[1].state).toBe('unlocked')
-    expect(path[2].state).toBe('unlocked')
-    expect(path[3].state).toBe('locked')
+    expect(path[0].state).toBe('completed')
+    expect(path[1].state).toBe('completed')
+    expect(path[2].state).toBe('completed')
+    expect(path[3].state).toBe('current')
+    expect(path[4].state).toBe('locked')
     expect(path[1].replayable).toBe(true)
   })
 

@@ -74,8 +74,8 @@ function tierPips(topic: Topic, tier: MorseTier): MorseTierPip[] {
 /**
  * One projection of the existing journey, never a second progression policy.
  * Checkpoints have no completion record, so unlocked means reached, not done.
- * Test stays current for banked learners because the shared journey still says
- * `test`; later formative tiers are replayable offers, not formal obligations.
+ * Once all lessons finish, there is no required position on the path. Test
+ * remains independently scored and optional; later tiers are repeatable.
  */
 export function morseProgressPath(topic: Topic): MorseProgressPath | null {
   const lessons = morseLessonPath(topic)
@@ -83,8 +83,7 @@ export function morseProgressPath(topic: Topic): MorseProgressPath | null {
   if (!lessons || !checkpoints) return null
   const journey = journeyFor(topic)
   const unstarted = journey.action === 'learn' && !journey.acquisition.started
-  const afterCourse = journey.action === 'learn' && journey.acquisition.afterCourse && journey.acquisition.owed.length > 0
-  const currentNodeId = journey.phase === 'banked' ? null : journey.action === 'test' || afterCourse
+  const currentNodeId = journey.phase === 'banked' ? null : journey.action === 'test'
     ? 'test'
     : unstarted ? 'start' : `lesson-${journey.acquisition.packet}`
   const nodes: MorseProgressNode[] = []
@@ -93,7 +92,7 @@ export function morseProgressPath(topic: Topic): MorseProgressPath | null {
     if (node.state !== 'locked') node.lockedReason = null
     const detail = node.kind === 'lesson' ? `, ${node.novel.join(' and ')}`
       // The test's own state is said once: "A–Z Test, locked", never "locked, locked".
-      : node.kind === 'test' ? (afterCourse ? ', Confirm letters' : node.testState === node.state ? '' : `, ${node.testState}`) : ''
+      : node.kind === 'test' ? (node.testState === node.state ? '' : `, ${node.testState}`) : ''
     node.accessibleLabel = `${node.label}${detail}, ${node.state}`
     nodes.push(node)
   }
@@ -117,13 +116,15 @@ export function morseProgressPath(topic: Topic): MorseProgressPath | null {
     }
   }
 
-  const testState = journey.phase === 'banked' ? 'banked'
+  // A test is only banked by an actual scored pass, never by lesson progress.
+  const hasCleanTest = topic.history.some((attempt) => attempt.total > 0 && attempt.correct === attempt.total)
+  const testState = hasCleanTest ? 'banked'
     : journey.advancementEligible ? 'available' : 'locked'
   const testAction = { kind: 'test', early: !journey.advancementEligible } as const
   add({ id: 'test', kind: 'test', label: 'A–Z Test', accessibleLabel: '',
     state: testState === 'banked' ? 'done' : testState === 'locked' ? 'locked' : 'reached',
     testState, earlyRunPossible: testAction.early, testAction, lockedReason: 'After the lessons, or test early',
-    action: afterCourse ? { kind: 'after-course' } : testAction })
+    action: testAction })
 
   for (const tier of MORSE_TIERS.filter((candidate) => candidate !== 'letters')) {
     const pips = tierPips(topic, tier)

@@ -18,9 +18,9 @@ The job to be done, every session: find a topic already in motion, open it, and 
 Opening an ordinary topic is learning: its complete finite reference and optional support are immediately available. Browsing writes no progress, history or evidence. There is no enrollment action.
 
 - **Learn** — ungraded acquisition through canonical lessons for curricula such as Morse. These lessons own acquisition writes.
-- **Test** — every scored item once, self-scored where needed. One clean eligible Test completes the topic, including a clean first run. Once learned, it stays learned. Later Tests are optional and keep their scores without reopening learning or creating repair work.
+- **Test** — every scored item once, self-scored where needed. An ordinary topic completes on one clean eligible Test; a lesson curriculum completes once every required lesson has been finished once. Test is optional after a curriculum, independently scored, and cannot reopen learned work.
 
-Morse keeps its lesson gate: an early Test is recorded but cannot advance or demote retention while acquisition is unfinished. The maintained authority is [Progress architecture](docs/open/PROGRESS_ARCHITECTURE.md).
+Morse completes permanently at the last required lesson with no later-sitting consolidation or required Test. An early Test is recorded independently but cannot substitute for unfinished lessons. The maintained authority is [Progress architecture](docs/open/PROGRESS_ARCHITECTURE.md).
 
 ## What progress means
 
@@ -113,7 +113,7 @@ The tradecraft and survival tracks pull hard toward military, prepper, or tactic
 
 1. **Finishability is the entry gate.** Every topic must state a hard boundary before it can exist in the library; the UI enforces this at authoring time rather than relying on discipline later.
 2. **Task-first over showcase-first.** The interface opens to "what's due" and "start Test," not to a summary or a pitch. Marketing-page instincts (heroes, slogans, eyebrows) are actively rejected on functional screens.
-3. **Learned means learned.** One clean eligible Test completes the topic. Completion is permanent: a later optional Test records a score without decay, repair, expiry or required extra learning. No progress state waits on elapsed time.
+3. **Learned means learned.** A lesson curriculum requires each lesson once; an ordinary topic requires one clean eligible Test. Completion is permanent: a later optional Test records a score without decay, repair, expiry or required extra learning. No progress state waits on elapsed time.
 4. **Portable and owner-owned.** Full JSON export/import is a first-class feature, not a settings-page afterthought — including optional structured Learn support. The interface should never make data feel trapped.
 5. **Clarity reads as competence.** One action colour says what to do next. Solid plates, large readable type and few words carry the "capable and deliberate" tone, and colour is spent on meaning and wayfinding (Morse modes and subject tracks) rather than withheld. A tile shows what the task will put in front of you instead of describing it. Clarity is not the same as sparseness: the interface keeps real contrast and typographic hierarchy, with one lifted surface per view, and does not remove colour until everything sits at the same pitch.
 6. **The form must not lie about the content.** A card shape promises a concealed answer; a list promises scannability. Matching the surface to the actual task is a correctness requirement, not a style choice. Learn support therefore uses editorial structure, never concealed-answer styling.

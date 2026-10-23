@@ -150,7 +150,7 @@ describe('one Morse topic screen', () => {
     expect(controls).toHaveLength(8)
     expect(document.querySelector('.topic-action-bar, .topic-options, .topic-play, .topic-state, .topic-scope')).toBeNull()
     expect(screen.queryByRole('heading', { name: 'Curriculum' })).toBeNull()
-    fireEvent.click(screen.getByRole('button', { name: /A–Z Test, banked, done/ }))
+    fireEvent.click(screen.getByRole('button', { name: /A–Z Test, available, reached/ }))
     expect(onStart).toHaveBeenLastCalledWith('test', [MORSE_ID])
     fireEvent.click(screen.getByRole('button', { name: /Lesson 1, E and I, done/ }))
     expect(onStart).toHaveBeenLastCalledWith('learn', [MORSE_ID], { kind: 'replay', index: 0 })

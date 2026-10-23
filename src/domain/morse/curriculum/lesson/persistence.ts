@@ -21,8 +21,12 @@ export function lessonProgressOf(run: LessonRun): ItemLessonStore {
  */
 export function withLessonProgress(topic: Topic, updates: ItemLessonStore): Topic {
   if (Object.keys(updates).length === 0) return topic
-  const merged = { ...(topic.lessonProgress ?? {}), ...updates }
   const current = topic.lessonProgress ?? {}
+  // Settled acquisition is permanent. A run may restore scaffolding after a
+  // miss, but its local support must not reopen a completed lesson.
+  const durable = Object.fromEntries(Object.entries(updates).map(([id, support]) =>
+    [id, current[id] === 'settled' ? 'settled' : support]))
+  const merged = { ...current, ...durable }
   const unchanged =
     Object.keys(merged).length === Object.keys(current).length &&
     Object.entries(merged).every(([itemId, support]) => current[itemId] === support)

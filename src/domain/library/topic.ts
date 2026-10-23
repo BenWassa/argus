@@ -179,7 +179,8 @@ export interface Topic {
    * reason `completedAt` is: reaching the acquisition boundary is a historical
    * fact, so a topic already past it is never dragged back to `Continue lesson`.
    *
-   * This is a readiness gate, never an elapsed-time anchor.
+   * This is a permanent learning-completion anchor for a finite curriculum
+   * (#276), not an elapsed-time gate or formal Test result.
    */
   acquisitionReadyAt?: string | null
   /**

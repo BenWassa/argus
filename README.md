@@ -4,8 +4,8 @@ Argus is a mobile-first library of finite, closed-scope competencies. Each topic
 
 Argus has two learning interactions:
 
-- **Learn** — ungraded/formative acquisition. Ordinary topics use reading/exposure and their complete finite reference; progressive topics such as Morse may also use guided formative retrieval, replay and application activities. Learn never creates formal Test evidence or retention completion.
-- **Test** — the single scored recall interaction. The scheduler decides whether a result is timely enough to advance retention milestones.
+- **Learn** — ungraded/formative acquisition. Ordinary topics use reading/exposure and their complete finite reference; progressive topics such as Morse may also use guided formative retrieval, replay and application activities. Learn never creates formal Test evidence; finishing every required lesson once permanently completes a curriculum.
+- **Test** — the single scored recall interaction. Optional after a completed curriculum; an ordinary topic completes with one clean Test.
 
 `scope` + scored `items` define the finite Test/completion boundary. Optional `topic.learn` content is explanatory only and never silently expands that claim.
 
