@@ -146,7 +146,6 @@ function renderTopicPage(topic: Topic) {
         onStart={() => undefined}
         onReference={() => undefined}
         onEdit={() => undefined}
-        onDelete={() => undefined}
       />
     </LibraryProvider>,
   )
@@ -596,7 +595,7 @@ describe('ordinary topic browsing and enrollment', () => {
     render(
       <LibraryProvider>
         <TopicPage topic={briefed} onBack={() => undefined} onStart={() => undefined}
-          onReference={onReference} onEdit={() => undefined} onDelete={() => undefined} />
+          onReference={onReference} onEdit={() => undefined} />
       </LibraryProvider>,
     )
     // The topic page carries the scored set; the explanation is one tile away.

@@ -346,12 +346,8 @@ test('system Back dismisses clean and dirty dialogs before changing route', asyn
   await expect(page.getByRole('heading', { name: 'Library', level: 1 })).toBeVisible()
 
   await openTopic(page)
-  await page.getByRole('button', { name: 'Delete topic' }).click()
-  await expect(page.getByRole('dialog', { name: 'Delete topic' })).toBeVisible()
-  await systemBack(page)
-  await expect(page.getByRole('dialog', { name: 'Delete topic' })).toHaveCount(0)
-  await waitForHistoryIndex(page, 2)
-  await expect(page.getByRole('heading', { name: TOPIC.title, level: 1 })).toBeVisible()
+  await expect(page.getByRole('button', { name: /delete/i })).toHaveCount(0)
+
 })
 
 test('malformed initial history normalizes to Today', async ({ page }) => {
