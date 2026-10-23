@@ -1,0 +1,35 @@
+/* A save in progress, shown as something moving rather than as text alone: the
+   length of a local write is unknown, so this is a bar that travels, not one
+   that fills. Reduced motion keeps a still bar and the words carry the state. */
+.save-bar {
+  position: relative;
+  width: min(100%, 22rem);
+  height: 4px;
+  margin: var(--s-md) auto 0;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--line);
+}
+
+.save-bar::after {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 40%;
+  border-radius: inherit;
+  background: var(--accent);
+  animation: save-bar-travel 1.4s ease-in-out infinite;
+}
+
+@keyframes save-bar-travel {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(250%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .save-bar::after {
+    animation: none;
+    width: 100%;
+    background: var(--line-strong);
+  }
+}

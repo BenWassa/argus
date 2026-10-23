@@ -310,6 +310,8 @@ function IndexedLibraryProvider({ children }: { children: ReactNode }) {
   const activeOwner = useRef<string | null>(null)
   const queue = useRef<Promise<unknown>>(Promise.resolve())
   const bindEpoch = useRef(0)
+  // The committed revision the library on screen was published from.
+  const publishedRevision = useRef<number | null>(null)
   // The unclaimed library has been copied into this account's namespace, even if
   // the owner marker could not be written afterwards. No other account may take it.
   const claimedBy = useRef<string | null>(null)
@@ -349,6 +351,7 @@ function IndexedLibraryProvider({ children }: { children: ReactNode }) {
         if (cancelled) return
         clearAllLessonSittings()
         activeOwner.current = key
+        publishedRevision.current = row.revision
         setLibraryKey(key)
         setOwner(previous)
         install(row.library)
@@ -391,7 +394,12 @@ function IndexedLibraryProvider({ children }: { children: ReactNode }) {
       startedAt = Date.now()
       const row = await db.update(key, change)
       phase = 'publishing'
-      if (activeOwner.current === key) install(row.library)
+      // A write that changed nothing returns the revision already on screen;
+      // publishing it again re-renders every consumer and re-runs sync's effect.
+      if (activeOwner.current === key && row.revision !== publishedRevision.current) {
+        publishedRevision.current = row.revision
+        install(row.library)
+      }
       setFailure(null)
     }
     let wrote = true
@@ -520,6 +528,7 @@ function IndexedLibraryProvider({ children }: { children: ReactNode }) {
       // never publish the new account using an ambiguous owner marker.
       localStorage.setItem('argus.library.owner.v1', uid)
       activeOwner.current = uid
+      publishedRevision.current = row.revision
       setLibraryKey(uid)
       clearAllLessonSittings()
       install(row.library)
@@ -533,16 +542,29 @@ function IndexedLibraryProvider({ children }: { children: ReactNode }) {
 
   const cancelPendingBinds = useCallback(() => { bindEpoch.current += 1 }, [])
 
+  /**
+   * A merge that would change nothing costs nothing. Sync re-offers its cloud
+   * metadata whenever the library is published, so an unconditional transaction
+   * here was a full strict write of the whole library per offer. The published
+   * library is what the caller sees; an earlier queued write can only add to it.
+   */
+  const mergeInto = useCallback((merge: (previous: CurrentLibrary) => CurrentLibrary) => {
+    if (activeOwner.current === libraryKey && merge(current.current) === current.current) {
+      return Promise.resolve(true)
+    }
+    return transact(merge)
+  }, [libraryKey, transact])
+
   const mergeCatalogDelivered = useCallback((ids: readonly string[]) => {
-    return transact((prev) => {
+    return mergeInto((prev) => {
       const known = new Set(prev.catalogDelivered ?? [])
       if (ids.every((id) => known.has(id))) return prev
       return { ...prev, catalogDelivered: [...new Set([...known, ...ids])].sort() }
     })
-  }, [transact])
+  }, [mergeInto])
 
   const mergeAwards = useCallback((awards: readonly RoleAward[], generation: number) => {
-    return transact((prev) => {
+    return mergeInto((prev) => {
       const localGeneration = prev.roleAwardGeneration ?? 0
       if (generation < localGeneration) return prev
       const merged = generation > localGeneration
@@ -551,7 +573,7 @@ function IndexedLibraryProvider({ children }: { children: ReactNode }) {
       if (generation === localGeneration && JSON.stringify(merged) === JSON.stringify(prev.roleAwards ?? [])) return prev
       return { ...prev, roleAwards: merged, roleAwardGeneration: generation }
     })
-  }, [transact])
+  }, [mergeInto])
 
   const value = useMemo<LibraryStore>(() => ({
     topics: library.topics, library, catalogReport, upsertTopic, updateTopic,

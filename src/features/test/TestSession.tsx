@@ -42,6 +42,7 @@ import {
 } from './testDeck'
 import { nextView, type TestView } from './testView'
 import { TestDone, type ReviewResult } from './TestDone'
+import { SaveBar } from '../../shared/ui/SaveBar'
 import { resolveBankedAttempt, type BankedAttempt } from './bankedAttempt'
 import { testCardTextClass } from './textScale'
 import { cueNoteFor } from './cueNote'
@@ -613,7 +614,7 @@ export function TestSession({ topicIds, review = false, onExit, onPractice, onPl
       <section className="session" role="status" aria-live="polite">
         <h1>Saving your result</h1>
         <p>Keeping this on your device before showing it.</p>
-        <div className="save-bar" aria-hidden="true" />
+        <SaveBar />
       </section>
     )
   }

@@ -188,7 +188,11 @@ export async function openIndexedLibraryRepository(name = LOCAL_DATABASE): Promi
       return transaction([LIBRARIES, OUTBOX], async (tx) => {
         const before = validRecord(await request<LocalLibraryRecord | undefined>(tx.objectStore(LIBRARIES).get(owner)), owner)
         if (!before) throw new LocalDurabilityError('missing', 'No local library exists for this owner.')
-        const next = validLibrary(change(before.library))
+        const changed = change(before.library)
+        // The usual no-op hands back what it was given. Say so before parsing and
+        // serialising the whole library twice more to find out.
+        if (changed === before.library) return before
+        const next = validLibrary(changed)
         if (JSON.stringify(next) === JSON.stringify(before.library)) return before
         const revision = before.revision + 1
         if (!Number.isSafeInteger(revision)) throw new LocalDurabilityError('corrupt', 'The local revision counter needs recovery.')

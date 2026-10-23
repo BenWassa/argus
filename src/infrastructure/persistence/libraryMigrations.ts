@@ -208,9 +208,15 @@ export function refreshShippedLearn(library: CurrentLibrary): CurrentLibrary {
   return changed ? { ...library, topics } : library
 }
 
+// Read-only reference for the exact-predecessor upgrades. Parsed once: it was
+// parsed on every publish of the library, twice.
+let unreconciledSeed: CurrentLibrary | null = null
+
 function freshSeedLibraryUnreconciled(): CurrentLibrary {
+  if (unreconciledSeed) return unreconciledSeed
   const parsed = parseLibrary(seedLibrary())
-  return parsed.ok ? parsed.library : { version: 5, topics: [] }
+  unreconciledSeed = parsed.ok ? parsed.library : { version: 5, topics: [] }
+  return unreconciledSeed
 }
 
 const SCUBA_EQUIPMENT_ID = 'scuba-equipment-abbreviations'
