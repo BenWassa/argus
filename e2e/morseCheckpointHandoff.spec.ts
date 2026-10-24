@@ -116,7 +116,7 @@ async function driveLessonFourToInvitation(page: Page) {
   throw new Error('Did not reach the checkpoint invitation within 40 steps.')
 }
 
-test('Lesson 4 completion surfaces the checkpoint invitation automatically, gated like every other terminal screen', async ({ page }) => {
+test('Lesson 4 completion surfaces the gated invitation and skipping keeps the checkpoint available on the path', async ({ page }) => {
   await openLessonFour(page)
   await driveLessonFourToInvitation(page)
 
@@ -131,11 +131,22 @@ test('Lesson 4 completion surfaces the checkpoint invitation automatically, gate
   await expect(start).toBeEnabled({ timeout: 2_000 })
   await expect(page.locator('.lesson-exits[inert]')).toHaveCount(0)
 
-  await skip.click()
-  // Skipping returns to the completed lesson; continuing starts Lesson 5.
-  await expect(page.getByRole('heading', { name: 'Lesson 4 done' })).toBeVisible()
-  await page.getByRole('button', { name: 'Next lesson', exact: true }).click()
-  await expect(page.locator('.session-frame-title').filter({ hasText: /^Lesson 5$/ })).toBeVisible()
+  // Both skip contracts share this real Lesson 4 completion and the same
+  // Skip → Lesson 5 traversal; only the Start branch needs another sitting.
+  await test.step('skipping returns to the completed lesson and permits Lesson 5', async () => {
+    await expect(skip).toBeEnabled({ timeout: 2_000 })
+    await skip.click()
+    await expect(page.getByRole('heading', { name: 'Lesson 4 done' })).toBeVisible()
+    await page.getByRole('button', { name: 'Next lesson', exact: true }).click()
+    await expect(page.locator('.session-frame-title').filter({ hasText: /^Lesson 5$/ })).toBeVisible()
+  })
+
+  await test.step('the skipped checkpoint remains available on the topic path', async () => {
+    await page.getByRole('button', { name: 'Close' }).click()
+    // The lesson was started from the topic page, so closing returns there.
+    await expect(page.getByRole('heading', { name: 'International Morse Code', level: 1 })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Words after Lesson 4, reached' })).toBeVisible()
+  })
 })
 
 test('starting the invitation goes directly into the checkpoint', async ({ page }) => {
@@ -150,22 +161,4 @@ test('starting the invitation goes directly into the checkpoint', async ({ page 
   // (`MorseLesson.test.tsx`); this only needs to prove the real page reached
   // the checkpoint directly, with no stop at the lesson path in between.
   await expect(page.getByRole('heading', { name: 'Learn Morse A–Z' })).toHaveCount(0)
-})
-
-test('the checkpoint remains available on the path after the automatic invitation is skipped', async ({ page }) => {
-  await openLessonFour(page)
-  await driveLessonFourToInvitation(page)
-  await expect(page.getByRole('button', { name: 'Skip', exact: true })).toBeEnabled({ timeout: 2_000 })
-  await page.getByRole('button', { name: 'Skip', exact: true }).click()
-
-  await expect(page.getByRole('heading', { name: 'Lesson 4 done' })).toBeVisible()
-  await page.getByRole('button', { name: 'Next lesson', exact: true }).click()
-  await expect(page.locator('.session-frame-title').filter({ hasText: /^Lesson 5$/ })).toBeVisible()
-  await page.getByRole('button', { name: 'Close' }).click()
-
-  // Skipping is non-gating and leaves the checkpoint on the curriculum, which
-  // is the topic page's body rather than a screen inside the run. The lesson
-  // was started from that page, so closing it lands back on it.
-  await expect(page.getByRole('heading', { name: 'International Morse Code', level: 1 })).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Words after Lesson 4, reached' })).toBeVisible()
 })
