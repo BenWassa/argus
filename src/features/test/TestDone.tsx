@@ -6,6 +6,7 @@ import { fire } from '../../shared/haptics'
 import { SessionFrame, RoundResult } from '../../shared/ui/SessionFrame'
 import type { BankedAttempt } from './bankedAttempt'
 import './TestDone.css'
+import { SaveBar } from '../../shared/ui/SaveBar'
 import type { Topic } from '../../domain/library/topic'
 
 /** A finished review: scored for the learner, never an attempt. */
@@ -182,7 +183,7 @@ export function TestDone({
       {saveNote && (
         <div className="test-save-note">
           <p className="test-outcome" role="status">{saveNote}</p>
-          <div className="save-bar" aria-hidden="true" />
+          <SaveBar />
         </div>
       )}
       <RoundResult

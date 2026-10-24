@@ -43,10 +43,11 @@ vi.mock('../../infrastructure/persistence/indexedLibraryRepository', () => ({
   }),
 }))
 
-// A shortened stall threshold; the production value is STALLED_AFTER_MS.
+// A shortened stall threshold; the production value is STALLED_AFTER_MS. Long enough
+// that a loaded machine cannot reveal the result before a test has checked it is hidden.
 vi.mock('../../services/library/useDurableWrites', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../../services/library/useDurableWrites')>()
-  return { ...actual, useDurableWrites: () => actual.useDurableWrites(500) }
+  return { ...actual, useDurableWrites: () => actual.useDurableWrites(1500) }
 })
 
 vi.setConfig({ testTimeout: 20_000 })

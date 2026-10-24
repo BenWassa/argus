@@ -25,19 +25,31 @@ export function isShippedCatalogId(id: string): boolean {
  * catalog delivery deliberately strips all of it.
  */
 export function catalogDefinitions(): Topic[] {
-  const byId = new Map(seedLibrary().topics.map((topic) => [topic.id, topic]))
-  return SHIPPED_CATALOG_TOPIC_IDS.map((id) => {
-    const topic = byId.get(id)
+  return definitionsCache().list
+}
+
+export function catalogDefinition(id: string): Topic | null {
+  return definitionsCache().byId.get(id) ?? null
+}
+
+// The definitions are pure content and are asked for on every publish of the
+// library (once per topic, by the migrations that refresh shipped Learn, scopes
+// and titles), so build them once. Nothing may mutate a definition; every
+// caller restates what it needs onto a copy.
+let definitions: { list: Topic[]; byId: Map<string, Topic> } | null = null
+
+function definitionsCache(): { list: Topic[]; byId: Map<string, Topic> } {
+  if (definitions) return definitions
+  const seeded = new Map(seedLibrary().topics.map((topic) => [topic.id, topic]))
+  const list = SHIPPED_CATALOG_TOPIC_IDS.map((id) => {
+    const topic = seeded.get(id)
     if (!topic) {
       throw new Error(`Shipped catalog manifest lists "${id}", which the seed does not define.`)
     }
     return topic
   })
-}
-
-export function catalogDefinition(id: string): Topic | null {
-  if (!isShippedCatalogId(id)) return null
-  return catalogDefinitions().find((topic) => topic.id === id) ?? null
+  definitions = { list, byId: new Map(list.map((topic) => [topic.id, topic])) }
+  return definitions
 }
 
 /**

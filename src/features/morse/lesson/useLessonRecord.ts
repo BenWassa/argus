@@ -50,6 +50,8 @@ export function useLessonRecord(topicId: string, replay = false) {
   return {
     /** Whether any lesson write is saving, and whether any still needs repeating. */
     saving: writes.pending > 0,
+    /** Saving for long enough that the learner should be told. Not a failure. */
+    slow: writes.stalled,
     unsaved: writes.failed > 0,
     /** `true` when everything written is committed; otherwise whether it now is. */
     settle: writes.settle,

@@ -15,6 +15,7 @@ import { MORSE_FEEDBACK_CORRECT_MS } from '../../../domain/morse/response'
 import type { CurrentLibrary } from '../../../domain/library/library'
 import type { Topic } from '../../../domain/library/topic'
 import { useLessonProgression } from './useLessonProgression'
+import { STALLED_AFTER_MS } from '../../../services/library/useDurableWrites'
 
 /**
  * A lesson's verdict is shown, then it moves on to "Lesson N done". The move is
@@ -105,6 +106,29 @@ afterEach(() => {
 })
 
 describe('a lesson moves on only after its answer is durable', () => {
+  it('says it is still saving, without calling it a failure, when the save is slow, then completes', async () => {
+    let release!: () => void
+    fixture.gate = new Promise<void>((resolve) => { release = resolve })
+    const { hook, itemId, pattern } = await mountedNearEnd()
+
+    act(() => { hook.result.current.answerVisual(itemId, pattern) })
+    act(() => { vi.advanceTimersByTime(MORSE_FEEDBACK_CORRECT_MS + 10) })
+    await flush()
+    expect(hook.result.current.saveSlow).toBe(false)
+
+    act(() => { vi.advanceTimersByTime(STALLED_AFTER_MS + 100) })
+    await flush()
+    expect(hook.result.current.saveSlow).toBe(true)
+    expect(hook.result.current.saveHeld).toBe(false)
+    expect(hook.result.current.run.complete).toBe(false)
+
+    release()
+    await flush()
+    await flush()
+    expect(hook.result.current.saveSlow).toBe(false)
+    expect(hook.result.current.run.complete).toBe(true)
+  })
+
   it('holds the verdict while the final answer is saving, then completes the lesson', async () => {
     let release!: () => void
     fixture.gate = new Promise<void>((resolve) => { release = resolve })
