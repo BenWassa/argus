@@ -15,10 +15,18 @@ test('topic tray clears navigation and final controls remain reachable with enla
       return page.viewportSize()!.width >= 980 || action.y + action.height <= nav.y
     }).toBe(true)
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
-    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
-    const target = await page.getByRole('button', { name: /Sources and limitations/ }).boundingBox()
-    const dock = await page.locator('.topic-tray, .topic-morse-tray').boundingBox()
-    if (page.viewportSize()!.width < 980) expect(target!.y + target!.height).toBeLessThanOrEqual(dock!.y)
+    // Scroll to the end and measure again until the page stops moving: a text-size
+    // change reflows after the scroll, so one measurement straight after it can read
+    // a layout that is still settling. A control that really stays under the dock
+    // fails every pass, so this does not loosen the claim.
+    if (page.viewportSize()!.width < 980) {
+      await expect.poll(async () => {
+        await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
+        const target = await page.getByRole('button', { name: /Sources and limitations/ }).boundingBox()
+        const dock = await page.locator('.topic-tray, .topic-morse-tray').boundingBox()
+        return target && dock ? target.y + target.height <= dock.y : false
+      }).toBe(true)
+    }
   }
 })
 
