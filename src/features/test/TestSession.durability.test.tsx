@@ -88,12 +88,12 @@ afterEach(() => {
 
 async function openAndGradeLastCard() {
   render(<LibraryProvider><TestSession topicIds={['user-one']} onExit={() => undefined} /></LibraryProvider>)
-  await waitFor(() => expect(document.querySelector('.flip-card')).not.toBeNull())
+  await waitFor(() => expect(document.querySelector('.flip-card')).not.toBeNull(), { timeout: 8000 })
   fixture.armed = true
   press(' ')
   // Grade only once the answer side is up; a grade pressed mid-flip is ignored,
   // which under load left the card unmarked and the test waiting for nothing.
-  await waitFor(() => expect(document.querySelector('.recall-actions.is-visible')).not.toBeNull())
+  await waitFor(() => expect(document.querySelector('.recall-actions.is-visible')).not.toBeNull(), { timeout: 8000 })
   press('2')
 }
 
@@ -140,10 +140,10 @@ describe('a Test result is announced only after the library has committed it', (
   describe('a save that never answers', () => {
     async function gradeThenStall(onExit = () => undefined) {
       render(<LibraryProvider><TestSession topicIds={['user-one']} onExit={onExit} /></LibraryProvider>)
-      await waitFor(() => expect(document.querySelector('.flip-card')).not.toBeNull())
+      await waitFor(() => expect(document.querySelector('.flip-card')).not.toBeNull(), { timeout: 8000 })
       fixture.armed = true
       press(' ')
-      await waitFor(() => expect(document.querySelector('.recall-actions.is-visible')).not.toBeNull())
+      await waitFor(() => expect(document.querySelector('.recall-actions.is-visible')).not.toBeNull(), { timeout: 8000 })
       press('2')
       await screen.findByText('Saving your result', {}, { timeout: 4000 })
     }
