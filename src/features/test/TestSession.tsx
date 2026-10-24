@@ -177,7 +177,7 @@ export function TestSession({ topicIds, review = false, onExit, onPractice, onPl
     }
     // A result that is saving, or did not save, is only ever left through the
     // buttons that say so; a stray Back must not silently drop it.
-    if (writes.pending > 0 || writes.failed > 0) return true
+    if ((writes.pending > 0 && !writes.stalled) || writes.failed > 0) return true
     if (tally.total > 0) {
       setConfirmingExit(true)
       return true
@@ -608,11 +608,12 @@ export function TestSession({ topicIds, review = false, onExit, onPractice, onPl
     )
   }
 
-  if (view.kind === 'done' && writes.pending > 0) {
+  if (view.kind === 'done' && writes.pending > 0 && !writes.stalled) {
     return (
       <section className="session" role="status" aria-live="polite">
         <h1>Saving your result</h1>
         <p>Keeping this on your device before showing it.</p>
+        <div className="save-bar" aria-hidden="true" />
       </section>
     )
   }
@@ -640,6 +641,8 @@ export function TestSession({ topicIds, review = false, onExit, onPractice, onPl
   if (view.kind === 'done' || !card) {
     return (
       <TestDone
+        // Slow, not failed: the result is shown from memory and the write carries on.
+        saveNote={writes.pending > 0 ? 'Still saving to this device. This can take a moment.' : undefined}
         banked={banked}
         reviewed={reviewed}
         missed={missedItems.current}

@@ -1,11 +1,20 @@
-import { useCallback, useReducer, useRef } from 'react'
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 
 /** What a store write returns: nothing (synchronous legacy store) or whether it committed. */
 export type StoreWrite = void | Promise<boolean>
 
+/** How long a write may stay unanswered before a surface should offer a way out. */
+export const STALLED_AFTER_MS = 2000
+
 export interface DurableWrites {
   /** Writes issued and not yet committed or failed. */
   pending: number
+  /**
+   * Writes have been pending for a long time without an answer. This is not a
+   * failure: the transaction may still commit, and when it does `pending` falls
+   * to zero and `stalled` clears by itself. A pending write is never repeated.
+   */
+  stalled: boolean
   /** Writes whose transaction was rejected and which are still owed. */
   failed: number
   /**
@@ -34,10 +43,11 @@ export interface DurableWrites {
  * surface can wait for it, say plainly when it did not save, and repeat it
  * without the learner losing what they did.
  */
-export function useDurableWrites(): DurableWrites {
+export function useDurableWrites(stalledAfterMs: number = STALLED_AFTER_MS): DurableWrites {
   const inflight = useRef(new Set<Promise<boolean>>())
   const owed = useRef<Array<() => StoreWrite>>([])
   const [, render] = useReducer((n: number) => n + 1, 0)
+  const [stalled, setStalled] = useState(false)
 
   const track = useCallback((run: () => StoreWrite) => {
     const result = run()
@@ -70,8 +80,16 @@ export function useDurableWrites(): DurableWrites {
     return settle()
   }, [settle, track])
 
+  const pending = inflight.current.size
+  useEffect(() => {
+    if (pending === 0) { setStalled(false); return }
+    const timer = setTimeout(() => setStalled(true), stalledAfterMs)
+    return () => clearTimeout(timer)
+  }, [pending, stalledAfterMs])
+
   return {
-    pending: inflight.current.size,
+    pending,
+    stalled: pending > 0 && stalled,
     failed: owed.current.length,
     track,
     settle,

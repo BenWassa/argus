@@ -214,6 +214,25 @@ export function wouldLoseEvidence(remoteJson: string, local: Topic): boolean {
   return !covers(remote, weigh(local))
 }
 
+/** Installation timestamps and JSON key order do not represent learner edits. */
+function sameTopicRecord(local: Topic, remoteJson: string): boolean {
+  function canonical(value: unknown): unknown {
+    if (Array.isArray(value)) return value.map(canonical)
+    if (!value || typeof value !== 'object') return value
+    return Object.fromEntries(Object.entries(value).sort(([a], [b]) => a.localeCompare(b))
+      .map(([key, entry]) => [key, canonical(entry)]))
+  }
+  try {
+    const remote: unknown = JSON.parse(remoteJson)
+    if (!remote || typeof remote !== 'object' || Array.isArray(remote)) return false
+    const { createdAt: _localCreated, ...mine } = local
+    const { createdAt: _remoteCreated, ...theirs } = remote as Record<string, unknown>
+    return JSON.stringify(canonical(mine)) === JSON.stringify(canonical(theirs))
+  } catch {
+    return false
+  }
+}
+
 /**
  * What to do about a topic on both sides that this device has never synced.
  *
@@ -227,7 +246,9 @@ export function wouldLoseEvidence(remoteJson: string, local: Topic): boolean {
  * holds something the other does not, and that is a real conflict.
  */
 function firstMeeting(localJson: string, local: Topic, record: RemoteRecord): SyncAction | null {
-  if (localJson === record.json) return null
+  if (sameTopicRecord(local, record.json)) {
+    return { kind: 'adopt', topicId: local.id, json: record.json, revision: record.revision }
+  }
   const remote = weighJson(record.json)
   // A remote copy this build cannot read is not evidence that it is worth less
   // than the local one: it may be a later build's format. Pushing over it would
@@ -319,7 +340,7 @@ export function planSync(
     // Both moved, but to the same record: two devices applying the same
     // migration arrive here. There is nothing to settle, so take the server's
     // revision rather than report agreement as a conflict.
-    if (json === record.json) {
+    if (sameTopicRecord(local, record.json)) {
       actions.push({ kind: 'adopt', topicId: id, json: record.json, revision: record.revision })
       continue
     }

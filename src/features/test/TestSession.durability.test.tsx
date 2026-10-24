@@ -43,6 +43,12 @@ vi.mock('../../infrastructure/persistence/indexedLibraryRepository', () => ({
   }),
 }))
 
+// A shortened stall threshold; the production value is STALLED_AFTER_MS.
+vi.mock('../../services/library/useDurableWrites', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../services/library/useDurableWrites')>()
+  return { ...actual, useDurableWrites: () => actual.useDurableWrites(500) }
+})
+
 vi.setConfig({ testTimeout: 20_000 })
 
 const ownerKey = '__argus_unclaimed_local__'
@@ -82,9 +88,12 @@ afterEach(() => {
 
 async function openAndGradeLastCard() {
   render(<LibraryProvider><TestSession topicIds={['user-one']} onExit={() => undefined} /></LibraryProvider>)
-  await waitFor(() => expect(document.querySelector('.flip-card')).not.toBeNull())
+  await waitFor(() => expect(document.querySelector('.flip-card')).not.toBeNull(), { timeout: 8000 })
   fixture.armed = true
   press(' ')
+  // Grade only once the answer side is up; a grade pressed mid-flip is ignored,
+  // which under load left the card unmarked and the test waiting for nothing.
+  await waitFor(() => expect(document.querySelector('.recall-actions.is-visible')).not.toBeNull(), { timeout: 8000 })
   press('2')
 }
 
@@ -126,5 +135,40 @@ describe('a Test result is announced only after the library has committed it', (
     fireEvent.click(screen.getByRole('button', { name: 'Try saving again' }))
     await waitFor(() => expect(document.querySelector('.test-done')).not.toBeNull(), { timeout: 8000 })
     expect(stored().history).toHaveLength(1)
+  })
+
+  describe('a save that never answers', () => {
+    async function gradeThenStall(onExit = () => undefined) {
+      render(<LibraryProvider><TestSession topicIds={['user-one']} onExit={onExit} /></LibraryProvider>)
+      await waitFor(() => expect(document.querySelector('.flip-card')).not.toBeNull(), { timeout: 8000 })
+      fixture.armed = true
+      press(' ')
+      await waitFor(() => expect(document.querySelector('.recall-actions.is-visible')).not.toBeNull(), { timeout: 8000 })
+      press('2')
+      await screen.findByText('Saving your result', {}, { timeout: 4000 })
+    }
+
+    it('shows the result from memory with a saving note instead of waiting indefinitely, and offers no failure', async () => {
+      fixture.gate = new Promise<void>(() => {})
+      const onExit = vi.fn()
+      await gradeThenStall(onExit)
+      await waitFor(() => expect(document.querySelector('.test-done')).not.toBeNull(), { timeout: 4000 })
+      expect(screen.getByText(/Still saving to this device/)).toBeTruthy()
+      expect(screen.queryByText('Result not saved')).toBeNull()
+      expect(stored().history).toHaveLength(0)
+      fireEvent.click(screen.getAllByRole('button', { name: /close|done/i })[0])
+      expect(onExit).toHaveBeenCalled()
+    })
+
+    it('banks exactly once and clears the note if the held write commits after the result was shown', async () => {
+      let release!: () => void
+      fixture.gate = new Promise<void>((resolve) => { release = resolve })
+      await gradeThenStall()
+      await waitFor(() => expect(screen.queryByText(/Still saving to this device/)).not.toBeNull(), { timeout: 4000 })
+      release()
+      await waitFor(() => expect(screen.queryByText(/Still saving to this device/)).toBeNull(), { timeout: 8000 })
+      expect(document.querySelector('.test-done')).not.toBeNull()
+      expect(stored().history).toHaveLength(1)
+    })
   })
 })

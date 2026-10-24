@@ -32,6 +32,7 @@ import { journeyFor } from '../../domain/study/journey'
 import type { Topic } from '../../domain/library/topic'
 import type { CurrentLibrary } from '../../domain/library/library'
 import { captureRoleAwards, mergeRoleAwards, type RoleAward } from '../../domain/roles/awards'
+import { recordSave } from './saveTimings'
 
 /** An unclaimed library stays separate from all UID namespaces. */
 const UNCLAIMED_OWNER = '__argus_unclaimed_local__'
@@ -293,6 +294,9 @@ function migrationInput(
   return { seed: reconcileLoadedLibrary(parsed.library).library, legacy }
 }
 
+/** A save this slow is worth a diagnostic line; the learner sees nothing yet. */
+const SLOW_SAVE_MS = 5000
+
 /** Production: committed IndexedDB state is the only published learner state. */
 function IndexedLibraryProvider({ children }: { children: ReactNode }) {
   const [library, setLibrary] = useState<CurrentLibrary>(() => freshSeedLibrary())
@@ -369,15 +373,38 @@ function IndexedLibraryProvider({ children }: { children: ReactNode }) {
     // Bound to the namespace of the render that handed this function out, not to
     // whichever account is active when the queue reaches it.
     const key = libraryKey
+    // Timing only: which phase a slow save is in and for how long. Nothing the
+    // learner answered, and no owner key, ever reaches the log.
+    const queuedAt = Date.now()
+    let phase: 'queued' | 'writing' | 'publishing' | 'settled' = 'queued'
+    let startedAt = 0
+    const watchdog = setTimeout(() => {
+      console.warn('[argus] local save is slow', {
+        phase, waitedMs: Date.now() - queuedAt, writingMs: startedAt ? Date.now() - startedAt : 0,
+      })
+    }, SLOW_SAVE_MS)
     const run = async () => {
       const db = repository.current
       if (!db || !key) throw new Error('Local storage is not ready.')
       if (activeOwner.current !== key) throw new AccountChangedError()
+      phase = 'writing'
+      startedAt = Date.now()
       const row = await db.update(key, change)
+      phase = 'publishing'
       if (activeOwner.current === key) install(row.library)
       setFailure(null)
     }
-    const result = queue.current.then(run).then(() => true, (error: unknown) => {
+    let wrote = true
+    const result = queue.current.then(run).catch((error: unknown) => { wrote = false; throw error }).finally(() => {
+      clearTimeout(watchdog)
+      const now = Date.now()
+      if (phase !== 'queued' && now - queuedAt >= SLOW_SAVE_MS) {
+        console.info('[argus] slow local save settled', { waitedMs: now - queuedAt })
+      }
+      // A write that never started (refused for another account) has no timing worth showing.
+      if (startedAt) recordSave({ waitMs: startedAt - queuedAt, writeMs: now - startedAt, ok: wrote })
+      phase = 'settled'
+    }).then(() => true, (error: unknown) => {
       // A change made for another account is refused, not a fault of this
       // device's storage; the caller reports it and nothing is shown globally.
       if (!(error instanceof AccountChangedError)) {

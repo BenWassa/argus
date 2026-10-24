@@ -1,51 +1,14 @@
 rules_version = '2';
 
-// Argus — Firestore Security Rules.
-//
-// Argus keeps two things in the cloud, both belonging to one owner:
-//
-//   users/{uid}/inbox   — captured content requests (intent, not progress)
-//   users/{uid}/library — the synced learning record itself
-//
-// The learning record used to be local-only. It is now synced so one owner can
-// carry a single record across their own devices. That does not loosen the
-// evidence contract: these rules still refuse anything but the owner, and the
-// v5 parse boundary in `src/lib/storage.ts` remains the arbiter of shape.
-//
-// The owner placeholder below is rendered by `npm run inbox:rules`, which reads
-// ARGUS_OWNER_EMAIL. The resulting `firestore.rules` is generated and untracked.
-// The address is an identity, not a credential.
-//
-// Identity is the owner's verified Google address rather than a pinned UID. A
-// UID only exists after a first sign-in, so pinning one made the rules
-// undeployable until somebody had already signed in against rules that did not
-// yet name them. An address is known before the fact and survives the account
-// being re-created, and `request.auth.uid` still keys every path.
-//
-// It is a *list* because one Google account can present more than one address.
-// An account originally created on googlemail.com answers to both that and the
-// gmail.com form, and which one reaches the token is not something this project
-// gets to decide. Matching a single spelling would deny the real owner on the
-// day Google handed over the other one, and the failure would look exactly like
-// a bug in sync rather than a rule refusing them.
-
+// Generated using ARGUS_ALLOWED_IDENTITIES: exact UID/email pairs.
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function ownerEmails() {
-      return [__ARGUS_OWNER_EMAILS__];
-    }
-
-    // One person, named explicitly, and only through a provider that proved the
-    // address. Being signed in is not enough, and owning the path is not enough:
-    // there is no public or anonymous write path into this project, and no
-    // second account can create one by signing up. Every address in the list
-    // belongs to the same person; it is one identity spelled more than one way,
-    // not several people.
+    // Both claims must match the same configured identity. No email aliases.
     function owner() {
       return request.auth != null
         && request.auth.token.email_verified == true
-        && request.auth.token.email.lower() in ownerEmails();
+        && (__ARGUS_ALLOWED_IDENTITIES__);
     }
 
     function soleUser(userId) {
