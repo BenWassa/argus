@@ -21,6 +21,25 @@ import { hasPractice, practiceItemCount } from '../../domain/study/practiceTarge
  * attempt it banks. The end screen and the topic page read that one record.
  */
 
+/**
+ * Nothing here is about motion, and a 26-card deck waits for the real exit
+ * animation 26 times (about 11s a test). Reduced motion is answered once per
+ * module by the animation library, so this file is the reduced-motion device;
+ * the grade, the bank and the offer mean exactly what they mean with motion.
+ * The confidentiality-during-transition claim is tested in TestSession.test.tsx
+ * with the real animation.
+ */
+window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+  matches: query.includes('prefers-reduced-motion'),
+  media: query,
+  onchange: null,
+  addListener: () => undefined,
+  removeListener: () => undefined,
+  addEventListener: () => undefined,
+  removeEventListener: () => undefined,
+  dispatchEvent: () => false,
+})) as unknown as typeof window.matchMedia
+
 function seededTopic(id: string): Topic {
   const found = seedLibrary().topics.find((topic) => topic.id === id)
   if (!found) throw new Error(`no seeded topic ${id}`)
