@@ -84,6 +84,7 @@ The active [execution checkpoint](docs/open/NEXT_BATCHES.md) tracks three open P
 - [Pre-release PR review](docs/closed/PRE_RELEASE_PR_REVIEW.md) — merge readiness, prepared cleanup and the outstanding offline durability blocker.
 - [Human acceptance checklist](docs/open/HUMAN_ACCEPTANCE_CHECKLIST.md) — one review session for prepared scuba, Analyst, radio, badge, Pixel, offline and permission gates.
 - [Current execution queue (22 October 2026)](docs/open/NEXT_BATCHES.md) — merged implementation vs open PRs, Pixel acceptance, offline integration and source-review gates; [October 15 checkpoint](docs/closed/NEXT_BATCHES_2026_10_15.md) is archived.
+- [CI and test-time scope (#273)](docs/open/ISSUE_CI_TESTING_SCOPE.md) — inventory and measurement plan before changing CI coverage or execution policy.
 - [Signal-on-Slate overhaul (#225)](docs/open/ISSUE_225_UI_OVERHAUL.md) — integrated to `main` via [#271](https://github.com/BenWassa/argus/pull/271) on 20 October; child implementation issues closed, owner Pixel/release acceptance still open under #225/#233 (Morse critique 31/40, target 32/40).
 - [Offline shell and update safety](docs/open/ISSUE_113_OFFLINE_SHELL.md) — generation-pinned navigation and failed-update verification; merged hardening.
 - [IndexedDB persistence foundation](docs/open/ISSUE_113_INDEXEDDB_FOUNDATION.md) — native database/outbox boundary, production-provider integration with serialized owner binds and completion-durability contracts (supersedes draft #214); durable sync, offline auth and shell work remain open.
