@@ -137,6 +137,14 @@ export interface Topic {
    */
   lessonProgress?: ItemLessonStore
   /**
+   * Which lesson stages the learner has finished, by stage id, with when (#296).
+   * Additive within v5: absent means no stage finished. Formative only: it is
+   * never item evidence, never history and never read by a Test. Stage ids are
+   * not checked against a curriculum on load, so a lesson that is later removed
+   * or renamed leaves a harmless unknown key rather than failing the library.
+   */
+  stageProgress?: Readonly<Record<string, string>>
+  /**
    * Current finite Morse Learn sitting (#59, #66). Additive within v5: absent
    * means a fresh 0/10 sitting. This is portable formative state only and is
    * never formal evidence. Since #66 it is the sole durable authority: no

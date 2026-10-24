@@ -1,3 +1,4 @@
+import { STAGE_ID_PATTERN } from '../../domain/learning/stages'
 import { parseSequence } from './sequenceParser'
 import {
   LEARN_KINDS,
@@ -853,6 +854,38 @@ function parseMorseReviewItem(
  * - a history that records nothing normalises back to the absent field, so an
  *   empty history has exactly one representation.
  */
+/**
+ * `Topic.stageProgress` (#296): stage id to when it was finished.
+ *
+ * Strict about shape, lenient about meaning. Ids must be well formed and the
+ * times real, but an id is not checked against any curriculum, so removing or
+ * renaming a lesson later cannot make an old library unreadable.
+ */
+const MAX_STAGE_PROGRESS = 64
+function parseStageProgress(
+  value: unknown,
+  where: string,
+): { ok: true; value: Record<string, string> | undefined } | { ok: false; error: string } {
+  if (value === undefined) return { ok: true, value: undefined }
+  if (!isRecord(value)) return { ok: false, error: `${where} stageProgress must be an object.` }
+  const entries = Object.entries(value)
+  if (entries.length === 0) return { ok: true, value: undefined }
+  if (entries.length > MAX_STAGE_PROGRESS) {
+    return { ok: false, error: `${where} stageProgress has more than ${MAX_STAGE_PROGRESS} stages.` }
+  }
+  const out: Record<string, string> = {}
+  for (const [stageId, at] of entries) {
+    if (!STAGE_ID_PATTERN.test(stageId)) {
+      return { ok: false, error: `${where} stageProgress has a malformed stage id "${stageId.slice(0, 40)}".` }
+    }
+    if (typeof at !== 'string' || !/^\d{4}-\d{2}-\d{2}T/.test(at) || !Number.isFinite(Date.parse(at))) {
+      return { ok: false, error: `${where} stageProgress "${stageId}" needs the time it was finished.` }
+    }
+    out[stageId] = at
+  }
+  return { ok: true, value: out }
+}
+
 function parseMorseReview(
   value: unknown,
   where: string,
@@ -1015,6 +1048,9 @@ function parseTopic(
   )
   if (!lessonSitting.ok) return lessonSitting
 
+  const stageProgress = parseStageProgress(t.stageProgress, `${where} ("${title}")`)
+  if (!stageProgress.ok) return stageProgress
+
   const morseReview = parseMorseReview(
     t.morseReview,
     `${where} ("${title}")`,
@@ -1093,6 +1129,7 @@ function parseTopic(
       ...(audioEvidence.value ? { audioEvidence: audioEvidence.value } : {}),
       lessonProgress: lessonProgress.value,
       ...(lessonSitting.value ? { lessonSitting: lessonSitting.value } : {}),
+      ...(stageProgress.value ? { stageProgress: stageProgress.value } : {}),
       ...(morseReview.value ? { morseReview: morseReview.value } : {}),
       ...(morseFluency.value ? { morseFluency: morseFluency.value } : {}),
       ...(morsePractice.value ? { morsePractice: morsePractice.value } : {}),

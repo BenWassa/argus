@@ -1111,3 +1111,41 @@ describe('the missed items kept on an attempt', () => {
     expect(roundTrip([{ ...entry, missedItemIds: 'nope' }, { ...entry, missedItemIds: [] }, entry])).toEqual([entry, entry, entry])
   })
 })
+
+describe('stageProgress (#296)', () => {
+  const at = '2026-10-23T12:00:00.000Z'
+  const withProgress = (stageProgress: unknown) => {
+    const library = JSON.parse(JSON.stringify(seedLibrary()))
+    library.topics[0].stageProgress = stageProgress
+    return library
+  }
+
+  it('is kept through a parse, an export and a second parse', () => {
+    const first = parseLibrary(withProgress({ agree: at, 'ending-turns': at }))
+    expect(first.ok).toBe(true)
+    if (!first.ok) return
+    expect(first.library.topics[0].stageProgress).toEqual({ agree: at, 'ending-turns': at })
+    const again = parseLibrary(JSON.parse(JSON.stringify(first.library)))
+    expect(again.ok && again.library.topics[0].stageProgress).toEqual({ agree: at, 'ending-turns': at })
+  })
+
+  it('stays absent when there is none, and an empty record is treated as none', () => {
+    for (const value of [undefined, {}]) {
+      const parsed = parseLibrary(withProgress(value))
+      expect(parsed.ok && 'stageProgress' in parsed.library.topics[0]).toBe(false)
+    }
+  })
+
+  it('keeps a stage id no curriculum knows, so removing a lesson cannot break a library', () => {
+    const parsed = parseLibrary(withProgress({ 'a-lesson-later-removed': at }))
+    expect(parsed.ok && parsed.library.topics[0].stageProgress).toEqual({ 'a-lesson-later-removed': at })
+  })
+
+  it('refuses a malformed shape, id or time', () => {
+    for (const bad of [[], 'done', { 'Bad Id': at }, { agree: 'yesterday' }, { agree: 3 }, { agree: true }]) {
+      expect(parseLibrary(withProgress(bad)).ok).toBe(false)
+    }
+    const many = Object.fromEntries(Array.from({ length: 65 }, (_, i) => [`stage-${i}`, at]))
+    expect(parseLibrary(withProgress(many)).ok).toBe(false)
+  })
+})

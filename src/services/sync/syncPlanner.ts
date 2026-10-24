@@ -154,6 +154,8 @@ interface Weight {
   evidence: number
   settledLessons: number
   acquisitionReady: number
+  /** Lesson stages finished (#296). Monotonic: a stage is never un-finished. */
+  stages: number
 }
 
 function size(value: unknown): number {
@@ -170,12 +172,14 @@ function weigh(value: {
   itemEvidence?: unknown
   lessonProgress?: unknown
   acquisitionReadyAt?: unknown
+  stageProgress?: unknown
 }): Weight {
   return {
     history: Array.isArray(value.history) ? value.history.length : 0,
     evidence: size(value.itemEvidence),
     settledLessons: settledLessonCount(value.lessonProgress),
     acquisitionReady: typeof value.acquisitionReadyAt === 'string' ? 1 : 0,
+    stages: size(value.stageProgress),
   }
 }
 
@@ -188,6 +192,7 @@ function weighJson(json: string): Weight | null {
       itemEvidence?: unknown
       lessonProgress?: unknown
       acquisitionReadyAt?: unknown
+      stageProgress?: unknown
     })
   } catch {
     return null
@@ -200,6 +205,7 @@ function covers(a: Weight, b: Weight): boolean {
     && a.evidence >= b.evidence
     && a.settledLessons >= b.settledLessons
     && a.acquisitionReady >= b.acquisitionReady
+    && a.stages >= b.stages
 }
 
 export function wouldLoseEvidence(remoteJson: string, local: Topic): boolean {
