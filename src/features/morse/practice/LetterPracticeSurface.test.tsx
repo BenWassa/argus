@@ -85,10 +85,10 @@ describe('LetterPracticeSurface', () => {
     storeTopic(topicWithLetters(['E', 'T', 'I', 'M']))
     renderSurface(vi.fn(), 'read')
     const before = JSON.parse(localStorage.getItem(STORAGE_KEY)!).topics.find((topic: Topic) => topic.id === MORSE_ID)
-    expect(screen.getAllByRole('button', { name: /^Letter [A-Z]$/ })).toHaveLength(4)
+    expect(screen.getAllByRole('button', { name: /^[A-Z], letter$/ })).toHaveLength(4)
     const rhythm = screen.getByRole('img', { name: /^(dit|dah)/ }).getAttribute('aria-label')
     const target = (['E', 'T', 'I', 'M'] as const).find((letter) => spokenRhythm(MORSE_LETTERS[letter]) === rhythm)!
-    fireEvent.click(screen.getByRole('button', { name: `Letter ${target}` }))
+    fireEvent.click(screen.getByRole('button', { name: `${target}, letter` }))
     const after = JSON.parse(localStorage.getItem(STORAGE_KEY)!).topics.find((topic: Topic) => topic.id === MORSE_ID)
 
     expect(after.morseRecognition.streams['read/practice'].characters[target].outcomes).toEqual([true])
@@ -103,7 +103,7 @@ describe('LetterPracticeSurface', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Speed' }))
     const rhythm = screen.getByRole('img', { name: /^(dit|dah)/ }).getAttribute('aria-label')
     const target = (['E', 'T', 'I', 'M'] as const).find((letter) => spokenRhythm(MORSE_LETTERS[letter]) === rhythm)!
-    fireEvent.click(screen.getByRole('button', { name: `Letter ${target}` }))
+    fireEvent.click(screen.getByRole('button', { name: `${target}, letter` }))
     const after = JSON.parse(localStorage.getItem(STORAGE_KEY)!).topics.find((topic: Topic) => topic.id === MORSE_ID)
 
     expect(Object.keys(after.morseRecognition.streams)).toEqual(['read/speed'])

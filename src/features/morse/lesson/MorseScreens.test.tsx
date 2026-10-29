@@ -181,17 +181,17 @@ describe('the curriculum opens on where the learner actually is', () => {
     renderPath(settledThrough(seededTopic(), 5))
     expect(document.querySelector('details, summary')).toBeNull()
     expect(document.querySelectorAll('.morse-progress-lesson')).toHaveLength(lessonPackets().length)
-    expect(screen.getByRole('button', { name: 'Lesson 1, E and I, done' })).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Lesson 6, W and K, current' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'E I, Lesson 1, done' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'W K, Lesson 6, current' })).toBeTruthy()
   })
 
   it('keeps every finished lesson replayable, and its checkpoint with it', () => {
     renderPath(settledThrough(seededTopic(), 9))
 
-    expect(screen.getByRole('button', { name: 'Lesson 1, E and I, done' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'E I, Lesson 1, done' })).toBeTruthy()
     // Finished checkpoints remain available alongside their lessons.
     expect(
-      screen.getByRole('button', { name: 'Words after Lesson 4, reached' }),
+      screen.getByRole('button', { name: 'Word check, Words after Lesson 4, reached' }),
     ).toBeTruthy()
   })
 

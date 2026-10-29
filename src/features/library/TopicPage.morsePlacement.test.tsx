@@ -129,7 +129,7 @@ describe('fresh Morse placement entry', () => {
       </LibraryProvider>,
     )
 
-    fireEvent.click(screen.getByRole('button', { name: 'Start, current' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Begin, current' }))
 
     expect(screen.queryByRole('dialog', { name: 'Check your Morse level' })).toBeNull()
     expect(onStart).toHaveBeenCalledWith('learn', [MORSE_ID], { kind: 'lesson' })

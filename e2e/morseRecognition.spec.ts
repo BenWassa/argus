@@ -89,14 +89,14 @@ test('Read offers four large, stable tiles and no keyboard field', async ({ page
   await expect(tiles(page).last()).toBeInViewport()
   const names = await tiles(page).evaluateAll((buttons) => buttons.map((button) => button.getAttribute('aria-label')))
   expect(new Set(names).size).toBe(4)
-  expect(names.every((name) => /^Letter [A-Z]$/.test(name!))).toBe(true)
+  expect(names.every((name) => /^[A-Z], letter$/.test(name!))).toBe(true)
 })
 
 test('a tap grades once, locks the tiles and writes only the recognition record', async ({ page }) => {
   await openRead(page, learner(6))
   const before = await stored(page)
   const letter = await target(page)
-  const tile = page.getByRole('button', { name: `Letter ${letter}`, exact: true })
+  const tile = page.getByRole('button', { name: `${letter}, letter`, exact: true })
   await tile.dblclick()
   await expect(page.getByRole('status')).toContainText('Correct')
   await expect(tiles(page)).toHaveCount(0)
@@ -113,7 +113,7 @@ test('a miss stays until Continue, with the tap-through guard and focus', async 
   const letter = await target(page)
   const names = await tiles(page).evaluateAll((buttons) => buttons.map((button) => button.textContent!))
   const wrong = names.find((name) => name !== letter)!
-  await page.getByRole('button', { name: `Letter ${wrong}`, exact: true }).click()
+  await page.getByRole('button', { name: `${wrong}, letter`, exact: true }).click()
   await expect(page.locator('.session-miss')).toContainText(`You said ${wrong}`)
   await page.waitForTimeout(1500)
   await expect(page.getByRole('button', { name: 'Continue' })).toBeFocused()
@@ -141,7 +141,7 @@ test('Speed is a ten-letter variant inside Read with its own stream and honest s
   for (let n = 1; n <= 10; n++) {
     await expect(page.getByRole('progressbar')).toHaveAttribute('aria-label', `${n} of 10`)
     await expect(tiles(page).first()).toBeEnabled()
-    await page.getByRole('button', { name: `Letter ${await target(page)}`, exact: true }).click()
+    await page.getByRole('button', { name: `${await target(page)}, letter`, exact: true }).click()
     await expect(page.getByRole('status')).toContainText('Correct')
   }
   await expect(page.getByRole('heading', { name: '10 of 10 correct' })).toBeVisible()
@@ -162,7 +162,7 @@ test('Speed is a ten-letter variant inside Read with its own stream and honest s
 
 test('recognition survives write, IndexedDB, reload and hydrate, and keeps accumulating on the stored record', async ({ page }) => {
   await openRead(page, learner(6))
-  await page.getByRole('button', { name: `Letter ${await target(page)}`, exact: true }).click()
+  await page.getByRole('button', { name: `${await target(page)}, letter`, exact: true }).click()
   await expect(page.getByRole('status')).toContainText('Correct')
   const first = await storedWhen(page, (topic) => shownIn(topic, 'read/practice') === 1)
 
@@ -175,7 +175,7 @@ test('recognition survives write, IndexedDB, reload and hydrate, and keeps accum
   expect((await stored(page)).morseRecognition).toEqual(first.morseRecognition)
 
   // A fresh answer extends the hydrated record instead of starting a new one.
-  await page.getByRole('button', { name: `Letter ${await target(page)}`, exact: true }).click()
+  await page.getByRole('button', { name: `${await target(page)}, letter`, exact: true }).click()
   await expect(page.getByRole('status')).toContainText('Correct')
   const second = await storedWhen(page, (topic) => shownIn(topic, 'read/practice') === 2)
   expect(second.morseRecognition.streams['read/practice'].sequence).toBeGreaterThan(first.morseRecognition.streams['read/practice'].sequence)

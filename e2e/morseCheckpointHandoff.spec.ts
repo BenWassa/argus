@@ -75,7 +75,7 @@ async function openLessonFour(page: Page) {
   // The docket plate opens the topic, and the topic page's one action resumes
   // whichever lesson is current. There is no intervening menu.
   await page.locator('.docket .index-row').click()
-  await page.getByRole('button', { name: /Lesson 4, M and U, current/ }).click()
+  await page.getByRole('button', { name: /M U, Lesson 4, current/ }).click()
 }
 
 /**
@@ -145,7 +145,7 @@ test('Lesson 4 completion surfaces the gated invitation and skipping keeps the c
     await page.getByRole('button', { name: 'Close' }).click()
     // The lesson was started from the topic page, so closing returns there.
     await expect(page.getByRole('heading', { name: 'International Morse Code', level: 1 })).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Words after Lesson 4, reached' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Word check, Words after Lesson 4, reached' })).toBeVisible()
   })
 })
 

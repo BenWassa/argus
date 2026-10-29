@@ -1,14 +1,14 @@
 /* The Morse course on the shared progress spine: its letters, milestones and
    tier pips. The line, nodes and states live in ProgressSpine.css. */
 
-.morse-progress-lesson .spine-label { font-size: 20px; letter-spacing: 0.12em; }
-.spine-row.is-position.morse-progress-lesson .spine-label { font-size: 26px; font-weight: 800; }
-.spine-row.is-position.morse-progress-start .spine-label { font-size: 24px; font-weight: 800; }
-.morse-progress-label { font-size: 12px; color: var(--muted); }
+.morse-progress-lesson .spine-label { font-size: 1.25rem; letter-spacing: 0.12em; }
+.spine-row.is-position.morse-progress-lesson .spine-label { font-size: 1.625rem; font-weight: 800; }
+.spine-row.is-position.morse-progress-start .spine-label { font-size: 1.5rem; font-weight: 800; }
+.morse-progress-label { font-size: 0.75rem; color: var(--muted); }
 
 .morse-progress-checkpoint .spine-label,
-.morse-progress-test .spine-label { font-size: 14px; font-weight: 800; }
-.morse-progress-test .spine-label { font-size: 20px; }
+.morse-progress-test .spine-label { font-size: 0.875rem; font-weight: 800; }
+.morse-progress-test .spine-label { font-size: 1.25rem; }
 .morse-progress-repair { color: var(--warning); }
 
 /* Yellow discipline (#257). Signal marks only the position row and the done
@@ -30,7 +30,7 @@
 }
 
 /* The A–Z Test is the largest milestone, and the only one with a raised plate. */
-.morse-progress-test > .spine-node { flex-basis: 44px; height: 44px; font-size: 12px; letter-spacing: 0.02em; }
+.morse-progress-test > .spine-node { flex-basis: 44px; height: 44px; font-size: 0.75rem; letter-spacing: 0.02em; }
 .spine-row.morse-progress-test,
 .spine-row.morse-progress-test:hover,
 .spine-row.morse-progress-test:active { min-height: 96px; background: var(--plate-raised); border-color: var(--line-strong); }
@@ -119,7 +119,7 @@
   .morse-progress-path .spine-row.is-position:hover,
   .morse-progress-path .spine-row.is-position:active { min-height: 56px; }
   .morse-progress-path .is-position > .spine-node { flex-basis: 40px; height: 40px; }
-  .spine-row.is-position.morse-progress-lesson .spine-label { font-size: 22px; }
+  .spine-row.is-position.morse-progress-lesson .spine-label { font-size: 1.375rem; }
   .morse-progress-path .spine-row.morse-progress-test,
   .morse-progress-path .spine-row.morse-progress-test:hover,
   .morse-progress-path .spine-row.morse-progress-test:active { min-height: 64px; }

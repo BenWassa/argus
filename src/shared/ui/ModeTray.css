@@ -62,7 +62,7 @@
 }
 
 .mode-tray-stimulus { display: grid; place-items: center; height: 32px; }
-.mode-tray-label { font-size: 14px; font-weight: 700; line-height: 1.2; overflow-wrap: anywhere; }
+.mode-tray-label { font-size: 0.875rem; font-weight: 700; line-height: 1.2; overflow-wrap: anywhere; }
 .mode-tray-lock { position: absolute; top: 6px; right: 6px; }
 .mode-tray-tile:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 
@@ -80,7 +80,7 @@
     border-radius: 12px;
   }
   .mode-tray-stimulus { height: 28px; }
-  .mode-tray-label { font-size: 13px; }
+  .mode-tray-label { font-size: 0.8125rem; }
 }
 
 /* Short landscape (#263): a 360px-tall screen cannot spare a two-line tile.

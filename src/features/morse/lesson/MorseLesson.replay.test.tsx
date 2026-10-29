@@ -302,7 +302,7 @@ describe('#117 a finished learner has somewhere to replay from', () => {
       </LibraryProvider>,
     )
 
-    const replay = screen.getByRole('button', { name: 'Lesson 1, E and I, done' })
+    const replay = screen.getByRole('button', { name: 'E I, Lesson 1, done' })
     fireEvent.click(replay)
     expect(onStart).toHaveBeenCalledWith('learn', [MORSE_ID], { kind: 'replay', index: 0 })
   })
