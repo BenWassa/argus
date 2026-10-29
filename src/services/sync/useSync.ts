@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useDurableSync, type SyncRepository } from './useDurableSync'
 import { syncConfig } from './syncConfig'
 import { firebaseSyncBackend } from './firebaseSyncBackend'
@@ -80,7 +80,6 @@ function defaultBackend(): SyncBackend {
 export function useSync(store: SyncableStore, injected?: SyncBackend) {
   const backend = injected ?? defaultBackend()
   const [online, setOnline] = useState(() => navigator.onLine)
-  const [reconnect, setReconnect] = useState(0)
   const [user, setUser] = useState<SyncUser | null>(null)
   const [records, setRecords] = useState<RemoteRecord[] | null>(null)
   const [state, setState] = useState<SyncState>(() => {
@@ -135,9 +134,11 @@ export function useSync(store: SyncableStore, injected?: SyncBackend) {
       if (explicitlySignedOut.current) return
       // Auth callbacks must not open the gate or start remote subscriptions
       // until the durable UID-bound local library has been loaded.
-      setUser(null)
-      setRecords(null)
-      setState({ kind: 'restoring' })
+      if (storeRef.current.owner !== next.uid) {
+        setUser(null)
+        setRecords(null)
+        setState({ kind: 'restoring' })
+      }
       const finish = () => {
         if (!active || explicitlySignedOut.current || generation !== sequence) return
         rememberSignedIn()
@@ -165,13 +166,16 @@ export function useSync(store: SyncableStore, injected?: SyncBackend) {
         if (binding && typeof binding.then === 'function') void binding.then(finish, fail)
         else finish()
       } catch (error) { fail(error) }
+    }, (message) => {
+      if (!active) return
+      setState({ kind: 'error', user: userRef.current, message })
     })
     return () => { clearTimeout(fallback); active = false; ++sequence; storeRef.current.cancelPendingBinds?.(); unsubscribe() }
-  }, [backend, watching, reconnect])
+  }, [backend, watching])
 
   useEffect(() => {
-    const connected = () => { setOnline(true); setReconnect((n) => n + 1) }
-    const disconnected = () => { setOnline(false); setReconnect((n) => n + 1) }
+    const connected = () => { setOnline(true) }
+    const disconnected = () => { setOnline(false) }
     window.addEventListener('online', connected)
     window.addEventListener('offline', disconnected)
     return () => { window.removeEventListener('online', connected); window.removeEventListener('offline', disconnected) }
@@ -322,13 +326,15 @@ export function useSync(store: SyncableStore, injected?: SyncBackend) {
     await backend.signOut()
   }, [backend])
 
-  const visibleState: SyncState = store.syncRepository && user && store.owner === user.uid
+  const visibleState = useMemo<SyncState>(() => store.syncRepository && user && store.owner === user.uid
     ? !online ? { kind: 'offline', owner: user.uid }
       : durable.error ? { kind: 'error', user, message: durable.error }
-        : durable.syncing || (durable.pending && durable.conflicts.length === 0) ? { kind: 'syncing', user }
-          : { kind: 'synced', user, at: new Date(), conflicts: durable.conflicts }
-    : state.kind === 'offline' && state.owner !== store.owner ? { kind: 'restoring' } : state
-  return { state: visibleState, signIn, signOut, pending: durable.pending, conflicts: durable.conflicts }
+        : !durable.at || durable.syncing || (durable.pending && durable.conflicts.length === 0) ? { kind: 'syncing', user }
+          : { kind: 'synced', user, at: durable.at, conflicts: durable.conflicts }
+    : state.kind === 'offline' && state.owner !== store.owner ? { kind: 'restoring' } : state,
+  [store.syncRepository, store.owner, user, online, durable, state])
+  return useMemo(() => ({ state: visibleState, signIn, signOut, pending: durable.pending, conflicts: durable.conflicts }),
+    [visibleState, signIn, signOut, durable.pending, durable.conflicts])
 }
 
 export { topicJson, parseSyncedTopic }

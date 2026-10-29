@@ -28,7 +28,7 @@ function fixture() {
   let records: (records: RemoteRecord[]) => void = () => {}
   const backend = {
     observeLibrary: vi.fn((_uid, listener) => { records = listener; return () => {} }),
-    observeMeta: vi.fn((_uid, listener) => { listener(null); return () => {} }),
+    observeMeta: vi.fn((_uid: string, listener: Parameters<SyncBackend['observeMeta']>[1]) => { listener(null); return () => {} }),
     pushTopic: vi.fn(async () => {}), deleteTopic: vi.fn(async () => {}), pushMeta: vi.fn(async () => {}),
   } satisfies Pick<SyncBackend, 'observeLibrary' | 'observeMeta' | 'pushTopic' | 'deleteTopic' | 'pushMeta'>
   const store = { owner: 'a', topics: library.topics, catalogDelivered: [], bindOwner: () => {}, upsertTopic: vi.fn(), removeTopic: vi.fn(), mergeCatalogDelivered: vi.fn(), syncRepository: repository }
@@ -89,7 +89,7 @@ it('checkpoints successful topics before a later failure', async () => {
   expect(Object.keys(f.ledger())).toHaveLength(1)
   expect(f.pending()).not.toBeNull()
 })
-it('retains conflicts, continues unrelated work and never acknowledges the snapshot', async () => {
+it('retains conflicts and acknowledges completed unrelated work', async () => {
   const f = fixture()
   const topic = f.store.topics[0]
   await f.store.syncRepository.acknowledge('a', 1, { [topic.id]: { revision: 1, json: topicJson({ ...topic, title: 'baseline' }), changedAtMs: 0 } }, true)
@@ -101,7 +101,7 @@ it('retains conflicts, continues unrelated work and never acknowledges the snaps
   await flush()
   expect(hook.result.current.conflicts).toEqual([topic.id])
   expect(f.backend.pushTopic).toHaveBeenCalledTimes(1)
-  expect(f.pending()).not.toBeNull()
+  expect(f.pending()).toBeNull()
 })
 it('never starts subscriptions against another owner’s local library', async () => {
   const f = fixture()
@@ -172,4 +172,49 @@ it('still reports a detected conflict when unrelated remote work fails', async (
   await flush()
   expect(hook.result.current.error).toBe('unavailable')
   expect(hook.result.current.conflicts).toContain(topic.id)
+})
+
+it('leaves newer remote metadata alone while acknowledging topic work', async () => {
+  const f = fixture()
+  f.backend.observeMeta.mockImplementationOnce((_uid, listener) => {
+    listener({ json: JSON.stringify({ version: 5, catalogDelivered: [], future: true }), revision: 2 })
+    return () => {}
+  })
+  const hook = renderHook(() => useDurableSync(f.store, f.backend, user, true))
+  act(f.emit); await flush()
+  expect(f.backend.pushTopic).toHaveBeenCalledTimes(2)
+  expect(f.pending()).toBeNull()
+  expect(hook.result.current.error).toBeNull()
+  expect(f.backend.pushMeta).not.toHaveBeenCalled()
+})
+
+it('adopts a restored deletion despite an unrelated persistent conflict', async () => {
+  const f = fixture()
+  const [x, y] = f.store.topics
+  const pending = f.pending()!
+  pending.library.topics.splice(0, 1)
+  pending.deletedTopicIds.push(x.id)
+  await f.store.syncRepository.acknowledge('a', 1, {
+    [x.id]: { revision: 1, json: topicJson(x), changedAtMs: 0 },
+    [y.id]: { revision: 1, json: topicJson({ ...y, title: 'baseline' }), changedAtMs: 0 },
+  }, true)
+  let emit!: (records: RemoteRecord[]) => void
+  f.backend.observeLibrary.mockImplementationOnce((_uid, listener) => { emit = listener; return () => {} })
+  const hook = renderHook(() => useDurableSync(f.store, f.backend, user, true))
+  const remoteY = { topicId: y.id, json: topicJson({ ...y, title: 'remote' }), revision: 2, updatedAtMs: 1 }
+  act(() => emit([{ topicId: x.id, json: topicJson(x), revision: 1, updatedAtMs: 0 }, remoteY])); await flush()
+  expect(f.backend.deleteTopic).toHaveBeenCalledWith('a', x.id)
+  act(() => emit([{ topicId: x.id, json: topicJson(x), revision: 3, updatedAtMs: 2 }, remoteY])); await flush()
+  expect(f.store.upsertTopic).toHaveBeenCalledWith(x)
+  expect(hook.result.current.conflicts).toEqual([y.id])
+})
+
+it('keeps the last successful pass time on renders without another pass', async () => {
+  const f = fixture()
+  const hook = renderHook(() => useDurableSync(f.store, f.backend, user, true))
+  act(f.emit); await flush()
+  const at = hook.result.current.at
+  expect(at).toBeInstanceOf(Date)
+  hook.rerender()
+  expect(hook.result.current.at).toBe(at)
 })

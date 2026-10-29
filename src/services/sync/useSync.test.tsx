@@ -557,3 +557,62 @@ it('cannot reopen a completed bind after an explicit sign-out', async () => {
   await act(async () => { await result.current.signOut(); release() })
   expect(result.current.state.kind).toBe('signedOut')
 })
+
+it('keeps a synced session open across network events without observing auth again', async () => {
+  const backend = fakeBackend()
+  const observe = vi.spyOn(backend, 'observeUser')
+  const store = fakeStore([])
+  const states: string[] = []
+  const hook = renderHook(() => { const value = useSync(store, backend); states.push(value.state.kind); return value })
+  act(() => backend.emitUser(OWNER))
+  act(() => backend.emitRecords([]))
+  await waitFor(() => expect(hook.result.current.state.kind).toBe('synced'))
+  states.length = 0
+  act(() => window.dispatchEvent(new Event('offline')))
+  act(() => window.dispatchEvent(new Event('online')))
+  expect(observe).toHaveBeenCalledTimes(1)
+  expect(states).not.toContain('restoring')
+  expect(states).not.toContain('signedOut')
+})
+
+it.each([true, false])('late auth keeps the gate open only for the provisioned uid: %s', async (same) => {
+  vi.useFakeTimers()
+  try {
+    const store = fakeStore([])
+    store.owner = OWNER.uid
+    store.provisionedOwner = OWNER.uid
+    let release!: () => void
+    store.bindOwner = vi.fn((uid) => new Promise<void>((resolve) => { release = () => { store.owner = uid; resolve() } }))
+    const backend = fakeBackend()
+    const states: string[] = []
+    const hook = renderHook(() => { const value = useSync(store, backend); states.push(value.state.kind); return value })
+    await act(async () => { await vi.advanceTimersByTimeAsync(3000) })
+    expect(hook.result.current.state.kind).toBe('offline')
+    states.length = 0
+    const uid = same ? OWNER.uid : 'other'
+    act(() => backend.emitUser({ ...OWNER, uid }))
+    expect(hook.result.current.state.kind).toBe(same ? 'offline' : 'restoring')
+    await act(async () => { release() })
+    expect(store.bindOwner).toHaveBeenCalledWith(uid)
+    expect(store.owner).toBe(uid)
+    if (same) expect(states).not.toContain('restoring')
+  } finally { vi.useRealTimers() }
+})
+
+it('memoizes the context value across unchanged renders', () => {
+  const store = fakeStore([])
+  const backend = fakeBackend()
+  const hook = renderHook(() => useSync(store, backend))
+  const previous = hook.result.current
+  hook.rerender()
+  expect(hook.result.current).toBe(previous)
+})
+
+it('reports auth loading failure without forgetting the remembered session', async () => {
+  const backend = fakeBackend({ observeUser: (_listener, onError) => { onError('module unavailable'); return () => {} } })
+  const hook = renderHook(() => useSync(fakeStore([]), backend))
+  expect(hook.result.current.state).toMatchObject({ kind: 'error', message: 'module unavailable' })
+  hook.unmount()
+  const next = renderHook(() => useSync(fakeStore([]), fakeBackend()))
+  expect(next.result.current.state.kind).toBe('restoring')
+})

@@ -19,12 +19,13 @@ import { parseSyncedTopic } from './syncTopic'
 type Backend = Pick<SyncBackend, 'observeLibrary' | 'observeMeta' | 'pushTopic' | 'deleteTopic' | 'pushMeta'>
 export type SyncRepository = Pick<IndexedLibraryRepository, 'pending' | 'readLedger' | 'acknowledge'>
 export interface DurableSyncStatus {
+  at: Date | null
   pending: boolean | null
   conflicts: string[]
   error: string | null
   syncing: boolean
 }
-const initial: DurableSyncStatus = { pending: null, conflicts: [], error: null, syncing: true }
+const initial: DurableSyncStatus = { at: null, pending: null, conflicts: [], error: null, syncing: true }
 
 /** One foreground worker over the repository's cumulative intent, never a second queue. */
 export function useDurableSync(store: SyncableStore, backend: Backend, user: SyncUser | null, online: boolean) {
@@ -96,6 +97,7 @@ export function useDurableSync(store: SyncableStore, backend: Backend, user: Syn
         const conflicts = [...plan.conflicts]
         const reportConflicts = () => setStatus((s) => ({ ...s, conflicts: [...conflicts] }))
         reportConflicts()
+        let refusedAdoption = false
         const deleted = new Set(pending?.deletedTopicIds ?? [])
         const revision = pending?.revision ?? 1
         for (const action of plan.actions) {
@@ -113,9 +115,9 @@ export function useDurableSync(store: SyncableStore, backend: Backend, user: Syn
               records = records.filter((record) => record.topicId !== action.topicId)
               break
             case 'adopt': {
-              if (deleted.has(action.topicId)) { conflicts.push(action.topicId); reportConflicts(); continue }
+              if (deleted.has(action.topicId)) { refusedAdoption = true; conflicts.push(action.topicId); reportConflicts(); continue }
               const topic = parseSyncedTopic(action.json, action.topicId)
-              if (!topic) { conflicts.push(action.topicId); reportConflicts(); continue }
+              if (!topic) { refusedAdoption = true; conflicts.push(action.topicId); reportConflicts(); continue }
               if (await current.upsertTopic(topic) === false) throw new Error('The adopted topic could not be saved locally.')
               applied = { ...action, json: topicJson(topic) }
               break
@@ -132,18 +134,22 @@ export function useDurableSync(store: SyncableStore, backend: Backend, user: Syn
         if (stale()) return
         const json = libraryMetaJson(local?.catalogDelivered ?? current.catalogDelivered,
           local?.roleAwards ?? current.roleAwards, local?.roleAwardGeneration ?? current.roleAwardGeneration)
-        const canonical = mergeLibraryMetaJson(json, meta?.json ?? null)
-        await current.mergeCatalogDelivered(parseLibraryMeta(canonical)!)
-        const roles = parseRoleMeta(canonical)!
-        await current.mergeRoleAwards?.(roles.awards, roles.generation)
-        if (stale()) return
-        if (canonical !== meta?.json) await backend.pushMeta(user.uid, canonical, (meta?.revision ?? 0) + 1)
-        if (stale()) return
-        if (pending && conflicts.length === 0) await repository.acknowledge(user.uid, pending.revision, known)
+        // Leave metadata from a newer build untouched while finishing topic work.
+        if (!meta || (parseLibraryMeta(meta.json) !== null && parseRoleMeta(meta.json) !== null)) {
+          const canonical = mergeLibraryMetaJson(json, meta?.json ?? null)
+          await current.mergeCatalogDelivered(parseLibraryMeta(canonical)!)
+          const roles = parseRoleMeta(canonical)!
+          await current.mergeRoleAwards?.(roles.awards, roles.generation)
+          if (stale()) return
+          if (canonical !== meta?.json) await backend.pushMeta(user.uid, canonical, (meta?.revision ?? 0) + 1)
+          if (stale()) return
+        }
+        // Ordinary conflicts preserve local topics and are re-detected from the ledger.
+        if (pending && !refusedAdoption) await repository.acknowledge(user.uid, pending.revision, known)
         const remaining = await repository.pending(user.uid)
         if (stale()) return
         failures.current = 0
-        setStatus({ owner: user.uid, pending: remaining !== null, conflicts, error: null, syncing: false })
+        setStatus({ owner: user.uid, at: new Date(), pending: remaining !== null, conflicts, error: null, syncing: false })
       } catch (error) { fail(error) }
       finally {
         running = false

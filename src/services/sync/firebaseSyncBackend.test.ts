@@ -3,8 +3,8 @@ import { firebaseSyncBackend } from './firebaseSyncBackend'
 
 type Snapshot = { metadata: { fromCache: boolean; hasPendingWrites: boolean }; docs: []; data: () => undefined }
 type Listener = (snapshot: Snapshot) => void
-const sdk = vi.hoisted(() => ({ listeners: [] as Listener[], options: [] as unknown[] }))
-vi.mock('firebase/app', () => ({ getApps: () => [{}] }))
+const sdk = vi.hoisted(() => ({ listeners: [] as Listener[], options: [] as unknown[], fail: false }))
+vi.mock('firebase/app', () => ({ getApps: () => { if (sdk.fail) throw new Error('module unavailable'); return [{}] } }))
 vi.mock('firebase/auth', () => ({ getAuth: () => ({}) }))
 vi.mock('firebase/firestore', () => ({
   getFirestore: () => ({}), collection: () => ({}), doc: () => ({}),
@@ -34,4 +34,17 @@ it('plans only from server-confirmed snapshots, including metadata-only confirma
   expect(meta).toHaveBeenCalledWith(null)
   expect(sdk.options).toEqual([{ includeMetadataChanges: true }, { includeMetadataChanges: true }])
   stop(); stopMeta()
+})
+
+it('reports lazy auth initialization failure as an error rather than sign-out', async () => {
+  sdk.fail = true
+  try {
+    const backend = firebaseSyncBackend({ apiKey: 'a', appId: 'a', authDomain: 'a', projectId: 'a' })
+    const listener = vi.fn()
+    const onError = vi.fn()
+    const stop = backend.observeUser(listener, onError)
+    await vi.waitFor(() => expect(onError).toHaveBeenCalledWith('module unavailable'))
+    expect(listener).not.toHaveBeenCalled()
+    stop()
+  } finally { sdk.fail = false }
 })

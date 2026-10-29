@@ -14,7 +14,7 @@ export type Unsubscribe = () => void
  */
 export interface SyncBackend {
   configured: boolean
-  observeUser(listener: (user: SyncUser | null) => void): Unsubscribe
+  observeUser(listener: (user: SyncUser | null) => void, onError: (error: string) => void): Unsubscribe
   signIn(): Promise<void>
   signOut(): Promise<void>
   /** Every synced topic, re-reported whenever any of them changes. */

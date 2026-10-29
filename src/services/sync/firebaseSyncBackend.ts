@@ -80,14 +80,14 @@ export function firebaseSyncBackend(config: FirebaseWebConfig): SyncBackend {
   return {
     configured: true,
 
-    observeUser(listener) {
+    observeUser(listener, onError) {
       return lazySubscription(
         async (alive) => {
           const { auth, authApi } = await services()
           if (!alive()) return
-          return authApi.onAuthStateChanged(auth, (user) => listener(toSyncUser(user)))
+          return authApi.onAuthStateChanged(auth, (user) => listener(toSyncUser(user)), (error) => onError(message(error)))
         },
-        () => listener(null),
+        (error) => onError(message(error)),
       )
     },
 
