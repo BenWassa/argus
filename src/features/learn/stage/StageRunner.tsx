@@ -4,7 +4,8 @@ import './StageRunner.css'
 
 export interface StageRunnerProps {
   stage: LessonStage
-  topicItemLabel?: (itemId: string) => string
+  /** The two faces of a scored item: what the learner is asked, and what they should recall. */
+  itemFace: (itemId: string) => { front: string; back: string }
   onFinish: (stageId: string) => void
   onExit: () => void
 }
@@ -14,10 +15,11 @@ export function StageRunner(props: StageRunnerProps) {
   return <StageRun key={props.stage.id} {...props} />
 }
 
-function StageRun({ stage, topicItemLabel = (id) => id, onFinish, onExit }: StageRunnerProps) {
+function StageRun({ stage, itemFace, onFinish, onExit }: StageRunnerProps) {
   const [index, setIndex] = useState(0)
   const [wrong, setWrong] = useState(false)
   const [revealed, setRevealed] = useState(false)
+  const [card, setCard] = useState(0)
   const [sequence, setSequence] = useState<string[]>([])
   const [finished, setFinished] = useState(false)
   const finishSent = useRef(false)
@@ -36,6 +38,7 @@ function StageRun({ stage, topicItemLabel = (id) => id, onFinish, onExit }: Stag
       setIndex(index + 1)
       setWrong(false)
       setRevealed(false)
+      setCard(0)
       setSequence([])
     }
   }
@@ -51,7 +54,7 @@ function StageRun({ stage, topicItemLabel = (id) => id, onFinish, onExit }: Stag
   const options = (values: string[], correct: string, labels = false) => (
     <div className="stage-options">
       {values.map((value) => <button type="button" key={value} onClick={() => answer(value === correct)}>
-        {labels ? topicItemLabel(value) : value}
+        {labels ? itemFace(value).front : value}
       </button>)}
     </div>
   )
@@ -66,7 +69,7 @@ function StageRun({ stage, topicItemLabel = (id) => id, onFinish, onExit }: Stag
       {step.kind === 'show' && <>
         <h3>{step.title}</h3>
         {step.itemId && <div role={step.altText ? 'img' : undefined} aria-label={step.altText}>
-          {step.altText ?? topicItemLabel(step.itemId)}
+          {step.altText ?? itemFace(step.itemId).front}
         </div>}
         <p>{step.body}</p>{continueButton}
       </>}
@@ -90,21 +93,23 @@ function StageRun({ stage, topicItemLabel = (id) => id, onFinish, onExit }: Stag
         <button type="button" className="stage-primary" disabled={sequence.length !== step.blocks.length}
           onClick={() => answer(sequence.every((block, position) => block === step.blocks[position]))}>Check order</button>
       </>}
-      {step.kind === 'recall' && <>
-        <h3>Recall</h3>
-        {!revealed ? <button type="button" className="stage-primary" onClick={() => setRevealed(true)}>Reveal</button> : <>
-          {/* Only an item label is available here; the runner has no answer-key data. */}
-          <p>{topicItemLabel(step.itemId)}</p>
-          <div className="stage-options">
-            <button type="button" onClick={advance}>Got it</button>
-            <button type="button" onClick={advance}>Not yet</button>
-          </div>
-        </>}
-      </>}
-      {step.kind === 'checkpoint' && <>
-        {/* Sequencing recall prompts needs item data that this schema does not supply. */}
-        <p>Checkpoint: {step.itemIds.length} items</p>{continueButton}
-      </>}
+      {(step.kind === 'recall' || step.kind === 'checkpoint') && (() => {
+        const ids = step.kind === 'recall' ? [step.itemId] : step.itemIds
+        const face = itemFace(ids[card])
+        const last = card >= ids.length - 1
+        const next = () => { if (last) advance(); else { setCard(card + 1); setRevealed(false) } }
+        return <>
+          <h3>{step.kind === 'recall' ? 'Recall' : `Checkpoint, ${card + 1} of ${ids.length}`}</h3>
+          <p>{face.front}</p>
+          {!revealed ? <button type="button" className="stage-primary" onClick={() => setRevealed(true)}>Reveal</button> : <>
+            <p>{face.back}</p>
+            <div className="stage-options">
+              <button type="button" onClick={next}>Got it</button>
+              <button type="button" onClick={next}>Not yet</button>
+            </div>
+          </>}
+        </>
+      })()}
       {step.kind === 'summary' && <><p>{step.text}</p>{continueButton}</>}
       {wrong && 'explain' in step && <div className="stage-feedback" role="alert">
         <p>{step.explain}</p>
