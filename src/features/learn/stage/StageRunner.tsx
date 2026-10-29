@@ -9,6 +9,7 @@ export interface StageRunnerProps {
   onExit: () => void
 }
 
+/** `blocks` is the answer key, so the tiles are shown reversed: tapping them left to right must not pass. */
 export function StageRunner(props: StageRunnerProps) {
   return <StageRun key={props.stage.id} {...props} />
 }
@@ -82,7 +83,7 @@ function StageRun({ stage, topicItemLabel = (id) => id, onFinish, onExit }: Stag
             onClick={() => setSequence(sequence.filter((value) => value !== block))}>{block}</button></li>)}
         </ol>
         <div className="stage-options" aria-label="Blocks">
-          {step.blocks.map((block) => <button type="button" key={block} aria-pressed={sequence.includes(block)}
+          {[...step.blocks].reverse().map((block) => <button type="button" key={block} aria-pressed={sequence.includes(block)}
             onClick={() => setSequence(sequence.includes(block)
               ? sequence.filter((value) => value !== block) : [...sequence, block])}>{block}</button>)}
         </div>

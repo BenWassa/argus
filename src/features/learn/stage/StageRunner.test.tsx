@@ -53,6 +53,7 @@ describe('StageRunner', () => {
   it('builds, removes and retries an ordered sequence', () => {
     setup({ kind: 'order', id: 'order', itemId: 'a', prompt: 'Put in order', blocks: ['First', 'Second'], explain: 'First comes first.' })
     expect((screen.getByRole('button', { name: 'Check order' }) as HTMLButtonElement).disabled).toBe(true)
+    expect(screen.getAllByRole('button', { pressed: false }).map((b) => b.textContent)).toEqual(['Second', 'First'])
     click('Second'); click('First'); click('Check order')
     expect(screen.getByRole('alert').textContent).toContain('First comes first.')
     click('Remove Second')
