@@ -85,6 +85,16 @@ describe('StageRunner', () => {
     expect(onFinish).not.toHaveBeenCalled()
   })
 
+  it('keeps focus on the answer after Reveal and does not crash on an empty checkpoint', () => {
+    setup({ kind: 'recall', id: 'recall', itemId: 'a' })
+    click('Reveal')
+    expect(document.activeElement).toBe(screen.getByText('Answer a'))
+    cleanup()
+    setup({ kind: 'checkpoint', id: 'check', itemIds: [] })
+    click('Continue')
+    expect(screen.getByText('All covered.')).toBeTruthy()
+  })
+
   it('finishes once on the last step, including repeated activation', () => {
     const { onFinish } = setup(summary, true)
     const finish = screen.getByRole('button', { name: 'Finish lesson' })

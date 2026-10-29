@@ -24,9 +24,12 @@ function StageRun({ stage, itemFace, onFinish, onExit }: StageRunnerProps) {
   const [finished, setFinished] = useState(false)
   const finishSent = useRef(false)
   const heading = useRef<HTMLHeadingElement>(null)
+  const answerRef = useRef<HTMLParagraphElement>(null)
   const step = stage.steps[index]
 
-  useEffect(() => { heading.current?.focus() }, [index])
+  // Focus follows the learner's action, so a keyboard user never falls back to the page body.
+  useEffect(() => { heading.current?.focus() }, [index, card])
+  useEffect(() => { if (revealed) answerRef.current?.focus() }, [revealed])
 
   function advance() {
     if (finishSent.current) return
@@ -95,6 +98,7 @@ function StageRun({ stage, itemFace, onFinish, onExit }: StageRunnerProps) {
       </>}
       {(step.kind === 'recall' || step.kind === 'checkpoint') && (() => {
         const ids = step.kind === 'recall' ? [step.itemId] : step.itemIds
+        if (ids.length === 0) return continueButton
         const face = itemFace(ids[card])
         const last = card >= ids.length - 1
         const next = () => { if (last) advance(); else { setCard(card + 1); setRevealed(false) } }
@@ -102,7 +106,7 @@ function StageRun({ stage, itemFace, onFinish, onExit }: StageRunnerProps) {
           <h3>{step.kind === 'recall' ? 'Recall' : `Checkpoint, ${card + 1} of ${ids.length}`}</h3>
           <p>{face.front}</p>
           {!revealed ? <button type="button" className="stage-primary" onClick={() => setRevealed(true)}>Reveal</button> : <>
-            <p>{face.back}</p>
+            <p ref={answerRef} tabIndex={-1}>{face.back}</p>
             <div className="stage-options">
               <button type="button" onClick={next}>Got it</button>
               <button type="button" onClick={next}>Not yet</button>
