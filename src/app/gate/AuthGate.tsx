@@ -23,6 +23,7 @@ export function AuthGate() {
   // nobody attached, and reading that as "not signed out" would let a failure
   // open the door — so the test is for a user, never for the absence of one.
   const signedIn =
+    state.kind === 'offline' ||
     state.kind === 'syncing' ||
     state.kind === 'synced' ||
     (state.kind === 'error' && state.user !== null)

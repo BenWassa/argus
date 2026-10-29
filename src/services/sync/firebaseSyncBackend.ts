@@ -108,7 +108,10 @@ export function firebaseSyncBackend(config: FirebaseWebConfig): SyncBackend {
         if (!alive()) return
         return dbApi.onSnapshot(
           dbApi.collection(db, libraryCollectionPath(uid)),
+          { includeMetadataChanges: true },
           (snapshot) => {
+            // Cached or unacknowledged writes are not an agreed cloud baseline.
+            if (snapshot.metadata.fromCache || snapshot.metadata.hasPendingWrites) return
             const records: RemoteRecord[] = []
             for (const document of snapshot.docs) {
               const data = document.data()
@@ -154,7 +157,10 @@ export function firebaseSyncBackend(config: FirebaseWebConfig): SyncBackend {
         if (!alive()) return
         return dbApi.onSnapshot(
           dbApi.doc(db, libraryMetaPath(uid)),
+          { includeMetadataChanges: true },
           (snapshot) => {
+            // Cached or unacknowledged writes are not an agreed cloud baseline.
+            if (snapshot.metadata.fromCache || snapshot.metadata.hasPendingWrites) return
             const data = snapshot.data()
             onMeta(
               data && typeof data.json === 'string'

@@ -496,3 +496,64 @@ describe('an account switch while a plan is being applied', () => {
     expect(store.cancelPendingBinds).toHaveBeenCalled()
   })
 })
+
+describe('offline auth restoration', () => {
+  afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks() })
+  it('opens only the previously provisioned local owner when auth never answers offline', async () => {
+    vi.useFakeTimers()
+    vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false)
+    const store = fakeStore([realTopic()])
+    store.owner = OWNER.uid
+    store.provisionedOwner = OWNER.uid
+    const backend = fakeBackend()
+    const { result } = renderHook(() => useSync(store, backend))
+    await act(async () => { await vi.advanceTimersByTimeAsync(5000) })
+    expect(result.current.state).toEqual({ kind: 'offline', owner: OWNER.uid })
+    expect(backend.pushed).toHaveLength(0)
+    act(() => backend.emitUser({ ...OWNER, uid: 'other' }))
+    expect(result.current.state).not.toMatchObject({ kind: 'offline' })
+    expect(store.owner).toBe('other')
+  })
+  it('does not fabricate a learner when the owner marker has no verified local record', async () => {
+    vi.useFakeTimers()
+    vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false)
+    const store = fakeStore([])
+    const { result } = renderHook(() => useSync(store, fakeBackend()))
+    await act(async () => { await vi.advanceTimersByTimeAsync(5000) })
+    expect(result.current.state).toMatchObject({ kind: 'error', user: null, message: expect.stringContaining('connection') })
+    expect(store.owner).toBeNull()
+  })
+  it('does not reopen retained data after Firebase reports sign-out', async () => {
+    vi.useFakeTimers()
+    vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false)
+    const store = fakeStore([realTopic()])
+    store.owner = OWNER.uid
+    store.provisionedOwner = OWNER.uid
+    const backend = fakeBackend()
+    const { result } = renderHook(() => useSync(store, backend))
+    act(() => backend.emitUser(null))
+    await act(async () => { await vi.advanceTimersByTimeAsync(5000) })
+    expect(result.current.state.kind).toBe('signedOut')
+  })
+})
+it('uses a bounded local fallback even when a disconnected network still reports online', async () => {
+  vi.useFakeTimers()
+  const store = fakeStore([realTopic()])
+  store.owner = OWNER.uid
+  store.provisionedOwner = OWNER.uid
+  const { result } = renderHook(() => useSync(store, fakeBackend()))
+  try {
+    await act(async () => { await vi.advanceTimersByTimeAsync(5000) })
+    expect(result.current.state).toEqual({ kind: 'offline', owner: OWNER.uid })
+  } finally { vi.useRealTimers() }
+})
+it('cannot reopen a completed bind after an explicit sign-out', async () => {
+  const store = fakeStore([realTopic()])
+  let release!: () => void
+  store.bindOwner = () => new Promise<void>((resolve) => { release = () => { store.owner = OWNER.uid; resolve() } })
+  const backend = fakeBackend()
+  const { result } = renderHook(() => useSync(store, backend))
+  act(() => backend.emitUser(OWNER))
+  await act(async () => { await result.current.signOut(); release() })
+  expect(result.current.state.kind).toBe('signedOut')
+})

@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useDurableSync, type SyncRepository } from './useDurableSync'
 import { syncConfig } from './syncConfig'
 import { firebaseSyncBackend } from './firebaseSyncBackend'
 import { unconfiguredSyncBackend, type SyncBackend, type SyncUser } from './syncBackend'
@@ -15,7 +16,7 @@ import {
   type RemoteRecord,
   type SyncAction,
 } from './syncPlanner'
-import { parseLibrary } from '../../infrastructure/persistence/libraryParser'
+import { parseSyncedTopic } from './syncTopic'
 import type { Topic } from '../../domain/library/topic'
 import { mergeRoleAwards, type RoleAward } from '../../domain/roles/awards'
 
@@ -28,6 +29,7 @@ export type SyncState =
    * must not show the library to somebody who turns out not to be.
    */
   | { kind: 'restoring' }
+  | { kind: 'offline'; owner: string }
   | { kind: 'signedOut' }
   | { kind: 'syncing'; user: SyncUser }
   | { kind: 'synced'; user: SyncUser; at: Date; conflicts: string[] }
@@ -35,6 +37,8 @@ export type SyncState =
 
 /** What the hook needs from the library store, so it can be driven by a fake. */
 export interface SyncableStore {
+  syncRepository?: SyncRepository
+  provisionedOwner?: string | null
   topics: Topic[]
   upsertTopic: (topic: Topic) => void | Promise<boolean>
   removeTopic: (id: string) => void | Promise<boolean>
@@ -53,27 +57,6 @@ export interface SyncableStore {
 /** What a remote library-meta document holds, as the backend reports it. */
 type RemoteMeta = { json: string; revision: number } | null
 
-/**
- * A topic arriving from another device goes through the same v5 parse boundary
- * a stored or imported one does. Nothing reaches the library that could not
- * have been loaded from disk, so sync cannot widen what a topic is allowed to
- * be — which is the whole reason the record travels as its own JSON.
- */
-export function parseSyncedTopic(json: string, topicId?: string): Topic | null {
-  try {
-    const parsed: unknown = JSON.parse(json)
-    if (!parsed || typeof parsed !== 'object') return null
-    const result = parseLibrary({ version: 5, topics: [parsed] })
-    if (!result.ok || result.library.topics.length !== 1) return null
-    const topic = result.library.topics[0]
-    // A document filed under one topic that holds another is damaged, and
-    // taking it would overwrite the wrong topic.
-    if (topicId !== undefined && topic.id !== topicId) return null
-    return topic
-  } catch {
-    return null
-  }
-}
 
 let shared: SyncBackend | null = null
 
@@ -96,6 +79,8 @@ function defaultBackend(): SyncBackend {
  */
 export function useSync(store: SyncableStore, injected?: SyncBackend) {
   const backend = injected ?? defaultBackend()
+  const [online, setOnline] = useState(() => navigator.onLine)
+  const [reconnect, setReconnect] = useState(0)
   const [user, setUser] = useState<SyncUser | null>(null)
   const [records, setRecords] = useState<RemoteRecord[] | null>(null)
   const [state, setState] = useState<SyncState>(() => {
@@ -104,12 +89,14 @@ export function useSync(store: SyncableStore, injected?: SyncBackend) {
   })
   /** `undefined` until the meta document has been heard from at all. */
   const [meta, setMeta] = useState<RemoteMeta | undefined>(undefined)
+  const durable = useDurableSync(store, backend, user, online)
   const ledger = useRef<Ledger>({})
   const applying = useRef(false)
   const pushedMeta = useRef<string | null>(null)
   // The user subscription outlives any one render of the store it binds.
   const storeRef = useRef(store)
   storeRef.current = store
+  const explicitlySignedOut = useRef(false)
   const userRef = useRef(user)
   userRef.current = user
   /**
@@ -123,9 +110,20 @@ export function useSync(store: SyncableStore, injected?: SyncBackend) {
     if (!backend.configured || !watching) return
     let active = true
     let sequence = 0
+    const fallback = setTimeout(() => {
+      if (!active || explicitlySignedOut.current || sequence !== 0) return
+      const local = storeRef.current
+      if (local.provisionedOwner && local.provisionedOwner === local.owner && hasSignedIn()) {
+        setState({ kind: 'offline', owner: local.provisionedOwner })
+      } else if (!navigator.onLine) {
+        setState({ kind: 'error', user: null, message: 'A connection is needed to open this device’s first session.' })
+      }
+    }, 3000)
     const unsubscribe = backend.observeUser((next) => {
+      clearTimeout(fallback)
       const generation = ++sequence
       if (!next) {
+        forgetSignedIn()
         storeRef.current.cancelPendingBinds?.()
         pushedMeta.current = null
         setUser(null)
@@ -134,13 +132,14 @@ export function useSync(store: SyncableStore, injected?: SyncBackend) {
         setState({ kind: 'signedOut' })
         return
       }
+      if (explicitlySignedOut.current) return
       // Auth callbacks must not open the gate or start remote subscriptions
       // until the durable UID-bound local library has been loaded.
       setUser(null)
       setRecords(null)
       setState({ kind: 'restoring' })
       const finish = () => {
-        if (!active || generation !== sequence) return
+        if (!active || explicitlySignedOut.current || generation !== sequence) return
         rememberSignedIn()
         pushedMeta.current = null
         ledger.current = loadLedger(next.uid)
@@ -167,30 +166,38 @@ export function useSync(store: SyncableStore, injected?: SyncBackend) {
         else finish()
       } catch (error) { fail(error) }
     })
-    return () => { active = false; ++sequence; storeRef.current.cancelPendingBinds?.(); unsubscribe() }
-  }, [backend, watching])
+    return () => { clearTimeout(fallback); active = false; ++sequence; storeRef.current.cancelPendingBinds?.(); unsubscribe() }
+  }, [backend, watching, reconnect])
 
   useEffect(() => {
-    if (!user) return
+    const connected = () => { setOnline(true); setReconnect((n) => n + 1) }
+    const disconnected = () => { setOnline(false); setReconnect((n) => n + 1) }
+    window.addEventListener('online', connected)
+    window.addEventListener('offline', disconnected)
+    return () => { window.removeEventListener('online', connected); window.removeEventListener('offline', disconnected) }
+  }, [])
+
+  useEffect(() => {
+    if (!user || store.syncRepository) return
     return backend.observeLibrary(
       user.uid,
       setRecords,
       (message) => setState({ kind: 'error', user, message }),
     )
-  }, [backend, user])
+  }, [backend, user, store.syncRepository])
 
   useEffect(() => {
-    if (!user) return
+    if (!user || store.syncRepository) return
     setMeta(undefined)
     return backend.observeMeta(
       user.uid,
       setMeta,
       (message) => setState({ kind: 'error', user, message }),
     )
-  }, [backend, user])
+  }, [backend, user, store.syncRepository])
 
   useEffect(() => {
-    if (!user || meta === undefined || store.owner !== user.uid) return
+    if (store.syncRepository || !user || meta === undefined || store.owner !== user.uid) return
     const remote = meta ? parseLibraryMeta(meta.json) : []
     const remoteRoles = meta ? parseRoleMeta(meta.json) : { awards: [], generation: 0 }
     // Unreadable library-level state is left alone for a build that can read it.
@@ -220,7 +227,7 @@ export function useSync(store: SyncableStore, injected?: SyncBackend) {
   useEffect(() => {
     // Wait for the library on screen to be this account's before comparing it
     // with this account's cloud copy.
-    if (!user || records === null || applying.current || store.owner !== user.uid) return
+    if (store.syncRepository || !user || records === null || applying.current || store.owner !== user.uid) return
     const plan = planSync(store.topics, records, ledger.current)
     if (plan.actions.length === 0) {
       setState({ kind: 'synced', user, at: new Date(), conflicts: plan.conflicts })
@@ -291,6 +298,7 @@ export function useSync(store: SyncableStore, injected?: SyncBackend) {
 
   const signIn = useCallback(async () => {
     try {
+      explicitlySignedOut.current = false
       setWatching(true)
       await backend.signIn()
       rememberSignedIn()
@@ -306,11 +314,21 @@ export function useSync(store: SyncableStore, injected?: SyncBackend) {
   const signOut = useCallback(async () => {
     // The local library stays, still bound to this account. If a different
     // account signs in next, `bindOwner` parks it before anything else happens.
-    await backend.signOut()
+    explicitlySignedOut.current = true
     forgetSignedIn()
+    storeRef.current.cancelPendingBinds?.()
+    setUser(null)
+    setState({ kind: 'signedOut' })
+    await backend.signOut()
   }, [backend])
 
-  return useMemo(() => ({ state, signIn, signOut }), [state, signIn, signOut])
+  const visibleState: SyncState = store.syncRepository && user && store.owner === user.uid
+    ? !online ? { kind: 'offline', owner: user.uid }
+      : durable.error ? { kind: 'error', user, message: durable.error }
+        : durable.syncing || (durable.pending && durable.conflicts.length === 0) ? { kind: 'syncing', user }
+          : { kind: 'synced', user, at: new Date(), conflicts: durable.conflicts }
+    : state.kind === 'offline' && state.owner !== store.owner ? { kind: 'restoring' } : state
+  return { state: visibleState, signIn, signOut, pending: durable.pending, conflicts: durable.conflicts }
 }
 
-export { topicJson }
+export { topicJson, parseSyncedTopic }

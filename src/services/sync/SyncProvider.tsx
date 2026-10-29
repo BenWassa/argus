@@ -15,6 +15,8 @@ import type { SyncBackend } from './syncBackend'
 
 interface SyncContext {
   state: SyncState
+  pending?: boolean | null
+  conflicts?: string[]
   signIn: () => Promise<void>
   signOut: () => Promise<void>
 }

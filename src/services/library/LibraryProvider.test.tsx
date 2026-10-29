@@ -42,6 +42,12 @@ vi.mock('../../infrastructure/persistence/indexedLibraryRepository', () => ({
       fixture.pending.set(owner, record.revision)
       return record
     },
+    pending: async (owner: string) => {
+      const row = fixture.records.get(owner)
+      return row && fixture.pending.has(owner) ? { ...row, deletedTopicIds: [] } : null
+    },
+    readLedger: async () => ({}),
+    acknowledge: async () => false,
     close: () => {},
   }),
 }))
@@ -340,5 +346,66 @@ describe('production IndexedDB provider integration', () => {
     expect(fixture.records.get(ownerKey)?.library).toEqual(previous)
     expect(fixture.pending.get(ownerKey)).toBe(pending)
     expect(hook.result.current.topics).toEqual(previous.topics)
+  })
+})
+
+describe('provisioned offline gate over the production provider', () => {
+  afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks() })
+
+  it('renders the local learner after a bounded auth wait and closes during a different owner bind', async () => {
+    const { SyncProvider } = await import('../sync/SyncProvider')
+    const { AuthGate } = await import('../../app/gate/AuthGate')
+    const { rememberSignedIn } = await import('../sync/syncSession')
+    const { render, screen } = await import('@testing-library/react')
+    const library = readyLibrary()
+    fixture.records.set('a', { owner: 'a', revision: 1, library })
+    localStorage.setItem('argus.library.owner.v1', 'a')
+    rememberSignedIn()
+    vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false)
+    let emit: (user: import('../sync/syncBackend').SyncUser | null) => void = () => {}
+    const backend: import('../sync/syncBackend').SyncBackend = {
+      configured: true, observeUser: (listener) => { emit = listener; return () => {} },
+      signIn: async () => {}, signOut: async () => {}, observeLibrary: vi.fn(() => () => {}),
+      observeMeta: () => () => {}, pushTopic: vi.fn(), deleteTopic: vi.fn(), pushMeta: vi.fn(),
+    }
+    vi.useFakeTimers()
+    render(<LibraryProvider><SyncProvider backend={backend}><AuthGate /></SyncProvider></LibraryProvider>)
+    await act(async () => { for (let i = 0; i < 40; i++) await Promise.resolve() })
+    expect(screen.getByText('Checking your session…')).toBeTruthy()
+    await act(async () => { await vi.advanceTimersByTimeAsync(3000) })
+    expect(screen.getByRole('navigation', { name: 'Sections' })).toBeTruthy()
+    expect(backend.observeLibrary).not.toHaveBeenCalled()
+    let release!: () => void
+    fixture.holds.set('read:b', new Promise<void>((resolve) => { release = resolve }))
+    act(() => emit({ uid: 'b', email: null, displayName: null }))
+    expect(screen.queryByRole('navigation', { name: 'Sections' })).toBeNull()
+    await act(async () => { await vi.advanceTimersByTimeAsync(5000) })
+    expect(screen.queryByRole('navigation', { name: 'Sections' })).toBeNull()
+    await act(async () => { release(); for (let i = 0; i < 30; i++) await Promise.resolve() })
+    expect(screen.getByRole('navigation', { name: 'Sections' })).toBeTruthy()
+    expect(fixture.records.get('b')!.library.topics.every((topic) => topic.history.length === 0)).toBe(true)
+    expect(fixture.records.get('a')!.library.topics).toEqual(library.topics)
+  })
+
+  it('does not provision a fresh seed merely because an owner marker survives missing local data', async () => {
+    localStorage.setItem('argus.library.owner.v1', 'missing')
+    vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false)
+    const { render, screen } = await import('@testing-library/react')
+    render(<LibraryProvider><div>learner mounted</div></LibraryProvider>)
+    await waitFor(() => expect(screen.getByRole('alert').textContent).toContain('connection'))
+    expect(screen.queryByText('learner mounted')).toBeNull()
+    expect(fixture.records.has('missing')).toBe(false)
+  })
+
+  it('leaves a new offline device behind sign-in without exposing its unclaimed seed', async () => {
+    const { SyncProvider } = await import('../sync/SyncProvider')
+    const { AuthGate } = await import('../../app/gate/AuthGate')
+    const { render, screen } = await import('@testing-library/react')
+    vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false)
+    const { unconfiguredSyncBackend } = await import('../sync/syncBackend')
+    render(<LibraryProvider><SyncProvider backend={{ ...unconfiguredSyncBackend(), configured: true }}><AuthGate /></SyncProvider></LibraryProvider>)
+    await waitFor(() => expect(screen.getByRole('button', { name: /continue with google/i })).toBeTruthy())
+    expect(screen.queryByRole('navigation', { name: 'Sections' })).toBeNull()
+    expect(localStorage.getItem('argus.library.owner.v1')).toBeNull()
   })
 })
