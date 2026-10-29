@@ -82,7 +82,7 @@ The active [execution checkpoint](docs/open/NEXT_BATCHES.md) tracks three open P
 - [Radio reviewer worksheet](docs/open/ISSUE_150_HUMAN_REVIEW.md) — 28 scored items and independent qualified review record.
 - [CAF permission request draft](docs/open/ISSUE_178_PERMISSION_REQUEST_DRAFT.md) — intended-use text and 57-image metadata inventory; not submitted.
 - [Morse next-slice recommendation](docs/open/morse/ISSUE_201_NEXT_SLICE_RECOMMENDATION.md) — validate the existing S1A draft; [scope/CI review](docs/open/morse/ISSUE_201_S1A_SCOPE_REVIEW.md) distinguishes approved architecture from pending visual/device checks.
-- [Scuba asset review](docs/open/ISSUE_132_SCUBA_ASSET_REVIEW.md) — four sourced photo candidates and two remaining image briefs; Learn-only scope.
+- [Scuba asset review](docs/open/ISSUE_132_SCUBA_ASSET_REVIEW.md) — six sourced photo candidates awaiting human acceptance; Learn-only scope.
 - [Pre-release PR review](docs/closed/PRE_RELEASE_PR_REVIEW.md) — merge readiness, prepared cleanup and the outstanding offline durability blocker.
 - [Human acceptance checklist](docs/open/HUMAN_ACCEPTANCE_CHECKLIST.md) — one review session for prepared scuba, Analyst, radio, badge, Pixel, offline and permission gates.
 - [Current execution queue (22 October 2026)](docs/open/NEXT_BATCHES.md) — merged implementation vs open PRs, Pixel acceptance, offline integration and source-review gates; [October 15 checkpoint](docs/closed/NEXT_BATCHES_2026_10_15.md) is archived.
