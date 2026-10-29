@@ -113,5 +113,6 @@ export function MorseProgressPath({ topic, onAction, showJump = true, onPlacemen
     }
   })
   return <ProgressSpine rows={rows} label="Course path" className="morse-progress-path"
-    positionId={path.currentNodeId ?? undefined} jump={showJump ? current?.label : undefined} />
+    positionId={path.currentNodeId ?? undefined} openAtId={path.openAtNodeId ?? undefined}
+    jump={showJump ? current?.label : undefined} />
 }
