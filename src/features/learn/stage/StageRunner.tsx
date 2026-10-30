@@ -81,10 +81,12 @@ function StageRun({ stage, itemFace, itemFor, onFinish, onExit, onNext, nextLabe
     switch (step.kind) {
       case 'show':
         title = step.title
-        content = step.body ? <p className="stage-answer">{step.body}</p> : undefined
+        content = step.body ? <p className={`stage-answer${step.body.length > 40 ? ' is-long' : ''}`}>{step.body}</p> : undefined
         break
       case 'choose':
-        title = step.prompt
+        // A pictured item's authored prompt is written for the Test ("Flag 1 of
+        // 12 — …"); in a lesson the picture is the question.
+        title = itemFor?.(step.itemId)?.stimulus ? 'Which one is this?' : step.prompt
         response = <>{options(step.options, step.answer)}{correct && continueButton}</>
         break
       case 'contrast':
@@ -140,9 +142,11 @@ function StageRun({ stage, itemFace, itemFor, onFinish, onExit, onNext, nextLabe
       <button type="button" className="ghost" onClick={onExit}>Done</button>
     </> : <>{saveError && <p role="alert">Could not save this lesson. Try Finish lesson again.</p>}{feedback}{response}</>}>
     <div className="session-stimulus stage-stimulus">
-      <p className="stage-progress">{finished ? 'Lesson finished' : `Step ${index + 1} of ${stage.steps.length}`}</p>
-      <h2 ref={heading} tabIndex={-1}>{finished ? 'Lesson complete' : title}</h2>
-      {!finished && <>{media}{content}</>}
+      <div className={`stage-card${step?.kind === 'show' && !finished ? ' is-teaching' : ''}`}>
+        {!finished && media}
+        <h2 ref={heading} tabIndex={-1} className={`stage-title${!finished && title.length <= 3 ? ' is-glyph' : ''}`}>{finished ? 'Lesson complete' : title}</h2>
+        {!finished && content}
+      </div>
     </div>
   </SessionFrame>
 }

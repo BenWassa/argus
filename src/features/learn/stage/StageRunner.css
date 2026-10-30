@@ -16,12 +16,32 @@
   text-align: center;
   overflow-wrap: anywhere;
 }
-.stage-stimulus h2 { font-size: clamp(1.3rem, 5.5vw, 2rem); line-height: 1.15; margin: 0; }
-.stage-stimulus h2:focus { outline: none; }
-.stage-progress { font-family: var(--font-mono); font-size: var(--t-readout); color: var(--muted); }
-.stage-answer { font-size: clamp(1.2rem, 5vw, 1.8rem); line-height: 1.3; }
-.stage-stimulus .visual { min-height: 0; max-height: 26svh; margin: 0; }
-.stage-stimulus .visual svg, .stage-stimulus .visual img { max-height: 23svh; width: auto; max-width: 100%; }
+.stage-card {
+  width: 100%;
+  max-width: 30rem;
+  min-height: min(22rem, 100%);
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-lg);
+  padding: var(--s-xl) var(--s-lg);
+  border: 1px solid var(--line-strong);
+  border-top: 4px solid var(--session-colour, var(--action));
+  border-radius: var(--r-xl);
+  background: var(--surface-2);
+  box-shadow: var(--shadow-key);
+  overflow: hidden;
+}
+.stage-title { font-size: clamp(1.4rem, 6vw, 2.1rem); line-height: 1.15; margin: 0; overflow-wrap: break-word; }
+.stage-title.is-glyph { font-family: var(--font-mono); font-size: clamp(3.5rem, 20vw, 5.5rem); line-height: 1; }
+.stage-title:focus { outline: none; }
+/* Teaching: the answer is the thing to learn, in the session colour. */
+.stage-answer { margin: 0; font-size: clamp(1.5rem, 7vw, 2.4rem); font-weight: 700; line-height: 1.2; color: var(--session-colour, var(--action)); }
+.stage-answer.is-long { font-size: clamp(1.1rem, 4.6vw, 1.4rem); font-weight: 600; line-height: 1.35; }
+.stage-card .visual { width: min(100%, 18rem); min-height: 0; margin: 0; }
+.stage-card .visual svg, .stage-card .visual img { display: block; width: 100%; height: auto; max-height: 28svh; object-fit: contain; }
 .stage-runner .stage-options { display: grid; grid-template-columns: 1fr; gap: var(--s-sm); }
 .stage-runner button { min-height: 44px; overflow-wrap: anywhere; white-space: normal; }
 .stage-options > button {
@@ -37,8 +57,9 @@
 .stage-sequence { display: flex; flex-wrap: wrap; gap: var(--s-xs); padding: 0; list-style: none; }
 @media (max-height: 700px) {
   .stage-stimulus { gap: var(--s-xs); }
+  .stage-card { min-height: 0; gap: var(--s-sm); padding: var(--s-md); }
+  .stage-card .visual svg, .stage-card .visual img { max-height: 20svh; }
   .stage-options > button { padding-block: 8px; }
-  .stage-stimulus .visual svg, .stage-stimulus .visual img { max-height: 18svh; }
 }
 @media (prefers-reduced-motion: reduce) {
   .stage-runner *, .stage-runner *::before, .stage-runner *::after { animation: none; transition: none; }
