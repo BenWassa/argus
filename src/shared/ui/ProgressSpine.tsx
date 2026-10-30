@@ -47,6 +47,8 @@ export interface ProgressSpineProps {
   label: string
   /** The row the spine is filled to and scrolled to on arrival. */
   positionId?: string
+  /** Where the list opens when there is no position: scrolled to only, never styled or announced. */
+  openAtId?: string
   /** The position row's name on a return pill shown while it is off screen; omit for no pill. */
   jump?: string
   className?: string
@@ -55,7 +57,7 @@ export interface ProgressSpineProps {
 const SCROLL: ScrollIntoViewOptions = { block: 'center', behavior: 'instant' }
 
 /** One straight line, top to bottom: done in the action colour, ahead in --spine-ahead. */
-export function ProgressSpine({ rows, label, positionId: positionProp, jump, className = '' }: ProgressSpineProps) {
+export function ProgressSpine({ rows, label, positionId: positionProp, openAtId, jump, className = '' }: ProgressSpineProps) {
   const listRef = useRef<HTMLOListElement>(null)
   const positionRef = useRef<HTMLElement | null>(null)
   const [direction, setDirection] = useState<'↑' | '↓' | null>(null)
@@ -65,6 +67,7 @@ export function ProgressSpine({ rows, label, positionId: positionProp, jump, cla
   const lastDone = [...rows].reverse().find((row) => row.state === 'done')
   const filledTo = position?.id ?? lastDone?.id
   const offersJump = jump !== undefined && Boolean(position)
+  const arrivalId = position ? positionId : openAtId
 
   useLayoutEffect(() => {
     const list = listRef.current
@@ -96,7 +99,7 @@ export function ProgressSpine({ rows, label, positionId: positionProp, jump, cla
   // Arrival only: the line opens at the position, without animation.
   useLayoutEffect(() => {
     positionRef.current?.scrollIntoView?.(SCROLL)
-  }, [positionId])
+  }, [arrivalId])
 
   useLayoutEffect(() => {
     const target = positionRef.current
@@ -120,7 +123,7 @@ export function ProgressSpine({ rows, label, positionId: positionProp, jump, cla
           const hasAside = row.aside !== undefined && row.aside !== null
           const classes = ['spine-row', `is-${isPosition ? 'position' : row.state}`, row.plate && 'is-plate', hasAside && 'has-aside', row.className]
             .filter(Boolean).join(' ')
-          const ref = isPosition ? (element: HTMLElement | null) => { positionRef.current = element } : undefined
+          const ref = row.id === arrivalId ? (element: HTMLElement | null) => { positionRef.current = element } : undefined
           const content = <>
             <span className={`spine-node${row.shape === 'square' ? ' spine-node-square' : ''}`} data-spine-node="" aria-hidden="true">{row.mark === undefined && row.state === 'done' ? '✓' : row.mark}</span>
             <span className="spine-main">

@@ -113,6 +113,20 @@ describe('ProgressSpine', () => {
     HTMLElement.prototype.scrollIntoView = original
   })
 
+  it('opens at a row without a position, and does not mark that row as the position', () => {
+    const scrollIntoView = vi.fn()
+    const original = HTMLElement.prototype.scrollIntoView
+    HTMLElement.prototype.scrollIntoView = function (this: HTMLElement, options?: ScrollIntoViewOptions | boolean) {
+      scrollIntoView(this.closest('[data-node-id]')?.getAttribute('data-node-id'), options)
+    }
+    const { unmount } = render(<ProgressSpine rows={rows()} label="Path" openAtId="tier" />)
+    expect(scrollIntoView).toHaveBeenCalledExactlyOnceWith('tier', { block: 'center', behavior: 'instant' })
+    expect(document.querySelector('[aria-current]')).toBeNull()
+    expect(document.querySelector('.is-position')).toBeNull()
+    unmount()
+    HTMLElement.prototype.scrollIntoView = original
+  })
+
   it('adds no pill or observer without a jump label, and survives missing observer APIs', () => {
     const observer = vi.fn()
     vi.stubGlobal('IntersectionObserver', observer)

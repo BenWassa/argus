@@ -167,6 +167,22 @@ describe('Morse progress path', () => {
     }
   })
 
+  it('opens a learned course at its first after-course level still in reach, without making it a task', () => {
+    for (const topic of [modeTopicFixtures().banked, modeTopicFixtures().advanced]) {
+      const path = morseProgressPath(topic)!
+      const openAt = path.nodes.find((node) => node.id === path.openAtNodeId)
+      expect(openAt).toMatchObject({ kind: 'tier', state: 'reached' })
+      expect(path.nodes.filter((node) => node.state === 'current')).toEqual([])
+    }
+  })
+
+  it('opens a course still being learned at its current task', () => {
+    for (const topic of [modeTopicFixtures().fresh, modeTopicFixtures().mid]) {
+      const path = morseProgressPath(topic)!
+      expect(path.openAtNodeId).toBe(path.currentNodeId)
+    }
+  })
+
   it('returns no Morse path for unsupported content', () => {
     expect(morseProgressPath({ ...morseTopic(), items: [] })).toBeNull()
     expect(morseProgressPath({ ...morseTopic(), items: [{ prompt: 'Other', answer: 'Content' }] })).toBeNull()

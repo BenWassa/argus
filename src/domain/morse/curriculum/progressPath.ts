@@ -48,6 +48,11 @@ export interface MorseProgressPath {
   nodes: MorseProgressNode[]
   /** Learner position for scrolling, independent of which activities are available. */
   currentNodeId: string | null
+  /**
+   * Where the path opens. A learned course has no current task, so it opens at
+   * the first after-course level still in reach instead of at its first lesson.
+   */
+  openAtNodeId: string | null
 }
 
 const TIER_LABELS: Record<MorseTier, string> = {
@@ -138,5 +143,7 @@ export function morseProgressPath(topic: Topic): MorseProgressPath | null {
       lockedReason: pips.find((pip) => pip.reason)?.reason ?? null,
       action: pips.find((pip) => pip.state === 'available')?.action ?? pips.find((pip) => pip.action)?.action ?? null })
   }
-  return { nodes, currentNodeId }
+  const openAtNodeId = currentNodeId
+    ?? nodes.find((node) => node.kind === 'tier' && node.state === 'reached')?.id ?? null
+  return { nodes, currentNodeId, openAtNodeId }
 }
