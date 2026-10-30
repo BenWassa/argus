@@ -146,6 +146,9 @@
 .index-row.plate-repair { border-color: var(--warning); }
 
 .index-row.today-plate {
+  /* A button sizes to its content; pin it to the list so a long word wraps. */
+  width: 100%;
+  min-width: 0;
   display: flex;
   flex-wrap: wrap;
   align-items: center;

@@ -247,6 +247,9 @@
 /* Shipped topics have a recognition glyph beside the title. The reading
    still spans the full plate width beneath both columns. */
 .index-row.lib-row.has-topic-icon {
+  /* A button sizes to its content; pin it to the list so a long word wraps. */
+  width: 100%;
+  min-width: 0;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -400,3 +403,8 @@
 
 /* Long names must reflow inside the plate at enlarged text sizes. */
 .lib-row .index-title { min-width: 0; overflow-wrap: break-word; }
+
+/* The list grid's implicit column would otherwise size to the longest word,
+   pushing plates past the screen at enlarged text. */
+.lib-list .index { grid-template-columns: minmax(0, 1fr); }
+.lib-list .lib-entry { min-width: 0; }
