@@ -2,8 +2,8 @@
 
 > **Progress authority update, 2026-10-19:** [Learning progress](../PROGRESS_ARCHITECTURE.md) supersedes earlier decay/repair routing and repeated completion requirements in this document. Learned topics stay learned. Home continues the top unfinished topic.
 
-**Status:** Implemented and released in v1.5.3 on 2026-10-16; automated release verification complete. Real Pixel acceptance remains open. Navigation was superseded on `feat/ui-overhaul`, awaiting owner sign-off and release.
-**Authority:** Maintained adaptive-practice and teaching contract. The navigation in the 2026-10-16 record and original proposal is historical, superseded on `feat/ui-overhaul` by [UI overhaul (#225)](../ISSUE_225_UI_OVERHAUL.md). That plan governs the pending overhaul's scope and decisions until release.
+**Status:** Implemented and released in v1.5.3 on 2026-10-16; automated release verification complete. Real Pixel acceptance remains open. Navigation was superseded by the UI overhaul, merged to `main` in #271 (2026-10-20); owner Pixel sign-off and release remain outstanding.
+**Authority:** Maintained adaptive-practice and teaching contract. The navigation in the 2026-10-16 record and original proposal is historical, superseded by [UI overhaul (#225)](../ISSUE_225_UI_OVERHAUL.md), merged to `main` in #271. That plan governs the overhaul's scope and decisions until #233 closes.
 **Audit:** Original scoping inventory inspected default-branch source on 2026-10-16. The implementation review below adds real Chromium captures at 320/390 CSS px; physical Pixel and deployed-app acceptance remain outstanding.
 **Issue:** https://github.com/BenWassa/argus/issues/221
 **Related:** #201 / PRs #209, #212, #215; #188; #87; #90; #76; #113.
