@@ -100,7 +100,7 @@ describe('Grid North & Map Bearings authored curriculum', () => {
       'grid-offsets-show-west-c': `G = M + D − C. With 214°M, D = +9° and C = −3°, 214 + 9 − (−3) = ${signed}: ${formatBearing(signed, 'G')}.`,
       'grid-back-show-conversion': `MN is 10° east of GN. Convert the 060°G line: M = G − 10° = ${formatBearing(forward, 'M')}.`,
       'grid-back-show-check': `Convert then reciprocate: ${formatBearing(forward, 'M')} + 180° = ${formatBearing(back, 'M')}. Reciprocate then convert: ${formatBearing(reciprocal(60), 'G')} − 10° = ${formatBearing(otherRoute, 'M')}. Both routes agree.`,
-      'grid-back-show-wrap': `G = M + D − C: 330 − 8 − 2 = ${formatBearing(wrappedForward, 'G')}. Its reciprocal is ${wrappedForward} + 180 = ${wrappedForward + 180}°, normalized to ${formatBearing(wrappedBack, 'G')}.`,
+      'grid-back-show-wrap': `G = M + D − C: 330 − 8 − 2 = ${formatBearing(wrappedForward, 'G')}. Its reciprocal is ${wrappedForward} + 180 = ${wrappedForward + 180}°, normalized to ${formatBearing(wrappedBack, 'G')} (subtract 360° at 360° or more).`,
     }
     for (const [id, expected] of Object.entries(worked)) {
       const step = steps.find(step => step.id === id)!

@@ -17,7 +17,7 @@ export const wholeCircleBearingsCurriculum: Curriculum = {
           kind: 'choose', id: 'dial-read-037', itemId: 'whole-circle-bearings-item-01',
           prompt: 'Which bearing does the ray show, measured clockwise from true north?',
           options: ['323°T', '037°T', '217°T', '053°T'], answer: '037°T',
-          explain: 'Counting anticlockwise or starting from east changes the angle.',
+          explain: 'Count clockwise from true north, then check the quadrant.',
         },
         {
           kind: 'show', id: 'dial-quadrants', itemId: 'whole-circle-bearings-item-02',
@@ -27,15 +27,15 @@ export const wholeCircleBearingsCurriculum: Curriculum = {
         },
         {
           kind: 'choose', id: 'dial-read-128', itemId: 'whole-circle-bearings-item-02',
-          prompt: 'Read this ray clockwise from true north. Which bearing is between east and south?',
+          prompt: 'Which bearing does this ray, between east and south, show?',
           options: ['232°T', '308°T', '128°T', '322°T'], answer: '128°T',
-          explain: 'A reading in another quadrant starts from the wrong direction.',
+          explain: 'Count clockwise from true north, then check the quadrant.',
         },
         {
           kind: 'choose', id: 'dial-read-205', itemId: 'whole-circle-bearings-item-03',
           prompt: 'Which true bearing does this ray between south and west show?',
           options: ['205°T', '155°T', '025°T', '245°T'], answer: '205°T',
-          explain: 'Counting anticlockwise puts this ray in the wrong quadrant.',
+          explain: 'Count clockwise from true north, then check the quadrant.',
         },
         { kind: 'summary', id: 'dial-summary', text: 'Read clockwise from true north, then check the quadrant.' },
         {
@@ -52,7 +52,7 @@ export const wholeCircleBearingsCurriculum: Curriculum = {
           kind: 'choose', id: 'north-read-291', itemId: 'whole-circle-bearings-item-04',
           prompt: 'Which true bearing does this ray between west and north show?',
           options: ['069°T', '111°T', '159°T', '291°T'], answer: '291°T',
-          explain: 'Counting anticlockwise gives 069°, on the other side of north.',
+          explain: 'Count clockwise from true north, then check the quadrant.',
         },
         {
           kind: 'show', id: 'north-east-side', itemId: 'whole-circle-bearings-item-05',
@@ -64,13 +64,13 @@ export const wholeCircleBearingsCurriculum: Curriculum = {
           kind: 'choose', id: 'north-read-005', itemId: 'whole-circle-bearings-item-05',
           prompt: 'Which true bearing does the ray just east of north show?',
           options: ['355°T', '185°T', '005°T', '085°T'], answer: '005°T',
-          explain: '355° is just west of north; this ray is just east.',
+          explain: 'Count clockwise from true north, then check the quadrant.',
         },
         {
           kind: 'choose', id: 'north-read-355', itemId: 'whole-circle-bearings-item-06',
           prompt: 'Which true bearing does the ray just west of north show?',
           options: ['355°T', '005°T', '175°T', '095°T'], answer: '355°T',
-          explain: '005° is just east of north; this ray is just west.',
+          explain: 'Count clockwise from true north, then check the quadrant.',
         },
         {
           kind: 'show', id: 'north-west-side', itemId: 'whole-circle-bearings-item-06',
@@ -93,7 +93,7 @@ export const wholeCircleBearingsCurriculum: Curriculum = {
           kind: 'complete', id: 'ray-find-072', itemId: 'whole-circle-bearings-item-07',
           before: 'Count clockwise from true north. The ray at 072°T is ', after: '.',
           options: ['Ray E', 'Ray A', 'Ray H', 'Ray L'], answer: 'Ray A',
-          explain: 'Counting anticlockwise selects a ray on the wrong side of north.',
+          explain: 'Count clockwise from true north to the stated bearing, then check the quadrant.',
         },
         {
           kind: 'show', id: 'ray-trace-072', itemId: 'whole-circle-bearings-item-07',
@@ -105,13 +105,13 @@ export const wholeCircleBearingsCurriculum: Curriculum = {
           kind: 'complete', id: 'ray-find-163', itemId: 'whole-circle-bearings-item-08',
           before: 'The ray at 163°T, between east and south, is ', after: '.',
           options: ['Ray F', 'Ray J', 'Ray M', 'Ray B'], answer: 'Ray B',
-          explain: 'Counting anticlockwise from north selects Ray F.',
+          explain: 'Count clockwise from true north to the stated bearing, then check the quadrant.',
         },
         {
           kind: 'complete', id: 'ray-find-250', itemId: 'whole-circle-bearings-item-09',
           before: 'The ray at 250°T, between south and west, is ', after: '.',
           options: ['Ray C', 'Ray G', 'Ray K', 'Ray A'], answer: 'Ray C',
-          explain: 'Starting from east or counting anticlockwise selects another ray.',
+          explain: 'Count clockwise from true north to the stated bearing, then check the quadrant.',
         },
         { kind: 'summary', id: 'ray-summary', text: 'Find the quadrant, then count clockwise from true north to the ray.' },
         {
@@ -128,7 +128,7 @@ export const wholeCircleBearingsCurriculum: Curriculum = {
           kind: 'complete', id: 'quadrant-find-344', itemId: 'whole-circle-bearings-item-10',
           before: 'The ray at 344°T, between west and north, is ', after: '.',
           options: ['Ray H', 'Ray L', 'Ray D', 'Ray B'], answer: 'Ray D',
-          explain: 'Counting anticlockwise selects Ray H, east of north.',
+          explain: 'Count clockwise from true north to the stated bearing, then check the quadrant.',
         },
         {
           kind: 'show', id: 'quadrant-trace-344', itemId: 'whole-circle-bearings-item-10',
@@ -140,13 +140,13 @@ export const wholeCircleBearingsCurriculum: Curriculum = {
           kind: 'complete', id: 'quadrant-find-135', itemId: 'whole-circle-bearings-item-11',
           before: 'The ray at 135°T, between east and south, is ', after: '.',
           options: ['Ray J', 'Ray E', 'Ray M', 'Ray C'], answer: 'Ray E',
-          explain: 'Counting anticlockwise selects Ray J in the south-west quadrant.',
+          explain: 'Count clockwise from true north to the stated bearing, then check the quadrant.',
         },
         {
           kind: 'complete', id: 'quadrant-find-270', itemId: 'whole-circle-bearings-item-12',
           before: 'The ray at 270°T, due west, is ', after: '.',
           options: ['Ray K', 'Ray A', 'Ray D', 'Ray F'], answer: 'Ray F',
-          explain: 'Counting anticlockwise selects Ray K, due east.',
+          explain: 'Count clockwise from true north to the stated bearing, then check the quadrant.',
         },
         { kind: 'summary', id: 'quadrant-summary', text: 'Keep true north as the start, and check the ray against its quadrant.' },
         {

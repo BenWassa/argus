@@ -95,7 +95,7 @@ export const reciprocalBearingsCurriculum: Curriculum = {
           kind: 'choose', id: 'return-357', itemId: 'reciprocal-bearings-item-08',
           prompt: 'The forward bearing is 357°M. What is its back bearing?',
           options: ['003°M', '537°M', '177°M'], answer: '177°M',
-          explain: '003° mirrors the ray; 537° has not been wrapped.',
+          explain: '003° mirrors the forward bearing; 537° has not been wrapped.',
         },
         {
           kind: 'show', id: 'return-check-rule', itemId: 'reciprocal-bearings-item-09',
