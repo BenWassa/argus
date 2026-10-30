@@ -55,7 +55,10 @@ console.log(`  curriculum source: ${mib(report.bytes.curriculumSource)}`)
 console.log(`  static media: ${mib(report.bytes.staticMedia)}`)
 console.log(`  optional packs: ${mib(report.bytes.optionalPacks)}`)
 
-const budget = Number(process.env.ARGUS_APP_SHELL_BUDGET_BYTES ?? 5 * 1024 * 1024)
+// 5.5 MiB since the hand-authored lessons (#296) added about 37 KB of curriculum
+// code to a shell that sat 20 KB under the old 5 MiB limit. Each authored topic
+// is roughly 7 KB, so this leaves room for the next few waves.
+const budget = Number(process.env.ARGUS_APP_SHELL_BUDGET_BYTES ?? 5.5 * 1024 * 1024)
 if (!Number.isFinite(budget) || budget <= 0) {
   throw new Error('ARGUS_APP_SHELL_BUDGET_BYTES must be a positive number.')
 }

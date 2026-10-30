@@ -2,19 +2,25 @@ import type { Item, Topic } from '../library/topic'
 import { morseLessonPath } from '../morse/curriculum/lessonPath'
 import { MAX_STAGES, type Curriculum, type LessonStep } from './stages'
 import { nextStage } from './stageProgress'
+import { gridNorthMapBearingsCurriculum } from './authored/grid-north-map-bearings'
+import { northReferencesDeclinationCurriculum } from './authored/north-references-declination'
+import { oodaLoopCurriculum } from './authored/ooda-loop'
+import { reciprocalBearingsCurriculum } from './authored/reciprocal-bearings'
+import { wholeCircleBearingsCurriculum } from './authored/whole-circle-bearings'
 
 /** v5 items always have ids; the fallback keeps legacy in-memory fixtures usable. */
 export function learningItemId(item: Item, index: number): string {
   return item.id ?? `item-${index + 1}`
 }
 
-function hash(value: string): number {
+export function hash(value: string): number {
   let result = 2166136261
   for (const character of value) result = Math.imul(result ^ character.charCodeAt(0), 16777619)
   return result >>> 0
 }
 
-function ordered(values: string[], seed: string): string[] {
+/** A fixed shuffle: same seed, same order, so a lesson reads the same every time. */
+export function ordered(values: string[], seed: string): string[] {
   return values.map(value => ({ value, key: hash(`${seed}:${value}`) }))
     .sort((a, b) => a.key - b.key || (a.value < b.value ? -1 : a.value > b.value ? 1 : 0))
     .map(({ value }) => value)
@@ -57,7 +63,13 @@ export function generatedCurriculum(topic: Topic): Curriculum {
 }
 
 /** Authored curricula can override the generated default (owner, 2026-10-29). */
-const AUTHORED: ReadonlyMap<string, Curriculum> = new Map()
+const AUTHORED: ReadonlyMap<string, Curriculum> = new Map([
+  ['ooda-loop', oodaLoopCurriculum],
+  ['whole-circle-bearings', wholeCircleBearingsCurriculum],
+  ['reciprocal-bearings', reciprocalBearingsCurriculum],
+  ['north-references-declination', northReferencesDeclinationCurriculum],
+  ['grid-north-map-bearings', gridNorthMapBearingsCurriculum],
+])
 
 const curricula = new WeakMap<Topic, Curriculum | undefined>()
 

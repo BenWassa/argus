@@ -80,6 +80,9 @@ describe('generated curricula', () => {
       const ids = new Set(input.items.map((item, index) => learningItemId(item, index)))
       const figureItemIds = new Set(input.items.flatMap((item, index) => item.stimulus ? [learningItemId(item, index)] : []))
       expect(checkCurriculum(curriculum, ids, { figureItemIds }), input.id).toEqual([])
+      // Hand-authored curricula (src/domain/learning/authored) teach in their own
+      // words and have their own tests; only generated lessons restate the items.
+      if (!curriculum.stages.every(stage => /^lesson-\d+$/.test(stage.id))) continue
       for (const step of curriculum.stages.flatMap(stage => stage.steps)) {
         if (step.kind !== 'show') continue
         const item = input.items.find((item, index) => learningItemId(item, index) === step.itemId)!

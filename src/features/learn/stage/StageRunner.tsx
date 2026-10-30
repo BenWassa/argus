@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import type { Item } from '../../../domain/library/topic'
+import { ordered } from '../../../domain/learning/generatedCurriculum'
 import type { LessonStage } from '../../../domain/learning/stages'
 import { SessionFrame } from '../../../shared/ui/SessionFrame'
 import { VisualView } from '../../visual/VisualView'
@@ -67,7 +68,10 @@ function StageRun({ stage, itemFace, itemFor, onFinish, onExit, onNext, nextLabe
   let response: ReactNode = continueButton
   let itemId: string | undefined
 
-  function options(values: string[], answer: string, labels = false) {
+  // Authored options are written answer-first for the author's sake; the learner
+  // sees a fixed shuffle so position never gives the answer away.
+  function options(rawValues: string[], answer: string, labels = false) {
+    const values = ordered(rawValues, `${stage.id}:${step?.id ?? ''}`)
     return <div className={`choice-options stage-options${values.some(value => value.length > 100) ? ' is-wordy' : ''}`}>{values.map(value => <button type="button" key={value}
       className={`choice-option${wrong === value ? ' is-wrong' : ''}${(correct || wrongCount >= 2) && value === answer ? ' is-correct' : ''}`}
       aria-pressed={correct ? value === answer : wrong === value} disabled={correct}
@@ -85,8 +89,11 @@ function StageRun({ stage, itemFace, itemFor, onFinish, onExit, onNext, nextLabe
         break
       case 'choose':
         // A pictured item's authored prompt is written for the Test ("Flag 1 of
-        // 12 — …"); in a lesson the picture is the question.
-        title = itemFor?.(step.itemId)?.stimulus ? 'Which one is this?' : step.prompt
+        // 12 — …"); in a generated lesson the picture is the question.
+        const shown = itemFor?.(step.itemId)
+        // Only a generated step repeats the item's own authored prompt; an authored
+        // step's prompt is its question and is always shown.
+        title = shown?.stimulus && step.prompt === shown.prompt ? 'Which one is this?' : step.prompt
         response = <>{options(step.options, step.answer)}{correct && continueButton}</>
         break
       case 'contrast':
