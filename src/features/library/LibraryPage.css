@@ -15,10 +15,8 @@
   min-height: 56px;
 }
 
-/* Reserve a lane for the floating add, including its safe inset. The last
-   plate also scrolls above the complete button and its surrounding space. */
+/* The last plate scrolls clear of the floating add and its safe inset. */
 .lib-list {
-  padding-right: calc(56px + max(var(--s-lg), env(safe-area-inset-right)));
   padding-bottom: calc(56px + 2 * var(--s-lg) + env(safe-area-inset-bottom));
 }
 
