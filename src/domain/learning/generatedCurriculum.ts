@@ -8,13 +8,14 @@ export function learningItemId(item: Item, index: number): string {
   return item.id ?? `item-${index + 1}`
 }
 
-function hash(value: string): number {
+export function hash(value: string): number {
   let result = 2166136261
   for (const character of value) result = Math.imul(result ^ character.charCodeAt(0), 16777619)
   return result >>> 0
 }
 
-function ordered(values: string[], seed: string): string[] {
+/** A fixed shuffle: same seed, same order, so a lesson reads the same every time. */
+export function ordered(values: string[], seed: string): string[] {
   return values.map(value => ({ value, key: hash(`${seed}:${value}`) }))
     .sort((a, b) => a.key - b.key || (a.value < b.value ? -1 : a.value > b.value ? 1 : 0))
     .map(({ value }) => value)
