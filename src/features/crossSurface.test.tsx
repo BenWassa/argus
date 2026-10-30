@@ -214,8 +214,8 @@ function topicPrimary(topic: Topic): string {
   const current = document.querySelector('[aria-current="step"]')
   if (current) {
     const label = current.getAttribute('aria-label') ?? ''
-    if (label === 'Start, current') return 'Start lesson 1'
-    const lesson = /^Lesson (\d+),/.exec(label)
+    if (label === 'Begin, current') return 'Start lesson 1'
+    const lesson = /, Lesson (\d+),/.exec(label)
     if (lesson) return `Continue lesson ${lesson[1]}`
     return current.classList.contains('morse-progress-test') ? 'Test' : label
   }
@@ -402,7 +402,7 @@ describe('partially acquired Morse is never routed to Test', () => {
     // still reachable, from its own place at the end of the curriculum, and it
     // leaves the consequence to the Test end screen.
     expect(document.querySelectorAll('[aria-current="step"]')).toHaveLength(1)
-    expect(document.querySelector('[aria-current="step"]')?.getAttribute('aria-label')).toMatch(/^Lesson /)
+    expect(document.querySelector('[aria-current="step"]')?.getAttribute('aria-label')).toMatch(/^[A-Z] [A-Z], Lesson /)
     expect(screen.getByRole('button', { name: 'Test early' })).toBeTruthy()
     expect(document.querySelector('.topic-tray')).toBeNull()
   })
@@ -435,7 +435,7 @@ describe('partially acquired Morse is never routed to Test', () => {
     expect(rowFor(resumed.title, todayDocket()).textContent).not.toContain('retrievals')
     cleanup()
     renderTopicPage(resumed)
-    expect(document.querySelector('[aria-current="step"]')?.getAttribute('aria-label')).toMatch(/^Lesson /)
+    expect(document.querySelector('[aria-current="step"]')?.getAttribute('aria-label')).toMatch(/^[A-Z] [A-Z], Lesson /)
     expect(screen.getByRole('img', { name: `${journeyFor(resumed).acquisition.settled} of 26 letters` })).toBeTruthy()
     const stored = JSON.parse(localStorage.getItem(STORE_KEY) ?? '{}') as { topics?: Topic[] }
     expect(stored.topics?.find(topic => topic.id === resumed.id)?.lessonSitting).toEqual(resumed.lessonSitting)
@@ -672,7 +672,7 @@ describe('opening Morse lands on the curriculum', () => {
   it('shows the whole finite shape from the first sitting, locked entries included', () => {
     renderTopicPage(blank(MORSE_ID))
 
-    expect(screen.getByRole('button', { name: 'Start, current' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Begin, current' })).toBeTruthy()
     const locked = [...document.querySelectorAll('.morse-progress-row.is-locked')]
     expect(locked.length).toBeGreaterThan(0)
     expect(locked.every(row => row.getAttribute('aria-disabled') === 'true')).toBe(true)

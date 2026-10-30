@@ -234,7 +234,7 @@ describe('printed letter → Morse uses one production mechanism', () => {
     )
     expect(html).toContain('T')
     expect(html).toContain('1 signal')
-    expect(html).toContain('Morse key. Tap for dit; press and hold for dah.')
+    expect(html).toContain('Tap for dit, hold for dah: Morse key.')
     expect(html).not.toContain('morse-play')
     expect(html).not.toContain('lesson-option mono')
   })

@@ -4,6 +4,7 @@
 /* The stage owns the perspective, so the card flips against a fixed vanishing
    point instead of carrying its own and skewing as it turns. */
 .card-stage {
+  min-width: 0;
   position: relative;
   display: grid;
   perspective: 1400px;
@@ -80,6 +81,7 @@
    above the global button base/hover rules so accent control styling can never
    leak onto the Test surface. */
 button.flip-card {
+  min-width: 0;
   width: 100%;
   min-height: clamp(300px, 58svh, 500px);
   display: grid;
@@ -113,6 +115,7 @@ button.flip-card:active {
 }
 
 .flip-inner {
+  min-width: 0;
   position: relative;
   display: grid;
   transform-style: preserve-3d;
@@ -124,6 +127,7 @@ button.flip-card:active {
 }
 
 .flip-face {
+  min-width: 0;
   grid-area: 1 / 1;
   display: flex;
   flex-direction: column;
@@ -171,6 +175,7 @@ button.flip-card:active {
 }
 
 .flip-value {
+  min-width: 0;
   max-width: 100%;
   font-family: var(--font-display);
   font-size: clamp(3rem, 16vw, 6.5rem);
@@ -178,7 +183,7 @@ button.flip-card:active {
   line-height: 1.02;
   letter-spacing: -0.03em;
   text-align: center;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   text-wrap: balance;
 }
 

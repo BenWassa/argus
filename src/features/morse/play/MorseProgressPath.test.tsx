@@ -34,6 +34,18 @@ describe('Morse progress path', () => {
     expect(onAction).toHaveBeenCalledExactlyOnceWith(path.nodes.find((node) => node.id === path.currentNodeId)!.action)
   })
 
+  it.each(Object.keys(modeTopicFixtures()))('starts every %s node name with its rendered label for every node kind', (state) => {
+    const topic = modeTopicFixtures()[state]
+    const path = morseProgressPath(topic)!
+    const { container } = render(<MorseProgressPath topic={topic} onAction={vi.fn()} />)
+    expect(new Set(path.nodes.map(node => node.kind))).toEqual(new Set(['start', 'lesson', 'checkpoint', 'test', 'tier']))
+    for (const node of path.nodes) {
+      const row = container.querySelector(`[data-node-id="${node.id}"] .spine-row`)!
+      const visibleLabel = row.querySelector('.spine-label')!.textContent!
+      expect(row.getAttribute('aria-label')!.toLowerCase().startsWith(visibleLabel.toLowerCase()), node.id).toBe(true)
+    }
+  })
+
   it.each(['fresh', 'mid'])('marks the %s position without a Start chip (#242)', (state) => {
     const { container } = render(<MorseProgressPath topic={modeTopicFixtures()[state]} onAction={vi.fn()} />)
     const current = container.querySelector('[aria-current="step"]')!

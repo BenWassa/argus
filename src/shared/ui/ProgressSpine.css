@@ -77,7 +77,7 @@
   margin-inline: 6px;
   border: 2px solid var(--line-hover);
   border-radius: 50%;
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 800;
   color: var(--ink);
   background: var(--plate);
@@ -102,12 +102,12 @@
 .spine-label {
   min-width: 0;
   overflow-wrap: anywhere;
-  font-size: 18px;
+  font-size: 1.125rem;
   font-weight: 700;
 }
 
 .spine-detail {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--muted);
   overflow-wrap: anywhere;
 }

@@ -65,14 +65,14 @@ function finishCorrectDwell() {
 }
 function tileNames() {
   return within(screen.getByRole('group', { name: 'Choose the letter' })).getAllByRole('button')
-    .map(button => button.getAttribute('aria-label')!.replace('Letter ', ''))
+    .map(button => button.getAttribute('aria-label')!.replace(', letter', ''))
 }
 /** Read shows the pattern, so the target is the one whose rhythm is on screen. */
 function readTarget(letters: readonly MorseLetter[] = FOUR): MorseLetter {
   const label = screen.getByRole('img', { name: /^(dit|dah)/ }).getAttribute('aria-label')
   return letters.find(l => spokenRhythm(MORSE_LETTERS[l]) === label)!
 }
-const tile = (letter: string) => screen.getByRole('button', { name: `Letter ${letter}` }) as HTMLButtonElement
+const tile = (letter: string) => screen.getByRole('button', { name: `${letter}, letter` }) as HTMLButtonElement
 function hear() {
   fireEvent.click(screen.getByRole('button', { name: 'Play Morse sound' }))
   act(() => vi.advanceTimersByTime(100))
@@ -98,7 +98,7 @@ describe('LetterPracticeRun four-choice recognition', () => {
     const buttons = [...screen.getByRole('group', { name: 'Choose the letter' }).querySelectorAll('button')]
     const signature = (button: Element) => [...button.attributes].map(a => a.name === 'aria-label' ? 'aria-label' : `${a.name}=${a.value}`).sort().join('|')
     expect(new Set(buttons.map(signature)).size).toBe(1)
-    for (const button of buttons) expect(button.getAttribute('aria-label')).toBe(`Letter ${button.textContent}`)
+    for (const button of buttons) expect(button.getAttribute('aria-label')).toBe(`${button.textContent}, letter`)
   })
 
   it.each(['read', 'listen'] as const)('grades %s on the first tile, locks the rest and writes only recognition', direction => {

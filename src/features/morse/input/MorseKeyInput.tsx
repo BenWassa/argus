@@ -49,7 +49,7 @@ export function MorseKeyInput(props: MorseKeyInputProps) {
         type="button"
         data-pressed={pressed ? 'true' : undefined}
         disabled={inputBlocked || entry.length >= expectedLength}
-        aria-label="Morse key. Tap for dit; press and hold for dah. Hold duration only chooses the element; the answer grades automatically when complete."
+        aria-label="Tap for dit, hold for dah: Morse key. Hold duration only chooses the element; the answer grades automatically when complete."
         aria-keyshortcuts=". -"
         onPointerDown={onPointerDown}
         onPointerUp={onPointerUp}

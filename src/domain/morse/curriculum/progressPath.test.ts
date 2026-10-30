@@ -61,7 +61,7 @@ describe('Morse progress path', () => {
     expect(path.currentNodeId).toBe('lesson-6')
     expect(path.nodes.find((node) => node.id === 'lesson-1')).toMatchObject({ state: 'done', action: { kind: 'replay-lesson', packetIndex: 0 } })
     expect(path.nodes.find((node) => node.id === 'lesson-6')?.accessibleLabel)
-      .toBe(`Lesson 6, ${lessonPackets()[5].novel.join(' and ')}, current`)
+      .toBe(`${lessonPackets()[5].novel.join(' ')}, Lesson 6, current`)
     expect(path.nodes.find((node) => node.id === 'checkpoint-after-4')).toMatchObject({ state: 'reached', action: { kind: 'checkpoint', checkpointId: 'after-4' } })
     expect(path.nodes.find((node) => node.id === 'checkpoint-after-7')?.state).toBe('locked')
   })

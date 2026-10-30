@@ -34,7 +34,7 @@ test('direct letter practice, durable isolation, correction and return', async (
   const tiles = page.getByRole('group', { name: 'Choose the letter' }).getByRole('button')
   expect(await tiles.count()).toBe(4)
   const wrong = (await tiles.evaluateAll(buttons => buttons.map(b => b.textContent!))).find(letter => letter !== target)!
-  await page.getByRole('button', { name: `Letter ${wrong}` }).click()
+  await page.getByRole('button', { name: `${wrong}, letter` }).click()
   await expect(page.getByRole('button', { name: 'Continue', exact: true })).toBeVisible()
   await expect(page.locator('.morse-character-support')).toBeVisible()
   if (info.project.name.startsWith('phone-')) await page.screenshot({ path: `${folder}/${info.project.name}-correction.png`, fullPage: true })
@@ -66,7 +66,7 @@ test('a complete read round repeats freely and large text fits', async ({ page }
     // The shared marks keep their notation as text: one character per mark (#263).
     const pattern = await page.locator('.letter-practice-stimulus .morse-marks').textContent()
     const expected = source.items.find(item => item.answer.replace(/\s/g, '').replace(/-/g, '—').replace(/\./g, '·') === pattern?.replace(/\s/g, ''))!.prompt
-    await page.getByRole('button', { name: `Letter ${expected}` }).click()
+    await page.getByRole('button', { name: `${expected}, letter` }).click()
     await expect(page.getByRole('status')).toContainText('Correct')
   }
   await expect(page.getByRole('heading', { name: '10 of 10 correct' })).toBeVisible()

@@ -21,7 +21,7 @@ export const LetterChoiceTiles = forwardRef<HTMLDivElement, {
     <div ref={ref} role="group" aria-label="Choose the letter" tabIndex={-1}
       className="letter-choices" data-count={choices.length}>
       {choices.map(letter => (
-        <button key={letter} type="button" className="ghost letter-choice" aria-label={`Letter ${letter}`}
+        <button key={letter} type="button" className="ghost letter-choice" aria-label={`${letter}, letter`}
           disabled={disabled} onClick={() => onChoose(letter)}>
           <span aria-hidden="true">{letter}</span>
         </button>

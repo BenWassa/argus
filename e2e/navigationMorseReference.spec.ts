@@ -178,7 +178,7 @@ test('a lesson replay reruns the real lesson, writes nothing and returns to the 
   const before = JSON.stringify(await readLocalLibrary(page))
   const onTopic = await state(page)
   await openFinishedLessons(page)
-  await page.getByRole('button', { name: 'Lesson 1, E and I, done', exact: true }).click()
+  await page.getByRole('button', { name: 'E I, Lesson 1, done', exact: true }).click()
 
   // #117: the same lesson, not a stripped quiz. The first-exposure
   // introduction is back, with the rhythmic mnemonic, the canonical notation
@@ -216,7 +216,7 @@ test('unlocked word checkpoint holds a miss until dismissed and never mutates sa
   const before = await JSON.stringify(await readLocalLibrary(page))
   const onTopic = await state(page)
   await openFinishedLessons(page)
-  await page.getByRole('button', { name: 'Words after Lesson 4, reached' }).click()
+  await page.getByRole('button', { name: 'Word check, Words after Lesson 4, reached' }).click()
 
   await expect(page.locator('.session-frame-title').filter({ hasText: /^Word check$/ })).toBeVisible()
   await expect(page.getByRole('progressbar', { name: '0 of 8', exact: true })).toBeVisible()
@@ -261,7 +261,7 @@ test('unlocked word checkpoint holds a miss until dismissed and never mutates sa
   await page.getByRole('button', { name: 'Back to lessons' }).click()
   await expect(page.getByRole('heading', { name: 'International Morse Code', level: 1 })).toBeFocused()
   await openFinishedLessons(page)
-  await expect(page.getByRole('button', { name: 'Words after Lesson 4, reached' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Word check, Words after Lesson 4, reached' })).toBeVisible()
   expect(JSON.stringify(await readLocalLibrary(page))).toBe(before)
   expect(await state(page)).toEqual(onTopic)
 })
@@ -271,7 +271,7 @@ test('word checkpoint remains usable at phone width and 200% text with the whole
   await openApp(page)
   await openMorseTopic(page)
   await openFinishedLessons(page)
-  await page.getByRole('button', { name: 'Words after Lesson 4, reached' }).click()
+  await page.getByRole('button', { name: 'Word check, Words after Lesson 4, reached' }).click()
   await finishCheckpointWarmups(page)
 
   const target = page.locator('.morse-checkpoint-target')
