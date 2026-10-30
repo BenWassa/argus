@@ -46,7 +46,6 @@ export function ChoiceCard({ item, onAnswer, cardKey, now = defaultNow }: Choice
   const chosen = choice && choice.key === cardKey ? choice.option : null
   const startedAt = useRef(now())
   const continueRef = useRef<HTMLButtonElement>(null)
-  const feedbackRef = useRef<HTMLDivElement>(null)
   const pending = useRef<ChoiceAnswer | null>(null)
   const onAnswerRef = useRef(onAnswer)
   onAnswerRef.current = onAnswer
@@ -71,10 +70,6 @@ export function ChoiceCard({ item, onAnswer, cardKey, now = defaultNow }: Choice
   useEffect(() => {
     if (chosen === null || correct) return
     continueRef.current?.focus({ preventScroll: true })
-    // On a short phone a picture, a long prompt and four options already fill
-    // the screen, so the correction and its Continue land below the fold.
-    // `nearest` leaves the page still when they are already in view.
-    feedbackRef.current?.scrollIntoView?.({ block: 'nearest' })
   }, [chosen, correct])
 
   function choose(option: string) {
@@ -131,18 +126,9 @@ export function ChoiceCard({ item, onAnswer, cardKey, now = defaultNow }: Choice
       )}
 
       {chosen !== null && !correct && (
-        <div ref={feedbackRef} className="test-feedback" role="status" aria-live="assertive">
+        <div className="test-feedback" role="status" aria-live="assertive">
           <p className="test-verdict">Not that one</p>
-          <div className="test-correction">
-            <p className="test-correction-row">
-              <span className="test-correction-label">You chose</span>
-              <span className="test-correction-value choice-value">{chosen}</span>
-            </p>
-            <p className="test-correction-row">
-              <span className="test-correction-label">Answer</span>
-              <span className="test-correction-value choice-value">{item.answer}</span>
-            </p>
-          </div>
+          <p className="sr-only">You chose {chosen}. Correct answer: {item.answer}.</p>
           <button
             ref={continueRef}
             className="test-next"

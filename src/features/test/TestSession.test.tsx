@@ -79,14 +79,17 @@ describe('answer confidentiality', () => {
   it('mounts no answer at all before the card is revealed', () => {
     open(['nato-phonetic'])
     expect(answersInDocument()).toEqual([])
+    expect(screen.getByText('Tap to reveal')).toBeTruthy()
     expect(cardNow().getAttribute('aria-expanded')).toBe('false')
     expect(document.querySelector('.flip-value-answer')?.textContent).toBe('')
   })
 
   it('exposes exactly one answer, and only after its own reveal', () => {
     open(['nato-phonetic'])
-    const answer = ANSWER_FOR.get(promptNow())
+    const prompt = promptNow()
+    const answer = ANSWER_FOR.get(prompt)
     press(' ')
+    expect(document.querySelector('.flip-back .flip-prompt-kicker')?.textContent).toBe(prompt)
     expect(answersInDocument()).toEqual([answer])
     expect(cardNow().getAttribute('aria-expanded')).toBe('true')
   })
@@ -153,6 +156,7 @@ describe('answer confidentiality', () => {
 
     // The incoming card is a fresh element rather than the outgoing one played
     // backwards, so there is no un-flip during which a back face is on screen.
+    expect(screen.queryByText('Tap to reveal')).toBeNull()
     expect(cardNow().className).not.toContain('is-revealed')
     expect(document.querySelector('.flip-value-answer')?.textContent).toBe('')
   })
