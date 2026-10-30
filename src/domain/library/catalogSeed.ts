@@ -64,9 +64,6 @@ const GREEK_LETTERS = [
   ['Φ φ', 'Phi'], ['Χ χ', 'Chi'], ['Ψ ψ', 'Psi'], ['Ω ω', 'Omega'],
 ] as const
 
-/** RFC 4648 §8: the Base 16 alphabet, each digit standing for one four-bit group. */
-const HEX_DIGITS = '0123456789ABCDEF'
-
 /**
  * Environment and Climate Change Canada's Beaufort table, except force 12: ECCC
  * prints 64–71 knots, but WMO hurricane force is force 12 or over, unbounded.
@@ -807,53 +804,6 @@ export function seedLibrary(): Library {
             label: 'Unicode — Greek and Coptic code chart (Unicode 18.0)',
             url: 'https://www.unicode.org/charts/PDF/U0370.pdf',
             note: 'Encodes the 24 capital (U+0391–U+03A9) and small (U+03B1–U+03C9) letters in alphabetical order with their names, including final sigma (U+03C2); gives lambda as the usual name of the character Unicode names LAMDA.',
-          },
-        ],
-      },
-      status: 'unstarted',
-      createdAt: ago(0),
-      drilledAt: null,
-      learningAt: null,
-      completedAt: null,
-      lastTestedAt: null,
-      spotCheckedAt: null,
-      history: [],
-    },
-    {
-      id: 'hex-digits-binary',
-      title: 'Hex to Binary',
-      scope: 'The 16 hexadecimal digits 0–F: each digit → its four-bit binary pattern, 0000 to 1111. Tested hex → binary. Converting longer numbers and binary arithmetic are not scored.',
-      track: 'learning',
-      items: [...HEX_DIGITS].map((digit, value) => ({
-        prompt: digit,
-        answer: value.toString(2).padStart(4, '0'),
-      })),
-      learn: {
-        kind: 'concise',
-        overview: 'One hex digit represents four bits; a byte is two hex digits. C3 is 1100 0011.',
-        sections: [
-          {
-            heading: 'Reading a pattern from its place values',
-            blocks: [
-              {
-                type: 'bullets',
-                items: [
-                  'Bit weights, left to right: 8, 4, 2, 1. Add set bits: 1011 = 8 + 2 + 1 = 11 = B.',
-                  'A–F mean 10–15; upper and lower case are equivalent.',
-                  'Single-bit anchors: 1 = 0001, 2 = 0010, 4 = 0100, 8 = 1000. Also 7 = 0111; F = 1111.',
-                ],
-              },
-            ],
-          },
-        ],
-        limitations: [
-          'Binary → hex, longer numbers, signed representations and binary arithmetic are not tested.',
-        ],
-        sources: [
-          {
-            label: 'IETF — RFC 4648, The Base16, Base32, and Base64 Data Encodings, §8',
-            url: 'https://www.rfc-editor.org/rfc/rfc4648#section-8',
-            note: 'Standard Base 16 (hex) encoding: each character represents 4 bits, and the alphabet maps the values 0–15 to 0–9 and A–F. The four-bit patterns are those values written in binary.',
           },
         ],
       },

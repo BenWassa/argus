@@ -8,6 +8,7 @@ import {
   catalogDefinitions,
   freshCatalogTopic,
   inferredOrigin,
+  isRetiredCatalogTopic,
   reconcileCatalog,
   topicOrigin,
   type CatalogReconciliation,
@@ -21,7 +22,7 @@ import { captureRoleAwards } from '../../domain/roles/awards'
  *
  * Every migration here is append- or migration-only: the Morse baseline
  * absorption, the #121 scuba expansion, the shipped-title renames, the
- * shipped-Learn refresh and the retired sitting sidecar
+ * shipped-Learn refresh, owner-directed catalog retirement and the retired sitting sidecar
  * adoption may settle provenance, rename or take over bookkeeping, but none may
  * rewrite unrelated learner state.
  */
@@ -107,7 +108,6 @@ const PREVIOUS_SHIPPED_TITLES: Readonly<Record<string, readonly string[]>> = {
   'radiotelephony-numbers': ['Radiotelephony numbers'],
   'si-prefixes': ['SI prefixes'],
   'greek-alphabet': ['Greek alphabet'],
-  'hex-digits-binary': ['Hexadecimal digits in binary'],
   'beaufort-wind-scale': ['Beaufort wind scale'],
   'firearm-safety-acts-prove': ['Canadian firearm safety — ACTS & PROVE'],
 }
@@ -182,7 +182,6 @@ const REFRESHED_LEARN_TOPIC_IDS: readonly string[] = [
   'radiotelephony-numbers',
   'si-prefixes',
   'greek-alphabet',
-  'hex-digits-binary',
   'international-morse-letters-printed',
 ]
 
@@ -319,10 +318,21 @@ export function upgradeSeededScubaEquipment(library: CurrentLibrary): CurrentLib
   return changed ? { ...library, topics } : library
 }
 
+/** Remove retired, unedited catalog content together with its topic-local
+ * history, evidence and sitting. Home and role membership derive from topics;
+ * the router validates stored selections against that same live list.
+ * IndexedDB update records removed ids in its existing deletion outbox. Sync
+ * also applies the retirement policy before adoption, including without a ledger.
+ */
+export function removeRetiredCatalogTopics(library: CurrentLibrary): CurrentLibrary {
+  const topics = library.topics.filter((topic) => !isRetiredCatalogTopic(topic))
+  return topics.length === library.topics.length ? library : { ...library, topics }
+}
+
 /**
  * Everything a stored or imported library goes through before it becomes the
  * live record: the explicit Morse and scuba migrations, the shipped-title
- * renames and Learn refreshes, then delivery of shipped catalog topics this library has never been offered.
+ * renames, Learn refreshes and catalog retirement, then delivery of shipped catalog topics this library has never been offered.
  * All are append- or migration-only; none may rewrite unrelated learner state.
  */
 export function reconcileLoadedLibrary(
@@ -331,7 +341,7 @@ export function reconcileLoadedLibrary(
 ): { library: CurrentLibrary; report: CatalogReconciliation } {
   const reconciled = reconcileCatalog(
     refreshShippedLearn(
-      refreshShippedScopes(renameShippedTitles(upgradeSeededScubaEquipment(absorbSeededMorseBaseline(library)))),
+      refreshShippedScopes(renameShippedTitles(upgradeSeededScubaEquipment(absorbSeededMorseBaseline(removeRetiredCatalogTopics(library))))),
     ),
     now,
   )

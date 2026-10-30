@@ -121,6 +121,14 @@ export function topicOrigin(topic: Topic): NonNullable<Topic['origin']> {
   return topic.origin ?? inferredOrigin(topic)
 }
 
+/** Owner retirement, 2026-10-29. Keep learner-owned copies under the same id.
+ * Shared with sync so stale remote copies cannot be delivered as new topics.
+ * This is provenance-sensitive; an id alone is never a deletion tombstone.
+ */
+export function isRetiredCatalogTopic(topic: Topic): boolean {
+  return topic.id === 'hex-digits-binary' && topicOrigin(topic) === 'catalog'
+}
+
 export type WithheldReason =
   /** A local topic the learner owns holds this id. Never overwritten. */
   | 'user-authored-collision'

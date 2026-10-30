@@ -442,3 +442,39 @@ describe('library-level state', () => {
     expect(parseLibraryMeta(JSON.stringify({ version: 5, catalogDelivered: [1] }))).toBeNull()
   })
 })
+
+
+describe('retired catalog topic sync', () => {
+  const id = 'hex-digits-binary'
+  const topic: Topic = { ...freshSeedLibrary().topics[0], id, origin: 'catalog' }
+  const record: RemoteRecord = { topicId: id, json: topicJson(topic), revision: 4, updatedAtMs: 1 }
+  const known: Ledger = { [id]: { revision: 4, json: record.json, changedAtMs: 1 } }
+
+  it('deletes a stale catalog remote with or without a ledger, including after acknowledgement', () => {
+    for (const ledger of [{}, known]) {
+      const plan = planSync([], [record], ledger)
+      expect(plan).toEqual({ actions: [{ kind: 'deleteRemote', topicId: id }], conflicts: [] })
+      const settled = nextLedger(ledger, plan.actions, 2)
+      expect(planSync([], [], settled)).toEqual({ actions: [], conflicts: [] })
+      expect(planSync([], [record], settled)).toEqual(plan)
+    }
+  })
+
+  it('drops a stale local catalog copy rather than uploading it', () => {
+    expect(planSync([topic], [], {})).toEqual({ actions: [{ kind: 'dropLocal', topicId: id }], conflicts: [] })
+  })
+
+  it('adopts learner-owned remote content even when the retired copy was previously known', () => {
+    const edited = { ...record, json: topicJson({ ...topic, origin: 'user' }) }
+    expect(planSync([], [edited], known)).toEqual({
+      actions: [{ kind: 'adopt', topicId: id, json: edited.json, revision: 4 }], conflicts: [],
+    })
+  })
+
+  it('preserves learner-owned local content when a stale catalog remote arrives', () => {
+    const edited: Topic = { ...topic, origin: 'user' }
+    expect(planSync([edited], [record], known)).toEqual({
+      actions: [{ kind: 'push', topicId: id, json: topicJson(edited), revision: 5 }], conflicts: [],
+    })
+  })
+})
