@@ -2,8 +2,9 @@ import { describe, expect, it } from 'vitest'
 import { catalogDefinition } from '../../domain/library/catalog'
 import type { CurrentLibrary } from '../../domain/library/library'
 import type { Topic } from '../../domain/library/topic'
+import { liveRoute, restoreRoute, type AppRoute } from '../../app/routing/routes'
 import { seedLibrary } from '../../domain/library/catalogSeed'
-import { reconcileLoadedLibrary, refreshShippedLearn, refreshShippedScopes, upgradeSeededScubaEquipment } from './libraryMigrations'
+import { reconcileLoadedLibrary, removeRetiredCatalogTopics, refreshShippedLearn, refreshShippedScopes, upgradeSeededScubaEquipment } from './libraryMigrations'
 
 const BEAUFORT = 'beaufort-wind-scale'
 
@@ -157,7 +158,7 @@ describe('the #166 prose trims reach libraries that already hold the topic', () 
     }
   }
 
-  describe.each(['ooda-loop', 'primary-survey', 'firearm-safety-acts-prove', 'whole-circle-bearings', 'reciprocal-bearings', 'north-references-declination', 'grid-north-map-bearings', 'navigation-lights', 'vessel-day-shapes', 'signal-flags', 'beaufort-wind-scale', 'scuba-equipment-abbreviations', 'radiotelephony-numbers', 'si-prefixes', 'greek-alphabet', 'hex-digits-binary', 'international-morse-letters-printed'])('%s', (id) => {
+  describe.each(['ooda-loop', 'primary-survey', 'firearm-safety-acts-prove', 'whole-circle-bearings', 'reciprocal-bearings', 'north-references-declination', 'grid-north-map-bearings', 'navigation-lights', 'vessel-day-shapes', 'signal-flags', 'beaufort-wind-scale', 'scuba-equipment-abbreviations', 'radiotelephony-numbers', 'si-prefixes', 'greek-alphabet', 'international-morse-letters-printed'])('%s', (id) => {
     it('swaps in the trimmed Learn and leaves every learner field exactly as it was', () => {
       const old = beforeTheTrim(id)
       const [topic] = refreshShippedLearn({ version: 5, topics: [old] }).topics
@@ -236,5 +237,55 @@ describe('Learn refresh respects the complete scored identity', () => {
     })
     const input = library(old)
     expect(refreshShippedLearn(input)).toBe(input)
+  })
+})
+
+
+describe('owner retirement of Hex to Binary (2026-10-29)', () => {
+  const id = 'hex-digits-binary'
+  const hexItems = [...'0123456789ABCDEF'].map((digit, value) => ({ prompt: digit, answer: value.toString(2).padStart(4, '0') }))
+  const retired: Topic = {
+    ...catalogDefinition('si-prefixes')!, id, origin: 'catalog', title: 'Hex to Binary', items: hexItems,
+    status: 'learning',
+    history: [{ at: '2026-10-01T00:00:00.000Z', correct: 1, total: 16, resolvedTo: 'learning' }],
+  }
+
+  it('removes only the catalog copy and its nested history; is deterministic and idempotent', () => {
+    const other = catalogDefinition('si-prefixes')!
+    const input: CurrentLibrary = { version: 5, topics: [retired, other], catalogDelivered: [id, other.id] }
+    const once = removeRetiredCatalogTopics(input)
+    expect(once).toEqual({ ...input, topics: [other] })
+    expect(removeRetiredCatalogTopics(input)).toEqual(once)
+    expect(removeRetiredCatalogTopics(once)).toBe(once)
+    expect(JSON.stringify(once.topics)).not.toContain(id)
+    expect(reconcileLoadedLibrary(input).library.topics.some((topic) => topic.id === id)).toBe(false)
+  })
+
+  it('keeps a copy whose items were edited, even when it still says catalog', () => {
+    const edited: Topic = { ...retired, items: [...hexItems.slice(0, 15), { prompt: 'G', answer: 'not hex' }] }
+    const input: CurrentLibrary = { version: 5, topics: [edited] }
+    expect(removeRetiredCatalogTopics(input)).toBe(input)
+  })
+
+  it('preserves edited/authored copies and conservatively preserves missing provenance', () => {
+    for (const origin of ['user', undefined] as const) {
+      const edited = { ...retired, origin, title: 'My binary notes', items: [{ prompt: 'Mine', answer: 'Custom' }] }
+      const input: CurrentLibrary = { version: 5, topics: [edited] }
+      expect(removeRetiredCatalogTopics(input)).toBe(input)
+      expect(reconcileLoadedLibrary(input).library.topics.find((topic) => topic.id === id)).toEqual(edited)
+    }
+  })
+
+  it('clears restored and live selections, including stored run/reference origins', () => {
+    const topics = removeRetiredCatalogTopics({ version: 5, topics: [retired] }).topics
+    const origin = { kind: 'topic', topicId: id } as const
+    const routes: AppRoute[] = [origin,
+      { kind: 'run', mode: 'test', topicIds: [id], origin },
+      { kind: 'reference', topicId: id, origin },
+    ]
+    for (const route of routes) {
+      expect(restoreRoute(route, topics, false)).toEqual({ kind: 'section', view: 'library' })
+      expect(liveRoute(route, topics)).toEqual({ kind: 'section', view: 'library' })
+    }
   })
 })

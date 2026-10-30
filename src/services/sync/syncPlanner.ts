@@ -27,6 +27,7 @@
  * this whole layer exists to avoid.
  */
 
+import { isRetiredCatalogId, isRetiredCatalogTopic } from '../../domain/library/catalog'
 import shippedCatalog from '../../domain/library/shippedCatalog.json'
 import type { Topic } from '../../domain/library/topic'
 import { mergeRoleAwards, parseRoleAwards, type RoleAward } from '../../domain/roles/awards'
@@ -283,6 +284,12 @@ export function planSync(
     const record = remotes.get(id)
     const known = ledger[id]
 
+    // A remote copy that is still the unedited retired catalog topic is left
+    // alone: never adopted, and never deleted. A device still on an older build
+    // re-publishes a missing shipped topic, so deleting it here would start a
+    // delete and re-publish loop. One stale document costs nothing.
+    if (!local && record && isRetiredCatalogId(id) && remoteIsRetired(record)) continue
+
     if (local && !record) {
       // Shipped topics are baseline product content. An old synced deletion
       // must not erase a catalog topic that recovery has just restored locally.
@@ -376,4 +383,13 @@ export function nextLedger(ledger: Ledger, actions: SyncAction[], now: number): 
     }
   }
   return next
+}
+
+function remoteIsRetired(record: RemoteRecord): boolean {
+  try {
+    const parsed = JSON.parse(record.json) as Topic
+    return parsed?.id === record.topicId && Array.isArray(parsed.items) && isRetiredCatalogTopic(parsed)
+  } catch {
+    return false
+  }
 }

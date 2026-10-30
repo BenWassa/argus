@@ -121,6 +121,31 @@ export function topicOrigin(topic: Topic): NonNullable<Topic['origin']> {
   return topic.origin ?? inferredOrigin(topic)
 }
 
+/**
+ * Owner retirement, 2026-10-29: Hex to Binary left the catalog. Its shipped
+ * scored identity is frozen here, so only a copy that is still exactly the
+ * shipped topic counts as retired. A copy whose items the learner changed is
+ * theirs and stays, whatever its provenance field says.
+ */
+const RETIRED_CATALOG_ITEMS: Readonly<Record<string, readonly string[]>> = {
+  'hex-digits-binary': [...'0123456789ABCDEF'].map((digit, value) => itemKey(digit, value.toString(2).padStart(4, '0'))),
+}
+
+function itemKey(prompt: string, answer: string): string {
+  return JSON.stringify([prompt, answer])
+}
+
+export function isRetiredCatalogTopic(topic: Topic): boolean {
+  const shipped = RETIRED_CATALOG_ITEMS[topic.id]
+  if (!shipped || topicOrigin(topic) !== 'catalog' || topic.items.length !== shipped.length) return false
+  const held = new Set(topic.items.map((item) => itemKey(item.prompt, item.answer)))
+  return shipped.every((key) => held.has(key))
+}
+
+export function isRetiredCatalogId(id: string): boolean {
+  return Object.hasOwn(RETIRED_CATALOG_ITEMS, id)
+}
+
 export type WithheldReason =
   /** A local topic the learner owns holds this id. Never overwritten. */
   | 'user-authored-collision'

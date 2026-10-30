@@ -5,7 +5,6 @@ import cloudGenera from '../../assets/library-icons/cloud-genera.svg'
 import firearmSafetyActsProve from '../../assets/library-icons/firearm-safety-acts-prove.svg'
 import greekAlphabet from '../../assets/library-icons/greek-alphabet.svg'
 import gridNorthMapBearings from '../../assets/library-icons/grid-north-map-bearings.svg'
-import hexDigitsBinary from '../../assets/library-icons/hex-digits-binary.svg'
 import internationalMorseLettersPrinted from '../../assets/library-icons/international-morse-letters-printed.svg'
 import marineVhfPriorityCommunications from '../../assets/library-icons/marine-vhf-priority-communications.svg'
 import marineVhfRoutineCalling from '../../assets/library-icons/marine-vhf-routine-calling.svg'
@@ -31,7 +30,6 @@ const icons: Record<string, string> = {
   'firearm-safety-acts-prove': firearmSafetyActsProve,
   'greek-alphabet': greekAlphabet,
   'grid-north-map-bearings': gridNorthMapBearings,
-  'hex-digits-binary': hexDigitsBinary,
   'international-morse-letters-printed': internationalMorseLettersPrinted,
   'marine-vhf-priority-communications': marineVhfPriorityCommunications,
   'marine-vhf-routine-calling': marineVhfRoutineCalling,

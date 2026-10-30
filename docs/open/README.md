@@ -2,6 +2,7 @@
 
 This folder contains maintained specifications, active implementation plans, and unresolved owner or independent-domain acceptance gates. It is **not** a one-to-one mirror of open GitHub issues: implemented visual programmes can still have independent review outstanding.
 
+- Hex to Binary (`hex-digits-binary`) was removed by owner decision on 2026-10-29.
 - **Active issues:** see [GitHub open issues](https://github.com/BenWassa/argus/issues?q=is%3Aissue+is%3Aopen), and individual maintained `ISSUE_*.md` files.
 - **Consolidated human review:** [acceptance checklist](HUMAN_ACCEPTANCE_CHECKLIST.md), with links to reviewer packs and permission draft.
 - **Morse UX consolidation:** [#221 practice/teaching contract and historical mobile evidence](morse/ISSUE_221_MORSE_UX_CONSOLIDATION.md); navigation superseded by the UI overhaul merged in #271, with Pixel acceptance outstanding.

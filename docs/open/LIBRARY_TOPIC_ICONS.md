@@ -48,7 +48,7 @@ Topic icons are compact recognition aids beside shipped topic titles on Library 
 | `radiotelephony-numbers` | handheld radio + keypad |
 | `si-prefixes` | increasing magnitude / scale |
 | `greek-alphabet` | alpha + omega |
-| `hex-digits-binary` | hexagonal digital bit pattern |
+| ~~`hex-digits-binary`~~ | retired 2026-10-29 with the topic; asset removed |
 | `beaufort-wind-scale` | windsock + wind lines |
 | `firearm-safety-acts-prove` | safety shield + simplified firearm handling cue |
 | `whole-circle-bearings` | compass circle with a ray and clockwise arc from north |

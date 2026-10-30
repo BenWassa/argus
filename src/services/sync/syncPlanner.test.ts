@@ -442,3 +442,35 @@ describe('library-level state', () => {
     expect(parseLibraryMeta(JSON.stringify({ version: 5, catalogDelivered: [1] }))).toBeNull()
   })
 })
+
+
+describe('retired catalog topic sync', () => {
+  const id = 'hex-digits-binary'
+  const hexItems = [...'0123456789ABCDEF'].map((digit, value) => ({ prompt: digit, answer: value.toString(2).padStart(4, '0') }))
+  const topic: Topic = { ...freshSeedLibrary().topics[0], id, origin: 'catalog', items: hexItems }
+  const record: RemoteRecord = { topicId: id, json: topicJson(topic), revision: 4, updatedAtMs: 1 }
+  const known: Ledger = { [id]: { revision: 4, json: record.json, changedAtMs: 1 } }
+
+  it('leaves a stale catalog remote alone, with or without a ledger, so an old build cannot loop it', () => {
+    for (const ledger of [{}, known]) {
+      expect(planSync([], [record], ledger)).toEqual({ actions: [], conflicts: [] })
+    }
+  })
+
+  it('treats a learner-owned copy under the same id normally', () => {
+    const edited = { ...record, json: topicJson({ ...topic, origin: 'user' }) }
+    expect(planSync([], [edited], {})).toEqual({
+      actions: [{ kind: 'adopt', topicId: id, json: edited.json, revision: 4 }], conflicts: [],
+    })
+    // The learner deleting their own copy here still deletes it remotely.
+    const knownEdited: Ledger = { [id]: { revision: 4, json: edited.json, changedAtMs: 1 } }
+    expect(planSync([], [edited], knownEdited)).toEqual({ actions: [{ kind: 'deleteRemote', topicId: id }], conflicts: [] })
+  })
+
+  it('preserves learner-owned local content when a stale catalog remote arrives', () => {
+    const edited: Topic = { ...topic, origin: 'user' }
+    expect(planSync([edited], [record], known)).toEqual({
+      actions: [{ kind: 'push', topicId: id, json: topicJson(edited), revision: 5 }], conflicts: [],
+    })
+  })
+})
