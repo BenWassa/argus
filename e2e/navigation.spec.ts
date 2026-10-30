@@ -408,6 +408,8 @@ test('retired Practice normalizes on Forward, preserving its topic, index and le
     history.pushState({ argusNavigation: 1, index: 2, route: { kind: 'section', view: 'profile' } }, '')
   }, TOPIC.id)
   await page.reload()
+  // The router mounts after IndexedDB hydration; traverse only once it listens.
+  await expect(page.getByRole('button', { name: 'Home', exact: true })).toBeVisible()
   await page.evaluate(() => history.go(-2))
   await expect.poll(() => navigationState(page)).toMatchObject({ index: 0, route: { kind: 'section', view: 'library' } })
   await systemForward(page)
@@ -427,6 +429,8 @@ test('Back crosses an adjacent retired-Practice/topic duplicate without adding a
     history.pushState({ argusNavigation: 1, index: 3, route: { kind: 'section', view: 'profile' } }, '')
   }, TOPIC.id)
   await page.reload()
+  // The router mounts after IndexedDB hydration; traverse only once it listens.
+  await expect(page.getByRole('button', { name: 'Home', exact: true })).toBeVisible()
   await systemBack(page)
   await expect(page.locator('.topic-title')).toHaveText(TOPIC.title)
   expect(await navigationState(page)).toMatchObject({ index: 2, route: { kind: 'topic', topicId: TOPIC.id } })
