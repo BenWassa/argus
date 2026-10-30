@@ -1,6 +1,6 @@
 # IndexedDB persistence foundation (#113 Lane A)
 
-**Status:** repository boundary merged via #205, 2026-10-13. Production LibraryProvider integration is carried by the PR that supersedes draft #214 (branch `fix/214-durability-v2`), which closes #214's two review blockers (account-switch serialization and completion durability, below); the durable Firebase sync worker is still separate work.
+**Status:** repository boundary merged via #205, 2026-10-13. Production LibraryProvider integration is carried by the PR that supersedes draft #214 (branch `fix/214-durability-v2`), which closes #214's two review blockers (account-switch serialization and completion durability, below); the foreground durable Firebase sync worker is now implemented with unit coverage in the #113 runtime worktree; production browser/Pixel acceptance remains open.
 **Authority:** maintained schema/repository contract under [#113 offline runtime](ISSUE_113_OFFLINE_FIRST_RUNTIME.md). [Progress architecture](PROGRESS_ARCHITECTURE.md) and the existing v5 parser remain semantic authorities.
 
 ## Schema v1
@@ -28,7 +28,7 @@ Functional `update(owner, current => next)` reads the latest canonical state ins
 
 The outbox coalesces by retaining one cumulative snapshot per owner. This preserves all history/evidence represented by the learner schema. Deletions accumulate as topic ids until acknowledgement; re-adding a topic clears its pending tombstone. No-op updates create neither a new revision nor new work. Independent owners never share queues.
 
-An acknowledgement removes pending work only if its revision matches the snapshot actually sent. The ledger and queue removal commit atomically. A stale acknowledgement leaves newer work intact; failed ledger writes cannot clear the queue. The future sync integration must account for successful partial remote writes without acknowledging an entire conflicted/failed snapshot.
+An acknowledgement removes pending work only if its revision matches the snapshot actually sent. The ledger and queue removal commit atomically. A stale acknowledgement leaves newer work intact; failed ledger writes cannot clear the queue. The runtime checkpoints each successful remote action with `acknowledge(..., keepPending = true)`, which updates the owner ledger without clearing any pending revision. The final acknowledgement still requires the exact sent revision and no conflicts. `readLedger(owner, legacy)` imports the legacy ledger only when no IndexedDB ledger record exists, including an explicit empty baseline, so retired localStorage bytes cannot revive after deletions.
 
 Connections close on version-change requests. A client cannot downgrade a newer database. Blocked upgrades and unavailable storage reject explicitly. Quota/clone failures reject and roll back, preserving the last committed learner state and queue.
 
@@ -64,6 +64,6 @@ Not covered (no completion announcement depends on them, failures surface throug
 
 Forty real-Chromium checks across 320px phone, 390px phone, short landscape and desktop cover creation, legacy migration, interrupted verification, corruption preservation, update composition, atomic rollback, deletion/recreation, reload/offline database access, owner isolation, stale acknowledgements, failed acknowledgements, no-op writes and schema upgrades.
 
-The production-provider integration (originally draft #214) integrates the provider with the canonical database, awaits local commits before publishing state, retains recoverable legacy bytes, and gates sync on asynchronous UID binding. Its review blockers are closed by the two contracts below. #113’s durable sync/retry, provisioned offline auth, cold offline shell/update tests and physical Pixel traces remain open. These repository checks do not establish the full production offline guarantee.
+The production-provider integration (originally draft #214) integrates the provider with the canonical database, awaits local commits before publishing state, retains recoverable legacy bytes, and gates sync on asynchronous UID binding. Its review blockers are closed by the two contracts below. #113’s durable sync/retry and provisioned offline auth fallback now have unit coverage. Production cold offline shell/update checks and physical Pixel traces remain open. These repository checks do not establish the full production offline guarantee.
 
 Implementation references: [repository](../../src/infrastructure/persistence/indexedLibraryRepository.ts), [browser tests](../../e2e/indexedLibraryRepository.spec.ts). Durability behavior follows the [IndexedDB standard](https://www.w3.org/TR/IndexedDB/) and browser transaction completion events.

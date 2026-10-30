@@ -496,3 +496,123 @@ describe('an account switch while a plan is being applied', () => {
     expect(store.cancelPendingBinds).toHaveBeenCalled()
   })
 })
+
+describe('offline auth restoration', () => {
+  afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks() })
+  it('opens only the previously provisioned local owner when auth never answers offline', async () => {
+    vi.useFakeTimers()
+    vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false)
+    const store = fakeStore([realTopic()])
+    store.owner = OWNER.uid
+    store.provisionedOwner = OWNER.uid
+    const backend = fakeBackend()
+    const { result } = renderHook(() => useSync(store, backend))
+    await act(async () => { await vi.advanceTimersByTimeAsync(5000) })
+    expect(result.current.state).toEqual({ kind: 'offline', owner: OWNER.uid })
+    expect(backend.pushed).toHaveLength(0)
+    act(() => backend.emitUser({ ...OWNER, uid: 'other' }))
+    expect(result.current.state).not.toMatchObject({ kind: 'offline' })
+    expect(store.owner).toBe('other')
+  })
+  it('does not fabricate a learner when the owner marker has no verified local record', async () => {
+    vi.useFakeTimers()
+    vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false)
+    const store = fakeStore([])
+    const { result } = renderHook(() => useSync(store, fakeBackend()))
+    await act(async () => { await vi.advanceTimersByTimeAsync(5000) })
+    expect(result.current.state).toMatchObject({ kind: 'error', user: null, message: expect.stringContaining('connection') })
+    expect(store.owner).toBeNull()
+  })
+  it('does not reopen retained data after Firebase reports sign-out', async () => {
+    vi.useFakeTimers()
+    vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false)
+    const store = fakeStore([realTopic()])
+    store.owner = OWNER.uid
+    store.provisionedOwner = OWNER.uid
+    const backend = fakeBackend()
+    const { result } = renderHook(() => useSync(store, backend))
+    act(() => backend.emitUser(null))
+    await act(async () => { await vi.advanceTimersByTimeAsync(5000) })
+    expect(result.current.state.kind).toBe('signedOut')
+  })
+})
+it('uses a bounded local fallback even when a disconnected network still reports online', async () => {
+  vi.useFakeTimers()
+  const store = fakeStore([realTopic()])
+  store.owner = OWNER.uid
+  store.provisionedOwner = OWNER.uid
+  const { result } = renderHook(() => useSync(store, fakeBackend()))
+  try {
+    await act(async () => { await vi.advanceTimersByTimeAsync(5000) })
+    expect(result.current.state).toEqual({ kind: 'offline', owner: OWNER.uid })
+  } finally { vi.useRealTimers() }
+})
+it('cannot reopen a completed bind after an explicit sign-out', async () => {
+  const store = fakeStore([realTopic()])
+  let release!: () => void
+  store.bindOwner = () => new Promise<void>((resolve) => { release = () => { store.owner = OWNER.uid; resolve() } })
+  const backend = fakeBackend()
+  const { result } = renderHook(() => useSync(store, backend))
+  act(() => backend.emitUser(OWNER))
+  await act(async () => { await result.current.signOut(); release() })
+  expect(result.current.state.kind).toBe('signedOut')
+})
+
+it('keeps a synced session open across network events without observing auth again', async () => {
+  const backend = fakeBackend()
+  const observe = vi.spyOn(backend, 'observeUser')
+  const store = fakeStore([])
+  const states: string[] = []
+  const hook = renderHook(() => { const value = useSync(store, backend); states.push(value.state.kind); return value })
+  act(() => backend.emitUser(OWNER))
+  act(() => backend.emitRecords([]))
+  await waitFor(() => expect(hook.result.current.state.kind).toBe('synced'))
+  states.length = 0
+  act(() => window.dispatchEvent(new Event('offline')))
+  act(() => window.dispatchEvent(new Event('online')))
+  expect(observe).toHaveBeenCalledTimes(1)
+  expect(states).not.toContain('restoring')
+  expect(states).not.toContain('signedOut')
+})
+
+it.each([true, false])('late auth keeps the gate open only for the provisioned uid: %s', async (same) => {
+  vi.useFakeTimers()
+  try {
+    const store = fakeStore([])
+    store.owner = OWNER.uid
+    store.provisionedOwner = OWNER.uid
+    let release!: () => void
+    store.bindOwner = vi.fn((uid) => new Promise<void>((resolve) => { release = () => { store.owner = uid; resolve() } }))
+    const backend = fakeBackend()
+    const states: string[] = []
+    const hook = renderHook(() => { const value = useSync(store, backend); states.push(value.state.kind); return value })
+    await act(async () => { await vi.advanceTimersByTimeAsync(3000) })
+    expect(hook.result.current.state.kind).toBe('offline')
+    states.length = 0
+    const uid = same ? OWNER.uid : 'other'
+    act(() => backend.emitUser({ ...OWNER, uid }))
+    expect(hook.result.current.state.kind).toBe(same ? 'offline' : 'restoring')
+    await act(async () => { release() })
+    expect(store.bindOwner).toHaveBeenCalledWith(uid)
+    expect(store.owner).toBe(uid)
+    if (same) expect(states).not.toContain('restoring')
+  } finally { vi.useRealTimers() }
+})
+
+it('memoizes the context value across unchanged renders', () => {
+  const store = fakeStore([])
+  const backend = fakeBackend()
+  const hook = renderHook(() => useSync(store, backend))
+  const previous = hook.result.current
+  hook.rerender()
+  expect(hook.result.current).toBe(previous)
+})
+
+it('reports auth loading failure without forgetting the remembered session', async () => {
+  const backend = fakeBackend({ observeUser: (_listener, onError) => { onError('module unavailable'); return () => {} } })
+  const hook = renderHook(() => useSync(fakeStore([]), backend))
+  expect(hook.result.current.state).toMatchObject({ kind: 'error', message: 'module unavailable' })
+  hook.unmount()
+  const next = renderHook(() => useSync(fakeStore([]), fakeBackend()))
+  expect(next.result.current.state.kind).toBe('restoring')
+})

@@ -127,6 +127,8 @@ export function ProfilePage({ onBack }: { onBack: () => void }) {
                 .join(' · ')}
             />
           )}
+          {sync.pending != null && <Readout label="Pending sync" value={sync.pending ? 'Changes saved on this device' : 'None'} />}
+          {(sync.conflicts?.length ?? 0) > 0 && <Readout label="Sync conflicts" value={`${sync.conflicts!.length} topics need review`} />}
           <Readout label="Offline reopen" value="Not guaranteed" />
         </dl>
         <Haptics />
@@ -339,6 +341,8 @@ function syncMessage(state: SyncState): string {
   switch (state.kind) {
     case 'unconfigured':
       return ''
+    case 'offline':
+      return 'Offline. Your progress is saved on this device. Sync will resume when your session reconnects.'
     case 'restoring':
       return 'Checking your session…'
     case 'signedOut':
