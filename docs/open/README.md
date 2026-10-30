@@ -4,7 +4,7 @@ This folder contains maintained specifications, active implementation plans, and
 
 - **Active issues:** see [GitHub open issues](https://github.com/BenWassa/argus/issues?q=is%3Aissue+is%3Aopen), and individual maintained `ISSUE_*.md` files.
 - **Consolidated human review:** [acceptance checklist](HUMAN_ACCEPTANCE_CHECKLIST.md), with links to reviewer packs and permission draft.
-- **Morse UX consolidation:** [#221 practice/teaching contract and historical mobile evidence](morse/ISSUE_221_MORSE_UX_CONSOLIDATION.md); navigation superseded on `feat/ui-overhaul`, with Pixel acceptance outstanding.
+- **Morse UX consolidation:** [#221 practice/teaching contract and historical mobile evidence](morse/ISSUE_221_MORSE_UX_CONSOLIDATION.md); navigation superseded by the UI overhaul merged in #271, with Pixel acceptance outstanding.
 - **UI overhaul (#225):** [scope, decisions, delivery map and critique results](ISSUE_225_UI_OVERHAUL.md); integrated into `main` in PR #271; 19 child implementation issues closed 2026-10-22, but owner Pixel/release acceptance still outstanding. Morse round 2: 31/40 against a 32/40 target.
 - **Morse Fluency:** [runner, timing and evidence contract](morse/MORSE_FLUENCY.md), with historical hub navigation and the current four-mode integration mapping.
 - **Learning progress:** [permanent completion and the unfinished-learning queue](PROGRESS_ARCHITECTURE.md), owner decision 2026-10-19. No decay or repair state; later Tests are optional.
