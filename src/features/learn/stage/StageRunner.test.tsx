@@ -11,7 +11,7 @@ function setup(step: LessonStep, last = false) {
   const onFinish = vi.fn()
   const onExit = vi.fn()
   const stage: LessonStage = { id: 'lesson', title: 'Small lesson', steps: last ? [step] : [step, summary] }
-  render(<StageRunner stage={stage} topicItemLabel={(id) => `Label ${id}`} onFinish={onFinish} onExit={onExit} />)
+  render(<StageRunner stage={stage} itemFace={(id) => ({ front: `Label ${id}`, back: `Answer ${id}` })} onFinish={onFinish} onExit={onExit} />)
   return { onFinish, onExit }
 }
 const click = (name: string) => fireEvent.click(screen.getByRole('button', { name }))
@@ -63,18 +63,34 @@ describe('StageRunner', () => {
     expect(screen.getByText('All covered.')).toBeTruthy()
   })
 
-  it.each(['Got it', 'Not yet'])('reveals recall and advances with %s', (grade) => {
+  it.each(['Got it', 'Not yet'])('shows the prompt, reveals the answer, and advances with %s', (grade) => {
     setup({ kind: 'recall', id: 'recall', itemId: 'a' })
-    expect(screen.queryByText('Label a')).toBeNull()
-    click('Reveal')
     expect(screen.getByText('Label a')).toBeTruthy()
+    expect(screen.queryByText('Answer a')).toBeNull()
+    click('Reveal')
+    expect(screen.getByText('Answer a')).toBeTruthy()
     click(grade)
     expect(screen.getByText('All covered.')).toBeTruthy()
   })
 
-  it('renders the minimal checkpoint summary', () => {
-    setup({ kind: 'checkpoint', id: 'check', itemIds: ['a', 'b'] })
-    expect(screen.getByText('Checkpoint: 2 items')).toBeTruthy()
+  it('walks every checkpoint item before moving on', () => {
+    const { onFinish } = setup({ kind: 'checkpoint', id: 'check', itemIds: ['a', 'b'] })
+    expect(screen.getByText('Label a')).toBeTruthy()
+    click('Reveal'); click('Got it')
+    expect(screen.getByText('Label b')).toBeTruthy()
+    expect(screen.queryByText('Answer a')).toBeNull()
+    expect(screen.queryByText('All covered.')).toBeNull()
+    click('Reveal'); click('Not yet')
+    expect(screen.getByText('All covered.')).toBeTruthy()
+    expect(onFinish).not.toHaveBeenCalled()
+  })
+
+  it('keeps focus on the answer after Reveal and does not crash on an empty checkpoint', () => {
+    setup({ kind: 'recall', id: 'recall', itemId: 'a' })
+    click('Reveal')
+    expect(document.activeElement).toBe(screen.getByText('Answer a'))
+    cleanup()
+    setup({ kind: 'checkpoint', id: 'check', itemIds: [] })
     click('Continue')
     expect(screen.getByText('All covered.')).toBeTruthy()
   })
@@ -98,7 +114,7 @@ describe('StageRunner', () => {
 
   it('starts a different stage with fresh step state', () => {
     const onFinish = vi.fn()
-    const props = { onFinish, onExit: vi.fn() }
+    const props = { onFinish, onExit: vi.fn(), itemFace: (id: string) => ({ front: id, back: id }) }
     const { rerender } = render(<StageRunner {...props} stage={{ id: 'one', title: 'One', steps: [summary] }} />)
     click('Finish lesson')
     rerender(<StageRunner {...props} stage={{ id: 'two', title: 'Two', steps: [summary] }} />)
