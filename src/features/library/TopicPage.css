@@ -9,7 +9,7 @@
 .topic-track-survival { --topic-track: var(--survival); --topic-track-ink: var(--mode-free-ink); }
 .topic-track-tradecraft { --topic-track: var(--tradecraft); --topic-track-ink: var(--mode-read-ink); }
 
-.topic-title { overflow-wrap: anywhere; }
+.topic-title { overflow-wrap: break-word; }
 .topic-title:focus { outline: none; }
 
 /* ------------------------------------------------------------- header -- */

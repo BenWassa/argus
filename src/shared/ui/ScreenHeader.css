@@ -28,6 +28,7 @@
 .screen-header-title-row {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: var(--s-sm);
   min-width: 0;
 }
@@ -39,6 +40,8 @@
 }
 
 .screen-header-title {
+  flex: 1 1 min-content;
+  max-width: 100%;
   min-width: 0;
   margin: 0;
   overflow-wrap: break-word;

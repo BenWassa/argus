@@ -40,6 +40,8 @@ export function Today({ onContinue, onOpenTopic, onGoToLibrary, onAuthorTopic, o
   return (
     <>
       <Head stamp={militaryDate(new Date())} onProfile={onOpenProfile} />
+      {active[0] ? <button className="home-add" type="button" onClick={() => onContinue ? onContinue(active[0].journey.action, active[0].topic.id) : onOpenTopic(active[0].topic.id)}>Continue: {active[0].topic.title}</button>
+        : <button className="home-add" type="button" onClick={capture.available ? capture.openCapture : onAuthorTopic}>+ Add something to learn</button>}
       <Plate variant="raised" className="home-panel">
         <dl className="home-readout" aria-label="Learning record">
           <div><dt>Completed</dt><dd className="tabular"><ReadoutIcon kind="completed" />{readout.completed}</dd></div>
@@ -79,8 +81,6 @@ export function Today({ onContinue, onOpenTopic, onGoToLibrary, onAuthorTopic, o
           <button className="ghost" type="button" onClick={onGoToLibrary}>Open Library</button>
         </Plate>
       )}
-      {active[0] ? <button className="home-add" type="button" onClick={() => onContinue ? onContinue(active[0].journey.action, active[0].topic.id) : onOpenTopic(active[0].topic.id)}>Continue: {active[0].topic.title}</button>
-        : <button className="home-add" type="button" onClick={capture.available ? capture.openCapture : onAuthorTopic}>+ Add something to learn</button>}
       {capture.overlay}
       <p className="sr-only" role="status">{announcement}</p>
     </>

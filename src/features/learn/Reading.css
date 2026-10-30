@@ -217,7 +217,7 @@
   padding: var(--s-sm) var(--s-md) var(--s-sm) 0;
   text-align: left;
   vertical-align: top;
-  overflow-wrap: break-word;
+  overflow-wrap: normal;
   word-break: normal;
 }
 
@@ -239,11 +239,12 @@
   width: 20%;
 }
 
-/* The min-width keeps three columns legible and scrolls them inside the
-   wrapper on a narrow phone. Two columns fit a 320px screen without it, and
-   scrolling there only clipped the content column. */
+/* Two-column references size columns to whole words. At enlarged text,
+   intrinsic cell widths may scroll inside the wrapper instead of splitting
+   short labels such as Uniform. */
 .learn-table:has(th:nth-child(2):last-child) {
   min-width: 0;
+  table-layout: auto;
 }
 
 /* Four or more columns cannot share a phone's width without crushing one of

@@ -15,9 +15,11 @@
   min-height: 56px;
 }
 
-/* The last plate scrolls clear of the floating add. */
+/* Reserve a lane for the floating add, including its safe inset. The last
+   plate also scrolls above the complete button and its surrounding space. */
 .lib-list {
-  padding-bottom: calc(56px + var(--s-lg));
+  padding-right: calc(56px + max(var(--s-lg), env(safe-area-inset-right)));
+  padding-bottom: calc(56px + 2 * var(--s-lg) + env(safe-area-inset-bottom));
 }
 
 .lib-search-box {
@@ -235,6 +237,7 @@
 .index-row.lib-row > .gauge-row,
 .index-row.lib-row > .lib-row-reading {
   grid-column: 1 / -1;
+  flex-basis: 100%;
 }
 
 .index-row.lib-row .index-title {
@@ -246,11 +249,14 @@
 /* Shipped topics have a recognition glyph beside the title. The reading
    still spans the full plate width beneath both columns. */
 .index-row.lib-row.has-topic-icon {
-  grid-template-columns: 28px minmax(0, 1fr);
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
 }
 
 .index-row.lib-row.has-topic-icon .index-title {
+  flex: 1 1 min-content;
+  max-width: 100%;
   min-width: 0;
 }
 
@@ -395,4 +401,4 @@
 }
 
 /* Long names must reflow inside the plate at enlarged text sizes. */
-.lib-row .index-title { min-width: 0; overflow-wrap: anywhere; }
+.lib-row .index-title { min-width: 0; overflow-wrap: break-word; }

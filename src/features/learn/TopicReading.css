@@ -1,7 +1,7 @@
 /* An ordinary topic's Learn screen (#244): header, optional artwork, the
    boundary, then the explanatory support in editorial flow. */
 .topic-reading { display: grid; grid-template-columns: minmax(0, 1fr); }
-.topic-reading-title { overflow-wrap: anywhere; }
+.topic-reading-title { overflow-wrap: break-word; }
 .topic-reading .screen-header-glyph .topic-icon { width: 32px; height: 32px; }
 .topic-reading-hero { margin-top: var(--s-lg); }
 .topic-reading-hero .visual { margin: 0; }
