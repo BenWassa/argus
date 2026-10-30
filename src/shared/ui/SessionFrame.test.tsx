@@ -25,6 +25,23 @@ describe('SessionFrame', () => {
     launcher.remove()
   })
 
+  it('treats Escape as Close', () => {
+    const onClose = vi.fn()
+    render(<SessionFrame kind="key" title="Key" onClose={onClose} />)
+    fireEvent.keyDown(document, { key: 'Escape' })
+    expect(onClose).toHaveBeenCalledTimes(1)
+  })
+
+  it('leaves Escape to an open dialog or a control that already handled it', () => {
+    const onClose = vi.fn()
+    render(<SessionFrame kind="test" title="Test" onClose={onClose}><div role="dialog" aria-modal="true" /></SessionFrame>)
+    fireEvent.keyDown(document, { key: 'Escape' })
+    cleanup()
+    render(<SessionFrame kind="key" title="Key" onClose={onClose}><input aria-label="Field" onKeyDown={(event) => event.preventDefault()} /></SessionFrame>)
+    fireEvent.keyDown(screen.getByLabelText('Field'), { key: 'Escape' })
+    expect(onClose).not.toHaveBeenCalled()
+  })
+
   it('keeps the frame as the only h1 when showing a result', () => {
     render(<SessionFrame kind="key" title="Key" onClose={noop}><RoundResult correct={8} total={10} onDone={noop} /></SessionFrame>)
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1)

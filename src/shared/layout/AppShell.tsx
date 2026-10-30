@@ -71,6 +71,12 @@ export function AppShell({ view, onNavigate, children }: AppShellProps) {
 
   return (
     <div className="app-shell" ref={shell}>
+      {/* The navigation comes first in the page, so keyboard and switch users
+          can step past it. Focus moves without touching the URL the router owns. */}
+      <a className="skip-link" href="#main" onClick={(event) => {
+        event.preventDefault()
+        document.getElementById('main')?.focus()
+      }}>Skip to content</a>
       <nav ref={nav} className="nav" aria-label="Sections">
         <p className="brand">
           <span className="brand-name">Argus</span>

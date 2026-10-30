@@ -184,6 +184,11 @@ describe('Morse progress path', () => {
     HTMLElement.prototype.scrollIntoView = original
   })
 
+  it('heads its section for screen readers without showing a heading', () => {
+    render(<MorseProgressPath topic={morseTopic(5)} onAction={vi.fn()} showJump={false} />)
+    expect(screen.getByRole('heading', { level: 2, name: 'Course path' }).className).toBe('sr-only')
+  })
+
   it('can leave navigation to the topic without adding a floating control', () => {
     const observer = vi.fn()
     vi.stubGlobal('IntersectionObserver', observer)

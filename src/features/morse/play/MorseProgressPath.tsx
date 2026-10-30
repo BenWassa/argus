@@ -112,7 +112,11 @@ export function MorseProgressPath({ topic, onAction, showJump = true, onPlacemen
         : undefined,
     }
   })
-  return <ProgressSpine rows={rows} label="Course path" className="morse-progress-path"
-    positionId={path.currentNodeId ?? undefined} openAtId={path.openAtNodeId ?? undefined}
-    jump={showJump ? current?.label : undefined} />
+  // The heading is for screen readers only, so the page can be skimmed by section.
+  return <>
+    <h2 className="sr-only">Course path</h2>
+    <ProgressSpine rows={rows} label="Course path" className="morse-progress-path"
+      positionId={path.currentNodeId ?? undefined} openAtId={path.openAtNodeId ?? undefined}
+      jump={showJump ? current?.label : undefined} />
+  </>
 }

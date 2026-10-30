@@ -44,6 +44,19 @@ export function SessionFrame({ kind, title, progress, onClose, toolbar, colour, 
       heading.current?.focus({ preventScroll: true })
     }
   }, [])
+  // Escape does what Close does, so a run that asks before leaving still asks.
+  // An open dialog owns Escape, as does a control that already handled it.
+  const close = useRef(onClose)
+  close.current = onClose
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || event.defaultPrevented) return
+      if (document.querySelector('[aria-modal="true"], dialog[open]')) return
+      close.current()
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [])
   const derived = sessionColours(kind)
   const total = Math.max(0, progress?.total ?? 0)
   const current = Math.min(total, Math.max(0, progress?.current ?? 0))
