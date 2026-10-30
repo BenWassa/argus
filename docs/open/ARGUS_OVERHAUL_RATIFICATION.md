@@ -1,5 +1,8 @@
 # Argus learning-experience overhaul — ratification package (#92)
 
+> **Ordinary-topic authority update, owner decision 2026-10-29 (#296):** [The lesson contract](ISSUE_296_LEARNING_REDESIGN.md) supersedes ordinary-topic answer-list landing, Learn/Practice/Test tray, Continue-to-Test and standalone Practice descriptions below. Every non-Morse topic with items has short lessons generated from its scored content, unless an authored curriculum overrides them. Finish every lesson or a clean eligible Final Test to complete permanently. Reference retains the entire reading and item bank, with no bottom navigation. Test misses offer the lesson containing the first missed item. Historical Practice routes replace in place with their topic (missing topic → Library), without learner writes. Morse, letter practice, fluency, Test evidence and compatibility rules retain their existing authority.
+
+
 > **Progress authority update, 2026-10-19:** [Learning progress](PROGRESS_ARCHITECTURE.md) supersedes earlier decay/repair routing and repeated completion requirements in this document. Learned topics stay learned. Home continues the top unfinished topic.
 
 **Status:** ratified and substantially implemented (#92, closed 2026-09-15); retained as the programme-level decision package. The dated addenda below govern where the original text is stale.
@@ -38,7 +41,7 @@ against shipped source, not inferred from any document's own account:
   moved to the foot of Library, exactly as recorded.
 - `AppShell`'s nav array is exactly `[Today, Library]`; `View` still carries
   `'data'` for the route but it is not a nav tab.
-- `docs/open/TARGETED_PRACTICE.md` and `src/domain/study/practiceTargets.ts` exist — batch 5,
+- `docs/closed/TARGETED_PRACTICE.md` and `src/domain/study/practiceTargets.ts` exist — batch 5,
   shipped as *practice*, formative by construction.
 - `src/domain/morse/curriculum/lessonPriority.ts`, `MorseReviewProgress`, and
   `src/domain/morse/listeningBalance.test.ts` / `morseProgrammeSimulation.test.ts`
@@ -126,7 +129,7 @@ One item from batch 5 has not been reviewed on a device:
 - **Owner phone review of the `practice` surface** — its two entry points
   (the check's end screen, and the topic page while a miss stands) and the
   `practice`-not-`repair` naming call. Recorded in
-  `docs/open/TARGETED_PRACTICE.md`.
+  `docs/closed/TARGETED_PRACTICE.md`.
 
 Nothing else is outstanding from this programme. #42's real-device acceptance
 gate is unrelated and stays open on its own terms; #29 and #79 stay out of

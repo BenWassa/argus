@@ -21,7 +21,7 @@ test('a later missed Test keeps learned progress and creates no repair obligatio
   await expect(page.locator('.today-plate')).toHaveCount(0)
   await page.getByRole('button', { name: 'Library', exact: true }).click()
   await page.getByRole('button', { name: /^NATO Alphabet/ }).click()
-  await page.getByRole('navigation', { name: 'Study' }).getByRole('button', { name: 'Test again', exact: true }).click()
+  await page.getByRole('navigation', { name: 'Study' }).getByRole('button', { name: 'Final Test', exact: true }).click()
   for (let index = 0; index < 26; index += 1) {
     await page.getByRole('button', { name: /^Prompt: .*Reveal answer\.$/ }).click()
     await page.getByRole('button', { name: /^Answer:/ }).waitFor()
@@ -33,7 +33,7 @@ test('a later missed Test keeps learned progress and creates no repair obligatio
   }
   await expect(page.getByRole('heading', { name: '23 of 26 correct' })).toBeVisible()
   await expect(page.locator('.test-outcome')).toHaveText('Learned')
-  await expect(page.getByRole('button', { name: /^Practise/ })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: /^Practise|Review lesson/ })).toHaveCount(0)
   const saved = await readLocalLibrary(page).then((library) => library.topics.find((value) => value.id === topic.id)!)
   expect(saved.status).toBe('completed')
   expect(saved.completedAt).toBe(completedAt)
@@ -42,7 +42,8 @@ test('a later missed Test keeps learned progress and creates no repair obligatio
   await page.getByRole('button', { name: 'Done', exact: true }).click()
   await expect(page.locator('.topic-state')).toHaveText('✓Learned')
   await expect(page.locator('.screen-header-readout')).toHaveText('26 / 26')
-  await expect(page.locator('.topic-item.is-done')).toHaveCount(26)
+  await expect(page.locator('.topic-lessons .spine-row.is-done')).toHaveCount(7)
+  await expect(page.getByRole('button', { name: 'Review', exact: true })).toBeVisible()
   await expect(page.getByText('Needs repair')).toHaveCount(0)
   await page.getByRole('button', { name: 'Home', exact: true }).click()
   await expect(page.locator('.today-plate')).toHaveCount(0)

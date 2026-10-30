@@ -1,126 +1,143 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
+import type { Item } from '../../../domain/library/topic'
 import type { LessonStage } from '../../../domain/learning/stages'
+import { SessionFrame } from '../../../shared/ui/SessionFrame'
+import { VisualView } from '../../visual/VisualView'
+import { AudioReference } from '../../audio/AudioReference'
 import './StageRunner.css'
 
 export interface StageRunnerProps {
   stage: LessonStage
-  /** The two faces of a scored item: what the learner is asked, and what they should recall. */
   itemFace: (itemId: string) => { front: string; back: string }
-  onFinish: (stageId: string) => void
+  itemFor?: (itemId: string) => Item | undefined
+  onFinish: (stageId: string) => void | Promise<boolean | void>
   onExit: () => void
+  onNext?: () => void
+  nextLabel?: string
 }
 
-/** `blocks` is the answer key, so the tiles are shown reversed: tapping them left to right must not pass. */
 export function StageRunner(props: StageRunnerProps) {
   return <StageRun key={props.stage.id} {...props} />
 }
 
-function StageRun({ stage, itemFace, onFinish, onExit }: StageRunnerProps) {
+function StageRun({ stage, itemFace, itemFor, onFinish, onExit, onNext, nextLabel }: StageRunnerProps) {
   const [index, setIndex] = useState(0)
-  const [wrong, setWrong] = useState(false)
+  const [wrong, setWrong] = useState<string | null>(null)
+  const [correct, setCorrect] = useState(false)
   const [revealed, setRevealed] = useState(false)
   const [card, setCard] = useState(0)
   const [sequence, setSequence] = useState<string[]>([])
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState(false)
   const [finished, setFinished] = useState(false)
   const finishSent = useRef(false)
   const heading = useRef<HTMLHeadingElement>(null)
-  const answerRef = useRef<HTMLParagraphElement>(null)
   const step = stage.steps[index]
-
-  // Focus follows the learner's action, so a keyboard user never falls back to the page body.
-  useEffect(() => { heading.current?.focus() }, [index, card])
-  useEffect(() => { if (revealed) answerRef.current?.focus() }, [revealed])
+  useEffect(() => { heading.current?.focus({ preventScroll: true }) }, [index, card, finished])
 
   function advance() {
     if (finishSent.current) return
     if (index >= stage.steps.length - 1) {
       finishSent.current = true
-      setFinished(true)
-      onFinish(stage.id)
+      setSaveError(false)
+      const failed = () => { finishSent.current = false; setSaving(false); setSaveError(true) }
+      try {
+        const result = onFinish(stage.id)
+        if (result && typeof result.then === 'function') {
+          setSaving(true)
+          void result.then(saved => {
+            if (saved === false) failed()
+            else { setSaving(false); setFinished(true) }
+          }, failed)
+        } else setFinished(true)
+      } catch { failed() }
     } else {
       setIndex(index + 1)
-      setWrong(false)
-      setRevealed(false)
-      setCard(0)
-      setSequence([])
+      setWrong(null); setCorrect(false); setRevealed(false); setCard(0); setSequence([])
     }
   }
+  const continueButton = <button type="button" onClick={advance} disabled={saving}>{saving ? 'Saving…' : index === stage.steps.length - 1 ? 'Finish lesson' : 'Continue'}</button>
+  let title = 'Recall'
+  let content: ReactNode
+  let response: ReactNode = continueButton
+  let itemId: string | undefined
 
-  function answer(correct: boolean) {
-    if (correct) advance()
-    else setWrong(true)
+  function options(values: string[], answer: string, labels = false) {
+    return <div className={`choice-options stage-options${values.some(value => value.length > 100) ? ' is-wordy' : ''}`}>{values.map(value => <button type="button" key={value}
+      className={`choice-option${wrong === value ? ' is-wrong' : ''}${(correct || wrong) && value === answer ? ' is-correct' : ''}`}
+      aria-pressed={correct ? value === answer : wrong === value} disabled={correct}
+      onClick={() => { if (value === answer) { setCorrect(true); setWrong(null) } else setWrong(value) }}>
+      {labels ? itemFace(value).front : value}
+    </button>)}</div>
   }
 
-  const continueButton = <button type="button" className="stage-primary" onClick={advance}>
-    {index === stage.steps.length - 1 ? 'Finish lesson' : 'Continue'}
-  </button>
-  const options = (values: string[], correct: string, labels = false) => (
-    <div className="stage-options">
-      {values.map((value) => <button type="button" key={value} onClick={() => answer(value === correct)}>
-        {labels ? itemFace(value).front : value}
-      </button>)}
-    </div>
-  )
-
-  return <section className="stage-runner" aria-label={stage.title}>
-    <header className="stage-header">
-      <h2 ref={heading} tabIndex={-1}>{stage.title}</h2>
-      <button type="button" onClick={onExit}>Exit lesson</button>
-    </header>
-    <p className="stage-progress" role="status">{finished ? 'Lesson finished' : `Step ${index + 1} of ${stage.steps.length}`}</p>
-    {!finished && step && <div className="stage-task" key={step.id}>
-      {step.kind === 'show' && <>
-        <h3>{step.title}</h3>
-        {step.itemId && <div role={step.altText ? 'img' : undefined} aria-label={step.altText}>
-          {step.altText ?? itemFace(step.itemId).front}
-        </div>}
-        <p>{step.body}</p>{continueButton}
-      </>}
-      {step.kind === 'choose' && <><h3>{step.prompt}</h3>{options(step.options, step.answer)}</>}
-      {step.kind === 'contrast' && <><h3>{step.prompt}</h3>{options(step.itemIds, step.answerItemId, true)}</>}
-      {step.kind === 'complete' && <>
-        <p>{step.before} <span aria-label="Missing part">___</span> {step.after}</p>
-        {options(step.options, step.answer)}
-      </>}
-      {step.kind === 'order' && <>
-        <h3>{step.prompt}</h3>
-        <ol aria-label="Your sequence" className="stage-sequence">
-          {sequence.map((block) => <li key={block}><button type="button" aria-label={`Remove ${block}`}
-            onClick={() => setSequence(sequence.filter((value) => value !== block))}>{block}</button></li>)}
-        </ol>
-        <div className="stage-options" aria-label="Blocks">
-          {[...step.blocks].reverse().map((block) => <button type="button" key={block} aria-pressed={sequence.includes(block)}
-            onClick={() => setSequence(sequence.includes(block)
-              ? sequence.filter((value) => value !== block) : [...sequence, block])}>{block}</button>)}
-        </div>
-        <button type="button" className="stage-primary" disabled={sequence.length !== step.blocks.length}
-          onClick={() => answer(sequence.every((block, position) => block === step.blocks[position]))}>Check order</button>
-      </>}
-      {(step.kind === 'recall' || step.kind === 'checkpoint') && (() => {
+  if (step) {
+    if ('itemId' in step) itemId = step.itemId
+    switch (step.kind) {
+      case 'show':
+        title = step.title
+        content = <p className="stage-answer">{step.body}</p>
+        break
+      case 'choose':
+        title = step.prompt
+        response = <>{options(step.options, step.answer)}{correct && continueButton}</>
+        break
+      case 'contrast':
+        title = step.prompt
+        response = <>{options(step.itemIds, step.answerItemId, true)}{correct && continueButton}</>
+        break
+      case 'complete':
+        title = `${step.before} ___ ${step.after}`
+        response = <>{options(step.options, step.answer)}{correct && continueButton}</>
+        break
+      case 'order':
+        title = step.prompt
+        content = <ol className="stage-sequence" aria-label="Your sequence">{sequence.map(block => <li key={block}>
+          <button type="button" onClick={() => { setCorrect(false); setSequence(sequence.filter(value => value !== block)) }} aria-label={`Remove ${block}`}>{block}</button>
+        </li>)}</ol>
+        response = <><div className="choice-options stage-options">{[...step.blocks].reverse().map(block => <button type="button" key={block} aria-pressed={sequence.includes(block)}
+          onClick={() => { setCorrect(false); setSequence(sequence.includes(block) ? sequence.filter(value => value !== block) : [...sequence, block]) }}>{block}</button>)}</div>
+          {correct ? continueButton : <button type="button" disabled={sequence.length !== step.blocks.length} onClick={() => {
+            if (sequence.every((block, position) => block === step.blocks[position])) { setCorrect(true); setWrong(null) } else setWrong('order')
+          }}>Check order</button>}</>
+        break
+      case 'recall':
+      case 'checkpoint': {
         const ids = step.kind === 'recall' ? [step.itemId] : step.itemIds
-        if (ids.length === 0) return continueButton
-        const face = itemFace(ids[card])
-        const last = card >= ids.length - 1
-        const next = () => { if (last) advance(); else { setCard(card + 1); setRevealed(false) } }
-        return <>
-          <h3>{step.kind === 'recall' ? 'Recall' : `Checkpoint, ${card + 1} of ${ids.length}`}</h3>
-          <p>{face.front}</p>
-          {!revealed ? <button type="button" className="stage-primary" onClick={() => setRevealed(true)}>Reveal</button> : <>
-            <p ref={answerRef} tabIndex={-1}>{face.back}</p>
-            <div className="stage-options">
-              <button type="button" onClick={next}>Got it</button>
-              <button type="button" onClick={next}>Not yet</button>
-            </div>
-          </>}
-        </>
-      })()}
-      {step.kind === 'summary' && <><p>{step.text}</p>{continueButton}</>}
-      {wrong && 'explain' in step && <div className="stage-feedback" role="alert">
-        <p>{step.explain}</p>
-        <p>Try again, or continue.</p>
-        {continueButton}
-      </div>}
-    </div>}
-    {!finished && !step && continueButton}
-  </section>
+        itemId = ids[card]
+        const face = itemId ? itemFace(itemId) : undefined
+        title = face?.front ?? 'Checkpoint'
+        content = revealed && face ? <p className="stage-answer">{face.back}</p> : undefined
+        const next = () => {
+          if (card >= ids.length - 1) setCorrect(true)
+          else { setCard(card + 1); setRevealed(false) }
+        }
+        response = correct || !face ? continueButton : !revealed
+          ? <button type="button" onClick={() => setRevealed(true)}>Reveal</button>
+          : <div className="choice-options stage-options"><button type="button" onClick={next}>Got it</button><button type="button" onClick={() => { setRevealed(false) }}>Not yet</button></div>
+        break
+      }
+      case 'summary': title = step.text; break
+    }
+  }
+  const item = itemId ? itemFor?.(itemId) : undefined
+  const media = item && <>
+    {item.stimulus && <VisualView visual={item.stimulus} compact />}
+    {item.audio && <AudioReference item={{ ...item, audio: item.audio }} />}
+  </>
+  const feedback = wrong && step && 'explain' in step
+    ? <p className="stage-feedback" role="alert">{step.explain} · Try again</p> : null
+
+  return <SessionFrame kind="lesson" title={stage.title} onClose={onExit} className="stage-runner"
+    progress={{ current: finished ? stage.steps.length : index + 1, total: stage.steps.length }}
+    response={finished ? <>
+      {onNext && <button type="button" onClick={onNext}>{nextLabel ?? 'Next lesson'}</button>}
+      <button type="button" className="ghost" onClick={onExit}>Done</button>
+    </> : <>{saveError && <p role="alert">Could not save this lesson. Try Finish lesson again.</p>}{feedback}{response}</>}>
+    <div className="session-stimulus stage-stimulus">
+      <p className="stage-progress">{finished ? 'Lesson finished' : `Step ${index + 1} of ${stage.steps.length}`}</p>
+      <h2 ref={heading} tabIndex={-1}>{finished ? 'Lesson complete' : title}</h2>
+      {!finished && <>{media}{content}</>}
+    </div>
+  </SessionFrame>
 }

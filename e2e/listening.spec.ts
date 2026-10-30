@@ -138,21 +138,21 @@ async function answerUnaided(page: Page) {
 }
 
 async function startTest(page: Page) {
-  const primary = page.locator('.topic-tray [data-tile-id="test"]')
-  await expect(primary.locator('.mode-tray-label')).toHaveText('Test')
+  const primary = page.locator('.topic-lessons [data-node-id="final-test"] button')
+  await expect(primary.locator('.spine-label')).toHaveText('Final Test')
   await primary.click()
   await expect(page.getByText('Listen', { exact: true })).toBeVisible()
 }
 
 test('Reference shows each recording with its transcript and does not scroll sideways', async ({ page }) => {
   await openTopic(page)
-  await expect(page.locator('.topic-tray [data-tile-id="test"] .mode-tray-label')).toHaveText('Test')
+  await expect(page.locator('.topic-lessons [data-node-id="final-test"] .spine-label')).toHaveText('Final Test')
+  await page.getByRole('button', { name: 'Reference', exact: true }).click()
   await expect(page.locator('.topic-items .topic-item.has-visual')).toHaveCount(3)
   // On the topic the transcript is content: shown normally, with a player beside it.
   await expect(page.locator('.topic-items .audio-transcript')).toHaveCount(3)
   await expect(page.locator('.topic-items').getByText('Alfa WUN TOO')).toBeVisible()
   await expect(page.locator('.topic-items').getByRole('button', { name: /Play recording/ })).toHaveCount(3)
-  await expect(page.locator('.topic-listening')).toHaveText('Listening · 0 / 3 unaided')
   await noSidewaysScroll(page)
 })
 

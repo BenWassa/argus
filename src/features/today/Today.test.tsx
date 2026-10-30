@@ -56,7 +56,7 @@ describe('Home', () => {
     state.topics = [{ ...building('learned'), status: 'decayed', completedAt: '2026-01-01T00:00:00Z' }, building('next')]
     const view = open()
     fireEvent.click(screen.getByRole('button', { name: 'Continue: next' }))
-    expect(view.onContinue).toHaveBeenCalledWith('test', 'next')
+    expect(view.onContinue).toHaveBeenCalledWith('learn', 'next')
     expect(screen.queryByRole('button', { name: /Continue: learned/ })).toBeNull()
     expect(screen.queryByRole('button', { name: '+ Add something to learn' })).toBeNull()
   })

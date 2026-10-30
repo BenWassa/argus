@@ -236,3 +236,20 @@
 @media (min-width: 980px) {
   .topic { max-width: 760px; }
 }
+
+/* Ordinary acquisition: a scannable path and one action, with reading at text weight. */
+.topic-lessons { margin-block: var(--s-lg); }
+.topic-lesson-actions { display: grid; gap: var(--s-xs); justify-items: stretch; margin-block: var(--s-xl); }
+.topic-lesson-actions .mode-tray { grid-template-columns: 1fr; }
+.topic-lesson-actions .mode-tray-tile { min-height: 64px; }
+.topic-reference { justify-self: center; min-height: 44px; }
+
+.topic:has(> .topic-lesson-actions) { padding-bottom: 220px; }
+.topic-lesson-actions {
+  position: fixed; bottom: var(--nav-clearance, 90px); left: 0; right: 0;
+  z-index: 10; margin: 0; padding: 8px var(--s-lg);
+  background: var(--bg); border-top: 1px solid var(--line);
+}
+.topic-lesson-actions > * { width: min(100%, 760px); margin-inline: auto; }
+.topic-lesson-actions .mode-tray-dock { position: static; padding: 0; }
+.topic-lesson-actions .mode-tray { border: 0; padding: 0; }

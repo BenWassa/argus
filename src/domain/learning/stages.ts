@@ -2,10 +2,9 @@
  * The authored shape of a staged lesson (#296), and the checks a curriculum must
  * pass before it ships.
  *
- * A curriculum is content, like `Topic.learn`: it is written by hand against a
- * sourced answer key and reviewed, never generated. It lives in code beside its
- * topic, not in the learner's library, so rewording a lesson never needs a
- * migration. Only the learner's progress through it is stored
+ * Authored curricula may override the generated default (owner decision,
+ * 2026-10-29). Generated lessons use only the topic's existing scored content.
+ * Curricula live in code, not in the learner's library; only progress is stored
  * (`Topic.stageProgress`), and that is formative: completing a step writes no
  * item evidence, no history and nothing a Test reads.
  *

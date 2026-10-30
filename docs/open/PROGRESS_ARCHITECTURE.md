@@ -1,5 +1,8 @@
 # Learning progress
 
+> **Ordinary-topic authority update, owner decision 2026-10-29 (#296):** [The lesson contract](ISSUE_296_LEARNING_REDESIGN.md) supersedes ordinary-topic answer-list landing, Learn/Practice/Test tray, Continue-to-Test and standalone Practice descriptions below. Every non-Morse topic with items has short lessons generated from its scored content, unless an authored curriculum overrides them. Finish every lesson or a clean eligible Final Test to complete permanently. Reference retains the entire reading and item bank, with no bottom navigation. Test misses offer the lesson containing the first missed item. Historical Practice routes replace in place with their topic (missing topic → Library), without learner writes. Morse, letter practice, fluency, Test evidence and compatibility rules retain their existing authority.
+
+
 **Status:** maintained contract, implemented on `feat/ui-overhaul`; release and owner Pixel sign-off pending.
 **Authority:** owner decision, 2026-10-22 (#276), superseding the Test-only curriculum rule from 2026-10-19. Supersedes every decay/repair rule in the [previous progress architecture](../closed/PROGRESS_ARCHITECTURE_2026_10_19.md), earlier design documents and historical issue plans.
 

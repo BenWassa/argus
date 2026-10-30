@@ -1,7 +1,16 @@
 # Issue #296 — Staged learning, optional final Test: design brief
 
-> **Status: owner decisions D1-D7 approved on 2026-10-23. Implementation is authorized slice by slice (§8).** Lesson text for any safety or procedure topic still needs the independent domain review named in §5-6 before it ships.
-> **Authority:** the design contract for [#296](https://github.com/BenWassa/argus/issues/296). It extends [Learning progress](PROGRESS_ARCHITECTURE.md) (#276) to topics that do not have lessons yet, and it does not change that contract's rules about permanence, no clocks or no decay. Where this brief and the issue disagree, the issue's owner decision (2026-10-23) wins.
+> **Current implementation authority, owner decision 2026-10-29:** All ordinary topics, including user-authored and imported topics, use short lessons that show each existing scored item and immediately ask about it. Generated curricula are the default; authored curricula may override them (none ship). This supersedes §5-6's authored-only requirement and §9 D6's transitional exception. Lessons and Test are focused full-screen tasks. Reference preserves the full reading and scored bank in a full-screen reading route. Standalone ordinary Practice is removed; Morse behavior is unchanged. D1-D5 remain authoritative, including the quiet Final Test tray action after lessons and every lesson shown done for previously completed topics.
+> **Implementation status:** built in `feat/296-learn-then-test`; unit/type validation recorded by the implementation task. Playwright and device acceptance remain unverified. This remains the maintained contract; the earlier slice plan is historical where it conflicts.
+
+## Generated lesson bounds
+
+Items retain stored order. Lessons normally contain four items; a trailing one joins the previous lesson. A trailing two joins the previous batch and is rebalanced into two three-item lessons so neither final lesson exceeds five. Topics of one or two items retain one short lesson. Beyond 48 items, the batch grows within 12 stages and 16 steps per stage. Each item requires two steps plus one checkpoint per stage, making 84 items the maximum representable curriculum; generation explicitly rejects larger banks rather than producing an invalid curriculum. Every shipped ordinary bank fits. Increasing this bound requires a curriculum-schema decision.
+
+Step content uses only existing prompts, answers and stimuli. Distractors are distinct answers from the same topic, ordered by a stable item-id hash; a one-answer bank uses recall. Completing a lesson writes only stage ticks, and completing all lessons sets permanent completion in that same update. A finished topic replays without reopening learning. The runner waits for asynchronous local persistence before announcing completion and permits retry after a failed save.
+
+> **Original 2026-10-23 baseline, historical where superseded above:** D1-D7 and the slice plan below record the earlier approved design. Independently authored safety/procedure instruction still needs domain review; generated lessons introduce no new instruction.
+> **Original authority:** the design contract for [#296](https://github.com/BenWassa/argus/issues/296). It extends [Learning progress](PROGRESS_ARCHITECTURE.md) (#276) to topics that do not have lessons yet, and it does not change that contract's rules about permanence, no clocks or no decay. The 2026-10-29 owner decision above now governs conflicts with this baseline.
 > **Written:** 2026-10-23. **Evidence for the code references:** `main` at v1.6.1.
 
 ## 1. What is wrong today, and what changes

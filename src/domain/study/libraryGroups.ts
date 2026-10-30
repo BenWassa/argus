@@ -26,7 +26,7 @@ export interface LibraryGroups {
  */
 export function hasStarted(entry: JourneyEntry): boolean {
   const { topic, journey } = entry
-  return topic.status !== 'unstarted' || topic.history.length > 0 || journey.acquisition.started
+  return topic.status !== 'unstarted' || topic.history.length > 0 || Object.keys(topic.stageProgress ?? {}).length > 0 || journey.acquisition.started
 }
 
 /**
@@ -46,6 +46,7 @@ export function lastActivityAt(topic: Topic): number {
     topic.spotCheckedAt,
     topic.acquisitionReadyAt,
     ...topic.history.map((attempt) => attempt.at),
+    ...Object.values(topic.stageProgress ?? {}),
   ]
   for (const item of Object.values(topic.itemEvidence ?? {})) {
     for (const direction of Object.values(item.directions)) stamps.push(direction?.lastAt)

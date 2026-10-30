@@ -1,5 +1,8 @@
 # #225: UI overhaul (colour, a Morse progress path, four Morse modes, no accordions)
 
+> **Ordinary-topic authority update, owner decision 2026-10-29 (#296):** [The lesson contract](ISSUE_296_LEARNING_REDESIGN.md) supersedes ordinary-topic answer-list landing, Learn/Practice/Test tray, Continue-to-Test and standalone Practice descriptions below. Every non-Morse topic with items has short lessons generated from its scored content, unless an authored curriculum overrides them. Finish every lesson or a clean eligible Final Test to complete permanently. Reference retains the entire reading and item bank, with no bottom navigation. Test misses offer the lesson containing the first missed item. Historical Practice routes replace in place with their topic (missing topic → Library), without learner writes. Morse, letter practice, fluency, Test evidence and compatibility rules retain their existing authority.
+
+
 **Status (2026-10-22):** Integrated into `main` by [PR #271](https://github.com/BenWassa/argus/pull/271) on 2026-10-20, with Back-navigation follow-up [#272](https://github.com/BenWassa/argus/pull/272). **Not yet owner Pixel-accepted or released on this evidence.** Child implementation issues are closed; [#225](https://github.com/BenWassa/argus/issues/225) and [#233](https://github.com/BenWassa/argus/issues/233) remain open for final acceptance.
 **Authority:** Still the authority for the overhaul's scope and decisions until released. The owner's 2026-10-19 decisions below supersede earlier repair/decay and Home-action wording. `DESIGN.md`, `DESIGN.json` and `PRODUCT.md` record the implemented contracts.
 **Issue:** https://github.com/BenWassa/argus/issues/225

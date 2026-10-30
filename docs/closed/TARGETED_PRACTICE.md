@@ -1,8 +1,10 @@
 # Targeted practice
 
-> **Progress authority update, 2026-10-19:** [Learning progress](PROGRESS_ARCHITECTURE.md) supersedes earlier decay/repair routing and repeated completion requirements in this document. Learned topics stay learned. Home continues the top unfinished topic.
+> **Status: historical, superseded 2026-10-29 by the owner-approved [ordinary lesson contract](../open/ISSUE_296_LEARNING_REDESIGN.md).** The standalone ordinary Practice surface is retired. The pure selection/queue modules and Morse formative surfaces remain. Historical route entries normalize to their topic without learner writes. The description below records the retired implementation.
 
-> **Status:** implemented under #92 batch 5. This is the maintained contract for
+> **Progress authority update, 2026-10-19:** [Learning progress](../open/PROGRESS_ARCHITECTURE.md) supersedes earlier decay/repair routing and repeated completion requirements in this document. Learned topics stay learned. Home continues the top unfinished topic.
+
+> **Status:** implemented under #92 batch 5. This records the former contract for
 > the practice surface. The decision it rests on is §15.5 of
 > `docs/open/LEARNING_EXPERIENCE_DESIGN_DECISION.md`, ratified 2026-09-14:
 > **repair is formative**. `docs/open/ARGUS_OVERHAUL_RATIFICATION.md` is the

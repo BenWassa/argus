@@ -89,13 +89,13 @@ describe('the Test end screen hands Morse learners to play', () => {
 })
 
 describe('the Test end screen counts in one unit', () => {
-  it('names Morse practice in letters and an ordinary topic in items', () => {
+  it('keeps Morse sprint offers and reviews ordinary lessons', () => {
     const morseMissed = MORSE.items.slice(0, 2).map((item) => item.id!)
     const { unmount } = render(<TestDone banked={[attempt(MORSE)]} missed={{ [MORSE.id]: morseMissed }} onExit={vi.fn()} onPractice={vi.fn()} score={{ correct: 24, total: 26 }} />)
     expect(screen.getByRole('button', { name: 'Practise 2 letters' })).toBeTruthy()
     unmount()
     render(<TestDone banked={[attempt(NATO)]} missed={{ [NATO.id]: [NATO.items[0].id!] }} onExit={vi.fn()} onPractice={vi.fn()} score={{ correct: 25, total: 26 }} />)
-    expect(screen.getByRole('button', { name: 'Practise 1 item' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Review lesson' })).toBeTruthy()
     expect(document.querySelector('.test-missed-chip')?.textContent).toContain(NATO.items[0].prompt)
   })
 })

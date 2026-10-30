@@ -5,7 +5,7 @@ import { seedLibrary } from '../../domain/library/catalogSeed'
 import type { Topic } from '../../domain/library/topic'
 import { parseLibrary } from '../../infrastructure/persistence/libraryParser'
 import { TopicReading } from '../learn/TopicReading'
-import { PracticeRun } from '../practice/PracticeRun'
+import { curriculumFor } from '../../domain/learning/generatedCurriculum'
 import { TopicPage } from './TopicPage'
 
 const updateTopic = vi.fn()
@@ -29,165 +29,71 @@ function open(topic: Topic) {
 
 const tile = (id: string) => document.querySelector<HTMLButtonElement>(`.topic-tray [data-tile-id="${id}"]`)!
 
-describe('topic reference page', () => {
-  it('sets every rule on the spine in Test order under square group plates, and browsing is inert', () => {
+describe('ordinary lesson landing', () => {
+  it('shows lessons and a quiet square Final Test, with one Start tile and inert browsing', () => {
     const topic = firearm()
     const { container, onStart } = open(topic)
-    const groups = [...container.querySelectorAll('.topic-item-group')]
-    expect(groups.map(row => row.querySelector('.spine-label')?.textContent)).toEqual(['ACTS', 'PROVE'])
-    expect(groups.every(row => row.classList.contains('is-plate') && row.querySelector('.spine-node-square'))).toBe(true)
-    expect([...container.querySelectorAll('.topic-item .spine-node')].map(node => node.textContent).join('')).toBe('ACTSPROVE')
-    expect(container.querySelectorAll('.topic-item')).toHaveLength(9)
-    // Prompt and answer together, as reading rows rather than controls.
-    for (const item of topic.items) expect(container.textContent).toContain(item.answer)
-    expect(container.querySelector('.topic-items button')).toBeNull()
-    expect(container.querySelector('[aria-current="step"]')).toBeNull()
-    expect(container.querySelector('details, summary')).toBeNull()
+    const curriculum = curriculumFor(topic)!
+    expect(screen.getByRole('list', { name: 'Lessons' }).children).toHaveLength(curriculum.stages.length + 1)
+    expect(container.querySelectorAll('.topic-lessons .spine-node-square')).toHaveLength(1)
+    expect(container.querySelectorAll('.topic-tray button')).toHaveLength(1)
+    expect(tile('lesson').textContent).toContain('Start')
+    expect(container.querySelector('.screen-header-readout')?.textContent).toBe(`Lesson 1 of ${curriculum.stages.length}`)
+    expect(container.querySelector('.topic-items')).toBeNull()
     expect(updateTopic).not.toHaveBeenCalled()
-    fireEvent.click(screen.getByRole('button', { name: /^Test$/ }))
+    fireEvent.click(tile('lesson'))
+    expect(onStart).toHaveBeenCalledWith('learn', [topic.id], { kind: 'stage', stageId: 'lesson-1' })
+    fireEvent.click(screen.getByRole('button', { name: 'Final Test' }))
     expect(onStart).toHaveBeenCalledWith('test', [topic.id])
     expect(updateTopic).not.toHaveBeenCalled()
   })
 
-  it('reads its settled bar and status in the header, with no hero, scope or old chrome', () => {
-    const { container } = open(firearm())
-    // Untested: no value, so no bar rather than a false 0 / 9.
-    expect(container.querySelector('.screen-header-track')).toBeNull()
-    expect(container.querySelector('.screen-header-readout')).toBeNull()
-    expect(container.querySelector('.topic-state-label')?.textContent).toBe('Not tested yet')
-    expect(container.querySelector('.topic-state-mark')).toBeNull()
-    expect(container.querySelector('.topic-hero, .topic-hero-fallback, .topic-scope, .topic-action-bar, .topic-options, .topic-primary')).toBeNull()
-    expect(container.textContent).not.toContain('What to remember')
-  })
-
-  it('reads old repair records as learned and offers only an optional Test again', () => {
-    const topic: Topic = { ...firearm(), status: 'decayed', completedAt: '2026-01-02T00:00:00Z',
-      history: [{ at: '2026-01-02T00:00:00Z', correct: 9, total: 9, resolvedTo: 'completed' }, { at: '2026-02-02T00:00:00Z', correct: 4, total: 9, resolvedTo: 'decayed' }] }
-    const { container } = open(topic)
-    const state = container.querySelector('.topic-state')!
-    expect(state.classList.contains('is-repair')).toBe(false)
-    expect(state.textContent).toBe('✓Learned')
-    expect(tile('test').textContent).toContain('Test again')
-    // Without per-item evidence no row is copper; the header says it once.
-    expect(container.querySelectorAll('.topic-item.is-repair')).toHaveLength(0)
-    expect(container.querySelectorAll('.topic-item.is-done')).toHaveLength(9)
-  })
-
-  it('reads a banked topic as settled throughout, offering Test again', () => {
-    const topic: Topic = { ...firearm(), status: 'completed', completedAt: '2026-01-02T00:00:00Z',
-      history: [{ at: '2026-01-02T00:00:00Z', correct: 9, total: 9, resolvedTo: 'completed' }] }
-    const { container } = open(topic)
-    expect(screen.getByRole('img', { name: '9 of 9 items settled' })).toBeTruthy()
-    expect(container.querySelector('.topic-state')?.textContent).toBe('✓Learned')
-    expect(container.querySelectorAll('.topic-item.is-done')).toHaveLength(9)
-    expect(tile('test').querySelector('.mode-tray-label')?.textContent).toBe('Test again')
-  })
-
-  it('shows history as one pip per attempt, named by date, score and outcome', () => {
-    const topic: Topic = { ...firearm(), status: 'completed', completedAt: '2026-01-02T12:00:00Z',
-      history: [
-        { at: '2026-01-01T12:00:00Z', correct: 3, total: 9, resolvedTo: 'learning' },
-        { at: '2026-01-02T12:00:00Z', correct: 9, total: 9, resolvedTo: 'completed' },
-      ] }
-    const { container } = open(topic)
-    const pips = [...container.querySelectorAll<HTMLElement>('.topic-pip')]
-    expect(pips).toHaveLength(2)
-    expect(pips[0].getAttribute('aria-label')).toMatch(/: 3 of 9, Learning$/)
-    expect(pips[1].getAttribute('aria-label')).toMatch(/: 9 of 9, Learned$/)
-    expect((pips[0].firstElementChild as HTMLElement).style.height).toBe(`${3 / 9 * 100}%`)
-    expect(container.querySelector('.topic-history-head')?.textContent).toBe('2 attempts')
-    expect(container.querySelector('.topic-earned')?.textContent).toMatch(/^First completed · /)
-  })
-})
-
-describe('a failed Test is remembered', () => {
-  const nato = () => seeded('nato-phonetic')
-  const failed = (status: Topic['status'], completedAt: string | null): Topic => {
-    const topic = nato()
-    const missedItemIds = topic.items.slice(0, 4).map(item => item.id!)
-    return { ...topic, status, completedAt, history: [{ at: '2026-01-02T00:00:00Z', correct: topic.items.length - 4, total: topic.items.length, resolvedTo: status, missedItemIds }] }
-  }
-
-  it('keeps a formerly completed topic learned despite a later legacy learning status', () => {
-    const { container } = open(failed('learning', '2026-01-01T00:00:00Z'))
-    const copper = [...container.querySelectorAll('.topic-items .spine-row.is-repair')]
-    expect(copper).toHaveLength(0)
-    expect(container.querySelector('.topic-state')?.textContent).toBe('✓Learned')
-    // Not a decay claim: no Needs repair, no copper status line.
-    expect(container.querySelector('.topic-state')?.classList.contains('is-repair')).toBe(false)
-    expect(container.querySelectorAll('.topic-items .spine-row.is-done')).toHaveLength(nato().items.length)
-  })
-
-  it('keeps legacy decayed topics learned without a Practice obligation', () => {
-    const { container } = open(failed('decayed', '2026-01-01T00:00:00Z'))
-    expect(container.querySelector('.topic-state')?.textContent).toBe('✓Learned')
-    expect(container.querySelectorAll('.topic-items .spine-row.is-repair')).toHaveLength(0)
-    expect(tile('practice').getAttribute('aria-disabled')).toBe('true')
-  })
-
-  it('draws settled items as slate steps with a tick, and no mark of its own for unseen ones', () => {
-    const topic: Topic = { ...nato(), status: 'completed', completedAt: '2026-01-01T00:00:00Z', history: [{ at: '2026-01-01T00:00:00Z', correct: 26, total: 26, resolvedTo: 'completed' }] }
-    const { container } = open(topic)
-    const nodes = [...container.querySelectorAll('.topic-items .spine-row.is-done .spine-node')]
-    expect(nodes).toHaveLength(topic.items.length)
-    expect(nodes.every(node => node.textContent === '✓')).toBe(true)
-  })
-})
-
-describe('the topic tray', () => {
-  it('opens Learn on its own screen, and locks Practice when nothing was missed', () => {
-    const topic = firearm()
-    const { onReference, onStart } = open(topic)
-    expect(screen.getByRole('navigation', { name: 'Study' })).toBeTruthy()
-    expect(tile('learn').getAttribute('aria-disabled')).toBeNull()
-    fireEvent.click(tile('learn'))
-    expect(onReference).toHaveBeenCalledWith(topic.id)
-    expect(tile('practice').getAttribute('aria-disabled')).toBe('true')
-    fireEvent.click(tile('practice'))
-    expect(onStart).not.toHaveBeenCalled()
-    expect(tile('test').querySelector('.topic-tile-count')?.textContent).toBe('9')
-  })
-
-  it('launches exactly the one advertised miss from twelve self-scored items', () => {
-    const base = firearm()
-    const items = Array.from({ length: 12 }, (_, i) => ({ id: `item-${i}`, kind: 'forward' as const, prompt: `Prompt ${i}`, answer: `Answer ${i}` }))
-    const topic: Topic = { ...base, items, status: 'learning', history: [{ at: '2026-01-01T00:00:00Z', correct: 11, total: 12, resolvedTo: 'learning', missedItemIds: ['item-4'] }] }
-    const before = JSON.stringify(topic)
-    const { onStart, rerender } = open(topic)
-    expect(tile('practice').querySelector('.topic-tile-count')?.textContent).toBe('1')
-    fireEvent.click(tile('practice'))
-    expect(onStart).toHaveBeenCalledWith('learn', [topic.id], { kind: 'practice', itemIds: ['item-4'] })
-    const target = onStart.mock.lastCall![2]
-    rerender(<PracticeRun topic={topic} itemIds={target.itemIds} onExit={vi.fn()} onCheck={vi.fn()} />)
-    expect(screen.getByRole('progressbar', { name: '0 of 1' })).toBeTruthy()
-    expect(screen.getByText('Prompt 4')).toBeTruthy()
-    fireEvent.click(screen.getByRole('button', { name: 'Reveal answer' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Got it' }))
-    expect(screen.getByRole('heading', { name: 'Practice done' })).toBeTruthy()
-    expect(JSON.stringify(topic)).toBe(before)
+  it('makes every row available, including replay and skipping ahead, and continues the first unfinished lesson', () => {
+    const topic = { ...seeded('nato-phonetic'), status: 'learning' as const, completedAt: null, stageProgress: { 'lesson-1': '2026-10-29T00:00:00Z' } }
+    const { container, onStart } = open(topic)
+    expect(container.querySelectorAll('[aria-disabled="true"]')).toHaveLength(0)
+    expect(tile('lesson').textContent).toContain('Continue')
+    fireEvent.click(tile('lesson'))
+    expect(onStart).toHaveBeenLastCalledWith('learn', [topic.id], { kind: 'stage', stageId: 'lesson-2' })
+    fireEvent.click(screen.getByRole('button', { name: 'Lesson 1, done' }))
+    expect(onStart).toHaveBeenLastCalledWith('learn', [topic.id], { kind: 'stage', stageId: 'lesson-1' })
+    fireEvent.click(screen.getByRole('button', { name: 'Lesson 3, upcoming' }))
+    expect(onStart).toHaveBeenLastCalledWith('learn', [topic.id], { kind: 'stage', stageId: 'lesson-3' })
     expect(updateTopic).not.toHaveBeenCalled()
   })
 
-  it('offers Practice with the count of missed items as its stimulus', () => {
-    const topic = seeded('whole-circle-bearings')
-    const missedItem = topic.items[2]
-    const missed: Topic = { ...topic, status: 'learning', history: [{ at: '2026-01-01T00:00:00Z', correct: 11, total: 12, resolvedTo: 'learning' }],
-      itemEvidence: { [missedItem.id!]: { cue: 'rich', directions: { 'prompt-to-answer': { attempts: 1, correct: 0, unassistedCorrect: 0, consecutiveCorrect: 0, lastAt: '2026-01-01T00:00:00Z', lastLatencyMs: null } } } } }
-    const { onStart, container } = open(missed)
-    expect(tile('practice').getAttribute('aria-disabled')).toBeNull()
-    expect(tile('practice').querySelector('.topic-tile-count')?.textContent).toBe('1')
-    fireEvent.click(tile('practice'))
-    expect(onStart).toHaveBeenCalledWith('learn', [topic.id], { kind: 'practice', itemIds: [missedItem.id!] })
-    expect(container.querySelectorAll('.topic-item.is-missed')).toHaveLength(1)
-    // Items keep their compact stimulus inside the row.
-    expect(container.querySelectorAll('.topic-item.has-visual')).toHaveLength(12)
-    expect(container.querySelectorAll('.topic-items .topic-item-visual .visual.is-compact')).toHaveLength(12)
+  it('preserves completed learners, ticks every lesson, and gives the quiet tray action to Final Test (D2/D5)', () => {
+    const topic: Topic = { ...firearm(), status: 'decayed', completedAt: '2026-01-02T00:00:00Z', history: [
+      { at: '2026-01-02T00:00:00Z', correct: 9, total: 9, resolvedTo: 'completed' },
+      { at: '2026-02-02T00:00:00Z', correct: 4, total: 9, resolvedTo: 'decayed' },
+    ] }
+    const { container, onStart } = open(topic)
+    expect(container.querySelector('.topic-state')?.textContent).toBe('✓Learned')
+    expect(container.querySelectorAll('.topic-lessons .is-done')).toHaveLength(curriculumFor(topic)!.stages.length)
+    expect(tile('test').style.getPropertyValue('--tile-fill')).toBe('var(--surface-2)')
+    expect(tile('test').textContent).toContain('Final Test')
+    fireEvent.click(screen.getByRole('button', { name: 'Review' }))
+    expect(onStart).toHaveBeenCalledWith('learn', [topic.id], { kind: 'stage', stageId: 'lesson-1' })
+    expect(container.querySelectorAll('.topic-pip')).toHaveLength(2)
+    expect(container.querySelector('.topic-earned')?.textContent).toMatch(/^First completed · /)
   })
 
-  it('locks Learn for a topic with nothing to read beyond its items', () => {
-    const { learn: _learn, ...plain } = firearm()
-    open({ ...plain, origin: 'user' })
-    expect(tile('learn').getAttribute('aria-disabled')).toBe('true')
+  it('offers Reference even without authored support, with every prompt and answer there', () => {
+    const { learn: _learn, hero: _hero, ...topic } = firearm()
+    const { onReference, unmount } = open(topic)
+    fireEvent.click(screen.getByRole('button', { name: 'Reference' }))
+    expect(onReference).toHaveBeenCalledWith(topic.id)
+    unmount()
+    const { container } = render(<TopicReading topic={topic} onBack={vi.fn()} />)
+    expect(container.querySelectorAll('.topic-item')).toHaveLength(topic.items.length)
+    for (const item of topic.items) expect(container.textContent).toContain(item.answer)
+    expect(updateTopic).not.toHaveBeenCalled()
+  })
+
+  it('keeps empty topics on Add items', () => {
+    open({ ...firearm(), items: [] })
+    expect(screen.getByRole('button', { name: 'Add items' })).toBeTruthy()
+    expect(screen.queryByRole('list', { name: 'Lessons' })).toBeNull()
   })
 })
 

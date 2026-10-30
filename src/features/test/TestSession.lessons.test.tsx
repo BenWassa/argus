@@ -7,7 +7,7 @@ import type { Topic } from '../../domain/library/topic'
 import { TestSession } from './TestSession'
 import { TopicPage } from '../library/TopicPage'
 import { topicBar } from '../library/topicItems'
-import { hasPractice, practiceItemCount } from '../../domain/study/practiceTargets'
+import { lessonForItem } from '../../domain/learning/generatedCurriculum'
 
 /**
  * The check's offer to practise what it just missed (#92 batch 5).
@@ -100,7 +100,7 @@ afterEach(() => {
   localStorage.clear()
 })
 
-describe('offering practice after a check', () => {
+describe('reviewing lessons after a Test', () => {
   it('offers exactly the items that were missed, and names them', async () => {
     const onPractice = vi.fn()
     render(
@@ -112,7 +112,7 @@ describe('offering practice after a check', () => {
     const wrong = new Set([NATO.items[2].prompt, NATO.items[5].prompt])
     await runDeck(wrong)
 
-    const offer = screen.getByRole('button', { name: 'Practise 2 items' })
+    const offer = screen.getByRole('button', { name: 'Review lesson' })
     fireEvent.click(offer)
 
     expect(onPractice).toHaveBeenCalledTimes(1)
@@ -131,7 +131,7 @@ describe('offering practice after a check', () => {
 
     await runDeck(new Set(), SMALL)
 
-    expect(screen.queryByRole('button', { name: /Practi[sc]e \d+ items?/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: /Review lesson/ })).toBeNull()
     expect(onPractice).not.toHaveBeenCalled()
   }, 30000)
 
@@ -144,9 +144,9 @@ describe('offering practice after a check', () => {
 
     await runDeck(new Set([NATO.items[1].prompt]))
 
-    expect(screen.getByRole('button', { name: 'Practise 1 item' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Review lesson' })).toBeTruthy()
     // The offer names a count, never the answer key it was drawn from.
-    const offer = screen.getByRole('button', { name: 'Practise 1 item' }).textContent ?? ''
+    const offer = screen.getByRole('button', { name: 'Review lesson' }).textContent ?? ''
     expect(offer).not.toContain(ANSWER_FOR.get(NATO.items[1].prompt))
   }, 30000)
 
@@ -163,47 +163,27 @@ describe('offering practice after a check', () => {
 
     await runDeck(new Set([SMALL.items[0].prompt]), SMALL)
 
-    expect(screen.queryByRole('button', { name: /Practi[sc]e \d+ items?/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: /Review lesson/ })).toBeNull()
     const back = screen.getByRole('button', { name: 'Done' })
     expect(back.className).not.toContain('ghost')
   }, 30000)
 
-  it('leaves the topic page telling the same story: Practice enabled with that count, and a bar from the Test', async () => {
-    render(
-      <LibraryProvider>
-        <TestSession topicIds={['nato-phonetic']} onExit={() => undefined} onPractice={vi.fn()} />
-      </LibraryProvider>,
-    )
+  it('keeps durable misses and sends the topic primary action to the next lesson', async () => {
+    render(<LibraryProvider><TestSession topicIds={['nato-phonetic']} onExit={vi.fn()} onPractice={vi.fn()} /></LibraryProvider>)
     await runDeck(new Set([NATO.items[0].prompt, NATO.items[3].prompt, NATO.items[7].prompt, NATO.items[9].prompt]))
-    const offered = Number(/Practise (\d+) items/.exec(screen.getByRole('button', { name: /Practise \d+ items/ }).textContent ?? '')?.[1])
-    expect(offered).toBe(4)
+    expect(screen.getByRole('button', { name: 'Review lesson' })).toBeTruthy()
+    expect(document.body.textContent).toContain('4 missed')
     cleanup()
-
-    const stored = (JSON.parse(localStorage.getItem(STORE_KEY)!).topics as Topic[]).find((topic) => topic.id === 'nato-phonetic')!
+    const stored = (JSON.parse(localStorage.getItem(STORE_KEY)!).topics as Topic[]).find(topic => topic.id === NATO.id)!
     expect(stored.history.at(-1)?.missedItemIds).toHaveLength(4)
-    // Nothing from the Test run wrote per-item evidence for these reveal cards.
-    expect(hasPractice(stored)).toBe(true)
-    expect(practiceItemCount(stored)).toBe(offered)
     expect(topicBar(stored)).toMatchObject({ value: NATO.items.length - 4, max: NATO.items.length })
-
+    expect(lessonForItem(stored, NATO.items[7].id!)?.id).toBe('lesson-2')
     const onStart = vi.fn()
-    const { container } = render(
-      <LibraryProvider>
-        <TopicPage topic={stored} onBack={vi.fn()} onStart={onStart} onReference={vi.fn()} onEdit={vi.fn()} />
-      </LibraryProvider>,
-    )
-    const practice = container.querySelector<HTMLButtonElement>('.topic-tray [data-tile-id="practice"]')!
-    expect(practice.getAttribute('aria-disabled')).toBeNull()
-    expect(practice.textContent).toContain(String(offered))
-    expect(container.querySelector('.screen-header-readout')?.textContent).toBe(`${NATO.items.length - 4} / ${NATO.items.length}`)
-    expect(container.querySelectorAll('.topic-item.is-missed')).toHaveLength(4)
-    fireEvent.click(practice)
-    expect(onStart).toHaveBeenCalledWith('learn', ['nato-phonetic'], {
-      kind: 'practice',
-      itemIds: [0, 3, 7, 9].map(index => NATO.items[index].id!),
-    })
-    // Practising reads that record and writes nothing.
-    expect(JSON.parse(localStorage.getItem(STORE_KEY)!).topics.find((topic: Topic) => topic.id === 'nato-phonetic').history).toEqual(stored.history)
+    const { container } = render(<LibraryProvider><TopicPage topic={stored} onBack={vi.fn()} onStart={onStart} onReference={vi.fn()} onEdit={vi.fn()} /></LibraryProvider>)
+    expect(container.querySelectorAll('.topic-tray button')).toHaveLength(1)
+    fireEvent.click(screen.getByRole('button', { name: 'Start' }))
+    expect(onStart).toHaveBeenCalledWith('learn', [NATO.id], { kind: 'stage', stageId: 'lesson-1' })
+    expect(JSON.parse(localStorage.getItem(STORE_KEY)!).topics.find((topic: Topic) => topic.id === NATO.id).history).toEqual(stored.history)
   }, 60000)
 
   it('lists the missed items on the result, capped, with plain outcome words', async () => {

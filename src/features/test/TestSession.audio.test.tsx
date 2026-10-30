@@ -150,7 +150,7 @@ describe('Test with listening items', () => {
     expect(topic.itemEvidence).toEqual({})
   }, 20000)
 
-  it('counts a miss, records it, and offers practice on what was missed', async () => {
+  it('counts a miss, records it, and offers the lesson covering what was missed', async () => {
     const onPractice = open()
     await answer(false)
     await answer(true)
@@ -159,8 +159,8 @@ describe('Test with listening items', () => {
     expect(topic.history[0]).toMatchObject({ correct: 1, total: 2 })
     const missed = Object.values(topic.audioEvidence ?? {}).filter((e) => e.correct === 0)
     expect(missed).toHaveLength(1)
-    await waitFor(() => expect(screen.getByRole('button', { name: /Practi[sc]e 1 item/ })).toBeTruthy())
-    fireEvent.click(screen.getByRole('button', { name: /Practi[sc]e 1 item/ }))
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Review lesson' })).toBeTruthy())
+    fireEvent.click(screen.getByRole('button', { name: 'Review lesson' }))
     expect(onPractice).toHaveBeenCalledTimes(1)
   }, 20000)
 

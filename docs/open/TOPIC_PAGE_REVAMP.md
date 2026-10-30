@@ -1,5 +1,8 @@
 # Topic page and Test revamp
 
+> **Ordinary-topic authority update, owner decision 2026-10-29 (#296):** [The lesson contract](ISSUE_296_LEARNING_REDESIGN.md) supersedes ordinary-topic answer-list landing, Learn/Practice/Test tray, Continue-to-Test and standalone Practice descriptions below. Every non-Morse topic with items has short lessons generated from its scored content, unless an authored curriculum overrides them. Finish every lesson or a clean eligible Final Test to complete permanently. Reference retains the entire reading and item bank, with no bottom navigation. Test misses offer the lesson containing the first missed item. Historical Practice routes replace in place with their topic (missing topic → Library), without learner writes. Morse, letter practice, fluency, Test evidence and compatibility rules retain their existing authority.
+
+
 > **Progress authority update, 2026-10-19:** [Learning progress](PROGRESS_ARCHITECTURE.md) supersedes earlier decay/repair routing and repeated completion requirements in this document. Learned topics stay learned. Home continues the top unfinished topic.
 
 **Status:** shipped in v1.3.3 on 2026-10-03 through #175, including the #170 rebuild and #171 provenance modal. Current production colours and fallback hero plates are delivered; optional colour variants and external hero artwork remain separate follow-up work. D1–D6 were accepted through the owner’s instruction to scope and implement this plan.

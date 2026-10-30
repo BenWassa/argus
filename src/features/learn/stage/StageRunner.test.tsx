@@ -1,136 +1,168 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import type { LessonStage, LessonStep } from '../../../domain/learning/stages'
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import type { LessonStep } from '../../../domain/learning/stages'
+import { seedLibrary } from '../../../domain/library/catalogSeed'
+import type { Topic } from '../../../domain/library/topic'
+import { generatedCurriculum } from '../../../domain/learning/generatedCurriculum'
 import { StageRunner } from './StageRunner'
+import { StageLesson } from './StageLesson'
 
-afterEach(cleanup)
+let current: Topic
+const updateTopic = vi.fn((_id: string, update: (topic: Topic) => Topic) => { current = update(current) })
+vi.mock('../../../services/library/LibraryProvider', () => ({ useLibrary: () => ({ updateTopic }) }))
+afterEach(() => { cleanup(); updateTopic.mockClear() })
+const click = (name: string) => fireEvent.click(screen.getByRole('button', { name }))
 const summary: LessonStep = { kind: 'summary', id: 'end', text: 'All covered.' }
-function setup(step: LessonStep, last = false) {
+function setup(step: LessonStep) {
   const onFinish = vi.fn()
   const onExit = vi.fn()
-  const stage: LessonStage = { id: 'lesson', title: 'Small lesson', steps: last ? [step] : [step, summary] }
-  render(<StageRunner stage={stage} itemFace={(id) => ({ front: `Label ${id}`, back: `Answer ${id}` })} onFinish={onFinish} onExit={onExit} />)
-  return { onFinish, onExit }
+  const onNext = vi.fn()
+  render(<StageRunner stage={{ id: 'lesson-1', title: 'Lesson 1', steps: [step, summary] }}
+    itemFace={id => ({ front: `Prompt ${id}`, back: `Answer ${id}` })} onFinish={onFinish} onExit={onExit} onNext={onNext} />)
+  return { onFinish, onExit, onNext }
 }
-const click = (name: string) => fireEvent.click(screen.getByRole('button', { name }))
 
 describe('StageRunner', () => {
-  it('shows text equivalents, progress and exit without finishing', () => {
-    const { onFinish, onExit } = setup({ kind: 'show', id: 'show', title: 'Look', body: 'Read this.', itemId: 'a', altText: 'A striped shape' })
-    expect(screen.getByRole('img', { name: 'A striped shape' })).toBeTruthy()
-    expect(screen.getByText('Read this.')).toBeTruthy()
-    expect(screen.getByRole('status').textContent).toBe('Step 1 of 2')
-    click('Exit lesson')
+  it('focuses the step heading, counts steps, and closes without completion', () => {
+    const { onExit, onFinish } = setup({ kind: 'show', id: 'show', title: 'A', body: 'Alfa' })
+    expect(document.activeElement).toBe(screen.getByRole('heading', { name: 'A' }))
+    expect(screen.getByRole('progressbar', { name: '1 of 2' })).toBeTruthy()
+    expect(screen.getByText('Alfa')).toBeTruthy()
+    click('Close')
     expect(onExit).toHaveBeenCalledOnce()
     expect(onFinish).not.toHaveBeenCalled()
     click('Continue')
-    expect(screen.getByRole('status').textContent).toBe('Step 2 of 2')
+    expect(document.activeElement).toBe(screen.getByRole('heading', { name: 'All covered.' }))
   })
 
   it.each([
-    { kind: 'choose', id: 'pick', itemId: 'a', prompt: 'Pick one', options: ['Wrong', 'Right'], answer: 'Right', explain: 'The distinction.' },
-    { kind: 'complete', id: 'gap', itemId: 'a', before: 'Before', after: 'After', options: ['Wrong', 'Right'], answer: 'Right', explain: 'The distinction.' },
-    { kind: 'contrast', id: 'compare', itemIds: ['Wrong', 'Right'], prompt: 'Compare', answerItemId: 'Right', explain: 'The distinction.' },
-  ] satisfies LessonStep[])('supports wrong then right for $kind', (step) => {
+    { kind: 'choose', id: 'pick', itemId: 'a', prompt: 'Pick', options: ['Wrong', 'Right'], answer: 'Right', explain: 'The answer is Right.' },
+    { kind: 'complete', id: 'gap', itemId: 'a', before: 'Before', after: 'After', options: ['Wrong', 'Right'], answer: 'Right', explain: 'The answer is Right.' },
+    { kind: 'contrast', id: 'compare', itemIds: ['Wrong', 'Right'], prompt: 'Compare', answerItemId: 'Right', explain: 'The answer is Right.' },
+  ] satisfies LessonStep[])('marks a wrong $kind answer, permits retry, then waits for Continue', step => {
     setup(step)
-    const prefix = step.kind === 'contrast' ? 'Label ' : ''
+    const prefix = step.kind === 'contrast' ? 'Prompt ' : ''
     click(`${prefix}Wrong`)
-    expect(screen.getByRole('alert').textContent).toContain('The distinction.')
+    expect(screen.getByRole('alert').textContent).toContain('The answer is Right.')
+    expect(screen.getByRole('button', { name: `${prefix}Wrong` }).className).toContain('is-wrong')
+    expect(screen.queryByRole('button', { name: 'Continue' })).toBeNull()
     click(`${prefix}Right`)
-    expect(screen.getByText('All covered.')).toBeTruthy()
     expect(screen.queryByRole('alert')).toBeNull()
-  })
-
-  it('lets a learner continue after a wrong answer', () => {
-    setup({ kind: 'choose', id: 'pick', itemId: 'a', prompt: 'Pick', options: ['No', 'Yes'], answer: 'Yes', explain: 'Use Yes.' })
-    click('No')
+    expect(screen.queryByRole('heading', { name: 'All covered.' })).toBeNull()
     click('Continue')
-    expect(screen.getByText('All covered.')).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'All covered.' })).toBeTruthy()
   })
 
-  it('builds, removes and retries an ordered sequence', () => {
-    setup({ kind: 'order', id: 'order', itemId: 'a', prompt: 'Put in order', blocks: ['First', 'Second'], explain: 'First comes first.' })
-    expect((screen.getByRole('button', { name: 'Check order' }) as HTMLButtonElement).disabled).toBe(true)
-    expect(screen.getAllByRole('button', { pressed: false }).map((b) => b.textContent)).toEqual(['Second', 'First'])
+  it('supports ordered blocks and retry without skipping the question', () => {
+    setup({ kind: 'order', id: 'order', itemId: 'a', prompt: 'Order', blocks: ['First', 'Second'], explain: 'First, Second.' })
     click('Second'); click('First'); click('Check order')
-    expect(screen.getByRole('alert').textContent).toContain('First comes first.')
-    click('Remove Second')
-    click('First')
-    expect(screen.getByRole('list', { name: 'Your sequence' }).children.length).toBe(0)
-    click('First'); click('Second'); click('Check order')
-    expect(screen.getByText('All covered.')).toBeTruthy()
+    expect(screen.getByRole('alert')).toBeTruthy()
+    click('Remove Second'); click('Remove First')
+    click('First'); click('Second'); click('Check order'); click('Continue')
+    expect(screen.getByRole('heading', { name: 'All covered.' })).toBeTruthy()
   })
 
-  it.each(['Got it', 'Not yet'])('shows the prompt, reveals the answer, and advances with %s', (grade) => {
-    setup({ kind: 'recall', id: 'recall', itemId: 'a' })
-    expect(screen.getByText('Label a')).toBeTruthy()
-    expect(screen.queryByText('Answer a')).toBeNull()
-    click('Reveal')
-    expect(screen.getByText('Answer a')).toBeTruthy()
-    click(grade)
-    expect(screen.getByText('All covered.')).toBeTruthy()
-  })
-
-  it('walks every checkpoint item before moving on', () => {
-    const { onFinish } = setup({ kind: 'checkpoint', id: 'check', itemIds: ['a', 'b'] })
-    expect(screen.getByText('Label a')).toBeTruthy()
-    click('Reveal'); click('Got it')
-    expect(screen.getByText('Label b')).toBeTruthy()
-    expect(screen.queryByText('Answer a')).toBeNull()
-    expect(screen.queryByText('All covered.')).toBeNull()
+  it('walks every checkpoint item; Not yet repeats the current recall', () => {
+    setup({ kind: 'checkpoint', id: 'check', itemIds: ['a', 'b'] })
     click('Reveal'); click('Not yet')
-    expect(screen.getByText('All covered.')).toBeTruthy()
-    expect(onFinish).not.toHaveBeenCalled()
+    expect(screen.getByRole('heading', { name: 'Prompt a' })).toBeTruthy()
+    expect(screen.queryByText('Answer a')).toBeNull()
+    click('Reveal'); click('Got it')
+    expect(document.activeElement).toBe(screen.getByRole('heading', { name: 'Prompt b' }))
+    click('Reveal'); click('Got it'); click('Continue')
+    expect(screen.getByRole('heading', { name: 'All covered.' })).toBeTruthy()
   })
 
-  it('keeps focus on the answer after Reveal and does not crash on an empty checkpoint', () => {
-    setup({ kind: 'recall', id: 'recall', itemId: 'a' })
-    click('Reveal')
-    expect(document.activeElement).toBe(screen.getByText('Answer a'))
-    cleanup()
-    setup({ kind: 'checkpoint', id: 'check', itemIds: [] })
+  it('renders the actual pictured stimulus with its alt', () => {
+    const topic = seedLibrary().topics.find(topic => topic.id === 'signal-flags')!
+    const item = topic.items[0]
+    render(<StageRunner stage={generatedCurriculum(topic).stages[0]} itemFor={() => item}
+      itemFace={() => ({ front: item.prompt, back: item.answer })} onFinish={vi.fn()} onExit={vi.fn()} />)
+    expect(screen.getByRole('img', { name: item.stimulus!.alt }).querySelector('svg')).toBeTruthy()
+  })
+
+  it('plays audio through AudioReference without writing evidence', () => {
+    const item = { id: 'audio', prompt: 'Listen', answer: 'A12', audio: {
+      assetId: 'lesson-audio', src: '/media/audio/lesson.mp3', transcript: 'Alfa WUN TOO', drill: 'token-copy' as const,
+    } }
+    render(<StageRunner stage={{ id: 'lesson-1', title: 'Lesson 1', steps: [{ kind: 'show', id: 'show', title: item.prompt, body: item.answer, itemId: item.id }] }}
+      itemFor={() => item} itemFace={() => ({ front: item.prompt, back: item.answer })} onFinish={vi.fn()} onExit={vi.fn()} />)
+    expect(screen.getByRole('button', { name: /Play recording/ })).toBeTruthy()
+    expect(screen.getByText('Alfa WUN TOO')).toBeTruthy()
+    expect(updateTopic).not.toHaveBeenCalled()
+  })
+
+  it('waits for the local write, allows retry on failure, and announces completion only after success', async () => {
+    let resolve!: (saved: boolean) => void
+    const onFinish = vi.fn(() => new Promise<boolean>(done => { resolve = done }))
+    render(<StageRunner stage={{ id: 'lesson-1', title: 'Lesson 1', steps: [summary] }}
+      itemFace={() => ({ front: '', back: '' })} onFinish={onFinish} onExit={vi.fn()} />)
+    click('Finish lesson')
+    expect((screen.getByRole('button', { name: 'Saving…' }) as HTMLButtonElement).disabled).toBe(true)
+    expect(screen.queryByRole('heading', { name: 'Lesson complete' })).toBeNull()
+    await act(async () => resolve(false))
+    expect(screen.getByRole('alert').textContent).toContain('Could not save')
+    click('Finish lesson')
+    await act(async () => resolve(true))
+    expect(screen.getByRole('heading', { name: 'Lesson complete' })).toBeTruthy()
+    expect(onFinish).toHaveBeenCalledTimes(2)
+  })
+
+  it('finishes only once and shows the next action and Done', () => {
+    const { onFinish, onNext } = setup(summary)
     click('Continue')
-    expect(screen.getByText('All covered.')).toBeTruthy()
-  })
-
-  it('finishes once on the last step, including repeated activation', () => {
-    const { onFinish } = setup(summary, true)
     const finish = screen.getByRole('button', { name: 'Finish lesson' })
-    fireEvent.click(finish)
-    fireEvent.click(finish)
-    expect(onFinish).toHaveBeenCalledExactlyOnceWith('lesson')
-    expect(screen.getByRole('status').textContent).toBe('Lesson finished')
+    fireEvent.click(finish); fireEvent.click(finish)
+    expect(onFinish).toHaveBeenCalledExactlyOnceWith('lesson-1')
+    expect(screen.getByRole('heading', { name: 'Lesson complete' })).toBe(document.activeElement)
+    click('Next lesson')
+    expect(onNext).toHaveBeenCalledOnce()
+    expect(screen.getByRole('button', { name: 'Done' })).toBeTruthy()
   })
+})
 
-  it('finishes on the last answer without finishing an earlier step', () => {
-    const { onFinish } = setup({ kind: 'choose', id: 'pick', itemId: 'a', prompt: 'Pick', options: ['No', 'Yes'], answer: 'Yes', explain: 'Use Yes.' })
-    click('Yes')
-    expect(onFinish).not.toHaveBeenCalled()
-    click('Finish lesson')
-    expect(onFinish).toHaveBeenCalledExactlyOnceWith('lesson')
-  })
+describe('lesson completion through the library provider', () => {
+  function finishLesson(topic: Topic, stageId: string) {
+    const onNext = vi.fn()
+    const onTest = vi.fn()
+    const onExit = vi.fn()
+    render(<StageLesson topic={topic} stageId={stageId} onExit={onExit} onNext={onNext} onTest={onTest} />)
+    const stage = generatedCurriculum(topic).stages.find(stage => stage.id === stageId)!
+    for (const step of stage.steps) {
+      if (step.kind === 'show') click('Continue')
+      else if (step.kind === 'choose') { click(step.answer); click('Continue') }
+      else if (step.kind === 'checkpoint') {
+        for (const _id of step.itemIds) { click('Reveal'); click('Got it') }
+        click('Finish lesson')
+      }
+    }
+    return { onNext, onTest, onExit }
+  }
 
-  it('starts a different stage with fresh step state', () => {
-    const onFinish = vi.fn()
-    const props = { onFinish, onExit: vi.fn(), itemFace: (id: string) => ({ front: id, back: id }) }
-    const { rerender } = render(<StageRunner {...props} stage={{ id: 'one', title: 'One', steps: [summary] }} />)
-    click('Finish lesson')
-    rerender(<StageRunner {...props} stage={{ id: 'two', title: 'Two', steps: [summary] }} />)
-    expect(screen.getByRole('status').textContent).toBe('Step 1 of 1')
-    click('Finish lesson')
-    expect(onFinish.mock.calls).toEqual([['one'], ['two']])
-  })
-
-  it('supports keyboard activation and focuses the lesson heading', async () => {
-    const user = userEvent.setup()
-    setup({ kind: 'show', id: 'show', title: 'Read', body: 'Text' })
-    expect(document.activeElement).toBe(screen.getByRole('heading', { name: 'Small lesson' }))
-    await user.tab()
-    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Exit lesson' }))
-    await user.tab()
-    await user.keyboard('{Enter}')
-    expect(screen.getByText('All covered.')).toBeTruthy()
+  it('writes stageProgress without history or itemEvidence, then completes on the final lesson', () => {
+    current = { ...seedLibrary().topics.find(topic => topic.id === 'nato-phonetic')!, status: 'unstarted', completedAt: null }
+    const before = structuredClone(current)
+    const first = finishLesson(current, 'lesson-1')
+    expect(updateTopic).toHaveBeenCalledOnce()
+    expect(current.stageProgress?.['lesson-1']).toBeTruthy()
+    expect(current.completedAt).toBeNull()
+    expect(current.history).toEqual(before.history)
+    expect(current.itemEvidence).toEqual(before.itemEvidence)
+    expect(Object.keys(current).filter(key => JSON.stringify(current[key as keyof Topic]) !== JSON.stringify(before[key as keyof Topic]))).toEqual(['stageProgress'])
+    click('Next lesson')
+    expect(first.onNext).toHaveBeenCalledWith('lesson-2')
+    cleanup()
+    const stages = generatedCurriculum(current).stages
+    current = { ...current, stageProgress: Object.fromEntries(stages.slice(0, -1).map(stage => [stage.id, '2026-10-29T00:00:00Z'])) }
+    const last = finishLesson(current, stages.at(-1)!.id)
+    expect(current.completedAt).toBeTruthy()
+    expect(current.status).toBe('completed')
+    expect(current.history).toEqual(before.history)
+    expect(current.itemEvidence).toEqual(before.itemEvidence)
+    click('Final Test')
+    expect(last.onTest).toHaveBeenCalledOnce()
+    click('Done')
+    expect(last.onExit).toHaveBeenCalledOnce()
   })
 })

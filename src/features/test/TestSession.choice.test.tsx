@@ -121,7 +121,7 @@ describe('Test with visual-choice items', () => {
     }
   }, 20000)
 
-  it('counts a miss against the attempt and offers practice on what was missed', async () => {
+  it('counts a miss against the attempt and offers the lesson covering what was missed', async () => {
     open()
     await answerCurrent(false)
     await waitFor(() => expect(document.querySelector('.test-verdict')).toBeNull(), { timeout: 4000 })
@@ -130,6 +130,6 @@ describe('Test with visual-choice items', () => {
     await answerCurrent(true)
     await waitFor(() => expect(stored().history.length).toBe(1), { timeout: 4000 })
     expect(stored().history[0]).toMatchObject({ correct: 2, total: 3 })
-    await waitFor(() => expect(screen.getByRole('button', { name: /practi[sc]e/i })).toBeTruthy())
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Review lesson' })).toBeTruthy())
   }, 20000)
 })

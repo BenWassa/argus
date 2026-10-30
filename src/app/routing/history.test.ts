@@ -73,3 +73,11 @@ describe('Back blockers', () => {
     remove()
   })
 })
+
+it('preserves historical Practice and new stage identities for route normalization', () => {
+  const old = { argusNavigation: 1, index: 7, route: { kind: 'run', mode: 'learn', topicIds: ['a'],
+    origin: { kind: 'section', view: 'today' }, target: { kind: 'practice', itemIds: ['a-1'] } } }
+  expect(readNavigationState(old)).toEqual(old)
+  const stage = { ...old, route: { ...old.route, target: { kind: 'stage', stageId: 'lesson-2' } } }
+  expect(readNavigationState(stage)).toEqual(stage)
+})

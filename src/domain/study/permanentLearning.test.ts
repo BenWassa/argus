@@ -3,7 +3,7 @@ import { seedLibrary } from '../library/catalogSeed'
 import type { Topic } from '../library/topic'
 import { applyResolution, dueState, resolveAttempt } from './scheduling'
 import { journeyFor, dueEntries, journeysFor } from './journey'
-import { hasPractice, lastTestMissedIds } from './practiceTargets'
+import { lastTestMissedIds } from './practiceTargets'
 import { resolveBankedAttempt } from '../../features/test/bankedAttempt'
 import { parseLibrary } from '../../infrastructure/persistence/libraryParser'
 
@@ -24,7 +24,6 @@ describe('learned means learned', () => {
     expect(dueState(result.topic)).toEqual({ due: false, label: 'Learned' })
     expect(journeyFor(result.topic).phase).toBe('banked')
     expect(dueEntries(journeysFor([result.topic]))).toEqual([])
-    expect(hasPractice(result.topic)).toBe(false)
     expect(lastTestMissedIds(result.topic)).toEqual([])
     expect(before).toEqual(snapshot)
   })

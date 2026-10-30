@@ -1,3 +1,5 @@
+import { curriculumFor } from '../learning/generatedCurriculum'
+import { nextStage } from '../learning/stageProgress'
 import { hasCompleteDirectionalCoverage, itemKind } from '../library/items'
 import { morseAcquisitionPosition, owedLetters } from '../morse/curriculum/lesson'
 import {
@@ -199,6 +201,21 @@ export function journeyFor(topic: Topic): TopicJourney {
   }
 
 
+  const curriculum = curriculumFor(topic)
+  if (curriculum && !isLearned(topic)) {
+    const next = nextStage(topic, curriculum)
+    const position = next ? curriculum.stages.indexOf(next) + 1 : curriculum.stages.length
+    const started = Object.keys(topic.stageProgress ?? {}).length > 0 || topic.history.length > 0
+    return {
+      topicId: topic.id, phase: 'acquiring', acquisition, evidence, retention, sitting,
+      action: next ? 'learn' : 'test', actionLabel: next ? started ? 'Continue' : 'Start' : 'Final Test',
+      primaryLabel: next ? started ? 'Continue' : 'Start' : 'Final Test',
+      statusLabel: `Lesson ${position} of ${curriculum.stages.length}`, detail: null,
+      due: true, advancementEligible: true,
+    }
+  }
+
+
   if (gated) {
     // Acquisition is the work. It is available now — that is what makes the
     // topic due — and it stays the recommended action on every surface until the
@@ -294,7 +311,7 @@ export function dueEntries(entries: JourneyEntry[]): JourneyEntry[] {
 /** Shown wherever a Test action is offered, so Today and Library never drift
  *  into stating this consequence two different ways. */
 export const TEST_CONSEQUENCE_NOTE =
-  'Tests are scored. A curriculum completes after each lesson once; ordinary topics need a clean Test. Later Tests are optional.'
+  'Lessons build recall. Finish every lesson or a clean Final Test to complete a topic. Later Tests are optional.'
 
 export type ShelfId = 'due' | 'banked' | 'unfinished'
 
