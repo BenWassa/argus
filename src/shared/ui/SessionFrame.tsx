@@ -65,12 +65,15 @@ export function SessionFrame({ kind, title, progress, onClose, toolbar, colour, 
       style={{ '--session-colour': colour ?? derived.colour, '--session-ink': ink ?? derived.ink, ...style } as CSSProperties}>
       <header className="session-frame-header">
         <h1 ref={heading} tabIndex={-1} className="session-frame-title">{title}</h1>
-        <div className="session-frame-progress" role={progress ? 'progressbar' : undefined}
-          aria-label={progress ? `${current} of ${total}` : undefined} aria-hidden={progress ? undefined : true}
-          aria-valuemin={progress ? 0 : undefined} aria-valuemax={progress ? total : undefined} aria-valuenow={progress ? current : undefined}>
-          <span style={{ transform: `scaleX(${total ? current / total : 0})` }} />
+        <div className="session-frame-meter">
+          <div className="session-frame-progress" role={progress ? 'progressbar' : undefined}
+            aria-label={progress ? `${current} of ${total}` : undefined} aria-hidden={progress ? undefined : true}
+            aria-valuemin={progress ? 0 : undefined} aria-valuemax={progress ? total : undefined} aria-valuenow={progress ? current : undefined}>
+            <span style={{ transform: `scaleX(${total ? current / total : 0})` }} />
+          </div>
+          {progress && <span className="session-frame-count" aria-hidden="true">{current}/{total}</span>}
         </div>
-        <button className="ghost small" type="button" onClick={onClose}>Close</button>
+        <button className="ghost small session-frame-close" type="button" aria-label="Close" onClick={onClose}><span aria-hidden="true">×</span></button>
       </header>
       {toolbar && <div className="session-frame-toolbar">{toolbar}</div>}
       {children}

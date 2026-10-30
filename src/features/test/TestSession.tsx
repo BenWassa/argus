@@ -799,7 +799,7 @@ export function TestSession({ topicIds, review = false, onExit, onPractice, onPl
         >
           <span className="flip-inner">
             <span className="flip-face flip-front">
-              <span className="flip-label">Tap to reveal</span>
+              {index === 0 && <span className="flip-label">Tap to reveal</span>}
               {card.sequence ? <SequenceCard sequence={card.sequence} /> : (
                 <span className={`flip-value${testCardTextClass(card.item.prompt)}`}>
                   {card.item.prompt}
@@ -807,7 +807,7 @@ export function TestSession({ topicIds, review = false, onExit, onPractice, onPl
               )}
             </span>
             <span className="flip-face flip-back">
-              <span className="flip-label">Answer</span>
+              <span className="flip-label flip-prompt-kicker">{card.item.prompt}</span>
               {/* The answer text exists in the document only while this card is
                   revealed or leaving. An unrevealed card has no answer to leak. */}
               <span className={`flip-value flip-value-answer${testCardTextClass(card.item.answer)}`}>

@@ -72,6 +72,7 @@ describe('SessionFrame', () => {
     const { rerender } = render(<SessionFrame kind="key" title="Key" progress={{ current: 3, total: 10 }} onClose={close} />)
     expect(screen.getByRole('progressbar', { name: '3 of 10' }).getAttribute('aria-valuenow')).toBe('3')
     expect(screen.getByRole('progressbar').firstElementChild?.getAttribute('style')).toContain('scaleX(0.3)')
+    expect(screen.getByText('3/10').getAttribute('aria-hidden')).toBe('true')
     fireEvent.click(screen.getByRole('button', { name: 'Close' }))
     expect(close).toHaveBeenCalledOnce()
     rerender(<SessionFrame kind="key" title="Key" progress={{ current: 20, total: 10 }} onClose={close} />)
