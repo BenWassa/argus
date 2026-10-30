@@ -55,7 +55,7 @@ for (const [title, boundary] of [
     await page.getByRole('button', { name: 'Sources and limitations', exact: true }).click()
     await expect(page.getByRole('dialog', { name: 'Sources and limitations' }).locator('section').first()).toContainText(boundary)
     await page.keyboard.press('Escape')
-    await page.getByRole('navigation', { name: 'Study' }).getByRole('button', { name: 'Learn', exact: true }).click()
+    await page.getByRole('button', { name: 'Reference', exact: true }).click()
     await expect(page.locator('.topic-scope')).toContainText(boundary)
     await expect(page.locator('.topic-scope')).toBeVisible()
     await expect(page.locator('.topic-reading details, .topic-reading summary')).toHaveCount(0)

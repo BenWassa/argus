@@ -43,6 +43,7 @@ test('Home keeps truthful readings, bounded topics and accessible navigation at 
   expect(overflow.scroll).toBeLessThanOrEqual(overflow.width)
   await expect(page.getByRole('button', { name: 'Home', exact: true })).toBeInViewport()
   await page.getByRole('button', { name: 'Continue: Active topic 2' }).click()
-  await expect(page.getByRole('heading', { name: 'Active topic 2', exact: true, level: 1 })).toBeVisible()
-  await expect(page.getByRole('progressbar', { name: '0 of 26' })).toBeVisible()
+  // Continue opens the topic's next lesson, full screen.
+  await expect(page.getByRole('heading', { name: 'Lesson 1', exact: true, level: 1 })).toBeVisible()
+  await expect(page.getByRole('progressbar', { name: /^1 of \d+$/ })).toBeVisible()
 })

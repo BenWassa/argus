@@ -212,9 +212,9 @@ test('browsing stays inert and Test enters the scored run directly', async ({ pa
   const onTopic = await navigationState(page)
   expect(onTopic).toMatchObject({ index: 2, route: { kind: 'topic', topicId: TOPIC.id } })
 
-  // The complete finite set is freely browsable and opening it has created no
+  // The lesson path is freely browsable and opening it has created no
   // learner-progress, scheduler or evidence state.
-  await expect(page.locator('.topic-items .topic-item')).toHaveCount(TOPIC.items.length)
+  await expect(page.locator('.topic-lessons')).toBeVisible()
   await expect(page.getByText('Show all')).toHaveCount(0)
   const browsed = await storedTopic(page)
   expect(browsed.status).toBe('unstarted')

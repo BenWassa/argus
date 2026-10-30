@@ -41,7 +41,8 @@ test('a later missed Test keeps learned progress and creates no repair obligatio
   expect(saved.history.at(-1)?.missedItemIds).toHaveLength(3)
   await page.getByRole('button', { name: 'Done', exact: true }).click()
   await expect(page.locator('.topic-state')).toHaveText('✓Learned')
-  await expect(page.locator('.screen-header-readout')).toHaveText('26 / 26')
+  // A learned topic reads every lesson done.
+  await expect(page.locator('.screen-header-readout')).toHaveText('7 / 7')
   await expect(page.locator('.topic-lessons .spine-row.is-done')).toHaveCount(7)
   await expect(page.getByRole('button', { name: 'Review', exact: true })).toBeVisible()
   await expect(page.getByText('Needs repair')).toHaveCount(0)

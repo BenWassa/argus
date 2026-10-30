@@ -1,10 +1,13 @@
 import { readLocalLibrary } from './helpers/readLocalLibrary'
 import { expect, test, type Page } from '@playwright/test'
 import { seedLibrary } from '../src/domain/library/catalogSeed'
-import { SHIPPED_CATALOG_TOPIC_IDS } from '../src/domain/library/catalog'
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 import { generatedCurriculum, lessonForItem } from '../src/domain/learning/generatedCurriculum'
 import { NATO_ITEMS, currentPrompt } from './support'
 import type { Topic } from '../src/domain/library/topic'
+
+const SHIPPED_CATALOG_TOPIC_IDS: string[] = JSON.parse(readFileSync(fileURLToPath(new URL('../src/domain/library/shippedCatalog.json', import.meta.url)), 'utf8')).topicIds
 
 const nato: Topic = { ...seedLibrary().topics.find(topic => topic.id === 'nato-phonetic')!,
   status: 'learning', completedAt: null, drilledAt: null, history: [], stageProgress: undefined }
