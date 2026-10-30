@@ -243,8 +243,9 @@ describe('Learn refresh respects the complete scored identity', () => {
 
 describe('owner retirement of Hex to Binary (2026-10-29)', () => {
   const id = 'hex-digits-binary'
+  const hexItems = [...'0123456789ABCDEF'].map((digit, value) => ({ prompt: digit, answer: value.toString(2).padStart(4, '0') }))
   const retired: Topic = {
-    ...catalogDefinition('si-prefixes')!, id, origin: 'catalog',
+    ...catalogDefinition('si-prefixes')!, id, origin: 'catalog', title: 'Hex to Binary', items: hexItems,
     status: 'learning',
     history: [{ at: '2026-10-01T00:00:00.000Z', correct: 1, total: 16, resolvedTo: 'learning' }],
   }
@@ -258,6 +259,12 @@ describe('owner retirement of Hex to Binary (2026-10-29)', () => {
     expect(removeRetiredCatalogTopics(once)).toBe(once)
     expect(JSON.stringify(once.topics)).not.toContain(id)
     expect(reconcileLoadedLibrary(input).library.topics.some((topic) => topic.id === id)).toBe(false)
+  })
+
+  it('keeps a copy whose items were edited, even when it still says catalog', () => {
+    const edited: Topic = { ...retired, items: [...hexItems.slice(0, 15), { prompt: 'G', answer: 'not hex' }] }
+    const input: CurrentLibrary = { version: 5, topics: [edited] }
+    expect(removeRetiredCatalogTopics(input)).toBe(input)
   })
 
   it('preserves edited/authored copies and conservatively preserves missing provenance', () => {

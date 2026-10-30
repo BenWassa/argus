@@ -27,7 +27,7 @@
  * this whole layer exists to avoid.
  */
 
-import { isRetiredCatalogTopic } from '../../domain/library/catalog'
+import { isRetiredCatalogId, isRetiredCatalogTopic } from '../../domain/library/catalog'
 import shippedCatalog from '../../domain/library/shippedCatalog.json'
 import type { Topic } from '../../domain/library/topic'
 import { mergeRoleAwards, parseRoleAwards, type RoleAward } from '../../domain/roles/awards'
@@ -280,33 +280,15 @@ export function planSync(
   const conflicts: string[] = []
 
   for (const id of [...ids].sort()) {
-    const candidate = locals.get(id)
-    const localRetired = candidate !== undefined && isRetiredCatalogTopic(candidate)
-    const local = localRetired ? undefined : candidate
+    const local = locals.get(id)
     const record = remotes.get(id)
     const known = ledger[id]
 
-    // A ledger/outbox deletion alone cannot cover first sync or stale clients
-    // republishing after acknowledgement. Apply the owner retirement on every
-    // pass, but never delete a learner-owned remote copy on the strength of an id.
-    if (localRetired) actions.push({ kind: 'dropLocal', topicId: id })
-    if (id === 'hex-digits-binary' && record) {
-      let retired = false
-      try {
-        const parsed = JSON.parse(record.json) as Topic
-        retired = parsed?.id === id && isRetiredCatalogTopic(parsed)
-      } catch { /* Unreadable remote content keeps normal conflict handling. */ }
-      if (retired) {
-        actions.push(local
-          ? { kind: 'push', topicId: id, json: topicJson(local), revision: record.revision + 1 }
-          : { kind: 'deleteRemote', topicId: id })
-        continue
-      }
-      if (!local) {
-        actions.push({ kind: 'adopt', topicId: id, json: record.json, revision: record.revision })
-        continue
-      }
-    }
+    // A remote copy that is still the unedited retired catalog topic is left
+    // alone: never adopted, and never deleted. A device still on an older build
+    // re-publishes a missing shipped topic, so deleting it here would start a
+    // delete and re-publish loop. One stale document costs nothing.
+    if (!local && record && isRetiredCatalogId(id) && remoteIsRetired(record)) continue
 
     if (local && !record) {
       // Shipped topics are baseline product content. An old synced deletion
@@ -401,4 +383,13 @@ export function nextLedger(ledger: Ledger, actions: SyncAction[], now: number): 
     }
   }
   return next
+}
+
+function remoteIsRetired(record: RemoteRecord): boolean {
+  try {
+    const parsed = JSON.parse(record.json) as Topic
+    return parsed?.id === record.topicId && Array.isArray(parsed.items) && isRetiredCatalogTopic(parsed)
+  } catch {
+    return false
+  }
 }

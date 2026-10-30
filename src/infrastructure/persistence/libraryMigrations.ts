@@ -318,11 +318,12 @@ export function upgradeSeededScubaEquipment(library: CurrentLibrary): CurrentLib
   return changed ? { ...library, topics } : library
 }
 
-/** Remove retired, unedited catalog content together with its topic-local
- * history, evidence and sitting. Home and role membership derive from topics;
- * the router validates stored selections against that same live list.
- * IndexedDB update records removed ids in its existing deletion outbox. Sync
- * also applies the retirement policy before adoption, including without a ledger.
+/**
+ * Remove a retired catalog topic that is still exactly as shipped, with its
+ * topic-local history and evidence (owner decision, 2026-10-29). A copy whose
+ * items were changed is the learner's and stays. Home and role membership
+ * derive from topics, and the router checks stored selections against the
+ * same live list. Sync never adopts a remote retired copy back.
  */
 export function removeRetiredCatalogTopics(library: CurrentLibrary): CurrentLibrary {
   const topics = library.topics.filter((topic) => !isRetiredCatalogTopic(topic))

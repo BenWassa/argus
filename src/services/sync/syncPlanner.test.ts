@@ -446,29 +446,25 @@ describe('library-level state', () => {
 
 describe('retired catalog topic sync', () => {
   const id = 'hex-digits-binary'
-  const topic: Topic = { ...freshSeedLibrary().topics[0], id, origin: 'catalog' }
+  const hexItems = [...'0123456789ABCDEF'].map((digit, value) => ({ prompt: digit, answer: value.toString(2).padStart(4, '0') }))
+  const topic: Topic = { ...freshSeedLibrary().topics[0], id, origin: 'catalog', items: hexItems }
   const record: RemoteRecord = { topicId: id, json: topicJson(topic), revision: 4, updatedAtMs: 1 }
   const known: Ledger = { [id]: { revision: 4, json: record.json, changedAtMs: 1 } }
 
-  it('deletes a stale catalog remote with or without a ledger, including after acknowledgement', () => {
+  it('leaves a stale catalog remote alone, with or without a ledger, so an old build cannot loop it', () => {
     for (const ledger of [{}, known]) {
-      const plan = planSync([], [record], ledger)
-      expect(plan).toEqual({ actions: [{ kind: 'deleteRemote', topicId: id }], conflicts: [] })
-      const settled = nextLedger(ledger, plan.actions, 2)
-      expect(planSync([], [], settled)).toEqual({ actions: [], conflicts: [] })
-      expect(planSync([], [record], settled)).toEqual(plan)
+      expect(planSync([], [record], ledger)).toEqual({ actions: [], conflicts: [] })
     }
   })
 
-  it('drops a stale local catalog copy rather than uploading it', () => {
-    expect(planSync([topic], [], {})).toEqual({ actions: [{ kind: 'dropLocal', topicId: id }], conflicts: [] })
-  })
-
-  it('adopts learner-owned remote content even when the retired copy was previously known', () => {
+  it('treats a learner-owned copy under the same id normally', () => {
     const edited = { ...record, json: topicJson({ ...topic, origin: 'user' }) }
-    expect(planSync([], [edited], known)).toEqual({
+    expect(planSync([], [edited], {})).toEqual({
       actions: [{ kind: 'adopt', topicId: id, json: edited.json, revision: 4 }], conflicts: [],
     })
+    // The learner deleting their own copy here still deletes it remotely.
+    const knownEdited: Ledger = { [id]: { revision: 4, json: edited.json, changedAtMs: 1 } }
+    expect(planSync([], [edited], knownEdited)).toEqual({ actions: [{ kind: 'deleteRemote', topicId: id }], conflicts: [] })
   })
 
   it('preserves learner-owned local content when a stale catalog remote arrives', () => {
