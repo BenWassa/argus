@@ -195,7 +195,7 @@ test('Today plates open their topic, and runs remember the topic they started fr
 
   // Topic -> Test -> Back = Topic.
   await openTopic(page)
-  await page.locator('.topic-tray [data-tile-id="test"]').click()
+  await page.locator('.topic-lessons [data-node-id="final-test"] button').click()
   await expect(page.locator('.flip-card')).toBeVisible()
   expect(await navigationState(page)).toMatchObject({
     route: { kind: 'run', mode: 'test', origin: { kind: 'topic', topicId: TOPIC.id } },
@@ -212,19 +212,19 @@ test('browsing stays inert and Test enters the scored run directly', async ({ pa
   const onTopic = await navigationState(page)
   expect(onTopic).toMatchObject({ index: 2, route: { kind: 'topic', topicId: TOPIC.id } })
 
-  // The complete finite set is freely browsable and opening it has created no
+  // The lesson path is freely browsable and opening it has created no
   // learner-progress, scheduler or evidence state.
-  await expect(page.locator('.topic-items .topic-item')).toHaveCount(TOPIC.items.length)
+  await expect(page.locator('.topic-lessons')).toBeVisible()
   await expect(page.getByText('Show all')).toHaveCount(0)
   const browsed = await storedTopic(page)
   expect(browsed.status).toBe('unstarted')
   expect(browsed.learningAt).toBeNull()
   expect(browsed.history).toEqual([])
   expect(browsed.lastTestedAt).toBeNull()
-  await expect(page.locator('.topic-tray [data-tile-id="test"] .mode-tray-label')).toHaveText('Test')
+  await expect(page.locator('.topic-lessons [data-node-id="final-test"] .spine-label')).toHaveText('Final Test')
 
   // One deliberate Test enters the run; starting records no evidence or score.
-  await page.locator('.topic-tray [data-tile-id="test"]').click()
+  await page.locator('.topic-lessons [data-node-id="final-test"] button').click()
   await expect(page.locator('.flip-card')).toBeVisible()
   expect(await storedTopic(page)).toEqual(browsed)
   expect(await navigationState(page)).toMatchObject({
@@ -241,8 +241,8 @@ test('partial Test Back reuses End test, Back resumes, and confirmed exit preser
   await openApp(page)
   await openLibrary(page)
   await openTopic(page)
-  await expect(page.locator('.topic-tray [data-tile-id="test"] .mode-tray-label')).toHaveText('Test')
-  await page.locator('.topic-tray [data-tile-id="test"]').click()
+  await expect(page.locator('.topic-lessons [data-node-id="final-test"] .spine-label')).toHaveText('Final Test')
+  await page.locator('.topic-lessons [data-node-id="final-test"] button').click()
 
   await page.locator('.flip-card').click()
   // Keyboard grading is part of the stable Test contract and does not depend on
@@ -396,4 +396,46 @@ test('Back from the Today root is left to the browser instead of being trapped',
 
   await page.goBack()
   await expect(page).toHaveURL(/^data:text\/html/)
+})
+
+test('retired Practice normalizes on Forward, preserving its topic, index and learner record', async ({ page }) => {
+  await openApp(page)
+  const before = await storedTopic(page)
+  await page.evaluate(topicId => {
+    history.replaceState({ argusNavigation: 1, index: 0, route: { kind: 'section', view: 'library' } }, '')
+    history.pushState({ argusNavigation: 1, index: 1, route: { kind: 'run', mode: 'learn', topicIds: [topicId],
+      origin: { kind: 'section', view: 'today' }, target: { kind: 'practice' } } }, '')
+    history.pushState({ argusNavigation: 1, index: 2, route: { kind: 'section', view: 'profile' } }, '')
+  }, TOPIC.id)
+  await page.reload()
+  // The router mounts after IndexedDB hydration; traverse only once it listens.
+  await expect(page.getByRole('button', { name: 'Home', exact: true })).toBeVisible()
+  await page.evaluate(() => history.go(-2))
+  await expect.poll(() => navigationState(page)).toMatchObject({ index: 0, route: { kind: 'section', view: 'library' } })
+  await systemForward(page)
+  await expect(page.locator('.topic-title')).toHaveText(TOPIC.title)
+  expect(await navigationState(page)).toMatchObject({ index: 1, route: { kind: 'topic', topicId: TOPIC.id } })
+  expect(await storedTopic(page)).toEqual(before)
+})
+
+test('Back crosses an adjacent retired-Practice/topic duplicate without adding a history stop', async ({ page }) => {
+  await openApp(page)
+  const before = await storedTopic(page)
+  await page.evaluate(topicId => {
+    history.replaceState({ argusNavigation: 1, index: 0, route: { kind: 'section', view: 'library' } }, '')
+    history.pushState({ argusNavigation: 1, index: 1, route: { kind: 'topic', topicId } }, '')
+    history.pushState({ argusNavigation: 1, index: 2, route: { kind: 'run', mode: 'learn', topicIds: [topicId],
+      origin: { kind: 'topic', topicId }, target: { kind: 'practice' } } }, '')
+    history.pushState({ argusNavigation: 1, index: 3, route: { kind: 'section', view: 'profile' } }, '')
+  }, TOPIC.id)
+  await page.reload()
+  // The router mounts after IndexedDB hydration; traverse only once it listens.
+  await expect(page.getByRole('button', { name: 'Home', exact: true })).toBeVisible()
+  await systemBack(page)
+  await expect(page.locator('.topic-title')).toHaveText(TOPIC.title)
+  expect(await navigationState(page)).toMatchObject({ index: 2, route: { kind: 'topic', topicId: TOPIC.id } })
+  await systemBack(page)
+  await expect.poll(() => navigationState(page)).toMatchObject({ index: 0, route: { kind: 'section', view: 'library' } })
+  await expect(page.locator('.topic')).toHaveCount(0)
+  expect(await storedTopic(page)).toEqual(before)
 })

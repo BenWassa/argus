@@ -48,6 +48,12 @@ function edit(topic: Topic, changes: { title?: string; items?: string } = {}): T
 afterEach(cleanup)
 
 describe('editing a topic preserves durable learner progress', () => {
+  it('preserves ordinary lesson ticks through title and item edits', () => {
+    const topic = { ...seeded('nato-phonetic'), stageProgress: { 'lesson-1': '2026-10-29T00:00:00Z' } }
+    const saved = edit(topic, { title: 'Edited NATO', items: `${topic.items[0].prompt} | Updated answer` })
+    expect(saved.stageProgress).toEqual(topic.stageProgress)
+  })
+
   const worked = (): Topic => ({
     ...seeded(MORSE_ID),
     status: 'learning',

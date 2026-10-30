@@ -49,7 +49,7 @@ describe('SessionFrame', () => {
     expect(document.activeElement).toBe(screen.getByRole('heading', { level: 2, name: '8 of 10 correct' }))
   })
 
-  it.each(['key', 'listen', 'read', 'free', 'lesson', 'checkpoint', 'test', 'practice'] as const)('gives %s its own colour and matching ink', kind => {
+  it.each(['key', 'listen', 'read', 'free', 'lesson', 'checkpoint', 'test'] as const)('gives %s its own colour and matching ink', kind => {
     const { container } = render(<SessionFrame kind={kind} title="Session" onClose={noop}>Stimulus</SessionFrame>)
     const frame = container.querySelector<HTMLElement>('.session-frame')!
     const token = ['key', 'listen', 'read', 'free'].includes(kind) ? `mode-${kind}` : 'action'
@@ -61,7 +61,7 @@ describe('SessionFrame', () => {
   })
 
   it('takes any colour pair, so Practice can wear its track colour', () => {
-    const { container } = render(<SessionFrame kind="practice" title="Practice" colour="var(--survival)" ink="var(--bg)" onClose={noop} />)
+    const { container } = render(<SessionFrame kind="lesson" title="Lesson" colour="var(--survival)" ink="var(--bg)" onClose={noop} />)
     const frame = container.querySelector<HTMLElement>('.session-frame')!
     expect(frame.style.getPropertyValue('--session-colour')).toBe('var(--survival)')
     expect(frame.style.getPropertyValue('--session-ink')).toBe('var(--bg)')

@@ -1,51 +1,69 @@
-.stage-runner {
-  display: grid;
-  gap: var(--s-lg);
-  max-width: 700px;
-  min-width: 0;
-  color: var(--ink);
-  overflow-wrap: anywhere;
+/* One idea above a thumb-reachable response, inside the shared session frame. */
+.session.stage-runner {
+  height: 100svh;
+  min-height: 0;
+  overflow: hidden;
+  gap: var(--s-sm);
 }
-
-.stage-header {
+.stage-runner .stage-stimulus {
+  flex: 1 1 0;
+  min-height: 0;
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  justify-content: center;
   align-items: center;
-  justify-content: space-between;
   gap: var(--s-md);
-}
-
-.stage-header h2 { font-size: var(--t-section); }
-.stage-progress { font-family: var(--font-mono); color: var(--muted); }
-.stage-task { display: grid; gap: var(--s-lg); min-width: 0; }
-.stage-task p { max-width: 65ch; }
-.stage-task h3 { font-size: var(--t-component); }
-.stage-options { display: flex; flex-wrap: wrap; gap: var(--s-sm); }
-.stage-options > button { flex: 1 1 8rem; }
-.stage-sequence { display: grid; gap: var(--s-sm); padding-inline-start: 2em; }
-.stage-sequence:empty { display: none; }
-.stage-sequence button { width: 100%; }
-
-.stage-runner button {
-  min-width: 44px;
-  min-height: 44px;
-  max-width: 100%;
-  white-space: normal;
+  text-align: center;
   overflow-wrap: anywhere;
-  padding: var(--s-sm) var(--s-md);
+}
+.stage-card {
+  width: 100%;
+  max-width: 30rem;
+  min-height: min(22rem, 100%);
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-lg);
+  padding: var(--s-xl) var(--s-lg);
   border: 1px solid var(--line-strong);
-  border-radius: var(--r-md);
+  border-top: 4px solid var(--session-colour, var(--action));
+  border-radius: var(--r-xl);
   background: var(--surface-2);
-  color: var(--ink);
+  box-shadow: var(--shadow-key);
+  overflow: hidden;
 }
-
-.stage-runner button:hover { background: var(--surface-3); }
-.stage-runner button:focus-visible { outline: 3px solid var(--action); outline-offset: 3px; }
-.stage-runner button[aria-pressed='true'] { border-color: var(--action); }
-.stage-runner .stage-primary { background: var(--action); color: var(--action-ink); }
-.stage-runner button:disabled { background: var(--surface); color: var(--muted); cursor: default; }
-.stage-feedback { border-top: 1px solid var(--line); padding-top: var(--s-md); display: grid; gap: var(--s-md); }
-
+.stage-title { font-size: clamp(1.4rem, 6vw, 2.1rem); line-height: 1.15; margin: 0; overflow-wrap: break-word; }
+.stage-title.is-glyph { font-family: var(--font-mono); font-size: clamp(3.5rem, 20vw, 5.5rem); line-height: 1; }
+.stage-title:focus { outline: none; }
+/* Teaching: the answer is the thing to learn, in the session colour. */
+.stage-answer { margin: 0; font-size: clamp(1.5rem, 7vw, 2.4rem); font-weight: 700; line-height: 1.2; color: var(--session-colour, var(--action)); }
+.stage-answer.is-long { font-size: clamp(1.1rem, 4.6vw, 1.4rem); font-weight: 600; line-height: 1.35; }
+.stage-card .visual { width: min(100%, 18rem); min-height: 0; margin: 0; }
+.stage-card .visual svg, .stage-card .visual img { display: block; width: 100%; height: auto; max-height: 28svh; object-fit: contain; }
+.stage-runner .stage-options { display: grid; grid-template-columns: 1fr; gap: var(--s-sm); }
+.stage-runner button { min-height: 44px; overflow-wrap: anywhere; white-space: normal; }
+.stage-options > button {
+  width: 100%; padding: 12px 16px; text-align: left;
+  border: 1px solid var(--line-strong); border-radius: var(--r-md);
+  background: var(--surface-2); color: var(--ink); box-shadow: var(--shadow-sm);
+}
+.stage-options > button:hover { background: var(--surface-3); }
+.stage-options > button.is-wrong { border-color: var(--danger); color: var(--danger); }
+.stage-options > button.is-correct { border-color: var(--ok); color: var(--ok); }
+.stage-options > button:focus-visible { outline: 2px solid var(--action); outline-offset: 2px; }
+.stage-feedback { margin: 0; color: var(--danger); font-size: var(--t-small); }
+.stage-sequence { display: flex; flex-wrap: wrap; gap: var(--s-xs); padding: 0; list-style: none; }
+@media (max-height: 700px) {
+  .stage-stimulus { gap: var(--s-xs); }
+  .stage-card { min-height: 0; gap: var(--s-sm); padding: var(--s-md); }
+  .stage-card .visual svg, .stage-card .visual img { max-height: 20svh; }
+  .stage-options > button { padding-block: 8px; }
+}
 @media (prefers-reduced-motion: reduce) {
-  .stage-runner button { animation: none; transition: none; }
+  .stage-runner *, .stage-runner *::before, .stage-runner *::after { animation: none; transition: none; }
 }
+
+/* Published call structures retain every word while fitting four choices. */
+.stage-options.is-wordy > button { font-size: 0.85rem; line-height: 1.2; padding: 8px 12px; }

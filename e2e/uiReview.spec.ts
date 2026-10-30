@@ -63,7 +63,7 @@ test('a Test launched from the end of a long topic opens at the session header',
   expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(0)
   const early = page.getByRole('button', { name: 'Test early' })
   if (await early.count()) await early.click()
-  else await page.locator('.topic-tray [data-tile-id="test"]').click()
+  else await page.locator('.topic-lessons [data-node-id="final-test"] button').click()
   await expect(page.locator('.session-frame-header')).toBeVisible()
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0)
 })

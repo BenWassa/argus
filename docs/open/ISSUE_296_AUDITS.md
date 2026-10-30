@@ -1,5 +1,8 @@
 # Issue #296 — read-only audits
 
+> **Implementation note, 2026-10-29:** Section A is the original call-site inventory and per-site disposition, retained for traceability. The ordinary Practice removal and lesson replacements are implemented on `feat/296-learn-then-test`; the archived Practice contract is now under `docs/closed/`. The generated-default owner decision in [the learning contract](ISSUE_296_LEARNING_REDESIGN.md) supersedes the authored-only recommendations in the topic audit. Browser/device acceptance remains unverified.
+
+
 > **Status: investigation record supporting [the #296 design brief](ISSUE_296_LEARNING_REDESIGN.md). Not a contract and not an authorization to change code.**
 > **Provenance:** two read-only Codex runs on 2026-10-23 against `main` at v1.6.1. Neither executed tests or a browser. Claude spot-checked seven claims against the code (the `practice` route kind and its validator, the `PracticeRun` render in `AppRouter`, the “Practise N” result copy, the tray's `practiceCount` plumbing, the radio item kinds, the history state version, the 24 catalog ids) and found them accurate; the rest are unverified line references. Re-run the greps before acting on any single line.
 
@@ -63,7 +66,7 @@ Read `AGENTS.md`; no files edited. Inventory below is source-verified; tests and
 | `src/features/library/TopicPage.fluencyEntry.test.tsx:109,142`; `src/domain/morse/fluency/focus.test.ts:15,32` | Morse direct entries and shared-target weakness selection | KEEP (Morse formative) | Regression coverage for accidental over-removal. |
 | `src/features/morse/practice/*test.tsx`; `session/MorseSessions.test.tsx:29`; `fluency/FluencyBoundary.test.ts:23` | Dedicated Morse rounds, session surfaces, isolated writes | KEEP (Morse formative) | Generic Practice references in boundary comments are comparisons only. |
 | `e2e/morseLetterPractice.spec.ts:14`; `morseRecognition.spec.ts:103`; `morseRound2.spec.ts:72`; `morseFluency.spec.ts:20`; `indexedLibraryRepository.spec.ts:249` | Morse formative behavior and persisted recognition streams | KEEP (Morse formative) | Includes `read/practice` and `listen/practice@12` storage keys. |
-| `docs/open/TARGETED_PRACTICE.md:5,147,156` | Maintained standalone Practice contract and restoration policy | REMOVE | Supersede/archive contract; preserve reusable evidence-boundary rationale. |
+| `docs/closed/TARGETED_PRACTICE.md:5,147,156` | Maintained standalone Practice contract and restoration policy | REMOVE | Supersede/archive contract; preserve reusable evidence-boundary rationale. |
 | `docs/open/NAVIGATION_HISTORY.md:3,275` | Maintained history contract; retired Morse chooser precedent | REDIRECT to topic page | Add retired Practice normalization; opening architecture description is already stale. |
 | `docs/open/PROGRESS_ARCHITECTURE.md:10,18` | Ordinary Continue→Test and optional formative Practice | REDIRECT to Learn or topic page | Update authority/addendum for #296. |
 | `docs/open/TOPIC_PAGE_REVAMP.md:5,105`; `ISSUE_225_UI_OVERHAUL.md:4,179,197` | Current-authority topic/Test/Practice contracts | REMOVE | Supersede affected ordinary-topic scope, preserving Morse/evidence rules. |

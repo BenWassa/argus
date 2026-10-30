@@ -1,3 +1,4 @@
+import { curriculumFor } from '../domain/learning/generatedCurriculum'
 // @vitest-environment jsdom
 import { homeProgress } from '../domain/study/home'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -211,6 +212,7 @@ function libraryGroup(topic: Topic): string {
 /** The Topic page's single primary action. There is only ever one. */
 function topicPrimary(topic: Topic): string {
   renderTopicPage(topic)
+  if (curriculumFor(topic)) return document.querySelector('.topic-tray .mode-tray-label')?.textContent?.trim() ?? ''
   const current = document.querySelector('[aria-current="step"]')
   if (current) {
     const label = current.getAttribute('aria-label') ?? ''
@@ -228,7 +230,7 @@ function topicTestLabel(): string {
 
 function topicSchedule(topic: Topic): string {
   renderTopicPage(topic)
-  return document.querySelector('.topic-state-label')?.textContent?.trim() ?? ''
+  return document.querySelector('.topic-state-label')?.textContent?.trim() || document.querySelector('.screen-header-readout')?.textContent?.trim() || ''
 }
 
 beforeEach(() => {
@@ -334,7 +336,8 @@ describe('one learner state, three surfaces, one recommendation', () => {
       install([topic])
       if (topic.id === MORSE_ID && journey.phase === 'banked') {
         expect(topicPrimary(topic)).toBe('') // Completed path has no required current action.
-      } else expect(topicPrimary(topic)).toBe(journey.primaryLabel)
+      }
+      else expect(topicPrimary(topic)).toBe(journey.primaryLabel)
       cleanup()
       install([topic])
       if (topic.id === MORSE_ID) {
@@ -565,18 +568,15 @@ describe('Library is a list of titles, grouped by whether you have begun', () =>
 })
 
 describe('ordinary topic browsing and enrollment', () => {
-  it('puts the finite reference on the page instead of behind a disclosure', () => {
+  it('shows lessons on landing and the complete answer-visible reference on its own screen', () => {
     const ordinary = blank('cardinal-bearings')
     renderTopicPage(ordinary)
-
-    // The complete scored set is the body of the page, one spine row per item,
-    // visible and unconcealed: a surface that hides nothing.
-    expect(document.querySelectorAll('.topic-items .topic-item')).toHaveLength(ordinary.items.length)
-    expect(screen.getByRole('list', { name: 'Items' })).toBeTruthy()
-    expect(document.body.textContent).not.toContain('Show all')
+    expect(screen.getByRole('list', { name: 'Lessons' })).toBeTruthy()
+    expect(document.querySelector('.topic-items')).toBeNull()
     expect(document.querySelector('.morse-progress-path')).toBeNull()
-    // Reference rows expose answers; the concealed-answer Test card is absent.
-    expect(document.querySelector('.flip-card')).toBeNull()
+    cleanup()
+    render(<TopicReading topic={ordinary} onBack={vi.fn()} />)
+    expect(document.querySelectorAll('.topic-items .topic-item')).toHaveLength(ordinary.items.length)
     for (const item of ordinary.items) expect(document.body.textContent).toContain(item.answer)
   })
 
@@ -591,8 +591,8 @@ describe('ordinary topic browsing and enrollment', () => {
     )
     // The topic page carries the scored set; the explanation is one tile away.
     expect(document.querySelector('.learn-support')).toBeNull()
-    expect(document.querySelectorAll('.topic-items .topic-item')).toHaveLength(briefed.items.length)
-    fireEvent.click(screen.getByRole('button', { name: 'Learn' }))
+    expect(document.querySelector('.topic-items')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Reference' }))
     expect(onReference).toHaveBeenCalledWith(briefed.id)
     cleanup()
 
@@ -619,15 +619,15 @@ describe('ordinary topic browsing and enrollment', () => {
     )
     expect(beforeBrowse).toEqual(fresh)
     renderTopicPage(fresh)
-    expect(topicTestLabel()).toBe('Test')
-    expect(document.querySelectorAll('.topic-items .topic-item')).toHaveLength(fresh.items.length)
+    expect(document.querySelector('.topic-tray .mode-tray-label')?.textContent).toBe('Start')
+    expect(screen.getByRole('list', { name: 'Lessons' })).toBeTruthy()
     await waitFor(() => {
       const stored = JSON.parse(localStorage.getItem(STORE_KEY) ?? '{}') as { topics?: Topic[] }
       expect(stored.topics?.find((topic) => topic.id === fresh.id)).toEqual(beforeBrowse)
     })
 
     // Starting a Test does not enroll or create evidence before scoring.
-    fireEvent.click(screen.getByRole('button', { name: /^Test/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Start' }))
     const stored = JSON.parse(localStorage.getItem(STORE_KEY) ?? '{}') as { topics?: Topic[] }
     expect(stored.topics?.find((topic) => topic.id === fresh.id)).toEqual(beforeBrowse)
 

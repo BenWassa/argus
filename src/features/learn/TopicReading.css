@@ -22,3 +22,9 @@
 @media (min-width: 980px) {
   .topic-reading { max-width: 760px; }
 }
+
+.session-shell .topic-reading {
+  width: min(100%, 760px);
+  margin-inline: auto;
+  padding: max(var(--s-lg), env(safe-area-inset-top)) var(--s-lg) max(var(--s-xl), env(safe-area-inset-bottom));
+}

@@ -18,12 +18,12 @@ function fresh(): Topic {
 }
 
 describe('stage progress', () => {
-  it('reads only stage ticks, including on completed topics', () => {
+  it('treats permanent completion as every lesson done (D5)', () => {
     const topic = { ...fresh(), completedAt: now.toISOString() }
-    expect(stageDone(topic, 'first')).toBe(false)
-    expect(stagesRemaining(topic, curriculum)).toEqual(curriculum.stages)
-    expect(nextStage(topic, curriculum)).toBe(curriculum.stages[0])
-    expect(stageDone(topic, 'toString')).toBe(false)
+    expect(stageDone(topic, 'first')).toBe(true)
+    expect(stagesRemaining(topic, curriculum)).toEqual([])
+    expect(nextStage(topic, curriculum)).toBeUndefined()
+    expect(stageDone(fresh(), 'toString')).toBe(false)
   })
 
   it('is immutable, idempotent and monotonic without touching evidence or history', () => {
@@ -71,4 +71,12 @@ describe('stage progress', () => {
     expect(done.status).toBe('completed')
     expect(Object.keys(done.stageProgress!)).toEqual(['first', 'second'])
   })
+})
+
+it('does not turn a legacy drilled topic review into a new completion', () => {
+  const topic: Topic = { ...fresh(), status: 'drilled' }
+  const updated = withStageCompleted(topic, curriculum, 'first', later)
+  expect(updated.stageProgress?.first).toBe(later.toISOString())
+  expect(updated.completedAt).toBeNull()
+  expect(updated.status).toBe('drilled')
 })

@@ -6,12 +6,13 @@ import { LibraryProvider } from '../../services/library/LibraryProvider'
 import { seedLibrary } from '../../domain/library/catalogSeed'
 import type { Topic } from '../../domain/library/topic'
 import type { Resolution } from '../../domain/study/scheduling'
-import { PracticeRun } from '../practice/PracticeRun'
+import { StageRunner } from '../learn/stage/StageRunner'
+import { generatedCurriculum } from '../../domain/learning/generatedCurriculum'
 import type { BankedAttempt } from './bankedAttempt'
 import { TestDone } from './TestDone'
 import { TestSession } from './TestSession'
 
-/** Test and Practice wear the shared session frame (#245). */
+/** Test and lessons wear the shared session frame (#245). */
 
 afterEach(cleanup)
 
@@ -47,20 +48,14 @@ describe('Test in the session frame', () => {
   })
 })
 
-describe('Practice in the session frame', () => {
-  it('is a practice frame whose progress counts settled targets', () => {
+describe('Lessons in the session frame', () => {
+  it('counts steps and docks its response, with Close in the shared header', () => {
     const onExit = vi.fn()
-    const { container } = render(
-      <LibraryProvider>
-        <PracticeRun topic={NATO} itemIds={[NATO.items[0].id!, NATO.items[1].id!]} onExit={onExit} onCheck={() => undefined} />
-      </LibraryProvider>,
-    )
-    expect(container.querySelector('.session-frame')?.getAttribute('data-session-kind')).toBe('practice')
-    expect(screen.getByRole('progressbar', { name: '0 of 2' })).toBeTruthy()
-    expect(screen.getAllByRole('heading', { level: 1 })).toEqual([container.querySelector('.session-frame-title')])
-    fireEvent.click(screen.getByRole('button', { name: 'Reveal answer' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Got it' }))
-    expect(screen.getByRole('progressbar', { name: '1 of 2' })).toBeTruthy()
+    const stage = generatedCurriculum(NATO).stages[0]
+    const { container } = render(<StageRunner stage={stage} itemFace={() => ({ front: 'A', back: 'Alfa' })} onExit={onExit} onFinish={vi.fn()} />)
+    expect(container.querySelector('.session-frame')?.getAttribute('data-session-kind')).toBe('lesson')
+    expect(screen.getByRole('progressbar', { name: `1 of ${stage.steps.length}` })).toBeTruthy()
+    expect(container.querySelector('.session-frame-response')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Close' }))
     expect(onExit).toHaveBeenCalledOnce()
   })
@@ -82,7 +77,7 @@ describe('the Test result is a round result', () => {
     const [first, second] = NATO.items
     render(<TestDone {...run} banked={[attempt({ topic: { ...NATO, status: 'learning', drilledAt: null, completedAt: null }, from: 'learning', to: 'learning' })]} missed={{ [NATO.id]: [first.id!, second.id!] }}
       onPractice={vi.fn()} score={{ correct: 24, total: 26 }} />)
-    expect([...document.querySelectorAll('.test-outcome')].map((line) => line.textContent)).toEqual(['Still learning · 2 to practise'])
+    expect([...document.querySelectorAll('.test-outcome')].map((line) => line.textContent)).toEqual(['Still learning · 2 missed'])
     expect(document.body.textContent).not.toMatch(/ready to test/i)
     expect(screen.getAllByRole('listitem').filter((chip) => chip.className === 'test-missed-chip')).toHaveLength(2)
   })
@@ -91,14 +86,14 @@ describe('the Test result is a round result', () => {
     const other: Topic = { ...NATO, id: 'other', title: 'Other', status: 'learning', drilledAt: null, completedAt: null }
     render(<TestDone {...run} banked={[attempt({ topic: { ...NATO, status: 'learning', drilledAt: null, completedAt: null }, from: 'learning', to: 'learning' }), attempt({ topic: other, from: 'learning', to: 'learning' })]}
       missed={{ [NATO.id]: [NATO.items[0].id!] }} score={{ correct: 25, total: 26 }} />)
-    expect([...document.querySelectorAll('.test-outcome')].map((line) => line.textContent)).toEqual([`${NATO.title}: Still learning · 1 to practise`])
+    expect([...document.querySelectorAll('.test-outcome')].map((line) => line.textContent)).toEqual([`${NATO.title}: Still learning · 1 missed`])
   })
 
   it('puts repairing the misses in the primary slot, and Done beside it', () => {
     const onPractice = vi.fn()
     const first = NATO.items[0].id!
     render(<TestDone {...run} banked={[attempt({ topic: { ...NATO, status: 'learning', drilledAt: null, completedAt: null }, from: 'learning', to: 'learning' })]} missed={{ [NATO.id]: [first] }} onPractice={onPractice} score={{ correct: 25, total: 26 }} />)
-    const practise = screen.getByRole('button', { name: 'Practise 1 item' })
+    const practise = screen.getByRole('button', { name: 'Review lesson' })
     expect(practise.className).not.toContain('ghost')
     expect(screen.getByRole('button', { name: 'Done' }).className).toContain('ghost')
     fireEvent.click(practise)
@@ -106,8 +101,8 @@ describe('the Test result is a round result', () => {
   })
 })
 
-describe('Test and Practice styles stay solid', () => {
-  it.each(['src/features/test/TestSession.css', 'src/features/test/TestDone.css', 'src/features/practice/PracticeRun.css'])(
+describe('Test and lessons styles stay solid', () => {
+  it.each(['src/features/test/TestSession.css', 'src/features/test/TestDone.css', 'src/features/learn/stage/StageRunner.css'])(
     '%s has no gradient, translucent fill, blur or glow',
     (path) => {
       const css = readFileSync(path, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '')

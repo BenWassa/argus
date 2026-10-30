@@ -1,5 +1,8 @@
 # Argus learning-experience design decision
 
+> **Ordinary-topic authority update, owner decision 2026-10-29 (#296):** [The lesson contract](ISSUE_296_LEARNING_REDESIGN.md) supersedes ordinary-topic answer-list landing, Learn/Practice/Test tray, Continue-to-Test and standalone Practice descriptions below. Every non-Morse topic with items has short lessons generated from its scored content, unless an authored curriculum overrides them. Finish every lesson or a clean eligible Final Test to complete permanently. Reference retains the entire reading and item bank, with no bottom navigation. Test misses offer the lesson containing the first missed item. Historical Practice routes replace in place with their topic (missing topic → Library), without learner writes. Morse, letter practice, fluency, Test evidence and compatibility rules retain their existing authority.
+
+
 > **Progress authority update, 2026-10-19:** [Learning progress](PROGRESS_ARCHITECTURE.md) supersedes earlier decay/repair routing and repeated completion requirements in this document. Learned topics stay learned. Home continues the top unfinished topic.
 
 > **One-test addendum — 2026-10-02. Status: maintained contract.** Supersedes enrollment and two-clean-Test statements below, including the earlier no-clock addendum. Opening ordinary topic content is learning and writes no progress. Its primary action is Test; one clean eligible Test, including the first, banks completion. A miss enters learning; a banked miss enters repair without erasing completion. Legacy `drilled` records parse unchanged and read as Banked without read-time writes; the next eligible scheduler mutation normalizes them to completed (or decayed on a miss). Explicit ordinary topic edits also normalize legacy status; progressive course writes retain the scheduler’s exact ineligible-Test short circuit. Morse acquisition eligibility and lesson actions are unchanged. There is no migration and no elapsed-time gate.
@@ -857,7 +860,7 @@ entry is a `Test`, not a differently-named cousin of one.
 
 **Batch 5, targeted repair.** ~~Not implemented.~~ **Shipped 2026-09-14**, once
 §15.5 was decided formative. It is documented as its own contract in
-`docs/open/TARGETED_PRACTICE.md`; the account below is what this paper got right
+`docs/closed/TARGETED_PRACTICE.md`; the account below is what this paper got right
 and wrong about it.
 
 Right: it *is* genuinely new product behaviour, and a partial-deck run that could
@@ -904,4 +907,4 @@ outstanding.
 
 Batch 5 adds a third: the **practice** naming above, and the fact that its
 topic-page offer reaches only topics that keep per-item evidence. Both are set
-out in `docs/open/TARGETED_PRACTICE.md` and both are reversible.
+out in `docs/closed/TARGETED_PRACTICE.md` and both are reversible.

@@ -84,12 +84,8 @@ interface TestSessionProps {
   review?: boolean
   onExit: () => void
   /**
-   * Start a formative practice run over exactly what this check missed.
-   *
-   * The check is the only thing that knows. An ordinary reveal-and-grade topic
-   * writes no per-item evidence, so once this component unmounts the set is
-   * gone — which is why the offer is made here, with the ids in hand, rather
-   * than reconstructed afterwards from state that was never stored.
+   * Review the ordinary lesson covering a miss, or offer Morse's missed-letter
+   * sprint. Missed ids are also retained on the Test attempt.
    */
   onPractice?: (topicId: string, itemIds: string[]) => void
   /** Offered on a Morse result: opens guided sending directly (#201). */

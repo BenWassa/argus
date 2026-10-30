@@ -17,8 +17,8 @@ async function openTopic(page: Page, title: string) {
 }
 
 async function startTest(page: Page) {
-  const primary = page.locator('.topic-tray [data-tile-id="test"]')
-  await expect(primary.locator('.mode-tray-label')).toHaveText('Test')
+  const primary = page.locator('.topic-lessons [data-node-id="final-test"] button')
+  await expect(primary.locator('.spine-label')).toHaveText('Final Test')
   await primary.click()
 }
 
@@ -58,6 +58,7 @@ for (const [title, items, figures] of [
 ] as const) {
   test(`${title}: Learn shows its bank and diagrams with no sideways scroll`, async ({ page }) => {
     await openTopic(page, title)
+    await page.getByRole('button', { name: 'Reference', exact: true }).click()
     await expect(page.locator('.topic-items .topic-item')).toHaveCount(items)
     await expect(page.locator('.topic-items .topic-item.has-visual')).toHaveCount(figures)
     await page.getByRole('button', { name: 'Sources and limitations' }).click()
@@ -70,8 +71,8 @@ for (const [title, items, figures] of [
 test('the Learn-only orientation prerequisite and the light sectors are taught before any scoring', async ({ page }) => {
   await openTopic(page, 'Navigation Lights & Aspect')
   // The scored set is the topic page; the teaching is its Learn screen.
+  await page.getByRole('button', { name: 'Reference', exact: true }).click()
   await expect(page.locator('.topic-items .topic-item')).toHaveCount(16)
-  await page.getByRole('navigation', { name: 'Study' }).getByRole('button', { name: 'Learn', exact: true }).click()
   const orient = page.getByRole('heading', { name: 'Orient the vessel' })
   await expect(orient).toBeVisible()
   await expect(page.locator('.learn-definitions dt').filter({ hasText: '22.5° abaft the beam' })).toBeVisible()

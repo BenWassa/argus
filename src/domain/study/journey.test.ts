@@ -296,10 +296,10 @@ describe('ordinary topics separate browsing from deliberate enrollment', () => {
 
     const fresh = journeyFor(bearings)
     expect(fresh.acquisition.progressive).toBe(false)
-    expect(fresh.action).toBe('test')
-    expect(fresh.actionLabel).toBe('Test')
-    expect(fresh.primaryLabel).toBe('Test')
-    expect(fresh.statusLabel).toBe('Not tested yet')
+    expect(fresh.action).toBe('learn')
+    expect(fresh.actionLabel).toBe('Start')
+    expect(fresh.primaryLabel).toBe('Start')
+    expect(fresh.statusLabel).toBe('Lesson 1 of 2')
     expect(fresh.detail).toBeNull()
     expect(fresh.due).toBe(true)
     expect(fresh.advancementEligible).toBe(true)
@@ -313,13 +313,13 @@ describe('ordinary topics separate browsing from deliberate enrollment', () => {
     expect(enrolled.itemEvidence).toEqual(bearings.itemEvidence)
 
     const sameDay = journeyFor(enrolled)
-    expect(sameDay.action).toBe('test')
-    expect(sameDay.statusLabel).toBe('Ready to test')
+    expect(sameDay.action).toBe('learn')
+    expect(sameDay.statusLabel).toBe('Lesson 1 of 2')
     expect(sameDay.due).toBe(true)
 
     const nextDay = journeyFor(enrolled)
     expect(nextDay.due).toBe(true)
-    expect(nextDay.statusLabel).toBe('Ready to test')
+    expect(nextDay.statusLabel).toBe('Lesson 1 of 2')
     expect(nextDay.advancementEligible).toBe(true)
   })
 

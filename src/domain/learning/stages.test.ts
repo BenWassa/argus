@@ -96,6 +96,11 @@ describe('checkCurriculum', () => {
     expect(checkCurriculum(c, ITEMS, { figureItemIds: new Set(['roger']) }).join('\n')).toMatch(/needs altText/)
     ;(c.stages[0].steps[0] as { altText?: string }).altText = 'The proword ROGER'
     expect(checkCurriculum(c, ITEMS, { figureItemIds: new Set(['roger']) })).toEqual([])
+    const show = c.stages[0].steps[0]
+    if (show.kind !== 'show') throw new Error('Expected show step')
+    show.body = ''
+    expect(checkCurriculum(c, ITEMS, { figureItemIds: new Set(['roger']) })).toEqual([])
+    expect(checkCurriculum(c, ITEMS).join('\n')).toMatch(/needs a title and a body/)
   })
 
   it('checks order and complete steps', () => {

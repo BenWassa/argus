@@ -186,37 +186,3 @@ export function targetsForItems(topic: Topic, itemIds: string[]): PracticeTarget
 
   return targets.slice(0, PRACTICE_LIMIT)
 }
-
-/**
- * The targets practice would ask *because they were missed*.
- *
- * The offer to practise is made on this and not on `practiceTargets`, so that a
- * freshly authored topic with no evidence at all does not advertise repair work
- * it has no grounds to claim. Callers pass these item ids to the run so the
- * advertised count and the selected items agree.
- */
-export function missedTargets(topic: Topic): PracticeTarget[] {
-  return isLearned(topic) ? [] : practiceTargets(topic).filter((target) => target.reason === 'missed')
-}
-
-/**
- * Whether the topic page and a check's end screen should offer practice.
- *
- * Deliberately narrower than "has any practice target": the offer follows a
- * real miss. A topic that has simply never been tested is served by its Test
- * action, not by an offer to repair something that never broke.
- */
-export function hasPractice(topic: Topic): boolean {
-  return missedTargets(topic).length > 0
-}
-
-/**
- * How many distinct items a practice offer should name.
- *
- * The learner counts letters, not directions. A bidirectional item that missed
- * both ways is one thing to go and fix, and an offer that called it two would
- * overstate the damage every time.
- */
-export function practiceItemCount(topic: Topic): number {
-  return new Set(missedTargets(topic).map((target) => target.item.id)).size
-}

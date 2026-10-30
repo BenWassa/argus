@@ -1,3 +1,4 @@
+import { morseProgressPath } from '../../domain/morse/curriculum/progressPath'
 import { useEffect, useRef } from 'react'
 import { isLearned } from '../../domain/study/scheduling'
 import { targetsForItems } from '../../domain/study/practiceTargets'
@@ -96,32 +97,19 @@ export function TestDone({
   const learned = moved.filter(resolution => !resolution.completed && isLearned(resolution.topic))
   const continuing = moved.filter(resolution => !resolution.completed && !isLearned(resolution.topic))
 
-  /**
-   * One offer, for the first topic in this run that missed something.
-   *
-   * A multi-topic Test that missed items in several topics could offer several
-   * practice runs, but a screen that ends in a column of competing buttons is
-   * the decision-on-the-daily-path problem this redesign spent batches 1 to 3
-   * removing. The first one is the one to go and fix; the rest keep their own
-   * offer on their topic pages.
-   *
-   * The count comes from `targetsForItems` rather than from the raw miss list,
-   * so the number on the button is exactly what the run will ask. A badly
-   * broken twenty-item check is bounded by `PRACTICE_LIMIT`, and an offer that
-   * promised twenty and then asked ten would be the screen lying about the
-   * work.
-   */
+  // Review the lesson covering the first miss. Morse keeps its bounded sprint offer.
   const practiceOffer = [
     ...banked.map((entry) => entry.resolution.topic),
     ...reviewed.map((entry) => entry.topic),
   ]
     .filter((topic) => !isLearned(topic))
     .map((topic) => {
-      const asked = targetsForItems(topic, missed[topic.id] ?? [])
+      const morse = Boolean(morseLessonPath(topic) || morseProgressPath(topic))
+      const asked = morse ? targetsForItems(topic, missed[topic.id] ?? []) : []
       // Counted in items, not directions: an item missed both ways is one
       // thing to go and fix.
-      const itemIds = [...new Set(asked.map((target) => target.item.id))]
-      return { topicId: topic.id, title: topic.title, itemIds, unit: unitFor(topic) }
+      const itemIds = morse ? [...new Set(asked.map((target) => target.item.id))] : [...new Set(missed[topic.id] ?? [])].filter(id => topic.items.some(item => item.id === id))
+      return { topicId: topic.id, title: topic.title, itemIds, unit: unitFor(topic), morse }
     })
     .find((candidate) => candidate.itemIds.length > 0)
 
@@ -153,7 +141,7 @@ export function TestDone({
   const toPractise = (topic: Topic) => (missed[topic.id] ?? []).filter((id) => topic.items.some((item) => item.id === id)).length
   const unfinishedOutcome = (topic: Topic) => {
     const count = toPractise(topic)
-    return count > 0 ? [`${lead(topic.title)}Still learning · ${count} to practise`] : []
+    return count > 0 ? [`${lead(topic.title)}Still learning · ${count} ${morseLessonPath(topic) || morseProgressPath(topic) ? 'to practise' : 'missed'}`] : []
   }
   const outcome: string[] = [
     ...reviewed.map((entry) => `${entry.topic.title}: review only, not counted.`),
@@ -190,7 +178,7 @@ export function TestDone({
         correct={score.correct}
         total={score.total}
         onAgain={practiceNext ? () => onPractice?.(practiceNext.topicId, practiceNext.itemIds) : playNext ? () => onPlayMorse?.(playNext.resolution.topic.id) : undefined}
-        againLabel={practiceNext ? `Practise ${items}` : playNext ? 'Send five words' : undefined}
+        againLabel={practiceNext ? practiceNext.morse ? `Practise ${items}` : 'Review lesson' : playNext ? 'Send five words' : undefined}
         onDone={onExit}
         doneLabel="Done"
         extra={<>

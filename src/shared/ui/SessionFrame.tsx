@@ -2,7 +2,7 @@ import { useEffect, useRef, type ComponentPropsWithoutRef, type CSSProperties, t
 import './SessionFrame.css'
 
 /** Morse modes take their own colour; every other kind takes the action colour unless given a pair. */
-export type SessionKind = 'key' | 'listen' | 'read' | 'free' | 'lesson' | 'checkpoint' | 'test' | 'practice'
+export type SessionKind = 'key' | 'listen' | 'read' | 'free' | 'lesson' | 'checkpoint' | 'test'
 
 const MODE_KINDS = new Set<SessionKind>(['key', 'listen', 'read', 'free'])
 

@@ -8,7 +8,8 @@ import { RolesPage } from '../../features/roles/RolesPage'
 import { ProfilePage } from '../../features/data-management/ProfilePage'
 import { TestSession } from '../../features/test/TestSession'
 import { LessonRun } from '../../features/morse/lesson/LessonRun'
-import { PracticeRun } from '../../features/practice/PracticeRun'
+import { StageLesson } from '../../features/learn/stage/StageLesson'
+import { curriculumFor, lessonForItem, nextLesson } from '../../domain/learning/generatedCurriculum'
 import { FluencySurface } from '../../features/morse/fluency/FluencySurface'
 import { MorseReference } from '../../features/morse/reference/MorseReference'
 import { TopicReading } from '../../features/learn/TopicReading'
@@ -135,6 +136,12 @@ export function AppRouter() {
       if (!sameRoute(next, state.route)) replaceNavigationState(next, state.index)
 
       historyIndex.current = state.index
+      // A retired run can sit beside its topic in older history. Cross that
+      // duplicate stop in the same traversal, without pushing or writing progress.
+      if (direction < 0 && state.index > 0 && sameRoute(previous, next) && next.kind === 'topic' && topicsRef.current.some(topic => topic.id === next.topicId && curriculumFor(topic))) {
+        window.history.back()
+        return
+      }
       routeRef.current = next
       setAuthorOnEntry(false)
       setRoute(next)
@@ -205,6 +212,11 @@ export function AppRouter() {
 
   function start(mode: Mode, topicIds: string[], target?: RunTarget, replace = false) {
     if (topicIds.length === 0) return
+    if (mode === 'learn' && !target && topicIds.length === 1) {
+      const topic = topicsRef.current.find(topic => topic.id === topicIds[0])
+      const lesson = topic && nextLesson(topic)
+      if (lesson) target = { kind: 'stage', stageId: lesson.id }
+    }
     const current = routeRef.current
     const origin = replace && current.kind === 'run' ? current.origin : parentFor(current)
     navigate(liveRoute({ kind: 'run', mode, topicIds, origin, target }, topicsRef.current), replace)
@@ -249,13 +261,6 @@ export function AppRouter() {
   }
 
   if (route.kind === 'run') {
-    // Practice is the one run that takes a whole Topic rather than an id, so it
-    // gets its own branch. `restoreRoute`/`liveRoute` already drop a run naming
-    // a topic the library no longer holds, which makes the missing case belt
-    // and braces — but a non-null assertion would be the wrong way to say so.
-    // Fluency is the post-acquisition surface. Like practice it is formative,
-    // so it rides the `learn` mode rather than introducing a third mode some
-    // future switch could mistake for scored.
     if (route.mode === 'learn' && route.target?.kind === 'letter-practice') {
       return <div className="app-shell session-shell"><main id="main" tabIndex={-1}>
         <LetterPracticeSurface key={`${route.topicIds[0]}-${route.target.direction ?? 'any'}`} topicId={route.topicIds[0]} direction={route.target.direction} onExit={goBack} />
@@ -281,23 +286,18 @@ export function AppRouter() {
       )
     }
 
-    if (route.mode === 'learn' && route.target?.kind === 'practice') {
-      const practiceTopic = topics.find((candidate) => candidate.id === route.topicIds[0])
-      if (!practiceTopic) return null
-      const practiceItems = route.target.itemIds
-      return (
-        <div className="app-shell session-shell">
-          <main id="main" tabIndex={-1}>
-            <PracticeRun
-              key={`practice-${practiceTopic.id}-${practiceItems?.join() ?? 'derived'}`}
-              topic={practiceTopic}
-              itemIds={practiceItems}
-              onExit={goBack}
-              onCheck={() => start('test', route.topicIds, undefined, true)}
-            />
-          </main>
-        </div>
-      )
+    if (route.mode === 'learn' && route.target?.kind === 'stage') {
+      const topic = topics.find(candidate => candidate.id === route.topicIds[0])
+      if (!topic) return null
+      const backToTopic = () => {
+        if (route.origin.kind === 'topic' && route.origin.topicId === topic.id) goBack()
+        else navigate({ kind: 'topic', topicId: topic.id }, true)
+      }
+      return <div className="app-shell session-shell"><main id="main" tabIndex={-1}>
+        <StageLesson key={`${topic.id}-${route.target.stageId}`} topic={topic} stageId={route.target.stageId}
+          onExit={backToTopic} onNext={stageId => start('learn', [topic.id], { kind: 'stage', stageId }, true)}
+          onTest={() => start('test', [topic.id], undefined, true)} />
+      </main></div>
     }
 
     return (
@@ -319,9 +319,7 @@ export function AppRouter() {
               topicIds={route.topicIds}
               review={route.target?.kind === 'review'}
               onExit={goBack}
-              // Replaces the finished check in history rather than stacking on
-              // top of it: Back from practice should reach whatever launched
-              // the check, not a completed run that would restart on entry.
+              // Follow-up runs replace the finished Test entry.
               onPlayMorse={(topicId) => start('learn', [topicId], { kind: 'fluency', send: 'words' }, true)}
               onPractice={(topicId, itemIds) => {
                 // Morse is practised keyed and by ear: the missed letters go to
@@ -335,7 +333,8 @@ export function AppRouter() {
                   start('learn', [topicId], { kind: 'fluency', mode: 'sprint', ...(letters.length ? { letters } : {}) }, true)
                   return
                 }
-                start('learn', [topicId], { kind: 'practice', itemIds }, true)
+                const lesson = topic && lessonForItem(topic, itemIds[0])
+                if (lesson) start('learn', [topicId], { kind: 'stage', stageId: lesson.id }, true)
               }}
             />
           )}
@@ -345,13 +344,13 @@ export function AppRouter() {
   }
 
   // The reference route names a topic. Morse's is its A–Z alphabet; every
-  // other topic's is its Learn reading, a screen inside the shell.
+  // other topic's is its complete Reference, without section navigation.
   const readingTopic = route.kind === 'reference' ? topics.find((candidate) => candidate.id === route.topicId) : undefined
   if (route.kind === 'reference' && readingTopic && !morseLessonPath(readingTopic)) {
     return (
-      <AppShell view="library" onNavigate={navigateSection}>
+      <div className="app-shell session-shell"><main id="main" tabIndex={-1}>
         <TopicReading key={readingTopic.id} topic={readingTopic} onBack={goBack} />
-      </AppShell>
+      </main></div>
     )
   }
 

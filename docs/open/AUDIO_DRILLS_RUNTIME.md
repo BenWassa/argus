@@ -1,5 +1,10 @@
 # Prerecorded speech drills — runtime contract (#151)
 
+> **Ordinary-topic authority update, owner decision 2026-10-29 (#296):** [The lesson contract](ISSUE_296_LEARNING_REDESIGN.md) supersedes ordinary-topic answer-list landing, Learn/Practice/Test tray, Continue-to-Test and standalone Practice descriptions below. Every non-Morse topic with items has short lessons generated from its scored content, unless an authored curriculum overrides them. Finish every lesson or a clean eligible Final Test to complete permanently. Reference retains the entire reading and item bank, with no bottom navigation. Test misses offer the lesson containing the first missed item. Historical Practice routes replace in place with their topic (missing topic → Library), without learner writes. Morse, letter practice, fluency, Test evidence and compatibility rules retain their existing authority.
+
+> AudioReference is reused in lesson steps and Reference. Assisted-listening and formal audio-evidence semantics are unchanged; the retired generic Practice component no longer hosts audio.
+
+
 **Status:** implemented on the feature branch, in review. This is the maintained contract for the reusable audio capability. It ships **no production speech**: the first listening pack is still blocked on #150's canonical scripts and on the TTS bake-off (see `docs/closed/ISSUE_151_RADIO_AUDIO_DRILLS.md`).  
 **Issue:** #151  
 **Research authority:** `docs/closed/ISSUE_139_RADIO_COMMUNICATIONS_AUDIO.md` (§7 scoring, §8 capability, §10 asset/QA contract, §11 transcript and accessibility)  

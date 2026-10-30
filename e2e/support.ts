@@ -43,7 +43,7 @@ export async function openNatoTest(page: Page) {
   await page.goto('./')
   // Today's plate opens the topic; the topic page's one action starts the Test.
   await page.locator('.docket .index-row').first().click()
-  await page.locator('.topic-tray [data-tile-id="test"]').click()
+  await page.locator('.topic-lessons [data-node-id="final-test"] button').click()
   await expect(page.locator('.flip-card')).toBeVisible()
 }
 

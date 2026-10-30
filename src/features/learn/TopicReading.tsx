@@ -4,15 +4,11 @@ import { ScreenHeader } from '../../shared/ui/ScreenHeader'
 import { TopicGlyph } from '../library/TopicGlyph'
 import { topicIcon } from '../library/topicIcon'
 import { VisualView } from '../visual/VisualView'
+import { TopicItems } from '../library/ReferenceItems'
 import { LearnSupport } from './LearnSupport'
 import { SourcesAndLimits } from './SourcesAndLimits'
 import './Reading.css'
 import './TopicReading.css'
-
-/** Whether an ordinary topic carries anything to read beyond its items. */
-export function hasReading(topic: Topic): boolean {
-  return Boolean(topic.learn || topic.hero)
-}
 
 /**
  * An ordinary topic's Learn screen: its artwork, its lede and its
@@ -39,6 +35,7 @@ export function TopicReading({ topic, onBack }: { topic: Topic; onBack: () => vo
       {topic.hero && <div className="topic-reading-hero"><VisualView key={topic.id} visual={topic.hero} /></div>}
       {showScope && <p className="topic-scope">{topic.scope}</p>}
       {topic.learn && <LearnSupport content={topic.learn} />}
+      <TopicItems topic={topic} />
       <SourcesAndLimits content={topic.learn} scope={showScope ? undefined : topic.scope} />
     </article>
   )

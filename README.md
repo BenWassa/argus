@@ -124,7 +124,8 @@ The active [execution checkpoint](docs/open/NEXT_BATCHES.md) tracks three open P
 - [Topic colour comparison](docs/closed/TOPIC_COLOUR_SPIKE.md) — historical study superseded by Signal on Slate; development preview retired.
 - `docs/open/REDESIGN_INPUT_AUDIT.md` — current factual screen, state, issue-reconciliation, acceptance, and redesign-risk input package.
 - [Learning progress](docs/open/PROGRESS_ARCHITECTURE.md) — permanent completion, one unfinished-learning queue, optional later Tests, and compatibility with old records.
-- `docs/open/TARGETED_PRACTICE.md` — the formative practice run: its evidence boundary, how it selects what to practise, and why it is not called repair.
+- [Ordinary lesson contract](docs/open/ISSUE_296_LEARNING_REDESIGN.md) — short generated lessons, optional Final Test, full Reference and retired Practice route compatibility.
+- `docs/closed/TARGETED_PRACTICE.md` — historical standalone Practice contract; pure formative selection remains available to Morse.
 - `docs/closed/PROGRAMME.md` — Learn/Test + content-quality programme closeout.
 - [Morse documentation hub](docs/open/morse/README.md) — reading order, maintained contracts and implementation maps.
 - `docs/closed/MORSE_CODE_LEARNING_PRD.md` — dated Morse research/design baseline retained for rationale; later ratified decisions supersede its deliberately open implementation questions.
@@ -149,7 +150,7 @@ The active [execution checkpoint](docs/open/NEXT_BATCHES.md) tracks three open P
 - `src/app/` — application composition: providers, routing and the sign-in gate
 - `src/domain/` — the learning model and the rules over it, with no React in
   it: `library/` (topics, items, shipped catalog), `study/` (scheduling, the
-  journey, the cue ladder, practice) and `morse/` (the code, its curriculum and
+  journey, the cue ladder, formative selection), `learning/` (generated curricula and lesson ticks) and `morse/` (the code, its curriculum and
   its acquisition profile). Two modules here do touch the browser —
   `morse/audio.ts` for Web Audio and `morse/curriculum/lessonSittingStorage.ts`
   for the retired sitting sidecar — and are the exceptions, not the rule

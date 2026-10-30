@@ -1,3 +1,4 @@
+import { curriculumFor } from '../learning/generatedCurriculum'
 import type { Topic } from '../library/topic'
 import type { JourneyEntry } from './journey'
 import { hasStarted, lastActivityAt } from './libraryGroups'
@@ -21,6 +22,7 @@ export type HomeProgress =
 /** Only durable finite quantities earn an arc; ordinary topics use a discrete dial. */
 export function homeProgress(topic: Topic, journey: JourneyEntry['journey']): HomeProgress {
   if (isLearned(topic)) return { kind: 'complete', label: 'Learned' }
+  if (curriculumFor(topic)) return { kind: 'started', label: journey.statusLabel }
   // A failed Test is remembered here too, whatever rung the topic now holds.
   const toPractise = lastTestMissedIds(topic).length
   if (toPractise > 0) return { kind: 'started', label: `${toPractise} to practise` }

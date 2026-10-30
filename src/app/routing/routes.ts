@@ -1,3 +1,5 @@
+import { curriculumFor } from '../../domain/learning/generatedCurriculum'
+import { STAGE_ID_PATTERN } from '../../domain/learning/stages'
 import type { Topic } from '../../domain/library/topic'
 import { AVAILABLE_ROLES } from '../../domain/roles/definitions'
 import type { RoleId } from '../../domain/roles/roles'
@@ -45,17 +47,13 @@ export type ParentRoute =
  * Fluency names a direct formative run. Historical hub entries normalize to
  * the Morse topic without introducing another history stop.
  *
- * Practice names no path entry either, but it may name items. A check's end
- * screen knows exactly what the learner just missed, including for an ordinary
- * topic that keeps no per-item evidence at all, so it hands that set straight
- * to the run. Entered from a topic page instead, `itemIds` is absent and the
- * run derives its own queue from durable evidence. Practice persists nothing
- * either way, so a reloaded entry falling back to its origin loses nothing.
+ * Historical Practice targets are accepted only to normalize to their topic.
  */
 export type RunTarget =
   /** Adaptive letter practice; a mode tile fixes the direction. */
   | { kind: 'letter-practice'; direction?: 'key' | 'read' | 'listen' }
   | { kind: 'lesson' }
+  | { kind: 'stage'; stageId: string }
   /** A Test run the learner chose as the short unscored review (`review.ts`). */
   | { kind: 'review' }
   | { kind: 'replay'; index: number }
@@ -113,6 +111,7 @@ function isRunTarget(value: unknown): value is RunTarget {
     return value.direction === undefined || value.direction === 'key' || value.direction === 'read' || value.direction === 'listen'
   }
   if (value.kind === 'lesson' || value.kind === 'review' || value.kind === 'after-course') return true
+  if (value.kind === 'stage') return typeof value.stageId === 'string' && STAGE_ID_PATTERN.test(value.stageId)
   if (value.kind === 'practice') {
     return value.itemIds === undefined || isIdList(value.itemIds)
   }
@@ -157,6 +156,7 @@ export function isAppRoute(value: unknown): value is AppRoute {
 
   if (value.kind === 'run') {
     if (value.target !== undefined && !isRunTarget(value.target)) return false
+    if (isRecord(value.target) && value.target.kind === 'stage' && (value.mode !== 'learn' || !Array.isArray(value.topicIds) || value.topicIds.length !== 1)) return false
     return isMode(value.mode) && isIdList(value.topicIds) && isParentRoute(value.origin)
   }
 
@@ -193,6 +193,7 @@ function sameTarget(left: RunTarget | undefined, right: RunTarget | undefined): 
   if (!left || !right) return !left && !right
   if (left.kind !== right.kind) return false
   if (left.kind === 'letter-practice' && right.kind === 'letter-practice') return left.direction === right.direction
+  if (left.kind === 'stage' && right.kind === 'stage') return left.stageId === right.stageId
   if (left.kind === 'replay' && right.kind === 'replay') return left.index === right.index
   if (left.kind === 'checkpoint' && right.kind === 'checkpoint') {
     return left.afterLesson === right.afterLesson
@@ -272,6 +273,16 @@ export function restoreRoute(route: AppRoute, topics: Topic[], restoreRun: boole
 
   const origin = safeParent(route.origin, topics)
 
+  if (route.kind === 'run' && route.target?.kind === 'practice') {
+    return safeParent({ kind: 'topic', topicId: route.topicIds[0] }, topics)
+  }
+  if (route.kind === 'run' && route.target?.kind === 'stage') {
+    const topic = topics.find(topic => topic.id === route.topicIds[0])
+    const stageId = route.target.stageId
+    const valid = topic && route.mode === 'learn' && route.topicIds.length === 1 && curriculumFor(topic)?.stages.some(stage => stage.id === stageId)
+    return valid && restoreRun ? { ...route, origin } : safeParent({ kind: 'topic', topicId: route.topicIds[0] }, topics)
+  }
+
   if (route.kind === 'run' && route.target?.kind === 'fluency' &&
     !route.target.mode && !route.target.send && !route.target.copy && !route.target.free) {
     return safeParent({ kind: 'topic', topicId: route.topicIds[0] }, topics)
@@ -291,6 +302,7 @@ export function restoreRoute(route: AppRoute, topics: Topic[], restoreRun: boole
 
 export function liveRoute(route: AppRoute, topics: Topic[]): AppRoute {
   if (route.kind === 'run') {
+    if (route.target?.kind === 'practice' || route.target?.kind === 'stage') return restoreRoute(route, topics, true)
     if (route.target?.kind === 'fluency' && !route.target.mode && !route.target.send && !route.target.copy && !route.target.free) {
       return restoreRoute(route, topics, true)
     }

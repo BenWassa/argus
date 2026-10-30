@@ -9,7 +9,7 @@ async function open(page: import('@playwright/test').Page, title: string) {
   await page.locator('.nav-btn', { hasText: 'Library' }).click()
   await page.getByRole('button', { name: new RegExp(title) }).click()
   // The guides are Learn reading, one tile away from the topic.
-  await page.getByRole('navigation', { name: 'Study' }).getByRole('button', { name: 'Learn', exact: true }).click()
+  await page.getByRole('button', { name: 'Reference', exact: true }).click()
   await expect(page.locator('.topic-reading')).toBeVisible()
 }
 
@@ -62,7 +62,7 @@ test('Clouds loads all ten credited photos without page overflow and keeps them 
   await expect(highGuide.getByText(/Photo: Jebulon, CC BY-SA 3.0/)).toBeVisible()
 
   await page.getByRole('button', { name: 'Back to topic' }).click()
-  await page.locator('.topic-tray [data-tile-id="test"]').click()
+  await page.locator('.topic-lessons [data-node-id="final-test"] button').click()
   await expect(page.locator('.flip-card')).toBeVisible()
   await expect(page.locator('.flip-card img')).toHaveCount(0)
   await expect(page.locator('#prompt-heading')).toHaveText(/^(Ci|Cc|Cs|Ac|As|Ns|St|Sc|Cu|Cb)$/)

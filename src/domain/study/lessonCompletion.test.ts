@@ -104,7 +104,7 @@ describe('#276: lessons finish once; Test is independent', () => {
     const seeded = seedLibrary().topics.find((topic) => topic.id === 'cardinal-bearings')!
     const ordinary: Topic = { ...seeded, status: 'unstarted', completedAt: null, drilledAt: null, history: [] }
     expect(isLearned(ordinary)).toBe(false)
-    expect(journeyFor(ordinary).action).toBe('test')
+    expect(journeyFor(ordinary).action).toBe('learn')
     expect(journeyFor(ordinary).due).toBe(true)
   })
 })

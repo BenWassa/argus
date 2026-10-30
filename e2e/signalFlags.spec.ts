@@ -40,11 +40,11 @@ const KEY: [RegExp, string][] = [
 
 test('Learn groups the twelve flags by use, shows each with its text, and does not scroll sideways', async ({ page }) => {
   await openTopic(page)
+  await page.getByRole('button', { name: 'Reference', exact: true }).click()
   await expect(page.locator('.topic-items .topic-item.has-visual')).toHaveCount(12)
   await page.getByRole('button', { name: 'Sources and limitations' }).click()
   await expect(page.locator('.sources-notes')).toContainText('not an official sub-code')
   await page.keyboard.press('Escape')
-  await page.getByRole('navigation', { name: 'Study' }).getByRole('button', { name: 'Learn', exact: true }).click()
   for (const heading of ['Warnings to others', 'Vessel state', 'Assistance', 'Pairs that get mixed up', 'Alphabetical reference']) {
     await expect(page.getByRole('heading', { name: heading, exact: true })).toBeVisible()
   }
@@ -60,8 +60,8 @@ test('Learn groups the twelve flags by use, shows each with its text, and does n
 
 test('answering all twelve flags correctly banks a clean run', async ({ page }) => {
   await openTopic(page)
-  const primary = page.locator('.topic-tray [data-tile-id="test"]')
-  await expect(primary.locator('.mode-tray-label')).toHaveText('Test')
+  const primary = page.locator('.topic-lessons [data-node-id="final-test"] button')
+  await expect(primary.locator('.spine-label')).toHaveText('Final Test')
   await primary.click()
 
   const seen = new Set<string>()

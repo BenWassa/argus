@@ -27,18 +27,27 @@ describe('Home readings', () => {
 
   it('does not invent a percentage for ordinary recall', () => {
     const building = topic({ status: 'learning' })
-    expect(homeProgress(building, journeyFor(building))).toEqual({ kind: 'started', label: 'Building recall' })
+    expect(homeProgress(building, journeyFor(building))).toEqual({ kind: 'started', label: 'Lesson 1 of 7' })
   })
 
-  it('names what the last Test missed, so a failed Test is not forgotten on Home', () => {
+  it('keeps the lesson path after misses and permanent completion after later Tests', () => {
     const [first, second] = seedLibrary().topics[0].items
     const missed = topic({ status: 'learning', history: [
       { at: '2026-10-02T15:00:00Z', correct: 24, total: 26, resolvedTo: 'learning', missedItemIds: [first.id!, second.id!] },
     ] })
-    expect(homeProgress(missed, journeyFor(missed))).toEqual({ kind: 'started', label: '2 to practise' })
-    // Even a topic once completed: a failed repair Test sent it back to learning.
+    expect(homeProgress(missed, journeyFor(missed))).toEqual({ kind: 'started', label: 'Lesson 1 of 7' })
+    // A later miss never reopens a topic once completed.
     const again = { ...missed, completedAt: '2026-09-01T00:00:00Z' }
     expect(homeProgress(again, journeyFor(again))).toEqual({ kind: 'complete', label: 'Learned' })
+  })
+
+  it('counts formative lesson ticks as started activity and continues the next lesson', () => {
+    const record = topic({ stageProgress: { 'lesson-1': '2026-10-29T12:00:00.000Z' } })
+    const journey = journeyFor(record)
+    expect(homeReadout(journeysFor([record]))).toEqual({ completed: 0, inProgress: 1, lastActive: '2026-10-29T12:00:00.000Z' })
+    expect(journey.action).toBe('learn')
+    expect(homeProgress(record, journey)).toEqual({ kind: 'started', label: 'Lesson 2 of 7' })
+    expect(record.history).toEqual([])
   })
 
   it('uses the curriculum settled count for Morse without mixing retention into it', () => {

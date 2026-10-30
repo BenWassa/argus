@@ -321,9 +321,6 @@ textarea.mono {
   .lesson-stage,
   .lesson-feedback,
   .test-feedback,
-  .practice-question,
-  .practice-answer,
-  .practice-feedback,
   .fluency-feedback
 ) {
   padding: var(--s-md);

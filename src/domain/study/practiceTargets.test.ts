@@ -1,10 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   PRACTICE_LIMIT,
-  hasPractice,
   lastTestMissedIds,
-  missedTargets,
-  practiceItemCount,
   practiceTargets,
   targetsForItems,
 } from './practiceTargets'
@@ -74,16 +71,14 @@ describe('selecting what to practise', () => {
     const topic = topicWith([FORWARD], {
       a: { cue: 'rich', directions: { 'prompt-to-answer': missed('2026-02-01T00:00:00.000Z') } },
     })
-    expect(missedTargets(topic).map((t) => t.item.id)).toEqual(['a'])
-    expect(hasPractice(topic)).toBe(true)
+    expect(names(topic)).toEqual([['a', 'prompt-to-answer']])
   })
 
   it('does not select a direction whose most recent answer was right', () => {
     const topic = topicWith([FORWARD], {
       a: { cue: 'free', directions: { 'prompt-to-answer': clean('2026-02-01T00:00:00.000Z') } },
     })
-    expect(missedTargets(topic)).toEqual([])
-    expect(hasPractice(topic)).toBe(false)
+    expect(names(topic)).toEqual([])
   })
 
   /**
@@ -95,12 +90,12 @@ describe('selecting what to practise', () => {
     const broken = topicWith([FORWARD], {
       a: { cue: 'rich', directions: { 'prompt-to-answer': missed('2026-02-01T00:00:00.000Z') } },
     })
-    expect(hasPractice(broken)).toBe(true)
 
     const rebuilt = topicWith([FORWARD], {
       a: { cue: 'rich', directions: { 'prompt-to-answer': clean('2026-02-02T00:00:00.000Z') } },
     })
-    expect(hasPractice(rebuilt)).toBe(false)
+    expect(names(broken)).toEqual([['a', 'prompt-to-answer']])
+    expect(names(rebuilt)).toEqual([])
   })
 
   it('treats the two directions of a bidirectional item separately', () => {
@@ -235,34 +230,6 @@ describe('an explicitly named set', () => {
   })
 })
 
-describe('what the offer says', () => {
-  it('counts a both-directions miss as one item to go and fix', () => {
-    const topic = topicWith([BOTH], {
-      b: {
-        cue: 'rich',
-        directions: {
-          'prompt-to-answer': missed('2026-02-01T00:00:00.000Z'),
-          'answer-to-prompt': missed('2026-02-01T00:00:00.000Z'),
-        },
-      },
-    })
-    expect(missedTargets(topic)).toHaveLength(2)
-    expect(practiceItemCount(topic)).toBe(1)
-  })
-
-  /**
-   * A topic that has simply never been tested has nothing to repair. Offering
-   * repair there would describe absence of evidence as damage.
-   */
-  it('makes no offer on a topic that has never been tested', () => {
-    const topic = topicWith([FORWARD, BOTH], {})
-    expect(hasPractice(topic)).toBe(false)
-    expect(practiceItemCount(topic)).toBe(0)
-    // A run started anyway still has something useful to ask.
-    expect(practiceTargets(topic).length).toBeGreaterThan(0)
-  })
-})
-
 describe('libraries that are not pristine', () => {
   it('survives evidence with no lastAt', () => {
     const topic = topicWith([FORWARD], {
@@ -271,7 +238,7 @@ describe('libraries that are not pristine', () => {
         directions: { 'prompt-to-answer': direction({ attempts: 2, consecutiveCorrect: 0 }) },
       },
     })
-    expect(hasPractice(topic)).toBe(true)
+    expect(names(topic)).toEqual([['a', 'prompt-to-answer']])
   })
 
   it('survives evidence with an unparseable lastAt', () => {
@@ -283,20 +250,18 @@ describe('libraries that are not pristine', () => {
         },
       },
     })
-    expect(hasPractice(topic)).toBe(true)
+    expect(names(topic)).toEqual([['a', 'prompt-to-answer']])
   })
 
   it('survives an item carrying no id', () => {
     const topic = topicWith([{ prompt: 'X', answer: 'Y' } as IdentifiedItem], {})
     expect(() => practiceTargets(topic)).not.toThrow()
-    expect(hasPractice(topic)).toBe(false)
   })
 
   it('survives a topic with no itemEvidence at all', () => {
     const topic = topicWith([FORWARD], {})
     delete (topic as { itemEvidence?: unknown }).itemEvidence
     expect(() => practiceTargets(topic)).not.toThrow()
-    expect(hasPractice(topic)).toBe(false)
   })
 })
 
@@ -307,26 +272,21 @@ describe('what the last Test missed, for items that write no evidence', () => {
     history: [{ at: '2026-02-01T00:00:00.000Z', correct: 1, total: 3, resolvedTo: 'learning', ...(missedItemIds ? { missedItemIds } : {}) }],
   })
 
-  it('offers practice for them, with the same count the result screen offers', () => {
+  it('selects recorded misses for formative recall without losing item identity', () => {
     const topic = afterTest(['a', 'c'])
     expect(lastTestMissedIds(topic)).toEqual(['a', 'c'])
-    expect(hasPractice(topic)).toBe(true)
-    expect(practiceItemCount(topic)).toBe(2)
-    const offered = new Set(targetsForItems(topic, ['a', 'c']).map((target) => target.item.id))
-    expect(practiceItemCount(topic)).toBe(offered.size)
-    expect(missedTargets(topic).every((target) => target.reason === 'missed')).toBe(true)
+    expect(new Set(targetsForItems(topic, ['a', 'c']).map(target => target.item.id))).toEqual(new Set(['a', 'c']))
   })
 
-  it('offers nothing after a clean Test, an old attempt with no record, or no Test', () => {
-    expect(hasPractice(afterTest([]))).toBe(false)
-    expect(hasPractice(afterTest())).toBe(false)
-    expect(hasPractice(topicWith(items, {}))).toBe(false)
+  it('keeps no outstanding missed ids after a clean Test or an old attempt', () => {
+    expect(lastTestMissedIds(afterTest([]))).toEqual([])
+    expect(lastTestMissedIds(afterTest())).toEqual([])
   })
 
   it('drops an id whose item was since removed, and is replaced by the next Test', () => {
     expect(lastTestMissedIds(afterTest(['a', 'gone']))).toEqual(['a'])
     const next: Topic = { ...afterTest(['a']), history: [...afterTest(['a']).history, { at: '2026-03-01T00:00:00.000Z', correct: 3, total: 3, resolvedTo: 'completed' }] }
-    expect(hasPractice(next)).toBe(false)
+    expect(lastTestMissedIds(next)).toEqual([])
   })
 
   it('reads practice off the stored Test and never writes evidence', () => {

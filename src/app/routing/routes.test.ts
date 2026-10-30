@@ -292,3 +292,38 @@ describe('role detail routes (#223)', () => {
     expect(restoreRoute({ ...test, origin: { kind: 'role', roleId: 'diver' } as never }, topics, false)).toEqual(overview)
   })
 })
+
+describe('ordinary stage routes and retired Practice', () => {
+  const origin = { kind: 'section', view: 'today' } as const
+  const topic: Topic = { id: 'ordinary', title: 'Ordinary', scope: 'Four items', track: 'learning', status: 'unstarted',
+    items: Array.from({ length: 8 }, (_, index) => ({ id: `i-${index}`, prompt: `P${index}`, answer: `A${index}` })),
+    createdAt: '2026-10-29T00:00:00Z', completedAt: null, learningAt: null, drilledAt: null, lastTestedAt: null, spotCheckedAt: null, history: [] }
+  const route: AppRoute = { kind: 'run', mode: 'learn', topicIds: [topic.id], origin, target: { kind: 'stage', stageId: 'lesson-1' } }
+  const destination = { kind: 'topic', topicId: topic.id }
+
+  it('validates learn-only stage ids and includes them in route identity', () => {
+    expect(isAppRoute(route)).toBe(true)
+    for (const stageId of ['', 'bad id', 1, null]) expect(isAppRoute({ ...route, target: { kind: 'stage', stageId } })).toBe(false)
+    expect(isAppRoute({ ...route, mode: 'test' })).toBe(false)
+    expect(isAppRoute({ ...route, topicIds: ['a', 'b'] })).toBe(false)
+    expect(sameRoute(route, { ...route, target: { kind: 'stage', stageId: 'lesson-2' } })).toBe(false)
+    expect(sameRoute(route, { ...route })).toBe(true)
+    expect(liveRoute(route, [topic])).toEqual(route)
+    expect(restoreRoute(route, [topic], false)).toEqual(destination)
+    expect(restoreRoute({ ...route, target: { kind: 'stage', stageId: 'gone' } }, [topic], true)).toEqual(destination)
+    expect(liveRoute(route, [])).toEqual({ kind: 'section', view: 'library' })
+  })
+
+  it('accepts historical Practice but always normalizes to its topic, whatever its origin', () => {
+    const before = structuredClone(topic)
+    for (const target of [{ kind: 'practice' as const }, { kind: 'practice' as const, itemIds: ['i-5'] }]) {
+      const old: AppRoute = { ...route, target }
+      expect(isAppRoute(old)).toBe(true)
+      expect(liveRoute(old, [topic])).toEqual(destination)
+      expect(restoreRoute(old, [topic], false)).toEqual(destination)
+      expect(restoreRoute(old, [topic], true)).toEqual(destination)
+      expect(restoreRoute(old, [], false)).toEqual({ kind: 'section', view: 'library' })
+    }
+    expect(topic).toEqual(before)
+  })
+})

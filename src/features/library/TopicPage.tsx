@@ -5,21 +5,19 @@ import { useLibrary } from '../../services/library/LibraryProvider'
 import { morseProgressPath } from '../../domain/morse/curriculum/progressPath'
 import { statusLabel } from '../../shared/ui/StatusTag'
 import { ScreenHeader } from '../../shared/ui/ScreenHeader'
-import { ProgressSpine, type SpineRow, type SpineState } from '../../shared/ui/ProgressSpine'
+import { ProgressSpine, type SpineRow } from '../../shared/ui/ProgressSpine'
 import { ModeTray } from '../../shared/ui/ModeTray'
 import { topicIcon } from './topicIcon'
 import { TopicGlyph } from './TopicGlyph'
-import { topicBar, topicItemGroups, type ItemStanding, type TopicItemEntry } from './topicItems'
+import { topicBar } from './topicItems'
+import { curriculumFor } from '../../domain/learning/generatedCurriculum'
+import { nextStage, stageDone } from '../../domain/learning/stageProgress'
 import { SourcesAndLimits } from '../learn/SourcesAndLimits'
-import { hasReading } from '../learn/TopicReading'
-import { VisualView } from '../visual/VisualView'
 import { listeningCoverage } from '../../domain/audio/evidence'
-import { AudioReference } from '../audio/AudioReference'
 import { MorseProgressPath, MorseModeTray, morseRunAction } from '../morse/play'
 import { MorsePlacementDialog } from '../morse/MorsePlacementDialog'
 import { applyMorsePlacement, canOfferMorsePlacement } from '../../domain/morse/placement'
 import type { RunTarget } from '../../app/routing/routes'
-import { hasPractice, lastTestMissedIds, missedTargets, practiceItemCount } from '../../domain/study/practiceTargets'
 import type { Mode } from '../../domain/study/mode'
 import type { Topic } from '../../domain/library/topic'
 import './TopicPage.css'
@@ -40,7 +38,7 @@ function stamp(iso: string): string {
   })
 }
 
-/** Morse opens on its path; ordinary topics open on their items, with the same screen kit. */
+/** Each topic opens on its learning path; Morse retains its dedicated engine. */
 export function TopicPage({
   topic,
   onBack,
@@ -61,14 +59,16 @@ export function TopicPage({
   // Browsing reads the durable record without starting acquisition or Test.
   const journey = journeyFor(topic)
   const banked = journey.phase === 'banked'
-  const bar = course ? null : topicBar(topic)
   const listening = listeningCoverage(topic.items, topic.audioEvidence)
-  const practiceCount = hasPractice(topic) ? practiceItemCount(topic) : 0
-  // Misses can guide unfinished learning; learned topics stay complete.
-  const toPractise = course ? 0 : lastTestMissedIds(topic).length
-  const lastTest = topic.history[topic.history.length - 1]
-  const stateLabel = toPractise > 0
-    ? `${lastTest && lastTest.total === topic.items.length ? `${lastTest.correct} / ${lastTest.total} · ` : ''}${toPractise} to practise`
+  const curriculum = curriculumFor(topic)
+  const bar = course ? null : curriculum ? {
+    value: curriculum.stages.filter(stage => stageDone(topic, stage.id)).length,
+    max: curriculum.stages.length,
+    label: 'Lessons completed',
+  } : topicBar(topic)
+  const next = curriculum && nextStage(topic, curriculum)
+  const stateLabel = curriculum && !banked
+    ? `Lesson ${next ? curriculum.stages.indexOf(next) + 1 : curriculum.stages.length} of ${curriculum.stages.length}`
     : journey.statusLabel
   const offersPlacement = path?.nodes.some(node => node.kind === 'start' && node.offersPlacement) && canOfferMorsePlacement(topic)
 
@@ -115,11 +115,11 @@ export function TopicPage({
         actions={editAction}
         glyph={topicIcon(topic.id) ? <TopicGlyph topicId={topic.id} /> : undefined}
         progress={bar ?? undefined}
-        readout={bar ? `${bar.value} / ${bar.max}` : undefined}>
-        <p className={`topic-state${banked ? ' is-banked' : ''}`}>
+        readout={curriculum && !banked ? stateLabel : bar ? `${bar.value} / ${bar.max}` : undefined}>
+        {(!curriculum || banked) && <p className={`topic-state${banked ? ' is-banked' : ''}`}>
           {banked ? <span className="topic-state-mark" aria-hidden="true">✓</span> : null}
-          <span className="topic-state-label">{stateLabel}</span>
-        </p>
+          <span className="topic-state-label">{curriculum && !banked ? null : stateLabel}</span>
+        </p>}
         {listening.total > 0 && <p className="topic-listening">Listening · {listening.unaided} / {listening.total} unaided</p>}
       </ScreenHeader>}
 
@@ -133,9 +133,8 @@ export function TopicPage({
         <MorseProgressPath topic={topic} onAction={startMorse} showJump={false}
           onPlacement={offersPlacement ? () => setPlacementOpen(true) : undefined} />
       </> : runnable ? <>
-        <TopicTray topic={topic} label={banked ? 'Test again' : 'Test'}
-          practiceCount={practiceCount} onStart={onStart} onReference={onReference} />
-        <TopicItems topic={topic} />
+        {curriculum && <LessonPath topic={topic} curriculum={curriculum} onStart={onStart} onReference={onReference} />}
+
       </> : null}
 
       {!course && topic.history.length > 0 && <AttemptPips topic={topic} />}
@@ -160,112 +159,38 @@ export function TopicPage({
   )
 }
 
-const SPINE_STATE: Record<ItemStanding, SpineState> = {
-  settled: 'done',
-  missed: 'reached',
-  seen: 'reached',
-  unseen: 'reached',
-}
-
-const STANDING_WORDS: Record<ItemStanding, string> = {
-  settled: 'settled',
-  missed: 'missed last time',
-  seen: 'tested',
-  unseen: 'not tested yet',
-}
-
-/** A group's node takes the weakest standing among its items. */
-function groupState(entries: TopicItemEntry[]): SpineState {
-  return entries.length > 0 && entries.every(entry => entry.standing === 'settled') ? 'done' : 'reached'
-}
-
-/**
- * The complete scored set as reading, one row per item on the shared spine.
- * There is no forced path, so no row is the position; rows are not controls.
- */
-function TopicItems({ topic }: { topic: Topic }) {
-  const groups = topicItemGroups(topic)
-  const rows: SpineRow[] = groups.flatMap((group, groupIndex) => {
-    const heading: SpineRow[] = group.label ? [{
-      id: `group-${groupIndex}`,
-      shape: 'square',
-      state: groupState(group.entries),
-      label: group.label,
-      accessibleLabel: `${group.label}, ${group.entries.length} ${group.entries.length === 1 ? 'rule' : 'rules'}`,
-      group: true,
-      plate: true,
-      className: `topic-item-group${group.entries.every(entry => entry.standing === 'unseen') ? ' is-unseen' : ''}`,
-    }] : []
-    return [...heading, ...group.entries.map(({ item, marker, standing }, index): SpineRow => {
-      const visual = Boolean(item.stimulus || item.audio)
-      return {
-        id: item.id ?? `${groupIndex}-${index}`,
-        shape: 'round',
-        mark: standing === 'settled' && !group.label ? '✓' : marker,
-        state: SPINE_STATE[standing],
-        // A pictured item's picture is its prompt; the authored question
-        // wording is for the Test card, so the row names the answer.
-        label: item.stimulus ? item.answer : item.prompt,
-        detail: item.stimulus ? undefined : item.answer,
-        accessibleLabel: `${item.prompt}: ${item.answer}, ${STANDING_WORDS[standing]}`,
-        group: true,
-        className: `topic-item is-${standing}${visual ? ' has-visual' : ''}`,
-        after: visual ? <div className="topic-item-visual">
-          {item.stimulus && <VisualView visual={item.stimulus} compact />}
-          {item.audio && <AudioReference item={item as typeof item & { audio: NonNullable<typeof item.audio> }} />}
-        </div> : undefined,
-      }
-    })]
-  })
-  return <ProgressSpine rows={rows} label="Items" className="topic-items" />
-}
-
-/** An open page: the reading this topic carries. */
-const PAGE = <svg width="40" height="28" viewBox="0 0 40 28" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinejoin="round" focusable="false">
-  <path d="M20 6C15 2.5 8 2 3 3v21c5-1 12-.5 17 3 5-3.5 12-4 17-3V3c-5-1-12-.5-17 3Z" />
-  <path d="M20 6v21" />
-</svg>
-
-interface TopicTrayProps {
+function LessonPath({ topic, curriculum, onStart, onReference }: {
   topic: Topic
-  label: string
-  practiceCount: number
+  curriculum: NonNullable<ReturnType<typeof curriculumFor>>
   onStart: TopicPageProps['onStart']
   onReference: TopicPageProps['onReference']
-}
-
-/** Learn and Practice in the topic's track colour; Test in the action colour. */
-function TopicTray({ topic, label, practiceCount, onStart, onReference }: TopicTrayProps) {
-  return (
-    <ModeTray label="Study" className="topic-tray" tiles={[
-      {
-        id: 'learn',
-        label: 'Learn',
-        stimulus: PAGE,
-        colour: 'var(--topic-track)',
-        ink: 'var(--topic-track-ink)',
-        disabled: !hasReading(topic),
-        onSelect: () => onReference(topic.id),
-      },
-      {
-        id: 'practice',
-        label: 'Practice',
-        stimulus: <span className="topic-tile-count">{practiceCount || '—'}</span>,
-        colour: 'var(--topic-track)',
-        ink: 'var(--topic-track-ink)',
-        disabled: practiceCount === 0,
-        onSelect: () => onStart('learn', [topic.id], { kind: 'practice', itemIds: [...new Set(missedTargets(topic).map(target => target.item.id))] }),
-      },
-      {
-        id: 'test',
-        label,
-        stimulus: <span className="topic-tile-count">{topic.items.length}</span>,
-        colour: 'var(--action)',
-        ink: 'var(--action-ink)',
-        onSelect: () => onStart('test', [topic.id]),
-      },
-    ]} />
-  )
+}) {
+  const next = nextStage(topic, curriculum)
+  const allDone = !next
+  const lesson = next ?? curriculum.stages[0]
+  const startLesson = (stageId: string) => onStart('learn', [topic.id], { kind: 'stage', stageId })
+  const rows: SpineRow[] = curriculum.stages.map((stage, index) => {
+    const done = stageDone(topic, stage.id)
+    const state = done ? 'done' : stage.id === next?.id ? 'position' : 'reached'
+    return { id: stage.id, shape: 'round', state, mark: done ? '✓' : index + 1,
+      label: stage.title, accessibleLabel: `${stage.title}, ${done ? 'done' : state === 'position' ? 'current' : 'upcoming'}`,
+      onSelect: () => startLesson(stage.id) }
+  })
+  rows.push({ id: 'final-test', shape: 'square', state: 'reached', label: 'Final Test', accessibleLabel: 'Final Test',
+    onSelect: () => onStart('test', [topic.id]) })
+  return <>
+    <ProgressSpine rows={rows} label="Lessons" className="topic-lessons" />
+    <div className="topic-lesson-actions">
+      <ModeTray label="Study" className="topic-tray" tiles={[{
+        id: allDone ? 'test' : 'lesson', label: allDone ? 'Final Test' : topic.history.length || Object.keys(topic.stageProgress ?? {}).length ? 'Continue' : 'Start',
+        stimulus: <span className="topic-tile-count">{allDone ? '✓' : curriculum.stages.indexOf(lesson) + 1}</span>,
+        colour: allDone ? 'var(--surface-2)' : 'var(--action)', ink: allDone ? 'var(--ink)' : 'var(--action-ink)',
+        onSelect: allDone ? () => onStart('test', [topic.id]) : () => startLesson(lesson.id),
+      }]} />
+      {allDone && <button type="button" className="quiet" onClick={() => startLesson(curriculum.stages[0].id)}>Review</button>}
+      <button type="button" className="quiet topic-reference" onClick={() => onReference(topic.id)}>Reference</button>
+    </div>
+  </>
 }
 
 /** Every attempt as one pip, filled to its score. A reading, not a list to scan. */

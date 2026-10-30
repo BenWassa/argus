@@ -31,7 +31,8 @@ for (const [title, items] of [
     await openTopic(page, title)
     await expect(page.locator('.topic-title')).toHaveText(title)
     // Untested: no value to read, so no bar rather than a false zero.
-    await expect(page.locator('.screen-header-readout')).toHaveCount(0)
+    await expect(page.locator('.screen-header-readout')).toContainText('Lesson 1 of')
+    await page.getByRole('button', { name: 'Reference', exact: true }).click()
     await expect(page.locator('.topic-items .topic-item')).toHaveCount(items)
     await noSidewaysScroll(page)
     await page.getByRole('button', { name: 'Sources and limitations' }).click()
@@ -55,8 +56,8 @@ const PRIORITY_KEY: [RegExp, string][] = [
 
 test('answering all nine Marine Priority Calls correctly banks a clean run, with long options readable', async ({ page }) => {
   await openTopic(page, 'Marine Priority Calls')
-  const primary = page.locator('.topic-tray [data-tile-id="test"]')
-  await expect(primary.locator('.mode-tray-label')).toHaveText('Test')
+  const primary = page.locator('.topic-lessons [data-node-id="final-test"] button')
+  await expect(primary.locator('.spine-label')).toHaveText('Final Test')
   await primary.click()
 
   const seen = new Set<string>()
