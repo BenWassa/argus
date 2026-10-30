@@ -24,6 +24,11 @@ describe('Morse mode tray', () => {
     }
   })
 
+  it('heads its section for screen readers without showing a heading', () => {
+    render(<MorseModeTray topic={morseTopic()} onStart={vi.fn()} />)
+    expect(screen.getByRole('heading', { level: 2, name: 'Play' }).className).toBe('sr-only')
+  })
+
   it('draws the same stimulus small for a pip', () => {
     const { container } = render(<>{(['key', 'listen', 'read', 'free'] as const).map((mode) => <MorseModeGlyph key={mode} mode={mode} small />)}</>)
     expect(container.querySelector('.morse-mode-letter.is-small')?.textContent).toBe('A')

@@ -31,9 +31,13 @@ export function MorseModeGlyph({ mode, small = false }: { mode: MorseMode; small
   )
 }
 
-/** Mode entry stays a domain decision; the tray only forwards the descriptor. Every mode is open (#257). */
+/**
+ * Mode entry stays a domain decision; the tray only forwards the descriptor. Every mode is open (#257).
+ * The heading is for screen readers only, so the page can be skimmed by section.
+ */
 export function MorseModeTray({ topic, onStart, className }: MorseModeTrayProps) {
-  return (
+  return (<>
+    <h2 className="sr-only">Play</h2>
     <ModeTray label="Play" className={className} tiles={MORSE_MODES.map(({ id, label }) => ({
       id,
       label,
@@ -43,5 +47,5 @@ export function MorseModeTray({ topic, onStart, className }: MorseModeTrayProps)
       disabled: modeAvailability(topic, id) === 'locked',
       onSelect: () => onStart(id, modeEntry(topic, id)),
     }))} />
-  )
+  </>)
 }

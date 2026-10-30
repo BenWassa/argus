@@ -106,6 +106,25 @@ code {
   white-space: nowrap;
 }
 
+/* Hidden until a keyboard reaches it; it is the first stop on every section. */
+.skip-link {
+  position: fixed;
+  top: var(--s-sm);
+  left: var(--s-sm);
+  z-index: 50;
+  padding: var(--s-sm) var(--s-md);
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 700;
+  text-decoration: none;
+  transform: translateY(calc(-100% - 2 * var(--s-sm)));
+}
+
+.skip-link:focus {
+  transform: none;
+}
+
 :focus-visible {
   /* Solid, not a low-alpha wash: this has to clear 3:1 against the page. */
   outline: 2px solid var(--accent-2);
