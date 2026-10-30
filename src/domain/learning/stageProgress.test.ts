@@ -72,3 +72,11 @@ describe('stage progress', () => {
     expect(Object.keys(done.stageProgress!)).toEqual(['first', 'second'])
   })
 })
+
+it('does not turn a legacy drilled topic review into a new completion', () => {
+  const topic: Topic = { ...fresh(), status: 'drilled' }
+  const updated = withStageCompleted(topic, curriculum, 'first', later)
+  expect(updated.stageProgress?.first).toBe(later.toISOString())
+  expect(updated.completedAt).toBeNull()
+  expect(updated.status).toBe('drilled')
+})

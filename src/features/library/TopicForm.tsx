@@ -144,6 +144,7 @@ export function TopicForm({
       itemEvidence: pruneItemEvidence(topic?.itemEvidence, reconciledItems),
       // Listening evidence is its own record (#151) and follows the same rule.
       ...(audioEvidence && Object.keys(audioEvidence).length > 0 ? { audioEvidence } : {}),
+      ...(topic?.stageProgress ? { stageProgress: topic.stageProgress } : {}),
       lessonProgress: pruneLessonProgress(topic?.lessonProgress, reconciledItems),
       // The active finite sitting is durable learner progress too, so an edit to
       // the title carries it through. Only revisit ids for genuinely deleted

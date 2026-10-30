@@ -5,7 +5,7 @@
 
 ## Generated lesson bounds
 
-Items retain stored order. Lessons normally contain four items; a trailing one joins the previous lesson. A trailing two joins the previous batch and is rebalanced into two three-item lessons so neither final lesson exceeds five. Topics of one or two items retain one short lesson. Beyond 48 items, the batch grows within 12 stages and 16 steps per stage. Each item requires two steps plus one checkpoint per stage, making 84 items the maximum representable curriculum; generation explicitly rejects larger banks rather than producing an invalid curriculum. Every shipped ordinary bank fits. Increasing this bound requires a curriculum-schema decision.
+Items retain stored order. Lessons normally contain four items; a trailing one joins the previous lesson. A trailing two joins the previous batch and is rebalanced into two three-item lessons so neither final lesson exceeds five. Topics of one or two items retain one short lesson. Beyond 48 items, the batch grows to keep the curriculum within MAX_STAGES (12 lessons). Generation never rejects a bank for its size: huge learner-authored topics receive longer lessons, which may exceed the authored 16-step limit. Every shipped ordinary bank fits the authored step limit.
 
 Step content uses only existing prompts, answers and stimuli. Distractors are distinct answers from the same topic, ordered by a stable item-id hash; a one-answer bank uses recall. Completing a lesson writes only stage ticks, and completing all lessons sets permanent completion in that same update. A finished topic replays without reopening learning. The runner waits for asynchronous local persistence before announcing completion and permits retry after a failed save.
 

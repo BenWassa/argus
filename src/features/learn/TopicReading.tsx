@@ -10,11 +10,6 @@ import { SourcesAndLimits } from './SourcesAndLimits'
 import './Reading.css'
 import './TopicReading.css'
 
-/** Whether an ordinary topic carries anything to read beyond its items. */
-export function hasReading(topic: Topic): boolean {
-  return Boolean(topic.items.length || topic.learn || topic.hero)
-}
-
 /**
  * An ordinary topic's Learn screen: its artwork, its lede and its
  * explanatory support, on their own page with Back to the topic. Opening it

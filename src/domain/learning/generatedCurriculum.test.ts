@@ -83,7 +83,7 @@ describe('generated curricula', () => {
       for (const step of curriculum.stages.flatMap(stage => stage.steps)) {
         if (step.kind !== 'show') continue
         const item = input.items.find((item, index) => learningItemId(item, index) === step.itemId)!
-        expect(step).toMatchObject({ title: item.stimulus ? item.answer : item.prompt, body: item.answer })
+        expect(step).toMatchObject({ title: item.stimulus ? item.answer : item.prompt, body: item.stimulus ? '' : item.answer })
         if (item.stimulus) expect(step.altText).toBe(item.stimulus.alt)
       }
     }
@@ -98,4 +98,10 @@ describe('generated curricula', () => {
     expect(lessonForItem(input, 'item-9')?.id).toBe('lesson-3')
     expect(nextLesson({ ...input, completedAt: '2026-10-29T00:00:00Z' })?.id).toBe('lesson-1')
   })
+})
+
+it('memoizes curricula by immutable topic object', () => {
+  const input = topic(8)
+  expect(curriculumFor(input)).toBe(curriculumFor(input))
+  expect(curriculumFor({ ...input })).not.toBe(curriculumFor(input))
 })

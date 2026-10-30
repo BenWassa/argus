@@ -59,9 +59,13 @@ export function TopicPage({
   // Browsing reads the durable record without starting acquisition or Test.
   const journey = journeyFor(topic)
   const banked = journey.phase === 'banked'
-  const bar = course ? null : topicBar(topic)
   const listening = listeningCoverage(topic.items, topic.audioEvidence)
   const curriculum = curriculumFor(topic)
+  const bar = course ? null : curriculum ? {
+    value: curriculum.stages.filter(stage => stageDone(topic, stage.id)).length,
+    max: curriculum.stages.length,
+    label: 'Lessons completed',
+  } : topicBar(topic)
   const next = curriculum && nextStage(topic, curriculum)
   const stateLabel = curriculum && !banked
     ? `Lesson ${next ? curriculum.stages.indexOf(next) + 1 : curriculum.stages.length} of ${curriculum.stages.length}`
@@ -112,10 +116,10 @@ export function TopicPage({
         glyph={topicIcon(topic.id) ? <TopicGlyph topicId={topic.id} /> : undefined}
         progress={bar ?? undefined}
         readout={curriculum && !banked ? stateLabel : bar ? `${bar.value} / ${bar.max}` : undefined}>
-        <p className={`topic-state${banked ? ' is-banked' : ''}`}>
+        {(!curriculum || banked) && <p className={`topic-state${banked ? ' is-banked' : ''}`}>
           {banked ? <span className="topic-state-mark" aria-hidden="true">✓</span> : null}
           <span className="topic-state-label">{curriculum && !banked ? null : stateLabel}</span>
-        </p>
+        </p>}
         {listening.total > 0 && <p className="topic-listening">Listening · {listening.unaided} / {listening.total} unaided</p>}
       </ScreenHeader>}
 
@@ -163,7 +167,6 @@ function LessonPath({ topic, curriculum, onStart, onReference }: {
 }) {
   const next = nextStage(topic, curriculum)
   const allDone = !next
-  const review = Boolean(topic.completedAt) || allDone
   const lesson = next ?? curriculum.stages[0]
   const startLesson = (stageId: string) => onStart('learn', [topic.id], { kind: 'stage', stageId })
   const rows: SpineRow[] = curriculum.stages.map((stage, index) => {
@@ -179,7 +182,7 @@ function LessonPath({ topic, curriculum, onStart, onReference }: {
     <ProgressSpine rows={rows} label="Lessons" className="topic-lessons" />
     <div className="topic-lesson-actions">
       <ModeTray label="Study" className="topic-tray" tiles={[{
-        id: allDone ? 'test' : 'lesson', label: allDone ? 'Final Test' : review ? 'Review' : Object.keys(topic.stageProgress ?? {}).length ? 'Continue' : 'Start',
+        id: allDone ? 'test' : 'lesson', label: allDone ? 'Final Test' : topic.history.length || Object.keys(topic.stageProgress ?? {}).length ? 'Continue' : 'Start',
         stimulus: <span className="topic-tile-count">{allDone ? '✓' : curriculum.stages.indexOf(lesson) + 1}</span>,
         colour: allDone ? 'var(--surface-2)' : 'var(--action)', ink: allDone ? 'var(--ink)' : 'var(--action-ink)',
         onSelect: allDone ? () => onStart('test', [topic.id]) : () => startLesson(lesson.id),

@@ -1,6 +1,5 @@
 import type { Item, Topic } from '../library/topic'
 import { morseLessonPath } from '../morse/curriculum/lessonPath'
-import { morseProgressPath } from '../morse/curriculum/progressPath'
 import { MAX_STAGES, type Curriculum, type LessonStep } from './stages'
 import { nextStage } from './stageProgress'
 
@@ -16,7 +15,9 @@ function hash(value: string): number {
 }
 
 function ordered(values: string[], seed: string): string[] {
-  return [...values].sort((a, b) => hash(`${seed}:${a}`) - hash(`${seed}:${b}`) || (a < b ? -1 : a > b ? 1 : 0))
+  return values.map(value => ({ value, key: hash(`${seed}:${value}`) }))
+    .sort((a, b) => a.key - b.key || (a.value < b.value ? -1 : a.value > b.value ? 1 : 0))
+    .map(({ value }) => value)
 }
 
 /** Existing scored text only. No new instructional claims or evidence. */
@@ -48,7 +49,7 @@ export function generatedCurriculum(topic: Topic): Curriculum {
           answer: item.answer, explain: item.answer,
           options: ordered([item.answer, ...ordered(answers.filter(answer => answer !== item.answer), itemId).slice(0, 3)], `${itemId}:options`) }
       return [{ kind: 'show', id: `${base}-show`, title: item.stimulus ? item.answer : item.prompt,
-        body: item.answer, itemId, ...(item.stimulus ? { altText: item.stimulus.alt } : {}) }, ask]
+        body: item.stimulus ? '' : item.answer, itemId, ...(item.stimulus ? { altText: item.stimulus.alt } : {}) }, ask]
     })
     steps.push({ kind: 'checkpoint', id: `${id}-checkpoint`, itemIds: ids })
     return { id, title: `Lesson ${index + 1}`, steps }
@@ -58,9 +59,14 @@ export function generatedCurriculum(topic: Topic): Curriculum {
 /** Authored curricula can override the generated default (owner, 2026-10-29). */
 const AUTHORED: ReadonlyMap<string, Curriculum> = new Map()
 
+const curricula = new WeakMap<Topic, Curriculum | undefined>()
+
 export function curriculumFor(topic: Topic): Curriculum | undefined {
-  if (!topic.items.length || morseLessonPath(topic) || morseProgressPath(topic)) return undefined
-  return AUTHORED.get(topic.id) ?? generatedCurriculum(topic)
+  if (curricula.has(topic)) return curricula.get(topic)
+  const curriculum = !topic.items.length || morseLessonPath(topic)
+    ? undefined : AUTHORED.get(topic.id) ?? generatedCurriculum(topic)
+  curricula.set(topic, curriculum)
+  return curriculum
 }
 
 export function nextLesson(topic: Topic) {

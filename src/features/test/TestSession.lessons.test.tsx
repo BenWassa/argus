@@ -181,7 +181,7 @@ describe('reviewing lessons after a Test', () => {
     const onStart = vi.fn()
     const { container } = render(<LibraryProvider><TopicPage topic={stored} onBack={vi.fn()} onStart={onStart} onReference={vi.fn()} onEdit={vi.fn()} /></LibraryProvider>)
     expect(container.querySelectorAll('.topic-tray button')).toHaveLength(1)
-    fireEvent.click(screen.getByRole('button', { name: 'Start' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
     expect(onStart).toHaveBeenCalledWith('learn', [NATO.id], { kind: 'stage', stageId: 'lesson-1' })
     expect(JSON.parse(localStorage.getItem(STORE_KEY)!).topics.find((topic: Topic) => topic.id === NATO.id).history).toEqual(stored.history)
   }, 60000)

@@ -44,10 +44,15 @@ describe('StageRunner', () => {
     setup(step)
     const prefix = step.kind === 'contrast' ? 'Prompt ' : ''
     click(`${prefix}Wrong`)
+    expect(screen.getByRole('alert').textContent).toBe('Try again')
+    expect(screen.getByRole('button', { name: `${prefix}Right` }).className).not.toContain('is-correct')
+    click(`${prefix}Wrong`)
     expect(screen.getByRole('alert').textContent).toContain('The answer is Right.')
+    expect(screen.getByRole('button', { name: `${prefix}Right` }).className).toContain('is-correct')
     expect(screen.getByRole('button', { name: `${prefix}Wrong` }).className).toContain('is-wrong')
     expect(screen.queryByRole('button', { name: 'Continue' })).toBeNull()
     click(`${prefix}Right`)
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Continue' }))
     expect(screen.queryByRole('alert')).toBeNull()
     expect(screen.queryByRole('heading', { name: 'All covered.' })).toBeNull()
     click('Continue')
@@ -65,12 +70,17 @@ describe('StageRunner', () => {
 
   it('walks every checkpoint item; Not yet repeats the current recall', () => {
     setup({ kind: 'checkpoint', id: 'check', itemIds: ['a', 'b'] })
-    click('Reveal'); click('Not yet')
+    click('Reveal')
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Got it' }))
+    click('Not yet')
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Reveal' }))
     expect(screen.getByRole('heading', { name: 'Prompt a' })).toBeTruthy()
     expect(screen.queryByText('Answer a')).toBeNull()
     click('Reveal'); click('Got it')
     expect(document.activeElement).toBe(screen.getByRole('heading', { name: 'Prompt b' }))
-    click('Reveal'); click('Got it'); click('Continue')
+    click('Reveal'); click('Got it')
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Continue' }))
+    click('Continue')
     expect(screen.getByRole('heading', { name: 'All covered.' })).toBeTruthy()
   })
 
@@ -80,6 +90,8 @@ describe('StageRunner', () => {
     render(<StageRunner stage={generatedCurriculum(topic).stages[0]} itemFor={() => item}
       itemFace={() => ({ front: item.prompt, back: item.answer })} onFinish={vi.fn()} onExit={vi.fn()} />)
     expect(screen.getByRole('img', { name: item.stimulus!.alt }).querySelector('svg')).toBeTruthy()
+    expect(screen.getByRole('heading', { name: item.answer })).toBeTruthy()
+    expect(document.querySelector('.stage-answer')).toBeNull()
   })
 
   it('plays audio through AudioReference without writing evidence', () => {
@@ -139,6 +151,17 @@ describe('lesson completion through the library provider', () => {
     }
     return { onNext, onTest, onExit }
   }
+
+  it('returns to the first unfinished lesson when the last lesson is finished out of order', () => {
+    current = { ...seedLibrary().topics.find(topic => topic.id === 'nato-phonetic')!, status: 'unstarted', completedAt: null }
+    const lastId = generatedCurriculum(current).stages.at(-1)!.id
+    const { onNext, onTest } = finishLesson(current, lastId)
+    expect(screen.queryByRole('button', { name: 'Final Test' })).toBeNull()
+    click('Next lesson')
+    expect(onNext).toHaveBeenCalledWith('lesson-1')
+    expect(onTest).not.toHaveBeenCalled()
+    expect(current.completedAt).toBeNull()
+  })
 
   it('writes stageProgress without history or itemEvidence, then completes on the final lesson', () => {
     current = { ...seedLibrary().topics.find(topic => topic.id === 'nato-phonetic')!, status: 'unstarted', completedAt: null }

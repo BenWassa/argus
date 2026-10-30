@@ -23,6 +23,7 @@ export function StageRunner(props: StageRunnerProps) {
 function StageRun({ stage, itemFace, itemFor, onFinish, onExit, onNext, nextLabel }: StageRunnerProps) {
   const [index, setIndex] = useState(0)
   const [wrong, setWrong] = useState<string | null>(null)
+  const [wrongCount, setWrongCount] = useState(0)
   const [correct, setCorrect] = useState(false)
   const [revealed, setRevealed] = useState(false)
   const [card, setCard] = useState(0)
@@ -32,7 +33,11 @@ function StageRun({ stage, itemFace, itemFor, onFinish, onExit, onNext, nextLabe
   const [finished, setFinished] = useState(false)
   const finishSent = useRef(false)
   const heading = useRef<HTMLHeadingElement>(null)
+  const primary = useRef<HTMLButtonElement>(null)
   const step = stage.steps[index]
+  useEffect(() => {
+    primary.current?.focus({ preventScroll: true })
+  }, [correct, revealed])
   useEffect(() => { heading.current?.focus({ preventScroll: true }) }, [index, card, finished])
 
   function advance() {
@@ -53,10 +58,10 @@ function StageRun({ stage, itemFace, itemFor, onFinish, onExit, onNext, nextLabe
       } catch { failed() }
     } else {
       setIndex(index + 1)
-      setWrong(null); setCorrect(false); setRevealed(false); setCard(0); setSequence([])
+      setWrong(null); setWrongCount(0); setCorrect(false); setRevealed(false); setCard(0); setSequence([])
     }
   }
-  const continueButton = <button type="button" onClick={advance} disabled={saving}>{saving ? 'Saving…' : index === stage.steps.length - 1 ? 'Finish lesson' : 'Continue'}</button>
+  const continueButton = <button ref={primary} type="button" onClick={advance} disabled={saving}>{saving ? 'Saving…' : index === stage.steps.length - 1 ? 'Finish lesson' : 'Continue'}</button>
   let title = 'Recall'
   let content: ReactNode
   let response: ReactNode = continueButton
@@ -64,9 +69,9 @@ function StageRun({ stage, itemFace, itemFor, onFinish, onExit, onNext, nextLabe
 
   function options(values: string[], answer: string, labels = false) {
     return <div className={`choice-options stage-options${values.some(value => value.length > 100) ? ' is-wordy' : ''}`}>{values.map(value => <button type="button" key={value}
-      className={`choice-option${wrong === value ? ' is-wrong' : ''}${(correct || wrong) && value === answer ? ' is-correct' : ''}`}
+      className={`choice-option${wrong === value ? ' is-wrong' : ''}${(correct || wrongCount >= 2) && value === answer ? ' is-correct' : ''}`}
       aria-pressed={correct ? value === answer : wrong === value} disabled={correct}
-      onClick={() => { if (value === answer) { setCorrect(true); setWrong(null) } else setWrong(value) }}>
+      onClick={() => { if (value === answer) { setCorrect(true); setWrong(null) } else { setWrong(value); setWrongCount(count => count + 1) } }}>
       {labels ? itemFace(value).front : value}
     </button>)}</div>
   }
@@ -76,7 +81,7 @@ function StageRun({ stage, itemFace, itemFor, onFinish, onExit, onNext, nextLabe
     switch (step.kind) {
       case 'show':
         title = step.title
-        content = <p className="stage-answer">{step.body}</p>
+        content = step.body ? <p className="stage-answer">{step.body}</p> : undefined
         break
       case 'choose':
         title = step.prompt
@@ -113,8 +118,8 @@ function StageRun({ stage, itemFace, itemFor, onFinish, onExit, onNext, nextLabe
           else { setCard(card + 1); setRevealed(false) }
         }
         response = correct || !face ? continueButton : !revealed
-          ? <button type="button" onClick={() => setRevealed(true)}>Reveal</button>
-          : <div className="choice-options stage-options"><button type="button" onClick={next}>Got it</button><button type="button" onClick={() => { setRevealed(false) }}>Not yet</button></div>
+          ? <button ref={primary} type="button" onClick={() => setRevealed(true)}>Reveal</button>
+          : <div className="choice-options stage-options"><button ref={primary} type="button" onClick={next}>Got it</button><button type="button" onClick={() => { setRevealed(false) }}>Not yet</button></div>
         break
       }
       case 'summary': title = step.text; break
@@ -126,7 +131,7 @@ function StageRun({ stage, itemFace, itemFor, onFinish, onExit, onNext, nextLabe
     {item.audio && <AudioReference item={{ ...item, audio: item.audio }} />}
   </>
   const feedback = wrong && step && 'explain' in step
-    ? <p className="stage-feedback" role="alert">{step.explain} · Try again</p> : null
+    ? <p className="stage-feedback" role="alert">{wrongCount >= 2 ? `${step.explain} · ` : ''}Try again</p> : null
 
   return <SessionFrame kind="lesson" title={stage.title} onClose={onExit} className="stage-runner"
     progress={{ current: finished ? stage.steps.length : index + 1, total: stage.steps.length }}

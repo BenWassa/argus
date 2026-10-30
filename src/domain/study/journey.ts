@@ -270,8 +270,8 @@ export function journeyFor(topic: Topic): TopicJourney {
     retention: { ...retention, label: statusLabel },
     sitting,
     action: 'test',
-    actionLabel: 'Test',
-    primaryLabel: keepGoing ? KEEP_GOING : phase === 'banked' ? 'Test again' : 'Test',
+    actionLabel: curriculum ? 'Final Test' : 'Test',
+    primaryLabel: curriculum ? 'Final Test' : keepGoing ? KEEP_GOING : phase === 'banked' ? 'Test again' : 'Test',
     statusLabel,
     detail:
       acquisition.progressive && acquisition.ready

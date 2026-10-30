@@ -48,6 +48,22 @@ describe('ordinary lesson landing', () => {
     expect(updateTopic).not.toHaveBeenCalled()
   })
 
+  it('continues after Test history even without stage ticks', () => {
+    const topic: Topic = { ...firearm(), status: 'learning', completedAt: null,
+      history: [{ at: '2026-10-29T00:00:00Z', correct: 0, total: 9, resolvedTo: 'learning' }] }
+    open(topic)
+    expect(tile('lesson').textContent).toContain('Continue')
+  })
+
+  it('shows lesson completion in the header bar and omits the empty state paragraph', () => {
+    const topic: Topic = { ...seeded('nato-phonetic'), status: 'learning', completedAt: null,
+      stageProgress: { 'lesson-1': '2026-10-29T00:00:00Z' } }
+    const { container } = open(topic)
+    const bar = screen.getByRole('img', { name: 'Lessons completed' })
+    expect(parseFloat((bar.firstElementChild as HTMLElement).style.width)).toBeCloseTo(100 / curriculumFor(topic)!.stages.length)
+    expect(container.querySelector('.topic-state')).toBeNull()
+  })
+
   it('makes every row available, including replay and skipping ahead, and continues the first unfinished lesson', () => {
     const topic = { ...seeded('nato-phonetic'), status: 'learning' as const, completedAt: null, stageProgress: { 'lesson-1': '2026-10-29T00:00:00Z' } }
     const { container, onStart } = open(topic)
@@ -72,6 +88,7 @@ describe('ordinary lesson landing', () => {
     expect(container.querySelectorAll('.topic-lessons .is-done')).toHaveLength(curriculumFor(topic)!.stages.length)
     expect(tile('test').style.getPropertyValue('--tile-fill')).toBe('var(--surface-2)')
     expect(tile('test').textContent).toContain('Final Test')
+    expect((screen.getByRole('img', { name: 'Lessons completed' }).firstElementChild as HTMLElement).style.width).toBe('100%')
     fireEvent.click(screen.getByRole('button', { name: 'Review' }))
     expect(onStart).toHaveBeenCalledWith('learn', [topic.id], { kind: 'stage', stageId: 'lesson-1' })
     expect(container.querySelectorAll('.topic-pip')).toHaveLength(2)

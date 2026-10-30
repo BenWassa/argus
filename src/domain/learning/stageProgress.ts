@@ -25,7 +25,7 @@ export function withStageCompleted(
   const updated = Object.hasOwn(topic.stageProgress ?? {}, stageId)
     ? topic
     : { ...topic, stageProgress: { ...topic.stageProgress, [stageId]: now.toISOString() } }
-  if (updated.completedAt === null && stagesRemaining(updated, curriculum).length === 0) {
+  if (!isLearned(topic) && updated.completedAt === null && stagesRemaining(updated, curriculum).length === 0) {
     return { ...updated, completedAt: now.toISOString(), status: 'completed' }
   }
   return updated

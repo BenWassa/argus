@@ -336,7 +336,7 @@ describe('one learner state, three surfaces, one recommendation', () => {
       install([topic])
       if (topic.id === MORSE_ID && journey.phase === 'banked') {
         expect(topicPrimary(topic)).toBe('') // Completed path has no required current action.
-      } else if (curriculumFor(topic) && journey.phase === 'banked') expect(topicPrimary(topic)).toBe('Final Test')
+      }
       else expect(topicPrimary(topic)).toBe(journey.primaryLabel)
       cleanup()
       install([topic])

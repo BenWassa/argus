@@ -202,7 +202,7 @@ export function checkCurriculum(
 
       switch (step.kind) {
         case 'show':
-          if (blank(step.title) || blank(step.body)) problems.push(`${where} needs a title and a body.`)
+          if (blank(step.title) || (blank(step.body) && !(step.itemId && figures.has(step.itemId)))) problems.push(`${where} needs a title and a body.`)
           if (step.itemId !== undefined) {
             known(step.itemId, 'shows')
             if (figures.has(step.itemId) && blank(step.altText)) problems.push(`${where} shows a figure and needs altText.`)
