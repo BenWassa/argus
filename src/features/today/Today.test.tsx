@@ -71,7 +71,7 @@ describe('Home', () => {
     expect(view.container.querySelectorAll('.today-plate')).toHaveLength(3)
   })
 
-  it('lets words claim a full row and reserves a separate lane for Library add', () => {
+  it('lets words claim a full row and clears Library add below the last plate', () => {
     const header = readFileSync('src/shared/ui/ScreenHeader.css', 'utf8')
     const spine = readFileSync('src/shared/ui/ProgressSpine.css', 'utf8')
     const library = readFileSync('src/features/library/LibraryPage.css', 'utf8')
@@ -79,7 +79,7 @@ describe('Home', () => {
       expect(css).toContain('flex-wrap: wrap;')
       expect(css).toContain('flex: 1 1 min-content;')
     }
-    expect(library).toContain('padding-right: calc(56px + max(var(--s-lg), env(safe-area-inset-right)))')
+    expect(library).not.toContain('padding-right: calc(56px')
     expect(library).toContain('padding-bottom: calc(56px + 2 * var(--s-lg) + env(safe-area-inset-bottom))')
     const reading = readFileSync('src/features/learn/Reading.css', 'utf8')
     expect(reading).toMatch(/\.learn-table th,[\s\S]*?overflow-wrap: normal;/)
