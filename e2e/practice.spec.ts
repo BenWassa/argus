@@ -106,7 +106,7 @@ async function runDeck(page: Page, wrongCount: number) {
 
 async function startCheck(page: Page) {
   // A Today plate opens its topic; the check starts from the topic page.
-  await page.getByRole('button', { name: /NATO Alphabet/ }).first().click()
+  await page.locator('.today-plate', { hasText: 'NATO Alphabet' }).first().click()
   await page.locator('.topic-tray [data-tile-id="test"]').click()
   await expect(page.locator('.flip-card')).toBeVisible()
 }
@@ -173,7 +173,7 @@ test('after a missed Test the topic page agrees: Practice enabled with the same 
   await page.getByRole('button', { name: 'Done' }).click()
 
   await page.locator('.nav-btn', { hasText: 'Library' }).click()
-  await page.getByRole('button', { name: /NATO Alphabet/ }).first().click()
+  await page.locator('.today-plate', { hasText: 'NATO Alphabet' }).first().click()
   const practice = page.locator('.topic-tray [data-tile-id="practice"]')
   await expect(practice).toBeEnabled()
   await expect(practice.locator('.topic-tile-count')).toHaveText('3')

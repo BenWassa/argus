@@ -61,6 +61,30 @@ describe('Home', () => {
     expect(screen.queryByRole('button', { name: '+ Add something to learn' })).toBeNull()
   })
 
+  it('puts Continue before the readout and topic queue so short screens reach it first', () => {
+    state.topics = [building('one'), building('two'), building('three')]
+    const view = open()
+    const action = screen.getByRole('button', { name: 'Continue: one' })
+    for (const element of [view.container.querySelector('.home-panel')!, screen.getByRole('heading', { name: 'Active topics' })]) {
+      expect(action.compareDocumentPosition(element) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    }
+    expect(view.container.querySelectorAll('.today-plate')).toHaveLength(3)
+  })
+
+  it('lets words claim a full row and clears Library add below the last plate', () => {
+    const header = readFileSync('src/shared/ui/ScreenHeader.css', 'utf8')
+    const spine = readFileSync('src/shared/ui/ProgressSpine.css', 'utf8')
+    const library = readFileSync('src/features/library/LibraryPage.css', 'utf8')
+    for (const css of [header, spine, library]) {
+      expect(css).toContain('flex-wrap: wrap;')
+      expect(css).toContain('flex: 1 1 min-content;')
+    }
+    expect(library).not.toContain('padding-right: calc(56px')
+    expect(library).toContain('padding-bottom: calc(56px + 2 * var(--s-lg) + env(safe-area-inset-bottom))')
+    const reading = readFileSync('src/features/learn/Reading.css', 'utf8')
+    expect(reading).toMatch(/\.learn-table th,[\s\S]*?overflow-wrap: normal;/)
+  })
+
   it('keeps Home and Library styles free of alpha fills, gradients and texture', () => {
     for (const file of ['src/features/today/Today.css', 'src/features/library/LibraryPage.css']) {
       const css = readFileSync(file, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '')

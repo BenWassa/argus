@@ -15,9 +15,9 @@
   min-height: 56px;
 }
 
-/* The last plate scrolls clear of the floating add. */
+/* The last plate scrolls clear of the floating add and its safe inset. */
 .lib-list {
-  padding-bottom: calc(56px + var(--s-lg));
+  padding-bottom: calc(56px + 2 * var(--s-lg) + env(safe-area-inset-bottom));
 }
 
 .lib-search-box {
@@ -235,6 +235,7 @@
 .index-row.lib-row > .gauge-row,
 .index-row.lib-row > .lib-row-reading {
   grid-column: 1 / -1;
+  flex-basis: 100%;
 }
 
 .index-row.lib-row .index-title {
@@ -246,11 +247,17 @@
 /* Shipped topics have a recognition glyph beside the title. The reading
    still spans the full plate width beneath both columns. */
 .index-row.lib-row.has-topic-icon {
-  grid-template-columns: 28px minmax(0, 1fr);
+  /* A button sizes to its content; pin it to the list so a long word wraps. */
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
 }
 
 .index-row.lib-row.has-topic-icon .index-title {
+  flex: 1 1 min-content;
+  max-width: 100%;
   min-width: 0;
 }
 
@@ -395,4 +402,9 @@
 }
 
 /* Long names must reflow inside the plate at enlarged text sizes. */
-.lib-row .index-title { min-width: 0; overflow-wrap: anywhere; }
+.lib-row .index-title { min-width: 0; overflow-wrap: break-word; }
+
+/* The list grid's implicit column would otherwise size to the longest word,
+   pushing plates past the screen at enlarged text. */
+.lib-list .index { grid-template-columns: minmax(0, 1fr); }
+.lib-list .lib-entry { min-width: 0; }

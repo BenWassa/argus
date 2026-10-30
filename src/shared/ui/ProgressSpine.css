@@ -43,6 +43,7 @@
 .spine-row:active {
   position: relative;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 12px;
   width: 100%;
@@ -94,6 +95,8 @@
 .spine-row.is-plate.is-repair:active { border-color: var(--warning); }
 
 .spine-main {
+  flex: 1 1 min-content;
+  max-width: 100%;
   display: grid;
   gap: 4px;
   min-width: 0;
@@ -101,7 +104,7 @@
 
 .spine-label {
   min-width: 0;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   font-size: 1.125rem;
   font-weight: 700;
 }
@@ -109,7 +112,7 @@
 .spine-detail {
   font-size: 0.75rem;
   color: var(--muted);
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 .spine-trailing {
