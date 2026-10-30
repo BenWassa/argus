@@ -2,6 +2,11 @@ import type { Item, Topic } from '../library/topic'
 import { morseLessonPath } from '../morse/curriculum/lessonPath'
 import { MAX_STAGES, type Curriculum, type LessonStep } from './stages'
 import { nextStage } from './stageProgress'
+import { gridNorthMapBearingsCurriculum } from './authored/grid-north-map-bearings'
+import { northReferencesDeclinationCurriculum } from './authored/north-references-declination'
+import { oodaLoopCurriculum } from './authored/ooda-loop'
+import { reciprocalBearingsCurriculum } from './authored/reciprocal-bearings'
+import { wholeCircleBearingsCurriculum } from './authored/whole-circle-bearings'
 
 /** v5 items always have ids; the fallback keeps legacy in-memory fixtures usable. */
 export function learningItemId(item: Item, index: number): string {
@@ -58,7 +63,13 @@ export function generatedCurriculum(topic: Topic): Curriculum {
 }
 
 /** Authored curricula can override the generated default (owner, 2026-10-29). */
-const AUTHORED: ReadonlyMap<string, Curriculum> = new Map()
+const AUTHORED: ReadonlyMap<string, Curriculum> = new Map([
+  ['ooda-loop', oodaLoopCurriculum],
+  ['whole-circle-bearings', wholeCircleBearingsCurriculum],
+  ['reciprocal-bearings', reciprocalBearingsCurriculum],
+  ['north-references-declination', northReferencesDeclinationCurriculum],
+  ['grid-north-map-bearings', gridNorthMapBearingsCurriculum],
+])
 
 const curricula = new WeakMap<Topic, Curriculum | undefined>()
 
