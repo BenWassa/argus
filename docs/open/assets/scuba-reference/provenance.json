@@ -1,5 +1,25 @@
 [
   {
+    "term": "SCUBA",
+    "file": "scuba.jpg",
+    "status": "candidate; human accuracy and phone-size acceptance pending",
+    "commonsTitle": "File:Travel diving harness P6045456.JPG",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Travel_diving_harness_P6045456.JPG",
+    "downloadUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4c/Travel_diving_harness_P6045456.JPG/1280px-Travel_diving_harness_P6045456.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/4/4c/Travel_diving_harness_P6045456.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "author": "Peter Southwood",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "changes": "Commons thumbnail only; no local crop or retouch",
+    "retrieved": "2026-10-28",
+    "sha256": "4c7bcb6747cb7f75eec3a4e0b82182a7fdb06ba253940af72abb968368eabd87",
+    "width": 1280,
+    "height": 960,
+    "bytes": 440054,
+    "originalBytes": 2311041,
+    "originalSha256": "7aa523545bc3e657a559154892e506b23566e6cf2ba3f6fa8a1bb9f9e8e2bf44"
+  },
+  {
     "term": "BCD",
     "file": "bcd.jpg",
     "status": "candidate; human accuracy and phone-size acceptance pending",
@@ -58,6 +78,26 @@
     "bytes": 221764,
     "originalBytes": 2471475,
     "originalSha256": "81a5a2cd80007223180881e0154bf46dfe0fca1ec0b9c9d8377df9f4ede84d3e"
+  },
+  {
+    "term": "DSMB",
+    "file": "dsmb.jpg",
+    "status": "candidate; human accuracy and phone-size acceptance pending",
+    "commonsTitle": "File:Surface Marker Buoy Jacqui.JPG",
+    "sourcePage": "https://commons.wikimedia.org/wiki/File:Surface_Marker_Buoy_Jacqui.JPG",
+    "downloadUrl": "https://upload.wikimedia.org/wikipedia/commons/3/3f/Surface_Marker_Buoy_Jacqui.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+    "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/3/3f/Surface_Marker_Buoy_Jacqui.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "author": "Mark.murphy",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "changes": "Commons thumbnail only; no local crop or retouch",
+    "retrieved": "2026-10-28",
+    "sha256": "91b99898e9b6416f77aa43341763d3bb4379181717741e385b73ce47c8ed34be",
+    "width": 913,
+    "height": 721,
+    "bytes": 150433,
+    "originalBytes": 150433,
+    "originalSha256": "91b99898e9b6416f77aa43341763d3bb4379181717741e385b73ce47c8ed34be"
   },
   {
     "term": "DPV",
