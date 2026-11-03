@@ -18,7 +18,7 @@
 | Cumulonimbus (Cb) | 1 | 2 | 5 | 8 |
 | **Total** | **10** | **20** | **50** | **80** |
 
-There are ten locally packaged, source-and-license-documented CC BY-SA hero photographs from #131, together approximately 180 KB AVIF. They have historically been classified/credited for the **unscored guide**. This research did not re-download original images, recompute their hashes or perform a second independent classification review. Therefore: **10 inherited guide-accepted assets, 0 newly accepted photos, 0 independently twice-reviewed Test-ready assets.** Do not report that the stronger scored pool has been approved. The minimum future intake is 70 additional independent photos, not 70 file names/crops.
+There are ten locally packaged, source-and-license-documented CC BY-SA hero photographs from #131, together approximately 180 KB AVIF. They have historically been classified/credited for the **unscored guide**. This research did not re-download original images, recompute their hashes or perform a second independent classification review. Therefore: **10 inherited guide-accepted assets, 0 newly accepted photos, 0 independently twice-reviewed Test-ready assets.** Do not report that the stronger scored pool has been approved. The minimum future intake is 70 additional independent photos, not 70 file names/crops. Five candidate Commons file pages have now had stated author, source, image dimensions and self-declared license checked against the live file page; **none is accepted for scoring or counted toward the 70**. The ledger therefore has 10 historical guide assets, 5 metadata-screened candidates and 65 blank acquisition slots. Three of the five candidates share creator Famartin, illustrating why counting filenames without lineage checks is misleading.
 
 A *reserved ledger row* is **not** a photograph and must never increase approved count. Exposed means anywhere in Learn, Reference, replay, previews or formative drills; a locally cached but never surfaced assessment file remains held out. The original hero consumes one of three exposure slots regardless of whether the future lesson links to it.
 
@@ -45,7 +45,7 @@ Search findings are **source-pool leads, not accepted exemplars**. Commons count
 
 **Supplemental:** NOAA [Ocean Service licensing guidance](https://oceanservice.noaa.gov/about/faq.html) and [OMAO image terms](https://www.omao.noaa.gov/image-licensing-usage-info) allow broad reuse of many federal stills but *not* automatically of third-party credited items. Check file-level owner, not agency domain. A meteorological agency's copyrighted teaching images are research references unless permission permits redistribution.
 
-**Initial file-page triage leads (not licensed/classified/accepted in this work):**
+**File-page triage (five Commons metadata checks, not independent science/rights acceptance):** The five Cc/Cs/As/Ns links below have source-page creators, CC BY-SA version and original dimensions in the CSV. They have not been independently reviewed for WMO genus, derivative rights, appearance at 390px, image hashes, or photo-event overlap; the Cb link remains discovery-only.
 
 - Cc: [2021-11-27 15 52 16 Cirrocumulus Mackerel sky](https://commons.wikimedia.org/wiki/File:2021-11-27_15_52_16_Cirrocumulus_%22Mackeral_sky%22_above_the_Franklin_Farm_section_of_Oak_Hill,_Fairfax_County,_Virginia.jpg) — check real file spelling, metadata and same-photographer events before proceeding.
 - Cs: [2014-12-09 High cirrostratus Elko](https://commons.wikimedia.org/wiki/File:2014-12-09_15_06_39_High_cirrostratus_clouds_moving_into_Elko,_Nevada.JPG) — check horizon/veil, copyright and other Elko shots from same event.
@@ -84,8 +84,8 @@ The 80-image floor is **an Argus editorial choice**, not a WMO validation number
 ## 5. Gate / acceptance checklist
 
 - [x] Existing ten hero sources, creators, licenses, packaged paths and historical hashes transcribed from #131 into CSV (not independently rehashed here).
-- [x] 80-slot acquisition plan, with 70 still-unfilled explicit reservations and separate roles.
-- [x] Source channels and genus-specific manifestation/confusion priorities researched.
+- [x] 80-slot acquisition plan: 10 inherited guide assets, 5 metadata-screened candidates, 65 blank slots, separate exposure roles. **All 70 new slots remain unaccepted.**
+- [x] Source channels and genus-specific manifestation/confusion priorities researched; five Commons pages verified for declared creator/license, not approved for photography-based Test.
 - [ ] 70+ distinct *new*, independently licensed and class-qualified real photos acquired.
 - [ ] Every accepted photo has original/derivative hashes, full rights, two separate reviewer receipts and deduped lineage/event IDs.
 - [ ] Every genus has ≥2 distinct lineages and ≥3 manifestations in its final eight.
