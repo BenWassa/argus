@@ -143,7 +143,7 @@ function choose(letter: Letter, id: string, distractors: readonly Letter[]): Les
 }
 
 export const greekAlphabetCurriculum: Curriculum = {
-  stages: PACKETS.map((packet, index) => {
+  stages: PACKETS.map(packet => {
     const steps: LessonStep[] = []
     // Show an entire small packet before querying its items: avoid immediate answer copying.
     for (const letter of packet.letters) steps.push({
