@@ -85,7 +85,7 @@ describe('#323 isolated navigation formative exercise bank', () => {
     }
   })
   it('generates different non-bank exercises without changing any scored items', () => {
-    const read = new Set([...A1_READ_BEARINGS, ...A1_FIND_BEARINGS])
+    const read = new Set<number>([...A1_READ_BEARINGS, ...A1_FIND_BEARINGS])
     const a2 = new Set(A2_CASES.map(c => c.bearing))
     for (const c of CASES) {
       if (c.topicId === 'whole-circle-bearings') expect(read.has(c.inputs.bearing as number), c.id).toBe(false)
