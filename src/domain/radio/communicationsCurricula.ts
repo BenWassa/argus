@@ -104,7 +104,7 @@ function numberPackets(): Curriculum {
     for (let n = from; n < to; n++) {
       const [token, spelling] = NUMBERS[n]
       const itemId = id('radiotelephony-numbers', n + 1)
-      let others = packet.filter(x => x[0] !== token).map(x => x[1])
+      let others: string[] = packet.filter(x => x[0] !== token).map(x => x[1])
       if (token === '3') others = ['THREE', 'TREEE', 'TOO']
       if (token === '5') others = ['FIVE', 'FOW-er', 'SIX']
       if (token === '9') others = ['NINE', 'NINER', 'AIT']
