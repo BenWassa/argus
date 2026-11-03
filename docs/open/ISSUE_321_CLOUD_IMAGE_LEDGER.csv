@@ -1,0 +1,83 @@
+# #321 provenance intake ledger; 10 historical guide photographs, 70 EMPTY reservations. Empty source/hash is NOT an approved asset.
+# Counts: existing guide-approved 10; scored-ready 0; new assets reviewed 0. See ISSUE_321_CLOUD_SOURCE_RESEARCH.md.
+slotId,genusId,plannedExposure,assetId,status,originalFileUrl,creator,sourceLineageId,photoEventId,licence,licenceUrl,credit,localPath,originalDimensions,packagedDimensions,packagedBytes,originalSha256,packagedSha256,metadataCheckedAt,firstReviewer,secondReviewer,wmoVisibleCue,nearestConfusions,manifestation,notes
+Ci-H1,Ci,learn,cloud-cirrus,historical-guide-approved; score-review-required,https://commons.wikimedia.org/wiki/File:Cirrus_Sierra.JPG,Jebulon,creator:jebulon,,CC BY-SA 3.0,https://creativecommons.org/licenses/by-sa/3.0/,"Photo: Jebulon, CC BY-SA 3.0, via Wikimedia Commons; cropped/resized under same licence",/media/clouds/cirrus.avif,3264x2448,700x467,71758,,daee598c43df9ccbe6c0a2f897ad44506bcd09cffa68d4496d5186371fb07104,2026-09-30,Unrecorded identity (#131 historical guide QA),,Detached fibrous filaments and hooks,"Cs,Cc",detached filaments,Historical #131 credit/hash transcribed; no second reviewer receipt or source rehash in #321; not score-ready
+Ci-L2,Ci,learn,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Ci-L3,Ci,learn,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Ci-T1,Ci,holdout,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Ci-T2,Ci,holdout,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Ci-T3,Ci,holdout,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Ci-T4,Ci,holdout,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Ci-T5,Ci,holdout,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Cc-H1,Cc,learn,cloud-cirrocumulus,historical-guide-approved; score-review-required,https://commons.wikimedia.org/wiki/File:Cirrocumulus_clouds_Thousand_Oaks_July_2010.jpg,King of Hearts,creator:king-of-hearts,,CC BY-SA 3.0,https://creativecommons.org/licenses/by-sa/3.0/,"Photo: King of Hearts, CC BY-SA 3.0, via Wikimedia Commons; cropped/resized under same licence",/media/clouds/cirrocumulus.avif,2500x1600,700x467,11752,,396308afece91e8fe515e2a26769e2a39b2b0d672881c475d3d5ddf78ab2f86d,2026-09-30,Unrecorded identity (#131 historical guide QA),,Small white unshaded grains,"Ac,Sc",fine grain ripples,Historical #131 credit/hash transcribed; no second reviewer receipt or source rehash in #321; not score-ready
+Cc-L2,Cc,learn,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Cc-L3,Cc,learn,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Cc-T1,Cc,holdout,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Cc-T2,Cc,holdout,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Cc-T3,Cc,holdout,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Cc-T4,Cc,holdout,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Cc-T5,Cc,holdout,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Cs-H1,Cs,learn,cloud-cirrostratus,historical-guide-approved; score-review-required,https://commons.wikimedia.org/wiki/File:Cirrostratus_fibratus_with_22_degrees_halo.jpg,Eduardo Marquetti,creator:eduardo-marquetti,,CC BY-SA 2.0,https://creativecommons.org/licenses/by-sa/2.0/,"Photo: Eduardo Marquetti, CC BY-SA 2.0, via Wikimedia Commons; cropped/resized under same licence",/media/clouds/cirrostratus.avif,1024x768,700x467,7988,,f3f483fcb893d88bda7e539fed452506ecb1966802bdcc66a0492ad4fa496293,2026-09-30,Unrecorded identity (#131 historical guide QA),,Transparent veil and halo,"Ci,As",halo veil,Historical #131 credit/hash transcribed; no second reviewer receipt or source rehash in #321; not score-ready
+Cs-L2,Cs,learn,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Cs-L3,Cs,learn,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Cs-T1,Cs,holdout,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Cs-T2,Cs,holdout,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Cs-T3,Cs,holdout,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Cs-T4,Cs,holdout,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Cs-T5,Cs,holdout,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Ac-H1,Ac,learn,cloud-altocumulus,historical-guide-approved; score-review-required,https://commons.wikimedia.org/wiki/File:Altocumulus.jpg,Bidgee,creator:bidgee,,CC BY-SA 3.0,https://creativecommons.org/licenses/by-sa/3.0/,"Photo: Bidgee, CC BY-SA 3.0, via Wikimedia Commons; cropped/resized under same licence",/media/clouds/altocumulus.avif,2000x1330,700x467,25473,,faf6c021d38e7b6b78f07077de99938fa23e7c274f310300f64d775b118a9767,2026-09-30,Unrecorded identity (#131 historical guide QA),,Rounded partly shaded mid-size masses,"Cc,Sc",patchy rounded masses,Historical #131 credit/hash transcribed; no second reviewer receipt or source rehash in #321; not score-ready
+Ac-L2,Ac,learn,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Ac-L3,Ac,learn,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Ac-T1,Ac,holdout,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Ac-T2,Ac,holdout,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Ac-T3,Ac,holdout,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Ac-T4,Ac,holdout,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Ac-T5,Ac,holdout,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+As-H1,As,learn,cloud-altostratus,historical-guide-approved; score-review-required,https://commons.wikimedia.org/wiki/File:Altostratus_translucidus.jpg,The Great Cloudwatcher,creator:the-great-cloudwatcher,,CC BY-SA 3.0,https://creativecommons.org/licenses/by-sa/3.0/,"Photo: The Great Cloudwatcher, CC BY-SA 3.0, via Wikimedia Commons; cropped/resized under same licence",/media/clouds/altostratus.avif,2048x1536,700x467,3104,,9cf66d7360293d52de68c116510d8c390ce2169d72fd7ce517a96b47343da4c1,2026-09-30,Unrecorded identity (#131 historical guide QA),,Grey sheet and vague Sun without halo,"Cs,Ns",translucent sheet,Historical #131 credit/hash transcribed; no second reviewer receipt or source rehash in #321; not score-ready
+As-L2,As,learn,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+As-L3,As,learn,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+As-T1,As,holdout,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+As-T2,As,holdout,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+As-T3,As,holdout,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+As-T4,As,holdout,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+As-T5,As,holdout,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Ns-H1,Ns,learn,cloud-nimbostratus,historical-guide-approved; score-review-required,https://commons.wikimedia.org/wiki/File:Nimbostratus_virga_grey_with_hills.jpg,Simon A. Eugster,creator:simon-a-eugster,,CC BY-SA 3.0,https://creativecommons.org/licenses/by-sa/3.0/,"Photo: Simon A. Eugster, CC BY-SA 3.0, via Wikimedia Commons; cropped/resized under same licence",/media/clouds/nimbostratus.avif,4288x2848,700x467,3458,,efdcdcea95103839408d69c7ee5b4af75574464abd1c93e9fd386992e4daa54b,2026-09-30,Unrecorded identity (#131 historical guide QA),,Thick dark sheet and virga,"As,St,Cb",precipitating dark sheet,Historical #131 credit/hash transcribed; no second reviewer receipt or source rehash in #321; not score-ready
+Ns-L2,Ns,learn,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Ns-L3,Ns,learn,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Ns-T1,Ns,holdout,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Ns-T2,Ns,holdout,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Ns-T3,Ns,holdout,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Ns-T4,Ns,holdout,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Ns-T5,Ns,holdout,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+St-H1,St,learn,cloud-stratus,historical-guide-approved; score-review-required,"https://commons.wikimedia.org/wiki/File:Stratus_nebulosus_%C3%BCber_Limburg,_26.11.2020.jpg",GerritR,creator:gerritr,,CC BY-SA 4.0,https://creativecommons.org/licenses/by-sa/4.0/,"Photo: GerritR, CC BY-SA 4.0, via Wikimedia Commons; cropped/resized under same licence",/media/clouds/stratus.avif,5664x4248,700x467,2779,,713a00c305eb2a2927f599e1317a793ab55f58950f3ac01fe696254f54f4ec53,2026-09-30,Unrecorded identity (#131 historical guide QA),,Uniform low grey layer,"Sc,Ns",uniform nebulosus,Historical #131 credit/hash transcribed; no second reviewer receipt or source rehash in #321; not score-ready
+St-L2,St,learn,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+St-L3,St,learn,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+St-T1,St,holdout,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+St-T2,St,holdout,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+St-T3,St,holdout,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+St-T4,St,holdout,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+St-T5,St,holdout,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Sc-H1,Sc,learn,cloud-stratocumulus,historical-guide-approved; score-review-required,https://commons.wikimedia.org/wiki/File:Stratocumulus_stratiformis_%C3%BCber_dem_Wachtk%C3%BCppel.jpg,GerritR,creator:gerritr,,CC BY-SA 4.0,https://creativecommons.org/licenses/by-sa/4.0/,"Photo: GerritR, CC BY-SA 4.0, via Wikimedia Commons; cropped/resized under same licence",/media/clouds/stratocumulus.avif,3830x2505,700x467,6748,,66c7e1dd87f8b41563cfc477631a27bc80059a7c496e4fa166bd5066147bc689,2026-09-30,Unrecorded identity (#131 historical guide QA),,Large rounded rolls and darker parts,"St,Ac",rounded stratiform rolls,Historical #131 credit/hash transcribed; no second reviewer receipt or source rehash in #321; not score-ready
+Sc-L2,Sc,learn,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Sc-L3,Sc,learn,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Sc-T1,Sc,holdout,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Sc-T2,Sc,holdout,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Sc-T3,Sc,holdout,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Sc-T4,Sc,holdout,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Sc-T5,Sc,holdout,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Cu-H1,Cu,learn,cloud-cumulus,historical-guide-approved; score-review-required,https://commons.wikimedia.org/wiki/File:Cumulus_humilis_clouds.jpg,Toby Hudson,creator:toby-hudson,,CC BY-SA 3.0,https://creativecommons.org/licenses/by-sa/3.0/,"Photo: Toby Hudson, CC BY-SA 3.0, via Wikimedia Commons; cropped/resized under same licence",/media/clouds/cumulus.avif,3650x2592,700x467,21723,,d9e445c8460ab431ab7d3d4a0cc4733067b2f92f6f406458b4b6a9c709a858bc,2026-09-30,Unrecorded identity (#131 historical guide QA),,Sharp detached mounds with flat bases,"Cb,Sc",humilis detached mounds,Historical #131 credit/hash transcribed; no second reviewer receipt or source rehash in #321; not score-ready
+Cu-L2,Cu,learn,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Cu-L3,Cu,learn,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Cu-T1,Cu,holdout,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Cu-T2,Cu,holdout,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Cu-T3,Cu,holdout,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Cu-T4,Cu,holdout,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Cu-T5,Cu,holdout,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Cb-H1,Cb,learn,cloud-cumulonimbus,historical-guide-approved; score-review-required,"https://commons.wikimedia.org/wiki/File:Cumulonimbus_incus_over_Warsaw,_Poland.jpg",Kamil Nowacki,creator:kamil-nowacki,,CC BY-SA 4.0,https://creativecommons.org/licenses/by-sa/4.0/,"Photo: Kamil Nowacki, CC BY-SA 4.0, via Wikimedia Commons; cropped/resized under same licence",/media/clouds/cumulonimbus.avif,5923x3954,700x467,13072,,ae5e5cd20f25d65ea97f447a1dda421da71f8068dece012f35c5d76485728351,2026-09-30,Unrecorded identity (#131 historical guide QA),,Deep tower with spreading anvil,Cu,incus anvil,Historical #131 credit/hash transcribed; no second reviewer receipt or source rehash in #321; not score-ready
+Cb-L2,Cb,learn,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Cb-L3,Cb,learn,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Cb-T1,Cb,holdout,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Cb-T2,Cb,holdout,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Cb-T3,Cb,holdout,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Cb-T4,Cb,holdout,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
+Cb-T5,Cb,holdout,,unfilled-reservation,,,,,,,,,,,,,,,,,,,,No asset/source assigned; does not count as approved image
