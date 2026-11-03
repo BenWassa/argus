@@ -127,7 +127,7 @@ const PACKETS: readonly Packet[] = [
 ]
 
 export const greekLessonLetters: readonly Letter[] = PACKETS.flatMap(packet => packet.letters)
-const byOrdinal = new Map(greekLessonLetters.map(letter => [letter.ordinal, letter]))
+const byOrdinal = new Map(greekLessonLetters.map(letter => [letter.ordinal, letter] as const))
 const itemId = (ordinal: number) => `greek-alphabet-item-${String(ordinal).padStart(2, '0')}`
 
 function choose(letter: Letter, id: string, distractors: readonly Letter[]): LessonStep {
