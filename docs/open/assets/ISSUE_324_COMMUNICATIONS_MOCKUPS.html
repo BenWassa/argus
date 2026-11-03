@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>#324 — Communications Learning, 390px Proposed Frames</title>
+  <style>
+    /* Independent, static owner-review mockup. No production CSS or JS; mimic
+       Signal-on-Slate tokens as inspected on 2026-11-03. Not a shipped UI. */
+    :root {
+      color-scheme: dark;
+      --bg: oklch(0.255 0.012 255);
+      --panel: oklch(0.30 0.013 255);
+      --plate: oklch(0.345 0.014 255);
+      --plate-2: oklch(0.40 0.015 255);
+      --line: oklch(0.55 0.014 255);
+      --ink: oklch(0.97 0.004 255);
+      --subtle: oklch(0.75 0.012 255);
+      --accent: oklch(0.86 0.16 95);
+      --accent-ink: oklch(0.22 0.04 95);
+      --incorrect: oklch(0.74 0.13 18);
+      --correct: oklch(0.80 0.10 170);
+      --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    }
+    * { box-sizing: border-box; }
+    html { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color:var(--ink); background:var(--bg); }
+    body { margin:0; padding:24px 10px 56px; }
+    header.intro { max-width:970px; margin: 0 auto 20px; }
+    h1 { font-size:24px; letter-spacing:-.025em; margin:0 0 8px; }
+    p { line-height:1.5; }
+    header.intro p { font-size:14px; color:var(--subtle); max-width:75ch; margin:0; }
+    main { display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,390px)); justify-content:center; gap:24px; }
+    figure { margin:0; width:100%; min-width:0; }
+    figcaption { padding:10px 4px 0; color:var(--subtle); font-size:13px; line-height:1.45; }
+    .phone { width:100%; max-width:390px; height:760px; background:var(--bg); border:1px solid var(--line); border-radius:18px; overflow:hidden; padding:14px 16px 22px; display:flex; flex-direction:column; gap:14px; margin:auto; }
+    .top { display:flex; justify-content:space-between; align-items:center; font-size:13px; color:var(--subtle); min-height:24px; }
+    .back { font-size:15px; color:var(--ink); font-weight:650; }
+    .progress { display:flex; gap:5px; height:5px; }
+    .progress span { flex:1; border-radius:999px; background:var(--plate-2); }
+    .progress span.done { background:var(--accent); }
+    .section { font:12px var(--mono); letter-spacing:.025em; color:var(--subtle); }
+    .heading { font-size:27px; font-weight:750; line-height:1.08; letter-spacing:-.03em; margin:3px 0 0; }
+    .prompt { font-size:16px; line-height:1.4; margin:0; }
+    .demo { flex:1; min-height:0; display:flex; align-items:stretch; justify-content:center; flex-direction:column; gap:12px; }
+    .hero { padding:25px 16px; background:var(--plate); border:1px solid var(--line); border-top:4px solid var(--accent); border-radius:14px; text-align:center; }
+    .glyph { font-size:80px; font-weight:750; line-height:1.1; margin:0 0 10px; }
+    .hero-note { font-size:14px; color:var(--subtle); margin:0; }
+    .answers { display:grid; gap:9px; }
+    .option { min-height:52px; padding:12px 14px; border:1px solid var(--line); border-radius:9px; background:var(--plate); color:var(--ink); display:flex; align-items:center; font-weight:620; font-size:16px; overflow-wrap:anywhere; }
+    .option.selected { outline:2px solid var(--accent); border-color:var(--accent); }
+    .option.wrong { border:2px solid var(--incorrect); }
+    .option.correct { border:2px solid var(--correct); }
+    .explain { border:1px solid var(--line); border-left:4px solid var(--accent); background:var(--panel); border-radius:8px; padding:12px 14px; font-size:14px; line-height:1.45; overflow-wrap:anywhere; }
+    .explain.error { border-left-color:var(--incorrect); }
+    .explain strong { display:block; font-size:14px; margin-bottom:4px; }
+    .foot { border-radius:9px; min-height:52px; background:var(--accent); color:var(--accent-ink); font-weight:750; display:flex; align-items:center; justify-content:center; font-size:16px; }
+    .foot.secondary { background:var(--plate-2); color:var(--ink); border:1px solid var(--line); }
+    .cue { color:var(--subtle); font-size:13px; margin:0; }
+    .order-slots { display:flex; flex-wrap:wrap; gap:7px; align-content:start; }
+    .slot { border:1px solid var(--accent); border-radius:8px; padding:10px 11px; background:var(--panel); font-size:14px; font-weight:660; overflow-wrap:anywhere; }
+    .slot.todo { border:1px dashed var(--line); color:var(--subtle); }
+    .order-option { min-height:50px; border:1px solid var(--line); background:var(--plate); border-radius:9px; padding:11px 12px; font-size:14px; font-weight:660; overflow-wrap:anywhere; }
+    .two-col { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .long-field { font-size:14px; background:var(--plate); border-radius:8px; padding:11px 12px; border:1px solid var(--line); overflow-wrap:anywhere; }
+    .status { font:12px var(--mono); color:var(--subtle); text-transform:uppercase; letter-spacing:.035em; }
+    @media(max-width:360px) {
+      body { padding-inline:0; }
+      main { grid-template-columns:minmax(0,1fr); }
+      .phone { border-radius:0; }
+      .heading { font-size:24px; }
+      .hero { padding:18px 12px; }
+      .glyph { font-size:64px; }
+      .option { font-size:15px; }
+    }
+    @media(prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important; animation:none!important; transition:none!important; } }
+  </style>
+</head>
+<body>
+<header class="intro">
+  <h1>#324 — Communications guided learning</h1>
+  <p>390px static interaction proposals. Colours and materials follow the inspected Signal-on-Slate design tokens. Text and answer order are sourced from the current Argus scored inventories and controlling Canadian publications. Not integrated, user-tested or approved. No audio.</p>
+</header>
+<main>
+  <figure>
+    <div class="phone">
+      <div class="top"><span class="back">‹ NATO Alphabet</span><span>Lesson 2 / 6</span></div>
+      <div class="progress"><span class="done"></span><span class="done"></span><span></span><span></span><span></span><span></span></div>
+      <div><div class="section">LETTERS F–J · WRITTEN RECALL</div><h2 class="heading">Which code word<br>represents J?</h2></div>
+      <div class="demo">
+        <div class="hero"><div class="glyph">J</div><p class="hero-note">Choose the exact NATO spelling.</p></div>
+        <div class="answers">
+          <div class="option">India</div>
+          <div class="option">Juliet</div>
+          <div class="option selected">Juliett</div>
+          <div class="option">Hotel</div>
+        </div>
+      </div>
+      <p class="cue">Written mapping only. This is not a listening or spoken-pronunciation exercise.</p>
+      <div class="foot">Check answer</div>
+    </div>
+    <figcaption><strong>01 · NATO:</strong> Four large responses; the spelling distinction is deliberate. On an incorrect “Juliet” response explain that NATO prints “Juliett” while RAMN's marine alphabet table prints “Juliet.”</figcaption>
+  </figure>
+  <figure>
+    <div class="phone">
+      <div class="top"><span class="back">‹ Radio Numbers</span><span>Lesson 2 / 5</span></div>
+      <div class="progress"><span class="done"></span><span class="done"></span><span></span><span></span><span></span></div>
+      <div><div class="section">FOUR–SIX · CORRECTION</div><h2 class="heading">Printed form<br>for 5</h2></div>
+      <div class="demo">
+        <div class="hero"><div class="glyph">5</div><p class="hero-note">Canadian general radio · RIC-22 §4.3</p></div>
+        <div class="answers">
+          <div class="option correct">FIFE</div>
+          <div class="option wrong">FIVE · your choice</div>
+          <div class="option">FOW-er</div>
+          <div class="option">SIX</div>
+        </div>
+        <div class="explain error">
+          <strong>Correct: FIFE</strong>
+          RIC-22 prints the form for 5 as “FIFE,” not the ordinary spelling “FIVE.” Recognising written text is not evidence of hearing it correctly.
+        </div>
+      </div>
+      <div class="foot secondary">Try this item again</div>
+    </div>
+    <figcaption><strong>02 · Numbers:</strong> Explain the exact wrong token rather than showing “Try again” alone. No sound icon or implied oral proficiency.</figcaption>
+  </figure>
+  <figure>
+    <div class="phone">
+      <div class="top"><span class="back">‹ Marine Calling</span><span>Lesson 1 / 4</span></div>
+      <div class="progress"><span class="done"></span><span></span><span></span><span></span></div>
+      <div><div class="section">RAMN 2026 §4.1.1.2 · TABLE 4-1</div><h2 class="heading">Build a call to<br>one station</h2></div>
+      <p class="prompt">Tap the next field in the published sequence. The called station is already placed.</p>
+      <div class="demo" style="justify-content:flex-start; padding-top:6px">
+        <p class="status">Chosen order</p>
+        <div class="order-slots">
+          <div class="slot">1 · Station called ×3</div>
+          <div class="slot todo">2 · Next field</div>
+        </div>
+        <p class="status" style="margin-top:12px">Choose next</p>
+        <div class="answers">
+          <div class="order-option">Vessel type, name, call sign ×3</div>
+          <div class="order-option">OVER</div>
+          <div class="order-option" style="border-color:var(--accent)">THIS IS</div>
+        </div>
+        <div class="explain">The address goes first; <strong style="display:inline">THIS IS</strong> then introduces the transmitting vessel, which is identified three times before OVER.</div>
+      </div>
+      <div class="foot">Place “THIS IS”</div>
+    </div>
+    <figcaption><strong>03 · Marine Calling:</strong> Build one part at a time instead of choosing among four nearly identical four-field strings. A wrong placement should identify the misplaced field.</figcaption>
+  </figure>
+  <figure>
+    <div class="phone">
+      <div class="top"><span class="back">‹ Marine Priority Calls</span><span>Lesson 2 / 6</span></div>
+      <div class="progress"><span class="done"></span><span class="done"></span><span></span><span></span><span></span><span></span></div>
+      <div><div class="section">RAMN 2026 §4.1.2.3 · FIELD CHECK</div><h2 class="heading">When is MMSI<br>included?</h2></div>
+      <p class="prompt">For the marine distress voice call, choose the published condition.</p>
+      <div class="demo">
+        <div class="long-field">MAYDAY ×3 / THIS IS / ship name ×3 / identifier / <strong>MMSI?</strong></div>
+        <div class="answers">
+          <div class="option wrong">Always required</div>
+          <div class="option correct">If a DSC distress alert was sent</div>
+          <div class="option">Only to a specific station</div>
+          <div class="option">Instead of the vessel name</div>
+        </div>
+        <div class="explain error">
+          <strong>Correct: conditional MMSI</strong>
+          The published distress call includes MMSI if a DSC distress alert was sent. A voice distress call can proceed without a prior DSC alert; this lesson does not teach DSC operation.
+        </div>
+      </div>
+      <div class="foot secondary">Continue lesson</div>
+    </div>
+    <figcaption><strong>04 · Marine Priority:</strong> A discrete conditional-field correction. Long distress/safety messages are built as two short sequences, never nine dense option strings.</figcaption>
+  </figure>
+</main>
+</body>
+</html>
