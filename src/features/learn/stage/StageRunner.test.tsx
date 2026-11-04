@@ -68,6 +68,14 @@ describe('StageRunner', () => {
     expect(screen.getByRole('heading', { name: 'All covered.' })).toBeTruthy()
   })
 
+  it('explains an order step after a second wrong check, like a choice', () => {
+    setup({ kind: 'order', id: 'order', itemId: 'a', prompt: 'Order', blocks: ['First', 'Second'], explain: 'First, Second.' })
+    click('Second'); click('First'); click('Check order')
+    expect(screen.getByRole('alert').textContent).not.toContain('First, Second.')
+    click('Check order')
+    expect(screen.getByRole('alert').textContent).toContain('First, Second.')
+  })
+
   it('walks every checkpoint item; Not yet repeats the current recall', () => {
     setup({ kind: 'checkpoint', id: 'check', itemIds: ['a', 'b'] })
     click('Reveal')
