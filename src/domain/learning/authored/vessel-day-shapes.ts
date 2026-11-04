@@ -1,0 +1,98 @@
+import type { Curriculum } from '../stages'
+
+/**
+ * #322 candidate, intentionally NOT registered in generatedCurriculum.ts.
+ * Source boundary: the five existing vessel-day-shapes items and COLREGs
+ * Rules 26, 27 and 30 cited in the #322 plan. No new scored content.
+ * Shows carry geometry-only altText; choose/checkpoint figures use the item's
+ * existing geometry-only stimulus.alt. Contrasts are two-option chooses because
+ * a contrast step shows item prompts, not figures, and these items are pictures.
+ * Registration and runner changes are separate work.
+ */
+const ANCHOR = 'vessel-day-shapes-item-01'
+const TWO = 'vessel-day-shapes-item-02'
+const DIAMOND = 'vessel-day-shapes-item-03'
+const THREE = 'vessel-day-shapes-item-04'
+const CONES = 'vessel-day-shapes-item-05'
+
+const anchor = 'Vessel at anchor'
+const two = 'Vessel not under command'
+const diamond = 'Vessel restricted in her ability to manoeuvre'
+const three = 'Vessel aground'
+const cones = 'Vessel engaged in fishing (trawling or other fishing)'
+
+const anchorExplain = `${anchor}: only one round ball appears; two balls indicate ${two}, and three indicate ${three}.`
+const twoExplain = `${two}: two round balls are vertically stacked; a third round ball would indicate ${three}.`
+const diamondExplain = `${diamond}: a diamond between two balls distinguishes this from ${three}, which has three round balls.`
+const threeExplain = `${three}: all three shapes are round balls; ${diamond} has a diamond in the middle.`
+const conesExplain = `${cones}: two cones meet point-to-point, unlike ball–diamond–ball; the shape covers trawling and other fishing, so it does not mean trawling only.`
+
+export const vesselDayShapesCurriculum: Curriculum = {
+  stages: [
+    {
+      id: 'shape-ball-count', title: 'Count the Balls',
+      steps: [
+        { kind: 'show', id: 'shapes-count-intro', itemId: ANCHOR, title: 'One Ball',
+          body: `${anchor}: one black ball.`, altText: 'One black round ball.' },
+        { kind: 'show', id: 'shapes-count-intro-two', itemId: TWO, title: 'Two Balls',
+          body: `${two}: two black balls in a vertical line.`, altText: 'Two black round balls in a vertical line.' },
+        { kind: 'show', id: 'shapes-count-intro-three', itemId: THREE, title: 'Three Balls',
+          body: `${three}: three black balls in a vertical line.`, altText: 'Three black round balls in a vertical line.' },
+        { kind: 'choose', id: 'shapes-count-one', itemId: ANCHOR,
+          prompt: 'Which vessel state does this display?', options: [anchor, two, three, diamond],
+          answer: anchor, explain: anchorExplain },
+        { kind: 'choose', id: 'shapes-count-two', itemId: TWO,
+          prompt: 'Which vessel state does this display?', options: [two, anchor, three, diamond],
+          answer: two, explain: twoExplain },
+        { kind: 'choose', id: 'shapes-count-three', itemId: THREE,
+          prompt: 'Which vessel state does this display?', options: [three, two, diamond, anchor],
+          answer: three, explain: threeExplain },
+        { kind: 'checkpoint', id: 'shapes-count-check', itemIds: [ANCHOR, TWO, THREE] },
+        { kind: 'summary', id: 'shapes-count-summary',
+          text: `One ball: ${anchor}. Two balls: ${two}. Three balls: ${three}.` },
+      ],
+    },
+    {
+      id: 'shape-middle-diamond', title: 'Check the Middle',
+      steps: [
+        { kind: 'show', id: 'shapes-middle-show', itemId: DIAMOND, title: 'Ball, Diamond, Ball',
+          body: `${diamond}: check the diamond between the two balls, rather than a third round ball.`,
+          altText: 'A black ball above a black diamond above a black ball, in a vertical line.' },
+        { kind: 'choose', id: 'shapes-middle-choose', itemId: DIAMOND,
+          prompt: 'Which vessel state does this display?', options: [diamond, three, two, cones],
+          answer: diamond, explain: diamondExplain },
+        { kind: 'choose', id: 'shapes-middle-contrast', itemId: THREE,
+          prompt: 'Check the middle shape. Which vessel state does this display?', options: [three, diamond],
+          answer: three, explain: threeExplain },
+        { kind: 'checkpoint', id: 'shapes-middle-check', itemIds: [DIAMOND, THREE] },
+        { kind: 'summary', id: 'shapes-middle-summary', text: `The middle diamond identifies ${diamond}.` },
+      ],
+    },
+    {
+      id: 'shape-fishing-cones', title: 'Points Together',
+      steps: [
+        { kind: 'show', id: 'shapes-cone-show', itemId: CONES, title: 'Two Cones',
+          body: `${cones}: two cones meet at their points; neither is a ball. The shape does not separate fishing types.`,
+          altText: 'Two black cones in a vertical line with their points touching.' },
+        { kind: 'choose', id: 'shapes-cone-choose', itemId: CONES,
+          prompt: 'Which vessel state does this display?', options: [cones, diamond, two, anchor],
+          answer: cones, explain: conesExplain },
+        { kind: 'choose', id: 'shapes-cone-contrast', itemId: DIAMOND,
+          prompt: 'Cones or a diamond? Which vessel state does this display?', options: [diamond, cones],
+          answer: diamond, explain: diamondExplain },
+        { kind: 'checkpoint', id: 'shapes-cone-check', itemIds: [CONES, DIAMOND] },
+        { kind: 'summary', id: 'shapes-cone-summary', text: 'The day shape does not separate trawling from other fishing.' },
+      ],
+    },
+    {
+      id: 'shape-mixed-signals', title: 'Mix the Five Displays',
+      steps: [
+        { kind: 'show', id: 'shapes-mixed-teach', title: 'Read the Arrangement',
+          body: 'Count the balls; check the middle shape; look for two cones meeting at their points.' },
+        { kind: 'checkpoint', id: 'shapes-mixed-check', itemIds: [ANCHOR, TWO, DIAMOND, THREE, CONES] },
+        { kind: 'summary', id: 'shapes-mixed-summary',
+          text: 'You have reviewed the five displays. The separate Test is optional.' },
+      ],
+    },
+  ],
+}
