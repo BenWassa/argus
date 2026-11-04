@@ -112,7 +112,7 @@ function StageRun({ stage, itemFace, itemFor, onFinish, onExit, onNext, nextLabe
         response = <><div className="choice-options stage-options">{[...step.blocks].reverse().map(block => <button type="button" key={block} aria-pressed={sequence.includes(block)}
           onClick={() => { setCorrect(false); setSequence(sequence.includes(block) ? sequence.filter(value => value !== block) : [...sequence, block]) }}>{block}</button>)}</div>
           {correct ? continueButton : <button type="button" disabled={sequence.length !== step.blocks.length} onClick={() => {
-            if (sequence.every((block, position) => block === step.blocks[position])) { setCorrect(true); setWrong(null) } else setWrong('order')
+            if (sequence.every((block, position) => block === step.blocks[position])) { setCorrect(true); setWrong(null) } else { setWrong('order'); setWrongCount(count => count + 1) }
           }}>Check order</button>}</>
         break
       case 'recall':
