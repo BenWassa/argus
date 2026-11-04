@@ -114,7 +114,7 @@ function cardinal(topic: BearingTopicId, stage: string, seed: number, n: number,
 
 const WHOLE: Record<string, number[]> = {
   'reading-the-dial': [22, 68, 102, 116, 174],
-  'close-to-north': [1, 7, 13, 347, 353, 359],
+  'close-to-north': [0, 1, 7, 13, 347, 353, 359],
   'finding-the-ray': [29, 81, 142, 218, 263, 321],
   'checking-the-quadrant': [193, 239, 281, 311, 338],
 }
@@ -180,10 +180,11 @@ function reciprocalCase(topic: BearingTopicId, stage: string, seed: number, n: n
 function northConcept(topic: BearingTopicId, stage: string, seed: number, n: number, h: number): BearingFormativeCase {
   if (stage === 'signing-declination') {
     const east = (h + n) % 2 === 0
-    const D = east ? 11 : -14
+    const magnitude = 1 + Math.floor(((h % 24) + (n % 24)) % 24 / 2)
+    const D = east ? magnitude : -magnitude
     const answer = east ? 'Positive (east)' : 'Negative (west)'
     return build(topic, stage, seed, n, 'identify', {
-      prompt: 'Magnetic north is ' + (east ? 'east' : 'west') + ' of true north. What sign is D?', answer,
+      prompt: 'Magnetic north is ' + magnitude + '° ' + (east ? 'east' : 'west') + ' of true north. What sign is D?', answer,
       ...selection(answer, [
         [east ? 'Negative (west)' : 'Positive (east)', 'The sign is reversed: D is positive east, negative west.'],
         ['Zero', 'D is zero only when true and magnetic north coincide.'],
@@ -213,12 +214,15 @@ const DECLINATION = [
   { bearing: 26, D: 11 }, { bearing: 116, D: -9 }, { bearing: 252, D: 17 },
   { bearing: 5, D: 13 }, { bearing: 356, D: -15 }, { bearing: 339, D: 24 },
 ]
+// Enumerate the product so direction, sign and crossing north vary independently.
+const NORTH_CONVERSIONS = [0, 10, 16, 350].flatMap(bearing =>
+  [16, -16].flatMap(D => ['T', 'M'].map(from => ({ bearing, D, from: from as NorthReference }))))
 function trueMagnetic(topic: BearingTopicId, stage: string, seed: number, n: number, h: number): BearingFormativeCase {
-  const data = pick(DECLINATION, h, n)
-  const from: NorthReference = stage === 'true-to-magnetic' ? 'T' : stage === 'magnetic-to-true' ? 'M' : (h + n) % 2 ? 'T' : 'M'
+  const wrap = pick(NORTH_CONVERSIONS, seed % NORTH_CONVERSIONS.length, n % NORTH_CONVERSIONS.length)
+  const data = stage === 'wrapping-through-north' ? wrap : pick(DECLINATION, h, n)
+  const from: NorthReference = stage === 'true-to-magnetic' ? 'T' : stage === 'magnetic-to-true' ? 'M' : wrap.from
   const to: NorthReference = from === 'T' ? 'M' : 'T'
-  const bearing = stage === 'wrapping-through-north' ? pick([2, 5, 355, 359], h, n) : data.bearing
-  const D = stage === 'wrapping-through-north' ? (bearing < 10 ? 16 : -14) : data.D
+  const { bearing, D } = data
   const result = convert(bearing, from, to, { D, C: 0 })
   const answer = formatBearing(result, to)
   const rule = from === 'T' ? 'M = T − D' : 'T = M + D'
@@ -276,8 +280,9 @@ function gridMargin(topic: BearingTopicId, stage: string, seed: number, n: numbe
   const data = pick([
     { bearing: 16, gd: 12 }, { bearing: 275, gd: -9 }, { bearing: 358, gd: 15 },
     { bearing: 7, gd: -11 }, { bearing: 123, gd: 6 }, { bearing: 338, gd: -16 },
+    { bearing: 359, gd: -16 }, { bearing: 2, gd: 16 },
   ], h, n)
-  const from: NorthReference = (h + n) % 2 === 0 ? 'G' : 'M'
+  const from: NorthReference = Math.floor((h % 16 + n % 16) / 8) % 2 === 0 ? 'G' : 'M'
   const to: NorthReference = from === 'G' ? 'M' : 'G'
   const result = convert(data.bearing, from, to, { D: data.gd, C: 0 })
   const answer = formatBearing(result, to)
