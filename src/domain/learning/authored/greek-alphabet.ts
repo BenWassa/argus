@@ -1,8 +1,7 @@
 import type { Curriculum, LessonStep } from '../stages'
 
 /**
- * #325 Greek alphabet pilot. Drafted but intentionally NOT registered in
- * generatedCurriculum.ts until the owner approves the 390px interaction mock.
+ * #325 Greek alphabet lessons, registered with owner approval on 2026-11-03.
  *
  * Each existing scored item is capital + lowercase glyph -> English name.
  * This file does not introduce glyph production, pronunciation or word reading.
@@ -110,7 +109,7 @@ const PACKETS: readonly Packet[] = [
     takeaway: 'Sigma has three common forms (Σ, σ, ς) but is one of the 24 letters.',
   },
   {
-    id: 'finish-and-mix', title: 'Finish And Mix',
+    id: 'finish-and-mix', title: 'Finish and Mix',
     letters: [
       { ordinal: 8, forms: 'Θ θ', name: 'Theta', cue: 'Theta has a line through its oval: Θ θ.' },
       { ordinal: 21, forms: 'Φ φ', name: 'Phi', cue: 'Phi has a vertical line through its oval: Φ φ.' },

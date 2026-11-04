@@ -1,12 +1,29 @@
 import { describe, expect, it } from 'vitest'
 import { seedLibrary } from '../../library/catalogSeed'
+import { curriculumFor } from '../generatedCurriculum'
 import { checkCurriculum, askedItemIds } from '../stages'
 import { greekAlphabetCurriculum, greekLessonLetters } from './greek-alphabet'
 
-const topic = seedLibrary().topics.find(candidate => candidate.id === 'greek-alphabet')!
+const topic = seedLibrary().topics.find(entry => entry.id === 'greek-alphabet')!
 const byId = new Map(topic.items.map(item => [item.id!, item]))
 
-describe('#325 Greek authored curriculum (candidate, not registered)', () => {
+describe('#325 Greek authored curriculum', () => {
+  it('serves the authored curriculum for Greek', () => {
+    expect(curriculumFor(topic)).toBe(greekAlphabetCurriculum)
+  })
+
+  it('uses readable ids and short title-case stage titles', () => {
+    expect(greekAlphabetCurriculum.stages.map(stage => stage.title)).toEqual([
+      'Familiar Shapes', 'Distinctive Outlines', 'Similar Capitals',
+      'Deceptive Lookalikes', 'Easily Confused', 'Finish and Mix',
+    ])
+    for (const stage of greekAlphabetCurriculum.stages) {
+      expect(stage.id).toMatch(/^[a-z]+(?:-[a-z]+)*$/)
+      expect(stage.id).not.toMatch(/^lesson-/)
+      expect(stage.title.length).toBeLessThanOrEqual(40)
+    }
+  })
+
   it('covers exactly the original 24 item identities with all six small packets', () => {
     expect(topic.items).toHaveLength(24)
     expect(greekLessonLetters).toHaveLength(24)
@@ -23,7 +40,7 @@ describe('#325 Greek authored curriculum (candidate, not registered)', () => {
       const id = `greek-alphabet-item-${String(letter.ordinal).padStart(2, '0')}`
       expect(byId.get(id)).toMatchObject({ prompt: letter.forms, answer: letter.name, kind: 'forward' })
       const step = greekAlphabetCurriculum.stages.flatMap(stage => stage.steps)
-        .find(candidate => candidate.kind === 'choose' && candidate.id.endsWith(`choose-${letter.ordinal}`))
+        .find(entry => entry.kind === 'choose' && entry.id.endsWith(`choose-${letter.ordinal}`))
       expect(step).toMatchObject({ kind: 'choose', itemId: id, answer: letter.name })
     }
     expect(byId.get('greek-alphabet-item-18')!.prompt).toBe('Σ σ ς')

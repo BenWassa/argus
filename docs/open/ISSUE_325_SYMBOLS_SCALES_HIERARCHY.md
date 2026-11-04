@@ -1,13 +1,13 @@
 # #325 — Symbols, scales and hierarchy: authored-learning plan
 
-**Status:** Greek lesson data + isolated tests are a candidate for owner review; **not registered in the live curriculum registry**. SI and CAF are authored specifications, not production UI or changed Test banks. Revised 2026-11-03.
+**Status:** Greek authored lessons are **registered with owner approval on 2026-11-03**. SI and CAF are authored specifications, not production UI or changed Test banks. Revised 2026-11-03.
 
 ## Ownership and acceptance boundaries
 
 - #325 owns the authored **content**, subject-specific answer validation, source trace and 390px design proposals. #296 owns the shared lesson schema, runner, registration, routing, cross-topic persistence and error-feedback UI; #113 owns storage integration.
 - Existing catalog scope remains **Greek 24 glyph-pair → English name**, **SI 24 decimal power → prefix name and case-sensitive symbol**, **CAF 19 practical equivalency levels × two directions = 38 Test prompts**.
 - Existing `*-item-XX` IDs, answers, successful prior Test history, completions, roles and optional Final Test behavior are immutable. A lesson response is formative and cannot write scored Test evidence. Old completed topics stay complete.
-- Generated lessons continue as the live fallback. After owner signs off on the visual design and #296's runner contracts, #296 may register the candidate curriculum without re-keying existing items. This PR intentionally does not edit `generatedCurriculum.ts` or shared framework files.
+- Greek now uses its registered authored curriculum without re-keying existing items. Existing generated lesson ticks do not carry over; in-progress learners start the authored path at its first stage, as accepted for wave 1. Test history, evidence and completion remain untouched; no migration is added. SI and CAF remain spec-only and gated.
 - All individual exercises are deterministic; no unreviewed procedural inference, random fabricated keys, handwriting claims, Greek listening/pronunciation claims, unit-conversion Test, military command qualification or insignia-recognition claim.
 - Reference offers the entire original table without replacing Learn with a reference dump. Each lesson is completed once; retries correct *this* step, no repeated perfect-score rule. Final Test remains optional.
 
@@ -28,7 +28,7 @@ Each packet: four **show** cards (group introduction), four **choose** glyph-to-
 
 **Sample source-bound keys and corrections:**
 
-| ID / interaction | Correct | Immediate correction on an error |
+| ID / interaction | Correct | Explanation after a second miss |
 | --- | --- | --- |
 | `greek-alphabet-item-07` · `Η η` | Eta | Eta is Η η; Nu is Ν ν. Their small forms η and ν are distinguishable. |
 | `greek-alphabet-item-13` · `Ν ν` | Nu | Nu is Ν ν, not Upsilon Υ υ or Eta Η η. |
@@ -80,7 +80,7 @@ Each initial level generates **two** source-backed formative prompts referring t
 
 ## Existing shared-runner observations / #296 handoff
 
-- The present `StageRunner.tsx` displays an authored `choose` or `contrast` explanation **only after the second incorrect submission** (`wrongCount >= 2`). This conflicts with #325's requirement for immediate specific correction. #296 owner should make an approved shared-runner change *before* registering these curricula; do not fork or edit the runner here.
+- Owner decision (2026-11-03): in every lesson, a first miss shows colour, a visual cue and a styled “Try again”, with no explanation. An explanation appears **after a second miss**, as today. Greek lessons are registered under this contract; no shared-runner edit is included.
 - The runner's `checkpoint` currently performs **reveal/self-report**, not objective grading. Our Greek packet includes objective choose/contrast steps before the checkpoint; never label the checkpoint as independent Test evidence.
 - No special Greek character images are necessary: render UTF-8 text with a Greek-capable system-font fallback and independent accessibility names. Test at 320px and 390px plus 200% text; on unsupported glyph fallback, avoid tofu and prevent ambiguous character collapse.
 - `contrast` tiles currently show a topic item's scored `prompt`. This makes the Greek text-pair contrast supportable with existing #296 primitives without any new shared UI. SI's log scale and CAF's paired ladder are **proposed** primitives; implementation separately approved and owned by #296.
@@ -90,7 +90,7 @@ Each initial level generates **two** source-backed formative prompts referring t
 
 All three images are **static 390×844px SVG design specifications**, not production components:
 
-1. [Greek glyph contrast](assets/issue-325/greek-contrast-390.svg) — actual glyph, four choices, specific post-error correction.
+1. [Greek glyph contrast](assets/issue-325/greek-contrast-390.svg) — actual glyph, four choices, specific explanation after a second miss.
 2. [SI log-scale checkpoint](assets/issue-325/si-log-scale-390.svg) — relative powers and M/m magnitude distinction.
 3. [CAF text hierarchy match](assets/issue-325/caf-band-match-390.svg) — tap-based text equivalency and appointment note, **no insignia**.
 
@@ -98,8 +98,8 @@ Colour and spacing follow `src/styles/tokens.css` Signal-on-Slate intent: cool o
 
 ## Acceptance and regression plan
 
-- **Greek candidate:** all 24 stable IDs and exact Unicode prompts match seed, exactly one answer in every four-choice step, no duplicate keys, checkpoint at each stage, contrast descriptions sourced, 6 stages within `MAX_STEPS_PER_STAGE`; run targeted Vitest and TypeScript in CI.
+- **Registered Greek:** all 24 stable IDs and exact Unicode prompts match seed, exactly one answer in every four-choice step, no duplicate keys, checkpoint at each stage, contrast descriptions sourced, 6 stages within `MAX_STEPS_PER_STAGE`; run targeted Vitest and TypeScript in CI.
 - **SI future slice:** 24 exact power/name/case symbols including `da` and `µ`; test for `M/m`, `P/p`, `Q/q`, `R/r`, exponent sign and sorted log scale; source-checked numerical examples; do not silently score conversions.
 - **CAF future slice:** 19 distinct level metadata and 38 direction-specific IDs match the shipped bank; every equivalent is reversible, rank-vs-appointment distinctions correct; assert **no insignia paths or images**.
 - **Shared integration review:** 320/390px and short landscape, 200% text, keyboard and screen reader, 44px minimum targets, reduced motion, replay and Back/reload, per-account persisted completion with no test/evidence mutation, old completion and roles preserved, offline/Pixel smoke.
-- **Owner gate:** no registration, stage runner edit, shared routing, persistence, production UI or rights-gated artwork until owner explicitly approves mocks and #296 coordinates shared behavior. CI checks are necessary but do not substitute for this sign-off.
+- **Owner gate:** Greek registration is approved and complete (2026-11-03), using the shared feedback contract above. SI and CAF remain spec-only: registration, new primitives, production UI and rights-gated artwork require separate owner approval and #296 coordination. CI checks do not substitute for that sign-off.
