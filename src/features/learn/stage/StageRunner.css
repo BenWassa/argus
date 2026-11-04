@@ -51,14 +51,19 @@
 }
 .stage-options > button:hover { background: var(--surface-3); }
 .stage-options > button.is-wrong { border-color: var(--danger); color: var(--danger); }
-.stage-options > button.is-correct { border-color: var(--ok); color: var(--ok); }
+.stage-options > button.is-correct,
+.stage-options > button.is-correct:disabled { border-color: var(--ok); color: var(--ok); }
 .stage-options > button:focus-visible { outline: 2px solid var(--action); outline-offset: 2px; }
 .stage-feedback { margin: 0; color: var(--danger); font-size: var(--t-small); }
 .stage-sequence { display: flex; flex-wrap: wrap; gap: var(--s-xs); padding: 0; list-style: none; }
 @media (max-height: 700px) {
   .stage-stimulus { gap: var(--s-xs); }
   .stage-card { min-height: 0; gap: var(--s-sm); padding: var(--s-md); }
-  .stage-card .visual svg, .stage-card .visual img { max-height: 20svh; }
+  /* Feedback takes height from the card, so a picture shrinks whole. Clipping
+     it could hide a shape and show a different answer. */
+  .stage-card:has(.visual) { height: 100%; }
+  .stage-card .visual { flex: 0 1 20svh; display: flex; justify-content: center; }
+  .stage-card .visual svg, .stage-card .visual img { height: 100%; max-height: 20svh; }
   .stage-options > button { padding-block: 8px; }
 }
 @media (prefers-reduced-motion: reduce) {
