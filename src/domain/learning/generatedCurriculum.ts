@@ -6,6 +6,7 @@ import { gridNorthMapBearingsCurriculum } from './authored/grid-north-map-bearin
 import { northReferencesDeclinationCurriculum } from './authored/north-references-declination'
 import { oodaLoopCurriculum } from './authored/ooda-loop'
 import { reciprocalBearingsCurriculum } from './authored/reciprocal-bearings'
+import { vesselDayShapesCurriculum } from './authored/vessel-day-shapes'
 import { wholeCircleBearingsCurriculum } from './authored/whole-circle-bearings'
 
 /** v5 items always have ids; the fallback keeps legacy in-memory fixtures usable. */
@@ -64,6 +65,7 @@ export function generatedCurriculum(topic: Topic): Curriculum {
 
 /** Authored curricula can override the generated default (owner, 2026-10-29). */
 const AUTHORED: ReadonlyMap<string, Curriculum> = new Map([
+  ['vessel-day-shapes', vesselDayShapesCurriculum],
   ['ooda-loop', oodaLoopCurriculum],
   ['whole-circle-bearings', wholeCircleBearingsCurriculum],
   ['reciprocal-bearings', reciprocalBearingsCurriculum],

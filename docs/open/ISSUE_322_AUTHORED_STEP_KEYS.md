@@ -1,11 +1,11 @@
 # #322 — Authored step and feedback ledger
 
-**Status:** unregistered **authoring specification**, not runnable code; owner approval, #296 runner integration and relevant expert/rights reviews pending. Companion: [curriculum/source plan](ISSUE_322_STAGED_CURRICULA.md) and [390px mockups](assets/issue-322/).
+**Status:** Day Shapes implemented and registered (2026-11-03); maintained step ledger. Navigation Lights, SCUBA and Beaufort remain authoring specifications, with owner approval, runner integration and relevant expert/rights reviews pending. Companion: [curriculum/source plan](ISSUE_322_STAGED_CURRICULA.md) and [390px mockups](assets/issue-322/).
 
 ## Step conventions for #296 handoff
 
 - Stage and step IDs below are stable, lowercase/kebab case and semantic. Items keep existing stable topic IDs and 01-indexed suffixes; a single original scored item can be rehearsed more than once without generating new scored items.
-- Every lesson uses **demonstration → active recall → explain/repair → checkpoint → summary**. Each stage may contain several teaching steps, but is complete after a single traversal even with corrections; retries are supportive, never a perfect-score gate.
+- Every lesson uses **demonstration → active recall → explain/repair → summary → checkpoint**. Each stage may contain several teaching steps, but is complete after a single traversal even with corrections; retries are supportive, never a perfect-score gate.
 - In an item-based visual choose step, the canonical item supplies the stimulus and canonical answer. The separate authored step supplies prompt/distractors/explanation. Do not duplicate a legal signal figure or overwrite the canonical source key.
 - Answer-first authored options are shuffled by the shared deterministic runner. A four-choice recommendation is not licence to create a second independent selection model.
 - “Correct” feedback cites the observed discriminant as well as the outcome; “Not quite” feedback identifies the wrong visual/numerical distinction and gives the correct answer. The *full* actual answer, sources and caveats remain discoverable in Reference.
@@ -14,7 +14,7 @@
 
 ## Day Shapes — implementation-first detailed sequence
 
-**Status and authority:** implemented as an unregistered data candidate in `src/domain/learning/authored/vessel-day-shapes.ts`, with invariant tests alongside it. This section records the candidate's current schema/runner mapping; it does not authorize registration or change shipped lessons. Facts remain bounded to the five shipped items and the plan's COLREGs Rules 26, 27 and 30 citations.
+**Status and authority:** implemented and registered in `src/domain/learning/authored/vessel-day-shapes.ts`, with invariant tests alongside it. This section records the current schema/runner mapping. The owner approved registration and accepted a source check in place of a separate maritime reviewer for this topic only (2026-11-03); other wave 2 topics retain their human review gate. Facts remain bounded to the five shipped items and existing COLREGs citations.
 
 ### Step map
 
@@ -26,25 +26,25 @@
 | shape-ball-count | shapes-count-one | choose | 01 | Figure-first: “Which vessel state does this display?” |
 | shape-ball-count | shapes-count-two | choose | 02 | Same question, canonical two-ball figure |
 | shape-ball-count | shapes-count-three | choose | 04 | Same question, canonical three-ball figure |
-| shape-ball-count | shapes-count-check | checkpoint | 01, 02, 04 | Items 01, 02, 04 |
 | shape-ball-count | shapes-count-summary | summary | — | “One anchor; two not under command; three aground.” |
+| shape-ball-count | shapes-count-check | checkpoint | 01, 02, 04 | Items 01, 02, 04 |
 | shape-middle-diamond | shapes-middle-show | show | 03 | Labelled ball / diamond / ball; compare middle outline with a third ball |
 | shape-middle-diamond | shapes-middle-choose | choose | 03 | Which state? Correct response from item 03 |
 | shape-middle-diamond | shapes-middle-contrast | choose | 04 | Three-ball figure: “Check the middle shape. Which vessel state does this display?” Two options, 04 against 03 |
-| shape-middle-diamond | shapes-middle-check | checkpoint | 03, 04 | Items 03, 04 |
 | shape-middle-diamond | shapes-middle-summary | summary | — | “The middle diamond identifies restricted ability to manoeuvre.” |
+| shape-middle-diamond | shapes-middle-check | checkpoint | 03, 04 | Items 03, 04 |
 | shape-fishing-cones | shapes-cone-show | show | 05 | Two opposed cones touch at their tips; neither is a ball |
 | shape-fishing-cones | shapes-cone-choose | choose | 05 | Which state? The answer explicitly includes trawling **or other fishing** |
 | shape-fishing-cones | shapes-cone-contrast | choose | 03 | Ball–diamond–ball figure: “Cones or a diamond? Which vessel state does this display?” Two options, 03 against 05 |
-| shape-fishing-cones | shapes-cone-check | checkpoint | 05, 03 | Items 05, 03 |
 | shape-fishing-cones | shapes-cone-summary | summary | — | “The day shape does not separate fishing types.” |
+| shape-fishing-cones | shapes-cone-check | checkpoint | 05, 03 | Items 05, 03 |
 | shape-mixed-signals | shapes-mixed-teach | show | — | Rules only: count; check middle; identify points meeting; no new content |
-| shape-mixed-signals | shapes-mixed-check | checkpoint | 01–05 | Items 01, 02, 03, 04, 05 |
 | shape-mixed-signals | shapes-mixed-summary | summary | — | One-and-done stage completion; optional separate Final Test |
+| shape-mixed-signals | shapes-mixed-check | checkpoint | 01–05 | Items 01, 02, 03, 04, 05 |
 
 ### Original 5-item choices and wrong-answer feedback
 
-For each unlabelled figure, use the **existing Test answer string**, not a shortened answer, as the canonical value. The candidate uses the full strings below for answers and options; the runner shuffles options, and original Test options remain unchanged.
+For each unlabelled figure, use the **existing Test answer string**, not a shortened answer, as the canonical value. The curriculum uses the full strings below for answers and options; the runner shuffles options, and original Test options remain unchanged.
 
 | Item | Correct answer | Recommended relevant alternatives (not a second Test bank) | Response when mistaken |
 | --- | --- | --- | --- |
@@ -54,20 +54,20 @@ For each unlabelled figure, use the **existing Test answer string**, not a short
 | 04 | Vessel aground | Vessel not under command; Vessel restricted in her ability to manoeuvre; Vessel at anchor | “Vessel aground: all three shapes are round balls; Vessel restricted in her ability to manoeuvre has a diamond in the middle.” |
 | 05 | Vessel engaged in fishing (trawling or other fishing) | Vessel restricted in her ability to manoeuvre; Vessel not under command; Vessel at anchor | “Vessel engaged in fishing (trawling or other fishing): two cones meet point-to-point, unlike ball–diamond–ball; the shape covers trawling and other fishing, so it does not mean trawling only.” |
 
-**Worked correction UI:** in screen 04 the learner incorrectly selects “Vessel aground” for ball–diamond–ball; feedback explicitly names the correct state and why the central diamond changes interpretation. The mock shows a two-state revision; implementation may offer a retry without rescoring a formal Test.
+**Worked correction UI:** in screen 04 the learner incorrectly selects “Vessel aground” for ball–diamond–ball; after the second miss, feedback explicitly names the correct state and why the central diamond changes interpretation. The mock shows a two-state revision; implementation may offer a retry without rescoring a formal Test.
 
 ### Resolutions against the current runner
 
 - A show accepts one item: retain `shapes-count-intro` for 01 and add `shapes-count-intro-two` / `shapes-count-intro-three` for 02 / 04. No three-up figure is claimed.
 - Both formerly undefined contrasts are two-option `choose` steps on a figure. The runner's `contrast` kind labels its tiles with item prompts and shows no figure, and every Day Shapes item prompt is the same question, so a `contrast` here would be unanswerable. A side-by-side figure comparison needs a runner change, which is separate work.
 - Checkpoints are reveal-and-self-report lists only. Their rows name exactly the items listed; there is no fixed feedback, size/spacing variation or text-choice interaction. The “trawling only” correction lives in `shapes-cone-choose` and `shapes-cone-contrast` explanations.
-- Choose explanations use the table above, naming the correct state and discriminating geometry. Today the runner shows them after a second miss; they also read correctly after a first miss. There is no authored correct-answer feedback hook.
+- Choose explanations use the table above, naming the correct state and discriminating geometry. The owner decision of 2026-11-03 preserves explanations after a second miss only, in every lesson. A first miss shows colour, a visual cue and styled “Try again”, with no explanation. There is no authored correct-answer feedback hook.
 - Show figures have geometry-only `altText`. Choose/checkpoint steps have no authored alt field and use the shipped item's geometry-only `stimulus.alt`. The runner currently renders that canonical alt even on shows; authored show alt is schema metadata, not an override. Text-only shows and contrasts add no figure.
-- The candidate is deliberately unregistered: `curriculumFor` on the seeded topic still returns generated lessons. Runner, registry and scored items are unchanged; registration and any richer interaction remain separate work.
+- `curriculumFor` on the seeded topic returns this authored curriculum. Generated lesson ticks do not carry over; Test history, evidence and completion follow the accepted #296 Existing progress behavior. No migration or scored-item change is included; richer runner interactions remain separate work.
 
 ### Semantic-variant restrictions
 
-No variants are implemented in this candidate. For any future implementation, generated shape variations are limited to position and uniform overall scale, adequate vertical spacing and neutral background. Do not mirror a single cone into an inverted meaning, alter the number, swap order, hide one shape behind another, stylize circles into diamonds or use emoji. Do not treat variation of the same canonical regulatory symbol as independent photo exemplars. Unchanged source model: DAY_SHAPE_STATUS_ORDER = anchor, not-under-command, restricted-manoeuvre, aground, fishing; shapeState() normalizes the shared fishing concept.
+No variants are implemented in this curriculum. For any future implementation, generated shape variations are limited to position and uniform overall scale, adequate vertical spacing and neutral background. Do not mirror a single cone into an inverted meaning, alter the number, swap order, hide one shape behind another, stylize circles into diamonds or use emoji. Do not treat variation of the same canonical regulatory symbol as independent photo exemplars. Unchanged source model: DAY_SHAPE_STATUS_ORDER = anchor, not-under-command, restricted-manoeuvre, aground, fishing; shapeState() normalizes the shared fishing concept.
 
 ## Navigation Lights — detailed exercise/source-key map
 
@@ -115,9 +115,9 @@ No variants are implemented in this candidate. For any future implementation, ge
 
 | Check | Present in this proposal | Still outstanding |
 | --- | --- | --- |
-| Four meaningful curriculum sequences and stable IDs | Yes, authored here | #296 registration and separate code implementation |
-| Exact historical scored boundary (16/5/13/13) | Yes, original IDs/keys retained | Automated invariant checks |
-| Source-backed corrective feedback | Yes, mistakes/confusions mapped | Independent #147 maritime, #132 SCUBA review |
+| Four meaningful curriculum sequences and stable IDs | Day Shapes implemented and registered; other three specified here | Other three require #296 registration and code implementation |
+| Exact historical scored boundary (16/5/13/13) | Original IDs/keys retained; Day Shapes invariant tests implemented | Automated checks for other three |
+| Source-backed corrective feedback | Day Shapes source check accepted by owner; other mistakes/confusions mapped | Navigation Lights maritime review and #132 SCUBA review |
 | Working responsive lesson UI | No | Owner mock approval first, then #296 integration |
 | Real-equipment rights-approved photos | No | #132 candidate acceptance and derivative audit |
 | New versioned visual Test for equipment | No | Independent expertise, rights, version migration approval |

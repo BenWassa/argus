@@ -1,13 +1,12 @@
 import type { Curriculum } from '../stages'
 
 /**
- * #322 candidate, intentionally NOT registered in generatedCurriculum.ts.
+ * #322 authored curriculum, registered in generatedCurriculum.ts.
  * Source boundary: the five existing vessel-day-shapes items and COLREGs
  * Rules 26, 27 and 30 cited in the #322 plan. No new scored content.
  * Shows carry geometry-only altText; choose/checkpoint figures use the item's
  * existing geometry-only stimulus.alt. Contrasts are two-option chooses because
  * a contrast step shows item prompts, not figures, and these items are pictures.
- * Registration and runner changes are separate work.
  */
 const ANCHOR = 'vessel-day-shapes-item-01'
 const TWO = 'vessel-day-shapes-item-02'
@@ -47,9 +46,9 @@ export const vesselDayShapesCurriculum: Curriculum = {
         { kind: 'choose', id: 'shapes-count-three', itemId: THREE,
           prompt: 'Which vessel state does this display?', options: [three, two, diamond, anchor],
           answer: three, explain: threeExplain },
-        { kind: 'checkpoint', id: 'shapes-count-check', itemIds: [ANCHOR, TWO, THREE] },
         { kind: 'summary', id: 'shapes-count-summary',
           text: `One ball: ${anchor}. Two balls: ${two}. Three balls: ${three}.` },
+        { kind: 'checkpoint', id: 'shapes-count-check', itemIds: [ANCHOR, TWO, THREE] },
       ],
     },
     {
@@ -64,8 +63,8 @@ export const vesselDayShapesCurriculum: Curriculum = {
         { kind: 'choose', id: 'shapes-middle-contrast', itemId: THREE,
           prompt: 'Check the middle shape. Which vessel state does this display?', options: [three, diamond],
           answer: three, explain: threeExplain },
-        { kind: 'checkpoint', id: 'shapes-middle-check', itemIds: [DIAMOND, THREE] },
         { kind: 'summary', id: 'shapes-middle-summary', text: `The middle diamond identifies ${diamond}.` },
+        { kind: 'checkpoint', id: 'shapes-middle-check', itemIds: [DIAMOND, THREE] },
       ],
     },
     {
@@ -80,8 +79,8 @@ export const vesselDayShapesCurriculum: Curriculum = {
         { kind: 'choose', id: 'shapes-cone-contrast', itemId: DIAMOND,
           prompt: 'Cones or a diamond? Which vessel state does this display?', options: [diamond, cones],
           answer: diamond, explain: diamondExplain },
-        { kind: 'checkpoint', id: 'shapes-cone-check', itemIds: [CONES, DIAMOND] },
         { kind: 'summary', id: 'shapes-cone-summary', text: 'The day shape does not separate trawling from other fishing.' },
+        { kind: 'checkpoint', id: 'shapes-cone-check', itemIds: [CONES, DIAMOND] },
       ],
     },
     {
@@ -89,9 +88,9 @@ export const vesselDayShapesCurriculum: Curriculum = {
       steps: [
         { kind: 'show', id: 'shapes-mixed-teach', title: 'Read the Arrangement',
           body: 'Count the balls; check the middle shape; look for two cones meeting at their points.' },
-        { kind: 'checkpoint', id: 'shapes-mixed-check', itemIds: [ANCHOR, TWO, DIAMOND, THREE, CONES] },
         { kind: 'summary', id: 'shapes-mixed-summary',
-          text: 'You have reviewed the five displays. The separate Test is optional.' },
+          text: 'Now review all five displays. The separate Test is optional.' },
+        { kind: 'checkpoint', id: 'shapes-mixed-check', itemIds: [ANCHOR, TWO, DIAMOND, THREE, CONES] },
       ],
     },
   ],

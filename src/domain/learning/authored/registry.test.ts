@@ -3,7 +3,7 @@ import { seedLibrary } from '../../library/catalogSeed'
 import { curriculumFor } from '../generatedCurriculum'
 import { checkCurriculum } from '../stages'
 
-const AUTHORED_IDS = ['ooda-loop', 'whole-circle-bearings', 'reciprocal-bearings', 'north-references-declination', 'grid-north-map-bearings']
+const AUTHORED_IDS = ['vessel-day-shapes', 'ooda-loop', 'whole-circle-bearings', 'reciprocal-bearings', 'north-references-declination', 'grid-north-map-bearings']
 
 describe('authored curricula are what the app serves for their topics', () => {
   const topics = seedLibrary().topics
@@ -16,7 +16,9 @@ describe('authored curricula are what the app serves for their topics', () => {
   })
 
   it('leaves every other ordinary topic on generated lessons', () => {
-    const nato = topics.find(candidate => candidate.id === 'nato-phonetic')!
-    expect(curriculumFor(nato)!.stages[0].id).toBe('lesson-1')
+    for (const topic of topics.filter(topic => !AUTHORED_IDS.includes(topic.id) && topic.items.length && topic.id !== 'international-morse')) {
+      const curriculum = curriculumFor(topic)
+      if (curriculum) expect(curriculum.stages.every(stage => /^lesson-\d+$/.test(stage.id)), topic.id).toBe(true)
+    }
   })
 })

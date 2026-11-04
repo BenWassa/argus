@@ -1,16 +1,16 @@
 import { describe, expect, it } from 'vitest'
 import { seedLibrary } from '../../library/catalogSeed'
-import { curriculumFor, generatedCurriculum } from '../generatedCurriculum'
+import { curriculumFor } from '../generatedCurriculum'
 import { askedItemIds, checkCurriculum, MAX_STEPS_PER_STAGE } from '../stages'
 import { vesselDayShapesCurriculum as curriculum } from './vessel-day-shapes'
 
-const topic = seedLibrary().topics.find(candidate => candidate.id === 'vessel-day-shapes')!
+const topic = seedLibrary().topics.find(entry => entry.id === 'vessel-day-shapes')!
 const items = new Map(topic.items.map(item => [item.id!, item]))
 const ids = new Set(items.keys())
 const answers = new Set(topic.items.map(item => item.answer))
 const steps = curriculum.stages.flatMap(stage => stage.steps)
 
-describe('unregistered Vessel Day Shapes candidate', () => {
+describe('registered Vessel Day Shapes curriculum', () => {
   it('passes the full-coverage figure contract for all five shipped items', () => {
     expect(ids.size).toBe(5)
     const figureItemIds = new Set(topic.items.filter(item => item.stimulus?.source.kind === 'figure').map(item => item.id!))
@@ -25,6 +25,12 @@ describe('unregistered Vessel Day Shapes candidate', () => {
       'shape-ball-count', 'shape-middle-diamond', 'shape-fishing-cones', 'shape-mixed-signals',
     ])
     for (const stage of curriculum.stages) {
+      expect(stage.id).toMatch(/^[a-z]+(?:-[a-z]+)+$/)
+      expect(stage.id).not.toMatch(/^lesson-/)
+      expect(stage.title.length).toBeLessThanOrEqual(40)
+      expect(stage.title).toMatch(/^[A-Z][a-z]+(?: (?:the|[A-Z][a-z]+))*$/)
+      expect(stage.steps.at(-1)?.kind).toBe('checkpoint')
+      expect(stage.steps.at(-2)?.kind).toBe('summary')
       expect(stage.steps.length).toBeGreaterThan(0)
       expect(stage.steps.length).toBeLessThanOrEqual(MAX_STEPS_PER_STAGE)
     }
@@ -55,10 +61,8 @@ describe('unregistered Vessel Day Shapes candidate', () => {
     }
   })
 
-  it('leaves the seeded topic on generated lessons, outside the authored registry', () => {
-    expect(curriculumFor(topic)).toEqual(generatedCurriculum(topic))
-    expect(curriculumFor(topic)).not.toBe(curriculum)
-    expect(curriculumFor(topic)!.stages.map(stage => stage.id)).toEqual(['lesson-1'])
+  it('serves the authored curriculum for the seeded topic', () => {
+    expect(curriculumFor(topic)).toBe(curriculum)
   })
 
   it('never asks a picture question without its picture', () => {
