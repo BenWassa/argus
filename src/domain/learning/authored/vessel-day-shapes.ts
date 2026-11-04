@@ -20,11 +20,11 @@ const diamond = 'Vessel restricted in her ability to manoeuvre'
 const three = 'Vessel aground'
 const cones = 'Vessel engaged in fishing (trawling or other fishing)'
 
-const anchorExplain = `${anchor}: only one round ball appears; two balls indicate ${two}, and three indicate ${three}.`
-const twoExplain = `${two}: two round balls are vertically stacked; a third round ball would indicate ${three}.`
-const diamondExplain = `${diamond}: a diamond between two balls distinguishes this from ${three}, which has three round balls.`
-const threeExplain = `${three}: all three shapes are round balls; ${diamond} has a diamond in the middle.`
-const conesExplain = `${cones}: two cones meet point-to-point, unlike ball–diamond–ball; the shape covers trawling and other fishing, so it does not mean trawling only.`
+const anchorExplain = 'Only one round ball appears. Two mean not under command; three mean aground.'
+const twoExplain = 'Two round balls are stacked. A third round ball would mean aground.'
+const diamondExplain = 'A diamond sits between the two balls. Aground has three round balls.'
+const threeExplain = 'All three shapes are round balls. Restricted ability to manoeuvre has a diamond in the middle.'
+const conesExplain = 'Two cones meet point to point. The shape covers trawling and other fishing alike.'
 
 export const vesselDayShapesCurriculum: Curriculum = {
   stages: [
