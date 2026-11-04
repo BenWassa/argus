@@ -50,11 +50,24 @@
   background: var(--surface-2); color: var(--ink); box-shadow: var(--shadow-sm);
 }
 .stage-options > button:hover { background: var(--surface-3); }
-.stage-options > button.is-wrong { border-color: var(--danger); color: var(--danger); }
+.stage-options > button.is-wrong { border-color: var(--danger); color: var(--danger); animation: stage-miss 220ms ease-out; }
+.stage-options > button.is-wrong::after { content: '✕'; float: right; margin-left: var(--s-sm); font-weight: 700; }
 .stage-options > button.is-correct,
 .stage-options > button.is-correct:disabled { border-color: var(--ok); color: var(--ok); }
 .stage-options > button:focus-visible { outline: 2px solid var(--action); outline-offset: 2px; }
-.stage-feedback { margin: 0; color: var(--danger); font-size: var(--t-small); }
+.stage-feedback { display: grid; gap: var(--s-xs); }
+.stage-explain { margin: 0; color: var(--muted); font-size: var(--t-small); }
+.stage-retry {
+  justify-self: start; margin: 0; padding: 4px 12px; display: flex; gap: var(--s-xs); align-items: center;
+  border: 1px solid var(--danger); border-radius: 999px;
+  color: var(--danger); font-size: var(--t-small); font-weight: 700;
+  animation: stage-miss 220ms ease-out;
+}
+@keyframes stage-miss {
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+.stage-options.is-glyphs > button { font-family: var(--font-mono); font-size: clamp(1.6rem, 8vw, 2.2rem); line-height: 1.2; text-align: center; }
 .stage-sequence { display: flex; flex-wrap: wrap; gap: var(--s-xs); padding: 0; list-style: none; }
 @media (max-height: 700px) {
   .stage-stimulus { gap: var(--s-xs); }
