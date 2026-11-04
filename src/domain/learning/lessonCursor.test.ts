@@ -111,16 +111,24 @@ describe('versioned lesson resume bookmark', () => {
     if (legacy.ok) expect(legacy.library.topics[0].lessonCursor).toBeUndefined()
   })
 
-  it('rejects corrupt or unsupported cursor versions without inventing a bookmark', () => {
+  it('drops corrupt or unsupported cursors without losing historical progress', () => {
     const good = withLessonCursor(topic(), stage, 'intro').lessonCursor!
     const invalid = [
       { ...good, version: 2 }, { ...good, cardIndex: -1 },
       { ...good, stageKey: 'wrong' }, { ...good, stepId: 'UPPER' },
       { ...good, unexpected: true }, [], null, 'intro',
     ]
+    const before = { ...topic(), stageProgress: { [stage.id]: '2026-10-01T00:00:00.000Z' } }
     for (const cursor of invalid) {
       expect(parseLessonCursor(cursor)).toBeNull()
-      expect(parseLibrary({ version: 5, topics: [{ ...topic(), lessonCursor: cursor }] }).ok).toBe(false)
+      const parsed = parseLibrary({ version: 5, topics: [{ ...before, lessonCursor: cursor }] })
+      expect(parsed.ok).toBe(true)
+      if (!parsed.ok) continue
+      const restored = parsed.library.topics[0]
+      expect(restored).not.toHaveProperty('lessonCursor')
+      expect(restored.history).toEqual(before.history)
+      expect(restored.stageProgress).toEqual(before.stageProgress)
+      expect(lessonResumePoint(restored, stage)).toEqual({ stepIndex: 0, cardIndex: 0 })
     }
     expect(parseLessonCursor(undefined)).toBeUndefined()
   })

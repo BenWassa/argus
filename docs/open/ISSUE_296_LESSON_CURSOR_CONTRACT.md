@@ -1,5 +1,7 @@
 # #296 — Stage bookmark compatibility and owner design gate
 
+**Status:** active parser-first contract; no production cursor writer.
+
 **Scope:** implementation slice for the shared learning contract; no production UI changes. Coordinate app-wide teaching and assessment directions with #320 and #321–#326. The Radio Procedure / Signal Flags authored drafts (#304) remain gated on independent review. Do not couple this work to #113's IndexedDB provider or sync code.
 
 ## Current state on main (2026-11-03)
@@ -11,7 +13,7 @@
 
 ## Parser-first contract in this PR
 
-`Topic.lessonCursor` is **optional**, format **version 1**, and strictly validated by `parseLessonCursor` at the v5 import boundary. Unknown versions, corrupt IDs, invalid card indexes, unrecognized keys or malformed revision keys are rejected, not silently dropped.
+`Topic.lessonCursor` is **optional**, format **version 1**, and strictly validated by `parseLessonCursor` at the v5 import boundary. Unknown versions, corrupt IDs, invalid card indexes, unrecognized keys or malformed revision keys fail cursor validation and are omitted from the parsed topic. The library still opens and the lesson resumes at its first step; all other topic fields retain their existing validation.
 
 | Field | Meaning |
 | --- | --- |
@@ -23,6 +25,12 @@
 The pure helpers `withLessonCursor` and `lessonResumePoint` encode the safe resume invariant: a cursor is a **navigation bookmark**, not a pass, attempt, score, item evidence or proof of assistance-free recall. When a stage changes or a target step is removed, resume starts at the beginning of that stage without rewriting or clearing any completed-stage receipts. Completion of that same stage clears its bookmark, not another stage's concurrent bookmark. No credential or date is fabricated.
 
 **Sequencing constraint:** parser support must be deployed and supported by all writers before beginning to persist `lessonCursor`. Old builds that reconstruct Topic without the field can otherwise lose it. This PR intentionally ships only the reader/data contract; the first live cursor write is a separate, release-gated follow-up. This keeps the current UI and #113's storage authority untouched.
+
+## Staggered rollout and old clients
+
+A build without this parser strips the field on save, and sync can push that loss to other devices. The only consequence is that the lesson restarts at its first step: stage receipts, `completedAt` and Test evidence are separate fields and remain intact. An export from an old build has no cursor and imports cleanly. A newer cursor version is ignored by this build rather than blocking the library or topic import.
+
+No writer may ship until this parser has been on every installed client for one release.
 
 ## Remaining explicit handoff
 
