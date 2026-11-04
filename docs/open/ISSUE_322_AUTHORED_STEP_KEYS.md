@@ -14,47 +14,60 @@
 
 ## Day Shapes — implementation-first detailed sequence
 
+**Status and authority:** implemented as an unregistered data candidate in `src/domain/learning/authored/vessel-day-shapes.ts`, with invariant tests alongside it. This section records the candidate's current schema/runner mapping; it does not authorize registration or change shipped lessons. Facts remain bounded to the five shipped items and the plan's COLREGs Rules 26, 27 and 30 citations.
+
 ### Step map
 
 | Stage ID | Step ID | Kind/proposed action | Canonical item(s) | Prompt or authored explanation |
 | --- | --- | --- | --- | --- |
-| shape-ball-count | shapes-count-intro | show | 01, 02, 04 references | Labelled three-up compare: 1 = anchor, 2 = NUC, 3 = aground; show three source-derived figures |
+| shape-ball-count | shapes-count-intro | show | 01 | One black ball: Vessel at anchor |
+| shape-ball-count | shapes-count-intro-two | show | 02 | Two black balls vertically: Vessel not under command |
+| shape-ball-count | shapes-count-intro-three | show | 04 | Three black balls vertically: Vessel aground |
 | shape-ball-count | shapes-count-one | choose | 01 | Figure-first: “Which vessel state does this display?” |
-| shape-ball-count | shapes-count-two | choose | 02 | Same, new unlabelled two-ball figure |
-| shape-ball-count | shapes-count-three | choose | 04 | Same, unlabelled three-ball figure |
-| shape-ball-count | shapes-count-check | checkpoint | 01, 02, 04 | Count across the three neighbouring cases |
+| shape-ball-count | shapes-count-two | choose | 02 | Same question, canonical two-ball figure |
+| shape-ball-count | shapes-count-three | choose | 04 | Same question, canonical three-ball figure |
+| shape-ball-count | shapes-count-check | checkpoint | 01, 02, 04 | Items 01, 02, 04 |
 | shape-ball-count | shapes-count-summary | summary | — | “One anchor; two not under command; three aground.” |
 | shape-middle-diamond | shapes-middle-show | show | 03 | Labelled ball / diamond / ball; compare middle outline with a third ball |
 | shape-middle-diamond | shapes-middle-choose | choose | 03 | Which state? Correct response from item 03 |
-| shape-middle-diamond | shapes-middle-contrast | contrast | 03, 04 | Compare RAM versus aground diagrams, never text abbreviations alone |
-| shape-middle-diamond | shapes-middle-check | checkpoint | 03, 04 | Vary permissible size/spacing; order unchanged |
+| shape-middle-diamond | shapes-middle-contrast | choose | 04 | Three-ball figure: “Check the middle shape. Which vessel state does this display?” Two options, 04 against 03 |
+| shape-middle-diamond | shapes-middle-check | checkpoint | 03, 04 | Items 03, 04 |
 | shape-middle-diamond | shapes-middle-summary | summary | — | “The middle diamond identifies restricted ability to manoeuvre.” |
 | shape-fishing-cones | shapes-cone-show | show | 05 | Two opposed cones touch at their tips; neither is a ball |
 | shape-fishing-cones | shapes-cone-choose | choose | 05 | Which state? The answer explicitly includes trawling **or other fishing** |
-| shape-fishing-cones | shapes-cone-contrast | contrast | 05, 03 | Two cones versus ball–diamond–ball, line-up and order retained |
-| shape-fishing-cones | shapes-cone-check | checkpoint | 05, 03 | Correct explanation for “trawling only” as an unsupported inference |
+| shape-fishing-cones | shapes-cone-contrast | choose | 03 | Ball–diamond–ball figure: “Cones or a diamond? Which vessel state does this display?” Two options, 03 against 05 |
+| shape-fishing-cones | shapes-cone-check | checkpoint | 05, 03 | Items 05, 03 |
 | shape-fishing-cones | shapes-cone-summary | summary | — | “The day shape does not separate fishing types.” |
 | shape-mixed-signals | shapes-mixed-teach | show | — | Rules only: count; check middle; identify points meeting; no new content |
-| shape-mixed-signals | shapes-mixed-check | checkpoint | 01–05 | All original five canonical figures; visual stimulus precedes text choices |
+| shape-mixed-signals | shapes-mixed-check | checkpoint | 01–05 | Items 01, 02, 03, 04, 05 |
 | shape-mixed-signals | shapes-mixed-summary | summary | — | One-and-done stage completion; optional separate Final Test |
 
 ### Original 5-item choices and wrong-answer feedback
 
-For each unlabelled figure, use the **existing Test answer string**, not a shortened answer, as the canonical value. These authored examples are orientation/reference; the runner may sort/shuffle, and original Test options remain unchanged.
+For each unlabelled figure, use the **existing Test answer string**, not a shortened answer, as the canonical value. The candidate uses the full strings below for answers and options; the runner shuffles options, and original Test options remain unchanged.
 
 | Item | Correct answer | Recommended relevant alternatives (not a second Test bank) | Response when mistaken |
 | --- | --- | --- | --- |
-| 01 | Vessel at anchor | NUC; Aground; RAM | “Only one round ball appears. NUC has two; aground has three.” |
-| 02 | Vessel not under command | At anchor; Aground; RAM | “Two round balls are vertically stacked; a third round ball would indicate aground.” |
-| 03 | Vessel restricted in her ability to manoeuvre | Aground; NUC; Fishing | “Round–diamond–round differs from three round balls. The middle diamond matters.” |
-| 04 | Vessel aground | NUC; RAM; At anchor | “Aground is three round balls. RAM has a diamond in the middle.” |
-| 05 | Vessel engaged in fishing (trawling or other fishing) | RAM; NUC; At anchor | “Those are two cones joined point-to-point. The same shape covers trawling and other fishing.” |
+| 01 | Vessel at anchor | Vessel not under command; Vessel aground; Vessel restricted in her ability to manoeuvre | “Vessel at anchor: only one round ball appears; two balls indicate Vessel not under command, and three indicate Vessel aground.” |
+| 02 | Vessel not under command | Vessel at anchor; Vessel aground; Vessel restricted in her ability to manoeuvre | “Vessel not under command: two round balls are vertically stacked; a third round ball would indicate Vessel aground.” |
+| 03 | Vessel restricted in her ability to manoeuvre | Vessel aground; Vessel not under command; Vessel engaged in fishing (trawling or other fishing) | “Vessel restricted in her ability to manoeuvre: a diamond between two balls distinguishes this from Vessel aground, which has three round balls.” |
+| 04 | Vessel aground | Vessel not under command; Vessel restricted in her ability to manoeuvre; Vessel at anchor | “Vessel aground: all three shapes are round balls; Vessel restricted in her ability to manoeuvre has a diamond in the middle.” |
+| 05 | Vessel engaged in fishing (trawling or other fishing) | Vessel restricted in her ability to manoeuvre; Vessel not under command; Vessel at anchor | “Vessel engaged in fishing (trawling or other fishing): two cones meet point-to-point, unlike ball–diamond–ball; the shape covers trawling and other fishing, so it does not mean trawling only.” |
 
 **Worked correction UI:** in screen 04 the learner incorrectly selects “Vessel aground” for ball–diamond–ball; feedback explicitly names the correct state and why the central diamond changes interpretation. The mock shows a two-state revision; implementation may offer a retry without rescoring a formal Test.
 
+### Resolutions against the current runner
+
+- A show accepts one item: retain `shapes-count-intro` for 01 and add `shapes-count-intro-two` / `shapes-count-intro-three` for 02 / 04. No three-up figure is claimed.
+- Both formerly undefined contrasts are two-option `choose` steps on a figure. The runner's `contrast` kind labels its tiles with item prompts and shows no figure, and every Day Shapes item prompt is the same question, so a `contrast` here would be unanswerable. A side-by-side figure comparison needs a runner change, which is separate work.
+- Checkpoints are reveal-and-self-report lists only. Their rows name exactly the items listed; there is no fixed feedback, size/spacing variation or text-choice interaction. The “trawling only” correction lives in `shapes-cone-choose` and `shapes-cone-contrast` explanations.
+- Choose explanations use the table above, naming the correct state and discriminating geometry. Today the runner shows them after a second miss; they also read correctly after a first miss. There is no authored correct-answer feedback hook.
+- Show figures have geometry-only `altText`. Choose/checkpoint steps have no authored alt field and use the shipped item's geometry-only `stimulus.alt`. The runner currently renders that canonical alt even on shows; authored show alt is schema metadata, not an override. Text-only shows and contrasts add no figure.
+- The candidate is deliberately unregistered: `curriculumFor` on the seeded topic still returns generated lessons. Runner, registry and scored items are unchanged; registration and any richer interaction remain separate work.
+
 ### Semantic-variant restrictions
 
-Generated shape variations are limited to position and uniform overall scale, adequate vertical spacing and neutral background. Do not mirror a single cone into an inverted meaning, alter the number, swap order, hide one shape behind another, stylize circles into diamonds or use emoji. Do not treat variation of the same canonical regulatory symbol as independent photo exemplars. Unchanged source model: DAY_SHAPE_STATUS_ORDER = anchor, not-under-command, restricted-manoeuvre, aground, fishing; shapeState() normalizes the shared fishing concept.
+No variants are implemented in this candidate. For any future implementation, generated shape variations are limited to position and uniform overall scale, adequate vertical spacing and neutral background. Do not mirror a single cone into an inverted meaning, alter the number, swap order, hide one shape behind another, stylize circles into diamonds or use emoji. Do not treat variation of the same canonical regulatory symbol as independent photo exemplars. Unchanged source model: DAY_SHAPE_STATUS_ORDER = anchor, not-under-command, restricted-manoeuvre, aground, fishing; shapeState() normalizes the shared fishing concept.
 
 ## Navigation Lights — detailed exercise/source-key map
 
