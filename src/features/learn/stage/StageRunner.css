@@ -75,7 +75,13 @@
   /* Feedback takes height from the card, so a picture shrinks whole. Clipping
      it could hide a shape and show a different answer. */
   .stage-card:has(.visual) { height: 100%; }
-  .stage-card .visual { flex: 0 1 20svh; display: flex; justify-content: center; }
+  .stage-card .visual { flex: 0 1 20svh; min-height: 56px; display: flex; justify-content: center; }
+  /* With an explanation showing, the picture matters more than the question,
+     which has been read twice. It stays for screen readers and focus. */
+  .stage-runner:has(.stage-explain) .stage-card:has(.visual) { padding-block: var(--s-xs); }
+  .stage-runner:has(.stage-explain) .stage-card:has(.visual) .stage-title {
+    position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+  }
   .stage-card .visual svg, .stage-card .visual img { height: 100%; max-height: 20svh; }
   .stage-options > button { padding-block: 8px; }
 }

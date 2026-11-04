@@ -17,6 +17,9 @@ export interface StageRunnerProps {
   nextLabel?: string
 }
 
+// Sigma's three forms ("Σ σ ς") are longer than the short-title rule allows.
+const GREEK_FORMS = /^[\p{Script=Greek} ]+$/u
+
 export function StageRunner(props: StageRunnerProps) {
   return <StageRun key={props.stage.id} {...props} />
 }
@@ -156,7 +159,7 @@ function StageRun({ stage, itemFace, itemFor, onFinish, onExit, onNext, nextLabe
     <div className="session-stimulus stage-stimulus">
       <div className={`stage-card${step?.kind === 'show' && !finished ? ' is-teaching' : ''}`}>
         {!finished && media}
-        <h2 ref={heading} tabIndex={-1} className={`stage-title${!finished && title.length <= 3 ? ' is-glyph' : ''}`}>{finished ? 'Lesson complete' : title}</h2>
+        <h2 ref={heading} tabIndex={-1} className={`stage-title${!finished && (title.length <= 3 || GREEK_FORMS.test(title)) ? ' is-glyph' : ''}`}>{finished ? 'Lesson complete' : title}</h2>
         {!finished && content}
       </div>
     </div>

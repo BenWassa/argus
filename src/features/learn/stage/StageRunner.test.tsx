@@ -85,6 +85,15 @@ describe('StageRunner', () => {
     expect(screen.queryByText('Test prompt')).toBeNull()
   })
 
+  it('shows all of Sigma\'s forms large, and leaves a short word alone', () => {
+    const stage = { id: 's', title: 'S', steps: [{ kind: 'checkpoint', id: 'check', itemIds: ['a'] } satisfies LessonStep] }
+    const { unmount } = render(<StageRunner stage={stage} itemFace={() => ({ front: 'Σ σ ς', back: 'Sigma' })} onFinish={() => {}} onExit={() => {}} />)
+    expect(screen.getByRole('heading', { name: 'Σ σ ς' }).className).toContain('is-glyph')
+    unmount()
+    render(<StageRunner stage={stage} itemFace={() => ({ front: 'kilo', back: '1000' })} onFinish={() => {}} onExit={() => {}} />)
+    expect(screen.getByRole('heading', { name: 'kilo' }).className).not.toContain('is-glyph')
+  })
+
   it('shows short contrast labels as large letters, and leaves sentences alone', () => {
     const contrast: LessonStep = { kind: 'contrast', id: 'compare', itemIds: ['a', 'b'], prompt: 'Compare', answerItemId: 'a', explain: 'Because.' }
     const stage = { id: 's', title: 'S', steps: [contrast] }
