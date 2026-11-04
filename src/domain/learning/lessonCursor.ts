@@ -36,7 +36,7 @@ export function stageKey(stage: LessonStage): string {
     (second >>> 0).toString(16).padStart(8, '0')
 }
 
-/** Strict import validation; an unknown version cannot be silently truncated. */
+/** Strict bookmark validation; callers discard invalid or unsupported cursors. */
 export function parseLessonCursor(value: unknown): LessonCursor | null | undefined {
   if (value === undefined) return undefined
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null

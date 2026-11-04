@@ -54,6 +54,19 @@ describe('editing a topic preserves durable learner progress', () => {
     expect(saved.stageProgress).toEqual(topic.stageProgress)
   })
 
+  it('preserves the lesson bookmark through a title edit', () => {
+    const topic: Topic = {
+      ...seeded('nato-phonetic'),
+      lessonCursor: { version: 1, stageId: 'lesson-1', stepId: 'intro', cardIndex: 0, stageKey: '0123456789abcdef' },
+    }
+    const saved = edit(topic, { title: 'Edited NATO' })
+    expect(saved.title).toBe('Edited NATO')
+    expect(saved.lessonCursor).toEqual(topic.lessonCursor)
+    const parsed = parseLibrary({ version: 5, topics: [saved] })
+    expect(parsed.ok).toBe(true)
+    if (parsed.ok) expect(parsed.library.topics[0].lessonCursor).toEqual(topic.lessonCursor)
+  })
+
   const worked = (): Topic => ({
     ...seeded(MORSE_ID),
     status: 'learning',
