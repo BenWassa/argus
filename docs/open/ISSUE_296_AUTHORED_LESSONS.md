@@ -1,6 +1,6 @@
 # Issue #296 — hand-authored lessons: scope and gate
 
-> **Status: active. Wave 1 in progress (2026-10-30).** Extends [the #296 brief](ISSUE_296_LEARNING_REDESIGN.md). Where this document and the brief differ on generated lessons, the owner decision of 2026-10-29 wins: every ordinary topic gets generated lessons by default, and a hand-authored curriculum overrides them where one exists.
+> **Status: active. Wave 1 registered; Greek Alphabet added with owner approval (2026-11-03).** Extends [the #296 brief](ISSUE_296_LEARNING_REDESIGN.md). Where this document and the brief differ on generated lessons, the owner decision of 2026-10-29 wins: every ordinary topic gets generated lessons by default, and a hand-authored curriculum overrides them where one exists.
 
 ## What "authored" means
 
@@ -22,10 +22,12 @@ Safety and procedure text cannot ship without the independent domain review the 
 
 | Wave | Topics | Ships when |
 |---|---|---|
-| **1: checkable, no outside review open** | OODA Loop · Whole-Circle Bearings · Reciprocal Bearings · True & Magnetic North · Grid North & Map Bearings | Merged and registered: the bearing arithmetic is verified by test, OODA restates its own scored text. |
+| **1: checkable, no outside review open** | Greek Alphabet · OODA Loop · Whole-Circle Bearings · Reciprocal Bearings · True & Magnetic North · Grid North & Map Bearings | Merged and registered: the bearing arithmetic is verified by test, OODA and Greek restate their own scored text and Learn content. Greek registration approved 2026-11-03. |
 | **2: gated on a review** | Signal Flags · Radio Procedure (drafts in #304) · Marine Calling · Marine Priority Calls (#150) · Navigation Lights · Vessel Day Shapes (#147/#148) · Primary Survey · Firearm Safety | Drafted as data, **not registered** until the matching review is recorded. They keep the generated lessons, which only use already-shipped scored text, until then. |
 
-The 10 "class B" topics (NATO, Compass Bearings, Cloud Genera, CAF ranks, SCUBA, Radio Numbers, SI Prefixes, Greek Alphabet, Beaufort) keep the generated lessons.
+The remaining "class B" topics (NATO, Compass Bearings, Cloud Genera, CAF ranks, SCUBA, Radio Numbers, SI Prefixes, Beaufort) keep the generated lessons. Greek Alphabet now uses its registered authored curriculum.
+
+Owner decision (2026-11-03), for every lesson: a first miss shows colour, a visual cue and a styled “Try again”, with no explanation. An explanation appears after a second miss, as today.
 
 ## Existing progress
 
