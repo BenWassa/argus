@@ -17,6 +17,9 @@ export interface StageRunnerProps {
   nextLabel?: string
 }
 
+// Sigma's three forms ("Σ σ ς") are longer than the short-title rule allows.
+const GREEK_FORMS = /^[\p{Script=Greek} ]+$/u
+
 export function StageRunner(props: StageRunnerProps) {
   return <StageRun key={props.stage.id} {...props} />
 }
@@ -72,7 +75,8 @@ function StageRun({ stage, itemFace, itemFor, onFinish, onExit, onNext, nextLabe
   // sees a fixed shuffle so position never gives the answer away.
   function options(rawValues: string[], answer: string, labels = false) {
     const values = ordered(rawValues, `${stage.id}:${step?.id ?? ''}`)
-    return <div className={`choice-options stage-options${values.some(value => value.length > 100) ? ' is-wordy' : ''}`}>{values.map(value => <button type="button" key={value}
+    const glyphs = labels && values.every(value => itemFace(value).front.length <= 5)
+    return <div className={`choice-options stage-options${glyphs ? ' is-glyphs' : ''}${values.some(value => value.length > 100) ? ' is-wordy' : ''}`}>{values.map(value => <button type="button" key={value}
       className={`choice-option${wrong === value ? ' is-wrong' : ''}${(correct || wrongCount >= 2) && value === answer ? ' is-correct' : ''}`}
       aria-pressed={correct ? value === answer : wrong === value} disabled={correct}
       onClick={() => { if (value === answer) { setCorrect(true); setWrong(null) } else { setWrong(value); setWrongCount(count => count + 1) } }}>
@@ -120,7 +124,8 @@ function StageRun({ stage, itemFace, itemFor, onFinish, onExit, onNext, nextLabe
         const ids = step.kind === 'recall' ? [step.itemId] : step.itemIds
         itemId = ids[card]
         const face = itemId ? itemFace(itemId) : undefined
-        title = face?.front ?? 'Checkpoint'
+        // A pictured item's prompt is written for the Test; here the picture is the question.
+        title = itemId && itemFor?.(itemId)?.stimulus ? 'Which one is this?' : face?.front ?? 'Checkpoint'
         content = revealed && face ? <p className="stage-answer">{face.back}</p> : undefined
         const next = () => {
           if (card >= ids.length - 1) setCorrect(true)
@@ -140,7 +145,10 @@ function StageRun({ stage, itemFace, itemFor, onFinish, onExit, onNext, nextLabe
     {item.audio && <AudioReference item={{ ...item, audio: item.audio }} />}
   </>
   const feedback = wrong && step && 'explain' in step
-    ? <p className="stage-feedback" role="alert">{wrongCount >= 2 ? `${step.explain} · ` : ''}Try again</p> : null
+    ? <div className="stage-feedback" role="alert">
+      {wrongCount >= 2 && <p className="stage-explain">{step.explain}</p>}
+      <p className="stage-retry" key={wrongCount}><span aria-hidden="true">✕</span> Try again</p>
+    </div> : null
 
   return <SessionFrame kind="lesson" title={stage.title} onClose={onExit} className="stage-runner"
     progress={{ current: finished ? stage.steps.length : index + 1, total: stage.steps.length }}
@@ -151,7 +159,7 @@ function StageRun({ stage, itemFace, itemFor, onFinish, onExit, onNext, nextLabe
     <div className="session-stimulus stage-stimulus">
       <div className={`stage-card${step?.kind === 'show' && !finished ? ' is-teaching' : ''}`}>
         {!finished && media}
-        <h2 ref={heading} tabIndex={-1} className={`stage-title${!finished && title.length <= 3 ? ' is-glyph' : ''}`}>{finished ? 'Lesson complete' : title}</h2>
+        <h2 ref={heading} tabIndex={-1} className={`stage-title${!finished && (title.length <= 3 || GREEK_FORMS.test(title)) ? ' is-glyph' : ''}`}>{finished ? 'Lesson complete' : title}</h2>
         {!finished && content}
       </div>
     </div>

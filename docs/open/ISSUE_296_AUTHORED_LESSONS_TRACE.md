@@ -1,7 +1,7 @@
 # Issue #296 — Authored lessons: source trace
 
-> **Status: Wave 1 and Vessel Day Shapes authored and registered, 2026-11-03; Pixel acceptance pending.** Provenance for each hand-authored curriculum. It records where each step's content comes from and adds no source, convention or subject authority of its own. Scope and gate: [ISSUE_296_AUTHORED_LESSONS.md](ISSUE_296_AUTHORED_LESSONS.md).
-> **Authority:** the existing topic scope, Learn content and sources in [`bearingTopics.ts`](../../src/domain/navigation/bearingTopics.ts) and the scored banks in [`bearingBanks.ts`](../../src/domain/navigation/bearingBanks.ts), and for OODA Loop the topic in [`catalogSeed.ts`](../../src/domain/library/catalogSeed.ts). For Vessel Day Shapes, authority is the existing maritime topic, scored bank and cited Collision Regulations linked below. Argus notation and exercise conventions keep their editorial status.
+> **Status: Wave 1 authored and registered; Greek Alphabet and Vessel Day Shapes added 2026-11-03; Pixel acceptance pending.** Provenance for each hand-authored curriculum. It records where each step's content comes from and adds no source, convention or subject authority of its own. Scope and gate: [ISSUE_296_AUTHORED_LESSONS.md](ISSUE_296_AUTHORED_LESSONS.md).
+> **Authority:** the existing topic scope, Learn content and sources in [`bearingTopics.ts`](../../src/domain/navigation/bearingTopics.ts) and the scored banks in [`bearingBanks.ts`](../../src/domain/navigation/bearingBanks.ts), and for OODA Loop and Greek Alphabet the topics in [`catalogSeed.ts`](../../src/domain/library/catalogSeed.ts). For Vessel Day Shapes, authority is the existing maritime topic, scored bank and cited Collision Regulations linked below. Argus notation and exercise conventions keep their editorial status.
 
 ## OODA Loop (`ooda-loop`)
 
@@ -76,6 +76,27 @@ Item numbers below are the suffixes of the actual `grid-north-map-bearings-item-
 | `converting-a-back-bearing` / Converting a Back Bearing | 11–12 | **A margin relation and a back bearing** supplies the 060°G → 050°M → 230°M trace and the reciprocal-first 240°G → 230°M check. **One rule for every conversion** says both routes must agree. Second case is exactly `A4_TWO_STEP_CASES[1]`: 330°M → 320°G → 140°G. The first gap asks the intermediate conversion of item 11; its final choice and checkpoint ask the scored back bearing. Wrong choices omit conversion, omit the reciprocal or reverse the offset signs. | Existing Learn case study, topic's combined-conversion scope and `A4_TWO_STEP_CASES`; normalization/reciprocal arithmetic uses the existing bearing functions. |
 
 The test builds the topic through `bearingTopics()`, supplies all four scored figure ids and full coverage to `checkCurriculum`, checks stage/step identity and local checkpoint membership, and compares the clockwise order to the actual diagram bank. All nine arithmetic `choose`/`complete` answers are verified with `convert`, `gridDeclination`, `reciprocal` and `formatBearing`, including the intermediate forward conversion. Six worked `show` bodies are verified against the same real functions; both reciprocal/conversion routes are checked for both combined cases. No plotting, coordinates, resection or field competence is added. Direct T↔G numeric exercises are not added because the existing scored bank has none; the existing general offset rule still names T, M and G.
+
+## Greek Alphabet (`greek-alphabet`)
+
+Curriculum: [greek-alphabet.ts](../../src/domain/learning/authored/greek-alphabet.ts). Verification: [greek-alphabet.test.ts](../../src/domain/learning/authored/greek-alphabet.test.ts). Registered with owner approval on 2026-11-03.
+
+Topic/item authority: [catalogSeed.ts](../../src/domain/library/catalogSeed.ts), `GREEK_LETTERS` and the Greek topic's overview, “Where letters are easy to confuse”, limitations and existing Unicode 18.0 Greek and Coptic source. The curriculum's nameslist URL is another presentation of that cited Unicode source. Glyph-outline cues describe the shipped prompts, not an added writing or pronunciation convention.
+
+All item numbers below use the prefix `greek-alphabet-item-`. Each new item is shown and asked directly, then repeated in its stage's final checkpoint. Review items retain their original identities and answers.
+
+| Stage ID / Title | Scored items (new; review) | Instruction and feedback traced | Existing Learn / bank source |
+| --- | --- | --- | --- |
+| `familiar-shapes` / Familiar Shapes | 01, 02, 05, 09 | Alpha Α α, Beta Β β, Epsilon Ε ε, Iota Ι ι; Latin-like capitals and distinctive small forms; Beta/Epsilon contrast. | Exact glyph/name pairs in `GREEK_LETTERS`; overview's small-form distinction and Latin-like capitals bullet. Outline cues describe those glyphs. |
+| `distinctive-outline` / Distinctive Outlines | 04, 11, 16, 24; 01, 02 | Delta Δ δ triangle versus Lambda Λ λ; Pi Π π versus Omega Ω ω; use both case forms. | Exact bank pairs and overview; closed triangle, legs and case-form comparisons describe the shipped glyphs. Omicron/Omega names and forms are bank entries 15/24. |
+| `similar-capitals` / Similar Capitals | 03, 07, 12, 13; 04, 11 | Gamma Γ γ, Eta Η η, Mu Μ μ, Nu Ν ν; right-angle outline; Eta/Nu and Mu/Nu contrasts; Greek small letters are not Latin n/u/v. | Bank pairs; Latin-like capitals/small forms bullets. U+03BC is Unicode's Greek small mu, matching item 12; visual stroke cues describe the actual prompts. |
+| `deceptive-lookalikes` / Deceptive Lookalikes | 10, 15, 17, 19; 07, 13 | Kappa Κ κ, Omicron Ο ο, Rho Ρ ρ, Tau Τ τ; Latin lookalikes do not determine names; Rho/Kappa and Omicron/Omega contrasts. | Bank pairs, Unicode code points and Latin-like capitals/small forms bullets; Tau's stroke cue describes τ. |
+| `easily-confused` / Easily Confused | 06, 14, 18, 20; 13, 17 | Zeta Ζ ζ versus Xi Ξ ξ; Nu Ν ν versus Upsilon Υ υ; Sigma Σ σ ς is one letter with a final small form. | Exact bank pairs; Learn's ζ/ξ and ν/υ comparison bullet and final-sigma bullet; Unicode final sigma U+03C2. The scope fixes 24 letters, not 25. |
+| `finish-and-mix` / Finish and Mix | 08, 21, 22, 23; 14, 18 | Theta Θ θ horizontal stroke versus Phi Φ φ vertical stroke; Chi Χ χ versus Psi Ψ ψ centre stem/arms; voluntary review and optional Test limited to glyph pair → English name. | Exact bank pairs and their visible outlines; Latin-like capital/small Chi bullets; topic scope and limitations. Optional Test and voluntary review are existing learning-path behavior, not subject claims. |
+
+All four-choice answers and contrast keys reuse those bank names and prompts. Summaries restate the same visual distinctions. Tests check all 24 exact Unicode prompts/answers, objective coverage, unique options, readable stage ids, title-case titles of at most 40 characters, six stages of at most 16 steps, earlier-letter reviews and final checkpoints. No arithmetic is present. No scored item, topic id or item id changes; no glyph production, alphabetical-order assessment, word reading or pronunciation is added.
+
+Feedback timing follows the owner decision of 2026-11-03 for every lesson: first miss shows colour, a visual cue and styled “Try again” without explanation; explanation appears after a second miss. Registration uses the existing wave-1 progress policy without migration: generated ticks do not carry into authored stages, while Test history, evidence and completion remain untouched.
 
 ## Vessel Day Shapes (`vessel-day-shapes`)
 

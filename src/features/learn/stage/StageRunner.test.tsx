@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import type { LessonStep } from '../../../domain/learning/stages'
 import { seedLibrary } from '../../../domain/library/catalogSeed'
-import type { Topic } from '../../../domain/library/topic'
+import type { Item, Topic } from '../../../domain/library/topic'
 import { generatedCurriculum } from '../../../domain/learning/generatedCurriculum'
 import { StageRunner } from './StageRunner'
 import { StageLesson } from './StageLesson'
@@ -44,7 +44,8 @@ describe('StageRunner', () => {
     setup(step)
     const prefix = step.kind === 'contrast' ? 'Prompt ' : ''
     click(`${prefix}Wrong`)
-    expect(screen.getByRole('alert').textContent).toBe('Try again')
+    expect(screen.getByRole('alert').textContent).toContain('Try again')
+    expect(screen.getByRole('alert').textContent).not.toContain('The answer is Right.')
     expect(screen.getByRole('button', { name: `${prefix}Right` }).className).not.toContain('is-correct')
     click(`${prefix}Wrong`)
     expect(screen.getByRole('alert').textContent).toContain('The answer is Right.')
@@ -74,6 +75,33 @@ describe('StageRunner', () => {
     expect(screen.getByRole('alert').textContent).not.toContain('First, Second.')
     click('Check order')
     expect(screen.getByRole('alert').textContent).toContain('First, Second.')
+  })
+
+  it('asks a pictured checkpoint item in lesson wording, not its Test prompt', () => {
+    const pictured = { id: 'a', prompt: 'Test prompt', answer: 'Answer', kind: 'forward', stimulus: { source: { kind: 'figure', figure: { kind: 'day-shape-stack', shapes: ['ball'] } }, alt: 'One ball' } } as unknown as Item
+    render(<StageRunner stage={{ id: 's', title: 'S', steps: [{ kind: 'checkpoint', id: 'check', itemIds: ['a'] }] }}
+      itemFace={() => ({ front: 'Test prompt', back: 'Answer' })} itemFor={() => pictured} onFinish={() => {}} onExit={() => {}} />)
+    expect(screen.getByRole('heading', { name: 'Which one is this?' })).toBeTruthy()
+    expect(screen.queryByText('Test prompt')).toBeNull()
+  })
+
+  it('shows all of Sigma\'s forms large, and leaves a short word alone', () => {
+    const stage = { id: 's', title: 'S', steps: [{ kind: 'checkpoint', id: 'check', itemIds: ['a'] } satisfies LessonStep] }
+    const { unmount } = render(<StageRunner stage={stage} itemFace={() => ({ front: 'Σ σ ς', back: 'Sigma' })} onFinish={() => {}} onExit={() => {}} />)
+    expect(screen.getByRole('heading', { name: 'Σ σ ς' }).className).toContain('is-glyph')
+    unmount()
+    render(<StageRunner stage={stage} itemFace={() => ({ front: 'kilo', back: '1000' })} onFinish={() => {}} onExit={() => {}} />)
+    expect(screen.getByRole('heading', { name: 'kilo' }).className).not.toContain('is-glyph')
+  })
+
+  it('shows short contrast labels as large letters, and leaves sentences alone', () => {
+    const contrast: LessonStep = { kind: 'contrast', id: 'compare', itemIds: ['a', 'b'], prompt: 'Compare', answerItemId: 'a', explain: 'Because.' }
+    const stage = { id: 's', title: 'S', steps: [contrast] }
+    const { unmount } = render(<StageRunner stage={stage} itemFace={id => ({ front: id === 'a' ? 'Β β' : 'Ε ε', back: '' })} onFinish={() => {}} onExit={() => {}} />)
+    expect(document.querySelector('.stage-options.is-glyphs')).toBeTruthy()
+    unmount()
+    render(<StageRunner stage={stage} itemFace={id => ({ front: `A longer label ${id}`, back: '' })} onFinish={() => {}} onExit={() => {}} />)
+    expect(document.querySelector('.stage-options.is-glyphs')).toBeNull()
   })
 
   it('walks every checkpoint item; Not yet repeats the current recall', () => {

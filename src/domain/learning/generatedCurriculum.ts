@@ -2,6 +2,7 @@ import type { Item, Topic } from '../library/topic'
 import { morseLessonPath } from '../morse/curriculum/lessonPath'
 import { MAX_STAGES, type Curriculum, type LessonStep } from './stages'
 import { nextStage } from './stageProgress'
+import { greekAlphabetCurriculum } from './authored/greek-alphabet'
 import { gridNorthMapBearingsCurriculum } from './authored/grid-north-map-bearings'
 import { northReferencesDeclinationCurriculum } from './authored/north-references-declination'
 import { oodaLoopCurriculum } from './authored/ooda-loop'
@@ -65,6 +66,7 @@ export function generatedCurriculum(topic: Topic): Curriculum {
 
 /** Authored curricula can override the generated default (owner, 2026-10-29). */
 const AUTHORED: ReadonlyMap<string, Curriculum> = new Map([
+  ['greek-alphabet', greekAlphabetCurriculum],
   ['vessel-day-shapes', vesselDayShapesCurriculum],
   ['ooda-loop', oodaLoopCurriculum],
   ['whole-circle-bearings', wholeCircleBearingsCurriculum],
