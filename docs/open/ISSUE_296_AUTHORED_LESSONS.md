@@ -41,3 +41,7 @@ The owner approved registration and accepted a source check instead of a separat
 All four stages had a checkpoint followed by a summary, breaching the final-checkpoint rule. Each summary now precedes its checkpoint. All stage titles are title case and at most 40 characters, stage ids are readable, and all five scored items are asked and included in checkpoints. No scored content or ids changed. Existing progress follows the accepted wave 1 behavior above; no migration is built.
 
 Owner feedback decision (2026-11-03), for every lesson: a first miss shows colour, a visual cue and styled “Try again”, with no explanation. Explanations appear after a second miss, as today. Runner implementation remains separate work.
+
+## Cloud Genera photo lessons (2026-11-04)
+
+Owner feedback from live v1.7.0: the generated Cloud Genera lessons showed the abbreviation (“Ci”) and asked for the full word, which teaches nothing. A lesson should show the picture, teach the name, then ask after three. Cloud Genera now has a registered authored curriculum: four lessons (High Clouds, Middle Clouds, Low Layers, Cloud Towers), each showing the photograph with its name, short form and cue, then asking “Which cloud is this?” for the same photographs, then a closing checkpoint. Lesson steps may now carry their own photograph for items whose scored form is text. The Test is unchanged: it still scores the abbreviation-to-name vocabulary only. No new cloud claims; every cue, name and photograph is already shipped, and the CC BY-SA credit shows under the photograph on each step.

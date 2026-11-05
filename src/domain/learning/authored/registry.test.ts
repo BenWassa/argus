@@ -3,7 +3,7 @@ import { seedLibrary } from '../../library/catalogSeed'
 import { curriculumFor } from '../generatedCurriculum'
 import { checkCurriculum } from '../stages'
 
-const AUTHORED_IDS = ['greek-alphabet', 'vessel-day-shapes', 'ooda-loop', 'whole-circle-bearings', 'reciprocal-bearings', 'north-references-declination', 'grid-north-map-bearings']
+const AUTHORED_IDS = ['cloud-genera', 'greek-alphabet', 'vessel-day-shapes', 'ooda-loop', 'whole-circle-bearings', 'reciprocal-bearings', 'north-references-declination', 'grid-north-map-bearings']
 
 describe('authored curricula are what the app serves for their topics', () => {
   const topics = seedLibrary().topics

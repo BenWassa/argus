@@ -12,6 +12,8 @@
  * and anything that writes progress, are separate and come later.
  */
 
+import type { Visual } from '../visual/visual'
+
 /** Ids are deterministic and independent of display order, so progress survives a reordering. */
 export const STAGE_ID_PATTERN = /^[a-z0-9][a-z0-9-]{0,63}$/
 
@@ -33,6 +35,8 @@ export interface ShowStep extends StepBase {
   itemId?: string
   /** Text equivalent for a visual; required whenever `itemId` names a figure item. */
   altText?: string
+  /** A picture for items that have none of their own (their scored form is text). */
+  visual?: Visual
 }
 
 /** Pick the right one of 2-6 tiles for a prompt. */
@@ -44,6 +48,8 @@ export interface ChooseStep extends StepBase {
   answer: string
   /** One line on the distinction, shown after a wrong answer. */
   explain: string
+  /** A picture for items that have none of their own (their scored form is text). */
+  visual?: Visual
 }
 
 /** Choose between 2-3 look-alike or sound-alike items. */
