@@ -1,6 +1,6 @@
 # Issue #296 — hand-authored lessons: scope and gate
 
-> **Status: active. Wave 1 registered; Greek Alphabet and Vessel Day Shapes added with owner approval (2026-11-03).** Extends [the #296 brief](ISSUE_296_LEARNING_REDESIGN.md). Where this document and the brief differ on generated lessons, the owner decision of 2026-10-29 wins: every ordinary topic gets generated lessons by default, and a hand-authored curriculum overrides them where one exists.
+> **Status: active. Wave 1 registered; Greek Alphabet and Vessel Day Shapes added with owner approval (2026-11-03); Radio Procedure added 2026-11-06 on an accepted source check.** Extends [the #296 brief](ISSUE_296_LEARNING_REDESIGN.md). Where this document and the brief differ on generated lessons, the owner decision of 2026-10-29 wins: every ordinary topic gets generated lessons by default, and a hand-authored curriculum overrides them where one exists.
 
 ## What "authored" means
 
@@ -23,7 +23,8 @@ Safety and procedure text requires the independent domain review in the earlier 
 | Wave | Topics | Ships when |
 |---|---|---|
 | **1: checkable, no outside review open** | Greek Alphabet · OODA Loop · Whole-Circle Bearings · Reciprocal Bearings · True & Magnetic North · Grid North & Map Bearings | Merged and registered: the bearing arithmetic is verified by test, OODA and Greek restate their own scored text and Learn content. Greek registration approved 2026-11-03. |
-| **2: gated on a review** | Signal Flags · Radio Procedure (drafts in #304) · Marine Calling · Marine Priority Calls (#150) · Navigation Lights · Primary Survey · Firearm Safety | Drafted as data, **not registered** until the matching review is recorded. They keep the generated lessons, which only use already-shipped scored text, until then. |
+| **2: gated on a review** | Signal Flags (drafted, unregistered, PR #344) · Marine Calling · Marine Priority Calls (#150) · Navigation Lights · Primary Survey · Firearm Safety | Drafted as data, **not registered** until the matching review is recorded. They keep the generated lessons, which only use already-shipped scored text, until then. |
+| **2: Radio Procedure approved** | Radio Procedure (#150) | Authored curriculum registered on 2026-11-06 after the owner accepted a source check in place of a separate radio reviewer for this topic only. Every line restates RIC-22 text already in the app; three paraphrased lines are listed in the trace. |
 | **2: Vessel Day Shapes approved** | Vessel Day Shapes (#147/#148) | Authored curriculum registered on 2026-11-03 after the owner accepted a source check in place of a separate maritime reviewer for this topic only. |
 
 The remaining "class B" topics (NATO, Compass Bearings, Cloud Genera, CAF ranks, SCUBA, Radio Numbers, SI Prefixes, Beaufort) keep the generated lessons. Greek Alphabet now uses its registered authored curriculum.
@@ -45,3 +46,9 @@ Owner feedback decision (2026-11-03), for every lesson: a first miss shows colou
 ## Cloud Genera photo lessons (2026-11-04)
 
 Owner feedback from live v1.7.0: the generated Cloud Genera lessons showed the abbreviation (“Ci”) and asked for the full word, which teaches nothing. A lesson should show the picture, teach the name, then ask after three. Cloud Genera now has a registered authored curriculum: four lessons (High Clouds, Middle Clouds, Low Layers, Cloud Towers), each showing the photograph with its name, short form and cue, then asking “Which cloud is this?” for the same photographs, then a closing checkpoint. Lesson steps may now carry their own photograph for items whose scored form is text. The Test is unchanged: it still scores the abbreviation-to-name vocabulary only. No new cloud claims; every cue, name and photograph is already shipped, and the CC BY-SA credit shows under the photograph on each step.
+
+## Radio Procedure acceptance (2026-11-06)
+
+Radio Procedure was reworked from the #304 draft to the current rules (readable stage ids, title-case titles of at most 40 characters, every scored item asked, summary before the final checkpoint, answer-first options, no explanation on a first miss) and registered after the owner accepted a source check instead of a separate radio reviewer, for this topic only. Scored items, ids and text are unchanged. The word contrasts keep the words as tiles; each call order is built once from blocks, and the Test still asks the option form. Source rows and the unverifiable points are in [the trace](ISSUE_296_AUTHORED_LESSONS_TRACE.md). Existing progress follows the wave 1 behaviour: generated ticks do not carry into the authored stages, Test history and completion are untouched.
+
+Signal Flags is drafted to the same rules in PR #344 and stays unregistered: nobody has compared its flag designs with the IMO plate (#148 review open), so it keeps its generated lessons.

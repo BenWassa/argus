@@ -7,6 +7,7 @@ import { greekAlphabetCurriculum } from './authored/greek-alphabet'
 import { gridNorthMapBearingsCurriculum } from './authored/grid-north-map-bearings'
 import { northReferencesDeclinationCurriculum } from './authored/north-references-declination'
 import { oodaLoopCurriculum } from './authored/ooda-loop'
+import { radioProcedureCurriculum } from './authored/radio-procedure'
 import { reciprocalBearingsCurriculum } from './authored/reciprocal-bearings'
 import { vesselDayShapesCurriculum } from './authored/vessel-day-shapes'
 import { wholeCircleBearingsCurriculum } from './authored/whole-circle-bearings'
@@ -70,6 +71,7 @@ const AUTHORED: ReadonlyMap<string, Curriculum> = new Map([
   ['cloud-genera', cloudGeneraCurriculum],
   ['greek-alphabet', greekAlphabetCurriculum],
   ['vessel-day-shapes', vesselDayShapesCurriculum],
+  ['radio-procedure', radioProcedureCurriculum],
   ['ooda-loop', oodaLoopCurriculum],
   ['whole-circle-bearings', wholeCircleBearingsCurriculum],
   ['reciprocal-bearings', reciprocalBearingsCurriculum],
