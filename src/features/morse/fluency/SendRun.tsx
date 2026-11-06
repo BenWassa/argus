@@ -194,20 +194,21 @@ export function SendRun({
               onSubmit={commitPattern}
             />
 
-            {stage !== 'flow' && (
-              <div className="send-flow-actions">
+            <div className="send-flow-actions">
+              {/* A single word has no word gaps; Finish alone lets a dropped letter be skipped past (#314). */}
+              {stage !== 'flow' && (
                 <button className="ghost" type="button" onClick={addWordGap}>
                   Space
                 </button>
-                <button
-                  type="button"
-                  onClick={finishMessage}
-                  disabled={tokens.length === 0 && !entry}
-                >
-                  Finish
-                </button>
-              </div>
-            )}
+              )}
+              <button
+                type="button"
+                onClick={finishMessage}
+                disabled={tokens.length === 0 && !entry}
+              >
+                Finish
+              </button>
+            </div>
           </div>
         )}
       </div>
