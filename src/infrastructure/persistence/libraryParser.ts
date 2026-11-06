@@ -1,4 +1,5 @@
 import { STAGE_ID_PATTERN } from '../../domain/learning/stages'
+import { parseLessonCursor } from '../../domain/learning/lessonCursor'
 import { parseSequence } from './sequenceParser'
 import {
   LEARN_KINDS,
@@ -1051,6 +1052,9 @@ function parseTopic(
   const stageProgress = parseStageProgress(t.stageProgress, `${where} ("${title}")`)
   if (!stageProgress.ok) return stageProgress
 
+  const lessonCursor = parseLessonCursor(t.lessonCursor)
+  if (lessonCursor === null) return { ok: false, error: `${where} ("${title}") has an invalid lesson cursor.` }
+
   const morseReview = parseMorseReview(
     t.morseReview,
     `${where} ("${title}")`,
@@ -1130,6 +1134,7 @@ function parseTopic(
       lessonProgress: lessonProgress.value,
       ...(lessonSitting.value ? { lessonSitting: lessonSitting.value } : {}),
       ...(stageProgress.value ? { stageProgress: stageProgress.value } : {}),
+      ...(lessonCursor ? { lessonCursor } : {}),
       ...(morseReview.value ? { morseReview: morseReview.value } : {}),
       ...(morseFluency.value ? { morseFluency: morseFluency.value } : {}),
       ...(morsePractice.value ? { morsePractice: morsePractice.value } : {}),

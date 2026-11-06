@@ -1,4 +1,5 @@
 import { isLearned } from '../study/scheduling'
+import { withoutLessonCursor } from './lessonCursor'
 import type { Topic } from '../library/topic'
 import type { Curriculum, LessonStage } from './stages'
 
@@ -22,9 +23,12 @@ export function withStageCompleted(
   now: Date = new Date(),
 ): Topic {
   if (!curriculum.stages.some((stage) => stage.id === stageId)) return topic
-  const updated = Object.hasOwn(topic.stageProgress ?? {}, stageId)
+  const ticked = Object.hasOwn(topic.stageProgress ?? {}, stageId)
     ? topic
     : { ...topic, stageProgress: { ...topic.stageProgress, [stageId]: now.toISOString() } }
+  // A completed stage has no unfinished cursor; an unrelated concurrently
+  // saved stage bookmark is left untouched.
+  const updated = withoutLessonCursor(ticked, stageId)
   if (!isLearned(topic) && updated.completedAt === null && stagesRemaining(updated, curriculum).length === 0) {
     return { ...updated, completedAt: now.toISOString(), status: 'completed' }
   }

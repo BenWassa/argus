@@ -8,6 +8,7 @@ import type { MorseFluencyProgress } from '../morse/fluency/progress'
 import type { MorsePractice } from '../morse/practice'
 import type { MorseRecognition } from '../morse/recognition/progress'
 import type { LearnContent } from '../learning/content'
+import type { LessonCursor } from '../learning/lessonCursor'
 import type { ItemChoice, Visual } from '../visual/visual'
 import type { AudioStimulus, ItemResponse } from '../audio/audio'
 import type { AudioEvidenceStore } from '../audio/evidence'
@@ -144,6 +145,13 @@ export interface Topic {
    * or renamed leaves a harmless unknown key rather than failing the library.
    */
   stageProgress?: Readonly<Record<string, string>>
+  /**
+   * Optional, strictly versioned pointer into an unfinished ordinary lesson.
+   * Does not imply an answer, completion, certification or Test evidence.
+   * Unknown/stale curriculum revisions restart safely at step one while
+   * historical completed-stage receipts remain intact.
+   */
+  lessonCursor?: LessonCursor
   /**
    * Current finite Morse Learn sitting (#59, #66). Additive within v5: absent
    * means a fresh 0/10 sitting. This is portable formative state only and is
