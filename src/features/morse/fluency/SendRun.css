@@ -193,6 +193,11 @@
   gap: var(--s-sm);
 }
 
+/* Word flow offers Finish alone, at full width. */
+.send-flow-actions:has(> :only-child) {
+  grid-template-columns: 1fr;
+}
+
 /* Review is a summary of one prompt: the card is centred in the run. */
 .send-review-card {
   margin-block: auto;
