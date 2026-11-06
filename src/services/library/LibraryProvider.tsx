@@ -60,6 +60,8 @@ function normalizeWrittenTopic(topic: Topic): Topic {
 }
 
 interface LibraryStore {
+  syncRepository?: IndexedLibraryRepository
+  provisionedOwner?: string | null
   topics: Topic[]
   /** The whole durable record, so export stays lossless as the shape grows. */
   library: CurrentLibrary
@@ -305,6 +307,7 @@ function IndexedLibraryProvider({ children }: { children: ReactNode }) {
   )
   const [owner, setOwner] = useState<string | null>(null)
   const [ready, setReady] = useState(false)
+  const [provisionedOwner, setProvisionedOwner] = useState<string | null>(null)
   const [failure, setFailure] = useState<string | null>(null)
   const repository = useRef<IndexedLibraryRepository | null>(null)
   const activeOwner = useRef<string | null>(null)
@@ -342,6 +345,10 @@ function IndexedLibraryProvider({ children }: { children: ReactNode }) {
         const previous = libraryOwner()
         const key = previous ?? localOwner
         const existing = await db.read(key)
+        if (previous && !existing && !navigator.onLine) {
+          throw new Error('A connection is needed to recover this owner’s missing local library.')
+        }
+        if (existing && previous) setProvisionedOwner(previous)
         const input = existing ? { seed: existing.library } : migrationInput(legacyFor(key, previous))
         await db.initialize(key, input)
         // Reconciliation and retired sitting adoption must be durable before
@@ -508,7 +515,7 @@ function IndexedLibraryProvider({ children }: { children: ReactNode }) {
       const db = repository.current
       const previousKey = activeOwner.current
       if (!db || !previousKey) throw new Error('Local storage is unavailable.')
-      if (previousKey === uid) { setOwner(uid); return }
+      if (previousKey === uid) { setOwner(uid); setProvisionedOwner(uid); return }
       const previous = libraryOwner()
       // An unclaimed local library is claimable exactly once; a library already
       // assigned to another UID never becomes a seed for this UID. A claim whose
@@ -533,6 +540,7 @@ function IndexedLibraryProvider({ children }: { children: ReactNode }) {
       clearAllLessonSittings()
       install(row.library)
       setOwner(uid)
+      setProvisionedOwner(uid)
       setFailure(null)
     }
     const result = queue.current.then(run)
@@ -576,11 +584,12 @@ function IndexedLibraryProvider({ children }: { children: ReactNode }) {
   }, [mergeInto])
 
   const value = useMemo<LibraryStore>(() => ({
+    syncRepository: repository.current ?? undefined, provisionedOwner,
     topics: library.topics, library, catalogReport, upsertTopic, updateTopic,
     removeTopic, replaceLibrary, resetLibrary, catalogDelivered: library.catalogDelivered,
     owner, bindOwner, cancelPendingBinds, mergeCatalogDelivered, roleAwards: library.roleAwards,
     roleAwardGeneration: library.roleAwardGeneration, mergeRoleAwards: mergeAwards,
-  }), [library, catalogReport, upsertTopic, updateTopic, removeTopic, replaceLibrary,
+  }), [library, provisionedOwner, catalogReport, upsertTopic, updateTopic, removeTopic, replaceLibrary,
     resetLibrary, owner, bindOwner, cancelPendingBinds, mergeCatalogDelivered, mergeAwards])
 
   if (failure && !ready) return <main role="alert">

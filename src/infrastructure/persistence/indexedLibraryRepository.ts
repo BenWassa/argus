@@ -74,9 +74,10 @@ export interface IndexedLibraryRepository {
   initialize(owner: string, input: { seed: CurrentLibrary; legacy?: { key: string; raw: string } }): Promise<LocalLibraryRecord>
   update(owner: string, change: (current: CurrentLibrary) => CurrentLibrary): Promise<LocalLibraryRecord>
   pending(owner: string): Promise<PendingLibrarySync | null>
-  /** Ack only the snapshot actually sent, never a newer offline mutation. */
-  acknowledge(owner: string, revision: number, ledger: Record<string, unknown>): Promise<boolean>
-  readLedger(owner: string): Promise<Record<string, unknown>>
+  /** Ack only the snapshot sent. keepPending checkpoints partial success without
+   * clearing intent, including a newer local revision created during the pass. */
+  acknowledge(owner: string, revision: number, ledger: Record<string, unknown>, keepPending?: boolean): Promise<boolean>
+  readLedger(owner: string, legacy?: Record<string, unknown>): Promise<Record<string, unknown>>
   migration(owner: string): Promise<MigrationRecord | null>
   close(): void
 }
@@ -217,20 +218,31 @@ export async function openIndexedLibraryRepository(name = LOCAL_DATABASE): Promi
       return { ...valid, deletedTopicIds: value.deletedTopicIds }
     },
 
-    async acknowledge(owner, revision, ledger) {
+    async acknowledge(owner, revision, ledger, keepPending = false) {
       requireOwner(owner)
       if (!Number.isSafeInteger(revision) || revision < 1) throw new LocalDurabilityError('corrupt', 'Invalid sync acknowledgement revision.')
       return transaction([OUTBOX, LEDGERS], async (tx) => {
         const pending = await request<PendingLibrarySync | undefined>(tx.objectStore(OUTBOX).get(owner))
-        if (!pending || pending.revision !== revision) return false
+        if (!keepPending && (!pending || pending.revision !== revision)) return false
         tx.objectStore(LEDGERS).put({ owner, ledger })
-        tx.objectStore(OUTBOX).delete(owner)
-        return true
+        if (!keepPending) tx.objectStore(OUTBOX).delete(owner)
+        return !keepPending
       })
     },
 
-    async readLedger(owner) {
-      const value = await get<{ owner: string; ledger: Record<string, unknown> }>(LEDGERS, owner)
+    async readLedger(owner, legacy) {
+      type StoredLedger = { owner: string; ledger: Record<string, unknown> }
+      const value = legacy === undefined
+        ? await get<StoredLedger>(LEDGERS, owner)
+        : await transaction([LEDGERS], async (tx) => {
+          requireOwner(owner)
+          const existing = await request<StoredLedger | undefined>(tx.objectStore(LEDGERS).get(owner))
+          if (existing) return existing
+          // Import once, including an empty ledger, so retired bytes never revive.
+          const migrated: StoredLedger = { owner, ledger: legacy }
+          tx.objectStore(LEDGERS).put(migrated)
+          return migrated
+        })
       if (!value) return {}
       if (value.owner !== owner || !value.ledger || typeof value.ledger !== 'object' || Array.isArray(value.ledger)) {
         throw new LocalDurabilityError('corrupt', 'The local sync ledger needs recovery.')

@@ -1,6 +1,6 @@
 # Issue #113 — Offline-first runtime, IndexedDB persistence and durable sync
 
-> **Status: partially implemented — 2026-10-13.** IndexedDB repository foundation (#205) and shell hardening (#206) are merged. The production provider still uses localStorage; canonical IndexedDB integration, durable sync/retry and provisioned offline auth remain open.
+> **Status: runtime gaps implemented in the working tree, device acceptance open — 2026-10-28.** Canonical IndexedDB integration is merged (#293), following the repository foundation (#205) and shell hardening (#206). Unit-tested foreground sync now retries the existing durable intent on owner binding, relaunch and reconnect, checkpoints partial success, preserves conflicts/newer intent, and backs off from 1 second to a 60-second ceiling. Auth restoration has a 3-second fallback only for a verified local owner/library with a remembered session; explicit sign-out and different-owner binding close the gate. Profile exposes pending changes and conflict counts. These are code/unit-test claims, not production browser or Pixel acceptance; true offline cold launch, process death, reconnect and physical-device checks remain open.
 >
 > **Authority:** this document is the durable implementation contract for GitHub issue [#113](https://github.com/BenWassa/argus/issues/113). It extends the local-first/cloud-mirror direction in `PRODUCT.md` and #93 without changing the learning/progress semantics defined by `docs/open/PROGRESS_ARCHITECTURE.md`.
 >
@@ -8,9 +8,9 @@
 >
 > **Relationship to #93:** #93 owns authenticated Firebase persistence, cloud recovery, owner isolation and conservative cross-device conflict behavior. #113 owns the local runtime required to make those cloud features optional during ordinary use: IndexedDB durability, atomic local writes, the durable sync outbox, deterministic offline app-shell caching, offline auth bootstrap behavior, storage lifecycle, sizing policy and offline UX. #113 must reuse #93's validated learner schema and conflict planner rather than create another sync model.
 
-**Merged foundation — 2026-10-13 (#205):** [IndexedDB schema/repository](ISSUE_113_INDEXEDDB_FOUNDATION.md) implements and tests the local boundary, atomic cumulative sync intent and verified migration. It is not yet wired to production, so the acceptance criteria below remain open.
+**Merged foundation — 2026-10-13 (#205):** [IndexedDB schema/repository](ISSUE_113_INDEXEDDB_FOUNDATION.md) implements and tests the local boundary, atomic cumulative sync intent and verified migration. Production integration is merged in #293; the remaining acceptance criteria distinguish runtime unit coverage from browser/device guarantees.
 
-**Merged shell hardening — 2026-10-13 (#206):** [generation-safe offline shell](ISSUE_113_OFFLINE_SHELL.md) builds on the already-existing precache generator and size report. It adds generation-pinned navigation, safe failed-install cleanup, prior-chunk retention and browser update-failure checks. Provisioned offline auth and canonical IndexedDB integration are still open.
+**Merged shell hardening — 2026-10-13 (#206):** [generation-safe offline shell](ISSUE_113_OFFLINE_SHELL.md) builds on the already-existing precache generator and size report. It adds generation-pinned navigation, safe failed-install cleanup, prior-chunk retention and browser update-failure checks. Canonical IndexedDB integration is merged; the offline auth fallback is unit-tested, with production offline auth behavior still awaiting browser/Pixel acceptance.
 
 ## Product contract
 
@@ -646,17 +646,17 @@ Own:
 
 #113 is complete only when all of the following are true:
 
-- [ ] IndexedDB is the canonical local durable store.
-- [ ] Existing valid v5/legacy local learner state migrates without loss and without premature deletion of the old copy.
-- [ ] Every durable learner mutation commits locally before network work.
+- [x] IndexedDB is the canonical local durable store.
+- [x] Existing valid v5/legacy local learner state migrates without loss and without premature deletion of the old copy.
+- [x] Every durable learner mutation commits locally before network work.
 - [ ] A committed action survives immediate reload/process death while offline.
-- [ ] Sync intent is durable and survives restart.
-- [ ] Reconnect/relaunch retries outstanding work automatically.
-- [ ] #93's explicit conflict behavior still prevents silent loss.
+- [x] Sync intent is durable and survives restart.
+- [x] Reconnect/relaunch retries outstanding work automatically.
+- [x] #93's explicit conflict behavior still prevents silent loss.
 - [ ] Missing/corrupt local state attempts cloud recovery before any fresh seed.
 - [ ] A provisioned production device cold-launches offline instead of hanging at auth restoration.
-- [ ] A new/unprovisioned offline device does not fabricate an authenticated learner library.
-- [ ] UID/account switching cannot expose or merge another owner's local data.
+- [x] A new/unprovisioned offline device does not fabricate an authenticated learner library.
+- [x] UID/account switching cannot expose or merge another owner's local data.
 - [ ] Production service-worker caching covers the complete executable app required for offline cold launch.
 - [ ] Failed/interrupted updates leave the previous known-good app runnable.
 - [ ] Today, Library, Topic, Learn, Practice and Test work offline.
@@ -664,9 +664,9 @@ Own:
 - [ ] Test history/evidence/completion written offline remains intact after restart.
 - [ ] Full current shipped curriculum/reference data is available offline with no per-topic download control.
 - [ ] Build tooling reports app-shell, catalog and media sizes reproducibly.
-- [ ] Persistent-storage request/estimate handling exists where supported.
-- [ ] Quota/local-write failure is surfaced and never silently presented as saved progress.
-- [ ] Profile accurately exposes offline/sync/pending/conflict/recovery state.
+- [x] Persistent-storage request/estimate handling exists where supported.
+- [x] Quota/local-write failure is surfaced and never silently presented as saved progress.
+- [x] Profile accurately exposes offline/sync/pending/conflict/recovery state.
 - [ ] Export/import remains lossless for the canonical learner record and has defined sync interaction.
 - [ ] Browser/E2E coverage exercises true offline cold launch, reconnect, migration and failed-update paths.
 - [ ] Production Pixel PWA acceptance passes.
