@@ -140,9 +140,11 @@ function StageRun({ stage, itemFace, itemFor, onFinish, onExit, onNext, nextLabe
     }
   }
   const item = itemId ? itemFor?.(itemId) : undefined
-  const media = item && <>
-    {item.stimulus && <VisualView visual={item.stimulus} compact />}
-    {item.audio && <AudioReference item={{ ...item, audio: item.audio }} />}
+  const stepVisual = step && (step.kind === 'show' || step.kind === 'choose') ? step.visual : undefined
+  const picture = stepVisual ?? item?.stimulus
+  const media = (item || picture) && <>
+    {picture && <VisualView visual={picture} compact showCaption={false} />}
+    {item?.audio && <AudioReference item={{ ...item, audio: item.audio }} />}
   </>
   const feedback = wrong && step && 'explain' in step
     ? <div className="stage-feedback" role="alert">
@@ -162,6 +164,7 @@ function StageRun({ stage, itemFace, itemFor, onFinish, onExit, onNext, nextLabe
         <h2 ref={heading} tabIndex={-1} className={`stage-title${!finished && (title.length <= 3 || GREEK_FORMS.test(title)) ? ' is-glyph' : ''}`}>{finished ? 'Lesson complete' : title}</h2>
         {!finished && content}
       </div>
+      {!finished && picture?.credit && <p className="stage-credit">{picture.credit}</p>}
     </div>
   </SessionFrame>
 }

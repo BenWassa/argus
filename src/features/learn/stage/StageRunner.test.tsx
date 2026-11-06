@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
-import type { LessonStep } from '../../../domain/learning/stages'
+import type { LessonStage, LessonStep } from '../../../domain/learning/stages'
 import { seedLibrary } from '../../../domain/library/catalogSeed'
 import type { Item, Topic } from '../../../domain/library/topic'
 import { generatedCurriculum } from '../../../domain/learning/generatedCurriculum'
@@ -128,6 +128,21 @@ describe('StageRunner', () => {
     expect(screen.getByRole('img', { name: item.stimulus!.alt }).querySelector('svg')).toBeTruthy()
     expect(screen.getByRole('heading', { name: item.answer })).toBeTruthy()
     expect(document.querySelector('.stage-answer')).toBeNull()
+  })
+
+  it('shows a photograph carried by the step when the item has none', () => {
+    const visual = { source: { kind: 'image' as const, src: '/media/clouds/cirrus.avif', width: 700, height: 467 }, alt: 'Cirrus: filaments', credit: 'Photo: Jebulon, CC BY-SA 3.0' }
+    const item = { id: 'a', prompt: 'Ci', answer: 'Cirrus', kind: 'forward' } as Item
+    const stage: LessonStage = { id: 's', title: 'S', steps: [
+      { kind: 'show', id: 'show', itemId: 'a', title: 'Cirrus', body: 'Ci. Filaments.', visual },
+      { kind: 'choose', id: 'ask', itemId: 'a', prompt: 'Which cloud is this?', options: ['Cirrus', 'Cumulus'], answer: 'Cirrus', explain: 'Filaments.', visual },
+    ] }
+    render(<StageRunner stage={stage} itemFace={() => ({ front: 'Ci', back: 'Cirrus' })} itemFor={() => item} onFinish={vi.fn()} onExit={vi.fn()} />)
+    expect(screen.getByRole('img', { name: 'Cirrus: filaments' })).toBeTruthy()
+    expect(screen.getByText('Photo: Jebulon, CC BY-SA 3.0')).toBeTruthy()
+    click('Continue')
+    expect(screen.getByRole('heading', { name: 'Which cloud is this?' })).toBeTruthy()
+    expect(screen.getByRole('img', { name: 'Cirrus: filaments' })).toBeTruthy()
   })
 
   it('plays audio through AudioReference without writing evidence', () => {

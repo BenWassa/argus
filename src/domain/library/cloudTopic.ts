@@ -1,5 +1,6 @@
 import type { Topic } from './topic'
 import type { LearnEntry } from '../learning/content'
+import type { Visual } from '../visual/visual'
 
 // Classification copy and asset QA: #141 and #131's maintained provenance ledger.
 const GENERA = [
@@ -28,19 +29,26 @@ const PHOTO_SOURCES: Record<string, string> = {
   "cumulonimbus": "https://commons.wikimedia.org/wiki/File:Cumulonimbus_incus_over_Warsaw,_Poland.jpg"
 }
 
-function entry([marker, title, meta, cue, creator, licence]: typeof GENERA[number]): LearnEntry {
+function visualFor([, title, , cue, creator, licence]: typeof GENERA[number]): Visual {
   const genus = title.toLowerCase()
   return {
-    marker, title, meta,
-    fields: [{ label: 'Look for', text: cue }],
-    visual: {
-      source: { kind: 'image', src: `/media/clouds/${genus}.avif`, width: 700, height: 467 },
-      alt: `${title}: ${cue}`,
-      credit: `Photo: ${creator}, CC BY-SA ${licence}, via Wikimedia Commons. Cropped and resized; derivative under the same licence.`,
-      assetId: `cloud-${genus}`,
-    },
+    source: { kind: 'image', src: `/media/clouds/${genus}.avif`, width: 700, height: 467 },
+    alt: `${title}: ${cue}`,
+    credit: `Photo: ${creator}, CC BY-SA ${licence}, via Wikimedia Commons. Cropped and resized; derivative under the same licence.`,
+    assetId: `cloud-${genus}`,
   }
 }
+
+function entry(genus: typeof GENERA[number]): LearnEntry {
+  const [marker, title, meta, cue] = genus
+  return { marker, title, meta, fields: [{ label: 'Look for', text: cue }], visual: visualFor(genus) }
+}
+
+/** The ten genera in scored-item order, for the lessons that show their photographs. */
+export const CLOUD_GENERA = GENERA.map(genus => ({
+  itemId: `cloud-genera-item-${String(GENERA.indexOf(genus) + 1).padStart(2, '0')}`,
+  abbreviation: genus[0], name: genus[1], level: genus[2], cue: genus[3], visual: visualFor(genus),
+}))
 
 export function cloudTopic(createdAt: string): Topic {
   return {

@@ -34,6 +34,7 @@
   box-shadow: var(--shadow-key);
   overflow: hidden;
 }
+.stage-credit { margin: 0; max-width: 30rem; font-size: var(--t-label); line-height: 1.35; color: var(--subtle); }
 .stage-title { font-size: clamp(1.4rem, 6vw, 2.1rem); line-height: 1.15; margin: 0; overflow-wrap: break-word; }
 .stage-title.is-glyph { font-family: var(--font-mono); font-size: clamp(3.5rem, 20vw, 5.5rem); line-height: 1; }
 .stage-title:focus { outline: none; }
@@ -83,6 +84,7 @@
     position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap;
   }
   .stage-card .visual svg, .stage-card .visual img { height: 100%; max-height: 20svh; }
+  .stage-credit { font-size: 0.68rem; line-height: 1.25; }
   .stage-options > button { padding-block: 8px; }
 }
 @media (prefers-reduced-motion: reduce) {
