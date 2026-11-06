@@ -1053,7 +1053,6 @@ function parseTopic(
   if (!stageProgress.ok) return stageProgress
 
   const lessonCursor = parseLessonCursor(t.lessonCursor)
-  if (lessonCursor === null) return { ok: false, error: `${where} ("${title}") has an invalid lesson cursor.` }
 
   const morseReview = parseMorseReview(
     t.morseReview,
