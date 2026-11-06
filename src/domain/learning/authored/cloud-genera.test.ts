@@ -43,4 +43,23 @@ describe('registered Cloud Genera curriculum', () => {
       }
     }
   })
+
+  it('never names the cloud in the description of a picture it asks about', () => {
+    for (const step of steps) {
+      if (step.kind !== 'choose') continue
+      const alt = step.visual!.alt.toLowerCase()
+      expect(alt, step.id).not.toContain(step.answer.toLowerCase())
+      expect(alt.length, step.id).toBeGreaterThan(0)
+    }
+  })
+
+  it('leaves the scored vocabulary Test exactly as shipped', () => {
+    expect(topic.items.map(item => [item.id, item.prompt, item.answer])).toEqual([
+      ['cloud-genera-item-01', 'Ci', 'Cirrus'], ['cloud-genera-item-02', 'Cc', 'Cirrocumulus'],
+      ['cloud-genera-item-03', 'Cs', 'Cirrostratus'], ['cloud-genera-item-04', 'Ac', 'Altocumulus'],
+      ['cloud-genera-item-05', 'As', 'Altostratus'], ['cloud-genera-item-06', 'Ns', 'Nimbostratus'],
+      ['cloud-genera-item-07', 'St', 'Stratus'], ['cloud-genera-item-08', 'Sc', 'Stratocumulus'],
+      ['cloud-genera-item-09', 'Cu', 'Cumulus'], ['cloud-genera-item-10', 'Cb', 'Cumulonimbus'],
+    ])
+  })
 })

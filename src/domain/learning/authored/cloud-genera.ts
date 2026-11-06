@@ -27,7 +27,9 @@ function lesson(id: string, title: string, abbreviations: string[]): LessonStage
   }))
   const asks = genera.map((genus): LessonStep => ({
     kind: 'choose', id: `${id}-which-${genus.abbreviation.toLowerCase()}`, itemId: genus.itemId,
-    prompt: 'Which cloud is this?', answer: genus.name, visual: genus.visual,
+    prompt: 'Which cloud is this?', answer: genus.name,
+    // The picture's description must not name the cloud before it is answered.
+    visual: { ...genus.visual, alt: genus.cue },
     options: [genus.name, ...LOOK_ALIKES[genus.abbreviation].map(other => cloud(other).name)],
     explain: `Look for: ${genus.cue}`,
   }))
