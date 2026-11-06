@@ -6,7 +6,9 @@ import { greekAlphabetCurriculum } from './authored/greek-alphabet'
 import { gridNorthMapBearingsCurriculum } from './authored/grid-north-map-bearings'
 import { northReferencesDeclinationCurriculum } from './authored/north-references-declination'
 import { oodaLoopCurriculum } from './authored/ooda-loop'
+import { radioProcedureCurriculum } from './authored/radio-procedure'
 import { reciprocalBearingsCurriculum } from './authored/reciprocal-bearings'
+import { signalFlagsCurriculum } from './authored/signal-flags'
 import { vesselDayShapesCurriculum } from './authored/vessel-day-shapes'
 import { wholeCircleBearingsCurriculum } from './authored/whole-circle-bearings'
 
@@ -68,6 +70,8 @@ export function generatedCurriculum(topic: Topic): Curriculum {
 const AUTHORED: ReadonlyMap<string, Curriculum> = new Map([
   ['greek-alphabet', greekAlphabetCurriculum],
   ['vessel-day-shapes', vesselDayShapesCurriculum],
+  ['signal-flags', signalFlagsCurriculum],
+  ['radio-procedure', radioProcedureCurriculum],
   ['ooda-loop', oodaLoopCurriculum],
   ['whole-circle-bearings', wholeCircleBearingsCurriculum],
   ['reciprocal-bearings', reciprocalBearingsCurriculum],
