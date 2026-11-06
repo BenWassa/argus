@@ -75,7 +75,7 @@ export const signalFlagsCurriculum: Curriculum = {
       id: 'serious-signals', title: 'Serious Signals',
       steps: [
         ...introduce('A', 'O'), ...introduce('B', 'J'), ...introduce('O', 'A'),
-        compare('flags-serious-compare-o', 'O', ['A'], 'White-blue halves versus red-yellow diagonal. Which flag is this?'),
+        compare('flags-serious-compare-o', 'O', ['A'], 'Which flag is this?'),
         { id: 'flags-serious-summary', kind: 'summary', text: 'A: diver down. B: dangerous goods. O: man overboard.' },
         { id: 'flags-serious-check', kind: 'checkpoint', itemIds: idsOf(['A', 'B', 'O']) },
       ],
@@ -84,7 +84,7 @@ export const signalFlagsCurriculum: Curriculum = {
       id: 'danger-and-assistance', title: 'Danger and Assistance',
       steps: [
         ...introduce('U', 'V'), ...introduce('V', 'W'), ...introduce('W', 'V'),
-        compare('flags-assist-compare-u', 'U', ['V', 'W'], 'Compare quarters, cross and nested rectangles. Which flag is this?'),
+        compare('flags-assist-compare-u', 'U', ['V', 'W'], 'Which flag is this?'),
         { id: 'flags-assist-summary', kind: 'summary', text: 'U: danger. V: assistance. W: medical assistance.' },
         { id: 'flags-assist-check', kind: 'checkpoint', itemIds: idsOf(['U', 'V', 'W']) },
       ],
@@ -93,7 +93,7 @@ export const signalFlagsCurriculum: Curriculum = {
       id: 'difficulty-disabled-stopped', title: 'Difficulty, Disabled and Stopped',
       steps: [
         ...introduce('D', 'F'), ...introduce('F', 'D'), ...introduce('M', 'F'),
-        compare('flags-state-compare-d', 'D', ['F', 'M'], 'Compare bands, diamond and cross. Which flag is this?'),
+        compare('flags-state-compare-d', 'D', ['F', 'M'], 'Which flag is this?'),
         {
           id: 'flags-state-summary', kind: 'summary',
           text: 'D: manoeuvring with difficulty. F: disabled. M: stopped and making no way.',
@@ -105,11 +105,11 @@ export const signalFlagsCurriculum: Curriculum = {
       id: 'fire-stop-and-anchor', title: 'Fire, Stop and Anchor',
       steps: [
         ...introduce('J', 'B'), ...introduce('L', 'M'), ...introduce('Y', 'F'),
-        compare('flags-rest-compare-j', 'J', ['B'], 'Plain red versus blue-white-blue. Which flag is this?'),
+        compare('flags-rest-compare-j', 'J', ['B'], 'Which flag is this?'),
         compare('flags-rest-compare-l', 'L', ['M'], 'Which flag is this?'),
         {
           id: 'flags-rest-summary', kind: 'summary',
-          text: 'J: fire with dangerous cargo, or leaking it. L: stop. Y: dragging anchor.',
+          text: 'J: fire with dangerous cargo, or leaking it. L: tells another vessel to stop. Y: dragging anchor.',
         },
         { id: 'flags-rest-check', kind: 'checkpoint', itemIds: idsOf(['J', 'L', 'Y']) },
       ],
